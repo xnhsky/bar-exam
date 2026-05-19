@@ -107,8 +107,16 @@ def split_template(content: str) -> dict[str, str]:
     # 境界 index の検出
     style_open = _find_line_idx(lines, r"<style>")
     style_close = _find_line_idx(lines, r"</style>")
-    toc_open = _find_line_idx(lines, r'<div class="toc-row">')
-    toc_close = _find_line_idx(lines, r"</div>", toc_open + 1) if toc_open >= 0 else -1
+    # Phase 4-6 以降: toc-row が {{TOC_ROW}} に slot 化されていれば単一行を
+    # セクションとして扱う。レガシー (slot 化前) の <div class="toc-row"> にも
+    # フォールバック対応。
+    toc_slot_idx = _find_line_idx(lines, r"\{\{TOC_ROW\}\}")
+    if toc_slot_idx >= 0:
+        toc_open = toc_slot_idx
+        toc_close = toc_slot_idx
+    else:
+        toc_open = _find_line_idx(lines, r'<div class="toc-row">')
+        toc_close = _find_line_idx(lines, r"</div>", toc_open + 1) if toc_open >= 0 else -1
     # Phase 4-5 以降: marker-legend が {{MARKER_LEGEND}} に slot 化されていれば
     # 単一行をセクションとして扱う。レガシー (slot 化前) の <div class="marker-legend">
     # にもフォールバック対応。
