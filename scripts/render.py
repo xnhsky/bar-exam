@@ -418,6 +418,64 @@ def render_marker_legend() -> str:
 
 
 # ============================================================================
+# TOC 描画関数（Phase 4-6・thin schema 派生）
+# ============================================================================
+# 8 templates の diff-allowed `toc` 領域（6 variants）を集約 slot 化。
+# 既存 problem.instruction_type から choice ラベル系列を派生し、universal 部分
+# （先頭 3 行 + 末尾 5 行）と組み合わせて完全な TOC を生成する。
+# 未対応 instruction_type は RuntimeError（silent fallback 不採用、新 type 追加時の
+# 失敗を早期検出）。
+#
+# - schema 変更なし、JSON 改修なし
+# - 14 protected + 300 すべて byte-identical 維持（各問題の instruction_type に
+#   対応する既存 variant と一致する TOC が再生される）
+
+TOC_CHOICE_LABELS_BY_TYPE: dict[str, list[str]] = {
+    "ox-grid-5":               ["ア", "イ", "ウ", "エ", "オ"],
+    "ox-grid-4":               ["ア", "イ", "ウ", "エ"],
+    "ox-grid-3-combination-8": ["ア", "イ", "ウ"],
+    "multi-select-5":          ["1", "2", "3", "4", "5"],
+    "single-choice-5":         ["1", "2", "3", "4", "5"],
+    "combination-5":           ["ア", "イ", "ウ", "エ", "オ"],
+    "fill-in":                 ["A", "B", "C", "D", "E"],
+    "fillin8":                 ["肢1", "肢2", "肢3", "肢4", "肢5"],
+}
+
+TOC_HEAD: str = (
+    '    <div class="toc-row">\n'
+    '      <a href="#part-a">問題文</a>\n'
+    '      <a href="#answer-area">解答</a>\n'
+)
+
+TOC_TAIL: str = (
+    '      <a href="#basis">共通根拠</a>\n'
+    '      <a href="#c-1">体系</a>\n'
+    '      <a href="#c-7">三層記憶</a>\n'
+    '      <a href="#part-d">⚔ARENA</a>\n'
+    '    </div>'
+)
+
+
+def render_toc(instruction_type: str) -> str:
+    """{{TOC_ROW}} slot 値を返す（instruction_type 派生）。
+
+    未対応 type は RuntimeError raise（silent fallback で誤った TOC が出力される事故を
+    防ぐため。新 instruction_type 追加時は TOC_CHOICE_LABELS_BY_TYPE 辞書に 1 行追加）。
+    """
+    if instruction_type not in TOC_CHOICE_LABELS_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for TOC. "
+            f"valid: {sorted(TOC_CHOICE_LABELS_BY_TYPE)}"
+        )
+    labels = TOC_CHOICE_LABELS_BY_TYPE[instruction_type]
+    choice_lines = "".join(
+        f'      <a href="#choice-{i}">{lab}</a>\n'
+        for i, lab in enumerate(labels, start=1)
+    )
+    return TOC_HEAD + choice_lines + TOC_TAIL
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -807,6 +865,12 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # marker-legend slot 供給（Phase 4-5 で集約 slot 化）。
     # universal content のため problem に依存せず固定値を返却。
     slots["MARKER_LEGEND"] = render_marker_legend()
+
+    # TOC slot 供給（Phase 4-6 で集約 slot 化、thin schema 派生）。
+    # problem.instruction_type から TOC_CHOICE_LABELS_BY_TYPE を参照し、
+    # universal 部分 (TOC_HEAD + TOC_TAIL) と choice anchor 群を組み立てる。
+    # 未対応 type は render_toc() 内で RuntimeError。
+    slots["TOC_ROW"] = render_toc(problem.get("instruction_type", ""))
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
