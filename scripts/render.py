@@ -907,6 +907,39 @@ def render(template: str, slots: dict[str, str]) -> str:
 
 
 # ============================================================================
+# inject_ref_ids 後処理（Phase 4-4・basis rb-chip back-link 解決）
+# ============================================================================
+# canonical KTX301 規約 `ref-{target}-{NNN}` で、全 inline <a class="ref-case|ref-stat"
+# href="#X"> に id を注入する。NNN は target 別の document order 1-indexed 出現順、
+# 3 桁ゼロ埋め。
+#
+# - schema 不変（既存 basis.cards.back_links[].href を target にする運用）
+# - 14 protected ファイルは inline ref-X anchor 0 件 → 注入なし → byte-identical 維持
+# - 300.html: 70 inline anchor に id 注入で hash 変化（既存 DIFF=1 内）
+# - 呼出経路前提: render.py は main() からのみ呼ばれる。本関数も main() 内で
+#   `rendered = render(...); rendered = inject_ref_ids(rendered)` の chain として配線。
+#   テスト経路を将来追加する場合は明示的に呼出側で同 chain を組む（render() 自体には
+#   後処理を持たせない設計）。
+# - 既存 id 付き <a> はマッチしないため idempotent
+
+REF_ANCHOR_PATTERN = re.compile(r'<a class="(ref-case|ref-stat)" href="#([^"]+)">')
+
+
+def inject_ref_ids(html: str) -> str:
+    """全 inline ref-case/ref-stat anchor に id="ref-{target}-{NNN}" を注入する。"""
+    counters: dict[str, int] = {}
+
+    def repl(m: "re.Match[str]") -> str:
+        cls = m.group(1)
+        target = m.group(2)
+        counters[target] = counters.get(target, 0) + 1
+        n = counters[target]
+        return f'<a class="{cls}" id="ref-{target}-{n:03d}" href="#{target}">'
+
+    return REF_ANCHOR_PATTERN.sub(repl, html)
+
+
+# ============================================================================
 # 引数 → (subject, problem_id, json_path) 解決
 # ============================================================================
 
@@ -1010,6 +1043,11 @@ def main(argv: list[str]) -> int:
     except RuntimeError as e:
         print(f"FAIL: {e}", file=sys.stderr)
         return 1
+
+    # Phase 4-4: basis rb-chip back-link target を解決するため、inline
+    # ref-case / ref-stat anchor に id="ref-{target}-{NNN}" を注入する。
+    # 14 protected は inline ref-X anchor 0 件のため不変、300 は 70 個に id 付与で hash 変化。
+    rendered = inject_ref_ids(rendered)
 
     output_path = get_output_path(subject, problem_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
