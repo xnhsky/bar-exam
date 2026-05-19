@@ -624,6 +624,47 @@ def render_pre_part_a(instruction_type: str) -> str:
 
 
 # ============================================================================
+# head 領域描画関数（Phase 4-10・C refined・Phase 4-8 body_pre_toc 同形）
+# ============================================================================
+# 8 templates の sync-required head 領域 (867 bytes / 9 lines) を集約 slot 化。
+# universal な HTML 構造 (DOCTYPE / html / head / meta / link) + <title> 行内に
+# 4 個の動的値 (JP_PREFIX/PROBLEM_ID/CRIME/SOURCE_ID) を含むため、Phase 4-8
+# body_pre_toc と同形の Python .format() 名前付き placeholder 拡張を採択。
+#
+# 設計判断（BACKLOG §2-1、Phase 4-8 同方針）:
+# - schema 変更なし、JSON 改修なし（既存 4 slot 値を流用）
+# - 旧 4 slot ({{JP_PREFIX}}/{{PROBLEM_ID}}/{{CRIME}}/{{SOURCE_ID}}) は据え置き
+#   （body_pre_toc / footer-spec で他参照あり削除不可）
+# - escape 旧仕様踏襲（Phase 4-7/4-8 と同一）
+# - broken intermediate state なし（旧 slot 据え置きのため）
+# - font URL に `{`/`}` リテラル不在を確認 → `.format()` 安全
+
+HEAD_TEMPLATE: str = (
+    '<!DOCTYPE html>\n'
+    '<html lang="ja">\n'
+    '<head>\n'
+    '<meta charset="UTF-8">\n'
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+    '<title>{jp_prefix}{problem_id} - {crime}（{source_id}）</title>\n'
+    '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
+    '<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700;800&family=Shippori+Antique&family=Zen+Old+Mincho:wght@400;500;700;900&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Kaisei+Decol:wght@400;500;700&family=Kosugi+Maru&family=Source+Code+Pro:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@500;700;800&family=M+PLUS+1p:wght@500;700;800;900&display=swap" rel="stylesheet">'
+)
+
+
+def render_head(problem: dict) -> str:
+    """{{HEAD}} slot 値を返す（Python .format() で 4 動的値を埋込）。"""
+    subject = problem.get("subject", "KEI")
+    jp_prefix = SUBJECT_TO_JP[subject] + "TX"
+    return HEAD_TEMPLATE.format(
+        jp_prefix=jp_prefix,
+        problem_id=str(problem.get("id", "")),
+        crime=str(problem.get("crime", "")),
+        source_id=str(problem.get("source", "")),
+    )
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -1030,6 +1071,11 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # problem.instruction_type から PRE_PART_A_FORM_NAMES_BY_TYPE を参照し、form 名を埋込。
     # 未対応 type は render_pre_part_a() 内で RuntimeError。
     slots["PRE_PART_A"] = render_pre_part_a(problem.get("instruction_type", ""))
+
+    # head slot 供給（Phase 4-10 で集約 slot 化、Phase 4-8 body_pre_toc 同形・C refined 3 例目）。
+    # 旧 4 slot ({{JP_PREFIX}}/{{PROBLEM_ID}}/{{CRIME}}/{{SOURCE_ID}}) は据え置き、本 slot
+    # は経路の重複となるが許容（body_pre_toc/footer-spec で他参照あり）。
+    slots["HEAD"] = render_head(problem)
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
