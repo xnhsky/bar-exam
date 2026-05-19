@@ -389,6 +389,35 @@ def render_footer_feature_tags(
 
 
 # ============================================================================
+# marker-legend 描画関数（Phase 4-5）
+# ============================================================================
+# 8 templates の sync-required 領域 marker-legend block を集約 slot 化。
+# universal content (subject / instruction_type 無関係) のため引数なし固定。
+# spec bump で legend 内容が変わる際は MARKER_LEGEND_DEFAULT のみ修正することで
+# 8 templates を一括追従可能。per-problem 拡張 hook は Phase 4-5 完了後に判断
+# (BACKLOG §6-4)。
+
+MARKER_LEGEND_DEFAULT: str = (
+    '  <div class="marker-legend" aria-label="マーカー凡例">\n'
+    '    <span class="lg-title">凡例</span>\n'
+    '    <span class="lg-item"><span class="lg-sample lg-ron">論</span>論文関連</span>\n'
+    '    <span class="lg-divider">|</span>\n'
+    '    <span class="lg-item"><span class="exam-mark freq-high">高</span>短答頻出</span>\n'
+    '    <span class="lg-item"><span class="exam-mark freq-mid">中</span>標準</span>\n'
+    '    <span class="lg-item"><span class="exam-mark freq-low">低</span>関連</span>\n'
+    '    <span class="lg-divider">|</span>\n'
+    '    <span class="lg-item"><span class="statute-emphasis freq-high">条</span>条文</span>\n'
+    '    <span class="lg-item"><span class="case-emphasis freq-high">判</span>判例</span>\n'
+    '  </div>'
+)
+
+
+def render_marker_legend() -> str:
+    """{{MARKER_LEGEND}} slot 値を返す（universal、引数なし固定）。"""
+    return MARKER_LEGEND_DEFAULT
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -774,6 +803,10 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     slots["C5_FLOWCHART"]   = render_c5_flowchart(part_c.get("flowchart"))
     slots["C6_RELATED"]     = render_c6_related(part_c.get("related_problems"))
     slots["C7_MEMORY"]      = render_c7_memory(part_c.get("three_layer_memory"), final_answer_html)
+
+    # marker-legend slot 供給（Phase 4-5 で集約 slot 化）。
+    # universal content のため problem に依存せず固定値を返却。
+    slots["MARKER_LEGEND"] = render_marker_legend()
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
