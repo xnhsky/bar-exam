@@ -81,6 +81,269 @@ TEMPLATE_PATHS: dict[str, Path] = {
 COMBO_SET_SEPARATOR = "・"
 
 
+
+# ============================================================================
+# PART C スタブ（Phase 2 byte-identical 維持用）
+# ============================================================================
+# 各 PART C セクションの内部 4 行（nav, h2, TODO comment, back-to-top）。
+# part_c フィールドが未指定 / null の場合、これらが slot 値として注入され、
+# 既存 14 件の出力と byte-identical を維持する。
+# テンプレ patch スクリプト upgrade_templates_partc_slots.py と対応。
+
+PART_C_STUBS: dict[str, str] = {
+    "C1_SYSTEMATIC": (
+        '    <nav class="sec-nav"><a href="#basis">↑共通根拠</a><a href="#c-2">↓C-2</a></nav>\n'
+        '    <h2 class="section-title"><span class="sec-icon">❀</span>C-1 体系・記憶</h2>\n'
+        '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+    ),
+    "C2_COMPARISON": (
+        '    <nav class="sec-nav"><a href="#c-1">←C-1</a><a href="#c-3">↓C-3</a></nav>\n'
+        '    <h2 class="section-title"><span class="sec-icon">❀</span>C-2 概念比較・全肢俯瞰</h2>\n'
+        '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+    ),
+    "C3_CONNECTIONS": (
+        '    <nav class="sec-nav"><a href="#c-2">←C-2</a><a href="#c-4">↓C-4</a></nav>\n'
+        '    <h2 class="section-title"><span class="sec-icon">❀</span>C-3 関連の深い科目との接続</h2>\n'
+        '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+    ),
+    "C4_DOCTRINES": (
+        '    <nav class="sec-nav"><a href="#c-3">←C-3</a><a href="#c-5">↓C-5</a></nav>\n'
+        '    <h2 class="section-title"><span class="sec-icon">⚔</span>C-4 学説対立</h2>\n'
+        '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+    ),
+    "C5_FLOWCHART": (
+        '    <nav class="sec-nav"><a href="#c-4">←C-4</a><a href="#c-6">↓C-6</a></nav>\n'
+        '    <h2 class="section-title"><span class="sec-icon">🗺</span>C-5 総合フローチャート</h2>\n'
+        '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+    ),
+    "C6_RELATED": (
+        '    <nav class="sec-nav"><a href="#c-5">←C-5</a><a href="#c-7">↓C-7</a></nav>\n'
+        '    <h2 class="section-title"><span class="sec-icon">📚</span>C-6 関連問題・出題傾向</h2>\n'
+        '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+    ),
+    "C7_MEMORY": (
+        '    <nav class="sec-nav"><a href="#c-6">←C-6</a><a href="#part-d">PART D→</a></nav>\n'
+        '    <h2 class="section-title"><span class="sec-icon">🧠</span>C-7 三層構造記憶</h2>\n'
+        '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+    ),
+}
+
+# ============================================================================
+# PART C 描画関数（Phase 2）
+# ============================================================================
+# 各 render_c{N}_xxx は part_c.<key> が None / 未指定なら stub を返却し、
+# object が与えられた場合は構造化 HTML を組み立てて返却する。
+# 全テキストフィールドは escape 適用済。`*_html` フィールドは raw HTML（inline
+# strong/br/span/a を許容）として埋め込む（docs/phase2-schema-design.md §9）。
+
+# 共通の back-to-top 末尾
+_BACK_TO_TOP = '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
+
+
+# ============================================================================
+
+def _render_table(table: dict | None, indent: str = "    ") -> str:
+    """{title?, headers, rows[{cells, row_key?}]} を cmp-table-wrap HTML に変換。"""
+    if not table:
+        return ""
+    parts = []
+    title = table.get("title")
+    if title:
+        parts.append(f'{indent}<h3>{escape(title)}</h3>')
+    parts.append(f'{indent}<div class="cmp-table-wrap">')
+    parts.append(f'{indent}  <table>')
+    headers = table.get("headers", [])
+    if headers:
+        ths = "".join(f"<th>{escape(h)}</th>" for h in headers)
+        parts.append(f'{indent}    <thead><tr>{ths}</tr></thead>')
+    parts.append(f'{indent}    <tbody>')
+    for row in table.get("rows", []):
+        tr_cls = ' class="row-key"' if row.get("row_key") else ""
+        # cells 内は raw HTML 許容（schema 設計に基づく）
+        tds = "".join(f"<td>{c}</td>" for c in row.get("cells", []))
+        parts.append(f'{indent}      <tr{tr_cls}>{tds}</tr>')
+    parts.append(f'{indent}    </tbody>')
+    parts.append(f'{indent}  </table>')
+    parts.append(f'{indent}</div>')
+    return "\n".join(parts)
+
+
+def render_c1_systematic(data: dict | None) -> str:
+    if not data:
+        return PART_C_STUBS["C1_SYSTEMATIC"]
+    parts = [
+        '    <nav class="sec-nav"><a href="#basis">↑共通根拠</a><a href="#c-2">C-2→</a></nav>',
+        f'    <h2 class="section-title"><span class="sec-icon">❀</span>C-1 体系的解説{escape(data.get("title_suffix", ""))}</h2>',
+        '',
+    ]
+    if data.get("subheading"):
+        parts.append(f'    <h3>{escape(data["subheading"])}</h3>')
+    if data.get("intro_key_phrase_html"):
+        parts.append(f'    <div class="key-phrase-box">\n      {data["intro_key_phrase_html"]}\n    </div>')
+    if data.get("summary_html"):
+        parts.append(f'    <p>{data["summary_html"]}</p>')
+    table_html = _render_table(data.get("table"))
+    if table_html:
+        parts.append("")
+        parts.append(table_html)
+    if data.get("footer_note_html"):
+        parts.append(f'    <p style="font-size:.92em;">{data["footer_note_html"]}</p>')
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
+def render_c2_comparison(data: dict | None) -> str:
+    if not data:
+        return PART_C_STUBS["C2_COMPARISON"]
+    parts = [
+        '    <nav class="sec-nav"><a href="#c-1">←C-1</a><a href="#c-3">C-3→</a></nav>',
+        '    <h2 class="section-title"><span class="sec-icon">❀</span>C-2 概念比較・全肢俯瞰</h2>',
+    ]
+    for table in data.get("tables", []):
+        parts.append("")
+        parts.append(_render_table(table))
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
+def render_c3_connections(data: dict | None) -> str:
+    if not data:
+        return PART_C_STUBS["C3_CONNECTIONS"]
+    parts = [
+        '    <nav class="sec-nav"><a href="#c-2">←C-2</a><a href="#c-4">C-4→</a></nav>',
+        '    <h2 class="section-title"><span class="sec-icon">❀</span>C-3 関連の深い科目との接続</h2>',
+        '',
+        '    <div class="cross-grid">',
+    ]
+    for card in data.get("cards", []):
+        parts.append('      <div class="cross-card">')
+        parts.append(
+            f'        <h4><span class="cc-label">{escape(card.get("label", ""))}</span>{escape(card.get("title", ""))}</h4>'
+        )
+        for row in card.get("rows", []):
+            key = escape(row.get("key", ""))
+            body = row.get("body_html", "")
+            parts.append(f'        <div class="cc-row"><span class="cc-key">{key}</span>{body}</div>')
+        parts.append('      </div>')
+    parts.append('    </div>')
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
+def render_c4_doctrines(data: dict | None) -> str:
+    if not data:
+        return PART_C_STUBS["C4_DOCTRINES"]
+    parts = [
+        '    <nav class="sec-nav"><a href="#c-3">←C-3</a><a href="#c-5">C-5→</a></nav>',
+        '    <h2 class="section-title"><span class="sec-icon">⚔</span>C-4 学説対立</h2>',
+    ]
+    default_headers = ["学説", "結論", "論拠"]
+    for topic in data.get("topics", []):
+        table_for_render = {
+            "title": topic.get("title"),
+            "headers": topic.get("headers") or default_headers,
+            "rows": topic.get("rows", []),
+        }
+        parts.append("")
+        parts.append(_render_table(table_for_render))
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
+def render_c5_flowchart(data: dict | None) -> str:
+    if not data:
+        return PART_C_STUBS["C5_FLOWCHART"]
+    parts = [
+        '    <nav class="sec-nav"><a href="#c-4">←C-4</a><a href="#c-6">C-6→</a></nav>',
+        '    <h2 class="section-title"><span class="sec-icon">🗺</span>C-5 総合フローチャート</h2>',
+    ]
+    if data.get("intro_key_phrase_html"):
+        parts.append("")
+        parts.append(f'    <div class="key-phrase-box">\n      {data["intro_key_phrase_html"]}\n    </div>')
+    figure = data.get("figure")
+    if figure and figure.get("svg_html"):
+        parts.append("")
+        parts.append('    <div class="figure-wrap">')
+        parts.append(f'      {figure["svg_html"]}')
+        if figure.get("caption"):
+            parts.append(f'      <p class="figure-caption">{escape(figure["caption"])}</p>')
+        parts.append('    </div>')
+    rules = data.get("rules")
+    if rules and rules.get("items"):
+        parts.append("")
+        if rules.get("title"):
+            parts.append(f'    <h3>{escape(rules["title"])}</h3>')
+        parts.append('    <ul class="lead-list">')
+        for item in rules["items"]:
+            parts.append(f'      <li>{item}</li>')
+        parts.append('    </ul>')
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
+def render_c6_related(data: dict | None) -> str:
+    if not data:
+        return PART_C_STUBS["C6_RELATED"]
+    parts = [
+        '    <nav class="sec-nav"><a href="#c-5">←C-5</a><a href="#c-7">C-7→</a></nav>',
+        '    <h2 class="section-title"><span class="sec-icon">📚</span>C-6 関連問題・出題傾向</h2>',
+    ]
+    for section_key in ("trends", "related"):
+        section = data.get(section_key)
+        if not section or not section.get("items"):
+            continue
+        parts.append("")
+        if section.get("title"):
+            parts.append(f'    <h3>{escape(section["title"])}</h3>')
+        parts.append('    <ul class="lead-list">')
+        for item in section["items"]:
+            parts.append(f'      <li>{item}</li>')
+        parts.append('    </ul>')
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
+def render_c7_memory(data: dict | None) -> str:
+    if not data:
+        return PART_C_STUBS["C7_MEMORY"]
+    parts = [
+        '    <nav class="sec-nav"><a href="#c-6">←C-6</a><a href="#part-d">PART D→</a></nav>',
+        '    <h2 class="section-title"><span class="sec-icon">🧠</span>C-7 三層構造記憶</h2>',
+    ]
+    if data.get("intro_key_phrase_html"):
+        parts.append("")
+        parts.append(f'    <div class="key-phrase-box">\n      {data["intro_key_phrase_html"]}\n    </div>')
+    for layer in data.get("layers", []):
+        priority = layer.get("priority", "a")
+        parts.append("")
+        if layer.get("title"):
+            parts.append(f'    <h3>{escape(layer["title"])}</h3>')
+        parts.append('    <div class="memory-list">')
+        for item in layer.get("items", []):
+            badge = escape(item.get("badge", ""))
+            title = escape(item.get("title", ""))
+            body = item.get("body_html", "")
+            parts.append(f'      <div class="memory-item priority-{priority}">')
+            parts.append(f'        <span class="priority-badge priority-{priority}">{badge}</span>')
+            parts.append('        <div class="mem-body">')
+            parts.append(f'          <span class="mem-title">{title}</span>')
+            parts.append(f'          {body}')
+            if item.get("hint_html"):
+                parts.append(f'          <span class="mem-hint">{item["hint_html"]}</span>')
+            parts.append('        </div>')
+            parts.append('      </div>')
+        parts.append('    </div>')
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
 # ============================================================================
 # 選択肢の slot 命名規約
 # ============================================================================
@@ -176,6 +439,18 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         )
     else:
         slots["CASE_BODY"] = ""
+
+    # PART C slot 供給（Phase 2、任意フィールド part_c.*）。
+    # part_c 未定義 / 各サブセクション未定義の場合は PART_C_STUBS が注入され、
+    # 既存 14 件は byte-identical 維持。
+    part_c = problem.get("part_c") or {}
+    slots["C1_SYSTEMATIC"]  = render_c1_systematic(part_c.get("systematic"))
+    slots["C2_COMPARISON"]  = render_c2_comparison(part_c.get("comparison"))
+    slots["C3_CONNECTIONS"] = render_c3_connections(part_c.get("connections"))
+    slots["C4_DOCTRINES"]   = render_c4_doctrines(part_c.get("doctrines"))
+    slots["C5_FLOWCHART"]   = render_c5_flowchart(part_c.get("flowchart"))
+    slots["C6_RELATED"]     = render_c6_related(part_c.get("related_problems"))
+    slots["C7_MEMORY"]      = render_c7_memory(part_c.get("three_layer_memory"))
 
     # 【見解】slot 供給（slotmap §5.3 §8 固定 3 件方式: A/B/C）
     # views が未指定（ox-grid / multi-select / combination 系）の場合は空文字で埋める。
