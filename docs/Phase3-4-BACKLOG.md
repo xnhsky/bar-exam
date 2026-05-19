@@ -27,125 +27,128 @@ CP gate 正準 baseline: `_phase3_2_pre_patch_baseline.json` (`docs/cp-gate.md` 
 
 ---
 
-## §1. Phase 4-10: head 領域 slot 化（Phase 4-8 body_pre_toc 同形・C refined 3 例目）
+## §1. Phase 4-11: basis 領域 sec-nav slot 化（A + C 組合せ 3 例目・Phase 4-6/4-9 機械的踏襲）
 
 ### 1-1. 領域の特性
 
-`head` は DOCTYPE 〜 `<style>` 直前の **sync-required 領域**（867 bytes / 9 lines、
-8 templates 完全 byte-identical / hash=`ccd63a7fba54`）。Phase 4-8 body_pre_toc と
-同様、内部に 4 個の **動的 slot** を含む点で完全静的 universal const とは異なる:
+`basis` は diff-allowed 領域（avg 335 bytes / 6 lines、8 templates が **6 variants**）。
+Phase 3-3 で basis card 内容は `{{BASIS_CARDS}}` slot 化済。残る可変部分は section の
+**第 2 行 `<nav class="sec-nav">` 内の back-link 1 つ**のみ。
+
+可変部分: `<a href="#choice-N">↑LABEL</a>`
+- N: 3 / 4 / 5（最終 choice 番号、instruction_type の選択肢件数依存）
+- LABEL: 空欄E / 記述オ / 記述ウ / 肢5 / 記述エ / 記述5（instruction_type 別のラベル）
+
+### 1-2. 6 variants × instruction_type 対応
+
+| variant | template | instruction_type | back-link 行 |
+|:-:|---|---|---|
+| 1 | fillin | fill-in | `<a href="#choice-5">↑空欄E</a>` |
+| 2 | KTX_template + comb5 | ox-grid-5 / combination-5 | `<a href="#choice-5">↑記述オ</a>` |
+| 3 | ox3comb8 | ox-grid-3-combination-8 | `<a href="#choice-3">↑記述ウ</a>` |
+| 4 | fillin8 | fillin8 | `<a href="#choice-5">↑肢5</a>` |
+| 5 | ox4 | ox-grid-4 | `<a href="#choice-4">↑記述エ</a>` |
+| 6 | msel5 + sc5 | multi-select-5 / single-choice-5 | `<a href="#choice-5">↑記述5</a>` |
+
+### 1-3. universal vs per-instruction-type 境界
 
 ```html
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{JP_PREFIX}}{{PROBLEM_ID}} - {{CRIME}}（{{SOURCE_ID}}）</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=...&display=swap" rel="stylesheet">
+  <section class="section" id="basis">                              ← universal
+[--- per-instruction-type 可変 ---]
+    <nav class="sec-nav"><a href="#choice-N">↑LABEL</a><a href="#c-1">↓C-1</a></nav>
+[--- 以下 universal ---]
+    <h2 class="section-title"><span class="sec-icon">❀</span>A-3 共通根拠条文・判例</h2>
+{{BASIS_CARDS}}                                                   ← Phase 3-3 既存 slot
+    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
+  </section>
 ```
 
-含む動的 slot 4 個（重複除いて）: `JP_PREFIX` / `PROBLEM_ID` / `CRIME` / `SOURCE_ID`、
-すべて `<title>` 行に集中。`OVERRIDE_PATTERN` 等は不在 → **P1/P2/P3 間で head 出力差異
-なし**。
+ただし第 2 行内でも `<nav class="sec-nav">` wrapper と `<a href="#c-1">↓C-1</a>` (C-1 link)
+は universal で、**back-link 1 つだけ**が可変。これを `{{BASIS_SECNAV}}` slot 化する。
 
-### 1-2. 着手前調査の確定事項
+### 1-4. Phase 4-6 / 4-9 との完全同形性
 
-| 観点 | 結果 |
-|---|---|
-| P1/P2/P3 間の head 差分 | **なし**（OVERRIDE_PATTERN slot 不在）|
-| title slot 化方針 | head 集約 slot に **内包**（別 slot 化不要）|
-| doc-header の所在 | head 外（body_pre_toc 内、**Phase 4-8 で集約済**）|
-| パターン分類判定 | head 内に 4 動的 slot 含む → **C refined** 採択（純粋形 NG） |
+| 観点 | Phase 4-6 TOC | Phase 4-9 pre_part_a | Phase 4-11 basis sec-nav |
+|---|---|---|---|
+| 可変要素の種類 | choice 行数 + ラベル系列 | form 名文字列 1 つ | back-link 行 1 つ |
+| dispatch 方式 | dict + 関数 | dict + 関数 | dict + 関数 |
+| 未対応 type | RuntimeError | RuntimeError | RuntimeError |
+| パターン分類 | A + C 組合せ | A + C 組合せ | **A + C 組合せ 3 例目** |
+| 設計コスト | 中（パターン確立）| 極低（4-6 踏襲）| **極低**（4-6/4-9 機械的踏襲）|
 
-### 1-3. Phase 4-8 body_pre_toc との対比
+→ Phase 4-11 は **A+C 組合せ 3 例目**として「再利用の定型性」を完全実証。
 
-| 観点 | Phase 4-8 body_pre_toc | Phase 4-10 head |
-|---|---|---|
-| sync 状態 | 8 templates 完全 byte-identical | 同左 |
-| 内部動的 slot 数 | 6 個 | **4 個** |
-| パターン分類 | C refined (.format()) | C refined (.format()) ← **3 例目** |
-| 旧 slot 据え置き | 全 6 個 (footer-spec 等で他参照) | 全 4 個 (footer-spec / body_pre_toc で他参照) |
-| broken state | なし | なし |
-| 規模 | 393 bytes | 867 bytes (約 2.2 倍) |
-| 設計コスト | 中（パターン確立）| **極低**（Phase 4-8 を機械的踏襲）|
-
-→ Phase 4-10 head は **Phase 4-8 body_pre_toc のロジックをほぼコピペで適用**。
-
-### 1-4. 命名規約
+### 1-5. 命名規約
 
 | 項目 | 名称 |
 |---|---|
-| slot 名 | `{{HEAD}}` |
-| const 名 | `HEAD_TEMPLATE` (Python format placeholder `{jp_prefix}` 等を含む) |
-| 関数名 | `render_head(problem: dict) -> str` |
-| upgrade スクリプト | `scripts/upgrade_templates_head_slot.py` |
+| slot 名 | `{{BASIS_SECNAV}}` |
+| dict 名 | `BASIS_SECNAV_LINKS_BY_TYPE` (instruction_type → back-link 完成 HTML) |
+| 関数名 | `render_basis_secnav(instruction_type: str) -> str` |
+| upgrade スクリプト | `scripts/upgrade_templates_basis_secnav_slot.py` |
 
 ---
 
-## §2. 設計（C refined・Phase 4-8 同形・確定版）
+## §2. 設計（A + C 組合せ・Phase 4-6/4-9 同形・確定版）
 
 ### 2-1. 採択方針
 
 | 項目 | 設計 |
 |---|---|
 | schema 変更 | **なし** |
-| JSON 改修 | **なし**（既存 4 slot 値を流用） |
-| 新 slot | `{{HEAD}}` を 8 templates の head 領域全体に置換 |
-| render.py 改修 | `HEAD_TEMPLATE` const (Python format placeholder) + `render_head(problem)` 関数 + `slots["HEAD"]` 配線 |
-| 旧 4 slot の去就 | **据え置き**（body_pre_toc / footer-spec 等で他参照あり、削除不可）。HEAD は経路の重複 |
-| escape 処理 | 旧仕様踏襲（escape なし、Phase 4-7/4-8 と同一）|
+| JSON 改修 | **なし**（既存 `problem.instruction_type` から派生）|
+| 新 slot | `{{BASIS_SECNAV}}` を 8 templates の basis section 第 2 行 nav 全体に置換 |
+| render.py 改修 | `BASIS_SECNAV_LINKS_BY_TYPE` 8 entry dict + `render_basis_secnav(instruction_type)` 関数 + slot 配線 |
+| 未対応 instruction_type | **`RuntimeError`** raise（Phase 4-6/4-9 同方針）|
+| broken state | なし（diff-allowed 領域、旧 slot 不在）|
 | 14 protected への影響 | byte-identical 維持期待 |
 | 300 への影響 | 同上 |
 
 ### 2-2. render.py 追加内容
 
 ```python
-HEAD_TEMPLATE: str = (
-    '<!DOCTYPE html>\n'
-    '<html lang="ja">\n'
-    '<head>\n'
-    '<meta charset="UTF-8">\n'
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
-    '<title>{jp_prefix}{problem_id} - {crime}（{source_id}）</title>\n'
-    '<link rel="preconnect" href="https://fonts.googleapis.com">\n'
-    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
-    '<link href="https://fonts.googleapis.com/css2?family=...省略...&display=swap" rel="stylesheet">'
-)
+BASIS_SECNAV_LINKS_BY_TYPE: dict[str, str] = {
+    "ox-grid-5":               '<a href="#choice-5">↑記述オ</a>',
+    "ox-grid-4":               '<a href="#choice-4">↑記述エ</a>',
+    "ox-grid-3-combination-8": '<a href="#choice-3">↑記述ウ</a>',
+    "multi-select-5":          '<a href="#choice-5">↑記述5</a>',
+    "single-choice-5":         '<a href="#choice-5">↑記述5</a>',
+    "combination-5":           '<a href="#choice-5">↑記述オ</a>',
+    "fill-in":                 '<a href="#choice-5">↑空欄E</a>',
+    "fillin8":                 '<a href="#choice-5">↑肢5</a>',
+}
 
 
-def render_head(problem: dict) -> str:
-    """{{HEAD}} slot 値を返す（Python .format() で動的値埋込）。"""
-    subject = problem.get("subject", "KEI")
-    jp_prefix = SUBJECT_TO_JP[subject] + "TX"
-    return HEAD_TEMPLATE.format(
-        jp_prefix=jp_prefix,
-        problem_id=str(problem.get("id", "")),
-        crime=str(problem.get("crime", "")),
-        source_id=str(problem.get("source", "")),
-    )
+def render_basis_secnav(instruction_type: str) -> str:
+    """{{BASIS_SECNAV}} slot 値を返す（instruction_type 派生）。未対応 type で RuntimeError。"""
+    if instruction_type not in BASIS_SECNAV_LINKS_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for basis sec-nav. "
+            f"valid: {sorted(BASIS_SECNAV_LINKS_BY_TYPE)}"
+        )
+    back_link = BASIS_SECNAV_LINKS_BY_TYPE[instruction_type]
+    return f'    <nav class="sec-nav">{back_link}<a href="#c-1">↓C-1</a></nav>'
 ```
 
-`build_slot_dict()` に `slots["HEAD"] = render_head(problem)` を 1 行追加。
+### 2-3. upgrade スクリプト方式
 
-### 2-3. upgrade スクリプト
+Phase 4-6 TOC / 4-9 pre_part_a と同形の β variant 別 OLD dispatch。
+TEMPLATE_TO_TYPE 表 + BACK_LINKS_BY_TYPE 表で各 template 用 OLD を構築、共通 NEW =
+`{{BASIS_SECNAV}}` に置換。
 
-8 templates 同一 OLD (head 領域全体、867 bytes) → 共通 NEW = `{{HEAD}}`。
-Phase 4-8 body_pre_toc と同形の単一 OLD 方式。
+### 2-4. check_template_sync 境界検出
 
-### 2-4. byte-identical 維持リスク
+basis 領域は `basis_section` (`<section[^>]+id="basis"`) 〜 `basis_close` で挟まれる。
+slot 化後も section open/close は不変、内部の sec-nav 行だけが `{{BASIS_SECNAV}}` に
+変化。境界検出は更新不要。slot 化後の basis variants 数は **6 → 1 に集約**。
+
+### 2-5. byte-identical 維持リスク
 
 **極めて低い**:
-- 8 templates 完全 byte-identical 確認済
-- 動的 slot 4 個はすべて他で参照あり据え置き
-- Phase 4-8 body_pre_toc で .format() 拡張パターン実証済
-- font URL の `family=` クエリ等に `{` `}` リテラル不在を確認 → `.format()` 安全
-
-### 2-5. broken intermediate state なし
-
-旧 4 slot を削除しないため、Commit 2 完了直後でも render は通常動作。
+- 6 variants 完全規則的（back-link 1 行のみ可変）
+- universal 枠は固定
+- Phase 4-6 / 4-9 で実証済 dispatch パターン再利用
+- broken state 発生せず
 
 ---
 
@@ -155,34 +158,33 @@ Phase 4-8 body_pre_toc と同形の単一 OLD 方式。
 
 | # | commit subject | 影響範囲 | broken state |
 |---|---|---|---|
-| 1 | `docs: BACKLOG.md §0 Phase 4-9 完了追記 + §1 Phase 4-10 head スコープ` | docs only | なし |
-| 2 | `feat(phase4-10 render): HEAD_TEMPLATE + render_head() + slot 供給配線` | scripts/render.py | なし |
-| 3 | `feat(phase4-10 templates): 8 templates の head を {{HEAD}} に置換` | upgrade script + 8 templates + outputs (byte-identical 期待) | なし |
+| 1 | `docs: BACKLOG.md §0 Phase 4-10 完了追記 + §1 Phase 4-11 basis sec-nav スコープ` | docs only | なし |
+| 2 | `feat(phase4-11 render): BASIS_SECNAV_LINKS_BY_TYPE + render_basis_secnav() + slot 供給配線` | scripts/render.py | なし |
+| 3 | `feat(phase4-11 templates): 8 templates の basis sec-nav を {{BASIS_SECNAV}} に置換` | upgrade script + 8 templates + outputs (byte-identical 期待) | なし |
 
-### Phase 4-10 完了条件
+### Phase 4-11 完了条件
 
 - 全 15 件 `validate-tx.py` で ERROR 0 / WARNING 0 を**維持**
-- CP gate PASS=14 / DIFF=1（300 のみ DIFF、Phase 4-9 完了状態と同じ）
-- check_template_sync sync-required 7 領域 PASS（head は slot 化で新 hash になるが 8 templates 同期維持）
-- 8 templates の head (9 行) が `{{HEAD}}` 単行に縮減（累計 -約 6,800 bytes）
+- CP gate PASS=14 / DIFF=1（300 のみ DIFF、Phase 4-10 完了状態と同じ）
+- check_template_sync sync-required 7 領域 PASS / diff-allowed basis が **6 variants → 1 variant** に集約
+- 8 templates の basis 領域内 sec-nav 行が `{{BASIS_SECNAV}}` 単行に縮減
 
 ---
 
-## §4. Phase 4-11 以降の候補（参考、未着手）
+## §4. Phase 4-12 以降の候補（参考、未着手）
 
 | 候補 | 領域 | 主要懸念 | 優先度 |
 |---|---|---|---|
-| **basis 領域** (diff-allowed 6 variants) | basis diff-allowed 領域 (avg 335 bytes / 6 lines、A-3 sec-nav back-link 差) | Phase 4-6 TOC / 4-9 pre_part_a と同形の A+C 組合せ **3 例目**。Phase 3-3 で basis card 構造化済との関連整理が必要 | **中（最有力）** |
-| `part_a` 領域 (diff-allowed 8 variants) | avg 1,515 bytes / 21 lines | instruction_type 別の問題情報差。A+C か D 寄りかは事前調査必要 | 中 |
+| **part_a 領域** (diff-allowed 8 variants) | avg 1,515 bytes / 21 lines | instruction_type 別の問題情報差。A+C か D 寄りかは事前調査必要 | **中（最有力）** |
 | `a2` 領域 (diff-allowed 8 variants) | avg 1,643 bytes / 60 lines | A-2 解答エリア構造差、D 構造化レンダリング寄り | 中 |
 | `part_b` 領域 (diff-allowed 6 variants) | avg 5,530 bytes / 174 lines | 最大規模 diff-allowed、A + D 組合せ可能性 | 低（設計セッション要）|
 | `css` 領域（巨大）| sync (60,743 bytes / 1,997 lines) | spec §Annex A canonical CSS と同期、構造化困難 | 低（要設計検討）|
 | `js` 領域 | sync (17,552 bytes / 405 lines) | spec §Annex C canonical JS と同期、構造化困難 | 低（要設計検討）|
 | Phase 5+ JX シリーズ着手 | JX 系（事例式）| spec/jx-v3.2-master.md 由来の構造化 (A〜H 8 サブセクション + 第 3〜5 部)、1 問 1〜2 時間規模 | 別シリーズ・別 Phase（Phase 4 完了後）|
 
-Phase 4-10 完了後、優先度順にスコープ化する。**Phase 4-11 は basis 領域が最有力候補**
-（A+C 組合せ 3 例目で「再利用の定型性」を完全実証、Phase 4-6 TOC / 4-9 pre_part_a の
-dispatch ロジックを機械的踏襲、規模最小）。
+Phase 4-11 完了後、優先度順にスコープ化する。**Phase 4-12 は part_a 領域が最有力候補**
+（規模中、instruction_type 別構造差のため A+C 組合せ or D 構造化レンダリングが必要、
+事前調査で判定）。残 diff-allowed は part_a / a2 / part_b の 3 領域に集約。
 
 ---
 
