@@ -109,12 +109,20 @@ def split_template(content: str) -> dict[str, str]:
     style_close = _find_line_idx(lines, r"</style>")
     toc_open = _find_line_idx(lines, r'<div class="toc-row">')
     toc_close = _find_line_idx(lines, r"</div>", toc_open + 1) if toc_open >= 0 else -1
-    marker_legend_open = _find_line_idx(lines, r'<div class="marker-legend"')
-    marker_legend_close = (
-        _find_line_idx(lines, r"</div>", marker_legend_open + 1)
-        if marker_legend_open >= 0
-        else -1
-    )
+    # Phase 4-5 以降: marker-legend が {{MARKER_LEGEND}} に slot 化されていれば
+    # 単一行をセクションとして扱う。レガシー (slot 化前) の <div class="marker-legend">
+    # にもフォールバック対応。
+    ml_slot_idx = _find_line_idx(lines, r"\{\{MARKER_LEGEND\}\}")
+    if ml_slot_idx >= 0:
+        marker_legend_open = ml_slot_idx
+        marker_legend_close = ml_slot_idx
+    else:
+        marker_legend_open = _find_line_idx(lines, r'<div class="marker-legend"')
+        marker_legend_close = (
+            _find_line_idx(lines, r"</div>", marker_legend_open + 1)
+            if marker_legend_open >= 0
+            else -1
+        )
     part_a_title = _find_line_idx(lines, r'<div class="part-title">PART A')
     answer_area_section = _find_line_idx(lines, r'<section[^>]+id="answer-area"')
     # A-2 内側に nested section は無い前提 (slotmap §5.10 §2: a2 sliced from
