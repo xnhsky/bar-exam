@@ -476,6 +476,63 @@ def render_toc(instruction_type: str) -> str:
 
 
 # ============================================================================
+# PART D drill 構造化レンダリング関数（Phase 4-7）
+# ============================================================================
+# 8 templates の PART D drill 12 件分の固定 slot 方式（旧 DRILL_NN_* 60 個）を、
+# 構造化レンダリング方式（{{DRILL_BLOCKS}} 1 slot）に置換するための関数。
+# Phase 3-3 basis structured rendering と同種パターン。
+#
+# 設計判断（BACKLOG §2-1）:
+# - schema 変更なし（既存 drill_blocks 配列フィールド流用）
+# - escape 旧仕様踏襲（escape なし、byte-identical 優先）
+#   ※ BACKLOG §6-6: 将来 HTML attribute-unsafe 文字が出現したときに個別対処
+#   ※ Phase 4-7 commit 2 着手前 grep 検証で全 720 field-values で 0 件確認済
+# - num は JSON drill["num"] をそのまま使用（"01" 等 0 埋め文字列を期待）
+# - correct ("○"/"×") から O_CORRECT / X_CORRECT ("true"/"false") を派生
+# - drill_blocks 未指定 / 空 → "" を返却（drill section ごと不出力。ただし
+#   template 側の周辺 HTML（arena-counter / arena-scorecard 等）は残る）
+
+def render_drill_blocks(drills: list | None) -> str:
+    """{{DRILL_BLOCKS}} slot 値を返す（構造化レンダリング）。
+
+    各 drill を <div class="drill-block">...</div> に変換、間に blank line を挟む。
+    旧 60 個の DRILL_NN_* slot 方式と byte-identical な出力を期待する。
+    """
+    if not drills:
+        return ""
+    blocks: list[str] = []
+    for d in drills:
+        num = str(d.get("num", ""))
+        tag = str(d.get("tag", ""))
+        question = str(d.get("question", ""))
+        correct = str(d.get("correct", ""))
+        explanation = str(d.get("explanation", ""))
+        o_correct = "true" if correct == "○" else "false"
+        x_correct = "true" if correct == "×" else "false"
+        block = (
+            '    <div class="drill-block">\n'
+            '      <div class="drill-label">'
+            '<span class="drill-num">DRILL&nbsp;' + num + '</span>'
+            '<span class="drill-tag">' + tag + '</span></div>\n'
+            '      <div class="self-check-quiz" data-arena="1" '
+            'data-correct-value="' + correct + '" '
+            'data-explanation="' + explanation + '">\n'
+            '        <div class="quiz-question">' + question + '</div>\n'
+            '        <div class="quiz-buttons">'
+            '<button class="quiz-btn" type="button" '
+            'data-correct="' + o_correct + '" data-value="○">○</button>'
+            '<button class="quiz-btn" type="button" '
+            'data-correct="' + x_correct + '" data-value="×">×</button></div>\n'
+            '        <div class="quiz-answer" hidden>'
+            '<span class="quiz-result"></span>' + explanation + '</div>\n'
+            '      </div>\n'
+            '    </div>'
+        )
+        blocks.append(block)
+    return "\n\n".join(blocks)
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -899,25 +956,11 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         slots[f"VIEW_{letter}_LABEL"] = str(v.get("label", ""))
         slots[f"VIEW_{letter}_BODY"] = str(v.get("body", ""))
 
-    # PART D drill-block slot 供給（slotmap §5.5 固定 12 件方式: 01〜12）
-    # drill_blocks 未指定（旧問題）の場合は全 slot に空文字。
-    drills = problem.get("drill_blocks", [])
-    drills_by_num: dict[str, dict] = {}
-    for d in drills:
-        n = d.get("num", "")
-        if isinstance(n, str) and n.isdigit():
-            drills_by_num[n] = d
-    for i in range(1, 13):
-        num_str = f"{i:02d}"
-        d = drills_by_num.get(num_str, {})
-        correct = d.get("correct", "")
-        slots[f"DRILL_{num_str}_TAG"] = str(d.get("tag", ""))
-        slots[f"DRILL_{num_str}_QUESTION"] = str(d.get("question", ""))
-        slots[f"DRILL_{num_str}_CORRECT"] = str(correct)
-        slots[f"DRILL_{num_str}_EXPLANATION"] = str(d.get("explanation", ""))
-        # ○× ボタンの data-correct 属性値（"true"/"false"）
-        slots[f"DRILL_{num_str}_O_CORRECT"] = "true" if correct == "○" else "false"
-        slots[f"DRILL_{num_str}_X_CORRECT"] = "true" if correct == "×" else "false"
+    # PART D drill-block slot 供給（Phase 4-7 で構造化レンダリングに移行）
+    # 旧 60 個の DRILL_NN_* slot 方式を廃止し、{{DRILL_BLOCKS}} 1 slot に集約。
+    # drill_blocks 未指定 / 空 → "" を返却（drill 部分が出力から消える、ただし
+    # template 側の周辺 HTML（arena-counter / arena-scorecard 等）は残る）。
+    slots["DRILL_BLOCKS"] = render_drill_blocks(problem.get("drill_blocks", []))
 
     # 【組合せ】slot 供給（slotmap §5.4 §5 固定 5 件、§6.7 で 8 件に拡張）
     # combinations が未指定（ox-grid / multi-select / single-choice 系）の場合は空文字。
