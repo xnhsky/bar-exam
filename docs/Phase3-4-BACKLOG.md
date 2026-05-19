@@ -19,190 +19,136 @@
 | **4-5** | 8 templates の sync-required marker-legend block (11 行・709 bytes) を `{{MARKER_LEGEND}}` に集約 slot 化。universal content (subject / instruction_type 無関係) のため schema/JSON 改修なし、引数なし render_marker_legend() 関数で完結。--dry-run 8/8 OK で universality 実証 → extra_legend_items hook 不要が確定 | `6b64e17` (BACKLOG) / `9caa756` (render) / `3cc412c` (templates) | ✅ 維持（300 のみ DIFF） |
 | **4-6** | 8 templates の diff-allowed `toc` 領域 (6 variants → 1 集約) を `{{TOC_ROW}}` に集約 slot 化。thin schema 派生 (problem.instruction_type → TOC_CHOICE_LABELS_BY_TYPE) で choice ラベル系列を生成、universal 部分 (TOC_HEAD / TOC_TAIL) は const。未対応 instruction_type で RuntimeError raise (silent fallback 不採用) | `7555a40` (BACKLOG) / `1afefca` (render) / `e93c3cb` (templates) | ✅ 維持（300 のみ DIFF） |
 | **4-7** | 8 templates の PART D drill 12 件固定 slot 方式 (旧 60 個 DRILL_NN_* slot) を `{{DRILL_BLOCKS}}` 1 slot + 構造化レンダリング (render_drill_blocks) に移行。**パターン D 確立** (Phase 3-3 basis structured rendering の再利用)、A/B/C/D の **4 パターン体系完成**。escape 旧仕様踏襲 (720 field-values 検証で 0 件確認)、num JSON 信頼、旧 60 slot 完全削除。8 templates 各 -8,850 bytes (本セッション最大規模、累計 -70 KB) | `5f4856a` (BACKLOG) / `39cf18b` (render) / `28e6e28` (templates) | ✅ 維持（300 のみ DIFF） |
+| **4-8** | 8 templates の sync-required body_pre_toc (393 bytes / 12 lines) を `{{BODY_PRE_TOC}}` slot 化。**案 (δ) refined: Python .format() 名前付き placeholder** で動的値埋込 (旧 6 slot {{JP_PREFIX}} 等は据え置き、本 slot は経路の重複)。**パターン C の 4 例目**（universal const を .format() 拡張、broken intermediate state なし）。8 templates 各 -377 bytes、累計 -3,016 bytes | `ff09a5b` (BACKLOG) / `7331edb` (render) / `783c8bb` (templates) | ✅ 維持（300 のみ DIFF） |
 
 CP gate 正準 baseline: `_phase3_2_pre_patch_baseline.json` (`docs/cp-gate.md` §1)
 
 ---
 
-## §1. Phase 4-8: body_pre_toc slot 化（universal const + Python .format() 名前付き placeholder）
+## §1. Phase 4-9: pre_part_a slot 化（Phase 4-6 TOC と同形・A+C 組合せ 2 例目）
 
 ### 1-1. 領域の特性
 
-`body_pre_toc` は `</style>` 〜 TOC bar 直前の **sync-required 領域**（393 bytes / 11 lines、
-8 templates 完全 byte-identical / hash=`1fb1fe871c7e`）。Phase 4-5 marker-legend と同様
-universal な構造を持つが、内部に 6 個の **動的 slot** を含む点で異なる:
+`pre_part_a` は marker-legend 終了 〜 PART A タイトル直前の **diff-allowed 領域**（194-237
+bytes / 4 lines、8 templates が **8 variants** で完全 1:1 対応）。各 variant は instruction_type
+別の HTML コメントのみで、可変部分は **form 名文字列 1 つ**：
 
 ```html
-</head>
-<body id="top">
-<div class="container">
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="doc-header">{{JP_PREFIX}}{{PROBLEM_ID}}</div>
-    <h1>No.{{PROBLEM_ID}} ── {{CRIME}}（{{SOURCE_ID}}）</h1>
-    <div class="exam-meta">
-      <span><strong>正答率:</strong>{{CORRECT_RATE}}</span>
-      <span><strong>パターン:</strong>{{OVERRIDE_PATTERN}}</span>
-    </div>
+  <!-- ============================================================
+       PART A ── 問題情報（{form_name}）
+       ============================================================ -->
 ```
 
-含む動的 slot は 6 個（重複除いて）: `JP_PREFIX` / `PROBLEM_ID` / `CRIME` / `SOURCE_ID` /
-`CORRECT_RATE` / `OVERRIDE_PATTERN`。これら旧 slot は footer-spec 等で他にも参照される
-ため、Phase 4-8 で **削除しない**（temp 据え置き、BODY_PRE_TOC は経路の重複となる）。
+variant の form 名対応:
 
-### 1-2. 設計選択肢の比較と採択（案 δ refined）
+| variant | template | instruction_type | form_name |
+|:-:|---|---|---|
+| 1 | sc5 | single-choice-5 | `single-choice-5 形式` |
+| 2 | fillin8 | fillin8 | `fillin8 形式：8 blanks 表示 + 5 options 単一選択` |
+| 3 | KTX_template | ox-grid-5 | `ox-grid-5 形式` |
+| 4 | fillin | fill-in | `fill-in 形式` |
+| 5 | msel5 | multi-select-5 | `multi-select-5 形式` |
+| 6 | comb5 | combination-5 | `combination-5 形式` |
+| 7 | ox3comb8 | ox-grid-3-combination-8 | `ox-grid-3 + combination-8 形式` |
+| 8 | ox4 | ox-grid-4 | `ox-grid-4 形式` |
 
-| 観点 | (δ) const + render slot 順序依存 | (δ) refined: .format() + 名前付き placeholder | (α) 引数あり関数 |
-|---|---|---|---|
-| Phase 4-5 同形度 | 完全同形 | ほぼ同形（template が Python format） | 異なる |
-| insertion order 依存 | あり（コメント mitigation） | **なし**（.format() で一括解決）| なし |
-| 実装複雑度 | 低 | 低 | 中 |
-| 保守性 | 中（暗黙の依存）| **高**（名前参照、明示的）| 高 |
-| 将来 placeholder 追加時の保守性 | 中（順序に注意必要）| **高**（辞書 1 行追加）| 中 |
-| パターン分類 | C（universal const）| C（universal template + .format）| A（thin schema 派生）|
+### 1-2. Phase 4-6 TOC と同形
 
-**採択: (δ) refined — Python `.format(**problem_dict)` 名前付き placeholder 方式**
+| 観点 | Phase 4-6 TOC | Phase 4-9 pre_part_a |
+|---|---|---|
+| variant 数 | 6 (重複あり)| **8 (完全 1:1)** |
+| 可変部分の規模 | choice 行数 + ラベル系列 | **form 名文字列 1 つ** |
+| 設計 | dict + HEAD + TAIL + 関数 | dict + 単一 const + 関数 |
+| パターン分類 | A + C 組合せ | A + C 組合せ (**2 例目**) |
+| 削減 bytes | 累計 -約 3,200 | 累計 -約 1,600 |
 
-採択理由（ユーザ §8 回答）:
-- Phase 4-5 同形を保ちつつ、insertion order 依存を **`.format()` 名前参照で実質非依存化**
-- 引数あり関数 (α) は将来 placeholder 追加時の関数シグネチャ拡張負担が懸念
-- `.format(**problem_dict)` で辞書 unpack 渡しなら placeholder 追加が辞書 1 行で済む
+→ Phase 4-6 TOC の dispatch ロジックを完全再利用。本セッション最小規模の slot 化対象。
 
-### 1-3. byte-identical 維持の前提
-
-- 8 templates の body_pre_toc 領域は **完全 byte-identical**（hash=`1fb1fe871c7e`、Commit 2
-  着手前に再確認予定）
-- 旧 6 個の slot (`{{JP_PREFIX}}` 等) と新 BODY_PRE_TOC slot 値（`.format()` 解決済）が
-  同じ HTML 文字列を生成 → 全 15 件 byte-identical 維持期待
-- escape 旧仕様踏襲（escape なし、Phase 4-7 と同一方針）。Phase 4-7 の 720 field-values
-  検証で実証済の問題著者の運用ルール（attribute-safe な内容を手動メンテ）に依存
-
-### 1-4. 命名規約
+### 1-3. 命名規約
 
 | 項目 | 名称 |
 |---|---|
-| slot 名 | `{{BODY_PRE_TOC}}` |
-| const 名 | `BODY_PRE_TOC_TEMPLATE` (Python format placeholder `{jp_prefix}` 等を含む) |
-| 関数名 | `render_body_pre_toc(problem: dict) -> str` |
-| upgrade スクリプト | `scripts/upgrade_templates_body_pre_toc_slot.py` |
+| slot 名 | `{{PRE_PART_A}}` |
+| dict 名 | `PRE_PART_A_FORM_NAMES_BY_TYPE` (instruction_type → form_name) |
+| 関数名 | `render_pre_part_a(instruction_type: str) -> str` |
+| upgrade スクリプト | `scripts/upgrade_templates_pre_part_a_slot.py` |
 
 ---
 
-## §2. 設計（案 δ refined・確定版）
+## §2. 設計（Phase 4-6 TOC 同形・確定版）
 
 ### 2-1. 採択方針
 
 | 項目 | 設計 |
 |---|---|
 | schema 変更 | **なし** |
-| JSON 改修 | **なし**（既存 6 slot 値を流用） |
-| 新 slot | `{{BODY_PRE_TOC}}` を 8 templates の body_pre_toc 領域全体に置換 |
-| render.py 改修 | `BODY_PRE_TOC_TEMPLATE` const (Python format placeholder) + `render_body_pre_toc(problem)` 関数 + `slots["BODY_PRE_TOC"]` 配線 |
-| 旧 6 slot の去就 | **据え置き**（footer-spec 等で他参照あり、削除不可）。BODY_PRE_TOC は経路の重複となるが許容 |
-| escape 処理 | 旧仕様踏襲（escape なし、Phase 4-7 と同一方針） |
-| 14 protected への影響 | byte-identical 維持期待（旧 6 slot 経由 == 新 BODY_PRE_TOC 経由が同 HTML 生成） |
+| JSON 改修 | **なし**（既存 `problem.instruction_type` から派生）|
+| 新 slot | `{{PRE_PART_A}}` を 8 templates の pre_part_a 領域全体に置換 |
+| render.py 改修 | `PRE_PART_A_FORM_NAMES_BY_TYPE` dict + `render_pre_part_a(instruction_type)` 関数 + slot 配線 |
+| 未対応 instruction_type | **`RuntimeError`** raise（Phase 4-6 同方針、silent fallback 不採用）|
+| 14 protected への影響 | byte-identical 維持期待（既存 variant が render 出力と一致）|
 | 300 への影響 | 同上 |
 
 ### 2-2. render.py 追加内容
 
 ```python
-# Phase 4-8: body_pre_toc slot 化
-# 8 templates の sync-required 領域 body_pre_toc block (393 bytes / 11 lines、
-# universal な HTML 構造 + 6 個の動的値) を集約 slot 化。Phase 4-5 marker-legend と
-# 同形の universal const パターンを、Python .format() 名前付き placeholder で動的値
-# を埋め込む形に拡張。
-
-BODY_PRE_TOC_TEMPLATE: str = (
-    '</head>\n'
-    '<body id="top">\n'
-    '<div class="container">\n'
-    '\n'
-    '  <!-- HEADER -->\n'
-    '  <header class="header">\n'
-    '    <div class="doc-header">{jp_prefix}{problem_id}</div>\n'
-    '    <h1>No.{problem_id} ── {crime}（{source_id}）</h1>\n'
-    '    <div class="exam-meta">\n'
-    '      <span><strong>正答率:</strong>{correct_rate}</span>\n'
-    '      <span><strong>パターン:</strong>{override_pattern}</span>\n'
-    '    </div>'
-)
+PRE_PART_A_FORM_NAMES_BY_TYPE: dict[str, str] = {
+    "ox-grid-5":               "ox-grid-5 形式",
+    "ox-grid-4":               "ox-grid-4 形式",
+    "ox-grid-3-combination-8": "ox-grid-3 + combination-8 形式",
+    "multi-select-5":          "multi-select-5 形式",
+    "single-choice-5":         "single-choice-5 形式",
+    "combination-5":           "combination-5 形式",
+    "fill-in":                 "fill-in 形式",
+    "fillin8":                 "fillin8 形式：8 blanks 表示 + 5 options 単一選択",
+}
 
 
-def render_body_pre_toc(problem: dict) -> str:
-    """{{BODY_PRE_TOC}} slot 値を返す（Python .format() で動的値を埋込）。
-
-    旧 6 slot ({{JP_PREFIX}} 等) と同じ値を Python format placeholder 経由で埋込み、
-    slot 機構を経由しない完成 HTML を返す。insertion order 非依存。
-    escape 旧仕様踏襲（escape なし）。
-    """
-    subject = problem.get("subject", "KEI")
-    jp_prefix = SUBJECT_TO_JP[subject] + "TX"
-    return BODY_PRE_TOC_TEMPLATE.format(
-        jp_prefix=jp_prefix,
-        problem_id=str(problem.get("id", "")),
-        crime=str(problem.get("crime", "")),
-        source_id=str(problem.get("source", "")),
-        correct_rate=str(problem.get("correct_rate", "")),
-        override_pattern=str(problem.get("override_pattern", "P1")),
+def render_pre_part_a(instruction_type: str) -> str:
+    """{{PRE_PART_A}} slot 値を返す（instruction_type 派生）。未対応 type で RuntimeError。"""
+    if instruction_type not in PRE_PART_A_FORM_NAMES_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for pre_part_a. "
+            f"valid: {sorted(PRE_PART_A_FORM_NAMES_BY_TYPE)}"
+        )
+    form_name = PRE_PART_A_FORM_NAMES_BY_TYPE[instruction_type]
+    return (
+        '\n'
+        '  <!-- ============================================================\n'
+        f'       PART A ── 問題情報（{form_name}）\n'
+        '       ============================================================ -->'
     )
 ```
 
-`build_slot_dict()` に slot 供給を追加（旧 6 slot は据え置き）:
+`build_slot_dict()` に 1 行追加:
 ```python
-# Phase 4-8: body_pre_toc 集約 slot
-slots["BODY_PRE_TOC"] = render_body_pre_toc(problem)
+slots["PRE_PART_A"] = render_pre_part_a(problem.get("instruction_type", ""))
 ```
 
-### 2-3. upgrade スクリプト
+### 2-3. upgrade スクリプト方式（β variant 別 OLD dispatch）
 
-8 templates の body_pre_toc 領域全体（11 行・393 bytes・hash 完全一致）を
-`{{BODY_PRE_TOC}}` 1 行に置換。8 templates すべてに同一 OLD（byte-identical のため）→
-単一 OLD で 8 templates 同パッチ可能（Phase 4-5 marker-legend / Phase 4-7 drill と同形）。
-
-```python
-OLD = (
-    '</head>\n'
-    '<body id="top">\n'
-    '<div class="container">\n'
-    '\n'
-    '  <!-- HEADER -->\n'
-    '  <header class="header">\n'
-    '    <div class="doc-header">{{JP_PREFIX}}{{PROBLEM_ID}}</div>\n'
-    '    <h1>No.{{PROBLEM_ID}} ── {{CRIME}}（{{SOURCE_ID}}）</h1>\n'
-    '    <div class="exam-meta">\n'
-    '      <span><strong>正答率:</strong>{{CORRECT_RATE}}</span>\n'
-    '      <span><strong>パターン:</strong>{{OVERRIDE_PATTERN}}</span>\n'
-    '    </div>'
-)
-NEW = '{{BODY_PRE_TOC}}'
-```
+Phase 4-6 TOC と同形。`TEMPLATE_TO_TYPE` 表 + `FORM_NAMES_BY_TYPE` 表で各 template に対応
+する OLD を構築、共通 NEW = `{{PRE_PART_A}}` に置換。8 templates × 8 variants で完全 1:1
+なので variant 別 OLD 構築方式。
 
 ### 2-4. check_template_sync 境界検出
 
-body_pre_toc 領域は `style_close + 1` 〜 `toc_open` で挟まれている。slot 化後 toc_open は
-引き続き `{{TOC_ROW}}` 単一行（Phase 4-6 既対応）、style_close は `</style>` で不変。
-したがって境界検出は **更新不要**。
+pre_part_a 領域は `marker_legend_close + 1` 〜 `part_a_title` で挟まれている。slot 化後
+は `{{PRE_PART_A}}` 単一行となるが、`marker_legend_close` (Phase 4-5 で `{{MARKER_LEGEND}}`
+化済) と `part_a_title` (`<div class="part-title">PART A`) は不変なので **境界検出更新
+不要**。slot 化後の領域は 8 templates 同一 hash となり、diff-allowed の variants 数が
+**8 → 1 に集約**。
 
-ただし slot 化後の body_pre_toc 領域は `{{BODY_PRE_TOC}}` 1 行となり、現在の sync 領域
-hash が変わるが、8 templates 同パッチなので同期維持（[1 variants] のまま）。
+### 2-5. byte-identical 維持リスク
 
-### 2-5. 検証戦略
-
-- Commit 2 着手前: body_pre_toc 領域の 8 templates 完全 byte-identical を **再度** grep で
-  確認（前 commit 466bc8a 後の現状で hash 一致を verify）
-- Commit 2 (render 改修) 後: template 未変更のため CP gate 不変（slot 未使用、再 render
-  しても出力 byte-identical）。**代替検証**: `render_body_pre_toc(problem)` 単体出力 ==
-  現 outputs の対応領域、を 15 件 byte-identical 比較
-- Commit 3 (template + apply) 後: 全 15 件再 render → 全 15 件 byte-identical 維持確認、
-  CP gate / check_template_sync / validate-tx 全 PASS
-
-### 2-6. broken intermediate state は発生しない
-
-Phase 4-7 と異なり、旧 6 slot は削除しないため、Commit 2 完了直後の中間状態でも render
-は通常通り動作する（旧 slot で template 直接 substitute、新 BODY_PRE_TOC slot 値は
-template に `{{BODY_PRE_TOC}}` placeholder が無いので未使用）。Phase 4-7 のような broken
-intermediate state mitigation 不要。
+**極めて低い**:
+- 全 8 variants の形 (HTML コメント) は完全規則的
+- form_name 文字列 1 つだけが可変、他は固定
+- Phase 4-6 TOC で実証済 dispatch パターンを再利用
+- 全 15 件 byte-identical 維持期待
+- broken intermediate state 発生せず（diff-allowed 領域、旧 slot 不在のため Commit 2/3
+  中間状態でも render 動作）
 
 ---
 
@@ -212,33 +158,32 @@ intermediate state mitigation 不要。
 
 | # | commit subject | 影響範囲 | CP gate | sync | validate-tx |
 |---|---|---|---|---|---|
-| 1 | `docs: BACKLOG.md §1 Phase 4-8 body_pre_toc スコープ展開` (§0 は前 commit 466bc8a で Phase 4-7 追記済) | docs only | PASS=14 / DIFF=1 維持 | ✅ | 全 15 件 ERROR 0 / WARNING 0 維持 |
-| **(中間検証)** | body_pre_toc 領域 8 templates 完全 byte-identical 再確認 | 検証のみ、コミットなし | — | — | 検証結果を STOP for review |
-| 2 | `feat(phase4-8 render): BODY_PRE_TOC_TEMPLATE + render_body_pre_toc() + slot 供給配線` | scripts/render.py | PASS=14 / DIFF=1 維持（template 未変更、新 slot 未使用、render 出力不変）| ✅ | 全 15 件維持 |
-| 3 | `feat(phase4-8 templates): 8 templates の body_pre_toc を {{BODY_PRE_TOC}} に置換` | upgrade script + 8 templates + outputs (全 15 件 byte-identical 期待) | PASS=14 / DIFF=1 維持 | ✅ | 全 15 件維持 |
+| 1 | `docs: BACKLOG.md §0 Phase 4-8 完了追記 + §1 Phase 4-9 pre_part_a スコープ` | docs only | PASS=14 / DIFF=1 維持 | ✅ | 全 15 件 ERROR 0 / WARNING 0 維持 |
+| 2 | `feat(phase4-9 render): PRE_PART_A_FORM_NAMES_BY_TYPE + render_pre_part_a() + slot 供給配線` | scripts/render.py | PASS=14 / DIFF=1 維持（template 未変更、新 slot 未使用）| ✅ | 全 15 件維持 |
+| 3 | `feat(phase4-9 templates): 8 templates の pre_part_a を {{PRE_PART_A}} に置換` | upgrade script + 8 templates + outputs (全 15 件 byte-identical 期待) | PASS=14 / DIFF=1 維持 | ✅ | 全 15 件維持 |
 
-### Phase 4-8 完了条件
+### Phase 4-9 完了条件
 
 - 全 15 件 `validate-tx.py` で ERROR 0 / WARNING 0 を**維持**
-- CP gate PASS=14 / DIFF=1（300 のみ DIFF、Phase 4-7 完了状態と同じ）
-- check_template_sync sync-required 7 領域 PASS（body_pre_toc 領域は slot 化で hash 変わるが 8 templates 同期維持）
-- 8 templates の body_pre_toc (11 行) が `{{BODY_PRE_TOC}}` 単行に縮減（累計 -約 3,120 bytes、Phase 4-7 drill -70 KB と比較して極小）
+- CP gate PASS=14 / DIFF=1（300 のみ DIFF、Phase 4-8 完了状態と同じ）
+- check_template_sync sync-required 7 領域 PASS / diff-allowed pre_part_a が **8 variants → 1 variant** に集約
+- 8 templates の pre_part_a (4 行) が `{{PRE_PART_A}}` 単行に縮減（累計 -約 1,600 bytes）
 
 ---
 
-
-## §4. Phase 4-9 以降の候補（参考、未着手）
+## §4. Phase 4-10 以降の候補（参考、未着手）
 
 | 候補 | 領域 | 主要懸念 | 優先度 |
 |---|---|---|---|
-| **PART A 見出しコメント**（pre_part_a diff-allowed 8 variants）| pre_part_a diff-allowed 領域 (8 variants) | コメント文言の集約、Phase 4-6 TOC と同形（per-instruction-type 派生、パターン A + C 組合せ）| **中（最有力）** |
-| `head` 領域（DOCTYPE 〜 `<style>` 直前）| head sync 領域（867 bytes / 8 lines） | 静的、変更頻度低、Phase 4-5 marker-legend と同形 universal | 低 |
+| **`head` 領域**（DOCTYPE 〜 `<style>` 直前）| head sync 領域（867 bytes / 8 lines） | 静的、変更頻度低、Phase 4-5 marker-legend と同形 universal const パターン | **中（最有力）** |
 | `css` 領域（巨大）| css sync 領域（60,743 bytes / 1,996 lines） | spec の §Annex A canonical CSS と同期、構造化困難 | 低（要設計検討） |
 | `js` 領域 | js sync 領域（17,552 bytes / 404 lines） | spec の §Annex C canonical JS と同期、構造化困難 | 低（要設計検討） |
 | Phase 5+ JX シリーズ着手 | JX 系（事例式） | spec/jx-v3.2-master.md 由来の構造化 (A〜H 8 サブセクション + 第 3〜5 部)、1 問 1〜2 時間規模 | 別シリーズ・別 Phase（Phase 4 完了後） |
 
-Phase 4-8 完了後、優先度順にスコープ化する。**Phase 4-9 は pre_part_a が最有力候補**
-（Phase 4-6 TOC と同形 A+C 組合せ、8 variants の dispatch パターン応用、技術的に既習）。
+Phase 4-9 完了後、優先度順にスコープ化する。**Phase 4-10 は head 領域が最有力候補**
+（Phase 4-5 marker-legend と同形 universal const 純粋形、内部に動的 slot を含まず最小規模・
+最低リスク。本セッションの slot 化対象の中で残る sync-required 静的領域は head/css/js の
+3 つに集約された）。
 
 ---
 
