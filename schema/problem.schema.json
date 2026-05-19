@@ -236,6 +236,27 @@
           "$ref": "#/$defs/PartC_ThreeLayerMemory"
         }
       }
+    },
+    "basis": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "PART B 'A-3 共通根拠条文・判例' セクション（Phase 3）。null/未定義の場合は既存スタブ HTML（TODO コメント）が出力される（既存 14 件 byte-identical 維持）。詳細: docs/phase3-basis-design.md",
+      "required": [
+        "cards"
+      ],
+      "properties": {
+        "cards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Basis_Card"
+          },
+          "minItems": 1,
+          "description": "条文カード（kind=statute）と判例カード（kind=case）の配列。表示順は配列順。"
+        }
+      }
     }
   },
   "$defs": {
@@ -754,6 +775,143 @@
           },
           "minItems": 1,
           "maxItems": 3
+        }
+      }
+    },
+    "Basis_Card": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "title_html",
+        "freq",
+        "back_links"
+      ],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "statute",
+            "case"
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "anchor id（例: 'law-246' / 'case-saiko-h22-7-29'）。HTML 内で <div id> として出力。"
+        },
+        "icon": {
+          "type": "string",
+          "description": "card header の絵文字（省略時: kind=statute→📜 / kind=case→⚖）"
+        },
+        "title_html": {
+          "type": "string",
+          "minLength": 1,
+          "description": "card header の主タイトル HTML（例: '<span class=\"statute-emphasis freq-high\">刑法第246条</span>'）"
+        },
+        "title_suffix_html": {
+          "type": "string",
+          "description": "タイトル後の補足 HTML（例: '（詐欺）' / '──搭乗券交付詐欺事件（百選Ⅱ50）'）"
+        },
+        "freq": {
+          "type": "string",
+          "enum": [
+            "high",
+            "mid",
+            "low"
+          ],
+          "description": "頻度マーカー。high=★★★, mid=★★, low=★。freq-badge クラスに反映。"
+        },
+        "paragraphs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Basis_StatuteParagraph"
+          },
+          "description": "kind=statute 用。法条文の項段落配列。"
+        },
+        "facts_html": {
+          "type": "string",
+          "description": "kind=case 用。【事案】の本文 HTML。"
+        },
+        "judgment_html": {
+          "type": "string",
+          "description": "kind=case 用。【判旨】の本文 HTML。"
+        },
+        "note_html": {
+          "type": "string",
+          "description": "末尾の note 解説 HTML（教学的コメント）。"
+        },
+        "back_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Basis_BackLink"
+          },
+          "minItems": 1,
+          "description": "rb-chip 形式の back-link 配列（PART A 各記述解説への戻り導線）。"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "statute"
+            }
+          },
+          "required": [
+            "paragraphs"
+          ]
+        },
+        {
+          "properties": {
+            "kind": {
+              "const": "case"
+            }
+          },
+          "required": [
+            "facts_html",
+            "judgment_html"
+          ]
+        }
+      ]
+    },
+    "Basis_StatuteParagraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "para_num",
+        "body_html"
+      ],
+      "properties": {
+        "para_num": {
+          "type": "string",
+          "minLength": 1,
+          "description": "項見出し（例: '第1項'）。<span class=\"para-num\"> で表示。"
+        },
+        "body_html": {
+          "type": "string",
+          "minLength": 1,
+          "description": "項の本文 HTML（ron-mark span 等を含む）。<span class=\"hang-body\"> 内に展開。"
+        }
+      }
+    },
+    "Basis_BackLink": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "href",
+        "label"
+      ],
+      "properties": {
+        "href": {
+          "type": "string",
+          "minLength": 1,
+          "description": "リンク先 anchor（例: '#ref-law-246-1-001'）"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "rb-chip のラベル文言（例: '記述1' / 'あてはめ'）"
         }
       }
     }
