@@ -1,9 +1,9 @@
-# Session 2026-05-19 — Phase 4-3 / 4-4 / 4-5 完走 + 設計パターン総括
+# Session 2026-05-19 — Phase 4-3 / 4-4 / 4-5 / 4-6 完走 + 設計パターン総括
 
-> 本セッションで bar-exam TX 系 slot 化整備が Phase 4-2 完了状態から Phase 4-5 完了
-> 状態まで前進した。累積 commits 12（本サマリ commit 含めれば 13）、Phase 4-3〜4-5
-> で確立された 3 つの設計パターン、最終検証状態、次セッション着手候補、保留事項を
-> 一元記録する。
+> 本セッションで bar-exam TX 系 slot 化整備が Phase 4-2 完了状態から Phase 4-6 完了
+> 状態まで前進した。Phase 4-3〜4-5 で 3 つの設計パターンを確立し、Phase 4-6 で
+> その「3 パターン再利用」を初めて実証。最終検証状態・次セッション着手候補・
+> 保留事項を一元記録する。
 
 ---
 
@@ -48,10 +48,10 @@ Phase 3-3 で導入された basis card `back_links[{href, label}]` 配列の rb
   target を完結
 - **全 15 件 ERROR 0 / WARNING 0 達成**
 
-判例関連性（commit 2 着手前に確定文書化）: 最判平8.4.26 は誤振込でも預金契約が有効に
-成立し受取人に形式的払戻請求権が発生することを示した **民事先例**であり、記述4
-（誤振込払戻詐欺・最決平15.3.12）の民事的背景を確定する。両判例の対比により
-**民事的有効性と刑事可罰性の独立判断**という核心法理が際立つ重要対。
+判例関連性: 最判平8.4.26 は誤振込でも預金契約が有効に成立し受取人に形式的払戻請求権が
+発生することを示した **民事先例**であり、記述4（誤振込払戻詐欺・最決平15.3.12）の民事的
+背景を確定する。両判例の対比により **民事的有効性と刑事可罰性の独立判断** という核心法理
+が際立つ重要対。
 
 | commit | 内容 |
 |---|---|
@@ -79,6 +79,35 @@ Phase 3-3 で導入された basis card `back_links[{href, label}]` 配列の rb
 | `9caa756` | feat(phase4-5 render): MARKER_LEGEND_DEFAULT + render_marker_legend() + slot 供給配線 |
 | `3cc412c` | feat(phase4-5 templates): 8 templates の marker-legend を {{MARKER_LEGEND}} に置換 |
 
+### Phase 4-6: TOC slot 化（thin schema 派生による diff-allowed 領域の集約）
+
+8 templates の diff-allowed `toc` 領域（6 variants / 363-436 bytes / 10-12 lines）を
+**instruction_type 派生** で集約 slot 化。Phase 4-3 final_answer の thin schema 派生
+パターンを diff-allowed 領域に適用した初例。
+
+設計判断:
+- **schema 変更なし・JSON 改修なし**（既存 `problem.instruction_type` から派生）
+- render.py に `TOC_CHOICE_LABELS_BY_TYPE` 辞書（8 keys → labels list）+ `TOC_HEAD`/`TOC_TAIL`
+  const + `render_toc(instruction_type)` 関数
+- **未対応 instruction_type は `RuntimeError`** raise（silent fallback 不採用、新 type
+  追加時の失敗を早期検出。`valid: [...]` を error message に含めヒント機能あり）
+- upgrade スクリプト方式: **β variant 別 OLD dispatch**（`TEMPLATE_TO_TYPE` 表 +
+  `LABELS_BY_TYPE` 表で各 template 用の OLD を構築）
+- `check_template_sync.py` の境界検出を `{{TOC_ROW}}` 単一行に対応（Phase 4-5
+  marker_legend と同形のフォールバック温存）
+- 8 templates 各 -352〜-425 bytes 削減（variant 別、件数 3/4/5 × series 違い）
+
+成果:
+- **diff-allowed `toc` の variants 数: 6 → 1 に集約**（8 templates 全て `{{TOC_ROW}}` 単行）
+- spec の navigation 改訂時、`TOC_CHOICE_LABELS_BY_TYPE` 辞書 1 箇所修正で 8 templates
+  一括追従可能（手数 6→1）
+
+| commit | 内容 |
+|---|---|
+| `7555a40` | docs: BACKLOG.md §0 Phase 4-5 完了追記 + §1 Phase 4-6 TOC スコープ + §6-4 削除 |
+| `1afefca` | feat(phase4-6 render): TOC_CHOICE_LABELS_BY_TYPE + TOC_HEAD/TAIL + render_toc() + slot 供給配線 |
+| `e93c3cb` | feat(phase4-6 templates): 8 templates の toc-row を {{TOC_ROW}} に置換 |
+
 ### 本セッション通算 commit カウント
 
 | 区分 | commits |
@@ -88,33 +117,33 @@ Phase 3-3 で導入された basis card `back_links[{href, label}]` 配列の rb
 | Phase 4-3 (4 commits) | `0f7e673` / `abd2a28` / `f327664` / `dee2bc0` |
 | Phase 4-4 (3 commits) | `41f0edf` / `b2bb088` / `49dea8d` |
 | Phase 4-5 (3 commits) | `6b64e17` / `9caa756` / `3cc412c` |
-| **本サマリ commit** | (今回追加、Phase 4-3〜4-5 累積で 11 commits 目) |
+| 中間サマリ（Phase 4-3〜4-5 完走時点）| `fc74f3e` |
+| Phase 4-6 (3 commits) | `7555a40` / `1afefca` / `e93c3cb` |
+| **最終サマリ commit**（本ファイル更新） | （今回追加、16 commit 目で session 締め） |
 
-累積 commits（Phase 4-3〜4-5 のみ）= 10、本サマリ込みで 11。
-本セッション通算 = 12（CP infra + Phase 4-1+4-2 + Phase 4-3〜4-5）、本サマリ込みで 13。
+累積 commits（Phase 4-3〜4-6 + 中間/最終サマリ）= 13、本サマリ更新込みで 14。
+本セッション通算 = 15（CP infra + Phase 4-1+4-2 + Phase 4-3〜4-6 + 中間サマリ）、
+本サマリ更新込みで **16**。
 
 > 補足: Phase 2 PART C (`47c1f1d`) と Phase 3 basis (`1f54a17`) もこのセッション中に
-> commit したが、内容自体は事前にローカル作業済の slot 化機能（footer/views/partc/basis）を
-> 4-commit 構造で整理整頓したもの。新規設計判断を含むのは Phase 4-3 以降のため、上記
-> カウントから除外。
+> commit したが、内容自体は事前にローカル作業済の slot 化機能を 4-commit 構造で
+> 整理整頓したもの。新規設計判断を含むのは Phase 4-3 以降のため、上記カウントから除外。
 
 ---
 
-## §2. 本セッションで確立された 3 つの設計パターン
+## §2. 本セッションで確立された 3 つの設計パターン + 再利用の実証
 
-### パターン A: Thin schema + render 派生（Phase 4-3 final_answer）
+### パターン A: Thin schema + render 派生（Phase 4-3 final_answer、Phase 4-6 TOC で再利用）
 
 **定義**: JSON 新規フィールドを最小化し、既存フィールドから render.py 内で派生計算する slot 化アプローチ。
 
-**実装例**:
+**実装例**（Phase 4-3 final_answer）:
 ```python
 def render_final_answer(problem: dict) -> str:
     fa = problem.get("final_answer")
     if not fa:
         return ""  # 未指定 → block ごと不出力 (byte-identical 維持)
 
-    summary_html = fa.get("summary_html", "")
-    extra_html = fa.get("extra_html", "")
     instr_type = problem.get("instruction_type", "")  # 既存
     answer_raw = problem.get("answer", "")             # 既存
 
@@ -126,8 +155,11 @@ def render_final_answer(problem: dict) -> str:
         ...
 ```
 
+**Phase 4-6 での再利用**: TOC で `instruction_type` から `TOC_CHOICE_LABELS_BY_TYPE` 辞書を
+参照し choice ラベルを派生（純粋形、JSON 介在なし、`final_answer` field すら不要）。
+
 **適用条件**:
-- 表示形式が既存フィールドから一意に導出可能（mode 自動判定など）
+- 表示形式が既存フィールドから一意に導出可能（mode 自動判定、ラベル系列選択など）
 - JSON 著作負担を minimum に保ちたい
 - データの二重管理リスクを避けたい
 
@@ -139,7 +171,7 @@ def render_final_answer(problem: dict) -> str:
 **トレードオフ**: 派生ルールが render.py に隠れるため、JSON だけ見ても最終 HTML が予測しづらい。
 → BACKLOG §2 で派生ルールを明示することで軽減。
 
-### パターン B: Post-processing 注入（Phase 4-4 inject_ref_ids）
+### パターン B: Post-processing 注入（Phase 4-4 inject_ref_ids、本セッションでは Phase 4-6 で不使用）
 
 **定義**: `render()` 出力済 HTML に対する後処理として、attribute / id を programmatic に注入。
 
@@ -175,7 +207,7 @@ rendered = inject_ref_ids(rendered)
 直接呼ぶ際は明示的に inject_ref_ids() を chain する必要）→ BACKLOG §2 「呼出経路前提」で
 明文化。
 
-### パターン C: Universal content の minimal slot 化（Phase 4-5 marker-legend）
+### パターン C: Universal content の minimal slot 化（Phase 4-5 marker-legend、Phase 4-6 で部分採用）
 
 **定義**: subject / instruction_type 無関係の固定 HTML を集約 slot 化、render.py constant
 + 引数なし関数のみで完結。
@@ -190,10 +222,10 @@ MARKER_LEGEND_DEFAULT: str = (
 
 def render_marker_legend() -> str:
     return MARKER_LEGEND_DEFAULT
-
-# build_slot_dict():
-slots["MARKER_LEGEND"] = render_marker_legend()
 ```
+
+**Phase 4-6 での部分採用**: TOC の `TOC_HEAD` / `TOC_TAIL` 部分（先頭 3 行 + 末尾 5 行の
+universal 部分）に const パターンを適用。choice 部分のみパターン A で派生。
 
 **適用条件**:
 - 8 templates 完全同期（hash 1 種）
@@ -210,15 +242,43 @@ slots["MARKER_LEGEND"] = render_marker_legend()
 （hook 残置 vs 必要時拡張、後者を採用し YAGNI 重視）。Phase 4-2 footer-spec の
 `extra_tags` hook と対比可能。
 
-### 3 パターンの選択指針
+### Phase 4-6 で確立した 4 つ目のメタ認知: **パターン再利用 + 境界更新の定型化**
+
+Phase 4-6 は **新規パターンを導入せず**、Phase 4-3 (A) と Phase 4-5 (C) の組合せ + Phase 4-5
+で確立した `check_template_sync` 境界更新を機械的に適用した。これにより以下が実証された:
+
+#### 再利用例
+
+| 設計要素 | 借用元 | 適用 |
+|---|---|---|
+| `TOC_CHOICE_LABELS_BY_TYPE` (instruction_type → labels) | Phase 4-3 final_answer の `multi-select-5` 派生分岐 | 8 type × labels[] の辞書化に拡張 |
+| `TOC_HEAD` / `TOC_TAIL` const | Phase 4-5 `MARKER_LEGEND_DEFAULT` | universal 部分の固定 string 化 |
+| `RuntimeError` on unknown type | Phase 4-2 footer-spec の `SUBJECT_TO_JP` 不一致 | silent fallback 不採用方針 |
+| `check_template_sync` 境界更新 (`{{TOC_ROW}}` 単一行検出 + legacy fallback) | Phase 4-5 marker_legend と同パターン | 機械的コピペ |
+| upgrade スクリプト構造 (TEMPLATE_TO_X 表 + OLD/NEW dispatch) | Phase 4-2 footer / 4-5 marker | β variant 別 dispatch に拡張 |
+
+#### 設計コストの推移
+
+| Phase | 新規設計判断 | 既存パターン再利用 |
+|---|---|---|
+| 4-3 (final_answer) | パターン A 確立 + β 配置設計 + thin/explicit/hybrid 比較 | — |
+| 4-4 (inject_ref_ids) | パターン B 確立 + canonical 規約選択 + 8th card scope 拡張 | — |
+| 4-5 (marker-legend) | パターン C 確立 + universality 実証 protocol | パターン A の対極として理論化 |
+| **4-6 (TOC)** | **設計判断ほぼなし**（既存パターン組合せ） | **A + C + 境界更新の機械適用** |
+
+→ パターンが確立した後の Phase は **「新規設計 → パターン適用」へとシフト**。
+Phase 4-7 以降も同様の再利用が期待できる。
+
+### 4 パターンの選択指針（更新版）
 
 | ニーズ | 推奨パターン |
 |---|---|
-| 既存 JSON フィールドから表示が一意導出可、新表現追加 | **A**（thin schema） |
+| 既存 JSON フィールドから表示が一意導出可、新表現追加 | **A**（thin schema 派生） |
 | 既存 HTML 構造への横断的属性注入、document order 依存 | **B**（post-processing） |
 | 8 templates 完全同期、problem 非依存の固定 HTML | **C**（universal slot） |
-| sync-required 領域内で per-problem 動的内容を含む | A + B 組合せ（例: Phase 4-3 final_answer の C-7 内嵌） |
-| spec 仕様の頻繁改訂対象、構造変化なし | C（footer-spec / marker-legend） |
+| diff-allowed 領域の variant を既存フィールドから派生して集約 | **A + C 組合せ**（Phase 4-6 TOC のパターン）|
+| sync-required 領域内で per-problem 動的内容を含む | **A + β 配置**（Phase 4-3 final_answer のパターン）|
+| spec 仕様の頻繁改訂対象、構造変化なし | **C**（footer-spec / marker-legend） |
 
 ---
 
@@ -227,83 +287,95 @@ slots["MARKER_LEGEND"] = render_marker_legend()
 | 検証項目 | 結果 |
 |---|---|
 | **CP gate** (`scripts/_cp_gate_check.py`) | PASS=14 / DIFF=1 (300) / EXTRA=0 / MISS=0 |
-| **check_template_sync** | sync-required 7 領域すべて 8 templates byte-identical（head / css / body_pre_toc / marker_legend / part_c_d / footer_spec / js） |
-| **validate-tx 全 15 件** | ERROR 0 / WARNING 0（Phase 4-4 で達成、Phase 4-5 で維持） |
-| **baseline** | `_phase3_2_pre_patch_baseline.json` 据え置き（Phase 4-3〜4-5 はすべて byte-identical 維持型 patch のため、`docs/cp-gate.md` §4 規定により baseline 更新不要） |
+| **check_template_sync** | sync-required 7 領域すべて 8 templates byte-identical（head / css / body_pre_toc / marker_legend / part_c_d / footer_spec / js）／ diff-allowed `toc` は variants 6→1 集約済 |
+| **validate-tx 全 15 件** | ERROR 0 / WARNING 0（Phase 4-4 で達成、Phase 4-5/4-6 で維持） |
+| **baseline** | `_phase3_2_pre_patch_baseline.json` 据え置き（Phase 4-3〜4-6 すべて byte-identical 維持型 patch のため、`docs/cp-gate.md` §4 規定により baseline 更新不要） |
 
-300 のみ DIFF=1 は意図的（Phase 3-3 basis 構造化 + Phase 4-3 final_answer + Phase 4-4 anchor
-注入 + 8th basis card 追加の累積結果、`docs/cp-gate.md` §1 「byte-identical 非保護」明示）。
+300 のみ DIFF=1 は意図的（Phase 3-3 basis 構造化 + Phase 4-3 final_answer + Phase 4-4
+anchor 注入 + 8th basis card 追加の累積結果、`docs/cp-gate.md` §1 「byte-identical
+非保護」明示）。Phase 4-5/4-6 は 300 含め全 15 件 byte-identical で hash 不変。
 
 ---
 
 ## §4. 次セッション第 1 タスク候補
 
-### 候補 A: remote 設定 + push（高優先）
+### 候補 A: remote 設定 + push（**最優先・本セッション持ち越し**）
 
-`git remote -v` 空、累積 12〜13 commits 未 push。本セッション開始時点から継続している
-issue。`gh repo create` or 既存 remote 設定後、`git push -u origin master` で一括反映可能。
+**状態**: 本セッション最後に `gh auth status` 実行 → **`gh` CLI 未インストール**確認。
+SSH 鍵未生成。git は 2.54.0.windows.1 で GCM 同梱済（GCM 経由 push 可能性あり）。
+本セッション内では決着できず次セッション初手に持ち越し（累積 16 commits 未 push）。
 
-```bash
-# 既存 remote 設定がある場合
-git remote add origin <url>
-git push -u origin master
+**次セッションで取るべき経路**:
 
-# 新規 GitHub repo を作成する場合 (要 gh auth)
-gh repo create <name> --source=. --push
-```
+1. **GitHub Desktop / web で空 private repo 作成** → URL 取得
+2. **`git remote add origin <URL>` + `git push -u origin master`** をローカルターミナルで実行
+   （初回 push 時に GCM がブラウザの GitHub 認証ポップアップを自動起動 → 手動で「Authorize」クリック）
+3. 認証 cache 後、以降の push は無認証
 
-### 候補 B: Phase 4-6 着手（TOC slot 化）
+代替経路:
+- **`gh` CLI を別ターミナルで `winget install --id GitHub.cli` → `gh auth login` → `gh repo create ... --push`** で完結（候補 3）
+- **SSH 鍵生成 + GitHub 登録**（候補 2）
 
-BACKLOG §4 で Phase 4-6 最有力候補として明示済。
+### 候補 B: Phase 4-7 着手（PART D drill-block 12 件）
 
-- **領域**: `toc` diff-allowed 6 variants（363-436 bytes / 10-12 lines × 6 種）
-- **挑戦点**: Phase 4-2/4-5 の sync-required 領域 slot 化と異なり、`instruction_type`
-  別ラベル差（ア〜オ / 1〜5 / A〜E 等）を render.py 側で生成する必要
-- **設計予想**: `TOC_LABELS_BY_INSTRUCTION_TYPE: dict` + `render_toc(instruction_type)` 関数
-- **commit 計画**: BACKLOG / render / templates の 3-commit パターン（Phase 4-3〜4-5 と同形）
+**⚠ 警告: 最大規模・最高複雑度**
 
-### 候補 C: BACKLOG §6 整理
+- **領域**: part_c_d sync 領域内、PART C は Phase 2 で slot 化済、PART D drill が残存
+- **規模**: 約 150 lines（各 drill block ~12 行 × 12 件）— Phase 4-3〜4-6 の最大領域
+  （footer-spec 326 / marker-legend 709 / toc 363-436 と比較して **約 10 倍**）
+- **既存 JSON**: `problem.drill_blocks` 配列が既に存在。各 drill に
+  `num/tag/question/correct/explanation` 等のフィールドあり。render.py 側で既に
+  `DRILL_{num}_TAG` 等の固定 12 件 slot を template に配置済（slotmap §5.5）
+- **挑戦点**:
+  - 固定 12 件方式 → 構造化レンダリングへの移行（パターン A の応用、final_answer の
+    cells 構造より複雑）
+  - PART D の HTML 構造（`<div class="drill-block">` 内に label / question / answer-area
+    / explanation 等のネスト構造）→ サブ要素レベルで slot 化が必要かどうかの設計判断
+  - `data-correct` 属性 + JS 連動（`<button data-correct="true/false">`）の正確な再生
 
-Phase 4-5 完了で確定した不要項目を削除:
-- §6-4 (extra_legend_items hook) → universal 実証で不要確定、削除候補
+**設計予想**: パターン A + 構造化レンダリング（Phase 3-3 basis card 構造化レンダリングと
+同種）。BACKLOG §1 を Phase 4-7 スコープで全面書換する commit 1 が大幅に長くなる見込み
+（設計判断が Phase 4-3 final_answer 級に複雑）。
 
-維持項目:
-- §6-1 (ref-law-X-Y-NNN qualifier) — 複数項参照問題が出現するまで保留
-- §6-2 (段落クラス情報 id 注入) — chip mis-targeting 大量発生時の対応
-- §6-3 (id→chip 逆方向検証) — 仕様 clean 性追求
+### 候補 C: BACKLOG / SESSION-SUMMARY の継続整理
+
+- BACKLOG §0 に Phase 4-6 完了行を追記（次 Phase の commit 1 に統合可）
+- BACKLOG §6-4 は Phase 4-6 commit 1 で削除済、§5-1 (本サマリの旧版残存) を整理
 
 ### 推奨順序
 
-1. **A (remote + push)** を先に消化（commit 累積を解消、外部 backup 確保）
-2. **B (Phase 4-6 TOC)** 着手（次の slot 化技術応用）
-3. **C (BACKLOG 整理)** は B の commit 1 (BACKLOG update) に統合可
+1. **A (remote + push)** を最初に消化（外部 backup 確保、`gh auth login` 完了で以後の
+   push が容易化）
+2. **B (Phase 4-7 PART D drill)** 着手 — ただし最大規模のため、**着手前の BACKLOG §1
+   設計セッションで複数ラウンドのレビューを想定**
+3. **C** は B の commit 1 (BACKLOG update) に統合
 
 ---
 
 ## §5. 保留事項
 
-### 5-1. per-problem `extra_legend_items` hook（Phase 4-5 §6-4）
-
-- **状態**: Phase 4-5 で universality 実証され不要確定
-- **アクション**: 次セッションで BACKLOG §6-4 を削除（Phase 4-6 commit 1 に統合）
-
-### 5-2. `ref-law-X-Y-NNN` 規約（BACKLOG §6-1）
+### 5-1. `ref-law-X-Y-NNN` 規約（BACKLOG §6-1）
 
 - **状態**: 同一条文の複数項を区別する将来課題
 - **着手判断条件**: 246条1項 + 246条2項 を同時参照する問題が出現したとき
 - **実装方針**: `inject_ref_ids()` 内で anchor 表示テキストから「N項」「N号」を正規表現抽出し
   id に追加
 
-### 5-3. ref-case 段落クラス情報 id 注入（BACKLOG §6-2）
+### 5-2. ref-case 段落クラス情報 id 注入（BACKLOG §6-2）
 
 - **状態**: chip mis-targeting が大量発生した場合の対応案
 - **着手判断条件**: 複数 chip 著者の手作業 NNN 割当ミスが累積してきたとき
 - **note**: canonical 規約からの逸脱になるため規約改定の合意が必要
 
-### 5-4. ref-id 双方向検証（BACKLOG §6-3）
+### 5-3. ref-id 双方向検証（BACKLOG §6-3）
 
 - **状態**: 未使用 id 検出機能（仕様 clean 性追求）
 - **アクション**: `validate-tx.py` の S8 を双方向化、または別 sanity check スクリプト追加
+
+### 5-4. TOC choice ラベル series の拡張余地（BACKLOG §6-5）
+
+- **状態**: 現状 4 series × 最大 3 N 値 = 6 cells 占用 / 18 cells 拡張余地
+- **着手判断条件**: 新 instruction_type 追加が必要なとき（辞書 1 行追加で対応可能）
 
 ### 5-5. Phase 5+ JX シリーズ着手
 
@@ -325,20 +397,31 @@ Phase 4-5 完了で確定した不要項目を削除:
 - **アクション**: 同上、整理 commit で削除候補（`docs/cp-gate.md` §3 で historical artifact
   扱い明示済）
 
+### 5-8. remote 未確保（**本セッション残存リスク**）
+
+- **状態**: 累積 16 commits が local のみ。外部 backup なし
+- **次セッション初手**: 候補 A (remote 設定 + push) を最優先タスクとして実施
+
 ---
 
 ## §6. セッション統計
 
 | 項目 | 数値 |
 |---|---|
-| 本セッション通算 commits（Phase 4-3〜4-5 + 本サマリ） | 11 |
-| 本セッション通算 commits（CP infra + Phase 4-1+4-2 含む） | 13 |
+| 本セッション通算 commits（CP infra + Phase 4-1〜4-6 + 中間/最終サマリ）| **16** |
+| Phase 4-3〜4-6 のみの commits | 13 |
 | 14 protected ファイルの byte-identical 維持 | ✅ 全 commit |
-| 300 (demo) の hash 変化 | Phase 4-3 / 4-4 / 4-5 で更新（DIFF=1 内維持） |
+| 300 (demo) の hash 変化 | Phase 4-3 / 4-4 で更新、Phase 4-5 / 4-6 で不変 |
 | 全 15 件 validate-tx ERROR 0 / WARNING 0 達成タイミング | Phase 4-4 完了時点 |
-| templates 行数削減（marker-legend 集約のみ） | 8 templates × 10 lines = 80 行削減（5,536 bytes 削減） |
-| BACKLOG.md 行数推移 | 168 行（新規）→ 245 行（P4-4 更新）→ 226 行（P4-5 更新） |
+| templates 行数削減累計 | marker-legend 80 行 + toc 80-96 行 = 約 **160-176 行削減** |
+| templates bytes 削減累計 | marker-legend 5,536 + toc 約 3,200 = 約 **8,700 bytes 削減** |
+| diff-allowed `toc` variants 集約 | 6 variants → 1 variants |
+| 確立された設計パターン数 | 3（A: thin schema / B: post-processing / C: universal）+ メタ認知 1（再利用 + 境界更新の定型化） |
+| BACKLOG.md 行数推移 | 168（新規）→ 245（P4-4）→ 226（P4-5）→ 270（P4-6）行 |
 
 ---
 
-**本セッション、Phase 4-3 / 4-4 / 4-5 の 3 Phase 完走。**
+**本セッション、Phase 4-3 / 4-4 / 4-5 / 4-6 の 4 Phase 完走。**
+**設計パターンの確立（4-3〜4-5）と再利用（4-6）の往復を 1 セッション内で実証した。**
+
+push は次セッション初手タスク（候補 A）として持ち越し。
