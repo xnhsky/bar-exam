@@ -388,6 +388,69 @@ def render_footer_feature_tags(
     return "\n".join(lines)
 
 
+# ============================================================================
+# C-7 末尾 final-answer 描画関数（Phase 4-3）
+# ============================================================================
+# §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
+# を構築する。問題に final_answer フィールドが指定されていなければ "" を返却し、
+# render_c7_memory() 経由で出力に何も injected されない（既存 14 件 byte-identical
+# 維持）。canonical KTX301.html line 3035-3041 の §22-bis 構造に準拠。
+#
+# - hidden 属性必須 (§22-quater-1 / AP-30 / S68)
+# - fa-summary 「正解はN」リテラル禁止は呼出側 (problem.json) の責務 (§22-quater-2)
+# - ox-grid 系は AP-40 (v8.11.5) により single 形式に統一 (multi 構造化しない)
+
+def render_final_answer(problem: dict) -> str:
+    """problem.final_answer から §22-bis/§22-ter 形式の final-answer block を返す。
+
+    None / 未指定 → ""（block ごと出力しない、byte-identical 維持）
+    dict 与えられた場合は instruction_type + answer から mode を派生:
+      - multi-select-5: §22-ter (cells per stmt、正解のみ)
+      - それ以外:        §22-bis (single answer-num)
+
+    戻り値は末尾改行なしの multi-line 文字列。render_c7_memory() 側で memory-list
+    終了と back-to-top の間に blank line 区切りで埋め込む。
+    """
+    fa = problem.get("final_answer")
+    if not fa:
+        return ""
+
+    summary_html = fa.get("summary_html", "")
+    extra_html = fa.get("extra_html", "")
+    instr_type = problem.get("instruction_type", "")
+    answer_raw = problem.get("answer", "")
+
+    if instr_type == "multi-select-5" and isinstance(answer_raw, list):
+        # §22-ter: 正解と判定された記述 cell のみ列挙 (AP-38)
+        cells = "\n".join(
+            f'        <div class="ans-cell ans-correct">'
+            f'<span class="ans-stmt">{escape(str(n))}</span>'
+            f'<span class="ans-val">1</span></div>'
+            for n in answer_raw
+        )
+        answer_block = (
+            '      <div class="answer-num answer-num-multi">\n'
+            + cells + '\n'
+            + '      </div>'
+        )
+    else:
+        # §22-bis: single form (ox-grid 系も AP-40 で single に統一)
+        answer_value = _format_answer(answer_raw)
+        answer_block = f'      <span class="answer-num">{answer_value}</span>'
+
+    extra_p = f'\n      <p>{extra_html}</p>' if extra_html else ""
+
+    return (
+        '    <!-- §22-bis: C-7 末尾配置 final-answer -->\n'
+        '    <div class="final-answer" hidden>\n'
+        '      <h3>🎯 正解</h3>\n'
+        + answer_block + '\n'
+        '      <p class="fa-summary">' + summary_html + '</p>'
+        + extra_p + '\n'
+        '    </div>'
+    )
+
+
 def _render_table(table: dict | None, indent: str = "    ") -> str:
     """{title?, headers, rows[{cells, row_key?}]} を cmp-table-wrap HTML に変換。"""
     if not table:
@@ -549,8 +612,20 @@ def render_c6_related(data: dict | None) -> str:
     return "\n".join(parts)
 
 
-def render_c7_memory(data: dict | None) -> str:
+def render_c7_memory(data: dict | None, final_answer_html: str = "") -> str:
+    """C-7 三層構造記憶セクション。
+
+    final_answer_html が非空なら memory-list 終了と back-to-top の間に挿入する
+    (Phase 4-3 § §22-bis/§22-ter)。空文字列なら従来通り出力（byte-identical 維持）。
+    """
     if not data:
+        if final_answer_html:
+            # stub の back-to-top 直前に final-answer + 空行を挿入
+            return PART_C_STUBS["C7_MEMORY"].replace(
+                "\n" + _BACK_TO_TOP,
+                "\n\n" + final_answer_html + "\n" + _BACK_TO_TOP,
+                1,
+            )
         return PART_C_STUBS["C7_MEMORY"]
     parts = [
         '    <nav class="sec-nav"><a href="#c-6">←C-6</a><a href="#part-d">PART D→</a></nav>',
@@ -579,6 +654,8 @@ def render_c7_memory(data: dict | None) -> str:
             parts.append('        </div>')
             parts.append('      </div>')
         parts.append('    </div>')
+    if final_answer_html:
+        parts.extend(["", final_answer_html])
     parts.extend(["", _BACK_TO_TOP])
     return "\n".join(parts)
 
@@ -687,14 +764,16 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # PART C slot 供給（Phase 2、任意フィールド part_c.*）。
     # part_c 未定義 / 各サブセクション未定義の場合は PART_C_STUBS が注入され、
     # 既存 14 件は byte-identical 維持。
+    # C-7 のみ final-answer (Phase 4-3) と組合せて生成する。
     part_c = problem.get("part_c") or {}
+    final_answer_html = render_final_answer(problem)
     slots["C1_SYSTEMATIC"]  = render_c1_systematic(part_c.get("systematic"))
     slots["C2_COMPARISON"]  = render_c2_comparison(part_c.get("comparison"))
     slots["C3_CONNECTIONS"] = render_c3_connections(part_c.get("connections"))
     slots["C4_DOCTRINES"]   = render_c4_doctrines(part_c.get("doctrines"))
     slots["C5_FLOWCHART"]   = render_c5_flowchart(part_c.get("flowchart"))
     slots["C6_RELATED"]     = render_c6_related(part_c.get("related_problems"))
-    slots["C7_MEMORY"]      = render_c7_memory(part_c.get("three_layer_memory"))
+    slots["C7_MEMORY"]      = render_c7_memory(part_c.get("three_layer_memory"), final_answer_html)
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
