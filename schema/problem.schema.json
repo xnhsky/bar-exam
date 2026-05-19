@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bar-exam.local/schema/problem.schema.json",
+  "title": "Bar Exam Problem",
+  "description": "司法試験予備試験の択一問題 1 件分の構造化データ。PDF から起こす。",
+  "type": "object",
+  "required": ["id", "source", "crime", "instruction", "answer", "answer_explanation", "choices"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{3}$",
+      "description": "問題番号 3 桁ゼロ埋め（例: '326'）。subject が KEI 以外の場合も id 自体は 3 桁数値で保持し、科目接頭辞は subject field で表現する。"
+    },
+    "subject": {
+      "type": "string",
+      "enum": ["KEI", "KEN", "MIN", "SYO", "MINS", "KEIS", "GSE"],
+      "default": "KEI",
+      "description": "科目略称。KEI=刑法 / KEN=憲法 / MIN=民法 / SYO=商法 / MINS=民事訴訟法 / KEIS=刑事訴訟法 / GSE=行政法。未指定時は KEI（後方互換、326-330 シリーズ）。validate_content.py の SIGNATURE_REGISTRY 参照キーになる。render.py の出力先ディレクトリ・ファイル名接頭辞もこの値から決まる。"
+    },
+    "source": {
+      "type": "string",
+      "description": "出典コード（例: 'H29-12', 'R2-10'）"
+    },
+    "chapter": {
+      "type": "string",
+      "description": "章（例: '第4章 財産に対する罪'）"
+    },
+    "section": {
+      "type": "string",
+      "description": "節（例: '第8節 盗品等に関する罪'）"
+    },
+    "page": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "原典ページ番号"
+    },
+    "crime": {
+      "type": "string",
+      "description": "罪名（例: '盗品等罪', '詐欺罪', '文書等毀棄罪'）。validate_content.py の negative check のキー。"
+    },
+    "points": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "配点"
+    },
+    "correct_rate": {
+      "type": "string",
+      "pattern": "^[0-9]{1,3}%$",
+      "description": "正答率（例: '47%'）"
+    },
+    "instruction_type": {
+      "type": "string",
+      "enum": ["ox-grid-5", "ox-grid-4", "multi-select-5", "single-choice-5", "combination-5", "single-choice", "ranking", "fill-in", "ox-grid-3-combination-8", "fillin8"],
+      "description": "出題形式。ox-grid-5 は ア〜オの 5 択 ○×、ox-grid-4 は ア〜エの 4 択 ○× 判定、multi-select-5 は 1〜5 の 5 択から K 個選択、single-choice-5 は 1〜5 から 1 個選択（【見解】section 付き）、combination-5 は ア〜オ 5 記述 + 1〜5 組合せ選択肢から 1 個選択、fill-in は A〜E の空欄に候補番号を入れる形式 (slotmap §6.6、最大 5 空欄)、ox-grid-3-combination-8 は ア〜ウ 3 記述 ○× + 1〜8 組合せ選択肢 (slotmap §6.7)。"
+    },
+    "instruction": {
+      "type": "string",
+      "minLength": 10,
+      "description": "設問文"
+    },
+    "case": {
+      "type": ["object", "null"],
+      "description": "事例段落（甲乙丙の長文事案）。【事例】型問題のみ存在",
+      "properties": {
+        "paragraphs": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 20 },
+          "minItems": 1,
+          "description": "事例の段落配列。各要素が1段落"
+        }
+      },
+      "required": ["paragraphs"],
+      "additionalProperties": false
+    },
+    "answer": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^[12]+$",
+          "description": "ox-grid 系の ○× 正解列。ox-grid-5 なら 5 桁（例: '12222'）、ox-grid-4 なら 4 桁（例: '2212'）"
+        },
+        {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "description": "multi-select 系の正解番号集合（昇順、重複なし、各値 1〜5）。例: [1, 4]"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "single-choice 系の正解番号（1〜5 の単一値）。例: 2"
+        },
+        {
+          "type": "object",
+          "patternProperties": {
+            "^[A-E]$": { "type": "string" }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 5,
+          "description": "fill-in 系の正解マップ（slotmap §6.6 §2.4）。キーは空欄ラベル A〜E、値は候補番号 (文字列、例: '5')。例: {\"A\": \"5\", \"B\": \"7\", \"C\": \"3\", \"D\": \"6\"}"
+        }
+      ],
+      "description": "正解。ox-grid 系は string、multi-select 系は int[]、single-choice 系は integer、fill-in 系は object。oneOf 分岐により後方互換維持。"
+    },
+    "answer_explanation": {
+      "type": "string",
+      "minLength": 1,
+      "description": "answer-area の data-explanation 属性に注入される短い解答ガイド。S16 が非空を要求。AP-37 抵触回避のため、正解番号（先頭の数字）や罪名は含めないこと。例: '解答および各記述の正誤判定'。"
+    },
+    "override_pattern": {
+      "type": "string",
+      "enum": ["P1", "P2", "P3", "P4", "P5"],
+      "description": "適用する override CSS パターン"
+    },
+    "allowed_cross_refs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "validate_content.py の negative check から除外する他罪名のリスト。正当な比較言及がある場合のみ指定する。"
+    },
+    "choices": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 5,
+      "items": { "$ref": "#/$defs/Choice" }
+    },
+    "views": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/View" },
+      "minItems": 3,
+      "maxItems": 3,
+      "description": "single-choice-5 等で使用する【見解】配列（固定 3 件 A/B/C、slotmap §5.3 §8）。ox-grid / multi-select / combination 系では未指定。"
+    },
+    "combinations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Combination" },
+      "minItems": 5,
+      "maxItems": 8,
+      "description": "combination-5 / ox-grid-3-combination-8 で使用する【組合せ】配列（5〜8 件、各々 label 1〜8 と set、slotmap §5.4 / §6.7）。ox-grid / multi-select / single-choice 系では未指定。"
+    },
+    "drill_blocks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/DrillBlock" },
+      "minItems": 12,
+      "maxItems": 12,
+      "description": "PART D Rapid-Fire ○×ドリル（固定 12 件、slotmap §5.5）。optional、未指定なら template に空 slot で render される。"
+    }
+  },
+  "$defs": {
+    "DrillBlock": {
+      "type": "object",
+      "required": ["num", "tag", "question", "correct", "explanation"],
+      "additionalProperties": false,
+      "properties": {
+        "num": {
+          "type": "string",
+          "pattern": "^[0-9]{2}$",
+          "description": "drill 番号（2 桁ゼロ埋め、01-12）"
+        },
+        "tag": {
+          "type": "string",
+          "minLength": 3,
+          "description": "drill タグ（例: 記述ア / 主要論点）"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 20,
+          "description": "drill 問題文（○× で問う 1-2 文）"
+        },
+        "correct": {
+          "type": "string",
+          "enum": ["○", "×"],
+          "description": "正解（○ または ×）"
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 10,
+          "description": "drill 解説（核心法理を 1 文）"
+        }
+      }
+    },
+    "Professor": {
+      "type": "object",
+      "required": ["summary", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 10,
+          "description": "教授の解説 - 要旨（核となる論点を 1-2 文で）"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 10,
+          "description": "教授の解説 - 詳細（判例引用や論拠を 3-5 文で）"
+        }
+      }
+    },
+    "View": {
+      "type": "object",
+      "required": ["label", "body"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": ["A", "B", "C"],
+          "description": "見解ラベル（固定 3 件）"
+        },
+        "body": {
+          "type": "string",
+          "minLength": 10,
+          "description": "見解の本文（plain text、AP-37 抵触回避のため正解番号・罪名固有句を含めない）"
+        }
+      }
+    },
+    "Combination": {
+      "type": "object",
+      "required": ["label", "set"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": ["1", "2", "3", "4", "5", "6", "7", "8"],
+          "description": "組合せラベル（1〜8、combination-5 は 1〜5、ox-grid-3-combination-8 は 1〜8）"
+        },
+        "set": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["ア", "イ", "ウ", "エ", "オ"]
+          },
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "description": "組合せに含まれる記述ラベルの集合（ア〜オ から構成、重複なし）"
+        }
+      }
+    },
+    "Choice": {
+      "type": "object",
+      "required": ["label", "stem", "verdict"],
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": ["ア", "イ", "ウ", "エ", "オ", "カ", "キ", "ク", "ケ", "コ", "1", "2", "3", "4", "5", "A", "B", "C", "D", "E"],
+          "description": "選択肢ラベル。ox-grid 系はカナ（ア〜コ）、multi-select 系は算用数字（1〜5）、fill-in 系は空欄ラベル A〜E (slotmap §6.6)。"
+        },
+        "stem": {
+          "type": "string",
+          "minLength": 10,
+          "description": "選択肢本文（事例＋当該記述）"
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["1", "2"],
+          "description": "判定（1=正しい, 2=誤っている）"
+        },
+        "verdict_label": {
+          "type": "string",
+          "enum": ["正しい", "誤っている"],
+          "description": "判定の表示用ラベル"
+        },
+        "case_citations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "引用判例（例: '最判昭24.10.20（百選Ⅱ77事件）'）"
+        },
+        "explanation": {
+          "type": ["string", "null"],
+          "description": "解説本文。PDF から抽出できなかった場合は null（validate_content.py で fail する）。"
+        },
+        "professor": {
+          "$ref": "#/$defs/Professor",
+          "description": "教授の解説 sub-card（slotmap §5.6、optional、後方互換維持）"
+        }
+      }
+    }
+  }
+}
