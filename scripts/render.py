@@ -583,6 +583,47 @@ def render_body_pre_toc(problem: dict) -> str:
 
 
 # ============================================================================
+# pre_part_a 描画関数（Phase 4-9・A+C 組合せ・Phase 4-6 TOC 同形）
+# ============================================================================
+# 8 templates の diff-allowed 領域 pre_part_a (4 lines / 194-237 bytes、8 templates ×
+# 8 variants で完全 1:1 対応) を集約 slot 化。各 variant は HTML コメント内の form 名
+# 文字列のみが可変、固定の前後コメント枠 (universal) と組み合わせて出力。
+#
+# 設計判断（BACKLOG §2-1、ユーザ採択）:
+# - schema 変更なし、JSON 改修なし（既存 problem.instruction_type から派生）
+# - 未対応 instruction_type は RuntimeError raise（Phase 4-6 TOC 同方針、silent
+#   fallback 不採用）
+# - broken intermediate state なし（diff-allowed 領域、旧 slot 不在）
+
+PRE_PART_A_FORM_NAMES_BY_TYPE: dict[str, str] = {
+    "ox-grid-5":               "ox-grid-5 形式",
+    "ox-grid-4":               "ox-grid-4 形式",
+    "ox-grid-3-combination-8": "ox-grid-3 + combination-8 形式",
+    "multi-select-5":          "multi-select-5 形式",
+    "single-choice-5":         "single-choice-5 形式",
+    "combination-5":           "combination-5 形式",
+    "fill-in":                 "fill-in 形式",
+    "fillin8":                 "fillin8 形式：8 blanks 表示 + 5 options 単一選択",
+}
+
+
+def render_pre_part_a(instruction_type: str) -> str:
+    """{{PRE_PART_A}} slot 値を返す（instruction_type 派生）。未対応 type で RuntimeError。"""
+    if instruction_type not in PRE_PART_A_FORM_NAMES_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for pre_part_a. "
+            f"valid: {sorted(PRE_PART_A_FORM_NAMES_BY_TYPE)}"
+        )
+    form_name = PRE_PART_A_FORM_NAMES_BY_TYPE[instruction_type]
+    return (
+        '\n'
+        '  <!-- ============================================================\n'
+        f'       PART A ── 問題情報（{form_name}）\n'
+        '       ============================================================ -->'
+    )
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -984,6 +1025,11 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # {{OVERRIDE_PATTERN}}) は据え置き、本 slot は経路の重複となるが許容（footer-spec 等で
     # 他参照あり旧 slot 削除不可）。
     slots["BODY_PRE_TOC"] = render_body_pre_toc(problem)
+
+    # pre_part_a slot 供給（Phase 4-9 で集約 slot 化、Phase 4-6 TOC 同形・A+C 組合せ 2 例目）。
+    # problem.instruction_type から PRE_PART_A_FORM_NAMES_BY_TYPE を参照し、form 名を埋込。
+    # 未対応 type は render_pre_part_a() 内で RuntimeError。
+    slots["PRE_PART_A"] = render_pre_part_a(problem.get("instruction_type", ""))
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
