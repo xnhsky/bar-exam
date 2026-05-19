@@ -81,7 +81,6 @@ TEMPLATE_PATHS: dict[str, Path] = {
 COMBO_SET_SEPARATOR = "・"
 
 
-
 # ============================================================================
 # PART C スタブ（Phase 2 byte-identical 維持用）
 # ============================================================================
@@ -135,12 +134,12 @@ PART_C_STUBS: dict[str, str] = {
     ),
 }
 
-
 # PART B basis スタブ（Phase 3-2 で導入）。
 # basis フィールドが None / 未指定 / cards 空 の場合、{{BASIS_CARDS}} slot に
 # このリテラルが注入され、既存 14 件 byte-identical を維持する。
 # テンプレ patch スクリプト upgrade_templates_basis_slot.py と対応。
 BASIS_STUB: str = '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->'
+
 
 # ============================================================================
 # PART C 描画関数（Phase 2）
@@ -153,8 +152,6 @@ BASIS_STUB: str = '    <!-- TODO: Phase 2 で JSON schema 拡張、本実装 -->
 # 共通の back-to-top 末尾
 _BACK_TO_TOP = '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>'
 
-
-# ============================================================================
 
 # ============================================================================
 # PART B basis 描画関数（Phase 3-3）
@@ -262,6 +259,133 @@ def render_basis(data: dict | None) -> str:
     # 各 card 間は blank line 区切り、戻り値の先頭にも blank line（h2 と最初の card を区切る）。
     # 末尾改行は template 側の `{{BASIS_CARDS}}\n` が供給するため付けない。
     return "\n" + "\n\n".join(rendered)
+
+
+# ============================================================================
+# PART A 【見解】描画関数（Phase 4-1）
+# ============================================================================
+# views フィールドが None / 未指定 / 空 の場合は空文字列を返却 → {{VIEWS_BLOCK}}
+# slot が空に置換され、template 側の `\n{{VIEWS_BLOCK}}\n` が `\n\n` となり、
+# 【見解】H3 + section ごと出力から消える（gold 300 と一致）。
+# list[3] の場合は 18 行ブロック相当の HTML を返却し、329 等の byte-identical を維持。
+# {{VIEWS_BLOCK}} slot は sc5 template 単独に配置（他 7 templates には placeholder なし）。
+
+_VIEWS_H3_STYLE = (
+    'background:transparent; border-left:none; padding:8px 0 4px 0;'
+    ' margin:20px 0 8px 0; border-bottom:2px dotted var(--border-mid);'
+    ' color:var(--accent); font-family:var(--font-display);'
+)
+
+
+def render_views_block(views: list | None) -> str:
+    """views フィールドを {{VIEWS_BLOCK}} slot 値に変換する。
+
+    None / 未指定 / 空 → ""（views 関連 HTML を完全に出力しない）
+    list[3 (A/B/C)] → 【見解】H3 + views-section の HTML
+    """
+    if not views:
+        return ""
+    views_by_label: dict[str, dict] = {}
+    for v in views:
+        lbl = v.get("label")
+        if lbl in ("A", "B", "C"):
+            views_by_label[lbl] = v
+    view_blocks: list[str] = []
+    for letter in ("A", "B", "C"):
+        v = views_by_label.get(letter, {})
+        label = str(v.get("label", ""))
+        body = str(v.get("body", ""))
+        view_blocks.append(
+            '      <div class="view-block">\n'
+            f'        <span class="view-label">{label}</span>\n'
+            f'        <p class="view-body">{body}</p>\n'
+            '      </div>'
+        )
+    blocks_html = "\n".join(view_blocks)
+    # 戻り値は 17 \n を含み leading/trailing \n 付き（line 2060-2077 相当の 18 行）。
+    # template 側の `\n{{VIEWS_BLOCK}}\n` が calc {{CASE_BODY}} 行末と【記述】行頭の
+    # 境界 \n を 1 つずつ提供する（合計 19 \n で原 region と byte-identical）。
+    return (
+        '\n'
+        '    <h3 style="' + _VIEWS_H3_STYLE + '">【見解】</h3>\n'
+        '\n'
+        '    <section class="views-section" id="part-a-views">\n'
+        f'{blocks_html}\n'
+        '    </section>\n'
+    )
+
+
+# ============================================================================
+# footer-spec feature-tag 列描画関数（Phase 4-2）
+# ============================================================================
+# 8 templates の <p class="footer-meta"> 内 23 行 <span class="feature-tag"> を
+# {{FOOTER_FEATURE_TAGS}} 集約 slot に置換。
+# 末尾 1 行は OVERRIDE_PATTERN を取り、それより手前 22 行は仕様固定（v8.11.7 時点）。
+# byte-identical 復元のため irregular indent パターン (6/0/0/0/0/6/0/6...6) を逐語温存。
+
+# 末尾 OVERRIDE_PATTERN を除く 22 固定 feature-tag（v8.11.7 時点）。
+# spec 上昇に伴う増減はこのリストを編集する（8 templates の手修正不要）。
+FOOTER_FEATURE_TAGS_DEFAULT: list[str] = [
+    "TX v8.11.7",
+    "spoiler-safe",
+    "a2-two-stage-reveal",
+    "a2-multi-ox-support",
+    "spoiler-leak-eradication",
+    "spoiler-strong-elimination",
+    "ox-grid-fa-unification",
+    "spoiler-footer-purge",
+    "multi-answer-css",
+    "ktx301-canon",
+    "ktx-template-canon",
+    "embedded-canon",
+    "readability-layer",
+    "hanging-grid",
+    "basis-order-v2",
+    "a2-feedback-canon",
+    "rbchip-patched",
+    "k302-immune",
+    "p2p3-unified",
+    "p1-absolute",
+    "jp-prefix-naming",
+    "content-independence",
+]
+
+# 23 行（22 固定 + OVERRIDE_PATTERN）の indent 量。v8.11.7 baseline 由来。
+# 整理したくなる irregular 配列だが、byte-identical 復元のため逐語温存。
+FOOTER_TAG_INDENTS: list[int] = [
+    6, 0, 0, 0, 0,
+    6, 0,
+    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+    6,  # OVERRIDE_PATTERN 行
+]
+
+
+def render_footer_feature_tags(
+    override_pattern: str,
+    extra_tags: list[str] | None = None,
+) -> str:
+    """{{FOOTER_FEATURE_TAGS}} slot 値を組み立てる。
+
+    Args:
+        override_pattern: 末尾 feature-tag に注入する pattern 文字列（例: "P1"）。
+        extra_tags: per-problem 拡張 tag（v8.11.7 では未使用、将来 hook）。
+                    指定時は override_pattern 行のさらに後ろに、各 indent=6 で追加。
+
+    戻り値は (22 + 1 + len(extra_tags)) 行を \\n 区切りで連結したもの。末尾 \\n は含まない
+    （template 側の `{{FOOTER_FEATURE_TAGS}}\\n` が末尾改行を供給する）。
+    """
+    tags: list[str] = list(FOOTER_FEATURE_TAGS_DEFAULT) + [override_pattern]
+    if extra_tags:
+        tags.extend(extra_tags)
+    indents: list[int] = list(FOOTER_TAG_INDENTS)
+    while len(indents) < len(tags):
+        indents.append(6)  # extras default to indent 6
+    lines: list[str] = []
+    last = len(tags) - 1
+    for i, (indent, tag) in enumerate(zip(indents, tags)):
+        sep = "・" if i < last else ""
+        lines.append(" " * indent + f'<span class="feature-tag">{tag}</span>' + sep)
+    return "\n".join(lines)
 
 
 def _render_table(table: dict | None, indent: str = "    ") -> str:
@@ -572,12 +696,25 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     slots["C6_RELATED"]     = render_c6_related(part_c.get("related_problems"))
     slots["C7_MEMORY"]      = render_c7_memory(part_c.get("three_layer_memory"))
 
-    # 【見解】slot 供給（slotmap §5.3 §8 固定 3 件方式: A/B/C）
-    # views が未指定（ox-grid / multi-select / combination 系）の場合は空文字で埋める。
-    # sc5 template 以外には VIEW_*_* placeholder が存在しないため無害。
-    views = problem.get("views", [])
+    # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
+    # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
+    # 整形して {{FOOTER_FEATURE_TAGS}} に注入する。
+    # extra_tags は v8.11.7 では未使用（hook のみ残置）。
+    slots["FOOTER_FEATURE_TAGS"] = render_footer_feature_tags(
+        slots["OVERRIDE_PATTERN"],
+        extra_tags=problem.get("footer", {}).get("extra_tags") if isinstance(problem.get("footer"), dict) else None,
+    )
+
+    # 【見解】slot 供給（Phase 4-1 で集約 slot 化）
+    # views が未指定/空 の場合は VIEWS_BLOCK = "" → sc5 template の views region
+    # （H3 + section）が出力から完全に消える（gold 300 と一致）。
+    # views が 3 件 present の場合は原ブロック相当の HTML を返し、329 の byte-identical
+    # を維持する。下位互換: VIEW_*_LABEL / VIEW_*_BODY は他処理向けの遺物として
+    # 引き続き埋めておく（sc5 template からは placeholder 削除済みのため未参照）。
+    views_data = problem.get("views") or []
+    slots["VIEWS_BLOCK"] = render_views_block(views_data)
     views_by_label: dict[str, dict] = {}
-    for v in views:
+    for v in views_data:
         lbl = v.get("label")
         if lbl in ("A", "B", "C"):
             views_by_label[lbl] = v
