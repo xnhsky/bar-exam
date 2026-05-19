@@ -665,6 +665,42 @@ def render_head(problem: dict) -> str:
 
 
 # ============================================================================
+# basis 領域 sec-nav 描画関数（Phase 4-11・A+C 組合せ・Phase 4-6/4-9 機械的踏襲）
+# ============================================================================
+# basis section の第 2 行 <nav class="sec-nav"> 内の back-link 1 つだけが
+# instruction_type 別に可変。universal 枠 (nav wrapper + C-1 link) は固定。
+# A+C 組合せの 3 例目、Phase 4-6 TOC / Phase 4-9 pre_part_a と完全同形の
+# dispatch ロジックを機械的踏襲。
+#
+# 設計判断（BACKLOG §2-1、Phase 4-6/4-9 同方針）:
+# - schema 変更なし、JSON 改修なし（既存 problem.instruction_type から派生）
+# - 未対応 instruction_type で RuntimeError raise（silent fallback 不採用）
+# - broken intermediate state なし（diff-allowed 領域、旧 slot 不在）
+
+BASIS_SECNAV_LINKS_BY_TYPE: dict[str, str] = {
+    "ox-grid-5":               '<a href="#choice-5">↑記述オ</a>',
+    "ox-grid-4":               '<a href="#choice-4">↑記述エ</a>',
+    "ox-grid-3-combination-8": '<a href="#choice-3">↑記述ウ</a>',
+    "multi-select-5":          '<a href="#choice-5">↑記述5</a>',
+    "single-choice-5":         '<a href="#choice-5">↑記述5</a>',
+    "combination-5":           '<a href="#choice-5">↑記述オ</a>',
+    "fill-in":                 '<a href="#choice-5">↑空欄E</a>',
+    "fillin8":                 '<a href="#choice-5">↑肢5</a>',
+}
+
+
+def render_basis_secnav(instruction_type: str) -> str:
+    """{{BASIS_SECNAV}} slot 値を返す（instruction_type 派生）。未対応 type で RuntimeError。"""
+    if instruction_type not in BASIS_SECNAV_LINKS_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for basis sec-nav. "
+            f"valid: {sorted(BASIS_SECNAV_LINKS_BY_TYPE)}"
+        )
+    back_link = BASIS_SECNAV_LINKS_BY_TYPE[instruction_type]
+    return f'    <nav class="sec-nav">{back_link}<a href="#c-1">↓C-1</a></nav>'
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -1076,6 +1112,11 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # 旧 4 slot ({{JP_PREFIX}}/{{PROBLEM_ID}}/{{CRIME}}/{{SOURCE_ID}}) は据え置き、本 slot
     # は経路の重複となるが許容（body_pre_toc/footer-spec で他参照あり）。
     slots["HEAD"] = render_head(problem)
+
+    # basis sec-nav slot 供給（Phase 4-11 で集約 slot 化、A+C 組合せ 3 例目・Phase 4-6/4-9 機械的踏襲）。
+    # basis section 第 2 行の <nav class="sec-nav"> 全体を {{BASIS_SECNAV}} に集約。
+    # 未対応 type は render_basis_secnav() 内で RuntimeError。
+    slots["BASIS_SECNAV"] = render_basis_secnav(problem.get("instruction_type", ""))
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
