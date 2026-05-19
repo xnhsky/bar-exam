@@ -533,6 +533,56 @@ def render_drill_blocks(drills: list | None) -> str:
 
 
 # ============================================================================
+# body_pre_toc 描画関数（Phase 4-8）
+# ============================================================================
+# 8 templates の sync-required 領域 body_pre_toc (393 bytes / 12 lines) を集約 slot 化。
+# universal な HTML 構造 + 6 個の動的値 (JP_PREFIX/PROBLEM_ID/CRIME/SOURCE_ID/
+# CORRECT_RATE/OVERRIDE_PATTERN) を含むため、Phase 4-5 marker-legend の引数なし固定
+# const パターンを Python .format() 名前付き placeholder に拡張。
+#
+# 設計判断（BACKLOG §2-1 / ユーザ §8 採択回答）:
+# - schema 変更なし、JSON 改修なし（既存 6 slot 値を流用）
+# - 旧 6 slot ({{JP_PREFIX}} 等) は据え置き（footer-spec 等で他参照あり削除不可）
+# - escape 旧仕様踏襲（escape なし、Phase 4-7 と同一）
+# - .format(**) 名前参照で insertion order 非依存
+# - broken intermediate state なし（旧 slot 据え置きのため Commit 2 直後も render 動作）
+
+BODY_PRE_TOC_TEMPLATE: str = (
+    '</head>\n'
+    '<body id="top">\n'
+    '<div class="container">\n'
+    '\n'
+    '  <!-- HEADER -->\n'
+    '  <header class="header">\n'
+    '    <div class="doc-header">{jp_prefix}{problem_id}</div>\n'
+    '    <h1>No.{problem_id} ── {crime}（{source_id}）</h1>\n'
+    '    <div class="exam-meta">\n'
+    '      <span><strong>正答率:</strong>{correct_rate}</span>\n'
+    '      <span><strong>パターン:</strong>{override_pattern}</span>\n'
+    '    </div>'
+)
+
+
+def render_body_pre_toc(problem: dict) -> str:
+    """{{BODY_PRE_TOC}} slot 値を返す（Python .format() で動的値を埋込）。
+
+    旧 6 slot ({{JP_PREFIX}} 等) と同じ値を Python format placeholder 経由で埋込み、
+    slot 機構を経由しない完成 HTML を返す。insertion order 非依存。
+    escape 旧仕様踏襲（escape なし）。
+    """
+    subject = problem.get("subject", "KEI")
+    jp_prefix = SUBJECT_TO_JP[subject] + "TX"
+    return BODY_PRE_TOC_TEMPLATE.format(
+        jp_prefix=jp_prefix,
+        problem_id=str(problem.get("id", "")),
+        crime=str(problem.get("crime", "")),
+        source_id=str(problem.get("source", "")),
+        correct_rate=str(problem.get("correct_rate", "")),
+        override_pattern=str(problem.get("override_pattern", "P1")),
+    )
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -928,6 +978,12 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # universal 部分 (TOC_HEAD + TOC_TAIL) と choice anchor 群を組み立てる。
     # 未対応 type は render_toc() 内で RuntimeError。
     slots["TOC_ROW"] = render_toc(problem.get("instruction_type", ""))
+
+    # body_pre_toc slot 供給（Phase 4-8 で集約 slot 化、案 δ refined: .format() 名前付き placeholder）。
+    # 旧 6 slot ({{JP_PREFIX}}/{{PROBLEM_ID}}/{{CRIME}}/{{SOURCE_ID}}/{{CORRECT_RATE}}/
+    # {{OVERRIDE_PATTERN}}) は据え置き、本 slot は経路の重複となるが許容（footer-spec 等で
+    # 他参照あり旧 slot 削除不可）。
+    slots["BODY_PRE_TOC"] = render_body_pre_toc(problem)
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
