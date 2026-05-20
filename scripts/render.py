@@ -871,6 +871,209 @@ def render_part_a(instruction_type: str) -> str:
 
 
 # ============================================================================
+# a2 領域描画関数（Phase 4-13・パターン E 応用 1 例目: A+C + 局所 D + UI 種別 dispatch）
+# ============================================================================
+# 8 templates の diff-allowed a2 領域（avg 1,643 bytes / 25〜60 lines、8 templates ×
+# 8 variants）を集約 slot 化。
+#
+# 6 つの可変軸（BACKLOG §1-2）:
+#   1. sec_nav_back            (dict 派生)        — A-2 nav 内 back-link
+#   2. data_answer_type        (dict 派生)        — answer-area attribute 値
+#   3. h3_title                (dict 派生)        — answer-area H3 見出し
+#   4. answer_instruction      (dict 派生)        — answer-instruction 文言
+#   5. selection_counter_line  (2 値分岐)         — msel5 のみ 1 行 in
+#   6. ui_block                (件数別関数生成・D 局所 + UI 種別 dispatch)
+#                                                  — answer UI 構造（ox-grid / slot-row）
+#                                                    × 件数 (4/5/8) × ラベル系 (digit / A〜E)
+#
+# 軸 1〜5 は A+C 組合せ、軸 6 のみ件数・block 種別・ラベル可変のため局所 D（配列駆動）
+# + UI 種別 dispatch（2 builder の切替）を併用。Phase 4-12 part_a で確立した
+# パターン E の応用 1 例目。
+#
+# 設計判断（BACKLOG §2-1）:
+# - schema 変更なし、JSON 改修なし（既存 problem.instruction_type から派生）
+# - 未対応 instruction_type は RuntimeError raise（Phase 4-6/4-9/4-11/4-12 同方針）
+# - broken intermediate state なし（diff-allowed 領域、旧 slot 不在）
+# - A2_FRAME_TEMPLATE は Python .format() 名前付き placeholder、6 引数
+#   {{ANSWER}} 等 slot 参照は {{{{ANSWER}}}} 形式でエスケープ
+#   answer_instruction 値内の {{SELECTION_COUNT}} は値として渡るため二重エスケープ不要
+
+# instruction_type → 6 軸の値（軸 5 has_selection_counter は bool、他は派生用 raw 値）
+A2_AXES_BY_TYPE: dict[str, dict] = {
+    "ox-grid-5": {
+        "sec_nav_back":           '<a href="#choice-1">↓記述ア</a>',
+        "data_answer_type":       "ox-grid",
+        "h3_title":               "各記述の正誤を判定",
+        "answer_instruction":     "各記述に「1（正）」または「2（誤）」を選んで「解答を表示」を押してください。",
+        "has_selection_counter":  False,
+        "ui_kind":                "ox-grid",
+        "ui_count":               5,
+        "ui_labels":              None,  # ox-grid モードでは未使用
+    },
+    "ox-grid-4": {
+        "sec_nav_back":           '<a href="#choice-1">↓記述ア</a>',
+        "data_answer_type":       "ox-grid",
+        "h3_title":               "各記述の正誤を判定",
+        "answer_instruction":     "各記述に「1（正）」または「2（誤）」を選んで「解答を表示」を押してください。",
+        "has_selection_counter":  False,
+        "ui_kind":                "ox-grid",
+        "ui_count":               4,
+        "ui_labels":              None,
+    },
+    "ox-grid-3-combination-8": {
+        "sec_nav_back":           '<a href="#choice-1">↓記述ア</a>',
+        "data_answer_type":       "ox3comb8",
+        "h3_title":               "正しい組合せを選択",
+        "answer_instruction":     "選択肢を選んで「解答を表示」を押してください。",
+        "has_selection_counter":  False,
+        "ui_kind":                "slot-row",
+        "ui_count":               8,
+        "ui_labels":              ["1", "2", "3", "4", "5", "6", "7", "8"],
+    },
+    "multi-select-5": {
+        "sec_nav_back":           '<a href="#choice-1">↓記述1</a>',
+        "data_answer_type":       "multi",
+        "h3_title":               "該当する選択肢を選択",
+        "answer_instruction":     "選択肢を{{SELECTION_COUNT}}個選んで「解答を表示」を押してください。",
+        "has_selection_counter":  True,  # msel5 のみ <p class="selection-counter"> 行を含む
+        "ui_kind":                "slot-row",
+        "ui_count":               5,
+        "ui_labels":              ["1", "2", "3", "4", "5"],
+    },
+    "single-choice-5": {
+        "sec_nav_back":           '<a href="#choice-1">↓記述1</a>',
+        "data_answer_type":       "single",
+        "h3_title":               "該当する選択肢を選択",
+        "answer_instruction":     "選択肢を選んで「解答を表示」を押してください。",
+        "has_selection_counter":  False,
+        "ui_kind":                "slot-row",
+        "ui_count":               5,
+        "ui_labels":              ["1", "2", "3", "4", "5"],
+    },
+    "combination-5": {
+        "sec_nav_back":           '<a href="#choice-1">↓記述ア</a>',
+        "data_answer_type":       "single",
+        "h3_title":               "正しい記述の組合せを選択",
+        "answer_instruction":     "選択肢を選んで「解答を表示」を押してください。",
+        "has_selection_counter":  False,
+        "ui_kind":                "slot-row",
+        "ui_count":               5,
+        "ui_labels":              ["1", "2", "3", "4", "5"],
+    },
+    "fill-in": {
+        "sec_nav_back":           '<a href="#choice-1">↓空欄A</a>',
+        "data_answer_type":       "fill-in",
+        "h3_title":               "各空欄に該当する候補番号を確認",
+        "answer_instruction":     "各空欄に入る候補を確認したら「解答を表示」を押してください。",
+        "has_selection_counter":  False,
+        "ui_kind":                "slot-row",
+        "ui_count":               5,
+        "ui_labels":              ["A", "B", "C", "D", "E"],
+    },
+    "fillin8": {
+        "sec_nav_back":           '<a href="#choice-1">↓肢1</a>',
+        "data_answer_type":       "single",
+        "h3_title":               "正しい組合せを選択",
+        "answer_instruction":     "選択肢を選んで「解答を表示」を押してください。",
+        "has_selection_counter":  False,
+        "ui_kind":                "slot-row",
+        "ui_count":               5,
+        "ui_labels":              ["1", "2", "3", "4", "5"],
+    },
+}
+
+# .format() 名前付き placeholder。{{ANSWER}} 等の slot 参照は {{{{...}}}}
+# でエスケープ（.format() 通過後に {{ANSWER}} 形式で残り、main render の
+# slot 置換に渡される）。
+A2_FRAME_TEMPLATE: str = (
+    '  <section class="section" id="answer-area">\n'
+    '    <nav class="sec-nav"><a href="#part-a">↑A-1</a>{sec_nav_back}</nav>\n'
+    '    <h2 class="section-title"><span class="sec-icon">❀</span>A-2 解答</h2>\n'
+    '\n'
+    '    <div class="answer-area"\n'
+    '         data-correct-value="{{{{ANSWER}}}}"\n'
+    '         data-answer-type="{data_answer_type}"\n'
+    '         data-explanation="{{{{ANSWER_EXPLANATION}}}}">\n'
+    '      <h3>{h3_title}</h3>\n'
+    '      <p class="answer-instruction">{answer_instruction}</p>\n'
+    '{selection_counter_line}'
+    '\n'
+    '{ui_block}\n'
+    '\n'
+    '      <button class="reveal-answer-btn" type="button" disabled>解答を表示</button>\n'
+    '      <div id="answer-feedback" hidden></div>\n'
+    '    </div>\n'
+    '\n'
+    '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>\n'
+    '  </section>'
+)
+
+
+def _build_a2_ox_grid_block(n: int) -> str:
+    """N 件 (4/5) の ox-row を生成（{{CHOICE_X_LABEL}}/{{CHOICE_X_STEM}} は raw 保持）。"""
+    letters = "ABCDE"[:n]
+    rows = "\n".join(
+        '        <div class="ox-row">\n'
+        f'          <span class="ox-label">{{{{CHOICE_{ltr}_LABEL}}}}</span>\n'
+        f'          <p class="ox-stmt">{{{{CHOICE_{ltr}_STEM}}}}</p>\n'
+        '          <span class="ox-btn-group">\n'
+        '            <button class="ox-btn" type="button" data-value="1">1 正しい</button>\n'
+        '            <button class="ox-btn" type="button" data-value="2">2 誤っている</button>\n'
+        '          </span>\n'
+        '        </div>'
+        for ltr in letters
+    )
+    return f'      <div class="answer-ox-grid">\n{rows}\n      </div>'
+
+
+def _build_a2_slot_row_block(labels: list[str]) -> str:
+    """labels 件分の answer-slot button を生成（labels は ["1",...,"N"] または ["A",...,"E"]）。"""
+    buttons = "\n".join(
+        f'        <button class="answer-slot" type="button" '
+        f'data-num="{lbl}" data-value="{lbl}">{lbl}</button>'
+        for lbl in labels
+    )
+    return f'      <div class="answer-row">\n{buttons}\n      </div>'
+
+
+def render_a2(instruction_type: str) -> str:
+    """{{A2_FRAME}} slot 値を返す（パターン E 応用: A+C dispatch + 局所 D 配列駆動 + UI 種別 dispatch）。
+
+    軸 1〜5 は dict 派生、軸 6 (ui_block) のみ件数・block 種別・ラベル別の関数生成。
+    未対応 instruction_type で RuntimeError。
+    """
+    if instruction_type not in A2_AXES_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for a2. "
+            f"valid: {sorted(A2_AXES_BY_TYPE)}"
+        )
+    axes = A2_AXES_BY_TYPE[instruction_type]
+
+    # 軸 5: selection_counter_line (msel5 のみ 1 行 in)
+    if axes["has_selection_counter"]:
+        selection_counter_line = (
+            '      <p class="selection-counter">選択数: 0 / {{SELECTION_COUNT}}</p>\n'
+        )
+    else:
+        selection_counter_line = ""
+
+    # 軸 6: ui_block (UI 種別 dispatch + 局所 D 配列駆動)
+    if axes["ui_kind"] == "ox-grid":
+        ui_block = _build_a2_ox_grid_block(axes["ui_count"])
+    else:  # slot-row
+        ui_block = _build_a2_slot_row_block(axes["ui_labels"])
+
+    return A2_FRAME_TEMPLATE.format(
+        sec_nav_back=axes["sec_nav_back"],
+        data_answer_type=axes["data_answer_type"],
+        h3_title=axes["h3_title"],
+        answer_instruction=axes["answer_instruction"],
+        selection_counter_line=selection_counter_line,
+        ui_block=ui_block,
+    )
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -1295,6 +1498,14 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # Commit 3 (templates 置換) 完了前は templates 内に {{PART_A_FRAME}} placeholder が
     # 存在しないため、本値は無害に未使用となる（broken intermediate state なし）。
     slots["PART_A_FRAME"] = render_part_a(problem.get("instruction_type", ""))
+
+    # a2 領域 slot 供給（Phase 4-13 で集約 slot 化、パターン E 応用 1 例目: A+C + 局所 D + UI 種別 dispatch）。
+    # A-2 解答エリア全体 (<section id="answer-area"> から </section> まで、25〜60 lines) を {{A2_FRAME}} に集約。
+    # 6 軸のうち軸 6 (ui_block) のみ件数・block 種別・ラベル可変なため局所 D + UI 種別 dispatch を併用。
+    # 未対応 type は render_a2() 内で RuntimeError。
+    # Commit 3 (templates 置換) 完了前は templates 内に {{A2_FRAME}} placeholder が
+    # 存在しないため、本値は無害に未使用となる（broken intermediate state なし）。
+    slots["A2_FRAME"] = render_a2(problem.get("instruction_type", ""))
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
