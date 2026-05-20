@@ -145,14 +145,25 @@ def split_template(content: str) -> dict[str, str]:
     else:
         part_a_title = _find_line_idx(lines, r'<div class="part-title">PART A')
         part_a_close = -1  # レガシー: part_a section の終端は answer_area_section の手前
-    answer_area_section = _find_line_idx(lines, r'<section[^>]+id="answer-area"')
-    # A-2 内側に nested section は無い前提 (slotmap §5.10 §2: a2 sliced from
-    # answer_area_section to first </section> after it)
-    answer_area_close = (
-        _find_line_idx(lines, r"^\s*</section>\s*$", answer_area_section + 1)
-        if answer_area_section >= 0
-        else -1
-    )
+    # Phase 4-13 以降: a2 領域全体が {{A2_FRAME}} に slot 化されていれば
+    # 単一行をセクションとして扱う (TOC / marker_legend / part_a と同形)。
+    # レガシー (slot 化前) の <section id="answer-area"> にもフォールバック対応。
+    # slot 化時の a2 section content = lines[a2_slot_idx:a2_slot_idx + 1] のみ
+    # （単一行）。slot 行と part_b 間の trailing whitespace は pre-existing な
+    # template 構造差のため、a2 section から除外して section 間 gap として扱う。
+    a2_slot_idx = _find_line_idx(lines, r"\{\{A2_FRAME\}\}")
+    if a2_slot_idx >= 0:
+        answer_area_section = a2_slot_idx
+        answer_area_close = a2_slot_idx  # slot 単行
+    else:
+        answer_area_section = _find_line_idx(lines, r'<section[^>]+id="answer-area"')
+        # A-2 内側に nested section は無い前提 (slotmap §5.10 §2: a2 sliced from
+        # answer_area_section to first </section> after it)
+        answer_area_close = (
+            _find_line_idx(lines, r"^\s*</section>\s*$", answer_area_section + 1)
+            if answer_area_section >= 0
+            else -1
+        )
     basis_section = _find_line_idx(lines, r'<section[^>]+id="basis"')
     basis_close = (
         _find_line_idx(lines, r"^\s*</section>\s*$", basis_section + 1)
