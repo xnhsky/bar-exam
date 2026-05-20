@@ -2511,7 +2511,7 @@ template を以下の **11 論理セクション**に分割し、内容 hash で
 | 5 | `marker_legend` | `<div class="marker-legend">` 〜 `</div>` | ✅ |
 | 6 | `part_a` | `<section class="section" id="part-a">` 〜 `</section>` | ❌ 差分許容 |
 | 7 | `a2` | `<section class="section" id="answer-area">` 〜 `</section>` | ❌ 差分許容 |
-| 8 | `part_b` | PART B 見出し 〜 全 choice-section 終端 | ❌ 差分許容 (件数 / ラベル) |
+| 8 | `part_b` | PART B 見出し 〜 全 choice-section 終端（Phase 4-14 で `{{PART_B_FRAME}}` 単行 slot 化、レガシーフォールバック温存） | ❌ 差分許容 (件数 / ラベル) |
 | 9 | `basis` | `<section class="section" id="basis">` 〜 `</section>` | ❌ 差分許容 (sec-nav back-link のみ) |
 | 10 | `part_c_d` | `id="c-1"` 〜 `id="part-d"` 全範囲 + その他スタブ | ✅ |
 | 11 | `footer_spec` | `<div class="footer-spec">` 〜 `</div>` | ✅ |
