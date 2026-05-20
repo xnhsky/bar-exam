@@ -1074,6 +1074,162 @@ def render_a2(instruction_type: str) -> str:
 
 
 # ============================================================================
+# part_b 領域描画関数（Phase 4-14・パターン E 応用 2 例目: A+C + 局所 D）
+# ============================================================================
+# 8 templates の diff-allowed part_b 領域（最大規模、avg 5,530 bytes / 174-108 lines、
+# 8 templates × 6 variants）を集約 slot 化。
+#
+# 3 つの可変軸（BACKLOG §1-2）:
+#   1. noun         (dict 派生)       — 記述名詞（記述 / 空欄 / 肢、3 値）
+#   2. labels       (dict 派生)       — ラベル系列（カナ ア-オ / 1-5 / A-E、6 系列）
+#   3. count        (件数別関数生成・D 局所) — choice-section の繰返し回数 (= len(labels))
+#
+# 軸 1〜2 は A+C 組合せ、軸 3 のみ件数可変のため局所 D（配列駆動）を併用。
+# Phase 4-12 part_a で確立したパターン E の応用 2 例目。Phase 4-13 a2 で必要だった
+# UI 種別 dispatch（ox-grid / slot-row 2 builder 切替）は不要 — 全 variants が同一の
+# choice-section 構造を共有するため builder は 1 つ。
+#
+# 設計判断（BACKLOG §2-1）:
+# - schema 変更なし、JSON 改修なし（既存 problem.instruction_type から派生）
+# - 未対応 instruction_type は RuntimeError raise（Phase 4-6/4-9/4-11/4-12/4-13 同方針）
+# - broken intermediate state なし（diff-allowed 領域、旧 slot 不在）
+# - PART_B_FRAME_TEMPLATE は Python .format() 名前付き placeholder、2 引数
+# - {{CHOICE_X_*}} 等 slot 参照は {{{{...}}}} 形式でエスケープ
+
+# instruction_type → 2 軸の値（noun: str / labels: list[str]、count は len(labels)）
+PART_B_AXES_BY_TYPE: dict[str, dict] = {
+    "ox-grid-5":               {"noun": "記述", "labels": ["ア", "イ", "ウ", "エ", "オ"]},
+    "ox-grid-4":               {"noun": "記述", "labels": ["ア", "イ", "ウ", "エ"]},
+    "ox-grid-3-combination-8": {"noun": "記述", "labels": ["ア", "イ", "ウ"]},
+    "multi-select-5":          {"noun": "記述", "labels": ["1", "2", "3", "4", "5"]},
+    "single-choice-5":         {"noun": "記述", "labels": ["1", "2", "3", "4", "5"]},
+    "combination-5":           {"noun": "記述", "labels": ["ア", "イ", "ウ", "エ", "オ"]},
+    "fill-in":                 {"noun": "空欄", "labels": ["A", "B", "C", "D", "E"]},
+    "fillin8":                 {"noun": "肢",   "labels": ["1", "2", "3", "4", "5"]},
+}
+
+# .format() 名前付き placeholder。{{CHOICE_X_*}} 等の slot 参照は {{{{...}}}} で
+# エスケープ（.format() 通過後に {{CHOICE_X_*}} 形式で残り、main render の slot 置換に渡される）。
+# {first_label} / {last_label} は labels[0] / labels[-1] の単純連結。
+PART_B_FRAME_TEMPLATE: str = (
+    '\n'
+    '  <!-- ============================================================\n'
+    '       PART B ── {noun}別解説（{first_label}〜{last_label}）\n'
+    '       ============================================================ -->\n'
+    '  <div class="part-title">PART B ── {noun}別解説（{first_label}〜{last_label}）</div>\n'
+    '\n'
+    '{choice_blocks}'
+    '  <!-- ============================================================\n'
+    '       A-3 共通根拠条文・判例（スタブ）\n'
+    '       ============================================================ -->'
+)
+
+
+def _build_part_b_choice_block(
+    idx: int,
+    noun: str,
+    labels: list[str],
+) -> str:
+    """choice-section 1 件分の HTML（32 lines + trailing blank line）を生成する。
+
+    Args:
+        idx: 0-indexed の section 番号（0 〜 len(labels)-1）。
+        noun: "記述" / "空欄" / "肢" のいずれか。
+        labels: ラベル系列全体。nav の前後リンクと終端判定に使う。
+
+    nav 規則:
+        - 1 件目 (idx == 0):           "↑A-2" 固定 + 次 label
+        - 中間 (0 < idx < N-1):        前 label + 次 label
+        - 最終 (idx == N-1):           前 label + "↓共通根拠" 固定
+
+    parity 規則: 1-indexed で奇数 → odd、偶数 → even。
+    slot 名 letter: "ABCDE"[idx]。
+    """
+    n = len(labels)
+    s = idx + 1  # 1-indexed section 番号
+    label = labels[idx]
+    letter = "ABCDE"[idx]
+    parity = "odd" if s % 2 == 1 else "even"
+
+    # nav back link
+    if idx == 0:
+        back = '<a href="#answer-area">↑A-2</a>'
+    else:
+        prev_label = labels[idx - 1]
+        back = f'<a href="#choice-{s - 1}">←{noun}{prev_label}</a>'
+
+    # nav forward link
+    if idx == n - 1:
+        forward = '<a href="#basis">↓共通根拠</a>'
+    else:
+        next_label = labels[idx + 1]
+        forward = f'<a href="#choice-{s + 1}">{noun}{next_label}→</a>'
+
+    return (
+        f'  <!-- =============== {noun}{label} =============== -->\n'
+        f'  <section class="choice-section {parity}" id="choice-{s}">\n'
+        f'    <nav class="sec-nav">{back}{forward}</nav>\n'
+        '\n'
+        '    <div class="choice-header-block">\n'
+        f'      <div class="choice-big-badge">{{{{CHOICE_{letter}_LABEL}}}}</div>\n'
+        f'      <span class="verdict" data-verdict-label="{{{{CHOICE_{letter}_VERDICT_LABEL}}}}">{{{{CHOICE_{letter}_VERDICT_LABEL}}}}</span>\n'
+        '    </div>\n'
+        '\n'
+        '    <div class="sub-card original">\n'
+        f'      <span class="label">{noun}原文</span>\n'
+        f'      <p>{{{{CHOICE_{letter}_STEM}}}}</p>\n'
+        '    </div>\n'
+        '\n'
+        '    <div class="sub-card explanation">\n'
+        '      <h4>📖 解説原文</h4>\n'
+        f'      <p>{{{{CHOICE_{letter}_EXPLANATION}}}}</p>\n'
+        '    </div>\n'
+        '\n'
+        '    <div class="sub-card basis-link">\n'
+        '      <h4>📚 根拠判例</h4>\n'
+        f'      <p>{{{{CHOICE_{letter}_CASES}}}}</p>\n'
+        '    </div>\n'
+        '\n'
+        '    <div class="sub-card professor">\n'
+        '      <h4>👨‍🏫 教授の解説</h4>\n'
+        f'      <p class="prof-summary">{{{{CHOICE_{letter}_PROFESSOR_SUMMARY}}}}</p>\n'
+        f'      <p class="prof-note">{{{{CHOICE_{letter}_PROFESSOR_NOTE}}}}</p>\n'
+        '    </div>\n'
+        '\n'
+        '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>\n'
+        '  </section>\n'
+        '\n'  # trailing blank line (separator to next section or A-3 preamble)
+    )
+
+
+def render_part_b(instruction_type: str) -> str:
+    """{{PART_B_FRAME}} slot 値を返す（パターン E 応用: A+C dispatch + 局所 D 配列駆動）。
+
+    軸 1〜2 は dict 派生、軸 3 (choice_blocks) のみ件数別の関数生成。
+    未対応 instruction_type で RuntimeError。
+    """
+    if instruction_type not in PART_B_AXES_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for part_b. "
+            f"valid: {sorted(PART_B_AXES_BY_TYPE)}"
+        )
+    axes = PART_B_AXES_BY_TYPE[instruction_type]
+    noun = axes["noun"]
+    labels = axes["labels"]
+
+    choice_blocks = "".join(
+        _build_part_b_choice_block(idx, noun, labels) for idx in range(len(labels))
+    )
+
+    return PART_B_FRAME_TEMPLATE.format(
+        noun=noun,
+        first_label=labels[0],
+        last_label=labels[-1],
+        choice_blocks=choice_blocks,
+    )
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -1506,6 +1662,16 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # Commit 3 (templates 置換) 完了前は templates 内に {{A2_FRAME}} placeholder が
     # 存在しないため、本値は無害に未使用となる（broken intermediate state なし）。
     slots["A2_FRAME"] = render_a2(problem.get("instruction_type", ""))
+
+    # part_b 領域 slot 供給（Phase 4-14 で集約 slot 化、パターン E 応用 2 例目: A+C + 局所 D）。
+    # PART B 全体（part-title 〜 全 choice-section 〜 A-3 preamble、108〜174 lines）を {{PART_B_FRAME}} に集約。
+    # 3 軸のうち軸 3 (choice_blocks の N 回ループ) のみ件数可変なため局所 D（配列駆動）を併用。
+    # Phase 4-13 a2 で必要だった UI 種別 dispatch（2 builder 切替）は不要 — 全 variants が
+    # 同一の choice-section 構造を共有するため builder は 1 つ。
+    # 未対応 type は render_part_b() 内で RuntimeError。
+    # Commit 3 (templates 置換) 完了前は templates 内に {{PART_B_FRAME}} placeholder が
+    # 存在しないため、本値は無害に未使用となる（broken intermediate state なし）。
+    slots["PART_B_FRAME"] = render_part_b(problem.get("instruction_type", ""))
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
