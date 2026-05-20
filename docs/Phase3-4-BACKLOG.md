@@ -29,70 +29,77 @@ CP gate 正準 baseline: `_phase3_2_pre_patch_baseline.json` (`docs/cp-gate.md` 
 
 ---
 
-## §1. Phase 4-12: part_a 領域 slot 化（**パターン E 新規確立**: A + C + 局所 D）
+## §1. Phase 4-13: a2 領域 slot 化（**パターン E 応用 1 例目**: A+C + 局所 D + UI 種別 dispatch）
 
 ### 1-1. 領域の特性
 
-`part_a` は diff-allowed 領域（avg 1,515 bytes / 21 lines、8 templates × 8 variants）。
-PART A の `<div class="part-title">PART A ── 問題情報</div>` から
-`</section>` （part-a section 終了）までの全範囲を `{{PART_A_FRAME}}` 1 slot に集約する。
+`a2` は diff-allowed 領域（avg 1,643 bytes / 60〜25 lines、8 templates × 8 variants）。
+A-2 解答エリアの `<section class="section" id="answer-area">` から `</section>` までの
+全範囲を `{{A2_FRAME}}` 1 slot に集約する。
 
-事前同形性判定（part_a_dump.txt 全 256 行を確認）：
+事前同形性判定（8 templates × a2 region dump で確認）：
 
-- **5 templates は同形**（21 行均一）: KTX_template / ox4 / msel5 / sc5 / fillin / fillin8
-- **comb5 が異質**（46 行、【組合せ】h3 + combinations-section + combo-block × 5）
-- **ox3comb8 が異質**（55 行、同上だが combo-block × 8）
-- sc5 のみ `{{CASE_BODY}}` の直後に `{{VIEWS_BLOCK}}` 行を含む（Phase 4-1 既存 slot）
+- **2 templates は ox-grid 構造**（KTX_template 60 行 / ox4 52 行）: `<div class="answer-ox-grid">`
+  + `<div class="ox-row">` × N (5 or 4)
+- **6 templates は answer-slot-row 構造**（25〜28 行）: `<div class="answer-row">` +
+  `<button class="answer-slot">` × N (5 / 8)
+- msel5 のみ `<p class="selection-counter">` 行を含む（multi-select-5 専用）
+- fill-in のみ ラベル系が letters-A-E（他 7 は digits-1-N）
 
-### 1-2. 5 つの可変軸の分解
+### 1-2. 6 つの可変軸の分解
 
 | # | 軸 | 取り得る値 | dispatch 方式 |
 |:-:|---|---|---|
-| 1 | sec_nav_back（A-1 nav 内 back-link） | 5 種（記述ア / 記述1 / 空欄A / 肢1）× choice-1 固定 | dict + instruction_type |
-| 2 | h3_title（記述 H3 の見出し） | 3 種（【記述】/【空欄】/【選択肢】）| dict + instruction_type |
-| 3 | choice_lines（problem-text の件数） | 3 / 4 / 5（A〜C / A〜D / A〜E）| dict + instruction_type → 関数生成 |
-| 4 | combo_section（【組合せ】h3 + combinations-section） | 0 / 5 / 8 件 | dict + instruction_type → **局所 D 配列駆動** |
-| 5 | middle_line（CASE_BODY 直後の VIEWS_BLOCK 行有無）| in / out の 2 値 | dict + instruction_type → 2 値分岐 |
+| 1 | sec_nav_back（A-2 nav 内 back-link） | 4 種（記述ア / 記述1 / 空欄A / 肢1） | dict + instruction_type |
+| 2 | data_answer_type（answer-area 属性値） | 5 種（ox-grid / multi / single / fill-in / ox3comb8） | dict + instruction_type |
+| 3 | h3_title（answer-area H3 見出し） | 5 種 | dict + instruction_type |
+| 4 | answer_instruction（answer-instruction 文言） | 4 種 | dict + instruction_type |
+| 5 | selection_counter（selection-counter 行有無） | in / out の 2 値（msel5 のみ in） | dict + instruction_type → 2 値分岐 |
+| 6 | ui_block（answer UI 構造 + 件数 + ラベル） | block 種別 (ox-grid / slot-row) × 件数 (4/5/8) × ラベル系 (digit / A〜E) | dict + instruction_type → **局所 D 配列駆動 + UI 種別 dispatch** |
 
-→ 軸 1/2/3/5 は A+C 組合せ（dict 派生）。**軸 4 のみ件数可変なため局所的に D（配列駆動）**を併用。
-これは A/B/C/D いずれの単独パターンでも捕捉できない初めての組合せ → **パターン E 新規確立**。
+→ 軸 1〜5 は A+C 組合せ（dict 派生）。**軸 6 のみ件数・block 種別・ラベル可変なため局所的に D（配列駆動）**を併用。
+これは Phase 4-12 で確立したパターン E の応用 1 例目。UI 種別 (ox-grid / slot-row) の
+dispatch は局所 D の builder 関数 2 つを A+C で切替えることで吸収（block 種別自体は dict 派生で固定、件数・labels が配列駆動）。
 
 ### 1-3. 8 variants × instruction_type の axes 表
 
-| instruction_type | sec_nav_back | h3_title | choice_count | combo_count | has_views_block |
-|---|---|---|:-:|:-:|:-:|
-| ox-grid-5               | `↓記述ア` | 【記述】 | 5 | 0 | ✗ |
-| ox-grid-4               | `↓記述ア` | 【記述】 | 4 | 0 | ✗ |
-| ox-grid-3-combination-8 | `↓記述ア` | 【記述】 | 3 | 8 | ✗ |
-| multi-select-5          | `↓記述1`  | 【記述】 | 5 | 0 | ✗ |
-| single-choice-5         | `↓記述1`  | 【記述】 | 5 | 0 | **✓** |
-| combination-5           | `↓記述ア` | 【記述】 | 5 | 5 | ✗ |
-| fill-in                 | `↓空欄A` | 【空欄】 | 5 | 0 | ✗ |
-| fillin8                 | `↓肢1`    |【選択肢】| 5 | 0 | ✗ |
+| instruction_type | sec_nav_back | data_answer_type | h3_title | sel_counter | ui_kind | ui_labels |
+|---|---|---|---|:-:|---|---|
+| ox-grid-5               | `↓記述ア` | ox-grid | 各記述の正誤を判定 | ✗ | ox-grid | A〜E (n=5) |
+| ox-grid-4               | `↓記述ア` | ox-grid | 各記述の正誤を判定 | ✗ | ox-grid | A〜D (n=4) |
+| ox-grid-3-combination-8 | `↓記述ア` | ox3comb8 | 正しい組合せを選択 | ✗ | slot-row | 1〜8 |
+| multi-select-5          | `↓記述1`  | multi    | 該当する選択肢を選択 | **✓** | slot-row | 1〜5 |
+| single-choice-5         | `↓記述1`  | single   | 該当する選択肢を選択 | ✗ | slot-row | 1〜5 |
+| combination-5           | `↓記述ア` | single   | 正しい記述の組合せを選択 | ✗ | slot-row | 1〜5 |
+| fill-in                 | `↓空欄A` | fill-in  | 各空欄に該当する候補番号を確認 | ✗ | slot-row | A〜E |
+| fillin8                 | `↓肢1`    | single   | 正しい組合せを選択 | ✗ | slot-row | 1〜5 |
 
 ### 1-4. universal vs per-instruction-type 境界
 
 ```html
-  <div class="part-title">PART A ── 問題情報</div>           ← universal
+  <section class="section" id="answer-area">                  ← universal
+    <nav class="sec-nav"><a href="#part-a">↑A-1</a>{sec_nav_back}</nav>
+    <h2 class="section-title"><span class="sec-icon">❀</span>A-2 解答</h2>  ← universal
 
-  <section class="section" id="part-a">                       ← universal
-    <nav class="sec-nav"><a href="#answer-area">↓解答</a>{sec_nav_back}</nav>
-    <h2 class="section-title"><span class="sec-icon">❀</span>A-1 問題文</h2>  ← universal
+    <div class="answer-area"                                  ← universal
+         data-correct-value="{{ANSWER}}"
+         data-answer-type="{data_answer_type}"                ← dict 派生
+         data-explanation="{{ANSWER_EXPLANATION}}">
+      <h3>{h3_title}</h3>                                     ← dict 派生
+      <p class="answer-instruction">{answer_instruction}</p>  ← dict 派生
+{selection_counter_line}                                      ← msel5 のみ 1 行 in
 
-    <p style="font-weight:600;">{{INSTRUCTION}}</p>           ← universal slot
+{ui_block}                                                    ← 局所 D + UI 種別
 
-    {{CASE_BODY}}                                             ← universal slot
-{middle_line}                                                 ← sc5 のみ {{VIEWS_BLOCK}}
-    <h3 style="{h3_style}">{h3_title}</h3>                    ← h3_title 可変
-
-{choice_lines}                                                ← 3〜5 行可変
-{combo_section}                                               ← 0 / 5 / 8 件可変
+      <button class="reveal-answer-btn" type="button" disabled>解答を表示</button>
+      <div id="answer-feedback" hidden></div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>  ← universal
   </section>                                                  ← universal
 ```
 
-### 1-5. パターン E の位置付け
+### 1-5. パターン E の応用位置付け
 
 | パターン | 定義 | 例 |
 |---|---|---|
@@ -101,25 +108,26 @@ PART A の `<div class="part-title">PART A ── 問題情報</div>` から
 | C | universal const（純粋形 / .format() refined）| 4-5 marker_legend / 4-8/4-10 |
 | D | 構造化レンダリング（配列駆動）| 3-3 basis / 4-7 drill_blocks |
 | A + C | dispatch 関数で variant 解決（再利用定型化） | 4-6 TOC / 4-9 pre_part_a / 4-11 basis_secnav |
-| **E (新規)** | **A+C dispatch + 軸の一部だけ D（局所配列駆動）を併用** | **4-12 part_a** |
+| E | **A+C dispatch + 軸の一部だけ D（局所配列駆動）を併用** | 4-12 part_a / **4-13 a2 (応用 1 例目)** |
 
-パターン E は、固定軸（dict 派生で完結）と件数可変軸（D 配列駆動で必要）が混在する diff-allowed
-領域で初めて要求された新形態。本 Phase で確立し、今後 a2 / part_b にも応用可能と期待される。
+Phase 4-13 は Phase 4-12 part_a で確立したパターン E の応用 1 例目。本領域では局所 D の
+builder が UI 種別 (ox-grid / slot-row) に応じて 2 関数に分岐するが、これは A+C dispatch で
+切替えるため、パターン E の枠内（dict 派生 + 配列駆動の組合せ）に収まる。
 
 ### 1-6. 命名規約
 
 | 項目 | 名称 |
 |---|---|
-| slot 名 | `{{PART_A_FRAME}}` |
-| template 名 | `PART_A_FRAME_TEMPLATE`（Python `.format()` 名前付き placeholder、6 引数）|
-| 軸辞書名 | `PART_A_AXES_BY_TYPE`（instruction_type → axes dict）|
-| h3 style 定数 | `PART_A_H3_STYLE`（KTX 全 template 共通の inline style）|
-| 関数名 | `render_part_a(instruction_type: str) -> str` |
-| upgrade スクリプト | `scripts/upgrade_templates_part_a_slot.py` |
+| slot 名 | `{{A2_FRAME}}` |
+| template 名 | `A2_FRAME_TEMPLATE`（Python `.format()` 名前付き placeholder、7 引数）|
+| 軸辞書名 | `A2_AXES_BY_TYPE`（instruction_type → axes dict）|
+| 関数名 | `render_a2(instruction_type: str) -> str` |
+| 補助関数 | `_build_a2_ox_grid_block(n: int) -> str` / `_build_a2_slot_row_block(labels: list[str]) -> str` |
+| upgrade スクリプト | `scripts/upgrade_templates_a2_slot.py` |
 
 ---
 
-## §2. 設計（パターン E・確定版）
+## §2. 設計（パターン E 応用・確定版）
 
 ### 2-1. 採択方針
 
@@ -127,95 +135,100 @@ PART A の `<div class="part-title">PART A ── 問題情報</div>` から
 |---|---|
 | schema 変更 | **なし** |
 | JSON 改修 | **なし**（既存 `problem.instruction_type` から派生）|
-| 新 slot | `{{PART_A_FRAME}}` を 8 templates の part_a 領域全体（21〜55 行）に置換 |
-| render.py 改修 | `PART_A_FRAME_TEMPLATE` + `PART_A_AXES_BY_TYPE` + 補助 builder 2 関数 + `render_part_a()` + slot 配線 |
-| 未対応 instruction_type | **`RuntimeError`** raise（Phase 4-6/4-9/4-11 同方針）|
+| 新 slot | `{{A2_FRAME}}` を 8 templates の a2 領域全体（25〜60 行）に置換 |
+| render.py 改修 | `A2_FRAME_TEMPLATE` + `A2_AXES_BY_TYPE` + 補助 builder 2 関数 + `render_a2()` + slot 配線 |
+| 未対応 instruction_type | **`RuntimeError`** raise（Phase 4-6/4-9/4-11/4-12 同方針）|
 | broken intermediate state | **なし**（diff-allowed 領域・旧 slot 不在、Commit 2 完了時点で templates は未変更のため render 動作維持）|
-| 14 protected への影響 | byte-identical 維持期待（render_part_a 出力 = literal 一致）|
+| 14 protected への影響 | byte-identical 維持期待（render_a2 出力 = literal 一致）|
 | 300 への影響 | 同上 |
 
-### 2-2. PART_A_FRAME_TEMPLATE の 6 引数
+### 2-2. A2_FRAME_TEMPLATE の 7 引数
 
-`.format(**kwargs)` 名前参照で、insertion order 非依存。`{{INSTRUCTION}}` 等 slot 参照は
-template 内で `{{{{INSTRUCTION}}}}` 形式で `.format()` エスケープ。
+`.format(**kwargs)` 名前参照で、insertion order 非依存。`{{ANSWER}}` 等 slot 参照は
+template 内で `{{{{ANSWER}}}}` 形式で `.format()` エスケープ。`answer_instruction` 値内の
+`{{SELECTION_COUNT}}` は値として渡るため二重エスケープ不要（`.format()` は値を再解釈しない）。
 
 | 引数 | 由来 | 値の例 |
 |---|---|---|
 | `sec_nav_back` | dict 派生 | `<a href="#choice-1">↓記述ア</a>` |
-| `middle_line` | 2 値分岐 | `{{VIEWS_BLOCK}}\n`（sc5）/ `\n`（他 7）|
-| `h3_style` | 定数 `PART_A_H3_STYLE` | `background:transparent; border-left:none; padding:...` |
-| `h3_title` | dict 派生 | `【記述】` / `【空欄】` / `【選択肢】` |
-| `choice_lines` | 件数別関数生成 | `    <div class="problem-text">...</div>\n` × N |
-| `combo_section` | 件数別関数生成（D 局所） | `""`（0 件）or `<h3>【組合せ】</h3>...<section>...</section>` |
+| `data_answer_type` | dict 派生 | `ox-grid` / `multi` / `single` / `fill-in` / `ox3comb8` |
+| `h3_title` | dict 派生 | `各記述の正誤を判定` / `該当する選択肢を選択` / ... |
+| `answer_instruction` | dict 派生 | `選択肢を{{SELECTION_COUNT}}個選んで...`（msel5）等 |
+| `selection_counter_line` | 2 値分岐 | `<p class="selection-counter">選択数: 0 / {{SELECTION_COUNT}}</p>\n`（msel5）/ `""`（他 7）|
+| `ui_block` | 件数別関数生成（D 局所） | `<div class="answer-ox-grid">...</div>`（ox-grid 系）/ `<div class="answer-row">...</div>`（slot-row 系）|
 
 ### 2-3. byte-identical 検証点（4 つ）
 
 | # | 検証点 | 期待 |
 |:-:|---|---|
-| 1 | `render_part_a()` 単体出力 == 各 template の literal part_a region | 8/8 一致 |
+| 1 | `render_a2()` 単体出力 == 各 template の literal a2 region | 8/8 一致 |
 | 2 | 全 15 件 `validate-tx.py` ERROR/WARNING | 0/0 維持 |
 | 3 | `_cp_gate_check.py` PASS/DIFF | PASS=14 / DIFF=1 (300) |
-| 4 | `check_template_sync.py` part_a variants | **8 → 1 に集約** |
+| 4 | `check_template_sync.py` a2 variants | **8 → 1 に集約** |
 
 ### 2-4. upgrade スクリプト方式
 
-Phase 4-11 basis_secnav 同形の β variant 別 OLD dispatch。各 template の OLD =
-`render_part_a(instruction_type)` 出力（slot placeholder 含む literal）、共通 NEW =
-`{{PART_A_FRAME}}` に置換。
+Phase 4-12 part_a 同形の β variant 別 OLD dispatch。各 template の OLD =
+`render_a2(instruction_type)` 出力（slot placeholder 含む literal）、共通 NEW =
+`{{A2_FRAME}}` に置換。
 
 ### 2-5. check_template_sync 境界検出
 
-part_a 領域は `part_a_title` (`<div class="part-title">PART A`) 〜 `answer_area_section`
-(`<section[^>]+id="answer-area"`) 前で挟まれる。slot 化後も part-a section open/close は
-PART_A_FRAME 内に内包されるため境界自体は不変。検出器は `{{PART_A_FRAME}}` 単行と互換
-（part_a_title が `{{PART_A_FRAME}}` 内に literal で残るため `<div class="part-title">PART A`
-正規表現は引き続きヒットする）。
+a2 領域は `answer_area_section` (`<section[^>]+id="answer-area"`) 〜 `answer_area_close`
+(`</section>`) で挟まれる。slot 化後も a2 section open/close は A2_FRAME 内に内包される
+ため境界自体は不変。検出器は `{{A2_FRAME}}` 単行に対応するための分岐を追加
+（Phase 4-12 PART_A_FRAME 同形、レガシーフォールバック温存）。a2 slot 化時は
+`answer_area_section = answer_area_close = a2_slot_idx` とすることで a2 section を
+単行扱いし、part_b は `answer_area_close + 1` から開始する。
 
 ### 2-6. byte-identical 維持リスク
 
 **中程度**:
-- 軸 4 件分の dict 派生は規則的（リスク低）
-- 軸 5（combo_section）の D 配列駆動で件数依存出力 → Commit 2 着手中の関数単体検証で
-  comb5 (5 件) / ox3comb8 (8 件) literal との完全一致を確認
-- 軸 5（middle_line / VIEWS_BLOCK）の `\n` 配置が sc5 で 1 文字ずれるとリグレッション →
-  sc5 既存 14 protected ファイル (329 等) で hash 不変を確認
-- 4 規則（h3_style 定数 / choice_lines 関数生成 / combo_section 関数生成 / .format() escape）の
+- 軸 1〜5 の dict 派生は規則的（リスク低）
+- 軸 6（ui_block）の D 配列駆動で件数依存出力 → Commit 2 着手中の関数単体検証で
+  全 8 variants の literal との完全一致を確認
+- ox-grid 系の indent（8/10/12 spaces）と slot-row 系の indent（6/8 spaces）の混在で
+  1 文字ずれるとリグレッション → 関数単体検証で逐語確認
+- msel5 の selection-counter 行（`{{SELECTION_COUNT}}` 含む）は `.format()` 経由でも
+  raw 保持される（値は再解釈されない）→ Commit 2 単体検証で確認
+- 4 規則（dict 派生 / selection_counter 分岐 / ui_block 2 builder / .format() escape）の
   どれか 1 つでも誤ると 8 protected で hash 変化
 
 ---
 
-## §3. 3 commit 実装計画
+## §3. 4 commit 実装計画
 
-各 commit 後 STOP for review。各 commit で CP gate + check_template_sync + validate-tx（全 15 件）を実行。
+各 commit 後 STOP for review はスキップ（auto モード）。各 commit で CP gate +
+check_template_sync + validate-tx（全 15 件）を実行。
 
 | # | commit subject | 影響範囲 | broken state |
 |---|---|---|---|
-| 1 | `docs: BACKLOG.md §0 Phase 4-11 完了追記 + §1 Phase 4-12 part_a スコープ（パターン E 新規確立）` | docs only | なし |
-| 2 | `feat(phase4-12 render): PART_A_FRAME_TEMPLATE + PART_A_AXES_BY_TYPE + render_part_a() + slot 供給配線` | scripts/render.py | なし |
-| 3 | `feat(phase4-12 templates): 8 templates の part_a 領域を {{PART_A_FRAME}} に置換` | upgrade script + 8 templates + outputs (byte-identical 期待) | なし |
+| 1 | `docs: BACKLOG.md §0 Phase 4-12 完了追記 + §1 Phase 4-13 a2 スコープ（パターン E 応用 1 例目）` | docs only | なし |
+| 2 | `feat(phase4-13 render): A2_FRAME_TEMPLATE + A2_AXES_BY_TYPE + render_a2() + slot 供給配線` | scripts/render.py | なし |
+| 3 | `feat(phase4-13 templates): 8 templates の a2 領域を {{A2_FRAME}} に置換 + check_template_sync 境界検出修正` | upgrade script + 8 templates + check_template_sync | なし |
+| 4 | `docs: 本セッション最終締め (Phase 4-13 完走) — SESSION-2026-05-21-SUMMARY + BACKLOG §0 Phase 4-13 完了追記` | docs only | なし |
 
-### Phase 4-12 完了条件
+### Phase 4-13 完了条件
 
 - 全 15 件 `validate-tx.py` で ERROR 0 / WARNING 0 を**維持**
-- CP gate PASS=14 / DIFF=1（300 のみ DIFF、Phase 4-11 完了状態と同じ）
-- check_template_sync diff-allowed part_a が **8 variants → 1 variant** に集約
-- 8 templates の part_a 領域（21〜55 行）が `{{PART_A_FRAME}}` 単行に縮減
+- CP gate PASS=14 / DIFF=1（300 のみ DIFF、Phase 4-12 完了状態と同じ）
+- check_template_sync diff-allowed a2 が **8 variants → 1 variant** に集約
+- 8 templates の a2 領域（25〜60 行）が `{{A2_FRAME}}` 単行に縮減
 
 ---
 
-## §4. Phase 4-13 以降の候補（参考、未着手）
+## §4. Phase 4-14 以降の候補（参考、未着手）
 
 | 候補 | 領域 | 主要懸念 | 優先度 |
 |---|---|---|---|
-| `a2` 領域 (diff-allowed 8 variants) | avg 1,643 bytes / 60 lines | A-2 解答エリア構造差、D 構造化レンダリング寄り（パターン E 再応用可能性）| **中（最有力）** |
-| `part_b` 領域 (diff-allowed 6 variants) | avg 5,530 bytes / 174 lines | 最大規模 diff-allowed、A + D 組合せ可能性 | 中（設計セッション要）|
+| `part_b` 領域 (diff-allowed 6 variants) | avg 5,530 bytes / 174 lines | 最大規模 diff-allowed、A + D 組合せ可能性 | **中（最有力）**（設計セッション要）|
 | `css` 領域（巨大）| sync (60,743 bytes / 1,997 lines) | spec §Annex A canonical CSS と同期、構造化困難 | 低（要設計検討）|
 | `js` 領域 | sync (17,552 bytes / 405 lines) | spec §Annex C canonical JS と同期、構造化困難 | 低（要設計検討）|
 | Phase 5+ JX シリーズ着手 | JX 系（事例式）| spec/jx-v3.2-master.md 由来の構造化、1 問 1〜2 時間規模 | 別シリーズ・別 Phase（Phase 4 完了後）|
 
-Phase 4-12 完了後、優先度順にスコープ化する。**Phase 4-13 は a2 領域が最有力候補**（D 構造化
-レンダリング寄りの可能性、part_a で確立したパターン E の再応用が期待される）。残 diff-allowed
-は a2 / part_b の 2 領域に縮減。
+Phase 4-13 完了後、優先度順にスコープ化する。**Phase 4-14 は part_b 領域が最有力候補**
+（最大規模 diff-allowed、A + D 組合せ可能性、設計セッション要）。残 diff-allowed は
+**part_b の 1 領域のみ**に縮減。
 
 ---
 
