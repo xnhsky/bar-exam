@@ -1394,11 +1394,36 @@ SLOT_PATTERN = re.compile(r"\{\{([A-Z_][A-Z0-9_]*)\}\}")
 
 
 def render(template: str, slots: dict[str, str]) -> str:
-    """{{SLOT}} を置換する。未定義 slot が残ったら RuntimeError。"""
-    # 順次置換
+    """{{SLOT}} を置換する。未定義 slot が残ったら RuntimeError。
+
+    Phase 4-12 で meta-slot ({{PART_A_FRAME}} 等の、展開後に nested {{X}} を含む slot)
+    対応のため**多段置換**に変更。1 pass の置換結果に対して再び全 slot を適用し、
+    置換が収束する (出力が変化しなくなる) まで繰り返す。
+
+    Phase 4-11 まで:
+      - すべての slot 値が nested {{X}} を含まなかったため、1 pass で必ず収束
+      - 多段化しても結果は完全同一 (14 protected + 300 全件 byte-identical 維持)
+
+    Phase 4-12 以降:
+      - meta-slot の展開結果 ({{INSTRUCTION}} / {{CASE_BODY}} / {{CHOICE_X_LABEL}} /
+        {{COMBO_N_LABEL}} 等の nested 参照) が 2 pass 目で解決される
+
+    安全ガード: MAX_PASSES (5) を超えても収束しない場合は循環参照と判断し
+    RuntimeError raise。
+    """
     out = template
-    for key, value in slots.items():
-        out = out.replace("{{" + key + "}}", value)
+    MAX_PASSES = 5
+    for _ in range(MAX_PASSES):
+        prev = out
+        for key, value in slots.items():
+            out = out.replace("{{" + key + "}}", value)
+        if out == prev:
+            break
+    else:
+        raise RuntimeError(
+            f"slot 置換が {MAX_PASSES} pass 内に収束しません。"
+            "slot 値内の循環参照を確認してください。"
+        )
 
     # 未置換 slot の検出
     remaining = SLOT_PATTERN.findall(out)
