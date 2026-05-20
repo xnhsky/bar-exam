@@ -25,6 +25,7 @@
 | **4-11** | 8 templates の diff-allowed basis 領域 第 2 行 sec-nav (6 variants 完全 1:1、msel5+sc5 / KTX_template+comb5 同一) を `{{BASIS_SECNAV}}` に集約 slot 化。**A + C 組合せ 3 例目** (Phase 4-6 TOC / 4-9 pre_part_a 機械的踏襲、BASIS_SECNAV_LINKS_BY_TYPE 8 entry dict + sec-nav wrapper 関数)。未対応 instruction_type で RuntimeError。**A+C dispatch ロジックの機械的踏襲が定型化したことを完全実証**。basis variants 6→1 集約、各 -71〜-76 bytes、累計 -約 600 bytes | `8cd27b1` (BACKLOG) / `aa65463` (render) / `eae2e1c` (templates) | ✅ 維持（300 のみ DIFF） |
 | **4-12** | 8 templates の diff-allowed part_a 領域 (8 variants / 19〜52 lines / avg 1,515 bytes) を `{{PART_A_FRAME}}` 単行に集約 slot 化。**パターン E 新規確立** (A+C dispatch + 局所 D 配列駆動の組合せ): 5 軸のうち軸 4 (combo_section、件数可変) のみ局所 D を併用、軸 1/2/3/5 は dict 派生 A+C。PART_A_FRAME_TEMPLATE (Python .format() 名前付き placeholder、6 引数) + PART_A_AXES_BY_TYPE (8 entry dict、5 軸の値) + 補助関数 2 つ + render_part_a()。`render()` を meta-slot 対応の**多段置換**に変更 (Phase 4-11 まで完全互換、安全ガード MAX_PASSES=5)。check_template_sync の part_a 境界検出も {{PART_A_FRAME}} 単行に対応 (TOC / marker_legend と同形、レガシーフォールバック温存)。part_a variants **8 → 1 集約**、累計 **-11,989 bytes 削減** (本セッション最大規模) | `eff2abd` (BACKLOG) / `e075d13` (render: render_part_a) / `bc7cb10` (render: 多段置換) / `b056102` (templates + boundary) | ✅ 維持（300 のみ DIFF） |
 | **4-13** | 8 templates の diff-allowed a2 領域 (8 variants / 25〜60 lines / avg 1,643 bytes) を `{{A2_FRAME}}` 単行に集約 slot 化。**パターン E 応用 1 例目** (A+C dispatch + 局所 D 配列駆動 + UI 種別 dispatch): 6 軸のうち軸 6 (ui_block、件数・block 種別・ラベル可変) のみ局所 D + UI 種別 dispatch を併用、軸 1〜5 は dict 派生 A+C。A2_FRAME_TEMPLATE (Python .format() 名前付き placeholder、6 引数) + A2_AXES_BY_TYPE (8 entry dict、6 軸の値) + 補助関数 2 つ (_build_a2_ox_grid_block / _build_a2_slot_row_block) + render_a2()。check_template_sync の a2 境界検出も {{A2_FRAME}} 単行に対応 (Phase 4-12 PART_A_FRAME 同形機械的踏襲、レガシーフォールバック温存)。a2 variants **8 → 1 集約**、累計 **-13,050 bytes 削減** (本セッション最大規模、Phase 4-7 / 4-12 に次ぐ 3 位) | `91d8b7a` (BACKLOG) / `c173aa6` (render: render_a2) / `f6f3972` (templates + boundary) | ✅ 維持（300 のみ DIFF） |
+| **4-14** | 8 templates の diff-allowed part_b 領域 (6 variants / 108〜174 lines / avg 5,530 bytes、**本シリーズ最大規模 diff-allowed**) を `{{PART_B_FRAME}}` 単行に集約 slot 化。**パターン E 応用 2 例目** (A+C dispatch + 局所 D 配列駆動・UI 種別 dispatch 不要): 3 軸のうち軸 3 (choice_blocks、件数 3/4/5 可変) のみ局所 D を併用、軸 1〜2 (noun / labels) は dict 派生 A+C。全 variants が同一の choice-section 構造を共有するため UI 種別 dispatch は不要、builder は 1 つで完結 → パターン E の **最も単純な応用形**（軸数 3 / 引数数 2 / 補助関数 1、Phase 4-12 part_a よりさらに単純）。PART_B_FRAME_TEMPLATE (Python .format() 名前付き placeholder、2 引数) + PART_B_AXES_BY_TYPE (8 entry dict、{noun, labels}) + 補助関数 1 つ (_build_part_b_choice_block) + render_part_b()。slotmap §5.10 §2 part_b 行に注記追加。**part_b variants 6 → 1 集約**、累計 **-44,116 bytes 削減** (Phase 4-7 -70 KB に次ぐ 2 位、本シリーズ最大規模)。**diff-allowed 6 領域すべての slot 化が本 Phase で完走** (toc / pre_part_a / basis / part_a / a2 / part_b すべて 1 variant 集約完了) | `f3dc20c` (BACKLOG) / `91291ed` (render: render_part_b) / `5c567e2` (templates + slotmap 注記) | ✅ 維持（300 のみ DIFF） |
 
 CP gate 正準 baseline: `_phase3_2_pre_patch_baseline.json` (`docs/cp-gate.md` §1)
 
@@ -251,18 +252,19 @@ check_template_sync + validate-tx（全 15 件）を実行。
 
 ---
 
-## §4. Phase 4-14 以降の候補（参考、未着手）
+## §4. Phase 4-15 以降の候補（参考、未着手）
 
 | 候補 | 領域 | 主要懸念 | 優先度 |
 |---|---|---|---|
-| `part_b` 領域 (diff-allowed 6 variants) | avg 5,530 bytes / 174 lines | 最大規模 diff-allowed、A + D 組合せ可能性 | **中（最有力）**（設計セッション要）|
+| ~~`part_b` 領域 (diff-allowed 6 variants)~~ | ~~avg 5,530 bytes / 174 lines~~ | ~~最大規模 diff-allowed、A + D 組合せ可能性~~ | **✅ Phase 4-14 で完了**（パターン E 応用 2 例目）|
 | `css` 領域（巨大）| sync (60,743 bytes / 1,997 lines) | spec §Annex A canonical CSS と同期、構造化困難 | 低（要設計検討）|
 | `js` 領域 | sync (17,552 bytes / 405 lines) | spec §Annex C canonical JS と同期、構造化困難 | 低（要設計検討）|
 | Phase 5+ JX シリーズ着手 | JX 系（事例式）| spec/jx-v3.2-master.md 由来の構造化、1 問 1〜2 時間規模 | 別シリーズ・別 Phase（Phase 4 完了後）|
 
-Phase 4-13 完了後、優先度順にスコープ化する。**Phase 4-14 は part_b 領域が最有力候補**
-（最大規模 diff-allowed、A + D 組合せ可能性、設計セッション要）。残 diff-allowed は
-**part_b の 1 領域のみ**に縮減。
+Phase 4-14 完了で **diff-allowed 6 領域すべての slot 化が完走**
+（toc / pre_part_a / basis / part_a / a2 / part_b すべて 1 variant 集約完了）。
+残作業は sync-required 2 領域（css / js）の集約、または Phase 5+ JX シリーズ着手。
+TX shape の slot 化は Phase 4-14 で本質的に完了。
 
 ---
 
