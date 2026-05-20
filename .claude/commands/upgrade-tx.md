@@ -10,7 +10,7 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
 
 ### Phase 1: 準備
 
-1. **規律を view**：`spec/tx-v8.11.7-core.md` を view（特に §0-tri／§0-quad／§34-bis を重点的に）
+1. **規律を view**：`spec/tx-v9.0.0-genkei-core.md` を view（特に §0-tri／§0-quad／§34-bis を重点的に。GENKEI 設計により §Annex B は純骨格スケルトン）
 2. **対象ファイルを view**：既存 HTML 全体を読み込み
 
 ### Phase 2: §0-tri STEP 1 ゼロベース再構築（最優先・例外なし）
@@ -63,11 +63,12 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
     - レガシー `KEIS033.html` → `刑訴TX033.html`
     - レガシー `GSE092.html` → `行政TX092.html`
 12. **`<title>` / `.doc-header` / footer-spec の 3 箇所**を新形式で一致させる
-13. **footer-spec の feature-tag** を v8.11.7 用に更新（§33・13 件以上必須）：
-    - `TX v8.11.7`
+13. **footer-spec の feature-tag** を v9.0.0 GENKEI 用に更新（§33・15 件以上必須）：
+    - `TX v9.0.0 GENKEI`
+    - v9.0.0 GENKEI 由来：`genkei-skeleton`／`design-byte-lock`
     - 基盤（v8.11.0）：`ktx301-canon`／`embedded-canon`／`readability-layer`／`hanging-grid`／`basis-order-v2`／`a2-feedback-canon`／`rbchip-patched`／`k302-immune`／`p2p3-unified`／`p1-absolute`
     - v8.11.1 由来：`jp-prefix-naming`／`content-independence`
-    - v8.11.7 統合：`spoiler-safe`／`multi-answer-css`／`a2-two-stage-reveal`／`a2-multi-ox-support`／`spoiler-leak-eradication`／`spoiler-strong-elimination`／`ox-grid-fa-unification`／`host-injection-safe`
+    - v8.11.x 統合：`spoiler-safe`／`multi-answer-css`／`a2-two-stage-reveal`／`a2-multi-ox-support`／`spoiler-leak-eradication`／`spoiler-strong-elimination`／`ox-grid-fa-unification`／`host-injection-safe`
 14. **出力先サブフォルダ**：§1-bis-3 対応表通り（`outputs/tx/{科目TX}/` 配下）
 
 ### Phase 6.5: v8.11.2〜v8.11.6 由来の機能を順次適用（§34-quater〜§34-octies）

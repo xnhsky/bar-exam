@@ -10,7 +10,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v8.11.1）
 
 ### Phase 1: 準備
 
-1. **規律を view**：`spec/tx-v8.11.7-core.md` を view（§0-tri／§0-quad／§0-bis／§1-bis を重点的に確認）
+1. **規律を view**：`spec/tx-v9.0.0-genkei-core.md` を view（§0-tri／§0-quad／§0-bis／§1-bis を重点的に確認。GENKEI 設計により §Annex B は純骨格スケルトン）
 2. **PDF 読解**：問題番号・科目・年度・全選択肢・正解・正答率・出題テーマを抽出
 3. **冒頭応答必須**：「正答率 __%→パターン_『___』適用」を最初に出力
 4. **パターン判定**：正答率 ≥60%→P1 ローズシャンブル／40-60%→P2 セージブラリー／<40%→P3 ラベンダードーン
@@ -54,10 +54,11 @@ description: 新規 TX ファイルを問題 PDF から生成（v8.11.1）
 21. **PART D ARENA を 12 問・○:×=6:6 で構築**（設問は本問オリジナル）
 22. **§4-quater：全 section-title に sec-icon 配置**／§17-bis：PART C content wrapper 適用
 23. **doc-header／title／footer-spec のファイル ID** を §1-bis-1 形式（`刑TX299` 等）で 3 箇所一致させる
-24. **footer-spec の feature-tag** に以下 13 件以上を含める（§33 v8.11.7 版）：
-    - `TX v8.11.7`／`ktx301-canon`／`jp-prefix-naming`／`content-independence`
-    - `spoiler-safe`／`multi-answer-css`／`a2-two-stage-reveal`／`a2-multi-ox-support`
-    - `spoiler-leak-eradication`／`spoiler-strong-elimination`／`ox-grid-fa-unification`／`host-injection-safe`
+24. **footer-spec の feature-tag** に以下 15 件以上を含める（§33 v9.0.0 GENKEI 版）：
+    - `TX v9.0.0 GENKEI`／`genkei-skeleton`／`design-byte-lock`／`content-independence`
+    - `ktx301-canon`／`jp-prefix-naming`／`spoiler-safe`／`multi-answer-css`
+    - `a2-two-stage-reveal`／`a2-multi-ox-support`／`spoiler-leak-eradication`
+    - `spoiler-strong-elimination`／`ox-grid-fa-unification`／`host-injection-safe`
     - `readability-layer`／`hanging-grid`／`basis-order-v2`／`a2-feedback-canon`
 
 ### Phase 5.5: 3 Type 対応の自動判定（v8.11.7）
