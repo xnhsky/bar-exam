@@ -701,6 +701,176 @@ def render_basis_secnav(instruction_type: str) -> str:
 
 
 # ============================================================================
+# part_a 領域描画関数（Phase 4-12・パターン E 新規確立: A+C + 局所 D）
+# ============================================================================
+# 8 templates の diff-allowed part_a 領域（avg 1,515 bytes / 19〜52 lines、
+# 8 templates × 8 variants）を集約 slot 化。
+#
+# 5 つの可変軸（BACKLOG §1-2）:
+#   1. sec_nav_back  (dict 派生)        — A-1 nav 内 back-link
+#   2. h3_title      (dict 派生)        — 記述 H3 見出し（【記述】/【空欄】/【選択肢】）
+#   3. choice_lines  (件数別関数生成)   — problem-text の件数 (3/4/5)
+#   4. combo_section (件数別関数生成・D 局所) — 【組合せ】section (0/5/8 件)
+#   5. middle_line   (2 値分岐)         — sc5 のみ {{VIEWS_BLOCK}} 行
+#
+# 軸 1/2/3/5 は A+C 組合せ、軸 4 のみ件数可変のため局所 D（配列駆動）を併用。
+# A/B/C/D 単独でも、A+C 組合せでも捕捉できない新形態 → パターン E として新規確立。
+#
+# 設計判断（BACKLOG §2-1）:
+# - schema 変更なし、JSON 改修なし（既存 problem.instruction_type から派生）
+# - 未対応 instruction_type は RuntimeError raise（Phase 4-6/4-9/4-11 同方針）
+# - broken intermediate state なし（diff-allowed 領域、旧 slot 不在）
+# - PART_A_FRAME_TEMPLATE は Python .format() 名前付き placeholder、6 引数
+#   {{INSTRUCTION}} 等 slot 参照は {{{{INSTRUCTION}}}} 形式でエスケープ
+
+PART_A_H3_STYLE: str = (
+    'background:transparent; border-left:none; padding:8px 0 4px 0;'
+    ' margin:20px 0 8px 0; border-bottom:2px dotted var(--border-mid);'
+    ' color:var(--accent); font-family:var(--font-display);'
+)
+
+# instruction_type → 5 軸の値（軸 5 has_views_block は bool、他は派生用 raw 値）
+PART_A_AXES_BY_TYPE: dict[str, dict] = {
+    "ox-grid-5": {
+        "sec_nav_back":    '<a href="#choice-1">↓記述ア</a>',
+        "h3_title":        "【記述】",
+        "choice_count":    5,
+        "combo_count":     0,
+        "has_views_block": False,
+    },
+    "ox-grid-4": {
+        "sec_nav_back":    '<a href="#choice-1">↓記述ア</a>',
+        "h3_title":        "【記述】",
+        "choice_count":    4,
+        "combo_count":     0,
+        "has_views_block": False,
+    },
+    "ox-grid-3-combination-8": {
+        "sec_nav_back":    '<a href="#choice-1">↓記述ア</a>',
+        "h3_title":        "【記述】",
+        "choice_count":    3,
+        "combo_count":     8,
+        "has_views_block": False,
+    },
+    "multi-select-5": {
+        "sec_nav_back":    '<a href="#choice-1">↓記述1</a>',
+        "h3_title":        "【記述】",
+        "choice_count":    5,
+        "combo_count":     0,
+        "has_views_block": False,
+    },
+    "single-choice-5": {
+        "sec_nav_back":    '<a href="#choice-1">↓記述1</a>',
+        "h3_title":        "【記述】",
+        "choice_count":    5,
+        "combo_count":     0,
+        "has_views_block": True,  # sc5 のみ {{VIEWS_BLOCK}} 行を含む（Phase 4-1）
+    },
+    "combination-5": {
+        "sec_nav_back":    '<a href="#choice-1">↓記述ア</a>',
+        "h3_title":        "【記述】",
+        "choice_count":    5,
+        "combo_count":     5,
+        "has_views_block": False,
+    },
+    "fill-in": {
+        "sec_nav_back":    '<a href="#choice-1">↓空欄A</a>',
+        "h3_title":        "【空欄】",
+        "choice_count":    5,
+        "combo_count":     0,
+        "has_views_block": False,
+    },
+    "fillin8": {
+        "sec_nav_back":    '<a href="#choice-1">↓肢1</a>',
+        "h3_title":        "【選択肢】",
+        "choice_count":    5,
+        "combo_count":     0,
+        "has_views_block": False,
+    },
+}
+
+# .format() 名前付き placeholder。{{INSTRUCTION}} 等の slot 参照は {{{{...}}}}
+# でエスケープ（.format() 通過後に {{INSTRUCTION}} 形式で残り、main render の
+# slot 置換に渡される）。
+PART_A_FRAME_TEMPLATE: str = (
+    '  <div class="part-title">PART A ── 問題情報</div>\n'
+    '\n'
+    '  <section class="section" id="part-a">\n'
+    '    <nav class="sec-nav"><a href="#answer-area">↓解答</a>{sec_nav_back}</nav>\n'
+    '    <h2 class="section-title"><span class="sec-icon">❀</span>A-1 問題文</h2>\n'
+    '\n'
+    '    <p style="font-weight:600;">{{{{INSTRUCTION}}}}</p>\n'
+    '\n'
+    '    {{{{CASE_BODY}}}}\n'
+    '{middle_line}'
+    '    <h3 style="{h3_style}">{h3_title}</h3>\n'
+    '\n'
+    '{choice_lines}'
+    '{combo_section}'
+    '\n'
+    '    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>\n'
+    '  </section>'
+)
+
+
+def _build_part_a_choice_lines(n: int) -> str:
+    """N 件 (3/4/5) の problem-text 行を生成（{{CHOICE_X_LABEL}}/{{CHOICE_X_STEM}} は raw 保持）。"""
+    letters = "ABCDE"[:n]
+    return "".join(
+        f'    <div class="problem-text"><span class="choice-num-inline">'
+        f'{{{{CHOICE_{ltr}_LABEL}}}}</span>{{{{CHOICE_{ltr}_STEM}}}}</div>\n'
+        for ltr in letters
+    )
+
+
+def _build_part_a_combo_section(n: int) -> str:
+    """N 件 (0/5/8) の【組合せ】section を生成（D 局所配列駆動）。N=0 で空文字列。"""
+    if n == 0:
+        return ""
+    blocks: list[str] = []
+    for i in range(1, n + 1):
+        blocks.append(
+            '      <div class="combo-block">\n'
+            f'        <span class="combo-label">{{{{COMBO_{i}_LABEL}}}}</span>\n'
+            f'        <span class="combo-set">{{{{COMBO_{i}_SET}}}}</span>\n'
+            '      </div>'
+        )
+    return (
+        '\n'
+        f'    <h3 style="{PART_A_H3_STYLE}">【組合せ】</h3>\n'
+        '\n'
+        '    <section class="combinations-section" id="part-a-combinations">\n'
+        + "\n".join(blocks) + '\n'
+        '    </section>\n'
+    )
+
+
+def render_part_a(instruction_type: str) -> str:
+    """{{PART_A_FRAME}} slot 値を返す（パターン E: A+C dispatch + 局所 D 配列駆動）。
+
+    軸 1/2/3/5 は dict 派生、軸 4 (combo_section) のみ件数別の関数生成。
+    未対応 instruction_type で RuntimeError。
+    """
+    if instruction_type not in PART_A_AXES_BY_TYPE:
+        raise RuntimeError(
+            f"unknown instruction_type {instruction_type!r} for part_a. "
+            f"valid: {sorted(PART_A_AXES_BY_TYPE)}"
+        )
+    axes = PART_A_AXES_BY_TYPE[instruction_type]
+    middle_line = "{{VIEWS_BLOCK}}\n" if axes["has_views_block"] else "\n"
+    choice_lines = _build_part_a_choice_lines(axes["choice_count"])
+    combo_section = _build_part_a_combo_section(axes["combo_count"])
+    return PART_A_FRAME_TEMPLATE.format(
+        sec_nav_back=axes["sec_nav_back"],
+        middle_line=middle_line,
+        h3_style=PART_A_H3_STYLE,
+        h3_title=axes["h3_title"],
+        choice_lines=choice_lines,
+        combo_section=combo_section,
+    )
+
+
+# ============================================================================
 # C-7 末尾 final-answer 描画関数（Phase 4-3）
 # ============================================================================
 # §22-bis 単一解答型 / §22-ter 多解答型 (multi-select-5) の final-answer DOM block
@@ -1117,6 +1287,14 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # basis section 第 2 行の <nav class="sec-nav"> 全体を {{BASIS_SECNAV}} に集約。
     # 未対応 type は render_basis_secnav() 内で RuntimeError。
     slots["BASIS_SECNAV"] = render_basis_secnav(problem.get("instruction_type", ""))
+
+    # part_a 領域 slot 供給（Phase 4-12 で集約 slot 化、パターン E 新規確立: A+C + 局所 D）。
+    # PART A 全体 (part-title から </section> まで、21〜52 lines) を {{PART_A_FRAME}} に集約。
+    # 5 軸のうち軸 4 (combo_section) のみ件数可変なため局所 D を併用。
+    # 未対応 type は render_part_a() 内で RuntimeError。
+    # Commit 3 (templates 置換) 完了前は templates 内に {{PART_A_FRAME}} placeholder が
+    # 存在しないため、本値は無害に未使用となる（broken intermediate state なし）。
+    slots["PART_A_FRAME"] = render_part_a(problem.get("instruction_type", ""))
 
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
     # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
