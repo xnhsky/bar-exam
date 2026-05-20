@@ -131,7 +131,20 @@ def split_template(content: str) -> dict[str, str]:
             if marker_legend_open >= 0
             else -1
         )
-    part_a_title = _find_line_idx(lines, r'<div class="part-title">PART A')
+    # Phase 4-12 以降: part_a 領域全体が {{PART_A_FRAME}} に slot 化されていれば
+    # 単一行をセクションとして扱う (TOC / marker_legend と同形)。レガシー (slot 化前)
+    # の <div class="part-title">PART A にもフォールバック対応。
+    # slot 化時の part_a section content = lines[part_a_title:part_a_title + 1] のみ
+    # （単一行）。slot 行と answer-area 間の trailing whitespace は pre-existing な
+    # template 構造差 (ox3comb8/fillin8 は blank なし、他 6 は blank あり) のため、
+    # part_a section から除外して section 間 gap として扱う。
+    part_a_slot_idx = _find_line_idx(lines, r"\{\{PART_A_FRAME\}\}")
+    if part_a_slot_idx >= 0:
+        part_a_title = part_a_slot_idx
+        part_a_close = part_a_slot_idx  # slot 単行
+    else:
+        part_a_title = _find_line_idx(lines, r'<div class="part-title">PART A')
+        part_a_close = -1  # レガシー: part_a section の終端は answer_area_section の手前
     answer_area_section = _find_line_idx(lines, r'<section[^>]+id="answer-area"')
     # A-2 内側に nested section は無い前提 (slotmap §5.10 §2: a2 sliced from
     # answer_area_section to first </section> after it)
@@ -150,7 +163,7 @@ def split_template(content: str) -> dict[str, str]:
     script_open = _find_line_idx(lines, r"<script>")
     script_close = _find_line_idx(lines, r"</script>")
 
-    # 全ての必須境界が検出されたかチェック
+    # 全ての必須境界が検出されたかチェック (part_a_close は slot 化時のみ必須)
     required = {
         "style_open": style_open,
         "style_close": style_close,
@@ -167,6 +180,8 @@ def split_template(content: str) -> dict[str, str]:
         "script_open": script_open,
         "script_close": script_close,
     }
+    # part_a_close は slot 化時のみ意味あり (レガシーは -1 を保持して section range 算出)。
+    # required から除外することで、slot 化前テンプレも従来通り検出可能。
     missing = [k for k, v in required.items() if v < 0]
     if missing:
         raise ValueError(f"境界マーカー検出失敗: {missing}")
@@ -181,7 +196,11 @@ def split_template(content: str) -> dict[str, str]:
         "toc":           joined(toc_open, toc_close + 1),
         "marker_legend": joined(marker_legend_open, marker_legend_close + 1),
         "pre_part_a":    joined(marker_legend_close + 1, part_a_title),
-        "part_a":        joined(part_a_title, answer_area_section),
+        "part_a":        (
+            joined(part_a_title, part_a_close + 1)  # slot 化時: 単行
+            if part_a_close >= 0
+            else joined(part_a_title, answer_area_section)  # レガシー: ranged
+        ),
         "a2":            joined(answer_area_section, answer_area_close + 1),
         "part_b":        joined(answer_area_close + 1, basis_section),
         "basis":         joined(basis_section, basis_close + 1),
