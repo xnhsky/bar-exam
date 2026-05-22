@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-TX v8.11.7 自己検証スクリプト
+TX 自己検証スクリプト（v9.0.0-genkei / v9.1.0-mindmap 両対応）
 
 検証範囲: S1〜S84（仕様書 §31 準拠・主要なものを実装）
   S82: PDF 番号抽出整合（ファイル名 NNN と HTML 内 ID 数字部分の照合）
@@ -181,7 +181,7 @@ class Reporter:
         self.warnings.append(f"[{check_id}] {msg}")
 
     def summary(self, target):
-        print(f"\nTX v8.11.7 検証結果: {target}")
+        print(f"\nTX 検証結果: {target}")
         if self.errors:
             print(f"\n❌ ERROR ({len(self.errors)} 件):")
             for e in self.errors:
@@ -367,7 +367,7 @@ def check_v8110_layers(html, style_text, rep):
 
 
 def check_content_independence(soup, rep):
-    """S78〜S69: v8.11.7 コンテンツ独立性"""
+    """S78〜S69: コンテンツ独立性"""
 
     visible = get_visible_text(soup)
 
@@ -438,12 +438,12 @@ def check_naming(target_path, soup, rep):
         if re.match(r"^(K|KEN|MIN|SYO|MINS|KEIS|GSE)\d+\.html$", filename):
             rep.error(
                 "S80",
-                f"レガシー命名形式: {filename}（v8.11.7 形式 {{日本語接頭辞}}TX{{3桁}}.html に更新必要）",
+                f"レガシー命名形式: {filename}（現行形式 {{日本語接頭辞}}TX{{3桁}}.html に更新必要）",
             )
         else:
             rep.error(
                 "S80",
-                f"ファイル名が v8.11.7 形式に非該当: {filename}",
+                f"ファイル名が現行形式に非該当: {filename}",
             )
         return
 
@@ -506,15 +506,22 @@ def check_misc(target_path, soup, html, style_text, rep):
             "#answer-feedback strong{color:#fff !important} が CSS に残存（旧 v8.6 バグ）",
         )
 
-    # v8.11.7 必須 feature-tag
+    # 必須 feature-tag
     # 注：canonical/KTX301.html は v8.11.0 ベースの構造参考なので
-    # v8.11.7 専用タグの検査対象外とする（編集を誘発しないため）
+    # spec バージョン専用タグの検査対象外とする（編集を誘発しないため）
     if not is_canonical_reference:
-        required_tags = ["TX v8.11.7", "ktx301-canon", "jp-prefix-naming", "content-independence"]
+        # spec バージョン feature-tag（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap いずれか必須）
+        spec_version_tags = ["TX v8.11.7", "TX v9.0.0 GENKEI", "TX v9.1.0 MINDMAP"]
+        # 共通必須 feature-tag
+        common_required_tags = ["ktx301-canon", "jp-prefix-naming", "content-independence"]
         footer_el = soup.find(class_="footer-spec")
         if footer_el:
             footer_text = footer_el.get_text()
-            for tag in required_tags:
+            # spec バージョンタグ：OR 条件（いずれか 1 つあれば PASS）
+            if not any(tag in footer_text for tag in spec_version_tags):
+                rep.warn("S51", "footer-spec に spec バージョン feature-tag が含まれない（'TX v8.11.7' / 'TX v9.0.0 GENKEI' / 'TX v9.1.0 MINDMAP' のいずれか必須）")
+            # 共通必須タグ：AND 条件（全て必須）
+            for tag in common_required_tags:
                 if tag not in footer_text:
                     rep.warn("S51", f"footer-spec に feature-tag '{tag}' が含まれない")
         else:
