@@ -11,7 +11,7 @@
 
 | シリーズ | 内容 | 仕様書 | ファイル数の目安 |
 |---|---|---|---|
-| **TX** | 短答式（5択・○×・組合せ）の単問解説 HTML | `spec/tx-v9.0.0-genkei-core.md` | 1 問 = 1 HTML（約 110〜130 KB） |
+| **TX** | 短答式（5択・○×・組合せ）の単問解説 HTML | `spec/tx-v9.1.0-mindmap-core.md` | 1 問 = 1 HTML（約 130〜180 KB） |
 | **JX** | 事例問題型（論文・予備）の総合教材 HTML | `spec/jx-v3.2-master.md` | 1 問 = 1 HTML（A〜H 8 サブ＋第 3〜5 部） |
 
 ### 7 科目共通
@@ -68,20 +68,21 @@
 
 ### 3-1. 必読ファイル
 
-- **規律本体**：`spec/tx-v9.0.0-genkei-core.md`（§0〜§37 全規律 + §Annex A/B/C 埋込／自己完結・約 5475 行）
+- **規律本体**：`spec/tx-v9.1.0-mindmap-core.md`（§0〜§37 全規律 + §22-quad mindmap + §Annex A/B/C 埋込／自己完結・約 5754 行）
 - **参考実装例**：`canonical/KTX301.html`（構造の完成形を確認するための **参考のみ**。本文・解説・判例引用の文字列をコピーする対象**ではない**）
+- **v9.0.0-genkei 参照（read-only）**：`spec/tx-v9.0.0-genkei-core.md`（〜304 までの生成基盤・歴史的参照用）
 
 ### 3-2. 新規 TX 生成手順
 
 1. 問題 PDF を読解（`inputs/tx-pdfs/` 配下）
 2. **冒頭応答必須**：「正答率 __%→パターン_『___』適用」を最初に出力
-3. `spec/tx-v9.0.0-genkei-core.md` を view（規律・Annex A/B/C 全文確認）
+3. `spec/tx-v9.1.0-mindmap-core.md` を view（規律・Annex A/B/C ＋ §22-quad mindmap 全文確認）
 4. **§0-tri ゼロベース再構築プロトコル**（6 ステップ）を順次実行
 5. **§0-quad コンテンツ独立性プロトコル**（7 ステップ）を必ず履行（§3-3 で詳述）
 6. **§0-bis AI 15 ステップ生成プロトコル**を順次実行
 7. **§1-bis 命名規則**に従ってファイル名・出力先を決定（§2 参照）
 8. 配信前に `python scripts/validate-tx.py <出力ファイル>` を実行
-9. **S1〜S82 全件通過**を確認してから `present_files`
+9. **S1〜S84 全件通過**を確認してから `present_files`（v9.1.0-mindmap ファイルは S84 mindmap 構造検査が自動適用）
 
 ### 3-3. canonical text leakage の防止（最重要 — v9.0.0 GENKEI で構造的解決）
 
@@ -100,7 +101,7 @@
 
 旧バージョン（v8.10.2 以下、または v8.11.x 系の旧 minor）のファイルを v8.11.7 に揃える場合：
 
-1. `spec/tx-v9.0.0-genkei-core.md` の **§0-tri STEP 1（既存スタイル完全破棄）** を最優先実行
+1. `spec/tx-v9.1.0-mindmap-core.md` の **§0-tri STEP 1（既存スタイル完全破棄）** を最優先実行
 2. **§34-bis 12 ステップ移行手順**で v8.11.0 canonical 化
 3. その後、現バージョンから v8.11.7 への段階的 minor 更新を順次適用：
    - **§34-quater**（v8.11.1 → v8.11.2）：a2-two-stage-reveal（reveal-answer-btn・answer-instruction 文言固定）
@@ -170,13 +171,15 @@ JX には TX の §0-quad のような明示的なコンテンツ独立性プロ
 python scripts/validate-tx.py outputs/tx/刑TX/刑TX299.html
 ```
 
-**チェック内容（S1〜S82）：**
+**チェック内容（S1〜S84）：**
 
 - 構造（S1〜S51）：タグバランス／PART 構成／sub-card 構造／final-answer／feature-tag 等
 - §24 readability layer（S64〜S67）：v8.11.0 で追加された 6 層と hanging-grid・font-weight
-- PART 順序（S66）：A-3 が PART B 後ろ・PART C 前
+- PART 順序（S66）：参考｜共通根拠条文・判例（旧 A-3）が PART B 後ろ・mindmap section または PART C 前
 - **コンテンツ独立性（S78〜S79、v8.11.1）：** KTX301 由来禁止文言ブラックリスト検査／§Annex B との 3 単語以上連続一致検出
 - **命名規則（S80〜S82、v8.11.1）：** ファイル ID 形式・出力先サブフォルダ・PDF 番号抽出整合
+- **placeholder 残存検査（S83、2026-05-21）：** `[…]` / `<!-- 指示: -->` の残存検出（パターン A 上限 1,200 文字・法令引用は除外）
+- **mindmap section 構造検査（S84、v9.1.0-mindmap 専用・version-aware）：** footer-spec の feature-tag に `TX v9.1.0 MINDMAP` を含むファイルのみ厳格適用。8 検査項目 (a) section 存在 / (b) viewBox=0 0 1100 900 / (c) figure-wrap 親 / (d) figure-caption / (e) ellipse 1 個以上 / (f) rect 4 個以上 / (g) role=img + aria-label / (h) script/style タグ禁止
 
 ### 5-2. JX 検証
 
@@ -219,6 +222,36 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 - ファイル名・出力先サブフォルダの **§2 規則違反**（レガシー K/MIN/KEN 等の混在禁止）
 
 ### TX 固有
+
+#### template 流用の物理的禁止（最重要・2026-05-21 追加）
+
+- **`outputs/*/` 配下の既存 HTML を別問題生成の template として
+  `cp` / `Read` / `Edit` の起点にすることは絶対禁止**
+  - 例外：`canonical/KTX301.html` のみ「構造参考」として `Read` 可
+    （本文・解説・判例引用の文字列コピーは AP-42 違反）
+  - `_quarantine*/` および 23 個の非 canonical フォルダは
+    `bar-exam-archive\` に物理排除済み（2026-05-21）
+  - 既存 .html ファイル全般を「速い経路」として参照することは
+    canonical text leakage の温床（AP-42 / S78 違反）
+
+#### 単一巨大出力の禁止（API socket error 予防）
+
+- **1 メッセージで 50KB 超の `Write` / `Edit` 出力は禁止**
+  - 2026-05-20 セッションで API socket error → 14 分損失を実測
+- 大規模 HTML 生成は section 単位で 5 分割：
+  - Write 1：`<head>` 全体 + 空 `<body>` 骨格（Annex A CSS + Annex C JS 含む）
+  - Write 2：HEADER + marker-legend + PART A（A-1, A-2）+ A-3 共通根拠
+  - Write 3：PART B（記述ア〜オ 5 つ）
+  - Write 4：PART C（C-1〜C-7 7 つ）+ final-answer
+  - Write 5：PART D（drill 12 個）+ footer-spec
+- 各段階 30〜50KB 以下に収める
+
+#### 中断・再開時の禁則
+
+- API socket error 等で中断した場合、**既存 outputs/*.html を
+  template として参照する経路を選んではならない**
+- 必ず PDF と spec のみから新規鋳造を継続
+- 部分出力が失敗した場合、その PART だけ再生成し、他 PART は流用しない
 
 #### v8.11.0 基盤の禁止事項
 
@@ -270,3 +303,75 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 ### 通信を日本語で
 
 ユーザーへの応答は日本語で簡潔に。確認の取りすぎは禁物（ユーザーは中断を嫌う）。判断に迷う場合のみ確認する。
+
+### TX 生成時の段階分割プロンプト雛形（2026-05-21 追加）
+
+50 分→25 分台への短縮を狙う標準プロンプト。`/new-tx` 起動時または
+直接指示時に末尾に付加：
+
+```
+spec/tx-v9.1.0-mindmap-core.md と inputs/tx-pdfs/{NNN}.pdf のみから
+新規鋳造（outputs/*.html を template として参照しない）。
+出力は 6 段階に分割し、各段階完了時に「Write N/6 完了・出力 XX KB・累計 YY KB」を
+ログ出力。
+- Write 1：<head> 全体 + 空 <body>（CSS/JS 含む）
+- Write 2：HEADER + marker-legend + PART A + 参考｜共通根拠条文・判例
+- Write 3：PART B（記述ア〜オ）
+- Write 4：論点詳細マインドマップ（§22-quad SVG・v9.1.0-mindmap 新規）
+- Write 5：PART C（C-1〜C-7）+ final-answer
+- Write 6：PART D（drill 12）+ footer-spec
+完了後 validate-tx.py 実行、ERROR 0 件確認（S84 mindmap 構造検査含む）。
+```
+
+### API socket error 発生時の対処
+
+- 中断した時点でセッションを閉じず、user が「再開して」と指示
+- AI には**必ず spec と PDF から続行**させる
+  （`outputs/{科目TX}/*.html` を template として参照させない）
+- 失敗した PART のみ再生成。完成済み他 PART は流用しない
+- 同じ section で 2 回連続 socket error が起きたら、その section を
+  さらに細分化（例：PART C を C-1〜C-3 と C-4〜C-7 で 2 段階に分割）
+
+### 生成時間の目安と内訳（v9.1.0-mindmap + 段階生成適用時）
+
+標準的な TX 1 問の所要時間：**28〜38 分**（v9.0.0-genkei の 25〜35 分から、Write 4 mindmap section 追加分 +3 分を見込む）。内訳：
+
+| 工程 | 標準時間 | 異常兆候 |
+|---|---|---|
+| 仕様書 + PDF 読込 | 5〜8 分 | 10 分超 → spec を分割 Read していないか確認 |
+| 設計 thinking | 5〜10 分 | 15 分超 → PDF が読み取れていない可能性 |
+| Write 6 段階 | 17〜22 分 | 32 分超 → 段階分割が機能していない（mindmap section が肥大化していないかも要確認） |
+| validate-tx.py 検証 | 2〜5 分 | 修正サイクル 3 回以上 → S78/S79 で leakage 疑い（S84 ERROR は mindmap 構造規律違反） |
+
+40 分超は異常。session log を確認し以下をチェック：
+- Edit 回数（10 超で異常・template 経路に堕ちた疑い）
+- Bash 内 `cp` コマンド（outputs/ 配下からの copy は絶対禁止違反）
+
+### セッション開始時の状態確認推奨
+
+新規 TX 生成前に以下を 1 回確認させると安全：
+
+```
+始める前に環境確認：
+1. outputs/tx/{対象科目}/ に既存ファイルがあるか
+2. _quarantine* や非 canonical フォルダが復活していないか
+3. 直近のセッションログから「template 流用経路」が選ばれていないか
+```
+
+→ template 流用経路の再発を予防
+
+### バッチ運用（v9.1.0-mindmap・2026-05-21 追加）
+
+5 問単位の連続生成用に `/batch-tx` コマンドあり。
+
+使い方：
+
+- `/batch-tx 306` （開始 PDF を指定）
+- `/batch-tx`     （対象 PDF を確認）
+
+Phase 0 で 5×1 / 5×2 / キャンセル を user 確認。
+5×2 モードはバッチ 1 完了後に必ず `/exit` & `claude --resume` してから
+「バッチ 2 開始」と指示すること（context window 保護）。
+
+エラー時は自動継続（3 問連続失敗で停止）。
+失敗問の再生成は `/new-tx` で個別実施。

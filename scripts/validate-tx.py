@@ -3,7 +3,12 @@
 """
 TX v8.11.7 自己検証スクリプト
 
-検証範囲: S1〜S82（仕様書 §31 準拠・主要なものを実装）
+検証範囲: S1〜S84（仕様書 §31 準拠・主要なものを実装）
+  S82: PDF 番号抽出整合（ファイル名 NNN と HTML 内 ID 数字部分の照合）
+  S83: v9.0.0-genkei placeholder 残存検査（[...] / <!-- 指示: ... --> 検出）
+  S84: mindmap section 構造検査（v9.1.0-mindmap 専用）
+    footer-spec の feature-tag に "TX v9.1.0 MINDMAP" を含むファイルのみ
+    厳格適用（version-aware）。8 検査項目 (a)〜(h) を順次確認。
 
 使い方:
     python scripts/validate-tx.py <HTML ファイルパス>
@@ -526,6 +531,242 @@ def check_misc(target_path, soup, html, style_text, rep):
 
 
 # ============================================================
+# S82: PDF 番号抽出整合（ファイル名 NNN と HTML 内 ID 数字部分の照合）
+# ============================================================
+
+def check_number_integrity(target_path, soup, rep):
+    """S82: ファイル名から抽出した NNN と
+    <title> / .doc-header / .footer-spec 内の ID 数字部分が全て一致することを確認"""
+
+    filename = Path(target_path).name
+    parent_dir = Path(target_path).parent.name
+
+    # canonical/KTX301.html は対象外
+    if filename == "KTX301.html" and parent_dir == "canonical":
+        return
+
+    m = re.match(r"^(刑|憲|民|商|民訴|刑訴|行政)(TX|JX)(\d{3,})\.html$", filename)
+    if not m:
+        # 非該当ファイル名は S80 が捕捉済み。S82 は対象外
+        return
+
+    prefix, series, nnn = m.group(1), m.group(2), m.group(3)
+    file_id = f"{prefix}{series}{nnn}"
+    id_pattern = rf"{re.escape(prefix)}{re.escape(series)}(\d{{3,}})"
+
+    title_text = soup.title.get_text() if soup.title else ""
+    doc_header_el = soup.find(class_="doc-header")
+    doc_header_text = doc_header_el.get_text() if doc_header_el else ""
+    footer_el = soup.find(class_="footer-spec")
+    footer_text = footer_el.get_text() if footer_el else ""
+
+    def extract_nnn(text):
+        m2 = re.search(id_pattern, text)
+        return m2.group(1) if m2 else None
+
+    found = {
+        "title": extract_nnn(title_text),
+        "doc-header": extract_nnn(doc_header_text),
+        "footer-spec": extract_nnn(footer_text),
+    }
+
+    bad_locations = [name for name, num in found.items() if num != nnn]
+    if bad_locations:
+        details = []
+        for name, num in found.items():
+            if num is None:
+                details.append(f"{name}: ({prefix}{series}NNN not found)")
+            elif num != nnn:
+                details.append(f"{name}: {prefix}{series}{num}（不一致）")
+            else:
+                details.append(f"{name}: {prefix}{series}{num}")
+        rep.error(
+            "S82",
+            f"ファイル名 NNN={nnn} と HTML 内 ID 不整合: filename={file_id}; "
+            + "; ".join(details),
+        )
+
+
+# ============================================================
+# S83: v9.0.0-genkei placeholder 残存検査
+# ============================================================
+
+def check_placeholder_residue(target_path, soup, html, rep):
+    """S83: 未差替 placeholder（[...] / <!-- 指示: ... -->）の残存を検出
+
+    パターン A: 可視テキスト内の [...]（<a> タグ・<script>・<style> 内を除外）
+    パターン B: <!-- 指示: ... --> 指示コメント残存
+    法令引用（第XX条 / 最判昭○○ 等）は誤検出回避のため除外
+    """
+
+    filename = Path(target_path).name
+    parent_dir = Path(target_path).parent.name
+    if filename == "KTX301.html" and parent_dir == "canonical":
+        return
+
+    # パターン B: <!-- 指示: ... --> 残存
+    instruction_comments = re.findall(r"<!--\s*指示:.*?-->", html, re.DOTALL)
+
+    # パターン A: 可視テキスト内の [...]
+    # <a> / <script> / <style> 内テキストおよび属性値を除外したテキストを抽出
+    soup_copy = BeautifulSoup(html, "html.parser")
+    for tag in soup_copy(["script", "style", "a"]):
+        tag.extract()
+    visible_text = soup_copy.get_text(" ", strip=False)
+
+    # 元仕様は {0,50} だが genkei の長い placeholder を見逃すため {1,200} に拡張
+    bracket_pattern = re.compile(r"\[([^\[\]]{1,200})\]")
+    raw_brackets = bracket_pattern.findall(visible_text)
+
+    # 法令引用・判例引用の誤検出を除外
+    def is_legal_citation(content):
+        s = content.strip()
+        if re.match(r"^第[〇一二三四五六七八九十百千\d]+条", s):
+            return True
+        if re.match(r"^(最|大)(判|決|大判)?(昭|平|令|明|大)", s):
+            return True
+        if re.match(r"^\d{1,4}年", s):
+            return True
+        return False
+
+    placeholders = [b for b in raw_brackets if not is_legal_citation(b)]
+
+    total = len(instruction_comments) + len(placeholders)
+    if total == 0:
+        return
+
+    details = []
+    for inst in instruction_comments[:5]:
+        pos = html.find(inst)
+        line_no = (html[:pos].count("\n") + 1) if pos >= 0 else "?"
+        snippet = inst.replace("\n", " ")
+        if len(snippet) > 80:
+            snippet = snippet[:77] + "..."
+        details.append(f"L{line_no}: {snippet}")
+    for ph in placeholders[:5]:
+        search_str = f"[{ph}]"
+        pos = html.find(search_str)
+        line_no = (html[:pos].count("\n") + 1) if pos >= 0 else "?"
+        snippet = search_str.replace("\n", " ")
+        if len(snippet) > 80:
+            snippet = snippet[:77] + "..."
+        details.append(f"L{line_no}: {snippet}")
+
+    extra = total - len(details)
+    msg = f"未差替 placeholder を {total} 件検出: " + "; ".join(details)
+    if extra > 0:
+        msg += f"; ... 他 {extra} 件"
+    rep.error("S83", msg)
+
+
+# ============================================================
+# S84: mindmap section 構造検査（v9.1.0-mindmap 専用 / version-aware）
+# ============================================================
+
+def check_mindmap_structure(soup, rep):
+    """S84: mindmap section 構造検査（v9.1.0-mindmap 専用）
+
+    対象判定：
+      footer-spec の feature-tag 列に "TX v9.1.0 MINDMAP" を含む
+      ファイルのみ厳格適用。それ以外は早期 return（version-aware）。
+
+    検査項目（spec §31 S84 (a)〜(h)）：
+      a) <section id="mindmap"> の存在
+      b) 内部に <svg viewBox="0 0 1100 900"> 必須
+      c) SVG の親に <div class="figure-wrap"> 必須（§17-bis-2 K302-10）
+      d) <p class="figure-caption"> 必須（figure-wrap 内）
+      e) SVG 内に <ellipse>（中心ノード）1 個以上必須
+      f) SVG 内に <rect>（4 体系層含む）≥ 4 個必須
+      g) SVG に role="img" + aria-label 属性必須
+      h) <script>/<style> タグ禁止（host-injection-safe / AP-41）
+    """
+
+    # === version-aware 判定 ===
+    footer = soup.find(class_="footer-spec")
+    if footer is None:
+        return  # footer-spec なし → 検査対象外（他検査で別途検出）
+
+    feature_tags = footer.find_all(class_="feature-tag")
+    feature_text = " ".join(tag.get_text(strip=True) for tag in feature_tags)
+
+    if "TX v9.1.0 MINDMAP" not in feature_text:
+        return  # 対象外：早期 return（version-aware）
+
+    # === ここから v9.1.0-mindmap ファイルのみ実行 ===
+
+    # (a) <section id="mindmap"> の存在
+    mindmap_section = soup.find("section", id="mindmap")
+    if mindmap_section is None:
+        rep.error("S84", '<section id="mindmap"> が見つかりません')
+        return  # これがないと後続検査が無意味なので早期 return
+
+    # (b) 内部に <svg viewBox="0 0 1100 900"> 必須
+    svg = mindmap_section.find("svg")
+    if svg is None:
+        rep.error("S84", "mindmap section 内に <svg> が見つかりません")
+        return
+
+    # BS4 html.parser は SVG 属性名を小文字化するため、両方確認
+    viewbox = svg.get("viewBox") or svg.get("viewbox") or ""
+    if viewbox.strip() != "0 0 1100 900":
+        rep.error(
+            "S84",
+            f"SVG viewBox は '0 0 1100 900' 必須・実値='{viewbox}'",
+        )
+
+    # (c) SVG の親に <div class="figure-wrap"> 必須
+    svg_parent = svg.parent
+    if svg_parent is None or "figure-wrap" not in (svg_parent.get("class") or []):
+        rep.error(
+            "S84",
+            'SVG の親要素に class="figure-wrap" 必須（§17-bis-2 K302-10）',
+        )
+
+    # (d) <p class="figure-caption"> 必須（figure-wrap 内）
+    if svg_parent is not None:
+        caption = svg_parent.find("p", class_="figure-caption")
+        if caption is None:
+            rep.error(
+                "S84",
+                'figure-wrap 内に <p class="figure-caption"> 必須',
+            )
+
+    # (e) SVG 内に <ellipse>（中心ノード）1 個以上必須
+    ellipses = svg.find_all("ellipse")
+    if len(ellipses) < 1:
+        rep.error(
+            "S84",
+            f"SVG 内に <ellipse>（中心ノード）必須・実検出数={len(ellipses)}",
+        )
+
+    # (f) SVG 内に <rect>（4 体系層含む）≥ 4 個必須
+    rects = svg.find_all("rect")
+    if len(rects) < 4:
+        rep.error(
+            "S84",
+            f"SVG 内に <rect>（4 体系層）≥ 4 個必須・実検出数={len(rects)}",
+        )
+
+    # (g) SVG に role="img" + aria-label 属性必須
+    if svg.get("role") != "img":
+        rep.error("S84", 'SVG に role="img" 必須（K302 アクセシビリティ）')
+
+    if not svg.get("aria-label"):
+        rep.error("S84", "SVG に aria-label 属性必須")
+
+    # (h) <script>/<style> タグ禁止（host-injection-safe / AP-41）
+    scripts_in_mindmap = mindmap_section.find_all("script")
+    styles_in_mindmap = mindmap_section.find_all("style")
+    if scripts_in_mindmap or styles_in_mindmap:
+        rep.error(
+            "S84",
+            f"mindmap section 内に <script>/<style> タグ禁止・"
+            f"script={len(scripts_in_mindmap)}個 / style={len(styles_in_mindmap)}個"
+            f"（AP-41 host-injection-safe）",
+        )
+
+
+# ============================================================
 # main
 # ============================================================
 
@@ -551,6 +792,9 @@ def main():
     check_content_independence(soup, rep)
     check_naming(target, soup, rep)
     check_misc(target, soup, html, style_text, rep)
+    check_number_integrity(target, soup, rep)
+    check_placeholder_residue(target, soup, html, rep)
+    check_mindmap_structure(soup, rep)
 
     sys.exit(rep.summary(target))
 
