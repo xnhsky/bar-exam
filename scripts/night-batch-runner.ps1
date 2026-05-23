@@ -83,7 +83,14 @@ if ($DryRun) {
 
 # === コスト CSV ヘッダ初期化（初回のみ）===
 if (-not (Test-Path $CostCsv)) {
-    "timestamp,problem_id,elapsed_seconds,html_bytes,sentinel,exit_code" | Out-File -FilePath $CostCsv -Encoding utf8
+    "timestamp,problem_id,elapsed_seconds,html_bytes,sentinel,exit_code,cleanup,validate_status" | Out-File -FilePath $CostCsv -Encoding utf8
+} else {
+    # 既存 CSV が旧ヘッダーの場合は警告のみ出して継続（古いログは保持）
+    $firstLine = Get-Content $CostCsv -TotalCount 1
+    if ($firstLine -notmatch "cleanup,validate_status") {
+        Write-Host "[WARN] cost-summary.csv has old header format (no cleanup/validate_status columns)." -ForegroundColor Yellow
+        Write-Host "[WARN] New rows will be appended with extra fields; old rows remain unchanged." -ForegroundColor Yellow
+    }
 }
 
 # === 1 問処理ループ ===
@@ -153,11 +160,38 @@ foreach ($target in $Targets) {
         $htmlBytes = (Get-Item $target.OutputPath).Length
     }
 
-    # === コスト CSV 追記 ===
-    $csvLine = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$($target.ProblemId),$elapsed,$htmlBytes,$sentinel,$exitCode"
-    Add-Content -Path $CostCsv -Value $csvLine -Encoding utf8
-
     Write-Host "[DONE] $($target.ProblemId): elapsed=$([math]::Round($elapsed/60,1))min, html=$htmlBytes bytes, sentinel=$sentinel, exit=$exitCode" -ForegroundColor Green
+
+    # === 自動クリーンアップ：成功時のみ PDF を削除 ===
+    $cleanupTriggered = $false
+    $validateStatus = "skipped"
+
+    if ($htmlBytes -gt 0 -and $exitCode -eq 0 -and $sentinel -ne "FAILED") {
+        try {
+            $validateOutput = & python "$ProjectRoot\scripts\validate-tx.py" $target.OutputPath 2>&1
+            $validateText = $validateOutput -join "`n"
+            # ERROR 0 を厳密判定（正規表現で「ERROR 0」を捕捉）
+            if ($validateText -match "ERROR\s*0\s*/") {
+                Remove-Item -Path $target.PdfPath -Force
+                $cleanupTriggered = $true
+                $validateStatus = "PASS"
+                Write-Host "[CLEANUP] $($target.ProblemId): PDF auto-deleted (validate-tx PASS)" -ForegroundColor Green
+            } else {
+                $validateStatus = "ERROR_detected"
+                Write-Host "[KEEP] $($target.ProblemId): PDF retained (validate-tx ERROR detected)" -ForegroundColor Yellow
+            }
+        } catch {
+            $validateStatus = "exec_failed"
+            Write-Host "[KEEP] $($target.ProblemId): PDF retained (validate-tx exec failed)" -ForegroundColor Yellow
+        }
+    } else {
+        $validateStatus = "skipped_failed_generation"
+        Write-Host "[KEEP] $($target.ProblemId): PDF retained (generation incomplete)" -ForegroundColor Yellow
+    }
+
+    # === コスト CSV 追記 ===
+    $csvLine = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$($target.ProblemId),$elapsed,$htmlBytes,$sentinel,$exitCode,$cleanupTriggered,$validateStatus"
+    Add-Content -Path $CostCsv -Value $csvLine -Encoding utf8
 
     # === 連続失敗判定 ===
     if ($sentinel -eq "FAILED" -or $exitCode -ne 0 -or $htmlBytes -eq 0) {
