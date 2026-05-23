@@ -21,7 +21,9 @@ param(
 )
 
 # === 設定 ===
-$ProjectRoot = "C:\Users\OWNER\bar-exam"
+# スクリプト自身の位置 (= scripts\) の親をプロジェクトルートとする
+# これで OWNER PC / xnrg2 PC など複数環境で同じスクリプトが動作する
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
 $PdfDir      = Join-Path $ProjectRoot "inputs\tx-pdfs"
 $OutputBase  = Join-Path $ProjectRoot "outputs\tx"
 $LogsDir     = Join-Path $ProjectRoot "logs"
