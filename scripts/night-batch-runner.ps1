@@ -45,7 +45,14 @@ Write-Host "MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveF
 # PDF は inputs/tx-pdfs/{NNN}.pdf 形式だが、生成出力は {科目接頭辞}TX{NNN}.html。
 # 現状は刑のみ運用想定（306-315 は全て刑法 PDF）。将来拡張時に番号レンジ判定を追加予定。
 $SubjectPrefix = "刑"
+# 2026-05-25: local-first write flow に復帰（validate-tx S81 規律維持のため）
+# 生成は local outputs/tx/{Prefix}TX/ へ。validate PASS 後に Drive と backup へ配信。
+# 旧 DriveFS 直書き ($env:USERPROFILE\マイドライブ\...) は廃止。
 $OutputDir = Join-Path $OutputBase "${SubjectPrefix}TX"
+$DriveDir  = Join-Path $env:USERPROFILE "マイドライブ\CATALINA＿G共有\■予備試験進行中\1 短 答\☆TX\001＿刑法TX\改訂版はここ"
+$BackupDir = "C:\bar-exam-backup\current\${SubjectPrefix}TX"
+if (-not (Test-Path $OutputDir)) { New-Item -Path $OutputDir -ItemType Directory -Force | Out-Null }
+if (-not (Test-Path $BackupDir)) { New-Item -Path $BackupDir -ItemType Directory -Force | Out-Null }
 
 # === 未生成 PDF の検出 ===
 $AllPdfs = Get-ChildItem -Path $PdfDir -Filter "*.pdf" | Sort-Object Name
@@ -178,6 +185,20 @@ foreach ($target in $Targets) {
                 $cleanupTriggered = $true
                 $validateStatus = "PASS"
                 Write-Host "[CLEANUP] $($target.ProblemId): PDF auto-deleted (validate-tx PASS)" -ForegroundColor Green
+
+                # === Deliver to Drive + Backup (validate PASS 時のみ) ===
+                try {
+                    Copy-Item -Path $target.OutputPath -Destination $DriveDir -Force -ErrorAction Stop
+                    Write-Host "[DELIVER] Drive OK: $($target.ProblemId)" -ForegroundColor Green
+                } catch {
+                    Write-Host "[DELIVER FAIL] Drive: $_" -ForegroundColor Yellow
+                }
+                try {
+                    Copy-Item -Path $target.OutputPath -Destination $BackupDir -Force -ErrorAction Stop
+                    Write-Host "[BACKUP]  OK: $($target.ProblemId)" -ForegroundColor Green
+                } catch {
+                    Write-Host "[BACKUP FAIL] $_" -ForegroundColor Yellow
+                }
             } else {
                 $validateStatus = "ERROR_detected"
                 Write-Host "[KEEP] $($target.ProblemId): PDF retained (validate-tx ERROR detected)" -ForegroundColor Yellow
