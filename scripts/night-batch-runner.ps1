@@ -52,6 +52,8 @@ $AllPdfs = Get-ChildItem -Path $PdfDir -Filter "*.pdf" | Sort-Object Name
 $Pending = @()
 foreach ($pdf in $AllPdfs) {
     $num = [System.IO.Path]::GetFileNameWithoutExtension($pdf.Name)
+    # CLAUDE.md §2-3: 3 桁未満は前ゼロで 0 埋め (45 → 045)。4 桁以上は ToString('000') が保持。
+    if ($num -match '^\d+$') { $num = ([int]$num).ToString('000') }
     $expectedHtml = Join-Path $OutputDir "${SubjectPrefix}TX${num}.html"
     if (-not (Test-Path $expectedHtml)) {
         $Pending += [PSCustomObject]@{
