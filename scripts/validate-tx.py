@@ -1199,16 +1199,41 @@ def check_palette_derivatives(style_text, rep):
 # S89: §17-ter 学説対立 deep-dive 構造検査（v9.2.0 専用・AP-46）
 # ============================================================
 
-def check_theory_deep_dive(soup, rep):
+def check_theory_deep_dive(target, soup, rep):
     """S89: <section id="c-4"> 内の §17-ter theory-detail-grid 構造検査
 
     判定条件：feature-tag に "TX v9.2.0 DEEP-DIVE" と "theory-deep-dive" を含み、
               かつ theory-detail-grid が出現する場合のみ実行
+
+    罠 9 検出: JSON 側に theory_deep_dive 定義あり、HTML 側 feature-tag 不在は
+    claude -p 不完全出力（Phase 13B step 2 v1 で実観測）→ ERROR で再生成促す
     """
     if detect_spec_version(soup) != "v9.2.0":
         return
-    if not footer_has_tag(soup, "theory-deep-dive"):
+
+    # 罠 9 検出: JSON 側 theory_deep_dive フィールド存在チェック
+    json_path = derive_problem_json_path(target)
+    json_has_theory = False
+    if json_path.exists():
+        try:
+            data = json.loads(json_path.read_text(encoding="utf-8"))
+            json_has_theory = "theory_deep_dive" in data
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    html_has_tag = footer_has_tag(soup, "theory-deep-dive")
+
+    # 偽 PASS 検出: JSON あり・HTML 不在
+    if json_has_theory and not html_has_tag:
+        rep.error(
+            "S89",
+            'JSON に "theory_deep_dive" 定義あるが HTML 出力に "theory-deep-dive" feature-tag 不在'
+            '（罠 9・claude -p 不完全出力の可能性・要再生成）',
+        )
         return
+
+    if not html_has_tag:
+        return  # 正常 skip（JSON にも HTML にもない）
 
     section_c4 = soup.find("section", id="c-4")
     if section_c4 is None:
@@ -1447,7 +1472,7 @@ def main():
     # S88 は style_text を別途取る
     if detect_spec_version(soup) == "v9.2.0":
         check_palette_derivatives(style_text, rep)
-    check_theory_deep_dive(soup, rep)
+    check_theory_deep_dive(target, soup, rep)
     check_meta_explanation(soup, rep)
     check_professor_density(soup, rep)
 
