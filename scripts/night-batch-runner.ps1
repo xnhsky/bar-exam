@@ -17,8 +17,21 @@
 param(
     [int]$MaxProblems = 5,             # 1 起動あたり最大処理数
     [int]$MaxConsecutiveFailures = 3,  # 連続失敗で abort
-    [switch]$DryRun                    # 実 claude -p 呼ばずパス解決確認のみ
+    [switch]$DryRun,                   # 実 claude -p 呼ばずパス解決確認のみ
+    [ValidateSet('v9.2.0','v9.1.0')]
+    [string]$SpecVersion = 'v9.2.0'    # 既定 v9.2.0 DEEP-DIVE（TASK12-13 § 5）
 )
+
+# === spec ファイル選択（TASK12-13 § 5）===
+$SpecFile = switch ($SpecVersion) {
+    'v9.2.0' { 'spec/tx-v9.2.0-deepdive-core.md' }
+    'v9.1.0' { 'spec/tx-v9.1.0-mindmap-core.md' }
+    default  { throw "Unknown spec version: $SpecVersion" }
+}
+$SpecVersionTag = switch ($SpecVersion) {
+    'v9.2.0' { 'TX v9.2.0 DEEP-DIVE' }
+    'v9.1.0' { 'TX v9.1.0 MINDMAP' }
+}
 
 # === 設定 ===
 # スクリプト自身の位置 (= scripts\) の親をプロジェクトルートとする
@@ -40,6 +53,7 @@ Start-Transcript -Path $RunLog -Append
 
 Write-Host "=== night-batch-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun"
+Write-Host "SpecVersion: $SpecVersion / SpecFile: $SpecFile"
 
 # === 科目接頭辞マップ ===
 # PDF は inputs/tx-pdfs/{NNN}.pdf 形式だが、生成出力は {科目接頭辞}TX{NNN}.html。
@@ -117,7 +131,10 @@ foreach ($target in $Targets) {
         -replace '\{TARGET_PDF\}',     $target.PdfPath `
         -replace '\{PROBLEM_NUMBER\}', $target.Number `
         -replace '\{PROBLEM_ID\}',     $target.ProblemId `
-        -replace '\{OUTPUT_PATH\}',    $target.OutputPath
+        -replace '\{OUTPUT_PATH\}',    $target.OutputPath `
+        -replace '\{SPEC_FILE\}',      $SpecFile `
+        -replace '\{SPEC_VERSION\}',   $SpecVersion `
+        -replace '\{SPEC_VERSION_TAG\}', $SpecVersionTag
 
     # プロンプトを一時ファイルに書き出し（debug 用）
     $promptOut = Join-Path $LogsDir "night-prompt-$($target.ProblemId).txt"

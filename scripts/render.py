@@ -1006,6 +1006,58 @@ def render_theory_deep_dive(problem: dict) -> str:
 # v9.2.0 教授解説密度 v2 prof-heading 描画（S91 対応）
 # ============================================================================
 
+def render_c5_flowchart_v92(problem: dict) -> str:
+    """v9.2.0 専用：c-5 section 全体 inner content（nav + h2 + key-phrase + flow-svg + 鉄則 + back-to-top）を生成。
+
+    既存 render_c5_flowchart の v9.2.0 版置換。flowchart_v2 フィールドから flow-svg を生成。
+    """
+    flow_svg_block = render_flowchart_v2(problem)
+    if not flow_svg_block:
+        # flowchart_v2 未定義 → stub 維持
+        return PART_C_STUBS["C5_FLOWCHART"]
+
+    # key-phrase（任意）
+    flow_data = problem.get("flowchart_v2", {})
+    intro = flow_data.get("intro_key_phrase_html", "")
+    rules = flow_data.get("rules", {})
+
+    parts = [
+        '    <nav class="sec-nav"><a href="#c-4">←C-4</a><a href="#c-6">C-6→</a></nav>',
+        '    <h2 class="section-title"><span class="sec-icon">🗺</span>C-5 総合フローチャート</h2>',
+    ]
+    if intro:
+        parts.append("")
+        parts.append(f'    <div class="key-phrase-box">\n      {intro}\n    </div>')
+    parts.append("")
+    parts.append('    <div class="figure-wrap">')
+    # flow_svg_block は既に "      <svg ...>...\n      <p class=\"figure-caption\">...</p>" 形式
+    parts.append(flow_svg_block)
+    parts.append('    </div>')
+
+    if rules.get("items"):
+        parts.append("")
+        if rules.get("title"):
+            parts.append(f'    <h3>{escape(rules["title"])}</h3>')
+        parts.append('    <ul class="lead-list">')
+        for item in rules["items"]:
+            parts.append(f'      <li>{item}</li>')
+        parts.append('    </ul>')
+
+    parts.extend(["", _BACK_TO_TOP])
+    return "\n".join(parts)
+
+
+def inject_theory_into_c4(c4_html: str, theory_html: str) -> str:
+    """C4_DOCTRINES 内の back-to-top の直前に theory-detail-grid を挿入する（v9.2.0）。"""
+    if not theory_html:
+        return c4_html
+    # _BACK_TO_TOP は固定文字列 — その直前に theory を挿入
+    if _BACK_TO_TOP in c4_html:
+        return c4_html.replace(_BACK_TO_TOP, theory_html + "\n" + _BACK_TO_TOP)
+    # back-to-top が見つからない場合（stub 等）：末尾に append
+    return c4_html + "\n" + theory_html
+
+
 def render_professor_density_v2(prof: dict) -> str:
     """professor-density-v2 構造の 4 prof-heading を生成。
 
@@ -2381,29 +2433,53 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         palette_strategy=palette_strategy,
     )
 
-    # v9.2.0 専用 slot 供給（既存 8 templates は参照しないため空でも無害・
-    # v9.2.0 templates が作成された際にこれらの slot が活用される）。
+    # v9.2.0 専用 slot 供給。
+    # templates 拡張方針（Phase 12D 案 A）：8 templates にインライン slot 配置
+    #   `</style>{{PALETTE_DERIVATIVES_ROOT}}`
+    #   `  </section>{{MINDMAP_TREE}}{{MINDMAP_RADIAL_V92}}`
+    # populated 時のみ slot 値の先頭に `\n` を付け、インライン直後に正しい改行で
+    # 続く HTML を出力する。v9.1.0 以下では空文字 → byte-identical 維持。
     if spec_version == "v9.2.0":
-        slots["PALETTE_DERIVATIVES_ROOT"] = (
-            render_palette_derivatives_root(slots["OVERRIDE_PATTERN"])
-            if flags["PALETTE_DERIVATIVES"]
-            else ""
-        )
-        slots["MINDMAP_TREE"] = (
-            render_mindmap_tree(problem) if flags["INCLUDE_TREE_MINDMAP"] else ""
-        )
-        slots["MINDMAP_RADIAL_V92"] = (
-            render_mindmap_radial_v92(problem) if flags["INCLUDE_RADIAL_MINDMAP"] else ""
-        )
+        if flags["PALETTE_DERIVATIVES"]:
+            palette_root = render_palette_derivatives_root(slots["OVERRIDE_PATTERN"])
+            slots["PALETTE_DERIVATIVES_ROOT"] = "\n" + palette_root if palette_root else ""
+        else:
+            slots["PALETTE_DERIVATIVES_ROOT"] = ""
+
+        if flags["INCLUDE_TREE_MINDMAP"]:
+            tree = render_mindmap_tree(problem)
+            slots["MINDMAP_TREE"] = "\n\n" + tree if tree else ""
+        else:
+            slots["MINDMAP_TREE"] = ""
+
+        if flags["INCLUDE_RADIAL_MINDMAP"]:
+            radial = render_mindmap_radial_v92(problem)
+            slots["MINDMAP_RADIAL_V92"] = "\n\n" + radial if radial else ""
+        else:
+            slots["MINDMAP_RADIAL_V92"] = ""
+
+        # FLOW_SVG_V92 slot は将来用に保持（現状 templates では参照されない）
         slots["FLOW_SVG_V92"] = (
             render_flowchart_v2(problem) if flags["INCLUDE_BRANCHING_FLOWCHART"] else ""
         )
+        # THEORY_DEEP_DIVE slot も将来用（C4_DOCTRINES への inject_theory_into_c4 で実際に注入）
         slots["THEORY_DEEP_DIVE"] = (
             render_theory_deep_dive(problem) if flags["INCLUDE_THEORY_DEEP_DIVE"] else ""
         )
+
+        # v9.2.0 C-4 への theory-detail-grid 注入（back-to-top の直前に挿入）
+        if flags["INCLUDE_THEORY_DEEP_DIVE"] and problem.get("theory_deep_dive"):
+            slots["C4_DOCTRINES"] = inject_theory_into_c4(
+                slots["C4_DOCTRINES"], render_theory_deep_dive(problem)
+            )
+
+        # v9.2.0 C-5 を分岐型 flow-svg に置換（flowchart_v2 が定義されている場合のみ）
+        if flags["INCLUDE_BRANCHING_FLOWCHART"] and problem.get("flowchart_v2"):
+            slots["C5_FLOWCHART"] = render_c5_flowchart_v92(problem)
+
     else:
-        # v9.1.0 以下：v9.2.0 専用 slot は空（既存 templates は参照しないため
-        # render() の未置換検出には影響しない、念のため空文字で埋めておく）
+        # v9.1.0 以下：v9.2.0 専用 slot は空（インライン挿入位置に何も入らない・
+        # byte-identical 維持）。
         slots["PALETTE_DERIVATIVES_ROOT"] = ""
         slots["MINDMAP_TREE"] = ""
         slots["MINDMAP_RADIAL_V92"] = ""
@@ -2688,7 +2764,8 @@ def main(argv: list[str]) -> int:
 
     output_path = get_output_path(subject, problem_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(rendered, encoding="utf-8")
+    # newline="" を指定して LF を保持（Windows で CRLF 化を防ぐ・git 差分回避）
+    output_path.write_text(rendered, encoding="utf-8", newline="")
     print(
         f"OK: {output_path} ({len(rendered):,} bytes) "
         f"(subject={subject}, template={selected_template_path.name}, "

@@ -1,8 +1,12 @@
 ---
-description: 新規 TX ファイルを問題 PDF から生成（v9.1.0-mindmap + 6 段階生成）
+description: 新規 TX ファイルを問題 PDF から生成（v9.2.0-deepdive + 段階生成）
 ---
 
 新規 TX ファイル（短答式 HTML カード）を問題 PDF から生成する。
+
+> **v9.2.0 DEEP-DIVE 既定**：新規生成は v9.2.0 spec で行う。v9.1.0 以下既存ファイルへの
+> インプレース minor 更新パスは提供しない（§34-decies）。既存ファイル改変は
+> §0-tri ゼロベース再構築プロトコルで新規生成として扱う。
 
 引数：問題 PDF のパス（例：`inputs/tx-pdfs/299.pdf`）
 
@@ -23,11 +27,11 @@ description: 新規 TX ファイルを問題 PDF から生成（v9.1.0-mindmap +
 
 ### Phase 1: 準備
 
-1. **規律を view**：`spec/tx-v9.1.0-mindmap-core.md` を view
-   （§0-tri／§0-quad／§0-bis／§1-bis／§22-quad を重点的に確認。
-    GENKEI 設計を継承し §Annex B は純骨格スケルトン。
-    v9.1.0 で参考｜共通根拠条文・判例（旧 A-3）と論点詳細マインドマップ
-    section が新規）
+1. **規律を view**：`spec/tx-v9.2.0-deepdive-core.md` を view
+   （§0-tri／§0-quad／§0-quad-2-bis メタ説明禁止／§0-quad-3 STEP IQ-1〜IQ-8／
+    §0-bis／§1-bis／§17-ter 学説対立／§22-tree／§22-radial／§22-flowchart-v2 を
+    重点的に確認。GENKEI 設計継承＋§Annex A-z 派生色 10 個＋密度規律 1150 字／
+    33 件 feature-tag）
 2. **PDF 読解**：問題番号・科目・年度・全選択肢・正解・正答率・出題テーマを抽出
 3. **冒頭応答必須**：「正答率 __%→パターン_『___』適用」を最初に出力
 4. **パターン判定**：正答率 ≥60%→P1 ローズシャンブル／40-60%→P2 セージブラリー／<40%→P3 ラベンダードーン
@@ -65,6 +69,15 @@ description: 新規 TX ファイルを問題 PDF から生成（v9.1.0-mindmap +
 14. **IQ-6**：`.basis-card` は本問に直接関係する条文・判例のみを掲載
 15. **IQ-7**：出力直前に生成 HTML の本文部分に対しブラックリスト全文検査
     → 違反なら IQ-2 から再生成
+16. **IQ-8（v9.2.0 新規・メタ説明検閲）**：各セクション/カード執筆完了後、
+    §0-quad-2-bis のメタ説明禁止 15 語句（肢系／記号系／手順系／メタ説明系）を grep。
+    違反検出時は当該文を「論点の核心命題」に書き換え／削除／§17-ter 学説対立表に
+    移動。学説問題以外で「肢N を選ぶ理由」「正解は記述N」型は禁止。
+    検証 S90 / AP-43 が自動検出。
+17. **教授解説 density-v2**（v9.2.0 新規・STEP IQ-5 強化）：
+    `.sub-card.professor` の 4 prof-heading は各 150/400/300/300 字以上必須（合計 1150 字）。
+    `.prof-image` に 3 要素（scene/bridge/contrast）、`.prof-application` に syllogism
+    （大前提/小前提/結論）必須。検証 S91 / AP-44 が自動検出。
 
 ### Phase 5: 6 段階 Write プロトコル（v9.1.0-mindmap・mindmap section 追加で 5→6 段階に拡張）
 
@@ -101,65 +114,74 @@ description: 新規 TX ファイルを問題 PDF から生成（v9.1.0-mindmap +
 - 記述オ sec-nav の右リンクは `↓参考`（旧 `↓共通根拠`）
 - 期待サイズ：40〜50 KB
 
-#### Write 4/6：論点詳細マインドマップ section（§22-quad / v9.1.0-mindmap 新規）
+#### Write 4/6：マインドマップ 2 種（§22-tree + §22-radial・v9.2.0 新規）
 
-仕様書 §22-quad 参照。本問の論点を「体系×記述×根拠」で統合視覚化する SVG inline section。
+仕様書 §22-tree / §22-radial 参照。本問テーマを 2 系統で視覚化：
 
-**設計手順（IQ-mindmap）：**
-1. 本問テーマから「中心ノード」を決定（例：詐欺罪体系、窃盗罪体系）
-2. 体系層 4 個を本問テーマに沿って命名
-   （例：客体論 / 行為論 / 因果論 / 罪数・隣接）
-3. 各記述（5 つ）をどの体系層に属するか分類
-4. 各記述の核心条文 1 個 + 核心判例 1 個を quadrant に配置
-5. SVG コードを §22-quad-2/3/4/5/7 規律に沿って生成
+##### 4a. §22-tree（体系ツリー・縦型 4 階層）
 
-**色彩（パレット連動・P1/P2/P3 自動切替）：**
-- `var(--accent)` / `--accent-soft` / `--accent-3` で CSS 変数経由
-- 5 種 linearGradient：centerGrad / branchGrad / recordGrad / statuteGrad / caseGrad
+- `<section class="section" id="mindmap-tree">`、sec-icon=🌳、section-title="体系ツリー"
+- SVG class="tree-svg"、viewBox 4 パターン可変
+  （1100×600 標準／1100×700 拡張／1100×800 深堀／1300×600 広幅・階層数とノード数で選択）
+- 5 ノード種別：L0 上位（accent）/L1 中位（accent-light）/L2 個別（accent-soft-2）/
+  L3 細分（surface-tint）/L3-active（mid-warm border 1.4px）/論点枠（mid-warm 暖色）
+- 「本問の論点」枠を右側配置、l3-active ノードへ破線矢印（marker id="issueArr"）
+- nav：`↑参考 / ↓マインドマップ放射`
+- 検証 S85（12 項目 a-l）
 
-**フォント（役割別 CSS 変数）：**
-- 中心・体系層・記述タイトル → `var(--font-display)`
-- 記述本文・サブラベル → `var(--font-body)`
-- 条文 → `var(--font-statute)` / 判例 → `var(--font-judgment)`
-- 凡例 → `var(--font-note)` / 正解表示 → `var(--font-impact)`
+##### 4b. §22-radial（放射状マインドマップ・8 主要枝）
 
-**サイズ・構造規律：**
-- viewBox=`"0 0 1100 900"` 固定（C-5 フローチャートの 720×700 より縦長）
-- 親要素 `<div class="figure-wrap">` 必須
-- `<p class="figure-caption">` 必須
-- SVG に `role="img"` + `aria-label` 属性必須
-- `<script>` / `<style>` タグ禁止（host-injection-safe / AP-41）
-- 完全静的（onclick/animation 禁止）
-- 中心 `<ellipse>` 1 個以上 + 4 体系層の `<rect>` 4 個以上必須
-- nav の前後リンク：`↑参考 / ↓C-1`
+- `<section class="section" id="mindmap-radial">`、sec-icon=🧭、section-title="論点マインドマップ"
+- SVG class="radial-svg"、viewBox `0 0 1200 1000` 固定
+- 8 主要枝：保護法益／構成要件①〜④／法定刑／本問の論点／特別法均衡
+- 本問の論点枝のみ mid-warm 独立暖色＋大型（220×70 rx=12）
+- 中心ノード ellipse rx=120 ry=60、`<linearGradient id="centerGrad">` 必須
+- 接続線差別化：line-main（実線1.2）/ line-issue（強調1.6）/ line-sub（破線0.7）
+- 各枝下サブノード（条文 sub-statute / 判例 sub-case / 要件解説 sub-elem）
+- nav：`↑マインドマップツリー / ↓C-1`
+- 検証 S86（14 項目 a-n、旧 S84 後継）
 
-**配置：**
-- 参考｜共通根拠条文・判例 section の直後・PART C の直前
-- `<section class="section" id="mindmap">` で囲む
+##### 共通規律
+- 完全静的（onclick/animation/script 禁止 / AP-41）
+- パレット連動（v9.2.0 派生色 var() 経由）
+- 親 `<div class="figure-wrap">` + `<p class="figure-caption">` 必須
+- role="img" + aria-label 必須
 
-**検証：完了後 validate-tx.py が S84 を自動起動（8 検査項目）して構造検査。**
+**期待サイズ：合計 10〜18 KB**
 
-- 期待サイズ：5〜10 KB
+#### Write 5/6：PART C（C-1〜C-7）+ §17-ter + §22-flowchart-v2 + final-answer
 
-#### Write 5/6：PART C（C-1〜C-7）+ final-answer
-
-- C-1 体系図／C-2 図解／C-3 cross-grid／C-4 timeline／C-5 lead-list／C-6 cases／
+- C-1 体系図／C-2 図解／C-3 cross-grid／C-4 学説対立／C-5 総合フローチャート／C-6 cases／
   C-7 memory-item（3 層 priority-a/b/c）
+- **§17-ter（v9.2.0 新規・C-4 内）**：cmp-table-wrap の直後に theory-detail-grid
+  （sub-card.theory-major + theory-minor + dt.why-adopted/why-not-adopted + statute-interpretation blockquote）。
+  学説問題型は `<section id="c-4" data-question-type="theory-selection">` を付与し dd 200 字以上必須。検証 S89 / AP-46
+- **§22-flowchart-v2（v9.2.0 新規・C-5 内）**：旧直線型 stepbox を全面置換し
+  decision diamond（polygon）+ Yes/No 分岐 + 肢マーカー（flow-chip）+
+  終端ノード（flow-end-success / flow-end-fail）。viewBox `0 0 900 [600|800|1000]`。
+  marker id="flowArr" 必須。stepbox/stepnum 混在禁止。検証 S87
 - final-answer（必ず `hidden` 属性）+ fa-summary + answer-num (Type 別)
-- C-1 sec-nav の左リンクは `↑マインドマップ`（旧 `↑共通根拠`）
-- 期待サイズ：30〜40 KB
+- C-1 sec-nav の左リンクは `↑マインドマップ放射`（v9.2.0）
+- 期待サイズ：40〜55 KB
 
 #### Write 6/6：PART D（drill 12）+ footer-spec
 
 - PART D ARENA を 12 問・○:×=6:6 で構築（設問は本問オリジナル）
 - drill-block × 12（id="d-1" 〜 "d-12"）
-- footer-spec に feature-tag 18 件以上（**先頭に `TX v9.1.0 MINDMAP` 必須・S84 起動トリガ**）：
-  - `TX v9.1.0 MINDMAP`／`TX v9.0.0 GENKEI`／`genkei-skeleton`／`design-byte-lock`
-  - `content-independence`／`ktx301-canon`／`jp-prefix-naming`／`spoiler-safe`
-  - `multi-answer-css`／`a2-two-stage-reveal`／`a2-multi-ox-support`
-  - `spoiler-leak-eradication`／`spoiler-strong-elimination`／`ox-grid-fa-unification`
-  - `host-injection-safe`／`readability-layer`／`hanging-grid`／`basis-order-v2`
-  - `a2-feedback-canon`／`mindmap-section`（v9.1.0 新規）
+- footer-spec に **33 件 feature-tag**（**先頭に `TX v9.2.0 DEEP-DIVE` 必須・S85-S91 起動トリガ**）：
+  - **版**：`TX v9.2.0 DEEP-DIVE`
+  - **GENKEI 系**：`genkei-skeleton`／`design-byte-lock`／`content-independence`
+  - **継承系**：`ktx301-canon`／`embedded-canon`／`readability-layer`／`hanging-grid`／
+    `basis-order-v2`／`a2-feedback-canon`／`rbchip-patched`／`k302-immune`／
+    `p2p3-unified`／`p1-absolute`／`jp-prefix-naming`／`spoiler-safe`／`multi-answer-css`
+  - **v8.11.x 系**：`a2-two-stage-reveal`／`a2-multi-ox-support`／
+    `spoiler-leak-eradication`／`spoiler-strong-elimination`／`ox-grid-fa-unification`／
+    `host-injection-safe`
+  - **v9.2.0 新規 8 件**：`tree-mindmap`／`radial-mindmap`／`branching-flowchart`／
+    `theory-deep-dive`／`professor-density-v2`／`meta-explanation-blocked`／
+    `palette-derivatives`／`single-document-self-sufficient-deep`
+  - **可変 2 件**：`[P1|P2|P3] [名称]`／`palette-strategy: [戦略名]`
+    （戦略：同系統調和／寒色×暖色対比／紙質風／黒板風・§32-bis-1 参照）
 - 期待サイズ：15〜20 KB
 
 #### 中断・再開時の禁則
@@ -200,14 +222,20 @@ description: 新規 TX ファイルを問題 PDF から生成（v9.1.0-mindmap +
     ```bash
     python scripts/validate-tx.py <出力ファイル>
     ```
-26. **S1〜S84 全件通過確認**（特に最優先）：
+26. **S1〜S91 全件通過確認**（v9.2.0 では S84 skip / S85-S91 厳格適用）：
     - **S60〜S67**（v8.11.0 readability / hanging-grid / font-weight）
     - **S68〜S77**（v8.11.7 統合：spoiler-safe / 2-stage / 3-type / host-injection）
     - **S78/S79**（content-independence：KTX301 由来文言 + §Annex B 元テキスト一致検出）
     - **S80/S81/S82**（命名規則：ID 形式 / 出力先サブフォルダ / NNN 整合）
     - **S83**（placeholder 残存検査・v8.11.x 以降全般：`[...]` / `<!-- 指示: -->` 検出）
-    - **S84**（mindmap section 構造検査・v9.1.0-mindmap 専用・version-aware：footer-spec の
-      feature-tag に `TX v9.1.0 MINDMAP` を含むファイルのみ 8 検査項目を厳格適用）
+    - **S84**（v9.1.0-mindmap 専用・v9.2.0 では skip → S86 が代替）
+    - **S85**（tree 構造・v9.2.0 専用・tree-mindmap タグ要求）
+    - **S86**（radial 構造・v9.2.0 専用・radial-mindmap タグ要求）
+    - **S87**（flowchart-v2 構造・v9.2.0 専用・branching-flowchart タグ要求）
+    - **S88**（派生色 10 個 :root 検査・v9.2.0 専用・AP-45）
+    - **S89**（§17-ter 学説対立 deep-dive 構造・v9.2.0 専用・AP-46）
+    - **S90**（メタ説明違反検査・v9.2.0 専用・meta-explanation-blocked タグ要求・AP-43）
+    - **S91**（教授解説密度 v2 検査・v9.2.0 専用・professor-density-v2 タグ要求・AP-44）
 27. **ERROR 0 件確認後**：`present_files` で完了報告
 28. **ERROR があれば**：該当箇所を修正し、再検証 → 通過するまで繰り返し
     - 修正サイクル 3 回以上 → S78/S79 で leakage 疑い・Phase 4 IQ-2 から再執筆
