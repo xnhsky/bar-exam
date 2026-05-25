@@ -82,6 +82,139 @@ COMBO_SET_SEPARATOR = "・"
 
 
 # ============================================================================
+# v9.2.0 DEEP-DIVE spec version 分岐フラグ
+# ============================================================================
+# 既定値は v9.1.0 互換（既存 8 templates 経路を破壊しない）。
+# 問題 JSON の "spec_version" フィールドが "v9.2.0" の場合のみ v9.2.0 経路に切替。
+# 切替は build_slot_dict() 内で動的に判定（per-problem）。
+#
+# TASK12-13-HANDOFF § 4 に対応：
+#   INCLUDE_TREE_MINDMAP / INCLUDE_RADIAL_MINDMAP /
+#   INCLUDE_BRANCHING_FLOWCHART / INCLUDE_THEORY_DEEP_DIVE /
+#   PROFESSOR_DENSITY_LEVEL / PALETTE_DERIVATIVES
+
+DEFAULT_SPEC_VERSION = "v9.1.0"
+
+
+def get_render_flags(spec_version: str) -> dict[str, object]:
+    """spec バージョンから render 分岐フラグ群を導出。
+
+    既存 8 templates は v8.11.7/v9.0.0/v9.1.0 共通の slot 集合を持ち、
+    v9.2.0 専用 slot (MINDMAP_TREE / MINDMAP_RADIAL_V92 / FLOW_SVG_V92 /
+    THEORY_DEEP_DIVE / PALETTE_DERIVATIVES_ROOT) は参照していない。
+    したがって v9.2.0 用 slot 値を空文字で供給しても render() の未置換検出に
+    影響せず、既存 byte-identical を維持できる。
+    """
+    if spec_version == "v9.2.0":
+        return {
+            "INCLUDE_TREE_MINDMAP": True,
+            "INCLUDE_RADIAL_MINDMAP": True,
+            "INCLUDE_BRANCHING_FLOWCHART": True,
+            "INCLUDE_THEORY_DEEP_DIVE": True,
+            "PROFESSOR_DENSITY_LEVEL": "v2",
+            "PALETTE_DERIVATIVES": True,
+        }
+    # v9.1.0 / v9.0.0 / v8.11.7 共通：v9.2.0 拡張は全 OFF
+    return {
+        "INCLUDE_TREE_MINDMAP": False,
+        "INCLUDE_RADIAL_MINDMAP": True,  # v9.1.0 の旧 §22-quad は radial として残存（mindmap-section）
+        "INCLUDE_BRANCHING_FLOWCHART": False,
+        "INCLUDE_THEORY_DEEP_DIVE": False,
+        "PROFESSOR_DENSITY_LEVEL": "v1",
+        "PALETTE_DERIVATIVES": False,
+    }
+
+
+# ============================================================================
+# v9.2.0 派生色 :root override 値（TASK02 § 1 / TASK11 § 2 / § 3）
+# ============================================================================
+# P1/P2/P3 各々で 10 個（相対 7 + 絶対 3）。絶対派生 3 個は全 pattern で同値。
+# S88 検証対象。
+
+V92_PALETTE_DERIVATIVES = {
+    "P1": {
+        # 相対派生 7 個
+        "--accent-light":   "#a83553",
+        "--accent-darker":  "#6f1830",
+        "--mid-warm":       "#e0664f",
+        "--mid-cool":       "#b04466",
+        "--accent-soft-2":  "#f9e0e5",
+        "--mid-soft":       "#fad8e1",
+        "--surface-tint":   "#fef9fb",
+        # 絶対派生 3 個（パターン非依存）
+        "--neutral-cream":  "#f4ede0",
+        "--contrast-warm":  "#d97a4f",
+        "--contrast-cool":  "#6a8aa8",
+    },
+    "P2": {
+        "--accent-light":   "#5b8062",
+        "--accent-darker":  "#34503a",
+        "--mid-warm":       "#99ad75",
+        "--mid-cool":       "#7ea58e",
+        "--accent-soft-2":  "#e7eee0",
+        "--mid-soft":       "#d5dfd0",
+        "--surface-tint":   "#f9fbf7",
+        "--neutral-cream":  "#f4ede0",
+        "--contrast-warm":  "#d97a4f",
+        "--contrast-cool":  "#6a8aa8",
+    },
+    "P3": {
+        "--accent-light":   "#7560a8",
+        "--accent-darker":  "#3e2a5c",
+        "--mid-warm":       "#b890c4",
+        "--mid-cool":       "#8a92c4",
+        "--accent-soft-2":  "#ebe1f3",
+        "--mid-soft":       "#ddd1ee",
+        "--surface-tint":   "#faf8fd",
+        "--neutral-cream":  "#f4ede0",
+        "--contrast-warm":  "#d97a4f",
+        "--contrast-cool":  "#6a8aa8",
+    },
+}
+
+
+# ============================================================================
+# v9.2.0 footer-spec 33-tag canonical（TASK11 § 5-2）
+# ============================================================================
+# 既存 22 tag (FOOTER_FEATURE_TAGS_DEFAULT) を v9.2.0 用に拡張。
+# 末尾は OVERRIDE_PATTERN + palette-strategy: [戦略名] の 2 件。
+
+FOOTER_FEATURE_TAGS_V92: list[str] = [
+    "TX v9.2.0 DEEP-DIVE",
+    "genkei-skeleton",
+    "design-byte-lock",
+    "content-independence",
+    "ktx301-canon",
+    "embedded-canon",
+    "readability-layer",
+    "hanging-grid",
+    "basis-order-v2",
+    "a2-feedback-canon",
+    "rbchip-patched",
+    "k302-immune",
+    "p2p3-unified",
+    "p1-absolute",
+    "jp-prefix-naming",
+    "spoiler-safe",
+    "multi-answer-css",
+    "a2-two-stage-reveal",
+    "a2-multi-ox-support",
+    "spoiler-leak-eradication",
+    "spoiler-strong-elimination",
+    "ox-grid-fa-unification",
+    "host-injection-safe",
+    "tree-mindmap",
+    "radial-mindmap",
+    "branching-flowchart",
+    "theory-deep-dive",
+    "professor-density-v2",
+    "meta-explanation-blocked",
+    "palette-derivatives",
+    "single-document-self-sufficient-deep",
+]  # 31 件（OVERRIDE_PATTERN + palette-strategy 行はレンダリング時に追加で 33 件）
+
+
+# ============================================================================
 # PART C スタブ（Phase 2 byte-identical 維持用）
 # ============================================================================
 # 各 PART C セクションの内部 4 行（nav, h2, TODO comment, back-to-top）。
@@ -363,20 +496,36 @@ FOOTER_TAG_INDENTS: list[int] = [
 def render_footer_feature_tags(
     override_pattern: str,
     extra_tags: list[str] | None = None,
+    spec_version: str = "v9.1.0",
+    palette_strategy: str | None = None,
 ) -> str:
     """{{FOOTER_FEATURE_TAGS}} slot 値を組み立てる。
 
     Args:
         override_pattern: 末尾 feature-tag に注入する pattern 文字列（例: "P1"）。
-        extra_tags: per-problem 拡張 tag（v8.11.7 では未使用、将来 hook）。
+        extra_tags: per-problem 拡張 tag。
                     指定時は override_pattern 行のさらに後ろに、各 indent=6 で追加。
+        spec_version: "v9.2.0" の場合は FOOTER_FEATURE_TAGS_V92 を使用（31+2=33 件）。
+                      それ以外は既存 22+1+extra の v8.11.7/v9.1.0 互換。
+        palette_strategy: v9.2.0 のみ。"palette-strategy: [戦略名]" を末尾に追加。
 
-    戻り値は (22 + 1 + len(extra_tags)) 行を \\n 区切りで連結したもの。末尾 \\n は含まない
+    戻り値は \\n 区切りで連結したもの。末尾 \\n は含まない
     （template 側の `{{FOOTER_FEATURE_TAGS}}\\n` が末尾改行を供給する）。
     """
-    tags: list[str] = list(FOOTER_FEATURE_TAGS_DEFAULT) + [override_pattern]
-    if extra_tags:
-        tags.extend(extra_tags)
+    if spec_version == "v9.2.0":
+        # v9.2.0 DEEP-DIVE: 31 固定 + override_pattern + palette-strategy = 33 tag
+        base = list(FOOTER_FEATURE_TAGS_V92) + [override_pattern]
+        if palette_strategy:
+            base.append(f"palette-strategy: {palette_strategy}")
+        else:
+            base.append("palette-strategy: 同系統調和")  # 既定戦略
+        if extra_tags:
+            base.extend(extra_tags)
+        tags = base
+    else:
+        tags = list(FOOTER_FEATURE_TAGS_DEFAULT) + [override_pattern]
+        if extra_tags:
+            tags.extend(extra_tags)
     indents: list[int] = list(FOOTER_TAG_INDENTS)
     while len(indents) < len(tags):
         indents.append(6)  # extras default to indent 6
@@ -386,6 +535,548 @@ def render_footer_feature_tags(
         sep = "・" if i < last else ""
         lines.append(" " * indent + f'<span class="feature-tag">{tag}</span>' + sep)
     return "\n".join(lines)
+
+
+# ============================================================================
+# v9.2.0 派生色 :root override 出力（S88 対応）
+# ============================================================================
+
+def render_palette_derivatives_root(pattern: str) -> str:
+    """v9.2.0 派生色 10 個を含む :root{} ブロックを生成。
+
+    Args:
+        pattern: "P1" / "P2" / "P3" のいずれか（OVERRIDE_PATTERN ベース）。
+                 未知の値は P1 にフォールバック。
+
+    戻り値：CSS テキスト（<style> 内に挿入する用）。
+    v9.1.0 以下ファイル生成時は呼ばれない（build_slot_dict で空文字を返す）。
+    """
+    palette_key = pattern if pattern in V92_PALETTE_DERIVATIVES else "P1"
+    derivs = V92_PALETTE_DERIVATIVES[palette_key]
+    lines = ["  /* === v9.2.0 派生色 10 個（" + palette_key + " override・S88） === */", ":root{"]
+    for var, val in derivs.items():
+        # 整列：var 名は最大 17 字相当、val は 7 字 hex
+        lines.append(f"  {var}: {val};")
+    lines.append("}")
+    return "\n".join(lines)
+
+
+# ============================================================================
+# v9.2.0 §22-tree ツリー型体系図 SVG section 描画（S85 対応）
+# ============================================================================
+
+def render_mindmap_tree(problem: dict) -> str:
+    """problem.mindmap_tree フィールドから <section id="mindmap-tree"> を生成。
+
+    期待する problem JSON フィールド（spec_version="v9.2.0" のみ）：
+        mindmap_tree:
+          viewbox: "0 0 1100 600" 等（4 パターン）
+          aria_label: 体系図の説明文
+          legend: 凡例テキスト
+          l0_nodes: [{x, y, label}]
+          l1_nodes: [{x, y, label, parent_idx}]
+          l2_nodes: [{x, y, label, parent_idx}]
+          l3_nodes: [{x, y, label, parent_idx, active: bool}]
+          issue_box: {x, y, title, body, target_idx}
+          caption: 図キャプション
+
+    未定義の場合は空文字を返す（v9.1.0 以下 + v9.2.0 で tree を持たない問題は無害）。
+    """
+    tree = problem.get("mindmap_tree")
+    if not tree:
+        return ""
+
+    viewbox = tree.get("viewbox", "0 0 1100 600")
+    aria_label = escape(tree.get("aria_label", "[本問テーマ] の体系的位置づけ"))
+    legend = escape(tree.get("legend", "凡例"))
+    caption = escape(tree.get("caption", "図：体系的位置づけ"))
+
+    # SVG ノード群を組み立て
+    svg_parts: list[str] = []
+
+    # 凡例
+    svg_parts.append(f'      <g transform="translate(20, 14)"><text class="tx-legend">{legend}</text></g>')
+
+    # L0 ノード
+    for node in tree.get("l0_nodes", []):
+        x, y, label = node["x"], node["y"], escape(node["label"])
+        svg_parts.append(
+            f'      <g transform="translate({x}, {y})">'
+            f'<rect class="l0-fill" x="-80" y="-20" width="160" height="40" rx="10"/>'
+            f'<text class="tx-l0" text-anchor="middle" y="5">{label}</text></g>'
+        )
+
+    # L1/L2/L3 ノード
+    for cls_short, level in (("l1", "l1"), ("l2", "l2"), ("l3", "l3")):
+        for node in tree.get(f"{level}_nodes", []):
+            x, y, label = node["x"], node["y"], escape(node["label"])
+            fill_class = f"{level}-active" if node.get("active") else f"{level}-fill"
+            tx_class = f"tx-{level}"
+            svg_parts.append(
+                f'      <g transform="translate({x}, {y})">'
+                f'<rect class="{fill_class}" x="-60" y="-15" width="120" height="30" rx="6"/>'
+                f'<text class="{tx_class}" text-anchor="middle" y="4">{label}</text></g>'
+            )
+
+    # 接続線（簡易版：parent_idx を持つノードは parent と結線）
+    # 実装は問題側で line データを渡す方が柔軟。ここでは省略可（problem JSON に lines 配列があれば描画）
+    for line in tree.get("lines", []):
+        svg_parts.append(
+            f'      <line class="connect" x1="{line["x1"]}" y1="{line["y1"]}" '
+            f'x2="{line["x2"]}" y2="{line["y2"]}"/>'
+        )
+
+    # 本問の論点枠
+    issue = tree.get("issue_box")
+    if issue:
+        ix, iy = issue["x"], issue["y"]
+        title = escape(issue.get("title", "本問の論点"))
+        body = escape(issue.get("body", ""))
+        svg_parts.append(
+            f'      <g transform="translate({ix}, {iy})">'
+            f'<rect class="issue-fill" x="-80" y="-25" width="160" height="50" rx="12"/>'
+            f'<text class="tx-issue-ttl" text-anchor="middle" y="-4">{title}</text>'
+            f'<text class="tx-issue-body" text-anchor="middle" y="14">{body}</text></g>'
+        )
+
+        # 破線矢印（issue_box → l3-active）
+        arrow = issue.get("arrow")
+        if arrow:
+            svg_parts.append(
+                f'      <line class="issue-arrow" x1="{arrow["x1"]}" y1="{arrow["y1"]}" '
+                f'x2="{arrow["x2"]}" y2="{arrow["y2"]}" marker-end="url(#issueArr)"/>'
+            )
+
+    svg_body = "\n".join(svg_parts) if svg_parts else "      <!-- 構造ノード未指定 -->"
+
+    return f'''  <section class="section" id="mindmap-tree">
+    <nav class="sec-nav"><a href="#basis">↑参考</a><a href="#mindmap-radial">↓マインドマップ放射</a></nav>
+    <h2 class="section-title"><span class="sec-icon">🌳</span>体系ツリー</h2>
+
+    <div class="figure-wrap">
+      <svg class="tree-svg" viewBox="{viewbox}"
+           xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="{aria_label}">
+        <defs>
+          <marker id="issueArr" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="var(--mid-warm)"
+                  stroke-width="1.4" stroke-linecap="round"/>
+          </marker>
+        </defs>
+
+{svg_body}
+      </svg>
+      <p class="figure-caption">{caption}</p>
+    </div>
+
+    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
+  </section>'''
+
+
+# ============================================================================
+# v9.2.0 §22-radial 放射状マインドマップ SVG section 描画（S86 対応）
+# ============================================================================
+
+V92_RADIAL_BRANCH_POSITIONS = [
+    # (idx, default_label, x, y) — 8 主要枝の標準配置
+    (0, "保護法益",     550, 180),
+    (1, "構成要件①",   780, 260),
+    (2, "構成要件②",   900, 450),
+    (3, "構成要件③",   780, 640),
+    (4, "構成要件④",   550, 720),
+    (5, "法定刑",       320, 640),
+    # idx=6 は本問の論点（暖色独立）
+    (7, "特別法均衡",   320, 260),
+]
+
+
+def render_mindmap_radial_v92(problem: dict) -> str:
+    """problem.mindmap_radial フィールドから <section id="mindmap-radial"> を生成（v9.2.0）。
+
+    期待 JSON フィールド：
+        mindmap_radial:
+          center_label: 中心法理（例「詐欺罪体系」）
+          aria_label: SVG aria-label
+          legend: 凡例テキスト
+          branches: [{label, x, y, sub_nodes: [{type:'statute'|'case'|'elem', label, x, y}]}]
+                    7 件（保護法益／構成要件①〜④／法定刑／特別法均衡）
+          issue_branch: {label, body, x, y}
+          correct: 正解表示（例「正解：4（イウ）」）
+          caption: 図キャプション
+    """
+    radial = problem.get("mindmap_radial")
+    if not radial:
+        return ""
+
+    center = escape(radial.get("center_label", "[中心法理]"))
+    aria_label = escape(radial.get("aria_label", "[本問テーマ] の体系（8 主要枝）"))
+    legend = escape(radial.get("legend", "凡例"))
+    caption = escape(radial.get("caption", "図：本問テーマの体系"))
+    correct = escape(radial.get("correct", ""))
+
+    svg_parts: list[str] = []
+
+    # 凡例
+    svg_parts.append(f'      <g transform="translate(20, 16)"><text class="tx-legend">{legend}</text></g>')
+
+    # 中心ノード
+    svg_parts.append(
+        '      <g transform="translate(550, 450)">'
+        '<ellipse rx="120" ry="60" fill="url(#centerGrad)" stroke="var(--accent)" stroke-width="1.5"/>'
+        f'<text class="tx-center" text-anchor="middle" y="7">{center}</text></g>'
+    )
+
+    # 7 主要枝 + サブノード
+    branches = radial.get("branches", [])
+    for i, branch in enumerate(branches[:7]):
+        bx = branch.get("x", V92_RADIAL_BRANCH_POSITIONS[i][2] if i < len(V92_RADIAL_BRANCH_POSITIONS) else 550)
+        by = branch.get("y", V92_RADIAL_BRANCH_POSITIONS[i][3] if i < len(V92_RADIAL_BRANCH_POSITIONS) else 450)
+        blabel = escape(branch.get("label", f"[枝{i+1}]"))
+        svg_parts.append(
+            f'      <g transform="translate({bx}, {by})">'
+            f'<rect class="branch-fill" x="-100" y="-30" width="200" height="60" rx="8"/>'
+            f'<text class="tx-branch" text-anchor="middle" y="6">{blabel}</text></g>'
+        )
+        # 中心 → 主要枝 line-main
+        svg_parts.append(
+            f'      <line class="line-main" x1="550" y1="450" x2="{bx}" y2="{by}"/>'
+        )
+        # サブノード
+        for sub in branch.get("sub_nodes", []):
+            sx, sy = sub.get("x", bx), sub.get("y", by - 50)
+            stype = sub.get("type", "elem")
+            slabel = escape(sub.get("label", "[sub]"))
+            cls_map = {"statute": ("sub-statute", "tx-statute"), "case": ("sub-case", "tx-case"), "elem": ("sub-elem", "tx-elem")}
+            rect_cls, text_cls = cls_map.get(stype, cls_map["elem"])
+            svg_parts.append(
+                f'      <g transform="translate({sx}, {sy})">'
+                f'<rect class="{rect_cls}" x="-70" y="-17" width="140" height="34" rx="4"/>'
+                f'<text class="{text_cls}" text-anchor="middle" y="5">{slabel}</text></g>'
+            )
+            svg_parts.append(
+                f'      <line class="line-sub" x1="{bx}" y1="{by}" x2="{sx}" y2="{sy}"/>'
+            )
+
+    # 本問の論点枝
+    issue = radial.get("issue_branch")
+    if issue:
+        ix, iy = issue.get("x", 200), issue.get("y", 450)
+        ititle = escape(issue.get("label", "本問の論点"))
+        ibody = escape(issue.get("body", ""))
+        svg_parts.append(
+            f'      <g transform="translate({ix}, {iy})">'
+            f'<rect class="issue-branch-fill" x="-110" y="-35" width="220" height="70" rx="12"/>'
+            f'<text class="tx-issue" text-anchor="middle" y="-6">{ititle}</text>'
+            f'<text class="tx-issue-body" text-anchor="middle" y="14">{ibody}</text></g>'
+        )
+        # 中心 → 本問の論点枝 line-issue（強調）
+        svg_parts.append(
+            f'      <line class="line-issue" x1="550" y1="450" x2="{ix}" y2="{iy}"/>'
+        )
+
+    # 正解表示
+    if correct:
+        svg_parts.append(
+            f'      <g transform="translate(550, 870)">'
+            f'<text class="tx-correct" text-anchor="middle">{correct}</text></g>'
+        )
+
+    svg_body = "\n".join(svg_parts)
+
+    return f'''  <section class="section" id="mindmap-radial">
+    <nav class="sec-nav"><a href="#mindmap-tree">↑マインドマップツリー</a><a href="#c-1">↓C-1</a></nav>
+    <h2 class="section-title"><span class="sec-icon">🧭</span>論点マインドマップ</h2>
+
+    <div class="figure-wrap">
+      <svg class="radial-svg" viewBox="0 0 1200 1000"
+           xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="{aria_label}">
+        <defs>
+          <linearGradient id="centerGrad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="var(--accent)"/>
+            <stop offset="1" stop-color="var(--accent-darker)"/>
+          </linearGradient>
+        </defs>
+
+{svg_body}
+      </svg>
+      <p class="figure-caption">{caption}</p>
+    </div>
+
+    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
+  </section>'''
+
+
+# ============================================================================
+# v9.2.0 §22-flowchart-v2 分岐型フローチャート SVG 描画（S87 対応）
+# ============================================================================
+
+def render_flowchart_v2(problem: dict) -> str:
+    """problem.flowchart_v2 フィールドから flow-svg ブロックを生成（v9.2.0）。
+
+    既存 § C-5 stub と置換すべき SVG ブロック（<svg>...</svg> + figure-caption）。
+    既存 render_c5_flowchart の戻り値と排他的に使用される（spec_version 分岐）。
+
+    期待 JSON フィールド：
+        flowchart_v2:
+          aria_label: SVG aria-label
+          viewbox: "0 0 900 800" 等（3 パターン）
+          legend: 凡例
+          start_label: START ノードのラベル（既定 "START"）
+          decisions: [{cy, label, yn_pos: {yes_x, yes_y, no_x, no_y}}]
+          chips: [{cx, cy, label}]
+          end_success: {cx, cy}
+          end_fails: [{cx, cy}]
+          caption: 図キャプション
+    """
+    flow = problem.get("flowchart_v2")
+    if not flow:
+        return ""
+
+    aria_label = escape(flow.get("aria_label", "[本問テーマ] の成否判定フロー"))
+    viewbox = flow.get("viewbox", "0 0 900 800")
+    legend = escape(flow.get("legend", "凡例"))
+    caption = escape(flow.get("caption", "図：成否判定フロー"))
+    start_label = escape(flow.get("start_label", "START"))
+
+    svg_parts: list[str] = []
+
+    # 凡例
+    svg_parts.append(f'        <g transform="translate(20, 14)"><text>{legend}</text></g>')
+
+    # START
+    svg_parts.append(
+        '        <g transform="translate(450, 65)">'
+        '<rect class="flow-start" x="-75" y="-25" width="150" height="50" rx="10"/>'
+        f'<text class="tx-start" text-anchor="middle" y="6">{start_label}</text></g>'
+    )
+
+    # Decisions
+    prev_y = 90
+    for decision in flow.get("decisions", []):
+        cy = decision["cy"]
+        label = escape(decision["label"])
+        svg_parts.append(
+            f'        <g transform="translate(450, {cy})">'
+            f'<polygon class="flow-decision" points="-90,0 0,-60 90,0 0,60"/>'
+            f'<text class="tx-decision" text-anchor="middle" y="6">{label}</text></g>'
+        )
+        # 接続線（前ノード → Decision）
+        svg_parts.append(
+            f'        <line class="flow-line" x1="450" y1="{prev_y}" x2="450" y2="{cy - 60}" marker-end="url(#flowArr)"/>'
+        )
+        prev_y = cy + 60
+
+    # Yes/No ラベルは decisions 内 yn_pos を直接 text 出力（簡略実装）
+    for decision in flow.get("decisions", []):
+        yn = decision.get("yn_pos", {})
+        if yn.get("yes_x") is not None:
+            svg_parts.append(
+                f'        <text class="tx-yn" x="{yn["yes_x"]}" y="{yn["yes_y"]}">Yes</text>'
+            )
+        if yn.get("no_x") is not None:
+            svg_parts.append(
+                f'        <text class="tx-yn" x="{yn["no_x"]}" y="{yn["no_y"]}">No</text>'
+            )
+
+    # 肢マーカー
+    for chip in flow.get("chips", []):
+        svg_parts.append(
+            f'        <g transform="translate({chip["cx"]}, {chip["cy"]})">'
+            f'<rect class="flow-chip" x="-30" y="-11" width="60" height="22" rx="11"/>'
+            f'<text class="tx-chip" text-anchor="middle" y="4">{escape(chip["label"])}</text></g>'
+        )
+
+    # 終端：成立
+    end_success = flow.get("end_success")
+    if end_success:
+        svg_parts.append(
+            f'        <g transform="translate({end_success["cx"]}, {end_success["cy"]})">'
+            f'<rect class="flow-end-success" x="-80" y="-25" width="160" height="50" rx="10"/>'
+            f'<text class="tx-end" text-anchor="middle" y="6">成立</text></g>'
+        )
+
+    # 終端：不成立（複数可）
+    for end_fail in flow.get("end_fails", []):
+        svg_parts.append(
+            f'        <g transform="translate({end_fail["cx"]}, {end_fail["cy"]})">'
+            f'<rect class="flow-end-fail" x="-80" y="-25" width="160" height="50" rx="10"/>'
+            f'<text class="tx-end" text-anchor="middle" y="6">不成立</text></g>'
+        )
+
+    svg_body = "\n".join(svg_parts)
+
+    return f'''      <svg class="flow-svg" viewBox="{viewbox}"
+           xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="{aria_label}">
+        <defs>
+          <marker id="flowArr" viewBox="0 0 10 10" refX="9" refY="5"
+                  markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="var(--bg-dark)"
+                  stroke-width="1.4" stroke-linecap="round"/>
+          </marker>
+        </defs>
+
+{svg_body}
+      </svg>
+      <p class="figure-caption">{caption}</p>'''
+
+
+# ============================================================================
+# v9.2.0 §17-ter 学説対立 deep-dive 描画（S89 対応）
+# ============================================================================
+
+def render_theory_deep_dive(problem: dict) -> str:
+    """problem.theory_deep_dive フィールドから theory-detail-grid + statute-interpretation を生成。
+
+    期待 JSON フィールド：
+        theory_deep_dive:
+          is_theory_selection: True（学説問題型）/False
+          major: {name, conclusion, basis, why_adopted, response_to_criticism}
+          minor: {name, conclusion, basis, why_not_adopted, practical_problem}
+          statute: {num, text, interpretation}
+          axis_fig: {svg, caption} 任意
+
+    is_theory_selection=True の場合、c-4 section に data-question-type 属性追加（呼出側）。
+    """
+    theory = problem.get("theory_deep_dive")
+    if not theory:
+        return ""
+
+    major = theory.get("major", {})
+    minor = theory.get("minor", {})
+    statute = theory.get("statute", {})
+
+    grid_html = f'''<div class="theory-detail-grid">
+      <div class="sub-card theory-major">
+        <h3 class="theory-heading">
+          <span class="theory-badge">通説/判例</span>{escape(major.get("name", "[学説名]"))}
+        </h3>
+        <dl class="theory-dl">
+          <dt>結論</dt>
+          <dd>{escape(major.get("conclusion", ""))}</dd>
+          <dt>論拠</dt>
+          <dd>{escape(major.get("basis", ""))}</dd>
+          <dt class="why-adopted">判例が採用する理由</dt>
+          <dd>{escape(major.get("why_adopted", ""))}</dd>
+          <dt>批判への応答</dt>
+          <dd>{escape(major.get("response_to_criticism", ""))}</dd>
+        </dl>
+      </div>
+      <div class="sub-card theory-minor">
+        <h3 class="theory-heading">
+          <span class="theory-badge">少数説</span>{escape(minor.get("name", "[学説名]"))}
+        </h3>
+        <dl class="theory-dl">
+          <dt>結論</dt>
+          <dd>{escape(minor.get("conclusion", ""))}</dd>
+          <dt>論拠</dt>
+          <dd>{escape(minor.get("basis", ""))}</dd>
+          <dt class="why-not-adopted">判例が採用しない理由</dt>
+          <dd>{escape(minor.get("why_not_adopted", ""))}</dd>
+          <dt>実務上の問題点</dt>
+          <dd>{escape(minor.get("practical_problem", ""))}</dd>
+        </dl>
+      </div>
+    </div>'''
+
+    axis_html = ""
+    axis_fig = theory.get("axis_fig")
+    if axis_fig and axis_fig.get("svg"):
+        # SVG は事前にレンダー済の文字列を期待
+        axis_html = f'''
+    <div class="theory-axis-fig">
+{axis_fig["svg"]}
+      <p class="figure-caption">{escape(axis_fig.get("caption", "図：学説対立の 2 軸分析"))}</p>
+    </div>'''
+
+    statute_html = ""
+    if statute:
+        statute_html = f'''
+    <blockquote class="statute-interpretation">
+      <p class="statute-cite"><span class="statute-num">{escape(statute.get("num", ""))}</span> {escape(statute.get("text", ""))}</p>
+      <p class="interpretation-body">{escape(statute.get("interpretation", ""))}</p>
+    </blockquote>'''
+
+    return f"    {grid_html}{axis_html}{statute_html}"
+
+
+# ============================================================================
+# v9.2.0 教授解説密度 v2 prof-heading 描画（S91 対応）
+# ============================================================================
+
+def render_professor_density_v2(prof: dict) -> str:
+    """professor-density-v2 構造の 4 prof-heading を生成。
+
+    期待 JSON フィールド（choices[*].professor 内）：
+        point: {list: [str, str, str], locus: str}
+        process: {steps: [str, str, str, str]}
+        image: {scene: str, bridge: str, contrast: str}
+        application: {major: str, minor: str, conclusion: str}
+
+    既存の summary/note 構造（v9.1.0）とは並存可能（呼出側で spec_version 判定）。
+    """
+    if not prof:
+        return ""
+
+    point = prof.get("point", {})
+    process = prof.get("process", {})
+    image = prof.get("image", {})
+    application = prof.get("application", {})
+
+    point_list_items = "\n          ".join(
+        f"<li>{escape(item)}</li>" for item in point.get("list", [])
+    )
+    process_step_items = "\n          ".join(
+        f"<li>{escape(step)}</li>" for step in process.get("steps", [])
+    )
+
+    return f'''      <div class="prof-heading prof-point">
+        <h4>ポイント</h4>
+        <ul class="point-list">
+          {point_list_items}
+        </ul>
+        <p class="point-locus">{escape(point.get("locus", ""))}</p>
+      </div>
+      <div class="prof-heading prof-process">
+        <h4>考え方の道筋</h4>
+        <ol class="process-steps">
+          {process_step_items}
+        </ol>
+      </div>
+      <div class="prof-heading prof-image">
+        <h4>イメージで掴む</h4>
+        <div class="image-scene">
+          <h5 class="img-sub">具体場面</h5>
+          <p>{escape(image.get("scene", ""))}</p>
+        </div>
+        <div class="image-bridge">
+          <h5 class="img-sub">規範への接続</h5>
+          <p>{escape(image.get("bridge", ""))}</p>
+        </div>
+        <div class="image-contrast">
+          <h5 class="img-sub">反対結論との対比</h5>
+          <p>{escape(image.get("contrast", ""))}</p>
+        </div>
+      </div>
+      <div class="prof-heading prof-application">
+        <h4>あてはめ</h4>
+        <div class="syllogism">
+          <div class="syl-major">
+            <h5 class="img-sub">大前提（規範）</h5>
+            <p>{escape(application.get("major", ""))}</p>
+          </div>
+          <div class="syl-minor">
+            <h5 class="img-sub">小前提（事実）</h5>
+            <p>{escape(application.get("minor", ""))}</p>
+          </div>
+          <div class="syl-conclusion">
+            <h5 class="img-sub">結論</h5>
+            <p>{escape(application.get("conclusion", ""))}</p>
+          </div>
+        </div>
+      </div>'''
 
 
 # ============================================================================
@@ -1673,14 +2364,51 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     # 存在しないため、本値は無害に未使用となる（broken intermediate state なし）。
     slots["PART_B_FRAME"] = render_part_b(problem.get("instruction_type", ""))
 
+    # spec_version 判定（v9.2.0 DEEP-DIVE 対応・既定は v9.1.0 互換）
+    spec_version = str(problem.get("spec_version", DEFAULT_SPEC_VERSION))
+    flags = get_render_flags(spec_version)
+    palette_strategy = problem.get("palette_strategy")
+    if isinstance(problem.get("footer"), dict):
+        palette_strategy = palette_strategy or problem["footer"].get("palette_strategy")
+
     # footer-spec feature-tag 列 slot 供給（Phase 4-2 で集約 slot 化）。
-    # FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern を 23 行ブロックに
-    # 整形して {{FOOTER_FEATURE_TAGS}} に注入する。
-    # extra_tags は v8.11.7 では未使用（hook のみ残置）。
+    # v9.1.0 以下：FOOTER_FEATURE_TAGS_DEFAULT (22 固定) + override_pattern = 23 行
+    # v9.2.0：FOOTER_FEATURE_TAGS_V92 (31 固定) + override_pattern + palette-strategy = 33 行
     slots["FOOTER_FEATURE_TAGS"] = render_footer_feature_tags(
         slots["OVERRIDE_PATTERN"],
         extra_tags=problem.get("footer", {}).get("extra_tags") if isinstance(problem.get("footer"), dict) else None,
+        spec_version=spec_version,
+        palette_strategy=palette_strategy,
     )
+
+    # v9.2.0 専用 slot 供給（既存 8 templates は参照しないため空でも無害・
+    # v9.2.0 templates が作成された際にこれらの slot が活用される）。
+    if spec_version == "v9.2.0":
+        slots["PALETTE_DERIVATIVES_ROOT"] = (
+            render_palette_derivatives_root(slots["OVERRIDE_PATTERN"])
+            if flags["PALETTE_DERIVATIVES"]
+            else ""
+        )
+        slots["MINDMAP_TREE"] = (
+            render_mindmap_tree(problem) if flags["INCLUDE_TREE_MINDMAP"] else ""
+        )
+        slots["MINDMAP_RADIAL_V92"] = (
+            render_mindmap_radial_v92(problem) if flags["INCLUDE_RADIAL_MINDMAP"] else ""
+        )
+        slots["FLOW_SVG_V92"] = (
+            render_flowchart_v2(problem) if flags["INCLUDE_BRANCHING_FLOWCHART"] else ""
+        )
+        slots["THEORY_DEEP_DIVE"] = (
+            render_theory_deep_dive(problem) if flags["INCLUDE_THEORY_DEEP_DIVE"] else ""
+        )
+    else:
+        # v9.1.0 以下：v9.2.0 専用 slot は空（既存 templates は参照しないため
+        # render() の未置換検出には影響しない、念のため空文字で埋めておく）
+        slots["PALETTE_DERIVATIVES_ROOT"] = ""
+        slots["MINDMAP_TREE"] = ""
+        slots["MINDMAP_RADIAL_V92"] = ""
+        slots["FLOW_SVG_V92"] = ""
+        slots["THEORY_DEEP_DIVE"] = ""
 
     # 【見解】slot 供給（Phase 4-1 で集約 slot 化）
     # views が未指定/空 の場合は VIEWS_BLOCK = "" → sc5 template の views region
