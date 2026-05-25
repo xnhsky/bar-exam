@@ -167,6 +167,15 @@ foreach ($target in $Targets) {
     $endTime = Get-Date
     $elapsed = [int]($endTime - $startTime).TotalSeconds
 
+    # === 罠 9 早期警戒: 生成時間異常 (Phase 13C-3) ===
+    # 正常実績: 303=4.3 min / 305=6.87 min / 304 v2=28.9 min (regen 完全)
+    # 罠 9 発火例: 304 v1=24 min (不完全出力・theory-deep-dive 等 15 tag 欠落)
+    # 閾値 20 min (1200 秒) = 正常上限 7 min + バッファ
+    if ($elapsed -gt 1200) {
+        Write-Warning "生成時間異常: ${elapsed}秒（想定 4-7 min）- 罠 9（claude -p 不完全出力）警戒"
+        Write-Warning "品質チェック推奨: feature-tag 33 件 / theory-detail-grid / palette-strategy"
+    }
+
     # === sentinel grep 検出（JSON parse は使わない）===
     $sentinel = "UNKNOWN"
     $outputText = $output -join "`n"
