@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-TX 自己検証スクリプト（v9.0.0-genkei / v9.1.0-mindmap 両対応）
+TX 自己検証スクリプト（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap / v9.2.0-deepdive 4 バージョン対応）
 
-検証範囲: S1〜S84（仕様書 §31 準拠・主要なものを実装）
+検証範囲: S1〜S91（仕様書 §31 準拠・主要なものを実装）
   S82: PDF 番号抽出整合（ファイル名 NNN と HTML 内 ID 数字部分の照合）
-  S83: v9.0.0-genkei placeholder 残存検査（[...] / <!-- 指示: ... --> 検出）
-  S84: mindmap section 構造検査（v9.1.0-mindmap 専用）
-    footer-spec の feature-tag に "TX v9.1.0 MINDMAP" を含むファイルのみ
-    厳格適用（version-aware）。8 検査項目 (a)〜(h) を順次確認。
+  S83: placeholder 残存検査（[...] / <!-- 指示: ... --> 検出）
+  S84: mindmap section 構造検査（v9.1.0-mindmap 専用 / version-aware）
+  S85: ツリー型体系図 section 構造検査（v9.2.0 専用 / mindmap-tree）
+  S86: 放射状マインドマップ section 構造検査（v9.2.0 専用 / mindmap-radial・旧 S84 後継）
+  S87: 分岐型フローチャート構造検査（v9.2.0 専用 / c-5 内 flow-svg）
+  S88: 派生色変数存在検査（v9.2.0 専用 / :root 内 10 派生色 hex 定義）
+  S89: §17-ter 学説対立 deep-dive 構造検査（v9.2.0 専用 / theory-detail-grid）
+  S90: メタ説明違反検査（v9.2.0 専用 / §0-quad-2-bis ブラックリスト 15 語句）
+  S91: 教授解説密度検査（v9.2.0 専用 / prof-heading 150/400/300/300 字）
+
+version-aware ロジック:
+  footer-spec の feature-tag から版を判定。各 S 検査は適用版が一致した場合のみ実行。
+  - S84: "TX v9.1.0 MINDMAP" 含む場合のみ
+  - S85-S91: "TX v9.2.0 DEEP-DIVE" 含む場合のみ（うち S85/S86/S87/S89 は対応 feature-tag も要求）
 
 使い方:
     python scripts/validate-tx.py <HTML ファイルパス>
@@ -126,6 +136,116 @@ JP_DIR_TO_SUBJECT = {
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 PROBLEMS_DIR = PROJECT_ROOT / "problems"
+
+
+# ============================================================
+# spec バージョン判定（v9.2.0 Task 10 § 3）
+# ============================================================
+
+SPEC_VERSION_PATTERNS = [
+    ("v9.2.0", re.compile(r"TX\s+v9\.2\.0\s+DEEP-DIVE")),
+    ("v9.1.0", re.compile(r"TX\s+v9\.1\.0\s+MINDMAP")),
+    ("v9.0.0", re.compile(r"TX\s+v9\.0\.0\s+GENKEI")),
+    ("v8.11.7", re.compile(r"TX\s+v8\.11\.7")),
+]
+
+
+def detect_spec_version(soup):
+    """footer-spec の feature-tag から spec バージョンを判定。
+
+    判定優先順：v9.2.0 → v9.1.0 → v9.0.0 → v8.11.7 → "unknown"
+    """
+    footer = soup.find(class_="footer-spec")
+    if footer is None:
+        return "unknown"
+    feature_text = " ".join(
+        tag.get_text(strip=True) for tag in footer.find_all(class_="feature-tag")
+    )
+    for version, pattern in SPEC_VERSION_PATTERNS:
+        if pattern.search(feature_text):
+            return version
+    return "unknown"
+
+
+def footer_has_tag(soup, tag_text):
+    """footer-spec の feature-tag に当該文字列を含むか。"""
+    footer = soup.find(class_="footer-spec")
+    if footer is None:
+        return False
+    for tag in footer.find_all(class_="feature-tag"):
+        if tag_text in tag.get_text(strip=True):
+            return True
+    return False
+
+
+# ============================================================
+# v9.2.0 派生色 10 個（S88）
+# ============================================================
+
+V92_DERIVATIVE_COLORS = [
+    "--accent-light",
+    "--accent-darker",
+    "--mid-warm",
+    "--mid-cool",
+    "--accent-soft-2",
+    "--mid-soft",
+    "--surface-tint",
+    "--neutral-cream",
+    "--contrast-warm",
+    "--contrast-cool",
+]
+
+
+# ============================================================
+# v9.2.0 メタ説明禁止カテゴリ（S90 / §0-quad-2-bis）
+# ============================================================
+
+META_EXPLANATION_PATTERNS = [
+    # 肢系
+    re.compile(r"肢[\d１-５ア-オ]\s*を選[ぶびうい]"),
+    re.compile(r"肢[\d１-５ア-オ]\s*を選択"),
+    re.compile(r"肢[\d１-５ア-オ]\s*が正解"),
+    re.compile(r"正解の肢は"),
+    re.compile(r"本問の正解は"),
+    # 記号系
+    re.compile(r"記号[ア-オ]\s*を選[ぶびうい]"),
+    re.compile(r"記号[ア-オ]\s*を選択"),
+    re.compile(r"[ア-オ]の組合せが正解"),
+    # 手順系
+    re.compile(r"解答の手順"),
+    re.compile(r"解答プロセス"),
+    re.compile(r"正解を選ぶプロセス"),
+    re.compile(r"解答に至る手順"),
+    # メタ説明系
+    re.compile(r"本問では.+を選[べびう]"),
+    re.compile(r"選び方の説明"),
+]
+
+META_CHECK_SELECTORS = [
+    ".basis-card-body",
+    ".sub-card.professor",
+    ".sub-card.explanation",
+    "section#c-4",
+    "section#mindmap-tree",
+    "section#mindmap-radial",
+    "section#c-5",
+    ".key-phrase-box",
+]
+
+
+# ============================================================
+# v9.2.0 教授解説密度規律（S91 / §0-quad-3 STEP IQ-5 強化版）
+# ============================================================
+
+PROF_DENSITY_REQUIREMENTS = [
+    (".prof-heading.prof-point", 150),
+    (".prof-heading.prof-process", 400),
+    (".prof-heading.prof-image", 300),
+    (".prof-heading.prof-application", 300),
+]
+
+PROF_IMAGE_SUBELEMENTS = [".image-scene", ".image-bridge", ".image-contrast"]
+PROF_SYLLOGISM_SUBELEMENTS = [".syl-major", ".syl-minor", ".syl-conclusion"]
 
 
 def derive_problem_json_path(html_path):
@@ -774,6 +894,515 @@ def check_mindmap_structure(soup, rep):
 
 
 # ============================================================
+# S85: ツリー型体系図 section 構造検査（v9.2.0 DEEP-DIVE 専用）
+# ============================================================
+
+def check_tree_structure(soup, rep):
+    """S85: <section id="mindmap-tree"> 構造検査
+
+    判定条件：feature-tag に "TX v9.2.0 DEEP-DIVE" と "tree-mindmap" を含む場合のみ実行
+    """
+    if detect_spec_version(soup) != "v9.2.0":
+        return
+    if not footer_has_tag(soup, "tree-mindmap"):
+        return
+
+    # (a) <section id="mindmap-tree"> の存在
+    section = soup.find("section", id="mindmap-tree")
+    if section is None:
+        rep.error("S85", '<section id="mindmap-tree"> が見つかりません')
+        return
+
+    # (b) sec-nav "↑参考" / "↓マインドマップ放射" 存在
+    nav = section.find("nav", class_="sec-nav")
+    if nav is None or "↑参考" not in nav.get_text() or "↓マインドマップ放射" not in nav.get_text():
+        rep.error("S85", 'mindmap-tree sec-nav に "↑参考" / "↓マインドマップ放射" 必須')
+
+    # (c) <h2 class="section-title"> 内 sec-icon=🌳 + "体系ツリー"
+    title = section.find("h2", class_="section-title")
+    if title is None or "体系ツリー" not in title.get_text() or "🌳" not in title.get_text():
+        rep.error("S85", '<h2 class="section-title"> に 🌳 + "体系ツリー" 必須')
+
+    # (d) <div class="figure-wrap"> 直下に <svg viewBox="0 0 [1100|1300] [600|700|800]">
+    figure_wrap = section.find("div", class_="figure-wrap")
+    if figure_wrap is None:
+        rep.error("S85", "mindmap-tree section 内に <div class=\"figure-wrap\"> 必須")
+        return
+    svg = figure_wrap.find("svg")
+    if svg is None:
+        rep.error("S85", "figure-wrap 内に <svg> が見つかりません")
+        return
+
+    viewbox = (svg.get("viewBox") or svg.get("viewbox") or "").strip()
+    valid_viewboxes = {"0 0 1100 600", "0 0 1100 700", "0 0 1100 800", "0 0 1300 600", "0 0 1300 700"}
+    if viewbox not in valid_viewboxes:
+        rep.error(
+            "S85",
+            f"tree-svg viewBox は 4 パターン (1100×600/700/800・1300×600) 必須・実値='{viewbox}'",
+        )
+
+    # (e) SVG 内に role="img" + aria-label 属性
+    if svg.get("role") != "img":
+        rep.error("S85", 'tree-svg に role="img" 必須')
+    if not svg.get("aria-label"):
+        rep.error("S85", "tree-svg に aria-label 属性必須")
+
+    # (f) SVG class="tree-svg" 付与
+    svg_classes = svg.get("class") or []
+    if "tree-svg" not in svg_classes:
+        rep.error("S85", 'SVG に class="tree-svg" 必須')
+
+    # (g) <defs><marker id="issueArr">...</marker></defs> 存在
+    defs = svg.find("defs")
+    if defs is None or defs.find("marker", id="issueArr") is None:
+        rep.error("S85", '<defs><marker id="issueArr"> 必須')
+
+    # (h) L0/L1/L2/L3 各層のノードが各 1 個以上（class="l0-fill" 等）
+    for level in ("l0-fill", "l1-fill", "l2-fill", "l3-fill"):
+        nodes = svg.find_all(class_=level)
+        if len(nodes) < 1:
+            rep.error("S85", f'SVG 内に class="{level}" のノード必須・実検出数={len(nodes)}')
+
+    # (i) issue-fill（本問の論点枠）1 個存在
+    issue_nodes = svg.find_all(class_="issue-fill")
+    if len(issue_nodes) < 1:
+        rep.error("S85", f'SVG 内に class="issue-fill"（本問の論点枠）1 個必須・実検出数={len(issue_nodes)}')
+
+    # (j) issue-arrow（破線矢印）1 個存在
+    arrow_nodes = svg.find_all(class_="issue-arrow")
+    if len(arrow_nodes) < 1:
+        rep.error("S85", f'SVG 内に class="issue-arrow"（破線矢印）1 個必須・実検出数={len(arrow_nodes)}')
+
+    # (k) <p class="figure-caption"> 存在
+    if figure_wrap.find("p", class_="figure-caption") is None:
+        rep.error("S85", 'figure-wrap 内に <p class="figure-caption"> 必須')
+
+    # (l) <script>/<style> タグ禁止（host-injection-safe）
+    if section.find_all(["script", "style"]):
+        rep.error("S85", "mindmap-tree section 内に <script>/<style> タグ禁止（AP-41）")
+
+
+# ============================================================
+# S86: 放射状マインドマップ section 構造検査（v9.2.0 専用・旧 S84 後継）
+# ============================================================
+
+def check_radial_structure(soup, rep):
+    """S86: <section id="mindmap-radial"> 構造検査
+
+    判定条件：feature-tag に "TX v9.2.0 DEEP-DIVE" と "radial-mindmap" を含む場合のみ実行
+    """
+    if detect_spec_version(soup) != "v9.2.0":
+        return
+    if not footer_has_tag(soup, "radial-mindmap"):
+        return
+
+    # (a) <section id="mindmap-radial"> の存在
+    section = soup.find("section", id="mindmap-radial")
+    if section is None:
+        rep.error("S86", '<section id="mindmap-radial"> が見つかりません')
+        return
+
+    # (b) sec-nav "↑マインドマップツリー" / "↓C-1"
+    nav = section.find("nav", class_="sec-nav")
+    if nav is None or "↑マインドマップツリー" not in nav.get_text() or "↓C-1" not in nav.get_text():
+        rep.error("S86", 'mindmap-radial sec-nav に "↑マインドマップツリー" / "↓C-1" 必須')
+
+    # (c) <h2 class="section-title"> 内 sec-icon=🧭 + "論点マインドマップ"
+    title = section.find("h2", class_="section-title")
+    if title is None or "論点マインドマップ" not in title.get_text() or "🧭" not in title.get_text():
+        rep.error("S86", '<h2 class="section-title"> に 🧭 + "論点マインドマップ" 必須')
+
+    # (d) <div class="figure-wrap"> 直下に <svg viewBox="0 0 1200 1000">
+    figure_wrap = section.find("div", class_="figure-wrap")
+    if figure_wrap is None:
+        rep.error("S86", 'mindmap-radial section 内に <div class="figure-wrap"> 必須')
+        return
+    svg = figure_wrap.find("svg")
+    if svg is None:
+        rep.error("S86", "figure-wrap 内に <svg> が見つかりません")
+        return
+
+    viewbox = (svg.get("viewBox") or svg.get("viewbox") or "").strip()
+    if viewbox != "0 0 1200 1000":
+        rep.error("S86", f"radial-svg viewBox は '0 0 1200 1000' 必須・実値='{viewbox}'")
+
+    # (e) SVG 内 role="img" + aria-label 属性
+    if svg.get("role") != "img":
+        rep.error("S86", 'radial-svg に role="img" 必須')
+    if not svg.get("aria-label"):
+        rep.error("S86", "radial-svg に aria-label 属性必須")
+
+    # (f) SVG class="radial-svg" 付与
+    svg_classes = svg.get("class") or []
+    if "radial-svg" not in svg_classes:
+        rep.error("S86", 'SVG に class="radial-svg" 必須')
+
+    # (g) <defs><linearGradient id="centerGrad"> 存在
+    defs = svg.find("defs")
+    if defs is None or (
+        defs.find("linearGradient", id="centerGrad") is None
+        and defs.find("lineargradient", id="centerGrad") is None
+    ):
+        rep.error("S86", '<defs><linearGradient id="centerGrad"> 必須')
+
+    # (h) 中心 <ellipse fill="url(#centerGrad)"> が 1 個存在
+    center_ellipses = [
+        e for e in svg.find_all("ellipse")
+        if (e.get("fill") or "").strip() == "url(#centerGrad)"
+    ]
+    if len(center_ellipses) < 1:
+        rep.error("S86", '中心 <ellipse fill="url(#centerGrad)"> 1 個必須')
+
+    # (i) branch-fill（主要枝）が 6-7 個存在
+    branch_nodes = svg.find_all(class_="branch-fill")
+    if not (6 <= len(branch_nodes) <= 7):
+        rep.error("S86", f'class="branch-fill"（主要枝）は 6-7 個必須・実検出数={len(branch_nodes)}')
+
+    # (j) issue-branch-fill（本問の論点枝）が 1 個存在
+    issue_branch = svg.find_all(class_="issue-branch-fill")
+    if len(issue_branch) < 1:
+        rep.error("S86", f'class="issue-branch-fill"（本問の論点枝）1 個必須・実検出数={len(issue_branch)}')
+
+    # (k) sub-statute / sub-case が各 1 個以上
+    if len(svg.find_all(class_="sub-statute")) < 1:
+        rep.error("S86", 'class="sub-statute" 1 個以上必須')
+    if len(svg.find_all(class_="sub-case")) < 1:
+        rep.error("S86", 'class="sub-case" 1 個以上必須')
+
+    # (l) line-main / line-issue / line-sub の使い分け
+    if len(svg.find_all(class_="line-main")) < 1:
+        rep.error("S86", 'class="line-main" 1 個以上必須')
+    if len(svg.find_all(class_="line-issue")) < 1:
+        rep.error("S86", 'class="line-issue" 1 個以上必須')
+
+    # (m) <p class="figure-caption"> 存在
+    if figure_wrap.find("p", class_="figure-caption") is None:
+        rep.error("S86", 'figure-wrap 内に <p class="figure-caption"> 必須')
+
+    # (n) <script>/<style> タグ禁止
+    if section.find_all(["script", "style"]):
+        rep.error("S86", "mindmap-radial section 内に <script>/<style> タグ禁止（AP-41）")
+
+
+# ============================================================
+# S87: 分岐型フローチャート構造検査（v9.2.0 専用 / c-5 内 flow-svg）
+# ============================================================
+
+def check_flowchart_structure(soup, rep):
+    """S87: <section id="c-5"> 内の SVG 分岐型フローチャート構造検査
+
+    判定条件：feature-tag に "TX v9.2.0 DEEP-DIVE" と "branching-flowchart" を含む場合のみ実行
+    """
+    if detect_spec_version(soup) != "v9.2.0":
+        return
+    if not footer_has_tag(soup, "branching-flowchart"):
+        return
+
+    section = soup.find("section", id="c-5")
+    if section is None:
+        rep.error("S87", '<section id="c-5"> が見つかりません')
+        return
+
+    svg = section.find("svg")
+    if svg is None:
+        rep.error("S87", "c-5 section 内に <svg> が見つかりません")
+        return
+
+    # (a) SVG class="flow-svg" 付与
+    svg_classes = svg.get("class") or []
+    if "flow-svg" not in svg_classes:
+        rep.error("S87", 'c-5 内 SVG に class="flow-svg" 必須')
+
+    # (b) viewBox が "0 0 900 [600|800|1000]" のいずれか
+    viewbox = (svg.get("viewBox") or svg.get("viewbox") or "").strip()
+    if viewbox not in {"0 0 900 600", "0 0 900 800", "0 0 900 1000"}:
+        rep.error(
+            "S87",
+            f"flow-svg viewBox は '0 0 900 [600|800|1000]' 必須・実値='{viewbox}'",
+        )
+
+    # (c) <defs><marker id="flowArr"> 存在
+    defs = svg.find("defs")
+    if defs is None or defs.find("marker", id="flowArr") is None:
+        rep.error("S87", '<defs><marker id="flowArr"> 必須')
+
+    # (d) flow-start ノードが 1 個存在
+    starts = svg.find_all(class_="flow-start")
+    if len(starts) != 1:
+        rep.error("S87", f'class="flow-start" は 1 個必須・実検出数={len(starts)}')
+
+    # (e) flow-decision の polygon が 1 個以上
+    decisions = svg.find_all(class_="flow-decision")
+    if len(decisions) < 1:
+        rep.error("S87", f'class="flow-decision"（polygon）1 個以上必須・実検出数={len(decisions)}')
+
+    # (f) flow-end-success / flow-end-fail の rect が各 1 個以上
+    if len(svg.find_all(class_="flow-end-success")) < 1:
+        rep.error("S87", 'class="flow-end-success" 1 個以上必須')
+    if len(svg.find_all(class_="flow-end-fail")) < 1:
+        rep.error("S87", 'class="flow-end-fail" 1 個以上必須')
+
+    # (g) flow-chip（肢マーカー）が 1 個以上
+    chips = svg.find_all(class_="flow-chip")
+    if len(chips) < 1:
+        rep.error("S87", f'class="flow-chip"（肢マーカー）1 個以上必須・実検出数={len(chips)}')
+
+    # (h) 旧形式（stepbox / stepnum）の混在禁止
+    if svg.find_all(class_="stepbox") or svg.find_all(class_="stepnum"):
+        rep.error("S87", "旧形式（stepbox / stepnum）の混在禁止（v9.2.0 では flow-svg のみ）")
+
+    # (i) <p class="figure-caption"> 存在
+    figure_wrap = svg.parent
+    if figure_wrap is None or figure_wrap.find("p", class_="figure-caption") is None:
+        rep.error("S87", 'flow-svg の figure-wrap 内に <p class="figure-caption"> 必須')
+
+    # (j) <script> 禁止（host-injection-safe）
+    if section.find_all("script"):
+        rep.error("S87", "c-5 section 内に <script> タグ禁止（AP-41）")
+
+
+# ============================================================
+# S88: 派生色変数存在検査（v9.2.0 専用・AP-45）
+# ============================================================
+
+def check_palette_derivatives(style_text, rep):
+    """S88: <style> 内 :root{} ブロックに v9.2.0 派生色 10 個の hex 形式定義検査
+
+    判定条件：呼び出し側で v9.2.0 判定済前提
+    """
+    # :root ブロックを抽出（複数 :root を許容・S60 連動は別途）
+    root_blocks = re.findall(r":root\s*\{([^}]*)\}", style_text)
+    if not root_blocks:
+        rep.error("S88", ":root{} ブロックが見つかりません（AP-45）")
+        return
+
+    all_root_content = "\n".join(root_blocks)
+
+    missing = []
+    for var in V92_DERIVATIVE_COLORS:
+        # hex 形式（#RGB / #RRGGBB）を許容
+        pattern = re.escape(var) + r"\s*:\s*#[0-9a-fA-F]{3,8}"
+        if not re.search(pattern, all_root_content):
+            missing.append(var)
+
+    if missing:
+        rep.error(
+            "S88",
+            f"派生色変数の hex 形式定義が欠落（AP-45）：{', '.join(missing)}",
+        )
+
+
+# ============================================================
+# S89: §17-ter 学説対立 deep-dive 構造検査（v9.2.0 専用・AP-46）
+# ============================================================
+
+def check_theory_deep_dive(soup, rep):
+    """S89: <section id="c-4"> 内の §17-ter theory-detail-grid 構造検査
+
+    判定条件：feature-tag に "TX v9.2.0 DEEP-DIVE" と "theory-deep-dive" を含み、
+              かつ theory-detail-grid が出現する場合のみ実行
+    """
+    if detect_spec_version(soup) != "v9.2.0":
+        return
+    if not footer_has_tag(soup, "theory-deep-dive"):
+        return
+
+    section_c4 = soup.find("section", id="c-4")
+    if section_c4 is None:
+        return  # c-4 自体が無い問題（学説対立なし）はスキップ
+
+    # 学説対立がある問題（theory-detail-grid が存在）の場合のみ厳格適用
+    grid = section_c4.find("div", class_="theory-detail-grid")
+    if grid is None:
+        return  # 学説対立 deep-dive が出題されない問題はスキップ
+
+    # data-question-type="theory-selection" 時の 200 字規律フラグ
+    is_theory_selection = section_c4.get("data-question-type") == "theory-selection"
+
+    # (a) theory-detail-grid 存在（上で確認済）
+
+    # (b) sub-card theory-major が 1 個
+    majors = grid.find_all(class_="theory-major")
+    if len(majors) != 1:
+        rep.error("S89", f'class="theory-major" は 1 個必須・実検出数={len(majors)}（AP-46）')
+
+    # (c) sub-card theory-minor が 1 個
+    minors = grid.find_all(class_="theory-minor")
+    if len(minors) != 1:
+        rep.error("S89", f'class="theory-minor" は 1 個必須・実検出数={len(minors)}（AP-46）')
+
+    # (d) why-adopted dt 存在 + (e) why-not-adopted dt 存在
+    for major in majors:
+        if major.find("dt", class_="why-adopted") is None:
+            rep.error("S89", 'theory-major 内 <dt class="why-adopted"> 必須（AP-46）')
+    for minor in minors:
+        if minor.find("dt", class_="why-not-adopted") is None:
+            rep.error("S89", 'theory-minor 内 <dt class="why-not-adopted"> 必須（AP-46）')
+
+    # (f) statute-interpretation blockquote 存在
+    if section_c4.find("blockquote", class_="statute-interpretation") is None:
+        rep.error("S89", '<blockquote class="statute-interpretation"> 必須（AP-46）')
+
+    # (g) data-question-type="theory-selection" 時：dd 本文 200 字以上必須
+    if is_theory_selection:
+        for major in majors:
+            adopted_dt = major.find("dt", class_="why-adopted")
+            if adopted_dt is not None:
+                dd = adopted_dt.find_next_sibling("dd")
+                if dd is None or len(dd.get_text(strip=True)) < 200:
+                    rep.error(
+                        "S89",
+                        f"theory-selection: why-adopted の dd 本文 200 字以上必須・実={len(dd.get_text(strip=True)) if dd else 0}（AP-46）",
+                    )
+        for minor in minors:
+            not_adopted_dt = minor.find("dt", class_="why-not-adopted")
+            if not_adopted_dt is not None:
+                dd = not_adopted_dt.find_next_sibling("dd")
+                if dd is None or len(dd.get_text(strip=True)) < 200:
+                    rep.error(
+                        "S89",
+                        f"theory-selection: why-not-adopted の dd 本文 200 字以上必須・実={len(dd.get_text(strip=True)) if dd else 0}（AP-46）",
+                    )
+
+    # (h) theory-heading 内 theory-badge 存在
+    for sub in majors + minors:
+        heading = sub.find(class_="theory-heading")
+        if heading is None or heading.find(class_="theory-badge") is None:
+            rep.error("S89", "theory-heading 内 theory-badge 必須（AP-46）")
+
+    # (i) <script>/<style> 禁止
+    if section_c4.find_all(["script", "style"]):
+        rep.error("S89", "c-4 section 内に <script>/<style> タグ禁止（AP-41）")
+
+
+# ============================================================
+# S90: メタ説明違反検査（v9.2.0 専用・AP-43 / §0-quad-2-bis）
+# ============================================================
+
+def check_meta_explanation(soup, rep):
+    """S90: メタ説明禁止カテゴリ 15 語句の検出
+
+    判定条件：feature-tag に "TX v9.2.0 DEEP-DIVE" と "meta-explanation-blocked" を含む場合のみ実行
+    """
+    if detect_spec_version(soup) != "v9.2.0":
+        return
+    if not footer_has_tag(soup, "meta-explanation-blocked"):
+        return
+
+    violations = []
+    for selector in META_CHECK_SELECTORS:
+        # BeautifulSoup の select はクラス selector を順次解釈
+        elements = soup.select(selector)
+        for elem in elements:
+            # 例外 1：data-question-type="theory-selection" 配下は学説名「ア/イ」許容
+            parent_c4 = elem.find_parent("section", id="c-4")
+            is_theory_selection = (
+                parent_c4 is not None
+                and parent_c4.get("data-question-type") == "theory-selection"
+            )
+
+            # 例外 2/3：fa-summary / answer-instruction はスキップ
+            if elem.find_parent(class_="fa-summary") or elem.find_parent(class_="answer-instruction"):
+                continue
+
+            # 例外 4：mindmap-tree / mindmap-radial / c-5 の「本問の論点」枠（issue-fill / issue-branch-fill）はスキップ
+            if (
+                elem.find_parent(class_="issue-fill")
+                or elem.find_parent(class_="issue-branch-fill")
+            ):
+                continue
+
+            text = elem.get_text(" ", strip=True)
+            for pat in META_EXPLANATION_PATTERNS:
+                m = pat.search(text)
+                if m:
+                    # 例外 1 適用判定：学説名としての「ア/イ」のみのケースは許容
+                    if is_theory_selection and m.group(0).startswith(("肢ア", "肢イ", "肢ウ", "肢エ", "肢オ", "記号ア", "記号イ", "記号ウ", "記号エ", "記号オ")):
+                        continue
+                    snippet = text[max(0, m.start() - 10):m.end() + 30]
+                    violations.append(f"{selector}: 「{m.group(0)}」検出 [...{snippet}...]")
+
+    if violations:
+        joined = "\n  ".join(violations[:10])
+        more = f"\n  …他 {len(violations) - 10} 件" if len(violations) > 10 else ""
+        rep.error("S90", f"メタ説明違反検出（AP-43 / §0-quad-2-bis）：\n  {joined}{more}")
+
+
+# ============================================================
+# S91: 教授解説密度検査（v9.2.0 専用・AP-44 / §0-quad-3 STEP IQ-5 強化版）
+# ============================================================
+
+def check_professor_density(soup, rep):
+    """S91: 各 prof-heading 配下のテキスト文字数検査
+
+    判定条件：feature-tag に "TX v9.2.0 DEEP-DIVE" と "professor-density-v2" を含む場合のみ実行
+    """
+    if detect_spec_version(soup) != "v9.2.0":
+        return
+    if not footer_has_tag(soup, "professor-density-v2"):
+        return
+
+    profs = soup.select(".sub-card.professor")
+    if not profs:
+        return  # 教授カードが無い問題は対象外
+
+    for idx, prof in enumerate(profs, start=1):
+        total_chars = 0
+
+        # (a)-(d) 各 prof-heading の文字数規律
+        for selector, min_chars in PROF_DENSITY_REQUIREMENTS:
+            heading = prof.select_one(selector)
+            if heading is None:
+                rep.error(
+                    "S91",
+                    f"professor #{idx}: {selector} が見つかりません（AP-44）",
+                )
+                continue
+            text = heading.get_text(" ", strip=True)
+            char_count = len(text)
+            total_chars += char_count
+            if char_count < min_chars:
+                rep.error(
+                    "S91",
+                    f"professor #{idx}: {selector} は最低 {min_chars} 字必須・実={char_count} 字（AP-44）",
+                )
+
+        # (e) prof-image 内 3 要素必須
+        prof_image = prof.select_one(".prof-heading.prof-image")
+        if prof_image is not None:
+            for sub_sel in PROF_IMAGE_SUBELEMENTS:
+                if prof_image.select_one(sub_sel) is None:
+                    rep.error(
+                        "S91",
+                        f"professor #{idx}: prof-image 内 {sub_sel} 必須（AP-44）",
+                    )
+
+        # (f) prof-application 内 syllogism 3 要素必須
+        prof_app = prof.select_one(".prof-heading.prof-application")
+        if prof_app is not None:
+            syllogism = prof_app.select_one(".syllogism")
+            if syllogism is None:
+                rep.error(
+                    "S91",
+                    f"professor #{idx}: prof-application 内 .syllogism 必須（AP-44）",
+                )
+            else:
+                for sub_sel in PROF_SYLLOGISM_SUBELEMENTS:
+                    if syllogism.select_one(sub_sel) is None:
+                        rep.error(
+                            "S91",
+                            f"professor #{idx}: syllogism 内 {sub_sel} 必須（AP-44）",
+                        )
+
+        # (g) 全 prof-heading 合計 ≥ 1150 字
+        if total_chars < 1150:
+            rep.error(
+                "S91",
+                f"professor #{idx}: 全 prof-heading 合計 1150 字以上必須・実={total_chars} 字（AP-44）",
+            )
+
+
+# ============================================================
 # main
 # ============================================================
 
@@ -794,14 +1423,30 @@ def main():
 
     rep = Reporter()
 
+    # S1〜S82: バージョン非依存（全 spec 共通）
     check_structure(target, soup, html, rep)
     check_v8110_layers(html, style_text, rep)
     check_content_independence(soup, rep)
     check_naming(target, soup, rep)
     check_misc(target, soup, html, style_text, rep)
     check_number_integrity(target, soup, rep)
+
+    # S83: placeholder 残存検査（v8.11.x 以降全般）
     check_placeholder_residue(target, soup, html, rep)
+
+    # S84: v9.1.0-mindmap 専用（version-aware は関数内で判定）
     check_mindmap_structure(soup, rep)
+
+    # S85〜S91: v9.2.0 DEEP-DIVE 専用（version-aware は各関数内で判定）
+    check_tree_structure(soup, rep)
+    check_radial_structure(soup, rep)
+    check_flowchart_structure(soup, rep)
+    # S88 は style_text を別途取る
+    if detect_spec_version(soup) == "v9.2.0":
+        check_palette_derivatives(style_text, rep)
+    check_theory_deep_dive(soup, rep)
+    check_meta_explanation(soup, rep)
+    check_professor_density(soup, rep)
 
     sys.exit(rep.summary(target))
 
