@@ -562,6 +562,259 @@ def render_palette_derivatives_root(pattern: str) -> str:
 
 
 # ============================================================================
+# v9.2.0 SVG auto-layout 補完層（Phase 13A）
+# ============================================================================
+# 「座標フィールドなし」JSON（例: 305.json）に対し、構造データから x/y/cx/cy/
+# lines/viewbox を自動算出して inject する。座標が JSON に明示されていれば
+# それを優先（後方互換）。render_mindmap_tree / render_mindmap_radial_v92 /
+# render_flowchart_v2 の冒頭で 1 行呼ぶだけで動作。
+
+
+def auto_layout_tree(tree: dict) -> dict:
+    """mindmap_tree 用 auto-layout。
+    入力 JSON に座標がなければ階層位置から x/y を生成し、parent_idx から lines を組み立てる。
+    """
+    if not tree:
+        return tree
+    out = dict(tree)  # 浅いコピー
+
+    l0 = list(out.get("l0_nodes", []))
+    l1 = list(out.get("l1_nodes", []))
+    l2 = list(out.get("l2_nodes", []))
+    l3 = list(out.get("l3_nodes", []))
+
+    # viewbox 自動選択（"auto" or 未指定の場合）
+    vb = out.get("viewbox", "auto")
+    if vb == "auto" or not vb:
+        max_per_layer = max(len(l0), len(l1), len(l2), len(l3), 1)
+        depth = sum(1 for layer in (l0, l1, l2, l3) if layer)
+        if depth >= 5:
+            vb = "0 0 1100 800"
+        elif max_per_layer >= 9:
+            vb = "0 0 1300 600"
+        elif max_per_layer >= 6:
+            vb = "0 0 1100 700"
+        else:
+            vb = "0 0 1100 600"
+    out["viewbox"] = vb
+
+    # viewbox 幅・高さ抽出
+    parts = vb.split()
+    w = int(parts[2]) if len(parts) >= 4 else 1100
+    h = int(parts[3]) if len(parts) >= 4 else 600
+
+    # 階層 y 座標（上から下へ 13% / 35% / 57% / 79%）
+    layer_y = [int(h * 0.13), int(h * 0.35), int(h * 0.57), int(h * 0.79)]
+
+    def assign_xy(layer_nodes, layer_idx):
+        n = len(layer_nodes)
+        if n == 0:
+            return []
+        gap = w / (n + 1)
+        out_nodes = []
+        for i, node in enumerate(layer_nodes):
+            new_node = dict(node)
+            if "x" not in new_node:
+                new_node["x"] = int(gap * (i + 1))
+            if "y" not in new_node:
+                new_node["y"] = layer_y[layer_idx]
+            out_nodes.append(new_node)
+        return out_nodes
+
+    out["l0_nodes"] = assign_xy(l0, 0)
+    out["l1_nodes"] = assign_xy(l1, 1)
+    out["l2_nodes"] = assign_xy(l2, 2)
+    out["l3_nodes"] = assign_xy(l3, 3)
+
+    # 接続線生成（parent_idx から）
+    if "lines" not in out:
+        new_lines: list[dict] = []
+        # L0 → L1
+        for child in out["l1_nodes"]:
+            pidx = child.get("parent_idx")
+            if pidx is not None and pidx < len(out["l0_nodes"]):
+                p = out["l0_nodes"][pidx]
+                new_lines.append({"x1": p["x"], "y1": p["y"] + 20, "x2": child["x"], "y2": child["y"] - 15})
+        # L1 → L2
+        for child in out["l2_nodes"]:
+            pidx = child.get("parent_idx")
+            if pidx is not None and pidx < len(out["l1_nodes"]):
+                p = out["l1_nodes"][pidx]
+                new_lines.append({"x1": p["x"], "y1": p["y"] + 15, "x2": child["x"], "y2": child["y"] - 15})
+        # L2 → L3
+        for child in out["l3_nodes"]:
+            pidx = child.get("parent_idx")
+            if pidx is not None and pidx < len(out["l2_nodes"]):
+                p = out["l2_nodes"][pidx]
+                new_lines.append({"x1": p["x"], "y1": p["y"] + 15, "x2": child["x"], "y2": child["y"] - 15})
+        out["lines"] = new_lines
+
+    # issue_box の auto-layout（active な L3 ノード右側）
+    issue = out.get("issue_box")
+    if issue and ("x" not in issue or "y" not in issue):
+        issue = dict(issue)
+        active_l3 = next((n for n in out["l3_nodes"] if n.get("active")), None)
+        if active_l3:
+            issue["x"] = min(active_l3["x"] + 200, w - 100)
+            issue["y"] = active_l3["y"]
+            if "arrow" not in issue:
+                issue["arrow"] = {
+                    "x1": issue["x"] - 80, "y1": issue["y"],
+                    "x2": active_l3["x"] + 60, "y2": active_l3["y"],
+                }
+        else:
+            issue["x"] = w - 150
+            issue["y"] = 100
+        out["issue_box"] = issue
+
+    return out
+
+
+def auto_layout_radial(radial: dict) -> dict:
+    """mindmap_radial 用 auto-layout。
+    branches は V92_RADIAL_BRANCH_POSITIONS の既定座標を順序に従って使用。
+    sub_nodes は branch から放射方向にオフセット配置。
+    """
+    import math
+    if not radial:
+        return radial
+    out = dict(radial)
+
+    branches = list(out.get("branches", []))
+    new_branches = []
+    cx_center, cy_center = 550, 450
+
+    for i, branch in enumerate(branches):
+        new_branch = dict(branch)
+        # 主要枝の座標
+        if "x" not in new_branch or "y" not in new_branch:
+            if i < len(V92_RADIAL_BRANCH_POSITIONS):
+                _, _, bx, by = V92_RADIAL_BRANCH_POSITIONS[i]
+            else:
+                bx, by = 550, 450
+            new_branch.setdefault("x", bx)
+            new_branch.setdefault("y", by)
+
+        # sub_nodes の座標（branch から放射方向に外側へ）
+        new_sub_nodes = []
+        sub_nodes = branch.get("sub_nodes", [])
+        if sub_nodes:
+            dx = new_branch["x"] - cx_center
+            dy = new_branch["y"] - cy_center
+            dist = max(math.sqrt(dx * dx + dy * dy), 1.0)
+            ux, uy = dx / dist, dy / dist
+            tx, ty = -uy, ux
+            base_x = new_branch["x"] + int(ux * 90)
+            base_y = new_branch["y"] + int(uy * 90)
+            n = len(sub_nodes)
+            for j, sub in enumerate(sub_nodes):
+                new_sub = dict(sub)
+                if "x" not in new_sub or "y" not in new_sub:
+                    offset = (j - (n - 1) / 2.0) * 40
+                    new_sub["x"] = base_x + int(tx * offset)
+                    new_sub["y"] = base_y + int(ty * offset)
+                new_sub_nodes.append(new_sub)
+        new_branch["sub_nodes"] = new_sub_nodes
+        new_branches.append(new_branch)
+
+    out["branches"] = new_branches
+
+    issue = out.get("issue_branch")
+    if issue and ("x" not in issue or "y" not in issue):
+        issue = dict(issue)
+        issue.setdefault("x", 200)
+        issue.setdefault("y", 450)
+        out["issue_branch"] = issue
+
+    return out
+
+
+def auto_layout_flowchart(flow: dict) -> dict:
+    """flowchart_v2 用 auto-layout。
+    decisions[] から cy を自動算出、yn_pos / chips / end_success / end_fails の座標も補完。
+    """
+    if not flow:
+        return flow
+    out = dict(flow)
+
+    decisions = list(out.get("decisions", []))
+    n_dec = len(decisions)
+
+    # viewbox 自動選択
+    vb = out.get("viewbox", "auto")
+    if vb == "auto" or not vb:
+        if n_dec <= 3:
+            vb = "0 0 900 600"
+        elif n_dec <= 5:
+            vb = "0 0 900 800"
+        else:
+            vb = "0 0 900 1000"
+    out["viewbox"] = vb
+
+    # decisions の cy 自動算出
+    new_decisions = []
+    for i, dec in enumerate(decisions):
+        new_dec = dict(dec)
+        if "cy" not in new_dec:
+            new_dec["cy"] = 200 + i * 150
+        if "yn_pos" not in new_dec:
+            cy = new_dec["cy"]
+            new_dec["yn_pos"] = {
+                "yes_x": 540, "yes_y": cy,
+                "no_x": 360, "no_y": cy,
+            }
+        new_decisions.append(new_dec)
+    out["decisions"] = new_decisions
+
+    # chips の座標
+    new_chips = []
+    for chip in out.get("chips", []):
+        new_chip = dict(chip)
+        if "cx" not in new_chip or "cy" not in new_chip:
+            didx = new_chip.get("on_decision_idx", 0)
+            branch = new_chip.get("branch", "no")
+            if didx < len(new_decisions):
+                cy = new_decisions[didx]["cy"]
+                new_chip.setdefault("cx", 580 if branch == "yes" else 320)
+                new_chip.setdefault("cy", cy + 50)
+            else:
+                new_chip.setdefault("cx", 450)
+                new_chip.setdefault("cy", 700)
+        new_chips.append(new_chip)
+    out["chips"] = new_chips
+
+    # 終端ノードの座標
+    last_y = new_decisions[-1]["cy"] + 150 if new_decisions else 500
+    if "end_success" not in out:
+        out["end_success"] = {"cx": 450, "cy": last_y}
+    elif "cx" not in out["end_success"] or "cy" not in out["end_success"]:
+        es = dict(out["end_success"])
+        es.setdefault("cx", 450)
+        es.setdefault("cy", last_y)
+        out["end_success"] = es
+
+    fail_labels = out.get("end_fail_labels", [])
+    end_fails = list(out.get("end_fails", []))
+    if not end_fails and fail_labels:
+        for i, _ in enumerate(fail_labels):
+            end_fails.append({
+                "cx": 200 + i * 250 if i < 3 else 200,
+                "cy": last_y if i < 3 else last_y + 80,
+            })
+    elif end_fails:
+        new_end_fails = []
+        for i, ef in enumerate(end_fails):
+            new_ef = dict(ef)
+            new_ef.setdefault("cx", 200 + i * 250 if i < 3 else 200)
+            new_ef.setdefault("cy", last_y if i < 3 else last_y + 80)
+            new_end_fails.append(new_ef)
+        end_fails = new_end_fails
+    out["end_fails"] = end_fails
+
+    return out
+
+
+# ============================================================================
 # v9.2.0 §22-tree ツリー型体系図 SVG section 描画（S85 対応）
 # ============================================================================
 
@@ -585,6 +838,7 @@ def render_mindmap_tree(problem: dict) -> str:
     tree = problem.get("mindmap_tree")
     if not tree:
         return ""
+    tree = auto_layout_tree(tree)  # Phase 13A: 座標未指定なら auto-layout
 
     viewbox = tree.get("viewbox", "0 0 1100 600")
     aria_label = escape(tree.get("aria_label", "[本問テーマ] の体系的位置づけ"))
@@ -708,6 +962,7 @@ def render_mindmap_radial_v92(problem: dict) -> str:
     radial = problem.get("mindmap_radial")
     if not radial:
         return ""
+    radial = auto_layout_radial(radial)  # Phase 13A: 座標未指定なら auto-layout
 
     center = escape(radial.get("center_label", "[中心法理]"))
     aria_label = escape(radial.get("aria_label", "[本問テーマ] の体系（8 主要枝）"))
@@ -833,6 +1088,7 @@ def render_flowchart_v2(problem: dict) -> str:
     flow = problem.get("flowchart_v2")
     if not flow:
         return ""
+    flow = auto_layout_flowchart(flow)  # Phase 13A: 座標未指定なら auto-layout
 
     aria_label = escape(flow.get("aria_label", "[本問テーマ] の成否判定フロー"))
     viewbox = flow.get("viewbox", "0 0 900 800")
@@ -888,21 +1144,25 @@ def render_flowchart_v2(problem: dict) -> str:
             f'<text class="tx-chip" text-anchor="middle" y="4">{escape(chip["label"])}</text></g>'
         )
 
-    # 終端：成立
+    # 終端：成立（end_success_label が指定されていればそれを表示・既定「成立」）
     end_success = flow.get("end_success")
     if end_success:
+        es_label = escape(flow.get("end_success_label", "成立"))
         svg_parts.append(
             f'        <g transform="translate({end_success["cx"]}, {end_success["cy"]})">'
             f'<rect class="flow-end-success" x="-80" y="-25" width="160" height="50" rx="10"/>'
-            f'<text class="tx-end" text-anchor="middle" y="6">成立</text></g>'
+            f'<text class="tx-end" text-anchor="middle" y="6">{es_label}</text></g>'
         )
 
-    # 終端：不成立（複数可）
-    for end_fail in flow.get("end_fails", []):
+    # 終端：不成立（複数可・end_fail_labels が指定されていればラベルを順次適用）
+    end_fails = flow.get("end_fails", [])
+    fail_labels = flow.get("end_fail_labels", [])
+    for i, end_fail in enumerate(end_fails):
+        label = escape(fail_labels[i]) if i < len(fail_labels) else "不成立"
         svg_parts.append(
             f'        <g transform="translate({end_fail["cx"]}, {end_fail["cy"]})">'
             f'<rect class="flow-end-fail" x="-80" y="-25" width="160" height="50" rx="10"/>'
-            f'<text class="tx-end" text-anchor="middle" y="6">不成立</text></g>'
+            f'<text class="tx-end" text-anchor="middle" y="6">{label}</text></g>'
         )
 
     svg_body = "\n".join(svg_parts)
@@ -2561,8 +2821,18 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         slots[f"{prefix}_CASES"] = CASE_SEPARATOR.join(choice.get("case_citations", []))
         # 教授の解説 sub-card (slotmap §5.6、optional)
         professor = choice.get("professor") or {}
-        slots[f"{prefix}_PROFESSOR_SUMMARY"] = str(professor.get("summary", ""))
-        slots[f"{prefix}_PROFESSOR_NOTE"] = str(professor.get("note", ""))
+        # v9.2.0 density-v2 統合（Phase 13A）：
+        # spec_version=v9.2.0 かつ professor.point が定義されている場合のみ density-v2 HTML
+        # を生成。それ以外（v9.1.0 以下 / v9.2.0 で density-v2 未指定）は既存 summary/note
+        # 経路を維持。PART_B_FRAME 内 `<p class="prof-summary">{{...}}</p>` への注入だが、
+        # HTML parser は内部 <div> を検知して <p> を自動的に閉じるため、S91 検査（BeautifulSoup）
+        # の `.prof-heading.prof-point` セレクタは到達可能。v9.1.0 baseline は byte-identical 維持。
+        if spec_version == "v9.2.0" and professor.get("point"):
+            slots[f"{prefix}_PROFESSOR_SUMMARY"] = render_professor_density_v2(professor)
+            slots[f"{prefix}_PROFESSOR_NOTE"] = ""
+        else:
+            slots[f"{prefix}_PROFESSOR_SUMMARY"] = str(professor.get("summary", ""))
+            slots[f"{prefix}_PROFESSOR_NOTE"] = str(professor.get("note", ""))
 
     return slots
 
