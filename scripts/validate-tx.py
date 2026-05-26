@@ -34,7 +34,6 @@ version-aware ロジック:
     PYTHONIOENCODING=utf-8 環境変数を毎回付与する必要はない。
 """
 
-import colorsys
 import json
 import sys
 import re
@@ -144,7 +143,6 @@ PROBLEMS_DIR = PROJECT_ROOT / "problems"
 # ============================================================
 
 SPEC_VERSION_PATTERNS = [
-    ("v9.3.0", re.compile(r"TX\s+v9\.3\.0\s+PALETTE-MULTI-VARIANT")),
     ("v9.2.0", re.compile(r"TX\s+v9\.2\.0\s+DEEP-DIVE")),
     ("v9.1.0", re.compile(r"TX\s+v9\.1\.0\s+MINDMAP")),
     ("v9.0.0", re.compile(r"TX\s+v9\.0\.0\s+GENKEI")),
@@ -196,98 +194,6 @@ V92_DERIVATIVE_COLORS = [
     "--contrast-warm",
     "--contrast-cool",
 ]
-
-
-# ============================================================
-# v9.3.0 PALETTE-MULTI-VARIANT 検査定数（S88 改訂 / S92 新規 / AP-47）
-# ============================================================
-
-# 27 サブパレット ID（flat 構造・S92 ID 整合性検査用）
-SUBPALETTES_V93_FLAT: dict = {
-    # P1 桜彩
-    "sakura-haze":         {"category": "P1", "label_ja": "桜霞"},
-    "spring-twilight":     {"category": "P1", "label_ja": "春薄明"},
-    "peony-glow":          {"category": "P1", "label_ja": "牡丹陽"},
-    "hydrangea-dusk":      {"category": "P1", "label_ja": "紫陽花宵"},
-    "wisteria-moon":       {"category": "P1", "label_ja": "藤霞月"},
-    "kerria-bloom":        {"category": "P1", "label_ja": "山吹陽"},
-    "crimson-camellia":    {"category": "P1", "label_ja": "鮮椿青"},
-    "hydrangea-morn":      {"category": "P1", "label_ja": "紫陽朝"},
-    "spring-aureate":      {"category": "P1", "label_ja": "春金苑"},
-    # P2 翠彩
-    "verdant-rose":        {"category": "P2", "label_ja": "翠紅園"},
-    "golden-verdant":      {"category": "P2", "label_ja": "山吹翠苑"},
-    "young-sprout":        {"category": "P2", "label_ja": "若苗野"},
-    "moss-blossom":        {"category": "P2", "label_ja": "苔月華"},
-    "azure-orchid":        {"category": "P2", "label_ja": "群青蘭"},
-    "early-jade":          {"category": "P2", "label_ja": "早春翠"},
-    "vermilion-garden":    {"category": "P2", "label_ja": "朱檀苑"},
-    "crimson-jade":        {"category": "P2", "label_ja": "朱赭翠"},
-    "golden-harvest":      {"category": "P2", "label_ja": "黄金穂"},
-    # P3 玄彩
-    "moonfrost-violet":    {"category": "P3", "label_ja": "月霜紫"},
-    "starlit-amethyst":    {"category": "P3", "label_ja": "星辰深紫"},
-    "wine-galaxy":         {"category": "P3", "label_ja": "葡萄銀河"},
-    "dusk-violet":         {"category": "P3", "label_ja": "黄昏菫"},
-    "hydrangea-afterglow": {"category": "P3", "label_ja": "紫陽花残光"},
-    "sapphire-moon":       {"category": "P3", "label_ja": "紺碧月華"},
-    "dawn-nebula":         {"category": "P3", "label_ja": "暁星雲"},
-    "violet-firework":     {"category": "P3", "label_ja": "紫煙花火"},
-    "emerald-violet":      {"category": "P3", "label_ja": "青翠菫光"},
-}
-
-
-# v9.3.0 派生色変数（14 個・S88 検査対象）
-DERIVED_COLOR_VARS_V93 = [
-    "--accent", "--mid", "--base",
-    "--accent-light", "--accent-darker", "--accent-soft", "--accent-soft-2",
-    "--mid-warm", "--mid-cool", "--mid-soft", "--surface-tint",
-    "--neutral-cream", "--contrast-warm", "--contrast-cool",
-]
-
-# 絶対派生 3 個（S88 で固定値検査）
-ABSOLUTE_DERIVATIVES_V93 = {
-    "--neutral-cream": "#F4EDE0",
-    "--contrast-warm": "#D97A4F",
-    "--contrast-cool": "#6A8AA8",
-}
-
-# HSL 派生パラメータ（spec §32-5-2）
-HSL_DERIVATIONS_V93 = {
-    "--accent-light":   ("--accent",   0,  -8, +13),
-    "--accent-darker":  ("--accent",   0,  +5,  -4),
-    "--accent-soft":    ("--accent",   0, -25, +18),
-    "--accent-soft-2":  ("--accent",   0, -15, +25),
-    "--mid-warm":       ("--mid",     +8,  +5,  +6),
-    "--mid-cool":       ("--mid",     -8,  -5,  +0),
-    "--mid-soft":       ("--mid",      0, -10, +20),
-    "--surface-tint":   ("--accent",   0, -20, +30),
-}
-
-
-def _v93_hex_to_hsl(hex_str: str) -> tuple:
-    hex_clean = hex_str.lstrip("#")
-    if len(hex_clean) != 6:
-        raise ValueError(f"invalid hex: {hex_str}")
-    r, g, b = (int(hex_clean[i:i+2], 16) / 255.0 for i in (0, 2, 4))
-    h, l, s = colorsys.rgb_to_hls(r, g, b)
-    return (h * 360, s * 100, l * 100)
-
-
-def _v93_hsl_to_hex(h: float, s: float, l: float) -> str:
-    h_norm = (h % 360) / 360.0
-    s_norm = max(0.0, min(100.0, s)) / 100.0
-    l_norm = max(0.0, min(100.0, l)) / 100.0
-    r, g, b = colorsys.hls_to_rgb(h_norm, l_norm, s_norm)
-    return "#" + "".join(f"{int(round(c * 255)):02X}" for c in (r, g, b))
-
-
-def _v93_hex_distance(hex_a: str, hex_b: str) -> int:
-    a = hex_a.lstrip("#").upper()
-    b = hex_b.lstrip("#").upper()
-    if len(a) != 6 or len(b) != 6:
-        return 999
-    return sum(abs(int(a[i:i+2], 16) - int(b[i:i+2], 16)) for i in (0, 2, 4))
 
 
 # ============================================================
@@ -1290,139 +1196,6 @@ def check_palette_derivatives(style_text, rep):
 
 
 # ============================================================
-# S88 改訂: v9.3.0 派生色変数検査（HSL 派生妥当性含む・AP-45/AP-47）
-# ============================================================
-
-def check_s88_v93(style_text, rep):
-    """S88 (v9.3.0): :root{} 内 14 派生色変数の存在 + 絶対派生固定値 + HSL 派生妥当性検査。"""
-    m = re.search(r":root\s*\{([^}]*)\}", style_text, re.DOTALL)
-    if not m:
-        rep.error("S88/AP-45", ":root{} ブロックが見つかりません（v9.3.0）")
-        return
-    root_body = m.group(1)
-
-    var_values: dict = {}
-    for var in DERIVED_COLOR_VARS_V93:
-        pattern = re.escape(var) + r"\s*:\s*(#[0-9A-Fa-f]{6})"
-        vm = re.search(pattern, root_body)
-        if not vm:
-            rep.error(
-                "S88/AP-45",
-                f"派生色変数 {var} が :root 内に定義されていません（v9.3.0）"
-            )
-        else:
-            var_values[var] = vm.group(1).upper()
-
-    # 絶対派生 3 個の固定値検査
-    for var, expected in ABSOLUTE_DERIVATIVES_V93.items():
-        if var in var_values:
-            actual = var_values[var]
-            if _v93_hex_distance(actual, expected) > 0:
-                rep.error(
-                    "S88/AP-47",
-                    f"絶対派生 {var} の値 {actual} が期待値 {expected} と一致しません"
-                )
-
-    # HSL 派生 8 個の妥当性検査（許容誤差: R/G/B 差分合計 ≤6）
-    for derived, (src_var, dh, ds, dl) in HSL_DERIVATIONS_V93.items():
-        if derived not in var_values or src_var not in var_values:
-            continue
-        src_hex = var_values[src_var]
-        derived_actual = var_values[derived]
-        try:
-            h, s, l = _v93_hex_to_hsl(src_hex)
-            expected_hex = _v93_hsl_to_hex(h + dh, s + ds, l + dl)
-        except ValueError:
-            continue
-        dist = _v93_hex_distance(derived_actual, expected_hex)
-        if dist > 6:
-            rep.error(
-                "S88/AP-47",
-                f"HSL 派生 {derived}={derived_actual} が期待値 {expected_hex} "
-                f"（{src_var}={src_hex} から dH={dh}/dS={ds}/dL={dl}）と乖離 (距離={dist})"
-            )
-
-
-# ============================================================
-# S92 新規: サブパレット ID 整合性検査（v9.3.0 専用・AP-47）
-# ============================================================
-
-def check_s92(html_content, problem_json, rep):
-    """S92: :root コメントと footer feature-tag の sub-palette 整合性、
-    JSON correct_rate からのカテゴリ判定整合性検査。"""
-    root_m = re.search(r":root\s*\{([^}]*)\}", html_content, re.DOTALL)
-    if not root_m:
-        return  # S88 で別途検出
-    root_body = root_m.group(1)
-
-    root_comment_m = re.search(
-        r"sub-palette:\s*([^\s/]+(?:\s+[^\s/]+)*)\s*\(([\w\-]+)\)\s*/\s*category:\s*(P[123])",
-        root_body
-    )
-    if not root_comment_m:
-        rep.error(
-            "S92/AP-47",
-            ':root{} 内に "sub-palette: [名前] ([英語コード]) / category: P[123]" コメントが見つかりません'
-        )
-        return
-    root_id = root_comment_m.group(2)
-    root_category = root_comment_m.group(3)
-
-    tag_pattern = r'<span class="feature-tag">sub-palette:\s*([^\s<]+(?:\s+[^\s<]+)*)\s*\(([\w\-]+)\)</span>'
-    tag_m = re.search(tag_pattern, html_content)
-    if not tag_m:
-        rep.error(
-            "S92/AP-47",
-            'footer feature-tag に "sub-palette: [名前] ([英語コード])" が見つかりません'
-        )
-        return
-    tag_id = tag_m.group(2)
-
-    if root_id != tag_id:
-        rep.error(
-            "S92/AP-47",
-            f":root sub-palette ID ({root_id}) と footer tag ID ({tag_id}) が不一致"
-        )
-
-    if root_id not in SUBPALETTES_V93_FLAT:
-        rep.error(
-            "S92/AP-47",
-            f'サブパレット ID "{root_id}" が登録カラーパレットに存在しません'
-        )
-        return
-
-    expected_meta = SUBPALETTES_V93_FLAT[root_id]
-    if expected_meta["category"] != root_category:
-        rep.error(
-            "S92/AP-47",
-            f"サブパレット {root_id} の登録 category={expected_meta['category']} と "
-            f":root 内 category={root_category} が不一致"
-        )
-
-    # JSON correct_rate との整合性（override_reason 未記載時のみ）
-    if problem_json is not None:
-        override_reason = problem_json.get("palette_override_reason")
-        if not override_reason:
-            correct_rate_str = problem_json.get("correct_rate", "")
-            rate_m = re.search(r"(\d+)", str(correct_rate_str))
-            if rate_m:
-                rate = int(rate_m.group(1))
-                if rate >= 70:
-                    expected_cat = "P1"
-                elif rate >= 40:
-                    expected_cat = "P2"
-                else:
-                    expected_cat = "P3"
-                if expected_cat != root_category:
-                    rep.error(
-                        "S92/AP-47",
-                        f"correct_rate={rate}% から導出されるカテゴリ {expected_cat} と "
-                        f"使用サブパレット category={root_category} が不一致。"
-                        f"意図的なら JSON に palette_override_reason を記載してください"
-                    )
-
-
-# ============================================================
 # S89: §17-ter 学説対立 deep-dive 構造検査（v9.2.0 専用・AP-46）
 # ============================================================
 
@@ -1696,21 +1469,8 @@ def main():
     check_tree_structure(soup, rep)
     check_radial_structure(soup, rep)
     check_flowchart_structure(soup, rep)
-    # S88 (派生色) / S92 (サブパレット ID 整合性) は spec_version で経路分岐
-    spec_version = detect_spec_version(soup)
-    if spec_version == "v9.3.0":
-        # v9.3.0 PALETTE-MULTI-VARIANT: S88 改訂 + S92 新規
-        check_s88_v93(style_text, rep)
-        # S92 は problem.json を必要とする（JSON 未在時は None で内部スキップ）
-        json_path = derive_problem_json_path(target)
-        problem_json = None
-        if json_path.exists():
-            try:
-                problem_json = json.loads(json_path.read_text(encoding="utf-8"))
-            except Exception:
-                problem_json = None
-        check_s92(html, problem_json, rep)
-    elif spec_version == "v9.2.0":
+    # S88 は style_text を別途取る
+    if detect_spec_version(soup) == "v9.2.0":
         check_palette_derivatives(style_text, rep)
     check_theory_deep_dive(target, soup, rep)
     check_meta_explanation(soup, rep)
