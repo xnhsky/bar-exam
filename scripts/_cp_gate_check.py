@@ -58,24 +58,9 @@ def main() -> int:
             print(f"  SKIP {arg}: {e}")
             continue
         problem = json.loads(json_path.read_text(encoding="utf-8"))
-        # v9.2.0 spec_version files are out-of-scope for baseline comparison by design
-        # (新規生成専用・_phase3_2_pre_patch_baseline.json は v9.1.0 までの hash のみ保持)
+        # Phase X (v9.3.0 統合・2026-05-26) で baseline を全 spec_version 対応に再構築。
+        # 旧来の v9.2.0 SKIP は廃止し、v9.2.0 / v9.3.0 も byte-identical 検査対象とする。
         spec_version = problem.get("spec_version", "v9.1.0")
-        if spec_version == "v9.2.0":
-            skip_v92_count += 1
-            # SKIP した pid を rendered_keys に add して MISS 誤検出を回避
-            # (baseline には旧 v9.1.0 時代の同 pid hash が登録されているため、
-            #  rendered_keys に登録せずに skip すると最終 MISS チェックで誤検出される)
-            json_subject = problem.get("subject")
-            subject_for_skip = (
-                json_subject if json_subject and json_subject in R.SUBJECT_TO_JP
-                else subject
-            )
-            jp_prefix = R.SUBJECT_TO_JP[subject_for_skip]
-            skip_out_rel = f"tx/{jp_prefix}TX/{jp_prefix}TX{pid}.html"
-            rendered_keys.add(skip_out_rel)
-            print(f"  {pid}: SKIP_v92 (spec_version=v9.2.0)")
-            continue
         json_subject = problem.get("subject")
         if json_subject and json_subject in R.SUBJECT_TO_JP:
             subject = json_subject

@@ -618,8 +618,12 @@ def check_content_independence(soup, rep):
     # S69: structural shell only 原則違反（簡易版）
     # ※完全な §Annex B 元テキストとの比較は実装が重いため、
     #   よく流用される代表 4 文字列の出現で代用検出する
+    # 注意：「他人のためにその事務を処理する者」単独は刑法247条の法定文言と
+    #       重複し、背任罪を扱う任意の問題で正当に出現するため、
+    #       KTX301 固有である「他人のためにその事務を処理する者が、任務に背いて」
+    #       の長文一致で誤検出を回避する（v9.3.0 Phase 15 で改訂）
     ktx301_signature_fragments = [
-        "他人のためにその事務を処理する者",
+        "他人のためにその事務を処理する者が、任務に背いて",
         "脅迫文言の中に虚偽の部分",
         "新聞販売店から集金業務",
         "保険金を詐取する目的で",
@@ -724,8 +728,8 @@ def check_misc(target_path, soup, html, style_text, rep):
     # 注：canonical/KTX301.html は v8.11.0 ベースの構造参考なので
     # spec バージョン専用タグの検査対象外とする（編集を誘発しないため）
     if not is_canonical_reference:
-        # spec バージョン feature-tag（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap / v9.2.0-deepdive いずれか必須）
-        spec_version_tags = ["TX v8.11.7", "TX v9.0.0 GENKEI", "TX v9.1.0 MINDMAP", "TX v9.2.0 DEEP-DIVE"]
+        # spec バージョン feature-tag（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap / v9.2.0-deepdive / v9.3.0-palette-multi-variant いずれか必須）
+        spec_version_tags = ["TX v8.11.7", "TX v9.0.0 GENKEI", "TX v9.1.0 MINDMAP", "TX v9.2.0 DEEP-DIVE", "TX v9.3.0 PALETTE-MULTI-VARIANT"]
         # 共通必須 feature-tag
         common_required_tags = ["ktx301-canon", "jp-prefix-naming", "content-independence"]
         footer_el = soup.find(class_="footer-spec")
@@ -733,7 +737,7 @@ def check_misc(target_path, soup, html, style_text, rep):
             footer_text = footer_el.get_text()
             # spec バージョンタグ：OR 条件（いずれか 1 つあれば PASS）
             if not any(tag in footer_text for tag in spec_version_tags):
-                rep.warn("S51", "footer-spec に spec バージョン feature-tag が含まれない（'TX v8.11.7' / 'TX v9.0.0 GENKEI' / 'TX v9.1.0 MINDMAP' / 'TX v9.2.0 DEEP-DIVE' のいずれか必須）")
+                rep.warn("S51", "footer-spec に spec バージョン feature-tag が含まれない（'TX v8.11.7' / 'TX v9.0.0 GENKEI' / 'TX v9.1.0 MINDMAP' / 'TX v9.2.0 DEEP-DIVE' / 'TX v9.3.0 PALETTE-MULTI-VARIANT' のいずれか必須）")
             # 共通必須タグ：AND 条件（全て必須）
             for tag in common_required_tags:
                 if tag not in footer_text:
@@ -1344,6 +1348,68 @@ def check_s88_v93(style_text, rep):
 
 
 # ============================================================
+# S94 新規: SVG class CSS rule 存在検査（v9.2.0 + v9.3.0 共通・AP-49）
+# ============================================================
+# SVG (tree / radial / flowchart) は class 属性で着色されるため、
+# 対応する CSS rule が <style> 内に欠落していると全 SVG 形状が
+# 既定（黒）でレンダリングされる重大表示バグの再発防止。
+
+SVG_CSS_REQUIRED_RULES = [
+    ".tree-svg .l0-fill",
+    ".tree-svg .tx-l0",
+    ".radial-svg .branch-fill",
+    ".radial-svg .tx-center",
+    ".flow-svg .flow-decision",
+    ".flow-svg .tx-decision",
+]
+
+
+def check_s94(style_text, rep):
+    """S94: SVG class CSS rule が <style> 内に存在するかを検査。
+
+    tree-svg / radial-svg / flow-svg の各々から代表 class を抽出し、
+    対応する CSS rule が存在することを確認する。欠落時は WARNING
+    （表示は崩れるが配信は可能。SVG が黒塗りになる重大表示バグの
+    検出を目的とする）。
+    """
+    for rule in SVG_CSS_REQUIRED_RULES:
+        # CSS rule は class セレクタ + { ... } の形式
+        # 'tree-svg .l0-fill' のような複合セレクタを部分一致で検出
+        pattern = re.escape(rule) + r"\s*\{[^}]+\}"
+        if not re.search(pattern, style_text):
+            rep.warn(
+                "S94/AP-49",
+                f"SVG class CSS rule が欠落: {rule}{{ ... }}（SVG が黒塗りで描画される可能性）"
+            )
+
+
+# ============================================================
+# S93 新規: v9.3.0 :root{} 単一性検査（v9.3.0 専用・AP-48）
+# ============================================================
+# v9.3.0 spec §32-3 では :root{} ブロックは 1 個のみ（comprehensive block）を要求。
+# テンプレ既定の 2 個（font + color palette）が残存していると CSS 後勝ちで
+# v9.3.0 サブパレット色が上書きされる重大バグの再発を防ぐ。
+
+def check_s93(style_text, rep):
+    """S93: v9.3.0 ファイルでは :root{} ブロックが 1 個のみであることを検査。
+
+    2 個以上検出時は ERROR（AP-48・テンプレ既定残存による v9.3.0 サブパレット上書き）。
+    """
+    matches = re.findall(r":root\s*\{[^}]*\}", style_text, re.DOTALL)
+    count = len(matches)
+    if count == 0:
+        rep.error("S93/AP-48", ":root{} ブロックが見つかりません（v9.3.0 では comprehensive block 1 個が必須）")
+    elif count > 1:
+        rep.error(
+            "S93/AP-48",
+            f":root{{}} ブロックが {count} 個存在します（v9.3.0 では 1 個のみ可）。"
+            "テンプレ既定の :root{} が残存している可能性があります（CSS 後勝ちで "
+            "v9.3.0 サブパレット色が上書きされるため、render.py で全 :root{} 削除 → "
+            "v9.3.0 comprehensive block 1 個挿入の経路を確認してください）"
+        )
+
+
+# ============================================================
 # S92 新規: サブパレット ID 整合性検査（v9.3.0 専用・AP-47）
 # ============================================================
 
@@ -1699,7 +1765,7 @@ def main():
     # S88 (派生色) / S92 (サブパレット ID 整合性) は spec_version で経路分岐
     spec_version = detect_spec_version(soup)
     if spec_version == "v9.3.0":
-        # v9.3.0 PALETTE-MULTI-VARIANT: S88 改訂 + S92 新規
+        # v9.3.0 PALETTE-MULTI-VARIANT: S88 改訂 + S92 新規 + S93 新規
         check_s88_v93(style_text, rep)
         # S92 は problem.json を必要とする（JSON 未在時は None で内部スキップ）
         json_path = derive_problem_json_path(target)
@@ -1710,11 +1776,17 @@ def main():
             except Exception:
                 problem_json = None
         check_s92(html, problem_json, rep)
+        # S93: :root{} 単一性（テンプレ既定残存検出）
+        check_s93(style_text, rep)
     elif spec_version == "v9.2.0":
         check_palette_derivatives(style_text, rep)
     check_theory_deep_dive(target, soup, rep)
     check_meta_explanation(soup, rep)
     check_professor_density(soup, rep)
+
+    # S94: SVG class CSS rule 存在検査（v9.2.0 / v9.3.0 共通・SVG 黒塗り検出）
+    if spec_version in ("v9.2.0", "v9.3.0"):
+        check_s94(style_text, rep)
 
     sys.exit(rep.summary(target))
 
