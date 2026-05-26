@@ -3327,24 +3327,49 @@ _V94_SVG_CSS = """
 
 /* === §24-bis professor readability (v9.4.0 override) === */
 /* 既存 .prof-heading { display:flex } が h4 + 子要素を全て横並び flex 子要素に
-   してしまう問題（h4「イメージで掴む」が極端に狭く縦書き化、image-scene/bridge/
-   contrast が 3 列の狭い窓に詰込まれる）を解消する。
-   .prof-heading 自身は block レイアウトに戻し、h4 だけが flex を持つ */
+   してしまう問題を解消し、h4 を pill バッジに変更する */
 .prof-heading{
   display:block !important;
   border-bottom:none;
   padding-bottom:0;
-  margin:24px 0 12px 0;
+  margin:28px 0 14px 0;
 }
+/* === h4 を pill バッジ化（種別ごとに色違い・絵文字 prefix） === */
 .prof-heading > h4{
-  display:flex; align-items:center; gap:10px;
+  display:inline-block !important;
+  padding:7px 18px 8px 16px;
   margin:0 0 14px 0;
+  background:linear-gradient(135deg, var(--accent), var(--mid));
+  color:#fff !important;
   font-family:var(--font-display);
-  font-weight:700; font-size:1.08em;
-  color:#1b5e20; letter-spacing:.04em;
-  border-bottom:1.5px dashed rgba(46,125,50,.40);
-  padding-bottom:6px;
+  font-weight:700; font-size:.98em;
+  letter-spacing:.10em;
+  border-radius:999px;
+  border:none;
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.30);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  line-height:1.3;
 }
+.prof-heading > h4::before{ margin-right:6px; opacity:.95; }
+.prof-point > h4{
+  background:linear-gradient(135deg, #1b5e20, #2e7d32);
+  box-shadow:0 2px 6px rgba(27,94,32,.35);
+}
+.prof-point > h4::before{ content:'🎯'; }
+.prof-process > h4{
+  background:linear-gradient(135deg, var(--accent), var(--mid));
+}
+.prof-process > h4::before{ content:'🧭'; }
+.prof-image > h4{
+  background:linear-gradient(135deg, var(--mid), var(--mid-warm));
+  box-shadow:0 2px 6px rgba(var(--mid-rgb),.40);
+}
+.prof-image > h4::before{ content:'🖼'; }
+.prof-application > h4{
+  background:linear-gradient(135deg, var(--bg-dark), var(--accent));
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.40);
+}
+.prof-application > h4::before{ content:'⚖'; }
 /* point の locus と list */
 .prof-point > .point-list{
   margin:0 0 12px 0; padding-left:1.6em;
