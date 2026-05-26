@@ -631,8 +631,8 @@ def check_misc(target_path, soup, html, style_text, rep):
     # 注：canonical/KTX301.html は v8.11.0 ベースの構造参考なので
     # spec バージョン専用タグの検査対象外とする（編集を誘発しないため）
     if not is_canonical_reference:
-        # spec バージョン feature-tag（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap / v9.2.0-deepdive いずれか必須）
-        spec_version_tags = ["TX v8.11.7", "TX v9.0.0 GENKEI", "TX v9.1.0 MINDMAP", "TX v9.2.0 DEEP-DIVE"]
+        # spec バージョン feature-tag（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap / v9.2.0-deepdive / v9.4.0-complete-baseline いずれか必須）
+        spec_version_tags = ["TX v8.11.7", "TX v9.0.0 GENKEI", "TX v9.1.0 MINDMAP", "TX v9.2.0 DEEP-DIVE", "TX v9.4.0 COMPLETE-BASELINE"]
         # 共通必須 feature-tag
         common_required_tags = ["ktx301-canon", "jp-prefix-naming", "content-independence"]
         footer_el = soup.find(class_="footer-spec")
@@ -640,7 +640,7 @@ def check_misc(target_path, soup, html, style_text, rep):
             footer_text = footer_el.get_text()
             # spec バージョンタグ：OR 条件（いずれか 1 つあれば PASS）
             if not any(tag in footer_text for tag in spec_version_tags):
-                rep.warn("S51", "footer-spec に spec バージョン feature-tag が含まれない（'TX v8.11.7' / 'TX v9.0.0 GENKEI' / 'TX v9.1.0 MINDMAP' / 'TX v9.2.0 DEEP-DIVE' のいずれか必須）")
+                rep.warn("S51", "footer-spec に spec バージョン feature-tag が含まれない（'TX v8.11.7' / 'TX v9.0.0 GENKEI' / 'TX v9.1.0 MINDMAP' / 'TX v9.2.0 DEEP-DIVE' / 'TX v9.4.0 COMPLETE-BASELINE' のいずれか必須）")
             # 共通必須タグ：AND 条件（全て必須）
             for tag in common_required_tags:
                 if tag not in footer_text:
@@ -651,9 +651,11 @@ def check_misc(target_path, soup, html, style_text, rep):
     # AP-24: P2/P3 override が単一 :root{} ブロックのみであること
     # （複雑な解析が必要なので簡易チェック）
     # v9.2.0 では §Annex A-z-1 派生色 :root が追加で 1 ブロック許容（合計 3 まで）
+    # v9.4.0 は v9.2.0 加算機能（palette-derivatives）+ v9.1.0 baseline 構造の融合のため
+    # P2/P3 で同じく 3 個まで許容。
     root_blocks = re.findall(r":root\s*\{", style_text)
     spec_version = detect_spec_version(soup)
-    max_allowed = 3 if spec_version == "v9.2.0" else 2
+    max_allowed = 3 if spec_version in ("v9.2.0", "v9.4.0") else 2
     if len(root_blocks) > max_allowed:
         rep.warn(
             "S60/AP-24",

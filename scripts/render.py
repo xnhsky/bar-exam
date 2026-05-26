@@ -528,13 +528,22 @@ def render_footer_feature_tags(
     戻り値は \\n 区切りで連結したもの。末尾 \\n は含まない
     （template 側の `{{FOOTER_FEATURE_TAGS}}\\n` が末尾改行を供給する）。
     """
-    if spec_version == "v9.2.0":
+    if spec_version in ("v9.2.0", "v9.4.0"):
         # v9.2.0 DEEP-DIVE: 31 固定 + override_pattern + palette-strategy = 33 tag
+        # v9.4.0 COMPLETE-BASELINE: 同じ 33 tag に v9.4.0 識別 tag を 5 件追加 = 38 tag
         base = list(FOOTER_FEATURE_TAGS_V92) + [override_pattern]
         if palette_strategy:
             base.append(f"palette-strategy: {palette_strategy}")
         else:
             base.append("palette-strategy: 同系統調和")  # 既定戦略
+        if spec_version == "v9.4.0":
+            # v9.4.0 識別タグ群（v9.1.0 baseline 機能の有効化を明示）
+            # v9.2.0 DEEP-DIVE tag を v9.4.0 COMPLETE-BASELINE tag に差し替える
+            base[0] = "TX v9.4.0 COMPLETE-BASELINE"
+            base.append("v94-hero-extra")
+            base.append("v94-choice-summary")
+            base.append("v94-sub-card-basis-link")
+            base.append("v94-mindmap-section")
         if extra_tags:
             base.extend(extra_tags)
         tags = base
@@ -2715,7 +2724,11 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
     #   `  </section>{{MINDMAP_TREE}}{{MINDMAP_RADIAL_V92}}`
     # populated 時のみ slot 値の先頭に `\n` を付け、インライン直後に正しい改行で
     # 続く HTML を出力する。v9.1.0 以下では空文字 → byte-identical 維持。
-    if spec_version == "v9.2.0":
+    # v9.2.0 / v9.4.0 共通：v9.2.0 加算機能 6 件（tree-mindmap / radial-mindmap-v92 /
+    # branching-flowchart / theory-deep-dive / palette-derivatives / density-v2）を全 ON。
+    # v9.4.0 はこれに加えて v9.1.0 baseline 機能（hero-extra / choice-summary /
+    # sub-card.basis-link / mindmap-section）を build_slot_dict() 末尾で post-process。
+    if spec_version in ("v9.2.0", "v9.4.0"):
         if flags["PALETTE_DERIVATIVES"]:
             palette_root = render_palette_derivatives_root(slots["OVERRIDE_PATTERN"])
             slots["PALETTE_DERIVATIVES_ROOT"] = "\n" + palette_root if palette_root else ""
@@ -2743,13 +2756,13 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
             render_theory_deep_dive(problem) if flags["INCLUDE_THEORY_DEEP_DIVE"] else ""
         )
 
-        # v9.2.0 C-4 への theory-detail-grid 注入（back-to-top の直前に挿入）
+        # v9.2.0/v9.4.0 C-4 への theory-detail-grid 注入（back-to-top の直前に挿入）
         if flags["INCLUDE_THEORY_DEEP_DIVE"] and problem.get("theory_deep_dive"):
             slots["C4_DOCTRINES"] = inject_theory_into_c4(
                 slots["C4_DOCTRINES"], render_theory_deep_dive(problem)
             )
 
-        # v9.2.0 C-5 を分岐型 flow-svg に置換（flowchart_v2 が定義されている場合のみ）
+        # v9.2.0/v9.4.0 C-5 を分岐型 flow-svg に置換（flowchart_v2 が定義されている場合のみ）
         if flags["INCLUDE_BRANCHING_FLOWCHART"] and problem.get("flowchart_v2"):
             slots["C5_FLOWCHART"] = render_c5_flowchart_v92(problem)
 
