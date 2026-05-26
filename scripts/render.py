@@ -20,7 +20,9 @@ Usage:
 
 from __future__ import annotations
 
+import colorsys
 import json
+import random
 import re
 import sys
 from html import escape
@@ -105,14 +107,16 @@ def get_render_flags(spec_version: str) -> dict[str, object]:
     したがって v9.2.0 用 slot 値を空文字で供給しても render() の未置換検出に
     影響せず、既存 byte-identical を維持できる。
     """
-    if spec_version == "v9.2.0":
+    if spec_version in ("v9.2.0", "v9.3.0"):
         return {
             "INCLUDE_TREE_MINDMAP": True,
             "INCLUDE_RADIAL_MINDMAP": True,
             "INCLUDE_BRANCHING_FLOWCHART": True,
             "INCLUDE_THEORY_DEEP_DIVE": True,
             "PROFESSOR_DENSITY_LEVEL": "v2",
-            "PALETTE_DERIVATIVES": True,
+            # v9.2.0: PALETTE_DERIVATIVES=True（slot 注入経路）
+            # v9.3.0: PALETTE_DERIVATIVES=False（:root{} 直接置換経路で代替）
+            "PALETTE_DERIVATIVES": spec_version == "v9.2.0",
         }
     # v9.1.0 / v9.0.0 / v8.11.7 共通：v9.2.0 拡張は全 OFF
     return {
@@ -212,6 +216,378 @@ FOOTER_FEATURE_TAGS_V92: list[str] = [
     "palette-derivatives",
     "single-document-self-sufficient-deep",
 ]  # 31 件（OVERRIDE_PATTERN + palette-strategy 行はレンダリング時に追加で 33 件）
+
+
+# ============================================================================
+# v9.3.0 PALETTE-MULTI-VARIANT: 27 サブパレット定義
+# ============================================================================
+# spec_version="v9.3.0" 時のみ起動。v9.2.0 以下は影響なし（byte-identical 維持）。
+
+# 27 サブパレット定義（アンカー 3 色のみ）
+SUBPALETTES_V93: dict[str, dict[str, dict[str, str]]] = {
+    "P1": {  # 🌸 桜彩 Sakura Spectrum（ピンク・易問・正答率 ≥70%）
+        "sakura-haze": {
+            "label_ja": "桜霞",
+            "accent": "#E3969F", "mid": "#A0C3D9", "base": "#699091"
+        },
+        "spring-twilight": {
+            "label_ja": "春薄明",
+            "accent": "#EDBFBF", "mid": "#F2E8CB", "base": "#B4D9E2"
+        },
+        "peony-glow": {
+            "label_ja": "牡丹陽",
+            "accent": "#C05191", "mid": "#AE78AB", "base": "#E3E6DF"
+        },
+        "hydrangea-dusk": {
+            "label_ja": "紫陽花宵",
+            "accent": "#A0B1D8", "mid": "#E6E6DB", "base": "#DC7783"
+        },
+        "wisteria-moon": {
+            "label_ja": "藤霞月",
+            "accent": "#BD9DC4", "mid": "#DFA4B4", "base": "#E2C3B1"
+        },
+        "kerria-bloom": {
+            "label_ja": "山吹陽",
+            "accent": "#E8E9C7", "mid": "#B2C0C9", "base": "#E08B92"
+        },
+        "crimson-camellia": {
+            "label_ja": "鮮椿青",
+            "accent": "#005FAA", "mid": "#D54B8D", "base": "#EDB886"
+        },
+        "hydrangea-morn": {
+            "label_ja": "紫陽朝",
+            "accent": "#DFE6E9", "mid": "#CF82AD", "base": "#7B7FB8"
+        },
+        "spring-aureate": {
+            "label_ja": "春金苑",
+            "accent": "#E4E594", "mid": "#C3B4D1", "base": "#E190A2"
+        },
+    },
+    "P2": {  # 🌿 翠彩 Verdant Spectrum（グリーン・中問・正答率 40-70%）
+        "verdant-rose": {
+            "label_ja": "翠紅園",
+            "accent": "#3F9C54", "mid": "#DE6079", "base": "#E7E7E3"
+        },
+        "golden-verdant": {
+            "label_ja": "山吹翠苑",
+            "accent": "#5E7960", "mid": "#FFDF76", "base": "#78A95B"
+        },
+        "young-sprout": {
+            "label_ja": "若苗野",
+            "accent": "#648B45", "mid": "#9ABE74", "base": "#C3CE6A"
+        },
+        "moss-blossom": {
+            "label_ja": "苔月華",
+            "accent": "#84C46E", "mid": "#C0EBE6", "base": "#78A991"
+        },
+        "azure-orchid": {
+            "label_ja": "群青蘭",
+            "accent": "#3C828F", "mid": "#A989B8", "base": "#F7F0B5"
+        },
+        "early-jade": {
+            "label_ja": "早春翠",
+            "accent": "#A6CEC1", "mid": "#68BC83", "base": "#EEEFAF"
+        },
+        "vermilion-garden": {
+            "label_ja": "朱檀苑",
+            "accent": "#438B48", "mid": "#DD792E", "base": "#DDDEE0"
+        },
+        "crimson-jade": {
+            "label_ja": "朱赭翠",
+            "accent": "#50804C", "mid": "#ECE0A7", "base": "#BD513A"
+        },
+        "golden-harvest": {
+            "label_ja": "黄金穂",
+            "accent": "#7BA980", "mid": "#E7A93B", "base": "#E2D050"
+        },
+    },
+    "P3": {  # 🌙 玄彩 Mystica Spectrum（パープル・難問・正答率 <40%）
+        "moonfrost-violet": {
+            "label_ja": "月霜紫",
+            "accent": "#CFB4C5", "mid": "#998BBE", "base": "#857A8C"
+        },
+        "starlit-amethyst": {
+            "label_ja": "星辰深紫",
+            "accent": "#DDC3DC", "mid": "#4B2680", "base": "#7E5B9F"
+        },
+        "wine-galaxy": {
+            "label_ja": "葡萄銀河",
+            "accent": "#8D3B51", "mid": "#BC9FD7", "base": "#B2618E"
+        },
+        "dusk-violet": {
+            "label_ja": "黄昏菫",
+            "accent": "#AD76C7", "mid": "#F4AF62", "base": "#F1A4D8"
+        },
+        "hydrangea-afterglow": {
+            "label_ja": "紫陽花残光",
+            "accent": "#B86E8C", "mid": "#DCB0CB", "base": "#F2DDDA"
+        },
+        "sapphire-moon": {
+            "label_ja": "紺碧月華",
+            "accent": "#F39DF4", "mid": "#2E2979", "base": "#9B95EB"
+        },
+        "dawn-nebula": {
+            "label_ja": "暁星雲",
+            "accent": "#E6A1AB", "mid": "#C1A8D0", "base": "#99D7FF"
+        },
+        "violet-firework": {
+            "label_ja": "紫煙花火",
+            "accent": "#E9DFDA", "mid": "#905999", "base": "#99846B"
+        },
+        "emerald-violet": {
+            "label_ja": "青翠菫光",
+            "accent": "#8CAFA9", "mid": "#CBAEDE", "base": "#4A4AB3"
+        },
+    },
+}
+
+# 絶対派生 3 色（全サブパレット共通固定・v9.2.0 継承）
+ABSOLUTE_DERIVATIVES_V93: dict[str, str] = {
+    "neutral-cream": "#F4EDE0",
+    "contrast-warm": "#D97A4F",
+    "contrast-cool": "#6A8AA8",
+}
+
+# 機能色 14 個（全サブパレット共通固定・v9.2.0 §32-bis-5 継承）
+FUNCTIONAL_COLORS_V93: dict[str, str] = {
+    "recall-correct":         "#1B5E20",
+    "recall-correct-light":   "#C8E6C9",
+    "recall-incorrect":       "#B71C1C",
+    "recall-incorrect-light": "#FFCDD2",
+    "rank-A":                 "#7A1F37",
+    "rank-B":                 "#A0405E",
+    "rank-C":                 "#C46F87",
+    "rank-D":                 "#D8A2B0",
+    "freq-high":              "#D32F2F",
+    "freq-mid":               "#F57C00",
+    "freq-low":               "#7CB342",
+    "hl-super":               "#FFE082",
+    "hl-high":                "#FFF59D",
+    "hl-std":                 "#FFFDE7",
+}
+
+# HSL 派生パラメータ（§32-5-2）
+# 形式: 派生色名 → (派生元, dH, dS, dL)
+HSL_DERIVATIONS: dict[str, tuple[str, float, float, float]] = {
+    "accent-light":   ("accent",   0,  -8, +13),
+    "accent-darker":  ("accent",   0,  +5,  -4),
+    "accent-soft":    ("accent",   0, -25, +18),
+    "accent-soft-2":  ("accent",   0, -15, +25),
+    "mid-warm":       ("mid",     +8,  +5,  +6),
+    "mid-cool":       ("mid",     -8,  -5,  +0),
+    "mid-soft":       ("mid",      0, -10, +20),
+    "surface-tint":   ("accent",   0, -20, +30),
+}
+
+
+# v9.3.0 footer feature-tag リスト（32 固定 + 動的部分は render 時に追加）
+FOOTER_FEATURE_TAGS_V93: list[str] = [
+    "TX v9.3.0 PALETTE-MULTI-VARIANT",
+    "genkei-skeleton",
+    "design-byte-lock",
+    "content-independence",
+    "ktx301-canon",
+    "embedded-canon",
+    "readability-layer",
+    "hanging-grid",
+    "basis-order-v2",
+    "a2-feedback-canon",
+    "rbchip-patched",
+    "k302-immune",
+    "p2p3-unified",
+    "p1-absolute",
+    "jp-prefix-naming",
+    "spoiler-safe",
+    "multi-answer-css",
+    "a2-two-stage-reveal",
+    "a2-multi-ox-support",
+    "spoiler-leak-eradication",
+    "spoiler-strong-elimination",
+    "ox-grid-fa-unification",
+    "host-injection-safe",
+    "tree-mindmap",
+    "radial-mindmap",
+    "branching-flowchart",
+    "theory-deep-dive",
+    "professor-density-v2",
+    "meta-explanation-blocked",
+    "palette-multi-variant",       # v9.3.0 新規
+    "hsl-derivation",              # v9.3.0 新規
+    "single-document-self-sufficient-deep",
+]  # 32 件（OVERRIDE_PATTERN + palette-strategy + sub-palette は render 時に追加で 35 件）
+
+
+# ============================================================================
+# v9.3.0 HSL 計算ユーティリティ
+# ============================================================================
+
+def hex_to_hsl(hex_str: str) -> tuple[float, float, float]:
+    """#RRGGBB → (h[0-360], s[0-100], l[0-100])"""
+    hex_clean = hex_str.lstrip("#")
+    r, g, b = (int(hex_clean[i:i+2], 16) / 255.0 for i in (0, 2, 4))
+    h, l, s = colorsys.rgb_to_hls(r, g, b)
+    return (h * 360, s * 100, l * 100)
+
+
+def hsl_to_hex(h: float, s: float, l: float) -> str:
+    """(h, s, l) → #RRGGBB"""
+    h_norm = (h % 360) / 360.0
+    s_norm = max(0.0, min(100.0, s)) / 100.0
+    l_norm = max(0.0, min(100.0, l)) / 100.0
+    r, g, b = colorsys.hls_to_rgb(h_norm, l_norm, s_norm)
+    return "#" + "".join(f"{int(round(c * 255)):02X}" for c in (r, g, b))
+
+
+def derive_relative(anchor_hex: str, dh: float, ds: float, dl: float) -> str:
+    """アンカー色から HSL 差分で派生色を導出"""
+    h, s, l = hex_to_hsl(anchor_hex)
+    return hsl_to_hex(h + dh, s + ds, l + dl)
+
+
+# ============================================================================
+# v9.3.0 サブパレット選択 + 27 色変数導出
+# ============================================================================
+
+def parse_correct_rate_v93(correct_rate_str: str) -> int:
+    """correct_rate 文字列（'75%' 等）から整数を抽出（0-100 にクランプ・既定 50）。"""
+    if not correct_rate_str:
+        return 50
+    m = re.search(r"(\d+)", str(correct_rate_str))
+    if not m:
+        return 50
+    rate = int(m.group(1))
+    return max(0, min(100, rate))
+
+
+def category_from_correct_rate_v93(correct_rate: int) -> str:
+    """正答率からカテゴリ判定。>=70 → P1 / 40-69 → P2 / <40 → P3。"""
+    if correct_rate >= 70:
+        return "P1"
+    elif correct_rate >= 40:
+        return "P2"
+    else:
+        return "P3"
+
+
+def select_subpalette_v93(problem: dict) -> tuple[str, str, dict[str, str]]:
+    """サブパレットを選択する。explicit (sub_palette_id) → auto (correct_rate+seed)。"""
+    correct_rate = parse_correct_rate_v93(problem.get("correct_rate", ""))
+    auto_category = category_from_correct_rate_v93(correct_rate)
+
+    explicit_id = problem.get("sub_palette_id")
+    if explicit_id:
+        for category, palettes in SUBPALETTES_V93.items():
+            if explicit_id in palettes:
+                return (category, explicit_id, palettes[explicit_id])
+        raise RuntimeError(
+            f"sub_palette_id {explicit_id!r} not found in any category. "
+            f"Valid IDs: {[k for cat in SUBPALETTES_V93.values() for k in cat]}"
+        )
+
+    palettes = SUBPALETTES_V93[auto_category]
+    ids_sorted = sorted(palettes.keys())
+    pid_raw = problem.get("id", "0")
+    try:
+        seed_val = int(str(pid_raw))
+    except (ValueError, TypeError):
+        seed_val = hash(str(pid_raw)) & 0x7FFFFFFF
+    rng = random.Random(seed_val)
+    chosen_id = rng.choice(ids_sorted)
+    return (auto_category, chosen_id, palettes[chosen_id])
+
+
+def derive_palette_v93(anchor_3: dict[str, str]) -> dict[str, str]:
+    """アンカー 3 色から 27 色変数（アンカー 3 + 相対派生 8 + 絶対派生 3 + 機能色 14）を導出。"""
+    palette: dict[str, str] = {}
+    palette["accent"] = anchor_3["accent"]
+    palette["mid"] = anchor_3["mid"]
+    palette["base"] = anchor_3["base"]
+    anchors = {"accent": anchor_3["accent"], "mid": anchor_3["mid"], "base": anchor_3["base"]}
+    for name, (src, dh, ds, dl) in HSL_DERIVATIONS.items():
+        palette[name] = derive_relative(anchors[src], dh, ds, dl)
+    palette.update(ABSOLUTE_DERIVATIVES_V93)
+    palette.update(FUNCTIONAL_COLORS_V93)
+    return palette
+
+
+def render_root_block_v93(problem: dict) -> tuple[str, str, str, str]:
+    """v9.3.0 :root{} ブロック + footer 用情報を生成。"""
+    category, subpalette_id, anchor_data = select_subpalette_v93(problem)
+    palette = derive_palette_v93(anchor_data)
+    label_ja = anchor_data.get("label_ja", subpalette_id)
+
+    spec_version = problem.get("spec_version", "v9.3.0")
+    lines = [
+        f"  /* sub-palette: {label_ja} ({subpalette_id}) / category: {category} / spec: {spec_version} */",
+    ]
+    color_order = [
+        "accent", "mid", "base",
+        "accent-light", "accent-darker", "accent-soft", "accent-soft-2",
+        "mid-warm", "mid-cool", "mid-soft", "surface-tint",
+        "neutral-cream", "contrast-warm", "contrast-cool",
+        "recall-correct", "recall-correct-light",
+        "recall-incorrect", "recall-incorrect-light",
+        "rank-A", "rank-B", "rank-C", "rank-D",
+        "freq-high", "freq-mid", "freq-low",
+        "hl-super", "hl-high", "hl-std",
+    ]
+    for var_name in color_order:
+        if var_name in palette:
+            lines.append(f"  --{var_name}: {palette[var_name]};")
+
+    root_block = ":root {\n" + "\n".join(lines) + "\n}"
+    return (root_block, category, subpalette_id, label_ja)
+
+
+def render_footer_feature_tags_v93(
+    override_pattern: str,
+    palette_strategy: str | None,
+    subpalette_id: str,
+    subpalette_label_ja: str,
+    extra_tags: list[str] | None = None,
+) -> list[str]:
+    """v9.3.0 footer feature-tag 全件（32 固定 + 動的 3 件 = 35 件）を返す。"""
+    base = list(FOOTER_FEATURE_TAGS_V93)
+    base.append(override_pattern)
+    if palette_strategy:
+        base.append(f"palette-strategy: {palette_strategy}")
+    else:
+        base.append("palette-strategy: 同系統調和")
+    base.append(f"sub-palette: {subpalette_label_ja} ({subpalette_id})")
+    if extra_tags:
+        base.extend(extra_tags)
+    return base
+
+
+def build_slot_dict_v93_extension(problem: dict, slots: dict[str, str]) -> dict[str, str]:
+    """既存 build_slot_dict の v9.3.0 専用拡張。"""
+    spec_version = str(problem.get("spec_version", ""))
+    if spec_version != "v9.3.0":
+        return slots
+
+    root_block, category, subpalette_id, label_ja = render_root_block_v93(problem)
+    slots["ROOT_CSS_BLOCK_V93"] = root_block
+    slots["V93_CATEGORY"] = category
+    slots["V93_SUBPALETTE_ID"] = subpalette_id
+    slots["V93_SUBPALETTE_LABEL_JA"] = label_ja
+    slots["OVERRIDE_PATTERN"] = category
+
+    palette_strategy = problem.get("palette_strategy")
+    extra_tags = None
+    if isinstance(problem.get("footer"), dict):
+        extra_tags = problem["footer"].get("extra_tags")
+
+    tags = render_footer_feature_tags_v93(
+        override_pattern=category,
+        palette_strategy=palette_strategy,
+        subpalette_id=subpalette_id,
+        subpalette_label_ja=label_ja,
+        extra_tags=extra_tags,
+    )
+    slots["FOOTER_FEATURE_TAGS"] = "\n".join(
+        f'      <span class="feature-tag">{escape(t)}</span>' for t in tags
+    )
+    return slots
 
 
 # ============================================================================
@@ -2693,13 +3069,16 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         palette_strategy=palette_strategy,
     )
 
-    # v9.2.0 専用 slot 供給。
+    # v9.2.0 / v9.3.0 共通 slot 供給。
     # templates 拡張方針（Phase 12D 案 A）：8 templates にインライン slot 配置
     #   `</style>{{PALETTE_DERIVATIVES_ROOT}}`
     #   `  </section>{{MINDMAP_TREE}}{{MINDMAP_RADIAL_V92}}`
     # populated 時のみ slot 値の先頭に `\n` を付け、インライン直後に正しい改行で
     # 続く HTML を出力する。v9.1.0 以下では空文字 → byte-identical 維持。
-    if spec_version == "v9.2.0":
+    # v9.3.0 PALETTE-MULTI-VARIANT は :root{} 直接置換のため
+    # PALETTE_DERIVATIVES_ROOT は空のまま、build_slot_dict_v93_extension が
+    # ROOT_CSS_BLOCK_V93 を別途生成し render() で正規表現置換する。
+    if spec_version in ("v9.2.0", "v9.3.0"):
         if flags["PALETTE_DERIVATIVES"]:
             palette_root = render_palette_derivatives_root(slots["OVERRIDE_PATTERN"])
             slots["PALETTE_DERIVATIVES_ROOT"] = "\n" + palette_root if palette_root else ""
@@ -2827,12 +3206,18 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         # 経路を維持。PART_B_FRAME 内 `<p class="prof-summary">{{...}}</p>` への注入だが、
         # HTML parser は内部 <div> を検知して <p> を自動的に閉じるため、S91 検査（BeautifulSoup）
         # の `.prof-heading.prof-point` セレクタは到達可能。v9.1.0 baseline は byte-identical 維持。
-        if spec_version == "v9.2.0" and professor.get("point"):
+        if spec_version in ("v9.2.0", "v9.3.0") and professor.get("point"):
             slots[f"{prefix}_PROFESSOR_SUMMARY"] = render_professor_density_v2(professor)
             slots[f"{prefix}_PROFESSOR_NOTE"] = ""
         else:
             slots[f"{prefix}_PROFESSOR_SUMMARY"] = str(professor.get("summary", ""))
             slots[f"{prefix}_PROFESSOR_NOTE"] = str(professor.get("note", ""))
+
+    # v9.3.0 PALETTE-MULTI-VARIANT 拡張（最後に適用：FOOTER_FEATURE_TAGS /
+    # OVERRIDE_PATTERN を v9.3.0 版に上書き、ROOT_CSS_BLOCK_V93 を新規供給）。
+    # v9.2.0 以下は no-op で byte-identical 維持。
+    if spec_version == "v9.3.0":
+        slots = build_slot_dict_v93_extension(problem, slots)
 
     return slots
 
@@ -2874,6 +3259,19 @@ def render(template: str, slots: dict[str, str]) -> str:
         raise RuntimeError(
             f"slot 置換が {MAX_PASSES} pass 内に収束しません。"
             "slot 値内の循環参照を確認してください。"
+        )
+
+    # v9.3.0 PALETTE-MULTI-VARIANT: :root{} ブロックの直接置換。
+    # build_slot_dict_v93_extension が ROOT_CSS_BLOCK_V93 に 27 色変数を生成済。
+    # 既存テンプレの :root{ ... } を正規表現で 1 件のみ置換。
+    # v9.2.0 以下では ROOT_CSS_BLOCK_V93 slot 自体が存在しない → no-op。
+    root_block_v93 = slots.get("ROOT_CSS_BLOCK_V93", "")
+    if root_block_v93:
+        out = re.sub(
+            r":root\s*\{[^}]*\}",
+            lambda m: root_block_v93,
+            out,
+            count=1,
         )
 
     # 未置換 slot の検出
