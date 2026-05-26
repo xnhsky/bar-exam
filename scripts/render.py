@@ -3324,6 +3324,125 @@ _V94_SVG_CSS = """
 .flow-svg .tx-decision{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--paper); }
 .flow-svg .tx-end{ font-family:var(--font-soft); font-size:12px; font-weight:700; fill:var(--paper); }
 .flow-svg .tx-chip, .flow-svg .tx-yn{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+
+/* === §24-bis professor readability (v9.4.0 override) === */
+/* 既存 .prof-heading { display:flex } が h4 + 子要素を全て横並び flex 子要素に
+   してしまう問題（h4「イメージで掴む」が極端に狭く縦書き化、image-scene/bridge/
+   contrast が 3 列の狭い窓に詰込まれる）を解消する。
+   .prof-heading 自身は block レイアウトに戻し、h4 だけが flex を持つ */
+.prof-heading{
+  display:block !important;
+  border-bottom:none;
+  padding-bottom:0;
+  margin:24px 0 12px 0;
+}
+.prof-heading > h4{
+  display:flex; align-items:center; gap:10px;
+  margin:0 0 14px 0;
+  font-family:var(--font-display);
+  font-weight:700; font-size:1.08em;
+  color:#1b5e20; letter-spacing:.04em;
+  border-bottom:1.5px dashed rgba(46,125,50,.40);
+  padding-bottom:6px;
+}
+/* point の locus と list */
+.prof-point > .point-list{
+  margin:0 0 12px 0; padding-left:1.6em;
+  line-height:1.9;
+}
+.prof-point > .point-list > li{ margin-bottom:.45em; }
+.prof-point > .point-locus{
+  background:rgba(46,125,50,.06);
+  border-left:3px solid #1b5e20;
+  padding:12px 16px;
+  margin:8px 0;
+  font-family:var(--font-note);
+  line-height:1.85;
+  border-radius:4px;
+}
+/* process の steps (考え方の道筋) */
+.prof-process > .process-steps{
+  list-style:none;
+  counter-reset:proc-step;
+  padding:0;
+  margin:0;
+}
+.prof-process > .process-steps > li{
+  counter-increment:proc-step;
+  position:relative;
+  padding:14px 18px 14px 56px;
+  margin:0 0 12px 0;
+  background:var(--paper);
+  border-left:3px solid var(--mid);
+  border-radius:6px;
+  line-height:1.95;
+  box-shadow:0 1px 3px rgba(var(--accent-rgb),.05);
+}
+.prof-process > .process-steps > li::before{
+  content:counter(proc-step);
+  position:absolute; left:14px; top:14px;
+  display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px;
+  background:linear-gradient(135deg,var(--accent),var(--mid));
+  color:#fff; border-radius:50%;
+  font-family:var(--font-mono); font-weight:700; font-size:.85em;
+  box-shadow:0 1px 3px rgba(0,0,0,.18);
+}
+/* image (具体場面 / 規範への接続 / 反対結論との対比) を縦積みカード化 */
+.prof-image > .image-scene,
+.prof-image > .image-bridge,
+.prof-image > .image-contrast{
+  display:block;
+  background:rgba(var(--accent-rgb),.04);
+  border-left:3px solid var(--accent);
+  padding:14px 18px;
+  margin:10px 0;
+  border-radius:6px;
+  line-height:1.95;
+}
+.prof-image > .image-scene{ border-left-color:var(--accent); }
+.prof-image > .image-bridge{ border-left-color:var(--mid); background:rgba(var(--mid-rgb),.05); }
+.prof-image > .image-contrast{ border-left-color:var(--freq-mid); background:rgba(255,140,30,.04); }
+.prof-image .img-sub,
+.prof-application .img-sub{
+  display:block;
+  font-family:var(--font-soft);
+  font-size:.92em; font-weight:700;
+  color:var(--accent);
+  letter-spacing:.06em;
+  margin:0 0 6px 0;
+  padding-bottom:4px;
+  border-bottom:1px dotted rgba(var(--accent-rgb),.25);
+}
+.prof-image .img-sub::before{ content:'◆ '; opacity:.7; }
+.prof-image > div > p,
+.prof-application > div > div > p{ margin:0; }
+/* application (大前提 / 小前提 / 結論) - 三段論法を視覚的に階段表示 */
+.prof-application > .syllogism{
+  display:block;
+  position:relative;
+  padding-left:18px;
+  border-left:2px solid rgba(var(--accent-rgb),.15);
+}
+.prof-application > .syllogism > div{
+  display:block;
+  background:var(--paper);
+  border:1px solid rgba(var(--accent-rgb),.10);
+  border-left:4px solid var(--accent);
+  padding:14px 18px;
+  margin:10px 0;
+  border-radius:6px;
+  line-height:1.95;
+  box-shadow:0 1px 3px rgba(var(--accent-rgb),.05);
+}
+.prof-application > .syllogism > .syl-major{ border-left-color:var(--accent); }
+.prof-application > .syllogism > .syl-minor{ border-left-color:var(--mid); }
+.prof-application > .syllogism > .syl-conclusion{
+  border-left-color:#1b5e20;
+  background:rgba(46,125,50,.04);
+}
+.prof-application > .syllogism > .syl-conclusion .img-sub{ color:#1b5e20; }
+.prof-application > .syllogism > .syl-conclusion .img-sub::before{ content:'▶ '; }
 """
 
 
