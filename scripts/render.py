@@ -3196,9 +3196,11 @@ _V94_CHOICE_SECTION_PATTERN = re.compile(
     r'(<section class="choice-section[^"]*" id="choice-(\d+)">)(.*?)(</section>)',
     re.DOTALL,
 )
-_V94_CHOICE_HEADER_END_PATTERN = re.compile(
-    r'(<div class="choice-header-block">.*?</div>)',
-    re.DOTALL,
+# verdict span の閉じタグ </span> 直後に choice-summary を挿入する
+# （入れ子 div を含む choice-header-block 全体の閉じ </div> を regex で正確に
+# 検出するのは困難なため、verdict span の閉じ直後を anchor として採用）
+_V94_VERDICT_SPAN_PATTERN = re.compile(
+    r'(<span class="verdict[^"]*"[^>]*>[^<]*</span>)',
 )
 
 
@@ -3207,7 +3209,9 @@ def inject_v94_choice_extras(part_b_frame_html: str, problem: dict) -> str:
     post-process で挿入する。
 
     挿入位置:
-      - choice-summary: choice-header-block の閉じ </div> の直前（block 内部末尾）
+      - choice-summary: verdict span の閉じ </span> の直後（choice-header-block 内・
+        verdict と同じレベル）。CSS の `.choice-summary { flex:1 1 100%; }` で
+        flex-wrap により次行に全幅で配置される。
       - sub-card.basis-link: choice-section 末尾の </section> の直前
     """
     label_to_letter = LABEL_TO_LETTER
@@ -3233,16 +3237,13 @@ def inject_v94_choice_extras(part_b_frame_html: str, problem: dict) -> str:
         c = choice_by_id.get(cid)
         if not c:
             return m.group(0)
-        # choice-summary を choice-header-block の閉じ </div> の直前に挿入
+        # choice-summary を verdict span の閉じ </span> 直後に挿入
+        # （choice-header-block の入れ子 div 構造を regex で正確に追えないため）
         summary_html = render_choice_summary_html(c)
         if summary_html:
-            def header_repl(hm: "re.Match[str]") -> str:
-                header_block = hm.group(1)
-                # </div> の直前に挿入
-                if header_block.endswith("</div>"):
-                    return header_block[:-len("</div>")] + "\n" + summary_html + "\n    </div>"
-                return header_block
-            body = _V94_CHOICE_HEADER_END_PATTERN.sub(header_repl, body, count=1)
+            def verdict_repl(vm: "re.Match[str]") -> str:
+                return vm.group(0) + "\n" + summary_html
+            body = _V94_VERDICT_SPAN_PATTERN.sub(verdict_repl, body, count=1)
         # sub-card.basis-link を choice-section 末尾に挿入
         basis_link_html = render_sub_card_basis_link_html(c)
         if basis_link_html:
