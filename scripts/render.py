@@ -1416,6 +1416,97 @@ def render_professor_density_v2(prof: dict) -> str:
       </div>'''
 
 
+def render_professor_v94(prof: dict) -> str:
+    """v9.4.0 専用: 313 baseline (v9.1.0 MINDMAP) 構造で professor を render する。
+
+    既存 render_professor_density_v2() は無改変。本関数は build_slot_dict() の
+    v9.4.0 経路で呼ばれ、density-v2 規律（文字数下限：point ≥150 / process ≥400 /
+    image ≥300 / application ≥300・合計 ≥1,150 chars）は維持しつつ、HTML 構造を
+    313 baseline 同等の v9.1.0 シンプル形式に切り替える。
+
+    出力構造（313 同等）:
+      <div class="prof-heading"><span class="prof-num">1</span>ポイント</div>
+      <ul class="point-list"><li>...</li></ul>
+      <p class="point-locus">...</p>
+
+      <div class="prof-heading"><span class="prof-num">2</span>考え方の道筋</div>
+      <p>{step1}</p>
+      <p>{step2}</p>
+      ...
+
+      <div class="prof-heading"><span class="prof-num">3</span>イメージで掴む</div>
+      <div class="prof-analogy">
+        <p>{scene}</p>
+        <p>{bridge}</p>
+        <p>{contrast}</p>
+      </div>
+
+      <div class="prof-heading"><span class="prof-num">4</span>あてはめ</div>
+      <p>{major}</p>
+      <p>{minor}</p>
+      <p><strong>結論：</strong>{conclusion}</p>
+
+    JSON schema は v9.2.0 density-v2 のものをそのまま継承（point.locus/list,
+    process.steps, image.scene/bridge/contrast, application.major/minor/conclusion）。
+    本文 HTML は escape せず raw HTML として注入する（ref-case / case-emphasis 等の
+    タグを許容するため・v9.1.0 流儀）。
+    """
+    if not prof:
+        return ""
+
+    parts: list[str] = []
+
+    # 1. ポイント
+    point = prof.get("point") or {}
+    point_list = point.get("list") or []
+    point_locus = point.get("locus", "")
+    parts.append('    <div class="prof-heading"><span class="prof-num">1</span>ポイント</div>')
+    if point_list:
+        parts.append('    <ul class="point-list">')
+        for item in point_list:
+            parts.append(f'      <li>{item}</li>')
+        parts.append('    </ul>')
+    if point_locus:
+        parts.append(f'    <p class="point-locus">{point_locus}</p>')
+
+    # 2. 考え方の道筋（密度確保のため意味ラベル付き段落を踏襲）
+    process = prof.get("process") or {}
+    steps = process.get("steps") or []
+    parts.append('    <div class="prof-heading"><span class="prof-num">2</span>考え方の道筋</div>')
+    for step in steps:
+        parts.append(f'    <p>{step}</p>')
+
+    # 3. イメージで掴む（prof-analogy 内に 3 段落・313 と同じ ANALOGY ::before ラベルで識別）
+    image = prof.get("image") or {}
+    scene = image.get("scene", "")
+    bridge = image.get("bridge", "")
+    contrast = image.get("contrast", "")
+    parts.append('    <div class="prof-heading"><span class="prof-num">3</span>イメージで掴む</div>')
+    parts.append('    <div class="prof-analogy">')
+    if scene:
+        parts.append(f'      <p>{scene}</p>')
+    if bridge:
+        parts.append(f'      <p>{bridge}</p>')
+    if contrast:
+        parts.append(f'      <p>{contrast}</p>')
+    parts.append('    </div>')
+
+    # 4. あてはめ（プレーン段落・結論は強調）
+    app = prof.get("application") or {}
+    major = app.get("major", "")
+    minor = app.get("minor", "")
+    conclusion = app.get("conclusion", "")
+    parts.append('    <div class="prof-heading"><span class="prof-num">4</span>あてはめ</div>')
+    if major:
+        parts.append(f'    <p>{major}</p>')
+    if minor:
+        parts.append(f'    <p>{minor}</p>')
+    if conclusion:
+        parts.append(f'    <p><strong>結論：</strong>{conclusion}</p>')
+
+    return "\n".join(parts)
+
+
 # ============================================================================
 # marker-legend 描画関数（Phase 4-5）
 # ============================================================================
@@ -2856,7 +2947,12 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         # 経路を維持。PART_B_FRAME 内 `<p class="prof-summary">{{...}}</p>` への注入だが、
         # HTML parser は内部 <div> を検知して <p> を自動的に閉じるため、S91 検査（BeautifulSoup）
         # の `.prof-heading.prof-point` セレクタは到達可能。v9.1.0 baseline は byte-identical 維持。
-        if spec_version in ("v9.2.0", "v9.4.0") and professor.get("point"):
+        if spec_version == "v9.4.0" and professor.get("point"):
+            # v9.4.0: 313 baseline (v9.1.0 MINDMAP) 構造で出力。density-v2 規律は維持。
+            slots[f"{prefix}_PROFESSOR_SUMMARY"] = render_professor_v94(professor)
+            slots[f"{prefix}_PROFESSOR_NOTE"] = ""
+        elif spec_version == "v9.2.0" and professor.get("point"):
+            # v9.2.0 既存: density-v2 構造化 HTML
             slots[f"{prefix}_PROFESSOR_SUMMARY"] = render_professor_density_v2(professor)
             slots[f"{prefix}_PROFESSOR_NOTE"] = ""
         else:
@@ -3325,149 +3421,12 @@ _V94_SVG_CSS = """
 .flow-svg .tx-end{ font-family:var(--font-soft); font-size:12px; font-weight:700; fill:var(--paper); }
 .flow-svg .tx-chip, .flow-svg .tx-yn{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
 
-/* === §24-bis professor readability (v9.4.0 override) === */
-/* 既存 .prof-heading { display:flex } が h4 + 子要素を全て横並び flex 子要素に
-   してしまう問題を解消し、h4 を pill バッジに変更する */
-.prof-heading{
-  display:block !important;
-  border-bottom:none;
-  padding-bottom:0;
-  margin:28px 0 14px 0;
-}
-/* === h4 を pill バッジ化（種別ごとに色違い・絵文字 prefix） === */
-.prof-heading > h4{
-  display:inline-block !important;
-  padding:7px 18px 8px 16px;
-  margin:0 0 14px 0;
-  background:linear-gradient(135deg, var(--accent), var(--mid));
-  color:#fff !important;
-  font-family:var(--font-display);
-  font-weight:700; font-size:.98em;
-  letter-spacing:.10em;
-  border-radius:999px;
-  border:none;
-  box-shadow:0 2px 6px rgba(var(--accent-rgb),.30);
-  -webkit-print-color-adjust:exact; print-color-adjust:exact;
-  line-height:1.3;
-}
-.prof-heading > h4::before{ margin-right:6px; opacity:.95; }
-.prof-point > h4{
-  background:linear-gradient(135deg, #1b5e20, #2e7d32);
-  box-shadow:0 2px 6px rgba(27,94,32,.35);
-}
-.prof-point > h4::before{ content:'🎯'; }
-.prof-process > h4{
-  background:linear-gradient(135deg, var(--accent), var(--mid));
-}
-.prof-process > h4::before{ content:'🧭'; }
-.prof-image > h4{
-  background:linear-gradient(135deg, var(--mid), var(--mid-warm));
-  box-shadow:0 2px 6px rgba(var(--mid-rgb),.40);
-}
-.prof-image > h4::before{ content:'🖼'; }
-.prof-application > h4{
-  background:linear-gradient(135deg, var(--bg-dark), var(--accent));
-  box-shadow:0 2px 6px rgba(var(--accent-rgb),.40);
-}
-.prof-application > h4::before{ content:'⚖'; }
-/* point の locus と list */
-.prof-point > .point-list{
-  margin:0 0 12px 0; padding-left:1.6em;
-  line-height:1.9;
-}
-.prof-point > .point-list > li{ margin-bottom:.45em; }
-.prof-point > .point-locus{
-  background:rgba(46,125,50,.06);
-  border-left:3px solid #1b5e20;
-  padding:12px 16px;
-  margin:8px 0;
-  font-family:var(--font-note);
-  line-height:1.85;
-  border-radius:4px;
-}
-/* process の steps (考え方の道筋) */
-.prof-process > .process-steps{
-  list-style:none;
-  counter-reset:proc-step;
-  padding:0;
-  margin:0;
-}
-.prof-process > .process-steps > li{
-  counter-increment:proc-step;
-  position:relative;
-  padding:14px 18px 14px 56px;
-  margin:0 0 12px 0;
-  background:var(--paper);
-  border-left:3px solid var(--mid);
-  border-radius:6px;
-  line-height:1.95;
-  box-shadow:0 1px 3px rgba(var(--accent-rgb),.05);
-}
-.prof-process > .process-steps > li::before{
-  content:counter(proc-step);
-  position:absolute; left:14px; top:14px;
-  display:inline-flex; align-items:center; justify-content:center;
-  width:28px; height:28px;
-  background:linear-gradient(135deg,var(--accent),var(--mid));
-  color:#fff; border-radius:50%;
-  font-family:var(--font-mono); font-weight:700; font-size:.85em;
-  box-shadow:0 1px 3px rgba(0,0,0,.18);
-}
-/* image (具体場面 / 規範への接続 / 反対結論との対比) を縦積みカード化 */
-.prof-image > .image-scene,
-.prof-image > .image-bridge,
-.prof-image > .image-contrast{
-  display:block;
-  background:rgba(var(--accent-rgb),.04);
-  border-left:3px solid var(--accent);
-  padding:14px 18px;
-  margin:10px 0;
-  border-radius:6px;
-  line-height:1.95;
-}
-.prof-image > .image-scene{ border-left-color:var(--accent); }
-.prof-image > .image-bridge{ border-left-color:var(--mid); background:rgba(var(--mid-rgb),.05); }
-.prof-image > .image-contrast{ border-left-color:var(--freq-mid); background:rgba(255,140,30,.04); }
-.prof-image .img-sub,
-.prof-application .img-sub{
-  display:block;
-  font-family:var(--font-soft);
-  font-size:.92em; font-weight:700;
-  color:var(--accent);
-  letter-spacing:.06em;
-  margin:0 0 6px 0;
-  padding-bottom:4px;
-  border-bottom:1px dotted rgba(var(--accent-rgb),.25);
-}
-.prof-image .img-sub::before{ content:'◆ '; opacity:.7; }
-.prof-image > div > p,
-.prof-application > div > div > p{ margin:0; }
-/* application (大前提 / 小前提 / 結論) - 三段論法を視覚的に階段表示 */
-.prof-application > .syllogism{
-  display:block;
-  position:relative;
-  padding-left:18px;
-  border-left:2px solid rgba(var(--accent-rgb),.15);
-}
-.prof-application > .syllogism > div{
-  display:block;
-  background:var(--paper);
-  border:1px solid rgba(var(--accent-rgb),.10);
-  border-left:4px solid var(--accent);
-  padding:14px 18px;
-  margin:10px 0;
-  border-radius:6px;
-  line-height:1.95;
-  box-shadow:0 1px 3px rgba(var(--accent-rgb),.05);
-}
-.prof-application > .syllogism > .syl-major{ border-left-color:var(--accent); }
-.prof-application > .syllogism > .syl-minor{ border-left-color:var(--mid); }
-.prof-application > .syllogism > .syl-conclusion{
-  border-left-color:#1b5e20;
-  background:rgba(46,125,50,.04);
-}
-.prof-application > .syllogism > .syl-conclusion .img-sub{ color:#1b5e20; }
-.prof-application > .syllogism > .syl-conclusion .img-sub::before{ content:'▶ '; }
+/* === v9.4.0 baseline = 313 (v9.1.0 MINDMAP) 構造を採用するため、professor 領域の
+   対症療法 CSS overrides は廃止。template 既定の .prof-heading / .prof-num /
+   .prof-analogy / .warning / .cross-link / .key-phrase-box / .ron-mark /
+   .exam-mark 等の v9.1.0 baseline CSS をそのまま使用する。
+   HTML 構造の整合は render_professor_v94() で行う（密度規律維持・
+   構造のみ 313 同等化） */
 """
 
 
