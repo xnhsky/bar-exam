@@ -910,6 +910,42 @@ def render_mindmap_tree(problem: dict) -> str:
     tree = problem.get("mindmap_tree")
     if not tree:
         return ""
+
+    # Phase 13C: gold-equivalent override path
+    # JSON が svg_override_inner（<svg> 内 inner HTML 全部）を持っていれば auto-layout を
+    # skip して直接 inject。defs も svg_defs_html で完全置換可。viewbox は svg_viewbox 優先。
+    override_inner = tree.get("svg_override_inner")
+    if override_inner is not None:
+        viewbox = tree.get("svg_viewbox") or tree.get("viewbox") or "0 0 1100 600"
+        aria_label = escape(tree.get("aria_label", "[本問テーマ] の体系的位置づけ"))
+        caption = escape(tree.get("caption", "図：体系的位置づけ"))
+        defs_html = tree.get("svg_defs_html") or (
+            '          <marker id="issueArr" viewBox="0 0 10 10" refX="9" refY="5"\n'
+            '                  markerWidth="6" markerHeight="6" orient="auto">\n'
+            '            <path d="M2 1L8 5L2 9" fill="none" stroke="var(--mid-warm)"\n'
+            '                  stroke-width="1.4" stroke-linecap="round"/>\n'
+            '          </marker>'
+        )
+        return f'''  <section class="section" id="mindmap-tree">
+    <nav class="sec-nav"><a href="#basis">↑参考</a><a href="#mindmap-radial">↓マインドマップ放射</a></nav>
+    <h2 class="section-title"><span class="sec-icon">🌳</span>体系ツリー</h2>
+
+    <div class="figure-wrap">
+      <svg class="tree-svg" viewBox="{viewbox}"
+           xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="{aria_label}">
+        <defs>
+{defs_html}
+        </defs>
+
+{override_inner}
+      </svg>
+      <p class="figure-caption">{caption}</p>
+    </div>
+
+    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
+  </section>'''
+
     tree = auto_layout_tree(tree)  # Phase 13A: 座標未指定なら auto-layout
 
     viewbox = tree.get("viewbox", "0 0 1100 600")
@@ -1034,6 +1070,39 @@ def render_mindmap_radial_v92(problem: dict) -> str:
     radial = problem.get("mindmap_radial")
     if not radial:
         return ""
+
+    # Phase 13C: gold-equivalent override path
+    override_inner = radial.get("svg_override_inner")
+    if override_inner is not None:
+        viewbox = radial.get("svg_viewbox") or "0 0 1200 1000"
+        aria_label = escape(radial.get("aria_label", "[本問テーマ]"))
+        caption = escape(radial.get("caption", "図：本問テーマの体系"))
+        defs_html = radial.get("svg_defs_html") or (
+            '          <linearGradient id="centerGrad" x1="0" x2="0" y1="0" y2="1">\n'
+            '            <stop offset="0" stop-color="var(--accent)"/>\n'
+            '            <stop offset="1" stop-color="var(--accent-darker)"/>\n'
+            '          </linearGradient>'
+        )
+        return f'''  <section class="section" id="mindmap-radial">
+    <nav class="sec-nav"><a href="#mindmap-tree">↑マインドマップツリー</a><a href="#c-1">↓C-1</a></nav>
+    <h2 class="section-title"><span class="sec-icon">🧭</span>論点マインドマップ</h2>
+
+    <div class="figure-wrap">
+      <svg class="radial-svg" viewBox="{viewbox}"
+           xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="{aria_label}">
+        <defs>
+{defs_html}
+        </defs>
+
+{override_inner}
+      </svg>
+      <p class="figure-caption">{caption}</p>
+    </div>
+
+    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
+  </section>'''
+
     radial = auto_layout_radial(radial)  # Phase 13A: 座標未指定なら auto-layout
 
     center = escape(radial.get("center_label", "[中心法理]"))
@@ -1160,6 +1229,31 @@ def render_flowchart_v2(problem: dict) -> str:
     flow = problem.get("flowchart_v2")
     if not flow:
         return ""
+
+    # Phase 13C: gold-equivalent override path
+    override_inner = flow.get("svg_override_inner")
+    if override_inner is not None:
+        viewbox = flow.get("svg_viewbox") or flow.get("viewbox") or "0 0 900 800"
+        aria_label = escape(flow.get("aria_label", "[本問テーマ] の成否判定フロー"))
+        caption = escape(flow.get("caption", "図：成否判定フロー"))
+        defs_html = flow.get("svg_defs_html") or (
+            '          <marker id="flowArr" viewBox="0 0 10 10" refX="9" refY="5"\n'
+            '                  markerWidth="7" markerHeight="7" orient="auto">\n'
+            '            <path d="M2 1L8 5L2 9" fill="none" stroke="var(--accent-darker)"\n'
+            '                  stroke-width="1.6" stroke-linecap="round"/>\n'
+            '          </marker>'
+        )
+        return f'''      <svg class="flow-svg" viewBox="{viewbox}"
+           xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-label="{aria_label}">
+        <defs>
+{defs_html}
+        </defs>
+
+{override_inner}
+      </svg>
+      <p class="figure-caption">{caption}</p>'''
+
     flow = auto_layout_flowchart(flow)  # Phase 13A: 座標未指定なら auto-layout
 
     aria_label = escape(flow.get("aria_label", "[本問テーマ] の成否判定フロー"))
@@ -3456,55 +3550,66 @@ def inject_v94_mindmap_section(rendered_html: str, problem: dict) -> str:
 # 重大表示バグ（Phase Y-2 で特定済・v9.2.0 pre-existing）の修正。
 # post-process injection 方式で template / 既存ファイルへの影響を完全に避ける。
 _V94_SVG_CSS = """
-/* === §22-tree / §22-radial / §22-flowchart-v2 SVG class colors (v9.4.0 post-process) === */
+/* === §22-tree / §22-radial / §22-flowchart-v2 SVG class colors (v9.4.0 post-process / Phase 13C: gold-tuned values) === */
 /* Tree SVG (§22-tree) */
-.tree-svg{ display:block; max-width:100%; height:auto; }
-.tree-svg .tx-legend{ font-family:var(--font-mono); font-size:11px; fill:var(--text); }
-.tree-svg .l0-fill{ fill:var(--accent); stroke:var(--accent); stroke-width:1.2; }
-.tree-svg .l1-fill{ fill:var(--mid); stroke:var(--mid); stroke-width:1; }
-.tree-svg .l2-fill{ fill:var(--accent-light); stroke:var(--mid); stroke-width:1; }
-.tree-svg .l3-fill{ fill:var(--accent-soft); stroke:var(--mid-cool); stroke-width:.8; }
-.tree-svg .l2-active, .tree-svg .l3-active{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.5; }
-.tree-svg .tx-l0{ font-family:var(--font-display); font-size:13px; font-weight:700; fill:var(--paper); }
-.tree-svg .tx-l1{ font-family:var(--font-soft); font-size:12px; font-weight:700; fill:var(--paper); }
-.tree-svg .tx-l2{ font-family:var(--font-body); font-size:11px; fill:var(--text); }
-.tree-svg .tx-l3{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
-.tree-svg .line-main{ stroke:var(--mid); stroke-width:1.6; fill:none; }
-.tree-svg .line-sub{ stroke:var(--accent-light); stroke-width:1; fill:none; }
-.tree-svg .line-issue, .tree-svg .issue-arrow{ stroke:var(--mid-warm); stroke-width:1.4; fill:none; }
-.tree-svg .tx-issue{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.2; }
-.tree-svg .tx-issue-ttl{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--bg-dark); }
-.tree-svg .tx-issue-body{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+.tree-svg{ display:block; max-width:100%; height:auto; background:linear-gradient(180deg, var(--accent-3) 0%, var(--paper) 100%); border-radius:12px; padding:10px; }
+.tree-svg .tx-legend{ font-family:var(--font-mono); font-size:12px; fill:var(--text); opacity:.75; }
+.tree-svg .l0-fill{ fill:var(--bg-dark); stroke:var(--bg-dark); stroke-width:1.5; }
+.tree-svg .l1-fill{ fill:var(--accent); stroke:var(--accent-darker); stroke-width:1.2; }
+.tree-svg .l2-fill{ fill:var(--accent-light); stroke:var(--accent); stroke-width:1.2; }
+.tree-svg .l3-fill{ fill:var(--paper); stroke:var(--mid-soft); stroke-width:1; }
+.tree-svg .l2-active, .tree-svg .l3-active{ fill:var(--mid); stroke:var(--freq-mid-deep); stroke-width:1.8; }
+.tree-svg .tx-l0{ font-family:var(--font-display); font-size:15px; font-weight:700; fill:var(--paper); letter-spacing:.05em; }
+.tree-svg .tx-l1{ font-family:var(--font-soft); font-size:13px; font-weight:700; fill:var(--paper); }
+.tree-svg .tx-l2{ font-family:var(--font-body); font-size:12px; font-weight:600; fill:var(--paper); }
+.tree-svg .tx-l3{ font-family:var(--font-body); font-size:11px; fill:var(--text); }
+.tree-svg .l3-active + text, .tree-svg .tx-l3-active{ fill:var(--paper); font-weight:700; }
+.tree-svg .connect{ stroke:var(--mid-cool); stroke-width:1.4; fill:none; opacity:.7; }
+.tree-svg .connect-active{ stroke:var(--mid); stroke-width:2; fill:none; }
+.tree-svg .line-main{ stroke:var(--accent); stroke-width:1.8; fill:none; }
+.tree-svg .line-sub{ stroke:var(--accent-light); stroke-width:1.2; fill:none; opacity:.85; }
+.tree-svg .line-issue, .tree-svg .issue-arrow{ stroke:var(--freq-mid); stroke-width:2; fill:none; }
+.tree-svg .issue-fill{ fill:var(--bg-dark); stroke:var(--accent); stroke-width:2; }
+.tree-svg .tx-issue-ttl{ font-family:var(--font-display); font-size:14px; font-weight:700; fill:var(--paper); }
+.tree-svg .tx-issue-body{ font-family:var(--font-body); font-size:11.5px; fill:var(--paper); opacity:.92; }
 
 /* Radial SVG (§22-radial) */
-.radial-svg{ display:block; max-width:100%; height:auto; }
-.radial-svg .tx-legend{ font-family:var(--font-mono); font-size:11px; fill:var(--text); }
-.radial-svg .branch-fill{ fill:var(--mid); stroke:var(--accent); stroke-width:1.2; }
-.radial-svg .issue-branch-fill{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.5; }
-.radial-svg .sub-elem{ fill:var(--base); stroke:var(--mid); stroke-width:.8; }
-.radial-svg .sub-statute{ fill:var(--accent-light); stroke:var(--mid); stroke-width:.8; }
-.radial-svg .sub-case{ fill:var(--accent-soft); stroke:var(--mid-cool); stroke-width:.8; }
-.radial-svg .tx-center{ font-family:var(--font-display); font-size:14px; font-weight:700; fill:var(--paper); }
-.radial-svg .tx-branch{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--paper); }
-.radial-svg .tx-chip, .radial-svg .tx-elem, .radial-svg .tx-statute, .radial-svg .tx-case{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+.radial-svg{ display:block; max-width:100%; height:auto; background:linear-gradient(180deg, var(--accent-3) 0%, var(--paper) 60%, var(--accent-3) 100%); border-radius:12px; padding:10px; }
+.radial-svg .tx-legend{ font-family:var(--font-mono); font-size:12px; fill:var(--text); opacity:.75; }
+.radial-svg .branch-fill{ fill:var(--accent); stroke:var(--accent-darker); stroke-width:1.5; }
+.radial-svg .issue-branch-fill{ fill:var(--bg-dark); stroke:var(--accent); stroke-width:2; }
+.radial-svg .sub-elem{ fill:var(--paper); stroke:var(--mid-soft); stroke-width:1; }
+.radial-svg .sub-statute{ fill:var(--accent-soft); stroke:var(--accent); stroke-width:1; }
+.radial-svg .sub-case{ fill:var(--mid-soft); stroke:var(--mid); stroke-width:1; }
+.radial-svg .tx-center{ font-family:var(--font-display); font-size:16px; font-weight:700; fill:var(--paper); letter-spacing:.06em; }
+.radial-svg .tx-branch{ font-family:var(--font-soft); font-size:12.5px; font-weight:700; fill:var(--paper); }
+.radial-svg .tx-chip, .radial-svg .tx-elem, .radial-svg .tx-statute, .radial-svg .tx-case{ font-family:var(--font-body); font-size:11px; fill:var(--text); }
+.radial-svg .tx-statute{ fill:var(--bg-dark); font-weight:600; }
+.radial-svg .tx-case{ fill:var(--freq-mid-deep); font-weight:600; }
+.radial-svg .line-main{ stroke:var(--accent); stroke-width:2.2; fill:none; opacity:.85; }
+.radial-svg .line-sub{ stroke:var(--mid-cool); stroke-width:1.2; fill:none; opacity:.75; }
+.radial-svg .line-issue{ stroke:var(--freq-mid); stroke-width:2; fill:none; stroke-dasharray:6 3; }
 .radial-svg .connect{ stroke:var(--mid); stroke-width:1.2; fill:none; }
-.radial-svg .tx-issue-ttl{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--bg-dark); }
-.radial-svg .tx-issue-body{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
-.radial-svg .tx-correct{ font-family:var(--font-mono); font-size:11px; font-weight:700; fill:var(--accent); }
+.radial-svg .tx-issue{ font-family:var(--font-display); font-size:14px; font-weight:700; fill:var(--paper); }
+.radial-svg .tx-issue-ttl{ font-family:var(--font-display); font-size:14px; font-weight:700; fill:var(--paper); }
+.radial-svg .tx-issue-body{ font-family:var(--font-body); font-size:11px; fill:var(--paper); opacity:.92; }
+.radial-svg .tx-correct{ font-family:var(--font-display); font-size:13px; font-weight:700; fill:var(--accent-darker); letter-spacing:.05em; }
 
 /* Flow SVG (§22-flowchart-v2) */
-.flow-svg{ display:block; max-width:100%; height:auto; }
-.flow-svg .tx-legend{ font-family:var(--font-mono); font-size:11px; fill:var(--text); }
-.flow-svg .flow-start{ fill:var(--accent); stroke:var(--accent); stroke-width:1.4; }
-.flow-svg .flow-decision{ fill:var(--mid); stroke:var(--accent); stroke-width:1.2; }
-.flow-svg .flow-end-success{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.4; }
-.flow-svg .flow-end-fail{ fill:var(--contrast-warm); stroke:var(--bg-dark); stroke-width:1.4; }
-.flow-svg .flow-chip{ fill:var(--accent-light); stroke:var(--mid); stroke-width:.8; }
-.flow-svg .flow-line{ stroke:var(--mid); stroke-width:1.4; fill:none; }
-.flow-svg .tx-start{ font-family:var(--font-display); font-size:12px; font-weight:700; fill:var(--paper); }
-.flow-svg .tx-decision{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--paper); }
+.flow-svg{ display:block; max-width:100%; height:auto; background:linear-gradient(180deg, var(--accent-3) 0%, var(--paper) 100%); border-radius:12px; padding:10px; }
+.flow-svg .tx-legend{ font-family:var(--font-mono); font-size:12px; fill:var(--text); opacity:.75; }
+.flow-svg .flow-start{ fill:var(--bg-dark); stroke:var(--accent-darker); stroke-width:1.8; }
+.flow-svg .flow-decision{ fill:var(--accent); stroke:var(--accent-darker); stroke-width:1.6; }
+.flow-svg .flow-end-success{ fill:#1b5e20; stroke:#0d3a12; stroke-width:1.8; }
+.flow-svg .flow-end-fail{ fill:var(--mid); stroke:var(--freq-mid-deep); stroke-width:1.5; }
+.flow-svg .flow-chip{ fill:var(--accent-soft); stroke:var(--accent); stroke-width:1.2; }
+.flow-svg .flow-line{ stroke:var(--accent-darker); stroke-width:1.8; fill:none; }
+.flow-svg .flow-line-no{ stroke:var(--mid); stroke-width:1.4; fill:none; stroke-dasharray:6 3; opacity:.8; }
+.flow-svg .tx-start{ font-family:var(--font-display); font-size:14px; font-weight:700; fill:var(--paper); letter-spacing:.05em; }
+.flow-svg .tx-decision{ font-family:var(--font-soft); font-size:12.5px; font-weight:700; fill:var(--paper); }
 .flow-svg .tx-end{ font-family:var(--font-soft); font-size:12px; font-weight:700; fill:var(--paper); }
-.flow-svg .tx-chip, .flow-svg .tx-yn{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+.flow-svg .tx-chip{ font-family:var(--font-soft); font-size:12px; font-weight:700; fill:var(--bg-dark); }
+.flow-svg .tx-yn{ font-family:var(--font-display); font-size:11px; font-weight:800; fill:var(--paper); letter-spacing:.05em; }
 
 /* === v9.4.0 baseline = 313 (v9.1.0 MINDMAP) 構造を採用するため、professor 領域の
    対症療法 CSS overrides は廃止。template 既定の .prof-heading / .prof-num /
