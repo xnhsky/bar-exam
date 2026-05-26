@@ -105,6 +105,22 @@ def get_render_flags(spec_version: str) -> dict[str, object]:
     したがって v9.2.0 用 slot 値を空文字で供給しても render() の未置換検出に
     影響せず、既存 byte-identical を維持できる。
     """
+    if spec_version == "v9.4.0":
+        # v9.4.0 COMPLETE-BASELINE: v9.1.0 構造美 + v9.2.0 加算 6 件 + v9.3.0 加算 1 件
+        # v9.2.0 加算機能は全て ON、v9.4.0 独自の v9.1.0 baseline 機能（hero-extra,
+        # choice-summary, sub-card.basis-link, mindmap-section v94）も ON。
+        return {
+            "INCLUDE_TREE_MINDMAP": True,
+            "INCLUDE_RADIAL_MINDMAP": True,
+            "INCLUDE_BRANCHING_FLOWCHART": True,
+            "INCLUDE_THEORY_DEEP_DIVE": True,
+            "PROFESSOR_DENSITY_LEVEL": "v2",
+            "PALETTE_DERIVATIVES": True,
+            "INCLUDE_V94_HERO_EXTRA": True,
+            "INCLUDE_V94_CHOICE_SUMMARY": True,
+            "INCLUDE_V94_SUB_CARD_BASIS_LINK": True,
+            "INCLUDE_V94_MINDMAP_SECTION": True,
+        }
     if spec_version == "v9.2.0":
         return {
             "INCLUDE_TREE_MINDMAP": True,
@@ -2827,12 +2843,22 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
         # 経路を維持。PART_B_FRAME 内 `<p class="prof-summary">{{...}}</p>` への注入だが、
         # HTML parser は内部 <div> を検知して <p> を自動的に閉じるため、S91 検査（BeautifulSoup）
         # の `.prof-heading.prof-point` セレクタは到達可能。v9.1.0 baseline は byte-identical 維持。
-        if spec_version == "v9.2.0" and professor.get("point"):
+        if spec_version in ("v9.2.0", "v9.4.0") and professor.get("point"):
             slots[f"{prefix}_PROFESSOR_SUMMARY"] = render_professor_density_v2(professor)
             slots[f"{prefix}_PROFESSOR_NOTE"] = ""
         else:
             slots[f"{prefix}_PROFESSOR_SUMMARY"] = str(professor.get("summary", ""))
             slots[f"{prefix}_PROFESSOR_NOTE"] = str(professor.get("note", ""))
+
+    # v9.4.0 COMPLETE-BASELINE 拡張（Phase Y-4-bis-impl Commit 1）
+    # spec_version="v9.4.0" の時のみ以下を上書き:
+    #   - BODY_PRE_TOC: header-top (exam-badge) + theme-tags + 難度・愛称付き exam-meta
+    #   - PART_B_FRAME: choice-summary / sub-card.basis-link を post-process 注入
+    # 既存 slot 群（HEAD/A2_FRAME/PART_A_FRAME 等）は無改変。
+    # v9.4.0 以外（v9.1.0/v9.2.0 等）では本ブロックは起動せず、既存出力と byte-identical。
+    if spec_version == "v9.4.0":
+        slots["BODY_PRE_TOC"] = render_body_pre_toc_v94(problem)
+        slots["PART_B_FRAME"] = inject_v94_choice_extras(slots["PART_B_FRAME"], problem)
 
     return slots
 
@@ -2906,6 +2932,333 @@ def render(template: str, slots: dict[str, str]) -> str:
 # - 既存 id 付き <a> はマッチしないため idempotent
 
 REF_ANCHOR_PATTERN = re.compile(r'<a class="(ref-case|ref-stat)" href="#([^"]+)">')
+
+
+# ============================================================================
+# v9.4.0 COMPLETE-BASELINE 拡張関数群（Phase Y-4-bis-impl Commit 1）
+# ============================================================================
+# 既存関数を一切改変せず、v9.4.0 専用の追加機能を「post-process injection」で
+# 実装する。spec_version!="v9.4.0" では起動しないため、v9.1.0/v9.2.0/v9.3.0
+# ファイルの byte-identical を完全に維持する。
+#
+# 「過ちを繰り返さない」5 原則準拠：
+# (原則 2) 既存関数は無改変・新規関数として追加のみ
+# (原則 3) JSON schema は v9.1.0 流儀（structured）・{title, body} 単純化禁止
+# (原則 5) 検査先行 (S95-S97) は validate-tx.py 側で既に追加済
+
+
+# パターン愛称完全形（v9.1.0 baseline で確認・313 で出力されていた）
+V94_PATTERN_NICKNAMES: dict[str, str] = {
+    "P1": "P1 ローズシャンブル",
+    "P2": "P2 セージブラリー",
+    "P3": "P3 ラベンダードーン",
+}
+
+# 科目絵文字（v9.1.0 baseline で確認・313 のヒーロー部 exam-badge 由来）
+V94_SUBJECT_EMOJI: dict[str, str] = {
+    "KEI":   "📚 刑法",
+    "KEN":   "📚 憲法",
+    "MIN":   "📚 民法",
+    "SYO":   "📚 商法",
+    "MINS":  "📚 民訴",
+    "KEIS":  "📚 刑訴",
+    "GSE":   "📚 行政法",
+}
+
+
+# 難度判定（正答率 → 星表記）
+def difficulty_stars(correct_rate_value) -> str:
+    """correct_rate (数値 or '50%' 等) → '★★☆' 等の難度文字列。
+
+    >=70: ★☆☆（易）/ 40-69: ★★☆（中）/ <40: ★★★（難）
+    """
+    if isinstance(correct_rate_value, str):
+        m = re.search(r"(\d+)", correct_rate_value)
+        if not m:
+            return "★★☆"
+        rate = int(m.group(1))
+    elif isinstance(correct_rate_value, (int, float)):
+        rate = int(correct_rate_value)
+    else:
+        return "★★☆"
+    rate = max(0, min(100, rate))
+    if rate >= 70:
+        return "★☆☆"
+    elif rate >= 40:
+        return "★★☆"
+    else:
+        return "★★★"
+
+
+# v9.4.0 BODY_PRE_TOC テンプレ（v9.1.0 baseline 構造）
+# 既存 BODY_PRE_TOC_TEMPLATE は無改変。spec_version="v9.4.0" の時のみ本テンプレを使用。
+BODY_PRE_TOC_TEMPLATE_V94: str = (
+    '</head>\n'
+    '<body id="top">\n'
+    '<div class="container">\n'
+    '\n'
+    '  <!-- HEADER -->\n'
+    '  <header class="header">\n'
+    '    <div class="doc-header">{jp_prefix}{problem_id}</div>\n'
+    '{header_top}'
+    '    <h1>No.{problem_id} ── {crime}（{source_id}）</h1>\n'
+    '{theme_tags}'
+    '    <div class="exam-meta">\n'
+    '      <span><strong>正答率:</strong>{correct_rate}</span>\n'
+    '      <span><strong>難度:</strong>{difficulty}</span>\n'
+    '      <span><strong>パターン:</strong>{pattern_nickname}</span>\n'
+    '    </div>'
+)
+
+
+def render_exam_badges_html(problem: dict) -> str:
+    """v9.4.0 exam-badge 4 件（subject/exam/year/source）の HTML を返す。
+
+    JSON フィールド `exam_badges[]` が指定されていればそれを優先、
+    未指定なら subject + exam + year + source から自動構築する。
+    """
+    explicit_badges = problem.get("exam_badges")
+    if explicit_badges and isinstance(explicit_badges, list):
+        badges = explicit_badges
+    else:
+        subject = problem.get("subject", "KEI")
+        subject_label = V94_SUBJECT_EMOJI.get(subject, f"📚 {subject}")
+        exam = problem.get("exam", "")
+        year = problem.get("year", "")
+        source = problem.get("source", "")
+        badges = [subject_label]
+        if exam:
+            badges.append(f"📝 {exam}")
+        if year:
+            badges.append(f"📅 {year}")
+        if source:
+            badges.append(f"🔢 {source}")
+    if not badges:
+        return ""
+    inner = "\n".join(f'      <span class="exam-badge">{escape(b)}</span>' for b in badges)
+    return (
+        '    <div class="header-top">\n'
+        + inner + "\n"
+        '    </div>\n'
+    )
+
+
+def render_theme_tags_html(problem: dict) -> str:
+    """v9.4.0 theme-tags の HTML を返す。
+
+    JSON フィールド `theme_tags[]` (list of string) が指定されていれば
+    `<div class="theme-tags"><span class="theme-tag">...</span></div>` を返す。
+    未指定なら空文字（既存出力に影響なし）。
+    """
+    tags = problem.get("theme_tags") or []
+    if not tags:
+        return ""
+    inner = "\n".join(f'      <span class="theme-tag">{escape(t)}</span>' for t in tags)
+    return (
+        '    <div class="theme-tags">\n'
+        + inner + "\n"
+        '    </div>\n'
+    )
+
+
+def render_body_pre_toc_v94(problem: dict) -> str:
+    """v9.4.0 専用 BODY_PRE_TOC を返す。spec_version="v9.4.0" の時のみ呼ばれる。
+
+    既存 render_body_pre_toc() は無改変。本関数は build_slot_dict() の末尾分岐で
+    spec_version="v9.4.0" の場合に呼ばれ、slots["BODY_PRE_TOC"] を上書きする。
+    """
+    subject = problem.get("subject", "KEI")
+    jp_prefix = SUBJECT_TO_JP[subject] + "TX"
+    override_pattern = str(problem.get("override_pattern", "P1"))
+    pattern_nickname = V94_PATTERN_NICKNAMES.get(override_pattern, override_pattern)
+    difficulty = problem.get("difficulty") or difficulty_stars(problem.get("correct_rate", ""))
+    return BODY_PRE_TOC_TEMPLATE_V94.format(
+        jp_prefix=jp_prefix,
+        problem_id=str(problem.get("id", "")),
+        crime=str(problem.get("crime", "")),
+        source_id=str(problem.get("source", "")),
+        correct_rate=str(problem.get("correct_rate", "")),
+        difficulty=str(difficulty),
+        pattern_nickname=pattern_nickname,
+        header_top=render_exam_badges_html(problem),
+        theme_tags=render_theme_tags_html(problem),
+    )
+
+
+def render_choice_summary_html(choice: dict) -> str:
+    """v9.4.0 choice-summary の HTML を返す（choice.summary_html がある時のみ）。
+
+    313 では `<div class="choice-summary">…</div>` が各 choice-section の
+    choice-header-block 内に配置されていた。本関数は inject_v94_choice_extras 経由で
+    既存 PART_B_FRAME 出力に post-process injection される。
+    """
+    summary_html = choice.get("summary_html")
+    if not summary_html:
+        return ""
+    return f'    <div class="choice-summary">{summary_html}</div>'
+
+
+def render_sub_card_basis_link_html(choice: dict) -> str:
+    """v9.4.0 sub-card.basis-link の HTML を返す（choice.basis_link_card がある時のみ）。
+
+    313 では各 choice-section に `<div class="sub-card basis-link">` が 1 件配置され、
+    本 choice が参照する判例・条文へのリンクを集約していた。
+
+    Schema 想定（structured）:
+      choice.basis_link_card: {
+        label: "判例・条文への参照",   # heading label
+        items: [{href, label, kind}]   # kind = "case" | "statute"
+      }
+    """
+    card = choice.get("basis_link_card")
+    if not card or not isinstance(card, dict):
+        return ""
+    items = card.get("items") or []
+    if not items:
+        return ""
+    label = escape(card.get("label", "📎 参照する条文・判例"))
+    parts = [
+        '    <div class="sub-card basis-link">',
+        f'      <span class="label">{label}</span>',
+        '      <ul class="lead-list">',
+    ]
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        href = escape(item.get("href", ""))
+        item_label = item.get("label", "")
+        kind = item.get("kind", "case")
+        css_cls = "ref-case" if kind == "case" else "ref-stat"
+        parts.append(
+            f'        <li><a class="{css_cls}" href="#{href}">{item_label}</a></li>'
+        )
+    parts.append('      </ul>')
+    parts.append('    </div>')
+    return "\n".join(parts)
+
+
+def render_mindmap_section_v94_html(problem: dict) -> str:
+    """v9.4.0 mindmap section（v9.1.0 流儀の `<section id="mindmap">`）の HTML を返す。
+
+    JSON フィールド `mindmap_section` が定義されていれば、その内容を section 化。
+    Schema 想定（structured）:
+      mindmap_section: {
+        title: "論点詳細マインドマップ",
+        intro_key_phrase_html: "...",   # 任意
+        figure: {
+          svg_html: "<svg>...</svg>",
+          caption: "..."
+        },
+        legend: "凡例..."   # 任意
+      }
+    """
+    ms = problem.get("mindmap_section")
+    if not ms or not isinstance(ms, dict):
+        return ""
+    title = escape(ms.get("title", "論点詳細マインドマップ"))
+    parts = [
+        '',
+        '  <section class="section" id="mindmap">',
+        '    <nav class="sec-nav"><a href="#basis">↑共通根拠</a><a href="#c-1">C-1→</a></nav>',
+        f'    <h2 class="section-title"><span class="sec-icon">🧭</span>{title}</h2>',
+    ]
+    if ms.get("intro_key_phrase_html"):
+        parts.append(f'    <div class="key-phrase-box">\n      {ms["intro_key_phrase_html"]}\n    </div>')
+    figure = ms.get("figure")
+    if figure and figure.get("svg_html"):
+        parts.append('    <div class="figure-wrap">')
+        parts.append(f'      {figure["svg_html"]}')
+        if figure.get("caption"):
+            parts.append(f'      <p class="figure-caption">{escape(figure["caption"])}</p>')
+        parts.append('    </div>')
+    if ms.get("legend"):
+        parts.append(f'    <p class="figure-legend">{escape(ms["legend"])}</p>')
+    parts.append('    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>')
+    parts.append('  </section>')
+    return "\n".join(parts)
+
+
+# choice-section 内 choice-header-block / sub-card 末尾 への post-process 注入
+_V94_CHOICE_SECTION_PATTERN = re.compile(
+    r'(<section class="choice-section[^"]*" id="choice-(\d+)">)(.*?)(</section>)',
+    re.DOTALL,
+)
+_V94_CHOICE_HEADER_END_PATTERN = re.compile(
+    r'(<div class="choice-header-block">.*?</div>)',
+    re.DOTALL,
+)
+
+
+def inject_v94_choice_extras(part_b_frame_html: str, problem: dict) -> str:
+    """既存 PART_B_FRAME 出力に v9.4.0 専用の choice-summary / sub-card.basis-link を
+    post-process で挿入する。
+
+    挿入位置:
+      - choice-summary: choice-header-block の閉じ </div> の直前（block 内部末尾）
+      - sub-card.basis-link: choice-section 末尾の </section> の直前
+    """
+    label_to_letter = LABEL_TO_LETTER
+    letter_to_label_idx = {v: i + 1 for i, v in enumerate(["A", "B", "C", "D", "E"])}
+    choices = problem.get("choices") or []
+    # choice id (1-5) → choice dict の map
+    choice_by_id: dict[str, dict] = {}
+    for c in choices:
+        label = c.get("label", "")
+        letter = label_to_letter.get(label)
+        if letter is None:
+            continue
+        idx = letter_to_label_idx.get(letter)
+        if idx is None:
+            continue
+        choice_by_id[str(idx)] = c
+
+    def section_repl(m: "re.Match[str]") -> str:
+        opening = m.group(1)
+        cid = m.group(2)
+        body = m.group(3)
+        closing = m.group(4)
+        c = choice_by_id.get(cid)
+        if not c:
+            return m.group(0)
+        # choice-summary を choice-header-block の閉じ </div> の直前に挿入
+        summary_html = render_choice_summary_html(c)
+        if summary_html:
+            def header_repl(hm: "re.Match[str]") -> str:
+                header_block = hm.group(1)
+                # </div> の直前に挿入
+                if header_block.endswith("</div>"):
+                    return header_block[:-len("</div>")] + "\n" + summary_html + "\n    </div>"
+                return header_block
+            body = _V94_CHOICE_HEADER_END_PATTERN.sub(header_repl, body, count=1)
+        # sub-card.basis-link を choice-section 末尾に挿入
+        basis_link_html = render_sub_card_basis_link_html(c)
+        if basis_link_html:
+            body = body.rstrip() + "\n\n" + basis_link_html + "\n  "
+        return opening + body + closing
+
+    return _V94_CHOICE_SECTION_PATTERN.sub(section_repl, part_b_frame_html)
+
+
+def inject_v94_mindmap_section(rendered_html: str, problem: dict) -> str:
+    """basis section と C-1 section の間に v9.4.0 mindmap section を挿入する。
+
+    挿入位置: `<section class="section" id="basis">...</section>` の直後。
+    `mindmap_section` フィールド未定義時は no-op。
+    """
+    section_html = render_mindmap_section_v94_html(problem)
+    if not section_html:
+        return rendered_html
+    # basis section の終了タグを探して、その直後に挿入
+    basis_pattern = re.compile(
+        r'(<section class="section" id="basis">.*?</section>)',
+        re.DOTALL,
+    )
+    return basis_pattern.sub(lambda m: m.group(1) + "\n" + section_html, rendered_html, count=1)
+
+
+# ============================================================================
+# v9.4.0 拡張ここまで
+# ============================================================================
 
 
 def inject_ref_ids(html: str) -> str:
@@ -3031,6 +3384,12 @@ def main(argv: list[str]) -> int:
     # ref-case / ref-stat anchor に id="ref-{target}-{NNN}" を注入する。
     # 14 protected は inline ref-X anchor 0 件のため不変、300 は 70 個に id 付与で hash 変化。
     rendered = inject_ref_ids(rendered)
+
+    # v9.4.0 COMPLETE-BASELINE: mindmap section (v9.1.0 流儀) を basis section の
+    # 直後に post-process 注入。spec_version!="v9.4.0" / mindmap_section 未定義時は no-op。
+    spec_version_for_post = str(problem.get("spec_version", DEFAULT_SPEC_VERSION))
+    if spec_version_for_post == "v9.4.0":
+        rendered = inject_v94_mindmap_section(rendered, problem)
 
     output_path = get_output_path(subject, problem_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)

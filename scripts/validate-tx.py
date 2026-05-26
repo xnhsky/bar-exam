@@ -143,6 +143,7 @@ PROBLEMS_DIR = PROJECT_ROOT / "problems"
 # ============================================================
 
 SPEC_VERSION_PATTERNS = [
+    ("v9.4.0", re.compile(r"TX\s+v9\.4\.0\s+COMPLETE-BASELINE")),
     ("v9.2.0", re.compile(r"TX\s+v9\.2\.0\s+DEEP-DIVE")),
     ("v9.1.0", re.compile(r"TX\s+v9\.1\.0\s+MINDMAP")),
     ("v9.0.0", re.compile(r"TX\s+v9\.0\.0\s+GENKEI")),
@@ -1431,6 +1432,89 @@ def check_professor_density(soup, rep):
 
 
 # ============================================================
+# S95-S97 新規（v9.4.0 baseline 構造美検査・WARNING レベル・既存ファイル無影響）
+# ============================================================
+# Phase Y-4-bis-impl Commit 1: 検査先行 (TDD-like) で追加。
+# 313.html (v9.1.0 MINDMAP) baseline で確認された v9.1.0 構造美 11 項目のうち、
+# 真に欠落していた 6 項目を CC/AI 視点で検出する。WARNING レベルに留め、
+# 既存 problem.json で render した HTML には影響を与えない設計。
+#
+# 起動条件: spec_version="v9.4.0" 含む場合のみ起動（v9.1.0/v9.2.0/v9.3.0 据置）。
+# v9.4.0 spec が未配置の段階では、これら検査は WARNING のみで失敗扱いとしない。
+
+def check_s95_choice_summary(soup, rep):
+    """S95: choice-summary（各記述の 1-2 行要約）が全 choice に存在するか検査。
+
+    313.html では <div class="choice-summary"> が 5 件（記述 ア〜オ）出現。
+    v9.4.0 では各 choice-section 内に 1 件存在が期待される。
+    """
+    choice_sections = soup.find_all(class_="choice-section")
+    if not choice_sections:
+        return  # PART B 自体が無いので検査外
+    summary_count = sum(
+        1 for s in choice_sections if s.find(class_="choice-summary") is not None
+    )
+    expected = len(choice_sections)
+    if summary_count < expected:
+        rep.warn(
+            "S95",
+            f"choice-summary 要約が {summary_count}/{expected} choice にしか存在しない"
+            f"（v9.4.0 では全 choice に 1-2 行要約 div.choice-summary が期待される）"
+        )
+
+
+def check_s96_exam_badge(soup, rep):
+    """S96: ヒーロー部 exam-badge / theme-tags / 難度の存在検査。
+
+    313.html では:
+      - <span class="exam-badge"> × 4（subject + exam + year + source 等）
+      - <span class="theme-tag"> × N（論点キーワード）
+      - exam-meta 内に「難度」表記
+    """
+    exam_badges = soup.find_all(class_="exam-badge")
+    theme_tags = soup.find_all(class_="theme-tag")
+    has_difficulty = bool(soup.find(string=lambda t: t and "難度" in str(t)))
+
+    if len(exam_badges) == 0:
+        rep.warn(
+            "S96",
+            "exam-badge が 0 件（v9.4.0 では subject/exam/year/source 等の絵文字バッジ 4 件前後が期待される）"
+        )
+    if len(theme_tags) == 0:
+        rep.warn(
+            "S96",
+            "theme-tag が 0 件（v9.4.0 では論点キーワードタグ N 件が期待される）"
+        )
+    if not has_difficulty:
+        rep.warn(
+            "S96",
+            "exam-meta に「難度」表記が無い（v9.4.0 では ★ 系の難度表記が期待される）"
+        )
+
+
+def check_s97_sub_card_basis_link(soup, rep):
+    """S97: sub-card basis-link（記述 → basis-card への直接リンク）の存在検査。
+
+    313.html では各 choice-section 内に <div class="sub-card basis-link"> が 1 件
+    （5 件 / 5 choices）出現。判例ネットワークの可視化に重要。
+    """
+    choice_sections = soup.find_all(class_="choice-section")
+    if not choice_sections:
+        return
+    link_count = sum(
+        1 for s in choice_sections
+        if s.find("div", class_=lambda c: c and "sub-card" in c and "basis-link" in c) is not None
+    )
+    expected = len(choice_sections)
+    if link_count < expected:
+        rep.warn(
+            "S97",
+            f"sub-card basis-link が {link_count}/{expected} choice にしか存在しない"
+            f"（v9.4.0 では各 choice に basis-card 参照の sub-card.basis-link が期待される）"
+        )
+
+
+# ============================================================
 # main
 # ============================================================
 
@@ -1475,6 +1559,15 @@ def main():
     check_theory_deep_dive(target, soup, rep)
     check_meta_explanation(soup, rep)
     check_professor_density(soup, rep)
+
+    # S95-S97: v9.4.0 baseline 構造美検査（WARNING レベル・既存ファイル無影響）
+    # spec_version="v9.4.0" を含む場合のみ厳格適用。v9.2.0/v9.1.0/v8.11.7 では
+    # WARNING も出さない（既存 14 ファイルへの影響を完全に避ける）。
+    spec_version = detect_spec_version(soup)
+    if spec_version == "v9.4.0":
+        check_s95_choice_summary(soup, rep)
+        check_s96_exam_badge(soup, rep)
+        check_s97_sub_card_basis_link(soup, rep)
 
     sys.exit(rep.summary(target))
 
