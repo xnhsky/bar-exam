@@ -618,12 +618,8 @@ def check_content_independence(soup, rep):
     # S69: structural shell only 原則違反（簡易版）
     # ※完全な §Annex B 元テキストとの比較は実装が重いため、
     #   よく流用される代表 4 文字列の出現で代用検出する
-    # 注意：「他人のためにその事務を処理する者」単独は刑法247条の法定文言と
-    #       重複し、背任罪を扱う任意の問題で正当に出現するため、
-    #       KTX301 固有である「他人のためにその事務を処理する者が、任務に背いて」
-    #       の長文一致で誤検出を回避する（v9.3.0 Phase 15 で改訂）
     ktx301_signature_fragments = [
-        "他人のためにその事務を処理する者が、任務に背いて",
+        "他人のためにその事務を処理する者",
         "脅迫文言の中に虚偽の部分",
         "新聞販売店から集金業務",
         "保険金を詐取する目的で",
@@ -728,8 +724,8 @@ def check_misc(target_path, soup, html, style_text, rep):
     # 注：canonical/KTX301.html は v8.11.0 ベースの構造参考なので
     # spec バージョン専用タグの検査対象外とする（編集を誘発しないため）
     if not is_canonical_reference:
-        # spec バージョン feature-tag（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap / v9.2.0-deepdive / v9.3.0-palette-multi-variant いずれか必須）
-        spec_version_tags = ["TX v8.11.7", "TX v9.0.0 GENKEI", "TX v9.1.0 MINDMAP", "TX v9.2.0 DEEP-DIVE", "TX v9.3.0 PALETTE-MULTI-VARIANT"]
+        # spec バージョン feature-tag（v8.11.7 / v9.0.0-genkei / v9.1.0-mindmap / v9.2.0-deepdive いずれか必須）
+        spec_version_tags = ["TX v8.11.7", "TX v9.0.0 GENKEI", "TX v9.1.0 MINDMAP", "TX v9.2.0 DEEP-DIVE"]
         # 共通必須 feature-tag
         common_required_tags = ["ktx301-canon", "jp-prefix-naming", "content-independence"]
         footer_el = soup.find(class_="footer-spec")
@@ -737,7 +733,7 @@ def check_misc(target_path, soup, html, style_text, rep):
             footer_text = footer_el.get_text()
             # spec バージョンタグ：OR 条件（いずれか 1 つあれば PASS）
             if not any(tag in footer_text for tag in spec_version_tags):
-                rep.warn("S51", "footer-spec に spec バージョン feature-tag が含まれない（'TX v8.11.7' / 'TX v9.0.0 GENKEI' / 'TX v9.1.0 MINDMAP' / 'TX v9.2.0 DEEP-DIVE' / 'TX v9.3.0 PALETTE-MULTI-VARIANT' のいずれか必須）")
+                rep.warn("S51", "footer-spec に spec バージョン feature-tag が含まれない（'TX v8.11.7' / 'TX v9.0.0 GENKEI' / 'TX v9.1.0 MINDMAP' / 'TX v9.2.0 DEEP-DIVE' のいずれか必須）")
             # 共通必須タグ：AND 条件（全て必須）
             for tag in common_required_tags:
                 if tag not in footer_text:
