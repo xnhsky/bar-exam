@@ -444,41 +444,6 @@ def derive_relative(anchor_hex: str, dh: float, ds: float, dl: float) -> str:
     return hsl_to_hex(h + dh, s + ds, l + dl)
 
 
-def hex_to_rgb_triple(hex_str: str) -> str:
-    """#RRGGBB → 'R,G,B' (CSS rgba() 用 RGB triple)"""
-    h = hex_str.lstrip("#")
-    return f"{int(h[0:2], 16)},{int(h[2:4], 16)},{int(h[4:6], 16)}"
-
-
-# v9.3.0 :root{} で必須となるフォント・スケール定義（テンプレ既定値を継承）
-# v9.3.0 では 2 つあった :root{} を 1 つに統合するため、フォント定義もここに含める
-FONTS_AND_SCALES_V93 = """  /* === §3 12役割フォント === */
-  --font-body:    "A1 Gothic","A-OTF A1ゴシック Std","Zen Kaku Gothic Antique","Hiragino Sans","Yu Gothic Medium","Noto Sans JP",sans-serif;
-  --font-soft:    "Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif;
-  --font-display: "Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
-  --font-statute: "Noto Serif JP","Yu Mincho","Hiragino Mincho ProN",serif;
-  --font-quote:   "Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif;
-  --font-answer:  "Shippori Antique","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
-  --font-keyword: "Kaisei Decol","M PLUS Rounded 1c","Yu Mincho",serif;
-  --font-judgment:"Zen Old Mincho","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
-  --font-note:    "Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif;
-  --font-professor:"Kosugi Maru","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
-  --font-mono:    "Source Code Pro","Consolas","Menlo",monospace;
-  --font-impact:  "M PLUS 1p","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
-  /* === 見出しスケール === */
-  --fs-base:1.0rem; --fs-sm:0.88rem;
-  --fs-h5:1.0rem; --fs-h4:1.10rem; --fs-h3:1.35rem; --fs-h2:1.65rem; --fs-h1:1.85rem;
-  --fs-h-sub:1.10rem; --fs-h-mid:1.35rem; --fs-h-top:1.85rem;"""
-
-# v9.3.0 で機能補完が必要なテンプレ依存変数の literal defaults（v9.2.0 既定値を継承）
-TEMPLATE_LITERAL_DEFAULTS_V93 = {
-    "paper": "#FFFFFF",       # universal background
-    "tan-super": "#c62828",   # tan series (KTX301 canon)
-    "tan-high": "#ef6c00",
-    "tan-std": "#1565c0",
-}
-
-
 # ============================================================================
 # v9.3.0 サブパレット選択 + 27 色変数導出
 # ============================================================================
@@ -546,109 +511,29 @@ def derive_palette_v93(anchor_3: dict[str, str]) -> dict[str, str]:
 
 
 def render_root_block_v93(problem: dict) -> tuple[str, str, str, str]:
-    """v9.3.0 comprehensive :root{} ブロック + footer 用情報を生成。
-
-    v9.3.0 では template 既定の 2 つの :root{}（font / color palette）を
-    1 つに統合する。本関数は以下を含む単一の :root{} を生成：
-      1. sub-palette identifier comment（S92 検査用）
-      2. font/scale 変数（template 既定値・全 sub-palette 共通）
-      3. v9.3.0 28 色変数（anchor 3 + HSL 派生 8 + 絶対派生 3 + 機能色 14）
-      4. template 依存追加変数（accent-rgb / paper / text / bg-dark 等）
-    """
+    """v9.3.0 :root{} ブロック + footer 用情報を生成。"""
     category, subpalette_id, anchor_data = select_subpalette_v93(problem)
     palette = derive_palette_v93(anchor_data)
     label_ja = anchor_data.get("label_ja", subpalette_id)
 
     spec_version = problem.get("spec_version", "v9.3.0")
-    accent_hex = palette["accent"]
-    mid_hex = palette["mid"]
-    base_hex = palette["base"]
-
-    # template 依存の派生変数を HSL 計算で算出
-    # accent から派生
-    accent_rgb = hex_to_rgb_triple(accent_hex)
-    mid_rgb = hex_to_rgb_triple(mid_hex)
-    # bg-dark: accent の L を大きく下げた濃色（テキスト背景の dark variant）
-    bg_dark_hex = derive_relative(accent_hex, 0, +5, -45)
-    # text: accent の L を最大限下げた、ほぼ黒寄りの濃色（本文 color）
-    text_hex = derive_relative(accent_hex, 0, -10, -55)
-    # accent-3: 紙質風の極淡色（accent から L を大きく上げる・白寄り）
-    accent_3_hex = derive_relative(accent_hex, 0, -40, +40)
-    # border-mid: mid の L を上げた淡色（ボーダー）
-    border_mid_hex = derive_relative(mid_hex, 0, -15, +20)
-    # kp-text-color: text とほぼ同じ濃色（key-phrase 用）
-    kp_text_color_hex = derive_relative(accent_hex, 0, -5, -60)
-    # light: accent-soft 同等（淡色背景）
-    light_hex = palette["accent-soft"]
-    # soft: base の L を上げた紙質風
-    soft_hex = derive_relative(base_hex, 0, -25, +25)
-    # freq-*-rgb: RGB triples
-    freq_high_rgb = hex_to_rgb_triple(palette["freq-high"])
-    freq_mid_rgb = hex_to_rgb_triple(palette["freq-mid"])
-    freq_low_rgb = hex_to_rgb_triple(palette["freq-low"])
-    # freq-*-deep: 各 freq 色の L を下げた濃色
-    freq_high_deep = derive_relative(palette["freq-high"], 0, +5, -18)
-    freq_mid_deep = derive_relative(palette["freq-mid"], 0, +5, -18)
-    freq_low_deep = derive_relative(palette["freq-low"], 0, +5, -18)
-
-    lines = []
-    lines.append(f"  /* sub-palette: {label_ja} ({subpalette_id}) / category: {category} / spec: {spec_version} */")
-    # フォント・スケール（template 既定値継承）
-    lines.append(FONTS_AND_SCALES_V93)
-    # アンカー 3 色 + RGB triple
-    lines.append("  /* === v9.3.0 アンカー 3 色 === */")
-    lines.append(f"  --accent: {accent_hex};")
-    lines.append(f"  --accent-rgb: {accent_rgb};")
-    lines.append(f"  --mid: {mid_hex};")
-    lines.append(f"  --mid-rgb: {mid_rgb};")
-    lines.append(f"  --base: {base_hex};")
-    # HSL 派生 8 個
-    lines.append("  /* === v9.3.0 HSL 派生 8 個 === */")
-    for name in ("accent-light", "accent-darker", "accent-soft", "accent-soft-2",
-                 "mid-warm", "mid-cool", "mid-soft", "surface-tint"):
-        lines.append(f"  --{name}: {palette[name]};")
-    # 絶対派生 3 個
-    lines.append("  /* === 絶対派生 3 個（全 sub-palette 共通） === */")
-    for name in ("neutral-cream", "contrast-warm", "contrast-cool"):
-        lines.append(f"  --{name}: {palette[name]};")
-    # template 依存の追加色変数（テンプレ CSS 規則が参照する）
-    lines.append("  /* === template 依存追加色（HSL 派生 + literal defaults） === */")
-    lines.append(f"  --light: {light_hex};")
-    lines.append(f"  --soft: {soft_hex};")
-    lines.append(f"  --paper: {TEMPLATE_LITERAL_DEFAULTS_V93['paper']};")
-    lines.append(f"  --text: {text_hex};")
-    lines.append(f"  --bg-dark: {bg_dark_hex};")
-    lines.append(f"  --accent-3: {accent_3_hex};")
-    lines.append(f"  --border-mid: {border_mid_hex};")
-    lines.append(f"  --kp-text-color: {kp_text_color_hex};")
-    # 機能色: hl 系
-    lines.append("  /* === 機能色: highlight (hl) === */")
-    for name in ("hl-super", "hl-high", "hl-std"):
-        lines.append(f"  --{name}: {palette[name]};")
-    # 機能色: tan 系（v9.2.0 literal defaults 継承）
-    lines.append("  /* === 機能色: tan (literal defaults) === */")
-    for name in ("tan-super", "tan-high", "tan-std"):
-        lines.append(f"  --{name}: {TEMPLATE_LITERAL_DEFAULTS_V93[name]};")
-    # 機能色: rank 系
-    lines.append("  /* === 機能色: rank === */")
-    for name in ("rank-A", "rank-B", "rank-C", "rank-D"):
-        lines.append(f"  --{name}: {palette[name]};")
-    # 機能色: freq 系 + RGB triples + deep variants
-    lines.append("  /* === 機能色: freq + RGB triples + deep variants === */")
-    lines.append(f"  --freq-high: {palette['freq-high']};")
-    lines.append(f"  --freq-high-rgb: {freq_high_rgb};")
-    lines.append(f"  --freq-high-deep: {freq_high_deep};")
-    lines.append(f"  --freq-mid: {palette['freq-mid']};")
-    lines.append(f"  --freq-mid-rgb: {freq_mid_rgb};")
-    lines.append(f"  --freq-mid-deep: {freq_mid_deep};")
-    lines.append(f"  --freq-low: {palette['freq-low']};")
-    lines.append(f"  --freq-low-rgb: {freq_low_rgb};")
-    lines.append(f"  --freq-low-deep: {freq_low_deep};")
-    # 機能色: recall 系
-    lines.append("  /* === 機能色: recall === */")
-    for name in ("recall-correct", "recall-correct-light",
-                 "recall-incorrect", "recall-incorrect-light"):
-        lines.append(f"  --{name}: {palette[name]};")
+    lines = [
+        f"  /* sub-palette: {label_ja} ({subpalette_id}) / category: {category} / spec: {spec_version} */",
+    ]
+    color_order = [
+        "accent", "mid", "base",
+        "accent-light", "accent-darker", "accent-soft", "accent-soft-2",
+        "mid-warm", "mid-cool", "mid-soft", "surface-tint",
+        "neutral-cream", "contrast-warm", "contrast-cool",
+        "recall-correct", "recall-correct-light",
+        "recall-incorrect", "recall-incorrect-light",
+        "rank-A", "rank-B", "rank-C", "rank-D",
+        "freq-high", "freq-mid", "freq-low",
+        "hl-super", "hl-high", "hl-std",
+    ]
+    for var_name in color_order:
+        if var_name in palette:
+            lines.append(f"  --{var_name}: {palette[var_name]};")
 
     root_block = ":root {\n" + "\n".join(lines) + "\n}"
     return (root_block, category, subpalette_id, label_ja)
@@ -810,23 +695,11 @@ def _render_basis_back_links(back_links: list[dict]) -> str:
 
 
 def _render_basis_card(card: dict) -> str:
-    """単一 Basis_Card（kind=statute / kind=case）を HTML に変換。
-
-    schema adapter:
-      経路 A (structured・v9.1.0 旧 schema):
-        - statute: card.paragraphs[{para_num, body_html}]
-        - case:    card.facts_html, card.judgment_html
-        - title:   card.title_html
-      経路 B (flat HTML・v9.2.0 以降の単純 schema):
-        - statute / case 共通: card.body（raw HTML）
-        - title: card.title（plain string・escape）
-      経路 B が優先（card.body が string で存在すれば B、無ければ A にフォールバック）。
-    """
+    """単一 Basis_Card（kind=statute / kind=case）を HTML に変換。"""
     kind = card.get("kind", "")
     card_id = card.get("id", "")
     icon = card.get("icon") or _BASIS_DEFAULT_ICON.get(kind, "")
-    # title: title_html (raw) が優先、無ければ title (plain) を escape
-    title_html = card.get("title_html") or escape(card.get("title", ""))
+    title_html = card.get("title_html", "")
     title_suffix_html = card.get("title_suffix_html", "")
     freq = card.get("freq", "high")
     stars = _BASIS_FREQ_STARS.get(freq, "")
@@ -837,32 +710,26 @@ def _render_basis_card(card: dict) -> str:
     )
 
     body_lines: list[str] = []
-    body_str = card.get("body")
-    if body_str:
-        # 経路 B: flat HTML 直接注入
-        body_lines.append(f'        {body_str}')
-    else:
-        # 経路 A: structured 経路（v9.1.0 旧 schema）
-        if kind == "statute":
-            for para in card.get("paragraphs", []):
-                para_num = escape(para.get("para_num", ""))
-                body_html = para.get("body_html", "")
-                body_lines.append(
-                    f'        <p class="hanging">'
-                    f'<span class="para-num">{para_num}</span>'
-                    f'<span class="hang-body">{body_html}</span></p>'
-                )
-        elif kind == "case":
-            facts_html = card.get("facts_html", "")
-            judgment_html = card.get("judgment_html", "")
+    if kind == "statute":
+        for para in card.get("paragraphs", []):
+            para_num = escape(para.get("para_num", ""))
+            body_html = para.get("body_html", "")
             body_lines.append(
-                f'        <p class="hanging"><strong>【事案】</strong>'
-                f'<span class="hang-body">{facts_html}</span></p>'
+                f'        <p class="hanging">'
+                f'<span class="para-num">{para_num}</span>'
+                f'<span class="hang-body">{body_html}</span></p>'
             )
-            body_lines.append(
-                f'        <p class="judgment-text hanging"><strong>【判旨】</strong>'
-                f'<span class="hang-body">{judgment_html}</span></p>'
-            )
+    elif kind == "case":
+        facts_html = card.get("facts_html", "")
+        judgment_html = card.get("judgment_html", "")
+        body_lines.append(
+            f'        <p class="hanging"><strong>【事案】</strong>'
+            f'<span class="hang-body">{facts_html}</span></p>'
+        )
+        body_lines.append(
+            f'        <p class="judgment-text hanging"><strong>【判旨】</strong>'
+            f'<span class="hang-body">{judgment_html}</span></p>'
+        )
 
     note_html = card.get("note_html")
     if note_html:
@@ -2805,12 +2672,7 @@ def render_final_answer(problem: dict) -> str:
 
 
 def _render_table(table: dict | None, indent: str = "    ") -> str:
-    """{title?, headers, rows[...]} を cmp-table-wrap HTML に変換。
-
-    rows の各要素は以下のいずれかを許容（schema adapter）:
-      - dict 形式（旧 schema）: {cells: [...], row_key?: bool}
-      - list 形式（新 schema・v9.2.0+）: ["cell1", "cell2", ...]（cells を配列で直接表現）
-    """
+    """{title?, headers, rows[{cells, row_key?}]} を cmp-table-wrap HTML に変換。"""
     if not table:
         return ""
     parts = []
@@ -2825,16 +2687,9 @@ def _render_table(table: dict | None, indent: str = "    ") -> str:
         parts.append(f'{indent}    <thead><tr>{ths}</tr></thead>')
     parts.append(f'{indent}    <tbody>')
     for row in table.get("rows", []):
-        if isinstance(row, dict):
-            # 旧 schema: {cells, row_key?}
-            tr_cls = ' class="row-key"' if row.get("row_key") else ""
-            cells = row.get("cells", [])
-        else:
-            # 新 schema: list 直接
-            tr_cls = ""
-            cells = row
+        tr_cls = ' class="row-key"' if row.get("row_key") else ""
         # cells 内は raw HTML 許容（schema 設計に基づく）
-        tds = "".join(f"<td>{c}</td>" for c in cells)
+        tds = "".join(f"<td>{c}</td>" for c in row.get("cells", []))
         parts.append(f'{indent}      <tr{tr_cls}>{tds}</tr>')
     parts.append(f'{indent}    </tbody>')
     parts.append(f'{indent}  </table>')
@@ -2843,162 +2698,94 @@ def _render_table(table: dict | None, indent: str = "    ") -> str:
 
 
 def render_c1_systematic(data: dict | None) -> str:
-    """C-1 体系的解説。schema adapter:
-      経路 A (structured): data.subheading / intro_key_phrase_html / summary_html / table / footer_note_html
-      経路 B (flat body):  data.body（raw HTML）
-      data.title が指定されていれば <h2> の C-1 ラベルを上書き
-    """
     if not data:
         return PART_C_STUBS["C1_SYSTEMATIC"]
-    title_text = data.get("title") or f'C-1 体系的解説{escape(data.get("title_suffix", ""))}'
     parts = [
         '    <nav class="sec-nav"><a href="#basis">↑共通根拠</a><a href="#c-2">C-2→</a></nav>',
-        f'    <h2 class="section-title"><span class="sec-icon">❀</span>{escape(title_text) if data.get("title") else title_text}</h2>',
+        f'    <h2 class="section-title"><span class="sec-icon">❀</span>C-1 体系的解説{escape(data.get("title_suffix", ""))}</h2>',
         '',
     ]
-    body_html = data.get("body")
-    if body_html:
-        # 経路 B: flat HTML 直接注入
-        parts.append(f'    {body_html}')
-    else:
-        # 経路 A: structured（v9.1.0 旧 schema）
-        if data.get("subheading"):
-            parts.append(f'    <h3>{escape(data["subheading"])}</h3>')
-        if data.get("intro_key_phrase_html"):
-            parts.append(f'    <div class="key-phrase-box">\n      {data["intro_key_phrase_html"]}\n    </div>')
-        if data.get("summary_html"):
-            parts.append(f'    <p>{data["summary_html"]}</p>')
-        table_html = _render_table(data.get("table"))
-        if table_html:
-            parts.append("")
-            parts.append(table_html)
-        if data.get("footer_note_html"):
-            parts.append(f'    <p style="font-size:.92em;">{data["footer_note_html"]}</p>')
+    if data.get("subheading"):
+        parts.append(f'    <h3>{escape(data["subheading"])}</h3>')
+    if data.get("intro_key_phrase_html"):
+        parts.append(f'    <div class="key-phrase-box">\n      {data["intro_key_phrase_html"]}\n    </div>')
+    if data.get("summary_html"):
+        parts.append(f'    <p>{data["summary_html"]}</p>')
+    table_html = _render_table(data.get("table"))
+    if table_html:
+        parts.append("")
+        parts.append(table_html)
+    if data.get("footer_note_html"):
+        parts.append(f'    <p style="font-size:.92em;">{data["footer_note_html"]}</p>')
     parts.extend(["", _BACK_TO_TOP])
     return "\n".join(parts)
 
 
 def render_c2_comparison(data: dict | None) -> str:
-    """C-2 概念比較。schema adapter:
-      経路 A (structured): data.tables[] (複数表)
-      経路 B (flat body):  data.table (単一表) + data.body (HTML 補足)
-    """
     if not data:
         return PART_C_STUBS["C2_COMPARISON"]
-    title_text = data.get("title") or "C-2 概念比較・全肢俯瞰"
     parts = [
         '    <nav class="sec-nav"><a href="#c-1">←C-1</a><a href="#c-3">C-3→</a></nav>',
-        f'    <h2 class="section-title"><span class="sec-icon">❀</span>{escape(title_text) if data.get("title") else title_text}</h2>',
+        '    <h2 class="section-title"><span class="sec-icon">❀</span>C-2 概念比較・全肢俯瞰</h2>',
     ]
-    # 経路 A: tables[] 形式
     for table in data.get("tables", []):
         parts.append("")
         parts.append(_render_table(table))
-    # 経路 B: 単一 table フィールド + body 補足
-    single_table = data.get("table")
-    if single_table and not data.get("tables"):
-        parts.append("")
-        parts.append(_render_table(single_table))
-    body_html = data.get("body")
-    if body_html:
-        parts.append("")
-        parts.append(f'    {body_html}')
     parts.extend(["", _BACK_TO_TOP])
     return "\n".join(parts)
 
 
 def render_c3_connections(data: dict | None) -> str:
-    """C-3 関連科目との接続。schema adapter:
-      経路 A (structured): data.cards[{label, title, rows[{key, body_html}]}]
-      経路 B (flat body):  data.body（raw HTML）
-    """
     if not data:
         return PART_C_STUBS["C3_CONNECTIONS"]
-    title_text = data.get("title") or "C-3 関連の深い科目との接続"
     parts = [
         '    <nav class="sec-nav"><a href="#c-2">←C-2</a><a href="#c-4">C-4→</a></nav>',
-        f'    <h2 class="section-title"><span class="sec-icon">❀</span>{escape(title_text) if data.get("title") else title_text}</h2>',
+        '    <h2 class="section-title"><span class="sec-icon">❀</span>C-3 関連の深い科目との接続</h2>',
         '',
+        '    <div class="cross-grid">',
     ]
-    body_html = data.get("body")
-    cards = data.get("cards", [])
-    if body_html and not cards:
-        # 経路 B: flat HTML 直接注入
-        parts.append(f'    {body_html}')
-    else:
-        # 経路 A: structured（v9.1.0 旧 schema）
-        parts.append('    <div class="cross-grid">')
-        for card in cards:
-            parts.append('      <div class="cross-card">')
-            parts.append(
-                f'        <h4><span class="cc-label">{escape(card.get("label", ""))}</span>{escape(card.get("title", ""))}</h4>'
-            )
-            for row in card.get("rows", []):
-                key = escape(row.get("key", ""))
-                body = row.get("body_html", "")
-                parts.append(f'        <div class="cc-row"><span class="cc-key">{key}</span>{body}</div>')
-            parts.append('      </div>')
-        parts.append('    </div>')
+    for card in data.get("cards", []):
+        parts.append('      <div class="cross-card">')
+        parts.append(
+            f'        <h4><span class="cc-label">{escape(card.get("label", ""))}</span>{escape(card.get("title", ""))}</h4>'
+        )
+        for row in card.get("rows", []):
+            key = escape(row.get("key", ""))
+            body = row.get("body_html", "")
+            parts.append(f'        <div class="cc-row"><span class="cc-key">{key}</span>{body}</div>')
+        parts.append('      </div>')
+    parts.append('    </div>')
     parts.extend(["", _BACK_TO_TOP])
     return "\n".join(parts)
 
 
 def render_c4_doctrines(data: dict | None) -> str:
-    """C-4 学説対立。schema adapter:
-      経路 A (structured): data.topics[{title, headers, rows}]
-      経路 B (flat body):  data.body（raw HTML）
-    """
     if not data:
         return PART_C_STUBS["C4_DOCTRINES"]
-    title_text = data.get("title") or "C-4 学説対立"
     parts = [
         '    <nav class="sec-nav"><a href="#c-3">←C-3</a><a href="#c-5">C-5→</a></nav>',
-        f'    <h2 class="section-title"><span class="sec-icon">⚔</span>{escape(title_text) if data.get("title") else title_text}</h2>',
+        '    <h2 class="section-title"><span class="sec-icon">⚔</span>C-4 学説対立</h2>',
     ]
-    body_html = data.get("body")
-    topics = data.get("topics", [])
-    if body_html and not topics:
-        # 経路 B
+    default_headers = ["学説", "結論", "論拠"]
+    for topic in data.get("topics", []):
+        table_for_render = {
+            "title": topic.get("title"),
+            "headers": topic.get("headers") or default_headers,
+            "rows": topic.get("rows", []),
+        }
         parts.append("")
-        parts.append(f'    {body_html}')
-    else:
-        # 経路 A
-        default_headers = ["学説", "結論", "論拠"]
-        for topic in topics:
-            table_for_render = {
-                "title": topic.get("title"),
-                "headers": topic.get("headers") or default_headers,
-                "rows": topic.get("rows", []),
-            }
-            parts.append("")
-            parts.append(_render_table(table_for_render))
+        parts.append(_render_table(table_for_render))
     parts.extend(["", _BACK_TO_TOP])
     return "\n".join(parts)
 
 
 def render_c5_flowchart(data: dict | None) -> str:
-    """C-5 総合フローチャート。schema adapter:
-      経路 A (structured): data.figure (svg) / data.rules / data.intro_key_phrase_html
-      経路 B (flat body):  data.body（raw HTML）
-    """
     if not data:
         return PART_C_STUBS["C5_FLOWCHART"]
-    title_text = data.get("title") or "C-5 総合フローチャート"
     parts = [
         '    <nav class="sec-nav"><a href="#c-4">←C-4</a><a href="#c-6">C-6→</a></nav>',
-        f'    <h2 class="section-title"><span class="sec-icon">🗺</span>{escape(title_text) if data.get("title") else title_text}</h2>',
+        '    <h2 class="section-title"><span class="sec-icon">🗺</span>C-5 総合フローチャート</h2>',
     ]
-    body_html = data.get("body")
-    has_structured = (
-        data.get("intro_key_phrase_html") or data.get("figure") or data.get("rules")
-    )
-    if body_html and not has_structured:
-        # 経路 B
-        parts.append("")
-        parts.append(f'    {body_html}')
-        parts.extend(["", _BACK_TO_TOP])
-        return "\n".join(parts)
-    # 経路 A
     if data.get("intro_key_phrase_html"):
         parts.append("")
         parts.append(f'    <div class="key-phrase-box">\n      {data["intro_key_phrase_html"]}\n    </div>')
@@ -3024,124 +2811,69 @@ def render_c5_flowchart(data: dict | None) -> str:
 
 
 def render_c6_related(data: dict | None) -> str:
-    """C-6 関連問題・出題傾向。schema adapter:
-      経路 A (structured): data.trends.items / data.related.items
-      経路 B (flat): data.items[{id, title, note}] (v9.2.0+ schema)
-      経路 C (body):  data.body（raw HTML）
-    """
     if not data:
         return PART_C_STUBS["C6_RELATED"]
-    title_text = data.get("title") or "C-6 関連問題・出題傾向"
     parts = [
         '    <nav class="sec-nav"><a href="#c-5">←C-5</a><a href="#c-7">C-7→</a></nav>',
-        f'    <h2 class="section-title"><span class="sec-icon">📚</span>{escape(title_text) if data.get("title") else title_text}</h2>',
+        '    <h2 class="section-title"><span class="sec-icon">📚</span>C-6 関連問題・出題傾向</h2>',
     ]
-    # 経路 A: trends/related sections
-    has_trends_or_related = data.get("trends") or data.get("related")
-    if has_trends_or_related:
-        for section_key in ("trends", "related"):
-            section = data.get(section_key)
-            if not section or not section.get("items"):
-                continue
-            parts.append("")
-            if section.get("title"):
-                parts.append(f'    <h3>{escape(section["title"])}</h3>')
-            parts.append('    <ul class="lead-list">')
-            for item in section["items"]:
-                parts.append(f'      <li>{item}</li>')
-            parts.append('    </ul>')
-    elif data.get("items"):
-        # 経路 B: flat items[{id, title, note}]
+    for section_key in ("trends", "related"):
+        section = data.get(section_key)
+        if not section or not section.get("items"):
+            continue
         parts.append("")
+        if section.get("title"):
+            parts.append(f'    <h3>{escape(section["title"])}</h3>')
         parts.append('    <ul class="lead-list">')
-        for item in data["items"]:
-            if isinstance(item, dict):
-                id_str = escape(item.get("id", ""))
-                t = escape(item.get("title", ""))
-                note = escape(item.get("note", ""))
-                parts.append(
-                    f'      <li><strong>{id_str}</strong> {t}'
-                    + (f' — <span style="opacity:.78;">{note}</span>' if note else "")
-                    + '</li>'
-                )
-            else:
-                parts.append(f'      <li>{escape(str(item))}</li>')
+        for item in section["items"]:
+            parts.append(f'      <li>{item}</li>')
         parts.append('    </ul>')
-    elif data.get("body"):
-        # 経路 C: flat body HTML
-        parts.append("")
-        parts.append(f'    {data["body"]}')
     parts.extend(["", _BACK_TO_TOP])
     return "\n".join(parts)
 
 
 def render_c7_memory(data: dict | None, final_answer_html: str = "") -> str:
-    """C-7 三層構造記憶。schema adapter:
-      経路 A (structured): data.layers[{priority, items[{badge, title, body_html, hint_html}]}]
-      経路 B (flat items): data.items[{priority, tag, title, body}] (v9.2.0+ schema)
+    """C-7 三層構造記憶セクション。
 
-    final_answer_html が非空なら memory-list 終了と back-to-top の間に挿入する。
+    final_answer_html が非空なら memory-list 終了と back-to-top の間に挿入する
+    (Phase 4-3 § §22-bis/§22-ter)。空文字列なら従来通り出力（byte-identical 維持）。
     """
     if not data:
         if final_answer_html:
+            # stub の back-to-top 直前に final-answer + 空行を挿入
             return PART_C_STUBS["C7_MEMORY"].replace(
                 "\n" + _BACK_TO_TOP,
                 "\n\n" + final_answer_html + "\n" + _BACK_TO_TOP,
                 1,
             )
         return PART_C_STUBS["C7_MEMORY"]
-    title_text = data.get("title") or "C-7 三層構造記憶"
     parts = [
         '    <nav class="sec-nav"><a href="#c-6">←C-6</a><a href="#part-d">PART D→</a></nav>',
-        f'    <h2 class="section-title"><span class="sec-icon">🧠</span>{escape(title_text) if data.get("title") else title_text}</h2>',
+        '    <h2 class="section-title"><span class="sec-icon">🧠</span>C-7 三層構造記憶</h2>',
     ]
     if data.get("intro_key_phrase_html"):
         parts.append("")
         parts.append(f'    <div class="key-phrase-box">\n      {data["intro_key_phrase_html"]}\n    </div>')
-
-    layers = data.get("layers", [])
-    flat_items = data.get("items", [])
-
-    if layers:
-        # 経路 A: structured layers
-        for layer in layers:
-            priority = layer.get("priority", "a")
-            parts.append("")
-            if layer.get("title"):
-                parts.append(f'    <h3>{escape(layer["title"])}</h3>')
-            parts.append('    <div class="memory-list">')
-            for item in layer.get("items", []):
-                badge = escape(item.get("badge", ""))
-                title = escape(item.get("title", ""))
-                body = item.get("body_html", "")
-                parts.append(f'      <div class="memory-item priority-{priority}">')
-                parts.append(f'        <span class="priority-badge priority-{priority}">{badge}</span>')
-                parts.append('        <div class="mem-body">')
-                parts.append(f'          <span class="mem-title">{title}</span>')
-                parts.append(f'          {body}')
-                if item.get("hint_html"):
-                    parts.append(f'          <span class="mem-hint">{item["hint_html"]}</span>')
-                parts.append('        </div>')
-                parts.append('      </div>')
-            parts.append('    </div>')
-    elif flat_items:
-        # 経路 B: flat items[{priority, tag, title, body}]
+    for layer in data.get("layers", []):
+        priority = layer.get("priority", "a")
         parts.append("")
+        if layer.get("title"):
+            parts.append(f'    <h3>{escape(layer["title"])}</h3>')
         parts.append('    <div class="memory-list">')
-        for item in flat_items:
-            priority = item.get("priority", "a")
-            badge = escape(item.get("tag", "") or item.get("badge", ""))
+        for item in layer.get("items", []):
+            badge = escape(item.get("badge", ""))
             title = escape(item.get("title", ""))
-            body = item.get("body", "") or item.get("body_html", "")
+            body = item.get("body_html", "")
             parts.append(f'      <div class="memory-item priority-{priority}">')
             parts.append(f'        <span class="priority-badge priority-{priority}">{badge}</span>')
             parts.append('        <div class="mem-body">')
             parts.append(f'          <span class="mem-title">{title}</span>')
-            parts.append(f'          <span class="mem-text">{escape(body) if "<" not in body else body}</span>')
+            parts.append(f'          {body}')
+            if item.get("hint_html"):
+                parts.append(f'          <span class="mem-hint">{item["hint_html"]}</span>')
             parts.append('        </div>')
             parts.append('      </div>')
         parts.append('    </div>')
-
     if final_answer_html:
         parts.extend(["", final_answer_html])
     parts.extend(["", _BACK_TO_TOP])
@@ -3529,30 +3261,15 @@ def render(template: str, slots: dict[str, str]) -> str:
             "slot 値内の循環参照を確認してください。"
         )
 
-    # v9.3.0 PALETTE-MULTI-VARIANT: :root{} ブロックの comprehensive 置換。
-    # build_slot_dict_v93_extension が ROOT_CSS_BLOCK_V93 にフォント・スケール・
-    # 全色変数（28 + テンプレ依存追加）を統合した単一 :root{} ブロックを生成済。
-    #
-    # テンプレ既定には :root{}（font/scale）と :root{}（color palette）の 2 個が存在し、
-    # 単純な count=1 置換では後方の color palette 既定が CSS 後勝ちで v9.3.0 を上書きしてしまう。
-    # したがって v9.3.0 経路では、全 :root{} を削除した後、v9.3.0 comprehensive block 1 個を
-    # <style> 直後に挿入する（delete-then-insert 順序により v9.3.0 block 自身の誤削除を回避）。
-    # この設計により S93（v9.3.0 ファイル :root{} カウント == 1）を満たす。
-    # v9.2.0 以下では ROOT_CSS_BLOCK_V93 slot 自体が存在しない → no-op で byte-identical 維持。
+    # v9.3.0 PALETTE-MULTI-VARIANT: :root{} ブロックの直接置換。
+    # build_slot_dict_v93_extension が ROOT_CSS_BLOCK_V93 に 27 色変数を生成済。
+    # 既存テンプレの :root{ ... } を正規表現で 1 件のみ置換。
+    # v9.2.0 以下では ROOT_CSS_BLOCK_V93 slot 自体が存在しない → no-op。
     root_block_v93 = slots.get("ROOT_CSS_BLOCK_V93", "")
     if root_block_v93:
-        # Step 1: 全 :root{} ブロック（直前の /* ... */ comment 含む）を削除
-        # orphan comment を残さないよう、comment + :root{} を一括 match
         out = re.sub(
-            r"(?:/\*[^*]*(?:\*(?!/)[^*]*)*\*/\s*)?:root\s*\{[^}]*\}\s*",
-            "",
-            out,
-        )
-        # Step 2: <style> 直後に v9.3.0 comprehensive block を 1 個挿入
-        # lambda を用い replacement 文字列内の \ や $ の解釈を回避
-        out = re.sub(
-            r"(<style[^>]*>\s*)",
-            lambda m: m.group(0) + "\n" + root_block_v93 + "\n\n",
+            r":root\s*\{[^}]*\}",
+            lambda m: root_block_v93,
             out,
             count=1,
         )
