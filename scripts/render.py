@@ -3269,6 +3269,76 @@ def inject_v94_mindmap_section(rendered_html: str, problem: dict) -> str:
     return basis_pattern.sub(lambda m: m.group(1) + "\n" + section_html, rendered_html, count=1)
 
 
+# v9.4.0 SVG class CSS rules（44 class）
+# template には CSS 規則が完全欠落しており、SVG 全形状が既定の黒で描画される
+# 重大表示バグ（Phase Y-2 で特定済・v9.2.0 pre-existing）の修正。
+# post-process injection 方式で template / 既存ファイルへの影響を完全に避ける。
+_V94_SVG_CSS = """
+/* === §22-tree / §22-radial / §22-flowchart-v2 SVG class colors (v9.4.0 post-process) === */
+/* Tree SVG (§22-tree) */
+.tree-svg{ display:block; max-width:100%; height:auto; }
+.tree-svg .tx-legend{ font-family:var(--font-mono); font-size:11px; fill:var(--text); }
+.tree-svg .l0-fill{ fill:var(--accent); stroke:var(--accent); stroke-width:1.2; }
+.tree-svg .l1-fill{ fill:var(--mid); stroke:var(--mid); stroke-width:1; }
+.tree-svg .l2-fill{ fill:var(--accent-light); stroke:var(--mid); stroke-width:1; }
+.tree-svg .l3-fill{ fill:var(--accent-soft); stroke:var(--mid-cool); stroke-width:.8; }
+.tree-svg .l2-active, .tree-svg .l3-active{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.5; }
+.tree-svg .tx-l0{ font-family:var(--font-display); font-size:13px; font-weight:700; fill:var(--paper); }
+.tree-svg .tx-l1{ font-family:var(--font-soft); font-size:12px; font-weight:700; fill:var(--paper); }
+.tree-svg .tx-l2{ font-family:var(--font-body); font-size:11px; fill:var(--text); }
+.tree-svg .tx-l3{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+.tree-svg .line-main{ stroke:var(--mid); stroke-width:1.6; fill:none; }
+.tree-svg .line-sub{ stroke:var(--accent-light); stroke-width:1; fill:none; }
+.tree-svg .line-issue, .tree-svg .issue-arrow{ stroke:var(--mid-warm); stroke-width:1.4; fill:none; }
+.tree-svg .tx-issue{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.2; }
+.tree-svg .tx-issue-ttl{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--bg-dark); }
+.tree-svg .tx-issue-body{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+
+/* Radial SVG (§22-radial) */
+.radial-svg{ display:block; max-width:100%; height:auto; }
+.radial-svg .tx-legend{ font-family:var(--font-mono); font-size:11px; fill:var(--text); }
+.radial-svg .branch-fill{ fill:var(--mid); stroke:var(--accent); stroke-width:1.2; }
+.radial-svg .issue-branch-fill{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.5; }
+.radial-svg .sub-elem{ fill:var(--base); stroke:var(--mid); stroke-width:.8; }
+.radial-svg .sub-statute{ fill:var(--accent-light); stroke:var(--mid); stroke-width:.8; }
+.radial-svg .sub-case{ fill:var(--accent-soft); stroke:var(--mid-cool); stroke-width:.8; }
+.radial-svg .tx-center{ font-family:var(--font-display); font-size:14px; font-weight:700; fill:var(--paper); }
+.radial-svg .tx-branch{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--paper); }
+.radial-svg .tx-chip, .radial-svg .tx-elem, .radial-svg .tx-statute, .radial-svg .tx-case{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+.radial-svg .connect{ stroke:var(--mid); stroke-width:1.2; fill:none; }
+.radial-svg .tx-issue-ttl{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--bg-dark); }
+.radial-svg .tx-issue-body{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+.radial-svg .tx-correct{ font-family:var(--font-mono); font-size:11px; font-weight:700; fill:var(--accent); }
+
+/* Flow SVG (§22-flowchart-v2) */
+.flow-svg{ display:block; max-width:100%; height:auto; }
+.flow-svg .tx-legend{ font-family:var(--font-mono); font-size:11px; fill:var(--text); }
+.flow-svg .flow-start{ fill:var(--accent); stroke:var(--accent); stroke-width:1.4; }
+.flow-svg .flow-decision{ fill:var(--mid); stroke:var(--accent); stroke-width:1.2; }
+.flow-svg .flow-end-success{ fill:var(--mid-warm); stroke:var(--accent); stroke-width:1.4; }
+.flow-svg .flow-end-fail{ fill:var(--contrast-warm); stroke:var(--bg-dark); stroke-width:1.4; }
+.flow-svg .flow-chip{ fill:var(--accent-light); stroke:var(--mid); stroke-width:.8; }
+.flow-svg .flow-line{ stroke:var(--mid); stroke-width:1.4; fill:none; }
+.flow-svg .tx-start{ font-family:var(--font-display); font-size:12px; font-weight:700; fill:var(--paper); }
+.flow-svg .tx-decision{ font-family:var(--font-soft); font-size:11px; font-weight:700; fill:var(--paper); }
+.flow-svg .tx-end{ font-family:var(--font-soft); font-size:12px; font-weight:700; fill:var(--paper); }
+.flow-svg .tx-chip, .flow-svg .tx-yn{ font-family:var(--font-body); font-size:10px; fill:var(--text); }
+"""
+
+
+def inject_v94_svg_css(rendered_html: str) -> str:
+    """v9.4.0 専用: SVG class CSS rules (44 class) を <style> 末尾に注入する。
+
+    Phase Y-2 で特定済の v9.2.0 pre-existing バグ「template の SVG class CSS rule
+    完全欠落 → SVG 全形状が既定の黒で描画」を修正する。template / 既存 14 ファイル
+    への影響を完全に避けるため、render() 完了後に `</style>` 直前へ post-process
+    で注入する経路を選択（原則 1: cascade 後勝ち / 原則 2: 既存無改変 準拠）。
+
+    spec_version!="v9.4.0" では呼ばれないため既存 byte-identical 完全維持。
+    """
+    return rendered_html.replace("</style>", _V94_SVG_CSS + "\n</style>", 1)
+
+
 # ============================================================================
 # v9.4.0 拡張ここまで
 # ============================================================================
@@ -3403,6 +3473,9 @@ def main(argv: list[str]) -> int:
     spec_version_for_post = str(problem.get("spec_version", DEFAULT_SPEC_VERSION))
     if spec_version_for_post == "v9.4.0":
         rendered = inject_v94_mindmap_section(rendered, problem)
+        # SVG class CSS rules (44 class) を post-process で <style> 末尾に注入。
+        # template の v9.2.0 pre-existing バグ（CSS 規則完全欠落で SVG 黒塗り）の修正。
+        rendered = inject_v94_svg_css(rendered)
 
     output_path = get_output_path(subject, problem_id)
     output_path.parent.mkdir(parents=True, exist_ok=True)
