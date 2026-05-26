@@ -3139,11 +3139,13 @@ REF_ANCHOR_PATTERN = re.compile(r'<a class="(ref-case|ref-stat)" href="#([^"]+)"
 # (原則 5) 検査先行 (S95-S97) は validate-tx.py 側で既に追加済
 
 
-# パターン愛称完全形（v9.1.0 baseline で確認・313 で出力されていた）
+# パターン愛称完全形（Phase 13B で v9.3.0 PALETTE-MULTI-VARIANT 命名に統一）
+# 旧名 (ローズシャンブル / セージブラリー / ラベンダードーン) は PALETTE_VARIANTS と
+# 一致しなかったため、新変種名（壱-紅蓮 / 弐-群青蘭 / 参-黎明）に揃える。
 V94_PATTERN_NICKNAMES: dict[str, str] = {
-    "P1": "P1 ローズシャンブル",
-    "P2": "P2 セージブラリー",
-    "P3": "P3 ラベンダードーン",
+    "P1": f"P1 {PALETTE_VARIANTS['P1']['name_jp']}",
+    "P2": f"P2 {PALETTE_VARIANTS['P2']['name_jp']}",
+    "P3": f"P3 {PALETTE_VARIANTS['P3']['name_jp']}",
 }
 
 # 科目絵文字（v9.1.0 baseline で確認・313 のヒーロー部 exam-badge 由来）
