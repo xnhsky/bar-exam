@@ -1,0 +1,192 @@
+diff --git a/scripts/render.py b/scripts/render.py
+index bcd1f98..c448a70 100644
+--- a/scripts/render.py
++++ b/scripts/render.py
+@@ -373,8 +373,10 @@ def _render_basis_card(card: dict) -> str:
+ 
+     note_html = card.get("note_html")
+     if note_html:
++        # fb-4 (Phase 13B): note 本文を <span class="note-body"> で wrap。
++        # CSS 側の grid layout (badge=1列・body=2列) で 2 行目以降が badge 右側に揃う。
+         body_lines.append('        <div class="note">')
+-        body_lines.append(f'          {note_html}')
++        body_lines.append(f'          <span class="note-body">{note_html}</span>')
+         body_lines.append('        </div>')
+ 
+     back_links = card.get("back_links") or []
+@@ -562,25 +564,70 @@ def render_footer_feature_tags(
+     return "\n".join(lines)
+ 
+ 
++# ============================================================================
++# v9.3.0 PALETTE-MULTI-VARIANT（3 流派・Phase 13B）
++# ============================================================================
++# pattern P1/P2/P3 に対する命名付き palette 流派と base accent/mid。
++# render_palette_derivatives_root() の :root cascade で最初に注入される
++# （template default → variant base → v9.2.0 derivatives の 3 段 cascade）。
++
++PALETTE_VARIANTS: dict[str, dict[str, str]] = {
++    "P1": {
++        "name_jp": "壱-紅蓮",
++        "name_en": "Karen / Crimson Lotus",
++        "accent": "#8A1F3A",
++        "mid": "#C58A9C",
++        "accent_rgb": "138, 31, 58",
++    },
++    "P2": {
++        "name_jp": "弐-群青蘭",
++        "name_en": "Gunjouran / Azure Orchid",
++        "accent": "#3C828F",
++        "mid": "#A989B8",
++        "accent_rgb": "60, 130, 143",
++    },
++    "P3": {
++        "name_jp": "参-黎明",
++        "name_en": "Reimei / Dawn Light",
++        "accent": "#1F4754",
++        "mid": "#5A9DB5",
++        "accent_rgb": "31, 71, 84",
++    },
++}
++
++
+ # ============================================================================
+ # v9.2.0 派生色 :root override 出力（S88 対応）
++# v9.3.0 で variant base accent/mid も同時注入（Phase 13B）
+ # ============================================================================
+ 
+ def render_palette_derivatives_root(pattern: str) -> str:
+-    """v9.2.0 派生色 10 個を含む :root{} ブロックを生成。
++    """v9.3.0 variant base accent/mid + v9.2.0 派生色 10 個を含む :root{} ブロックを生成。
+ 
+     Args:
+         pattern: "P1" / "P2" / "P3" のいずれか（OVERRIDE_PATTERN ベース）。
+                  未知の値は P1 にフォールバック。
+ 
+     戻り値：CSS テキスト（<style> 内に挿入する用）。
++    2 つの :root ブロックを連結：
++      1. v9.3.0 variant base （--accent / --mid / --accent-rgb の上書き）
++      2. v9.2.0 派生色 10 個 （--accent-light, --mid-warm, ...）
++    template の base :root と合わせて 3 段 cascade（後勝ち）。
+     v9.1.0 以下ファイル生成時は呼ばれない（build_slot_dict で空文字を返す）。
+     """
+     palette_key = pattern if pattern in V92_PALETTE_DERIVATIVES else "P1"
+     derivs = V92_PALETTE_DERIVATIVES[palette_key]
+-    lines = ["  /* === v9.2.0 派生色 10 個（" + palette_key + " override・S88） === */", ":root{"]
++    variant = PALETTE_VARIANTS[palette_key]
++    # S60/AP-24（:root 上限 3 個）に収めるため、v9.3.0 variant base と v9.2.0 derivatives は
++    # 1 つの :root{} に統合する。template default :root + v92 mindmap :root を含めて計 3 個に収まる。
++    lines = [
++        f"  /* === v9.3.0 PALETTE-MULTI-VARIANT: {variant['name_jp']}（{variant['name_en']}） + v9.2.0 派生色 10 個（{palette_key} override・S88） === */",
++        ":root{",
++        f"  --accent: {variant['accent']};",
++        f"  --mid: {variant['mid']};",
++        f"  --accent-rgb: {variant['accent_rgb']};",
++    ]
+     for var, val in derivs.items():
+-        # 整列：var 名は最大 17 字相当、val は 7 字 hex
+         lines.append(f"  {var}: {val};")
+     lines.append("}")
+     return "\n".join(lines)
+@@ -2682,6 +2729,10 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
+     jp_prefix = SUBJECT_TO_JP[subject] + "TX"
+     subject_label = SUBJECT_TO_LABEL[subject]
+ 
++    # spec_version は CASE_BODY 等の早期 slot 構築でも参照されるため、ここで先行定義する。
++    # 後続 line 2830 の再代入は同値の no-op（互換のため温存）。
++    spec_version = str(problem.get("spec_version", DEFAULT_SPEC_VERSION))
++
+     slots: dict[str, str] = {
+         "PROBLEM_ID": str(problem["id"]),
+         "SOURCE_ID": str(problem.get("source", "")),
+@@ -2704,15 +2755,47 @@ def build_slot_dict(problem: dict) -> dict[str, str]:
+     # case 未定義の問題（list-form 系）では空文字列となり、テンプレ上は何も表示されない。
+     case_data = problem.get("case")
+     if case_data and case_data.get("paragraphs"):
+-        paragraphs_html = "\n".join(
+-            f'<p class="case-paragraph">{escape(p)}</p>'
+-            for p in case_data["paragraphs"]
+-        )
+-        slots["CASE_BODY"] = (
+-            '<div class="case-description">\n'
+-            + paragraphs_html
+-            + '\n</div>'
+-        )
++        if spec_version == "v9.4.0":
++            # fb-3 (Phase 13B): v9.4.0 では各 paragraph を case-scene カードで wrap。
++            # case.scenes [{title, body}] が指定されていれば α 方式（明示タイトル）、
++            # なければ γ 方式（"場面 N" 機械タイトル）でフォールバック。
++            scenes = case_data.get("scenes")
++            if scenes and isinstance(scenes, list):
++                scene_iter = [
++                    (s.get("title", f"場面 {i+1}"), s.get("body", ""))
++                    for i, s in enumerate(scenes)
++                ]
++            else:
++                scene_iter = [
++                    (f"場面 {i+1}", p)
++                    for i, p in enumerate(case_data["paragraphs"])
++                ]
++            scene_blocks = []
++            for i, (title, body) in enumerate(scene_iter, start=1):
++                scene_blocks.append(
++                    '<div class="case-scene">\n'
++                    '  <div class="case-scene-label">\n'
++                    f'    <span class="case-scene-num">{i}</span>\n'
++                    f'    <span class="case-scene-title">{escape(str(title))}</span>\n'
++                    '  </div>\n'
++                    f'  <p class="case-paragraph">{escape(str(body))}</p>\n'
++                    '</div>'
++                )
++            slots["CASE_BODY"] = (
++                '<div class="case-description">\n'
++                + "\n".join(scene_blocks)
++                + '\n</div>'
++            )
++        else:
++            paragraphs_html = "\n".join(
++                f'<p class="case-paragraph">{escape(p)}</p>'
++                for p in case_data["paragraphs"]
++            )
++            slots["CASE_BODY"] = (
++                '<div class="case-description">\n'
++                + paragraphs_html
++                + '\n</div>'
++            )
+     else:
+         slots["CASE_BODY"] = ""
+ 
+@@ -3443,6 +3526,24 @@ def inject_v94_svg_css(rendered_html: str) -> str:
+     return rendered_html.replace("</style>", _V94_SVG_CSS + "\n</style>", 1)
+ 
+ 
++def inject_v94_footer_hidden(rendered_html: str) -> str:
++    """v9.4.0 専用: footer-spec の visible feature-tag 行を hidden 化する（Phase 13B）。
++
++    validate-tx.py が要求する feature-tag は HTML 内に存在する必要があるが、
++    視覚的には不要（footer がノイズ化する）ため、`<p class="footer-meta">` を
++    `<p class="footer-meta footer-meta-hidden" hidden>` に置換する。
++    `hidden` グローバル属性で要素全体が非表示になり、内側の各 <span class="feature-tag">
++    は HTML 上は parser に到達可能（validate-tx.py の grep/parse は通る）。
++
++    spec_version!="v9.4.0" では呼ばれないため既存 byte-identical 完全維持。
++    """
++    return rendered_html.replace(
++        '<p class="footer-meta">',
++        '<p class="footer-meta footer-meta-hidden" hidden>',
++        1,
++    )
++
++
+ # ============================================================================
+ # v9.4.0 拡張ここまで
+ # ============================================================================
+@@ -3580,6 +3681,8 @@ def main(argv: list[str]) -> int:
+         # SVG class CSS rules (44 class) を post-process で <style> 末尾に注入。
+         # template の v9.2.0 pre-existing バグ（CSS 規則完全欠落で SVG 黒塗り）の修正。
+         rendered = inject_v94_svg_css(rendered)
++        # fb (Phase 13B): footer-spec visible feature-tag 行を hidden 化（spec 列をノイズ化させない）
++        rendered = inject_v94_footer_hidden(rendered)
+ 
+     output_path = get_output_path(subject, problem_id)
+     output_path.parent.mkdir(parents=True, exist_ok=True)
