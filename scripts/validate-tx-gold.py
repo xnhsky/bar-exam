@@ -15,7 +15,7 @@ TX v10.0.0 GOLD-SKELETON 自己検証スクリプト
     G11: viewBox の下端余白が十分（最下端要素から 40px 以上）
   G12〜G13：content-independence
     G12: canonical/KTX301.html 由来禁止文言の不出現
-    G13: canonical/KTX311-gold-baseline.html 本文との 5 単語以上連続一致なし
+    G13: canonical/GENESIS.html 本文との 5 単語以上連続一致なし
   G14〜G15：命名規則
     G14: ファイル ID 形式（{接頭辞}{NNN}）と出力先サブフォルダ整合
     G15: footer-spec feature-tag 先頭が "TX v10.0.0 GOLD-SKELETON"
@@ -54,7 +54,7 @@ except ImportError:
 # ============================================================
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-BASELINE_311 = REPO_ROOT / "canonical" / "KTX311-gold-baseline.html"
+BASELINE_GENESIS = REPO_ROOT / "canonical" / "GENESIS.html"
 BASELINE_301 = REPO_ROOT / "canonical" / "KTX301.html"
 
 JP_PREFIX_TO_DIR = {
@@ -418,15 +418,17 @@ class Validator:
             if phrase in text:
                 self.err("G12", f"KTX301 由来禁止文言が残存: '{phrase}'")
 
-    def g13_no_311_baseline_copy(self):
-        # 311 自身の検証時はスキップ
+    def g13_no_genesis_baseline_copy(self):
+        # GENESIS 自身（canonical/）または 311 の派生検証時はスキップ
+        if self.html_path.parent.name == "canonical":
+            return
         if "311" in self.html_path.stem:
             return
-        if not BASELINE_311.exists():
-            self.warn("G13", f"baseline {BASELINE_311.name} が見つからずスキップ")
+        if not BASELINE_GENESIS.exists():
+            self.warn("G13", f"baseline {BASELINE_GENESIS.name} が見つからずスキップ")
             return
         baseline_text = BeautifulSoup(
-            BASELINE_311.read_text(encoding="utf-8"), "html.parser"
+            BASELINE_GENESIS.read_text(encoding="utf-8"), "html.parser"
         ).get_text()
         # body 本文のみ 5-gram 一致を簡易検出
         cur_text = self._body_text()
@@ -449,12 +451,15 @@ class Validator:
                     break
         if hits >= 5:
             self.err("G13",
-                     f"baseline 311 と 5-gram が {hits} 件以上一致（content leakage 疑い）: "
+                     f"baseline GENESIS と 5-gram が {hits} 件以上一致（content leakage 疑い）: "
                      f"例 {sample}")
 
     # --- G14〜G15：命名規則・version-tag ---
 
     def g14_filename_dir(self):
+        # canonical/ 配下は baseline 専用なので命名チェックをスキップ
+        if self.html_path.parent.name == "canonical":
+            return
         stem = self.html_path.stem
         m = re.match(r"(刑TX|憲TX|民訴TX|刑訴TX|行政TX|民TX|商TX)(\d{3,})$", stem)
         if not m:
@@ -496,7 +501,7 @@ class Validator:
         self.g10_no_overlap()
         self.g11_viewbox_margin()
         self.g12_no_301_leakage()
-        self.g13_no_311_baseline_copy()
+        self.g13_no_genesis_baseline_copy()
         self.g14_filename_dir()
         self.g15_version_tag()
 

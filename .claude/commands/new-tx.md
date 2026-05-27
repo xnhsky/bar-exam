@@ -26,7 +26,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 
 0c. **直近のセッションログから「template 流用経路」が選ばれていないか確認**
     - `Read outputs/*.html` や `cp outputs/*.html` の痕跡があれば即停止して
-      `canonical/KTX311-gold-baseline.html` から再開
+      `canonical/GENESIS.html` から再開
 
 ### Phase 1：PDF 解析と配色 V2 判定
 
@@ -72,13 +72,13 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 
 ### Phase 3：Baseline スケルトンの取得
 
-10. **`canonical/KTX311-gold-baseline.html` を Read**（構造参考の唯一の正典）
+10. **`canonical/GENESIS.html` を Read**（構造参考の唯一の正典）
     - 例外：`canonical/KTX301.html` も「構造参考」として Read 可
       （ただし 311 baseline の方が v10.0.0 設計に沿うため優先）
 
 11. **対象ファイル名でコピー作成**（PowerShell `Copy-Item` または Write 経由）：
     ```powershell
-    Copy-Item canonical/KTX311-gold-baseline.html outputs/tx/{科目TX}/{接頭辞}{NNN}.html
+    Copy-Item canonical/GENESIS.html outputs/tx/{科目TX}/{接頭辞}{NNN}.html
     ```
 
 12. **コピー直後に本文初期化**（content-independence 確保）：
@@ -155,7 +155,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 - 3 行目：`作成日：{YYYY-MM-DD}`
 - `.footer-meta-hidden` 内 feature-tag：
   - `TX v10.0.0 GOLD-SKELETON`（必須・先頭）
-  - `ktx311-baseline`／`palette-v2-ai-selection`／`svg-overlap-checked`／
+  - `genesis-baseline`／`palette-v2-ai-selection`／`svg-overlap-checked`／
     `content-independence`／`jp-prefix-naming`
 
 ### Phase 5：SVG 重なり機械検査（必須・新規）
@@ -185,7 +185,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
     - G1〜G5：構造（HEAD/HEADER/PART A〜D/footer 存在）
     - G6〜G8：配色 V2（:root 内 CSS 変数 ~20 個・派生色 10 個・配色情報がヘッダー／フッター本文にない）
     - G9〜G11：SVG（3 種存在・ボックス重なり 0 件・viewBox 余白十分）
-    - G12〜G13：content-independence（KTX301 / KTX311 本文逐語コピー禁止）
+    - G12〜G13：content-independence（KTX301 / GENESIS 本文逐語コピー禁止）
     - G14〜G15：命名規則（ID 形式・出力先サブフォルダ）
 
 19. **視覚確認推奨**：ユーザーがブラウザで開いて gold quality 到達判定
@@ -202,13 +202,13 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 
 - **`outputs/*/` 配下の既存 HTML を別問題生成の template として
   `cp` / `Read` / `Edit` の起点にすることは絶対禁止**
-- **唯一許可される起点**：`canonical/KTX311-gold-baseline.html`（最優先）
+- **唯一許可される起点**：`canonical/GENESIS.html`（最優先）
   および `canonical/KTX301.html`（補助・構造参考のみ）
 - 既存 `.html` を「速い経路」として参照することは canonical text leakage の温床
 
 ### canonical text leakage の禁止
 
-- canonical/KTX311-gold-baseline.html および KTX301.html の本文・解説・判例引用を
+- canonical/GENESIS.html および KTX301.html の本文・解説・判例引用を
   別問題ファイルにコピー禁止（AP-42）
 - スケルトンを clone した直後に **本文を空文字列で初期化**してから執筆開始
 
@@ -245,7 +245,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 
 - API socket error 等で中断した場合、**既存 outputs/*.html を template として
   参照する経路を選んではならない**
-- 必ず canonical/KTX311-gold-baseline.html + PDF から続行
+- 必ず canonical/GENESIS.html + PDF から続行
 - 失敗した section だけ再生成し、他 section は流用しない
 
 ### 行動原則

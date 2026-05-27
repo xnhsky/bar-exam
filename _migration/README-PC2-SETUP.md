@@ -47,7 +47,7 @@ HTML 成果物は git 管理外（.gitignore で除外）。
 outputs/tx/刑TX/刑TX311.html
 ```
 
-> **重要**：v10.0.0 経路では `canonical/KTX311-gold-baseline.html`（git 管理対象）が
+> **重要**：v10.0.0 経路では `canonical/GENESIS.html`（git 管理対象）が
 > 新規生成の唯一の起点。outputs/ の 311 は視覚参考のみ。
 
 ---
@@ -111,7 +111,7 @@ pip install beautifulsoup4
 PC2 で 311 baseline を検証：
 
 ```powershell
-python scripts/validate-tx-gold.py canonical/KTX311-gold-baseline.html
+python scripts/validate-tx-gold.py canonical/GENESIS.html
 ```
 
 → **G1〜G15 ALL PASS** が出れば移行成功。
@@ -127,7 +127,7 @@ Claude Code を PC2 で起動し、プロジェクトを開いて：
 ```
 
 Phase 0 で 5×1 / 5×2 / キャンセルを選択。
-v10.0.0 GOLD-SKELETON 経路で `canonical/KTX311-gold-baseline.html` から
+v10.0.0 GOLD-SKELETON 経路で `canonical/GENESIS.html` から
 新規鋳造される。
 
 ---

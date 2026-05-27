@@ -8,7 +8,7 @@ description: 5 問バッチで TX を連続生成（v10.0.0-gold-skeleton：311 
 
 `inputs/tx-pdfs/` 配下の PDF を 5 問単位で連続生成する。
 `.claude/commands/new-tx.md` の全規律（v10.0.0-gold-skeleton：
-canonical/KTX311-gold-baseline.html からのスケルトン clone +
+canonical/GENESIS.html からのスケルトン clone +
 配色 V2 (27 色 AI 自由選定) + SVG 重なり機械検査）をそのまま継承し、
 5 問ループで実行する。
 
@@ -42,7 +42,7 @@ canonical/KTX311-gold-baseline.html からのスケルトン clone +
 ```
 バッチ 1 対象：312.pdf 〜 316.pdf（5 ファイル）
 推定時間：1 時間 30 分〜2 時間
-baseline：canonical/KTX311-gold-baseline.html
+baseline：canonical/GENESIS.html
 配色：問題ごとに正答率帯 → P1/P2/P3 自動判定、27 色 AI 自由選定
 開始してよろしいですか？ [y/n]
 ```
@@ -59,7 +59,7 @@ baseline：canonical/KTX311-gold-baseline.html
 - **Phase 1** PDF 解析・正答率からパターン判定・冒頭応答
   （「正答率 __%→パターン_『___』適用」）・Concept 設計・27 色選定
 - **Phase 2** 命名（CLAUDE.md §2）
-- **Phase 3** canonical/KTX311-gold-baseline.html を Read → 対象ファイル名でコピー →
+- **Phase 3** canonical/GENESIS.html を Read → 対象ファイル名でコピー →
   本文を空文字列で初期化
 - **Phase 4** section-by-section 内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
 - **Phase 5** SVG 重なり機械検査（bounding box AABB 全ペア衝突判定）
@@ -187,7 +187,7 @@ PARTIAL: N 問（番号リスト・原因併記）
 
 ## v10.0.0 GOLD-SKELETON 鉄則（new-tx から継承）
 
-- **唯一許可される skeleton 起点**：`canonical/KTX311-gold-baseline.html`
+- **唯一許可される skeleton 起点**：`canonical/GENESIS.html`
 - **`outputs/*/` 配下からの template 流用は絶対禁止**
 - **render.py 経路の使用禁止**
 - **本文を空文字列で初期化してから問題 PDF を見て新規執筆**

@@ -18,19 +18,38 @@ param(
     [int]$MaxProblems = 5,             # 1 起動あたり最大処理数
     [int]$MaxConsecutiveFailures = 3,  # 連続失敗で abort
     [switch]$DryRun,                   # 実 claude -p 呼ばずパス解決確認のみ
-    [ValidateSet('v9.2.0','v9.1.0')]
-    [string]$SpecVersion = 'v9.2.0'    # 既定 v9.2.0 DEEP-DIVE（TASK12-13 § 5）
+    [ValidateSet('v10.0.0','v9.2.0','v9.1.0')]
+    [string]$SpecVersion = 'v10.0.0'   # 既定 v10.0.0 GOLD-SKELETON（GENESIS baseline）
 )
 
-# === spec ファイル選択（TASK12-13 § 5）===
+# === spec ファイル・プロンプト・検証スクリプトの選択 ===
+# v10.0.0：canonical/GENESIS.html を起点としたスケルトン経路（spec md は持たず new-tx.md が正典）
+# v9.2.0：旧 DEEP-DIVE 経路（spec md + render.py 想定）
+# v9.1.0：旧 MINDMAP 経路
 $SpecFile = switch ($SpecVersion) {
-    'v9.2.0' { 'spec/tx-v9.2.0-deepdive-core.md' }
-    'v9.1.0' { 'spec/tx-v9.1.0-mindmap-core.md' }
-    default  { throw "Unknown spec version: $SpecVersion" }
+    'v10.0.0' { '.claude/commands/new-tx.md' }
+    'v9.2.0'  { 'spec/tx-v9.2.0-deepdive-core.md' }
+    'v9.1.0'  { 'spec/tx-v9.1.0-mindmap-core.md' }
+    default   { throw "Unknown spec version: $SpecVersion" }
 }
 $SpecVersionTag = switch ($SpecVersion) {
-    'v9.2.0' { 'TX v9.2.0 DEEP-DIVE' }
-    'v9.1.0' { 'TX v9.1.0 MINDMAP' }
+    'v10.0.0' { 'TX v10.0.0 GOLD-SKELETON' }
+    'v9.2.0'  { 'TX v9.2.0 DEEP-DIVE' }
+    'v9.1.0'  { 'TX v9.1.0 MINDMAP' }
+}
+$PromptFile = switch ($SpecVersion) {
+    'v10.0.0' { 'prompts/new-tx-headless-v10.md' }
+    default   { 'prompts/new-tx-headless-v0.md' }
+}
+$ValidateScript = switch ($SpecVersion) {
+    'v10.0.0' { 'scripts/validate-tx-gold.py' }
+    default   { 'scripts/validate-tx.py' }
+}
+# v10.0.0：gold validator PASS 判定の regex（"Errors: 0" or "ALL G1〜G15 PASS"）
+# v9.x：従来 validator PASS 判定（"ERROR 0 /"）
+$ValidatePassRegex = switch ($SpecVersion) {
+    'v10.0.0' { 'Errors:\s*0\b' }
+    default   { 'ERROR\s*0\s*/' }
 }
 
 # === 設定 ===
@@ -40,7 +59,7 @@ $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $PdfDir      = Join-Path $ProjectRoot "inputs\tx-pdfs"
 $OutputBase  = Join-Path $ProjectRoot "outputs\tx"
 $LogsDir     = Join-Path $ProjectRoot "logs"
-$PromptSource= Join-Path $ProjectRoot "prompts\new-tx-headless-v0.md"
+$PromptSource= Join-Path $ProjectRoot ($PromptFile -replace '/', '\')
 $CostCsv     = Join-Path $LogsDir "cost-summary.csv"
 $RunLog      = Join-Path $LogsDir "night-batch-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 
@@ -167,13 +186,17 @@ foreach ($target in $Targets) {
     $endTime = Get-Date
     $elapsed = [int]($endTime - $startTime).TotalSeconds
 
-    # === 罠 9 早期警戒: 生成時間異常 (Phase 13C-3) ===
-    # 正常実績: 303=4.3 min / 305=6.87 min / 304 v2=28.9 min (regen 完全)
-    # 罠 9 発火例: 304 v1=24 min (不完全出力・theory-deep-dive 等 15 tag 欠落)
-    # 閾値 20 min (1200 秒) = 正常上限 7 min + バッファ
-    if ($elapsed -gt 1200) {
-        Write-Warning "生成時間異常: ${elapsed}秒（想定 4-7 min）- 罠 9（claude -p 不完全出力）警戒"
-        Write-Warning "品質チェック推奨: feature-tag 33 件 / theory-detail-grid / palette-strategy"
+    # === 生成時間異常検知（version-aware）===
+    # v10.0.0：想定 20-30 min（baseline clone + section-by-section 鋳造）→ 上限 40 min (2400 秒)
+    # v9.x：想定 4-7 min（旧 6 段階 Write）→ 上限 20 min (1200 秒)
+    $ElapsedUpperLimit = if ($SpecVersion -eq 'v10.0.0') { 2400 } else { 1200 }
+    if ($elapsed -gt $ElapsedUpperLimit) {
+        Write-Warning "生成時間異常: ${elapsed}秒（上限 ${ElapsedUpperLimit}秒）- claude -p 不完全出力警戒"
+        if ($SpecVersion -eq 'v10.0.0') {
+            Write-Warning "品質チェック推奨: G1〜G15 / SVG 重なり / genesis-baseline feature-tag"
+        } else {
+            Write-Warning "品質チェック推奨: feature-tag 33 件 / theory-detail-grid / palette-strategy"
+        }
     }
 
     # === sentinel grep 検出（JSON parse は使わない）===
@@ -203,10 +226,11 @@ foreach ($target in $Targets) {
 
     if ($htmlBytes -gt 0 -and $exitCode -eq 0 -and $sentinel -ne "FAILED") {
         try {
-            $validateOutput = & python "$ProjectRoot\scripts\validate-tx.py" $target.OutputPath 2>&1
+            $ValidateScriptAbs = Join-Path $ProjectRoot ($ValidateScript -replace '/', '\')
+            $validateOutput = & python $ValidateScriptAbs $target.OutputPath 2>&1
             $validateText = $validateOutput -join "`n"
-            # ERROR 0 を厳密判定（正規表現で「ERROR 0」を捕捉）
-            if ($validateText -match "ERROR\s*0\s*/") {
+            # PASS 判定（v10.0.0：Errors: 0、v9.x：ERROR 0 /）
+            if ($validateText -match $ValidatePassRegex) {
                 Remove-Item -Path $target.PdfPath -Force
                 $cleanupTriggered = $true
                 $validateStatus = "PASS"

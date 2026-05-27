@@ -68,7 +68,7 @@
 
 ### 3-1. 必読ファイル
 
-- **baseline スケルトン（唯一の起点）**：`canonical/KTX311-gold-baseline.html`
+- **baseline スケルトン（唯一の起点）**：`canonical/GENESIS.html`
   （刑TX311 が確定第 1 号として gold quality 到達。新規 TX はすべてここから clone）
 - **配色カタログ**：`memory/reference_ingectar_palette.md`（P1/P2/P3 各 27 色 hex 一覧）
 - **生成コマンド**：`.claude/commands/new-tx.md`（v10.0.0 GOLD-SKELETON 経路の全工程）
@@ -86,7 +86,7 @@
 3. Concept 設計（AI 判断・問題ごとに別）→ ingectar-e 27 色から 15〜20 色を選定し
    CSS 変数 ~20 個（`--accent`〜`--kp-text-color` ＋派生色 10 個）へ役割割当て
 4. **§2 命名規則**に従ってファイル名・出力先を確定
-5. `canonical/KTX311-gold-baseline.html` を Read → 対象ファイル名でコピー作成
+5. `canonical/GENESIS.html` を Read → 対象ファイル名でコピー作成
 6. コピー直後に**本文を空文字列で初期化**（content-independence 確保）
 7. section-by-section で内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
 8. **SVG 重なり機械検査**：rect/ellipse の bounding box を全ペア AABB 衝突判定
@@ -96,8 +96,8 @@
 ### 3-3. canonical text leakage の防止（v10.0.0 では物理的禁止で構造解決）
 
 **v10.0.0 GOLD-SKELETON 経路の利点：** 新規 TX 生成の唯一の起点を
-`canonical/KTX311-gold-baseline.html` に固定し、`outputs/*/` 配下からの
-template 流用を物理的に禁止することで、KTX301/KTX311 由来の本文流用を防ぐ。
+`canonical/GENESIS.html` に固定し、`outputs/*/` 配下からの
+template 流用を物理的に禁止することで、KTX301/GENESIS 由来の本文流用を防ぐ。
 
 **遵守事項：**
 
@@ -110,7 +110,7 @@ template 流用を物理的に禁止することで、KTX301/KTX311 由来の本
 3. **手順：** baseline を clone したら**まず本文を空文字列で初期化**してから
    問題 PDF を見て新規執筆する。baseline の本文を参照しながら執筆してはならない
 4. **検証：** `validate-tx-gold.py` の G12（KTX301 由来禁止文言）・G13
-   （KTX311 baseline との 5-gram 連続一致検出）で機械的に検出
+   （GENESIS baseline との 5-gram 連続一致検出）で機械的に検出
 
 ### 3-4. 配色 V2（27 色 AI 自由選定）
 
@@ -210,7 +210,7 @@ python scripts/validate-tx-gold.py outputs/tx/刑TX/刑TX312.html
   - G11: viewBox 下端余白が最下端要素から 20px 以上（推奨 40px 以上）
 - **content-independence（G12〜G13）：**
   - G12: KTX301 由来禁止文言の不出現
-  - G13: KTX311 baseline 本文との 5-gram 連続一致なし（自身検証時はスキップ）
+  - G13: GENESIS baseline 本文との 5-gram 連続一致なし（自身検証時はスキップ）
 - **命名規則（G14〜G15）：**
   - G14: ファイル ID 形式（{接頭辞}{NNN}）と出力先サブフォルダ整合
   - G15: footer-spec feature-tag 先頭が `TX v10.0.0 GOLD-SKELETON`
@@ -260,7 +260,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 ### TX・JX 共通
 
-- **canonical/KTX311-gold-baseline.html および KTX301.html の本文・解説・判例引用を
+- **canonical/GENESIS.html および KTX301.html の本文・解説・判例引用を
   別問題ファイルにコピー** すること（§3-3 / AP-42）
 - **`<script>...</script>` 内に `</body>` リテラル文字列を含める** こと（host アプリ Lexia の正規表現マッチで全機能死亡。代替：「`body 閉じタグ`」「`</` + `body>`」等）
 - **「保守的書き換え」**（既存コードを引き継ごうとする AI の癖）
@@ -272,7 +272,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 - **`outputs/*/` 配下の既存 HTML を別問題生成の template として
   `cp` / `Read` / `Edit` の起点にすることは絶対禁止**
-  - **唯一許可される起点**：`canonical/KTX311-gold-baseline.html`（v10.0.0 baseline）
+  - **唯一許可される起点**：`canonical/GENESIS.html`（v10.0.0 baseline）
   - 補助：`canonical/KTX301.html`（構造参考のみ・本文コピーは AP-42 違反）
   - `_quarantine*/` および非 canonical フォルダは `bar-exam-archive\` に物理排除済み
   - 既存 .html ファイル全般を「速い経路」として参照することは canonical text leakage の温床
@@ -281,7 +281,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 - **`python scripts/render.py {問題番号}` 実行禁止**：JSON-render 結果が target ファイルを
   上書きし WIP 作業全消失（過去事故あり・2026-05-27 確認）
-- 新規生成は問題 PDF + canonical/KTX311-gold-baseline.html のみから新規鋳造
+- 新規生成は問題 PDF + canonical/GENESIS.html のみから新規鋳造
 
 #### ヘッダー／フッター本文への配色記載禁止
 
@@ -308,7 +308,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 - API socket error 等で中断した場合、**既存 outputs/*.html を
   template として参照する経路を選んではならない**
-- 必ず canonical/KTX311-gold-baseline.html と PDF から続行
+- 必ず canonical/GENESIS.html と PDF から続行
 - 部分出力が失敗した場合、その section だけ再生成し、他 section は流用しない
 
 #### v8.11.0 基盤の禁止事項
@@ -357,7 +357,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 - TX (v10.0.0)：G1〜G15 のうち ERROR があれば該当箇所を修正、再検証。WARNING は配信可
 - TX (legacy)：S1〜S91 のうち ERROR があれば該当箇所を修正、再検証
 - JX：J1〜J20 のうち ERROR があれば該当箇所を修正、再検証
-- 何度も失敗する場合：canonical/KTX311-gold-baseline.html から clone し直して section ごとに再執筆
+- 何度も失敗する場合：canonical/GENESIS.html から clone し直して section ごとに再執筆
 
 ### 通信を日本語で
 
@@ -368,7 +368,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 `/new-tx` 起動時または直接指示時に末尾に付加（短縮版）：
 
 ```
-canonical/KTX311-gold-baseline.html と inputs/tx-pdfs/{NNN}.pdf のみから生成
+canonical/GENESIS.html と inputs/tx-pdfs/{NNN}.pdf のみから生成
 （outputs/*.html を template として参照しない・render.py 経由禁止）。
 
 工程：
@@ -391,7 +391,7 @@ canonical/KTX311-gold-baseline.html と inputs/tx-pdfs/{NNN}.pdf のみから生
 ### API socket error 発生時の対処
 
 - 中断した時点でセッションを閉じず、user が「再開して」と指示
-- AI には**必ず canonical/KTX311-gold-baseline.html と PDF から続行**させる
+- AI には**必ず canonical/GENESIS.html と PDF から続行**させる
   （`outputs/{科目TX}/*.html` を template として参照させない）
 - 失敗した section のみ再生成。完成済み他 section は流用しない
 - 同じ section で 2 回連続 socket error が起きたら、その section を
