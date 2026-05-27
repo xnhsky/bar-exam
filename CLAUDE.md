@@ -64,67 +64,93 @@
 
 ---
 
-## §3. TX シリーズの運用
+## §3. TX シリーズの運用（v10.0.0 GOLD-SKELETON・2026-05-27 確定）
 
 ### 3-1. 必読ファイル
 
-- **規律本体**：`spec/tx-v9.1.0-mindmap-core.md`（§0〜§37 全規律 + §22-quad mindmap + §Annex A/B/C 埋込／自己完結・約 5754 行）
-- **参考実装例**：`canonical/KTX301.html`（構造の完成形を確認するための **参考のみ**。本文・解説・判例引用の文字列をコピーする対象**ではない**）
-- **v9.0.0-genkei 参照（read-only）**：`spec/tx-v9.0.0-genkei-core.md`（〜304 までの生成基盤・歴史的参照用）
+- **baseline スケルトン（唯一の起点）**：`canonical/KTX311-gold-baseline.html`
+  （刑TX311 が確定第 1 号として gold quality 到達。新規 TX はすべてここから clone）
+- **配色カタログ**：`memory/reference_ingectar_palette.md`（P1/P2/P3 各 27 色 hex 一覧）
+- **生成コマンド**：`.claude/commands/new-tx.md`（v10.0.0 GOLD-SKELETON 経路の全工程）
+- **補助構造参考**：`canonical/KTX301.html`（v9.x 系の構造参考。本文流用は AP-42 違反）
+- **旧 spec（read-only / 歴史的参照）**：`spec/tx-v9.2.0-deepdive-core.md`／
+  `spec/tx-v9.1.0-mindmap-core.md`／`spec/tx-v9.0.0-genkei-core.md`
+  （新規生成では使用しない。既存ファイルの解読補助のみ）
 
-### 3-2. 新規 TX 生成手順
+### 3-2. 新規 TX 生成手順（v10.0.0 GOLD-SKELETON）
 
-1. 問題 PDF を読解（`inputs/tx-pdfs/` 配下）
-2. **冒頭応答必須**：「正答率 __%→パターン_『___』適用」を最初に出力
-3. `spec/tx-v9.1.0-mindmap-core.md` を view（規律・Annex A/B/C ＋ §22-quad mindmap 全文確認）
-4. **§0-tri ゼロベース再構築プロトコル**（6 ステップ）を順次実行
-5. **§0-quad コンテンツ独立性プロトコル**（7 ステップ）を必ず履行（§3-3 で詳述）
-6. **§0-bis AI 15 ステップ生成プロトコル**を順次実行
-7. **§1-bis 命名規則**に従ってファイル名・出力先を決定（§2 参照）
-8. 配信前に `python scripts/validate-tx.py <出力ファイル>` を実行
-9. **S1〜S84 全件通過**を確認してから `present_files`（v9.1.0-mindmap ファイルは S84 mindmap 構造検査が自動適用）
+詳細は `.claude/commands/new-tx.md` 参照。要約：
 
-### 3-3. canonical text leakage の防止（最重要 — v9.0.0 GENKEI で構造的解決）
+1. 問題 PDF を読解（`inputs/tx-pdfs/` 配下）し、正答率・出題形式・テーマを抽出
+2. **冒頭応答必須**：「正答率 __%→パターン_『___』適用」（P1/P2/P3 振分け）
+3. Concept 設計（AI 判断・問題ごとに別）→ ingectar-e 27 色から 15〜20 色を選定し
+   CSS 変数 ~20 個（`--accent`〜`--kp-text-color` ＋派生色 10 個）へ役割割当て
+4. **§2 命名規則**に従ってファイル名・出力先を確定
+5. `canonical/KTX311-gold-baseline.html` を Read → 対象ファイル名でコピー作成
+6. コピー直後に**本文を空文字列で初期化**（content-independence 確保）
+7. section-by-section で内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
+8. **SVG 重なり機械検査**：rect/ellipse の bounding box を全ペア AABB 衝突判定
+9. 配信前に `python scripts/validate-tx-gold.py <出力ファイル>` を実行
+10. **G1〜G15 ERROR 0 件**を確認 → 視覚確認 → `present_files`
 
-**従来の問題（v8.x 系）：** `spec/tx-v8.11.7-core.md` を投入すると、§Annex B body skeleton 内に byte-level 埋込された KTX301 の問題固有テキスト（詐欺罪論点・最判昭28.5.8 等の特定判例引用）が、別問題の生成時にそのまま流用される事故が頻発していた。§0-quad 手続プロトコルでこれを抑止しようとしてきたが、構造的な誘惑源（汚染ソースとしての逐語本文）が残ったままだった。
+### 3-3. canonical text leakage の防止（v10.0.0 では物理的禁止で構造解決）
 
-**v9.0.0 GENKEI による構造的解決：** `spec/tx-v9.0.0-genkei-core.md` では §Annex B が**問題固有内容ゼロの純骨格スケルトン**に転換された。本文の代わりにプレースホルダ `[…]` と指示コメント `<!-- 指示: ... -->` のみが配置され、AI が PDF から内容を新規鋳造する以外に選択肢がない。これにより §0-quad はほぼ自動充足される。
+**v10.0.0 GOLD-SKELETON 経路の利点：** 新規 TX 生成の唯一の起点を
+`canonical/KTX311-gold-baseline.html` に固定し、`outputs/*/` 配下からの
+template 流用を物理的に禁止することで、KTX301/KTX311 由来の本文流用を防ぐ。
 
-**対策：** 仕様書の §0-quad を最優先で履行する。要点：
+**遵守事項：**
 
-1. **逐語コピー対象（structural shell only）：** タグ名・class 名・id 名・属性キー・ネスト順序・CSS 全規則・JS 全規則・marker-legend 凡例本文・PART タイトル・sec-nav 航行ラベル・sec-icon
-2. **完全新規執筆対象（problem-specific content）：** `.problem-text` 本文／`data-explanation` 値／各 `.sub-card` 本文／`.basis-card-body` の本文／PART C 全本文／PART D drill-block 本文／footer-spec 問題情報行
-3. **手順：** §Annex B をクローンしたら**まず本文を空文字列で初期化**し、その後に問題 PDF だけを参照して本文を新規執筆する。§Annex B 元テキストを参照しながら執筆してはならない
-4. **検証：** `validate-tx.py` の S78（KTX301 由来文言ブラックリスト検査）と S79（§Annex B 元テキストとの 3 単語以上一致検出）で機械的に検出
+1. **逐語コピー対象（structural shell only）：** タグ名・class 名・id 名・属性キー・
+   ネスト順序・CSS 全規則・JS 全規則・marker-legend 凡例本文・PART タイトル・
+   sec-nav 航行ラベル・sec-icon・SVG 座標
+2. **完全新規執筆対象（problem-specific content）：** `.problem-text` 本文／
+   `data-explanation` 値／各 `.sub-card` 本文／`.basis-card-body` 本文／
+   PART C 全本文／PART D drill-block 本文／footer-spec 1〜3 行目／SVG 内テキスト
+3. **手順：** baseline を clone したら**まず本文を空文字列で初期化**してから
+   問題 PDF を見て新規執筆する。baseline の本文を参照しながら執筆してはならない
+4. **検証：** `validate-tx-gold.py` の G12（KTX301 由来禁止文言）・G13
+   （KTX311 baseline との 5-gram 連続一致検出）で機械的に検出
 
-### 3-4. 既存 TX のアップグレード（v8.11.7 統合版）
+### 3-4. 配色 V2（27 色 AI 自由選定）
 
-旧バージョン（v8.10.2 以下、または v8.11.x 系の旧 minor）のファイルを v8.11.7 に揃える場合：
+正答率帯から P1/P2/P3 を自動判定後、各パターン 27 色から問題ごとに別 Concept を組立てる：
 
-1. `spec/tx-v9.1.0-mindmap-core.md` の **§0-tri STEP 1（既存スタイル完全破棄）** を最優先実行
-2. **§34-bis 12 ステップ移行手順**で v8.11.0 canonical 化
-3. その後、現バージョンから v8.11.7 への段階的 minor 更新を順次適用：
-   - **§34-quater**（v8.11.1 → v8.11.2）：a2-two-stage-reveal（reveal-answer-btn・answer-instruction 文言固定）
-   - **§34-quinquies**（v8.11.2 → v8.11.3）：3 Type 対応（single/multi/ox-grid）
-   - **§34-sexies**（v8.11.3 → v8.11.4）：spoiler-leak-eradication（PART A「N（XX）正解」消去）
-   - **§34-septies**（v8.11.4 → v8.11.5）：spoiler-strong-elimination + ox-grid-fa-unification
-   - **§34-octies**（v8.11.5/v8.11.6 → v8.11.6-hotfix1）：host-injection-safe（`<script>` 内 `</body>` 禁止）
-   - **§34-novies**（v8.11.6-hotfix1 → v8.11.7）：命名規則 + content-independence 最終整備
-4. 再度 `python scripts/validate-tx.py` で S1〜S82 全件通過確認
+| パターン | 正答率帯 | テーマ名 | カタログ |
+|:-:|:-:|:--|:--|
+| **P1** | ≥ 60% | ピンクを使った可愛い配色 | ingectar-e Color Pickup #16 |
+| **P2** | 40〜60% | グリーンを使った可愛い配色 | ingectar-e Color Pickup #22 |
+| **P3** | < 40% | ロマンティックなパープル配色 | ingectar-e PURPLE |
 
-### 3-5. v8.11.7 統合された新規規律（最重要・自動生成時の必須遵守）
+**AI 判断指標（Concept 設計）：**
+- テーマの重さ（道徳論点／重罪 → 落ち着き寄り、日常論点 → 爽やか）
+- 難度（易 → 明るめ、難 → 重め）
+- 罪名イメージ（財産罪 → ピンク系優先、身体犯 → 暖系、手続 → クール）
+- 正解の意外性（罠多い → コントラスト強、素直 → 同系統調和）
 
-v8.11.7 では v8.11.2〜v8.11.6-hotfix1 由来の 7 機能が一括統合された。**新規 TX 生成時に最優先で履行：**
+**Semantic exception**（palette 越境を許容）：
+- ✓ 緑（recall-correct）：P1/P3 採用時も P2 緑 #438B48 / #7BA980 を借用
+- 🏆 金（ARENA）：全パターンで `#ffd54f` / `#ffaa00` inline hex 保持
 
-| 規律 | 由来 | 検出 | 内容 |
-|---|---|---|---|
-| **A-2 2 段階開示**（Stage 1 選択 → Stage 2 開示） | v8.11.2 | S71/S72 / AP-33/34 | `<p class="answer-instruction">` canonical 文言固定／`<button class="reveal-answer-btn">` 必須 |
-| **3 Type 対応**（single/multi/ox-grid） | v8.11.3 | S73 / AP-35 | `data-correct-value` 形式から自動判定・`data-answer-type` 属性で分岐 |
-| **spoiler-leak-eradication** | v8.11.4 | S74/S75 / AP-36/37/38 | PART A 内「N（XX）正解」消去／`data-explanation` 先頭リテラル消去／FA は正解の数字のみ |
-| **spoiler-strong-elimination** | v8.11.5 | S76 / AP-39 | PART A 内 `<strong>N（XX）</strong>` 完全削除 |
-| **ox-grid-fa-unification** | v8.11.5 | S76 / AP-40 | ox-grid 型 FA を `<span class="answer-num">11112</span>` 形式に統一 |
-| **host-injection-safe** | v8.11.6-hotfix1 | S77 / AP-41 | `<script>` 内に `</body>` リテラル禁止（Lexia 等正規表現バグ対策） |
-| **final-answer hidden 属性** | v8.11.1 原始版 | S68 / AP-30 | すべての `<div class="final-answer">` に `hidden` 必須 |
+**ヘッダー／フッター本文には配色情報を書かない**：`.exam-meta` に「配色: P1 …」、
+`.footer-meta-info` に「配色 P1「…」AI 自由選定」を書かない。配色情報は
+`:root{}` と footer-spec hidden feature-tag のみで管理（G8 で機械検出）。
+
+### 3-5. SVG ボックス重なり禁止
+
+311 で「本問の論点ボックス」が左右サブ要素と重なる事故が発生。今後は以下を厳守：
+
+1. SVG 出力前に各 `<rect>`/`<ellipse>` の bounding box を `(x_min, x_max, y_min, y_max)` で書き出す
+2. 全ペアで衝突検査（AABB intersection）
+3. マージン 16px 以上確保
+4. `validate-tx-gold.py` G10 が rect/ellipse の全ペア衝突を機械検出
+5. 衝突発見時は **viewBox 拡張** を最優先で対応（他要素への影響ゼロ）
+
+### 3-6. 既存 TX のアップグレード（legacy / v8.x〜v9.x 系）
+
+v8.x〜v9.x 系の既存ファイルは `validate-tx.py`（S1〜S91）で legacy 検証を継続。
+v10.0.0 GOLD-SKELETON 経路への昇格は新規生成扱いとし、PDF から baseline 311 を
+起点に clone し直す（既存ファイルの段階的 minor 更新は提供しない）。
 
 ---
 
@@ -165,23 +191,41 @@ JX には TX の §0-quad のような明示的なコンテンツ独立性プロ
 
 ## §5. 検証スクリプト
 
-### 5-1. TX 検証
+### 5-1. TX 検証（v10.0.0 GOLD-SKELETON・新規生成用・推奨）
+
+```bash
+python scripts/validate-tx-gold.py outputs/tx/刑TX/刑TX312.html
+```
+
+**チェック内容（G1〜G15）：**
+
+- **構造（G1〜G5）：** HEAD ／HEADER ／PART A〜D ／footer-spec の存在
+- **配色 V2（G6〜G8）：**
+  - G6: `:root{}` 内に主要 CSS 変数 (`--accent`/`--mid`/`--light`/`--base`/`--soft`/`--bg-dark`) が定義されているか
+  - G7: 派生色 10 個（`--accent-darker`/`--accent-soft`/`--accent-3` 等）が定義されているか
+  - G8: ヘッダー(`.exam-meta`)／フッター(`.footer-meta-info`) 表示テキストに配色 Concept 文言が残っていないか
+- **SVG（G9〜G11）：**
+  - G9: tree-svg／radial-svg／flow-svg の 3 種すべて存在
+  - G10: rect/ellipse の bounding box 全ペア衝突検査（polygon は擬陽性多発のため除外）
+  - G11: viewBox 下端余白が最下端要素から 20px 以上（推奨 40px 以上）
+- **content-independence（G12〜G13）：**
+  - G12: KTX301 由来禁止文言の不出現
+  - G13: KTX311 baseline 本文との 5-gram 連続一致なし（自身検証時はスキップ）
+- **命名規則（G14〜G15）：**
+  - G14: ファイル ID 形式（{接頭辞}{NNN}）と出力先サブフォルダ整合
+  - G15: footer-spec feature-tag 先頭が `TX v10.0.0 GOLD-SKELETON`
+
+### 5-2. TX 検証（legacy・v8.x〜v9.x 既存ファイル用）
 
 ```bash
 python scripts/validate-tx.py outputs/tx/刑TX/刑TX299.html
 ```
 
-**チェック内容（S1〜S84）：**
+S1〜S91（version-aware）。v8.11.7／v9.0.0-genkei／v9.1.0-mindmap／v9.2.0-deepdive
+各バージョン対応。新規生成では `validate-tx-gold.py` を使用し、こちらは既存
+ファイルの保守確認に限定。
 
-- 構造（S1〜S51）：タグバランス／PART 構成／sub-card 構造／final-answer／feature-tag 等
-- §24 readability layer（S64〜S67）：v8.11.0 で追加された 6 層と hanging-grid・font-weight
-- PART 順序（S66）：参考｜共通根拠条文・判例（旧 A-3）が PART B 後ろ・mindmap section または PART C 前
-- **コンテンツ独立性（S78〜S79、v8.11.1）：** KTX301 由来禁止文言ブラックリスト検査／§Annex B との 3 単語以上連続一致検出
-- **命名規則（S80〜S82、v8.11.1）：** ファイル ID 形式・出力先サブフォルダ・PDF 番号抽出整合
-- **placeholder 残存検査（S83、2026-05-21）：** `[…]` / `<!-- 指示: -->` の残存検出（パターン A 上限 1,200 文字・法令引用は除外）
-- **mindmap section 構造検査（S84、v9.1.0-mindmap 専用・version-aware）：** footer-spec の feature-tag に `TX v9.1.0 MINDMAP` を含むファイルのみ厳格適用。8 検査項目 (a) section 存在 / (b) viewBox=0 0 1100 900 / (c) figure-wrap 親 / (d) figure-caption / (e) ellipse 1 個以上 / (f) rect 4 個以上 / (g) role=img + aria-label / (h) script/style タグ禁止
-
-### 5-2. JX 検証
+### 5-3. JX 検証
 
 ```bash
 python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
@@ -202,9 +246,10 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 | コマンド | 用途 |
 |---|---|
-| `/new-tx <PDFパス>` | 新規 TX ファイルを問題 PDF から生成 |
+| `/new-tx <PDFパス>` | 新規 TX ファイルを問題 PDF から生成（v10.0.0 GOLD-SKELETON） |
+| `/batch-tx <番号 or PDFパス>` | 5 問バッチで連続生成（v10.0.0 GOLD-SKELETON） |
 | `/new-jx <PDFパス>` | 新規 JX ファイルを問題 PDF から生成 |
-| `/upgrade-tx <HTMLパス>` | 既存 TX を v8.11.1 にアップグレード |
+| `/upgrade-tx <HTMLパス>` | 既存 TX（legacy）を v8.11.1 にアップグレード |
 | `/validate <HTMLパス>` | TX または JX を自動判別して検証実行（修正なし） |
 
 詳細は `.claude/commands/` 配下の各 `*.md` を参照。
@@ -215,43 +260,56 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 ### TX・JX 共通
 
-- **canonical/KTX301.html の本文・解説・判例引用を別問題ファイルにコピー** すること（§3-3 / AP-42）
+- **canonical/KTX311-gold-baseline.html および KTX301.html の本文・解説・判例引用を
+  別問題ファイルにコピー** すること（§3-3 / AP-42）
 - **`<script>...</script>` 内に `</body>` リテラル文字列を含める** こと（host アプリ Lexia の正規表現マッチで全機能死亡。代替：「`body 閉じタグ`」「`</` + `body>`」等）
 - **「保守的書き換え」**（既存コードを引き継ごうとする AI の癖）
-- **仕様書本文の要約**（byte-level 一致が必要な領域がある）
 - ファイル名・出力先サブフォルダの **§2 規則違反**（レガシー K/MIN/KEN 等の混在禁止）
 
-### TX 固有
+### TX 固有（v10.0.0 GOLD-SKELETON）
 
-#### template 流用の物理的禁止（最重要・2026-05-21 追加）
+#### template 流用の物理的禁止（最重要）
 
 - **`outputs/*/` 配下の既存 HTML を別問題生成の template として
   `cp` / `Read` / `Edit` の起点にすることは絶対禁止**
-  - 例外：`canonical/KTX301.html` のみ「構造参考」として `Read` 可
-    （本文・解説・判例引用の文字列コピーは AP-42 違反）
-  - `_quarantine*/` および 23 個の非 canonical フォルダは
-    `bar-exam-archive\` に物理排除済み（2026-05-21）
-  - 既存 .html ファイル全般を「速い経路」として参照することは
-    canonical text leakage の温床（AP-42 / S78 違反）
+  - **唯一許可される起点**：`canonical/KTX311-gold-baseline.html`（v10.0.0 baseline）
+  - 補助：`canonical/KTX301.html`（構造参考のみ・本文コピーは AP-42 違反）
+  - `_quarantine*/` および非 canonical フォルダは `bar-exam-archive\` に物理排除済み
+  - 既存 .html ファイル全般を「速い経路」として参照することは canonical text leakage の温床
+
+#### render.py 経路の禁止
+
+- **`python scripts/render.py {問題番号}` 実行禁止**：JSON-render 結果が target ファイルを
+  上書きし WIP 作業全消失（過去事故あり・2026-05-27 確認）
+- 新規生成は問題 PDF + canonical/KTX311-gold-baseline.html のみから新規鋳造
+
+#### ヘッダー／フッター本文への配色記載禁止
+
+- `.exam-meta` 内に「配色: P1 …」を書かない
+- `.footer-meta-info` に「配色 P1「…」AI 自由選定」を書かない
+- 配色情報は CSS の `:root{}` と footer-spec hidden feature-tag のみで管理
+- `validate-tx-gold.py` G8 が機械検出
+
+#### SVG ボックス重なり禁止
+
+- 体系ツリー (`mindmap-tree`)・論点マインドマップ放射 (`mindmap-radial`)・
+  C-5 総合フローチャート (`flow-svg`) の rect/ellipse の bounding box は
+  全ペアで重ならないこと
+- `validate-tx-gold.py` G10 が機械検出
+- 衝突発見時は viewBox 拡張を最優先で対応
 
 #### 単一巨大出力の禁止（API socket error 予防）
 
 - **1 メッセージで 50KB 超の `Write` / `Edit` 出力は禁止**
-  - 2026-05-20 セッションで API socket error → 14 分損失を実測
-- 大規模 HTML 生成は section 単位で 5 分割：
-  - Write 1：`<head>` 全体 + 空 `<body>` 骨格（Annex A CSS + Annex C JS 含む）
-  - Write 2：HEADER + marker-legend + PART A（A-1, A-2）+ A-3 共通根拠
-  - Write 3：PART B（記述ア〜オ 5 つ）
-  - Write 4：PART C（C-1〜C-7 7 つ）+ final-answer
-  - Write 5：PART D（drill 12 個）+ footer-spec
-- 各段階 30〜50KB 以下に収める
+- v10.0.0 では canonical baseline を Copy-Item で複製後、section 単位の
+  Edit で内容差替する経路に統一（各 Edit 30〜50KB 以下）
 
 #### 中断・再開時の禁則
 
 - API socket error 等で中断した場合、**既存 outputs/*.html を
   template として参照する経路を選んではならない**
-- 必ず PDF と spec のみから新規鋳造を継続
-- 部分出力が失敗した場合、その PART だけ再生成し、他 PART は流用しない
+- 必ず canonical/KTX311-gold-baseline.html と PDF から続行
+- 部分出力が失敗した場合、その section だけ再生成し、他 section は流用しない
 
 #### v8.11.0 基盤の禁止事項
 
@@ -296,56 +354,65 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 ### 検証失敗時の挙動
 
-- TX：S1〜S82 のうち ERROR があれば該当箇所を修正、再検証。WARNING は配信可（必要に応じて修正）
+- TX (v10.0.0)：G1〜G15 のうち ERROR があれば該当箇所を修正、再検証。WARNING は配信可
+- TX (legacy)：S1〜S91 のうち ERROR があれば該当箇所を修正、再検証
 - JX：J1〜J20 のうち ERROR があれば該当箇所を修正、再検証
-- 何度も失敗する場合：仕様書該当節を読み直す → §0-tri STEP 1 から再構築
+- 何度も失敗する場合：canonical/KTX311-gold-baseline.html から clone し直して section ごとに再執筆
 
 ### 通信を日本語で
 
 ユーザーへの応答は日本語で簡潔に。確認の取りすぎは禁物（ユーザーは中断を嫌う）。判断に迷う場合のみ確認する。
 
-### TX 生成時の段階分割プロンプト雛形（2026-05-21 追加）
+### TX 生成時の標準プロンプト雛形（v10.0.0 GOLD-SKELETON）
 
-50 分→25 分台への短縮を狙う標準プロンプト。`/new-tx` 起動時または
-直接指示時に末尾に付加：
+`/new-tx` 起動時または直接指示時に末尾に付加（短縮版）：
 
 ```
-spec/tx-v9.1.0-mindmap-core.md と inputs/tx-pdfs/{NNN}.pdf のみから
-新規鋳造（outputs/*.html を template として参照しない）。
-出力は 6 段階に分割し、各段階完了時に「Write N/6 完了・出力 XX KB・累計 YY KB」を
-ログ出力。
-- Write 1：<head> 全体 + 空 <body>（CSS/JS 含む）
-- Write 2：HEADER + marker-legend + PART A + 参考｜共通根拠条文・判例
-- Write 3：PART B（記述ア〜オ）
-- Write 4：論点詳細マインドマップ（§22-quad SVG・v9.1.0-mindmap 新規）
-- Write 5：PART C（C-1〜C-7）+ final-answer
-- Write 6：PART D（drill 12）+ footer-spec
-完了後 validate-tx.py 実行、ERROR 0 件確認（S84 mindmap 構造検査含む）。
+canonical/KTX311-gold-baseline.html と inputs/tx-pdfs/{NNN}.pdf のみから生成
+（outputs/*.html を template として参照しない・render.py 経由禁止）。
+
+工程：
+1. baseline を対象ファイル名でコピー → 本文を空文字列で初期化
+2. 正答率帯から P1/P2/P3 自動判定・27 色から AI 自由選定して :root{} 更新
+3. section-by-section で Edit（各 30〜50KB 以下・1 メッセージ 50KB 超禁止）：
+   - HEAD :root{} 配色 V2 適用
+   - HEADER（exam-meta に配色記載しない）
+   - PART A（出題形式に応じて single/multi/ox-grid）
+   - PART B 各 choice-section
+   - A-3 共通根拠（本問関連条文・判例のみ）
+   - SVG 3 種（座標は baseline、テキストのみ差替）
+   - PART C C-1〜C-7
+   - PART D drill 12
+   - footer-spec（配色記載しない・feature-tag は TX v10.0.0 GOLD-SKELETON 先頭）
+4. SVG 重なり機械検査（rect/ellipse 全ペア AABB）
+5. validate-tx-gold.py → G1〜G15 ERROR 0 件確認
 ```
 
 ### API socket error 発生時の対処
 
 - 中断した時点でセッションを閉じず、user が「再開して」と指示
-- AI には**必ず spec と PDF から続行**させる
+- AI には**必ず canonical/KTX311-gold-baseline.html と PDF から続行**させる
   （`outputs/{科目TX}/*.html` を template として参照させない）
-- 失敗した PART のみ再生成。完成済み他 PART は流用しない
+- 失敗した section のみ再生成。完成済み他 section は流用しない
 - 同じ section で 2 回連続 socket error が起きたら、その section を
-  さらに細分化（例：PART C を C-1〜C-3 と C-4〜C-7 で 2 段階に分割）
+  さらに細分化
 
-### 生成時間の目安と内訳（v9.1.0-mindmap + 段階生成適用時）
+### 生成時間の目安と内訳（v10.0.0 GOLD-SKELETON）
 
-標準的な TX 1 問の所要時間：**28〜38 分**（v9.0.0-genkei の 25〜35 分から、Write 4 mindmap section 追加分 +3 分を見込む）。内訳：
+標準的な TX 1 問の所要時間：**20〜30 分**（baseline clone により仕様書 Read が
+不要になり短縮）。内訳：
 
 | 工程 | 標準時間 | 異常兆候 |
 |---|---|---|
-| 仕様書 + PDF 読込 | 5〜8 分 | 10 分超 → spec を分割 Read していないか確認 |
-| 設計 thinking | 5〜10 分 | 15 分超 → PDF が読み取れていない可能性 |
-| Write 6 段階 | 17〜22 分 | 32 分超 → 段階分割が機能していない（mindmap section が肥大化していないかも要確認） |
-| validate-tx.py 検証 | 2〜5 分 | 修正サイクル 3 回以上 → S78/S79 で leakage 疑い（S84 ERROR は mindmap 構造規律違反） |
+| PDF 読込 + 配色 Concept 設計 | 5〜8 分 | 10 分超 → PDF が読み取れていない可能性 |
+| baseline clone + 本文空文字列初期化 | 1〜2 分 | 5 分超 → Edit 単位が大きすぎる |
+| section-by-section 内容差替 | 12〜18 分 | 25 分超 → Edit 分割が機能していない |
+| SVG 重なり機械検査 + validate | 2〜4 分 | 修正サイクル 3 回以上 → G12/G13 で leakage 疑い |
 
-40 分超は異常。session log を確認し以下をチェック：
-- Edit 回数（10 超で異常・template 経路に堕ちた疑い）
-- Bash 内 `cp` コマンド（outputs/ 配下からの copy は絶対禁止違反）
+35 分超は異常。session log を確認し以下をチェック：
+- Edit 回数（15 超で異常・section 細分化過剰の疑い）
+- Bash 内 `cp outputs/...` コマンド（template 流用違反）
+- Bash 内 `render.py` 呼出し（v10.0.0 で禁止）
 
 ### セッション開始時の状態確認推奨
 
@@ -360,13 +427,14 @@ spec/tx-v9.1.0-mindmap-core.md と inputs/tx-pdfs/{NNN}.pdf のみから
 
 → template 流用経路の再発を予防
 
-### バッチ運用（v9.1.0-mindmap・2026-05-21 追加）
+### バッチ運用（v10.0.0 GOLD-SKELETON）
 
 5 問単位の連続生成用に `/batch-tx` コマンドあり。
+全工程は `.claude/commands/batch-tx.md` 参照。
 
 使い方：
 
-- `/batch-tx 306` （開始 PDF を指定）
+- `/batch-tx 312` （開始 PDF を指定）
 - `/batch-tx`     （対象 PDF を確認）
 
 Phase 0 で 5×1 / 5×2 / キャンセル を user 確認。
@@ -375,3 +443,5 @@ Phase 0 で 5×1 / 5×2 / キャンセル を user 確認。
 
 エラー時は自動継続（3 問連続失敗で停止）。
 失敗問の再生成は `/new-tx` で個別実施。
+
+**v10.0.0 推定時間**：5×1 モードで 1 時間 30 分〜2 時間（1 問あたり 20〜30 分）。

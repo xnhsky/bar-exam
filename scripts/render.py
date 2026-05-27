@@ -3389,13 +3389,21 @@ def render_choice_summary_html(choice: dict) -> str:
 def render_sub_card_basis_link_html(choice: dict) -> str:
     """v9.4.0 sub-card.basis-link の HTML を返す（choice.basis_link_card がある時のみ）。
 
-    313 では各 choice-section に `<div class="sub-card basis-link">` が 1 件配置され、
-    本 choice が参照する判例・条文へのリンクを集約していた。
+    Gold style (303-gold-recovered の Chrome DevTools 編集を再現):
+      <div class="sub-card basis-link">
+        <h4>📚 根拠条文・判例</h4>
+        <div class="back-link-row">
+          <a class="back-link" href="#X">→ label1</a>
+          <a class="back-link" href="#Y">→ label2</a>
+        </div>
+        <p style="font-size:.92em; margin-top:6px;">{description_html}</p>  ← optional
+      </div>
 
     Schema 想定（structured）:
       choice.basis_link_card: {
-        label: "判例・条文への参照",   # heading label
-        items: [{href, label, kind}]   # kind = "case" | "statute"
+        label: "📚 根拠条文・判例",      # h4 見出し（既定）
+        items: [{href, label, kind}],   # kind = "case" | "statute"
+        description_html: "..."          # 任意・chip 下の簡潔解説（gold 標準）
       }
     """
     card = choice.get("basis_link_card")
@@ -3404,25 +3412,37 @@ def render_sub_card_basis_link_html(choice: dict) -> str:
     items = card.get("items") or []
     if not items:
         return ""
-    label = escape(card.get("label", "📎 参照する条文・判例"))
+    label = escape(card.get("label", "📚 根拠条文・判例"))
     parts = [
         '    <div class="sub-card basis-link">',
-        f'      <span class="label">{label}</span>',
-        '      <ul class="lead-list">',
+        f'      <h4>{label}</h4>',
+        '      <div class="back-link-row">',
     ]
     for item in items:
         if not isinstance(item, dict):
             continue
         href = escape(item.get("href", ""))
         item_label = item.get("label", "")
-        kind = item.get("kind", "case")
-        css_cls = "ref-case" if kind == "case" else "ref-stat"
         parts.append(
-            f'        <li><a class="{css_cls}" href="#{href}">{item_label}</a></li>'
+            f'        <a class="back-link" href="#{href}">→ {item_label}</a>'
         )
-    parts.append('      </ul>')
+    parts.append('      </div>')
+    description_html = card.get("description_html")
+    if description_html:
+        parts.append(f'      <p style="font-size:.92em; margin-top:6px;">{description_html}</p>')
     parts.append('    </div>')
     return "\n".join(parts)
+
+
+# auto-generated basis-link block を除去するためのパターン（基底テンプレ生成形）
+# render_part_b 内 line 2448-2451 が生成する正確な HTML 構造に一致
+_V94_AUTOGEN_BASIS_LINK_PATTERN = re.compile(
+    r'    <div class="sub-card basis-link">\n'
+    r'      <h4>📚 根拠判例</h4>\n'
+    r'      <p>[^<]*</p>\n'
+    r'    </div>\n\n',
+    re.MULTILINE
+)
 
 
 def render_mindmap_section_v94_html(problem: dict) -> str:
@@ -3519,9 +3539,12 @@ def inject_v94_choice_extras(part_b_frame_html: str, problem: dict) -> str:
             def verdict_repl(vm: "re.Match[str]") -> str:
                 return vm.group(0) + "\n" + summary_html
             body = _V94_VERDICT_SPAN_PATTERN.sub(verdict_repl, body, count=1)
-        # sub-card.basis-link を choice-section 末尾に挿入
+        # sub-card.basis-link: basis_link_card が定義されている時は
+        #   (1) auto-generated 基底テンプレ basis-link を削除（重複防止）
+        #   (2) gold-style basis-link （chip 表示）を末尾追加
         basis_link_html = render_sub_card_basis_link_html(c)
         if basis_link_html:
+            body = _V94_AUTOGEN_BASIS_LINK_PATTERN.sub("", body, count=1)
             body = body.rstrip() + "\n\n" + basis_link_html + "\n  "
         return opening + body + closing
 
@@ -3617,6 +3640,127 @@ _V94_SVG_CSS = """
    .exam-mark 等の v9.1.0 baseline CSS をそのまま使用する。
    HTML 構造の整合は render_professor_v94() で行う（密度規律維持・
    構造のみ 313 同等化） */
+
+/* === gold-style basis-link （303-gold-recovered の Chrome DevTools 編集再現） === */
+.sub-card.basis-link h4 { margin: 0 0 8px 0; font-family: var(--font-soft); font-size: 14.5px; color: var(--accent-darker); }
+.sub-card.basis-link .back-link-row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
+.sub-card.basis-link .back-link {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--accent-darker);
+  text-decoration: none;
+  border-bottom: 1px dashed var(--accent);
+  padding-bottom: 1px;
+  transition: color .15s;
+}
+.sub-card.basis-link .back-link:hover { color: var(--mid); border-bottom-color: var(--mid); }
+
+/* === gold-style theory-detail-grid 2-column layout (C-4 学説対立・303-gold 再現) === */
+.theory-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 24px 0;
+}
+@media (max-width: 900px) {
+  .theory-detail-grid { grid-template-columns: 1fr; }
+}
+.theory-detail-grid .sub-card.theory-major,
+.theory-detail-grid .sub-card.theory-minor {
+  border-radius: 14px;
+  padding: 18px 20px;
+}
+.theory-detail-grid .sub-card.theory-major {
+  background: var(--accent-soft-2);
+  border-left: 5px solid var(--accent);
+}
+.theory-detail-grid .sub-card.theory-minor {
+  background: var(--mid-soft);
+  border-left: 5px solid var(--mid);
+}
+.theory-detail-grid .theory-heading {
+  margin: 0 0 12px 0;
+  font-family: var(--font-soft);
+  font-size: 15.5px;
+  color: var(--accent-darker);
+  line-height: 1.5;
+}
+.theory-detail-grid .theory-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.theory-detail-grid .sub-card.theory-minor .theory-badge {
+  background: var(--mid);
+}
+.theory-detail-grid .theory-dl {
+  margin: 0;
+}
+.theory-detail-grid .theory-dl dt {
+  font-family: var(--font-soft);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent-darker);
+  margin: 12px 0 4px 0;
+  padding: 3px 8px;
+  background: var(--paper);
+  border-radius: 4px;
+  display: inline-block;
+}
+.theory-detail-grid .sub-card.theory-minor .theory-dl dt {
+  color: var(--mid);
+}
+.theory-detail-grid .theory-dl dt.why-adopted {
+  background: var(--accent);
+  color: var(--paper);
+}
+.theory-detail-grid .theory-dl dt.why-not-adopted {
+  background: var(--mid);
+  color: var(--paper);
+}
+.theory-detail-grid .theory-dl dd {
+  margin: 0 0 8px 0;
+  font-size: 12.5px;
+  line-height: 1.7;
+}
+
+/* statute-interpretation blockquote (C-4 末尾の条文中核解釈) */
+blockquote.statute-interpretation {
+  background: var(--bg-dark);
+  color: var(--paper);
+  border-radius: 12px;
+  padding: 16px 22px;
+  margin: 20px 0;
+  border-left: none;
+}
+blockquote.statute-interpretation .statute-cite {
+  font-family: var(--font-soft);
+  font-size: 13.5px;
+  margin: 0 0 8px 0;
+  opacity: 0.96;
+}
+blockquote.statute-interpretation .statute-num {
+  display: inline-block;
+  background: var(--accent);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-right: 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+blockquote.statute-interpretation .interpretation-body {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.75;
+  opacity: 0.94;
+}
 """
 
 
