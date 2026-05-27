@@ -45,7 +45,7 @@ $ValidateScript = switch ($SpecVersion) {
     'v10.0.0' { 'scripts/validate-tx-gold.py' }
     default   { 'scripts/validate-tx.py' }
 }
-# v10.0.0：gold validator PASS 判定の regex（"Errors: 0" or "ALL G1〜G15 PASS"）
+# v10.0.0：gold validator PASS 判定の regex（"Errors: 0" or "ALL G1〜G16 PASS"）
 # v9.x：従来 validator PASS 判定（"ERROR 0 /"）
 $ValidatePassRegex = switch ($SpecVersion) {
     'v10.0.0' { 'Errors:\s*0\b' }
@@ -193,7 +193,7 @@ foreach ($target in $Targets) {
     if ($elapsed -gt $ElapsedUpperLimit) {
         Write-Warning "生成時間異常: ${elapsed}秒（上限 ${ElapsedUpperLimit}秒）- claude -p 不完全出力警戒"
         if ($SpecVersion -eq 'v10.0.0') {
-            Write-Warning "品質チェック推奨: G1〜G15 / SVG 重なり / genesis-baseline feature-tag"
+            Write-Warning "品質チェック推奨: G1〜G16 / SVG 重なり / genesis-baseline feature-tag"
         } else {
             Write-Warning "品質チェック推奨: feature-tag 33 件 / theory-detail-grid / palette-strategy"
         }

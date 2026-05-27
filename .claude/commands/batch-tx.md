@@ -63,7 +63,7 @@ baseline：canonical/GENESIS.html
   本文を空文字列で初期化
 - **Phase 4** section-by-section 内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
 - **Phase 5** SVG 重なり機械検査（bounding box AABB 全ペア衝突判定）
-- **Phase 6** 検証（`scripts/validate-tx-gold.py` で G1〜G15 全件通過確認）と配信
+- **Phase 6** 検証（`scripts/validate-tx-gold.py` で G1〜G16 全件通過確認）と配信
 
 ### 各問完了時の内部記録
 
@@ -71,7 +71,7 @@ baseline：canonical/GENESIS.html
 
 - `pdf_number`, `start_time`, `end_time`, `duration_minutes`
 - `output_path`, `output_size_kb`
-- `validate_errors`, `validate_warnings`（validate-tx-gold.py の G1〜G15）
+- `validate_errors`, `validate_warnings`（validate-tx-gold.py の G1〜G16）
 - `socket_error_count`, `template_leakage`
 - `palette_pattern`（P1/P2/P3）, `concept_description`
 - `svg_overlap_detected`（あれば該当 SVG と要素名）

@@ -114,7 +114,7 @@ PC2 で 311 baseline を検証：
 python scripts/validate-tx-gold.py canonical/GENESIS.html
 ```
 
-→ **G1〜G15 ALL PASS** が出れば移行成功。
+→ **G1〜G16 ALL PASS** が出れば移行成功。
 
 ---
 

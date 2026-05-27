@@ -51,6 +51,17 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
    `--base` / `--soft` / `--bg-dark` / `--accent-3` / `--accent-soft` / `--border-mid` /
    `--kp-text-color` + 派生色 10 個）へ役割割当て
 
+   **コントラスト制約（最重要・2026-05-27 追加）**：
+   - **`--border-mid` は `--paper`（白系）と `--base`（クリーム系）の双方に対し
+     視認可能な濃さを確保**（推奨：HSL の L < 65、目安として #C0B0D0 より暗い）
+     - 過去事故：刑TX310 v10.0.0 first-light で `--border-mid:#C3B4D1`（薄ラベンダー）に
+       設定したため表罫線・cross-card 境界が背景と同化（コントラスト ~1.4:1）
+   - **濃色（`--accent` / `--bg-dark` / `--accent-darker`）を背景に使う場合、
+     その上の text は必ず light variant（`--paper` / `--light` / `--base`）を充てる**
+     - 同じ濃色系の text を重ねない（例：`--accent` 背景 × `--accent-soft` text = NG）
+   - **ユーザー要望**：濃ゆい色は単独使用を避け、**「選定した色の薄いバージョン」を
+     背景に使い、濃い変種を文字色に充てる**（dark text on light bg pattern を優先）
+
 6. **Semantic exception**：
    - ✓ 緑（`--recall-correct`）：P2 #438B48 / #7BA980 を借用（P1/P3 採用時）
    - 🏆 金（ARENA）：`#ffd54f` / `#ffaa00` inline hex で保持（CSS 変数化しない）
@@ -134,6 +145,16 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 - **C-5 総合フローチャート** (flow-svg)：decision diamond / chip / end の text を本問判断フローに
 - 詳細は **Phase 5 SVG 重なり検査** で全 bounding box を機械検査してから出力
 
+##### 4f-rules. SVG class 命名規律（最重要・2026-05-27 追加）
+
+- **GENESIS.html の `<style>` 内に CSS 定義がある class 名のみ使用可**
+  - 新たな class 名を勝手に発明しない（例：`branch-active` / `tx-branch-active` / `node-positive` 等の独自命名は禁止）
+  - SVG `<rect>` / `<text>` 等で `class` 属性を付ける際は、GENESIS のスタイル定義済 class（例：`branch-fill` / `tx-branch` / `sub-elem` / `tx-elem` / `sub-case` / `tx-case` / `sub-statute` / `tx-statute` / `issue-branch-fill` / `tx-issue-ttl` / `tx-issue-body` 等）から **必ず選択**
+  - 独自命名された class は CSS 規則がないため SVG デフォルトの `fill="black"` が適用され、**黒塗りボックス**として描画される（過去事故：刑TX310 v10.0.0 first-light で `branch-active` 黒塗り 3 箇所）
+- **肯定/否定など差別表示が必要な場合**：
+  - 既存 class の組合せで対応（例：肯定＝`branch-fill`、否定＝`branch-fill` + stroke-dasharray を inline 適用）
+  - または新 class を **GENESIS.html の CSS にも追加**してから使用（baseline 改修扱い・別 commit 推奨）
+
 #### 4g. PART C 差替（C-1〜C-7）
 - C-1 体系図解説（key-phrase-box + cmp-table）
 - C-2 概念比較・全肢俯瞰（cmp-table 2 枚）
@@ -181,7 +202,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
     python scripts/validate-tx-gold.py <出力ファイル>
     ```
 
-18. **G1〜G15 ERROR 0 件確認**：
+18. **G1〜G16 ERROR 0 件確認**：
     - G1〜G5：構造（HEAD/HEADER/PART A〜D/footer 存在）
     - G6〜G8：配色 V2（:root 内 CSS 変数 ~20 個・派生色 10 個・配色情報がヘッダー／フッター本文にない）
     - G9〜G11：SVG（3 種存在・ボックス重なり 0 件・viewBox 余白十分）

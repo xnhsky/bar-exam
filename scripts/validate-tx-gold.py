@@ -3,7 +3,7 @@
 """
 TX v10.0.0 GOLD-SKELETON 自己検証スクリプト
 
-検証範囲：G1〜G15
+検証範囲：G1〜G16
   G1〜G5：構造（HEAD/HEADER/PART A〜D/footer 存在）
   G6〜G8：配色 V2
     G6: :root{} 内に主要 CSS 変数が定義されているか
@@ -17,8 +17,11 @@ TX v10.0.0 GOLD-SKELETON 自己検証スクリプト
     G12: canonical/KTX301.html 由来禁止文言の不出現
     G13: canonical/GENESIS.html 本文との 5 単語以上連続一致なし
   G14〜G15：命名規則
-    G14: ファイル ID 形式（{接頭辞}{NNN}）と出力先サブフォルダ整合
+    G14: ファイル ID 形式（{接頭辞}{NNN}）と出力先サブフォルダ整合（canonical/ 配下はスキップ）
     G15: footer-spec feature-tag 先頭が "TX v10.0.0 GOLD-SKELETON"
+  G16：SVG class 整合性
+    G16: SVG 内 <rect>/<text>/<ellipse>/<polygon> の class が <style> 内に定義済み
+         （未定義 class は SVG デフォルトの fill="black" で黒塗りになる事故対策）
 
 使い方：
     python scripts/validate-tx-gold.py <HTML ファイルパス>
@@ -488,6 +491,44 @@ class Validator:
             self.err("G15",
                      f"feature-tag 先頭が 'TX v10.0.0 GOLD-SKELETON' でない: '{first}'")
 
+    # --- G16：SVG class 整合性（未定義 class 検出）---
+
+    def g16_svg_class_defined(self):
+        """SVG 内の <rect>/<text>/<ellipse>/<polygon> 等で class 属性に
+        指定されている class 名が <style> 内に定義されているか検査。
+        未定義 class は SVG デフォルト fill="black" で黒塗りになる事故対策。
+        """
+        # <style> 内の全 class 定義を収集
+        defined = set()
+        for style in self.soup.find_all("style"):
+            text = style.get_text()
+            for m in re.finditer(r"\.([A-Za-z_][A-Za-z0-9_-]*)", text):
+                defined.add(m.group(1))
+
+        # SVG 内の class 利用箇所を走査
+        SVG_SHAPE_TAGS = {"rect", "text", "ellipse", "polygon", "circle",
+                          "line", "path", "g"}
+        undefined_uses = []
+        for svg in self.soup.find_all("svg"):
+            for el in svg.find_all(True):
+                if el.name not in SVG_SHAPE_TAGS:
+                    continue
+                cls = el.get("class")
+                if not cls:
+                    continue
+                # BeautifulSoup の class 属性はリストで来る
+                for c in cls:
+                    if c and c not in defined:
+                        undefined_uses.append((el.name, c))
+
+        if undefined_uses:
+            # 重複排除して件数報告
+            unique = set(undefined_uses)
+            samples = list(unique)[:5]
+            self.err("G16",
+                     f"SVG 内に未定義 class が {len(unique)} 種類あり（黒塗りリスク）: "
+                     f"{samples}")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -504,6 +545,7 @@ class Validator:
         self.g13_no_genesis_baseline_copy()
         self.g14_filename_dir()
         self.g15_version_tag()
+        self.g16_svg_class_defined()
 
 
 # ============================================================
@@ -543,7 +585,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL G1〜G15 PASS")
+        print("✅ ALL G1〜G16 PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

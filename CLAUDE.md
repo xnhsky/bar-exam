@@ -91,7 +91,7 @@
 7. section-by-section で内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
 8. **SVG 重なり機械検査**：rect/ellipse の bounding box を全ペア AABB 衝突判定
 9. 配信前に `python scripts/validate-tx-gold.py <出力ファイル>` を実行
-10. **G1〜G15 ERROR 0 件**を確認 → 視覚確認 → `present_files`
+10. **G1〜G16 ERROR 0 件**を確認 → 視覚確認 → `present_files`
 
 ### 3-3. canonical text leakage の防止（v10.0.0 では物理的禁止で構造解決）
 
@@ -197,7 +197,7 @@ JX には TX の §0-quad のような明示的なコンテンツ独立性プロ
 python scripts/validate-tx-gold.py outputs/tx/刑TX/刑TX312.html
 ```
 
-**チェック内容（G1〜G15）：**
+**チェック内容（G1〜G16）：**
 
 - **構造（G1〜G5）：** HEAD ／HEADER ／PART A〜D ／footer-spec の存在
 - **配色 V2（G6〜G8）：**
@@ -354,7 +354,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 ### 検証失敗時の挙動
 
-- TX (v10.0.0)：G1〜G15 のうち ERROR があれば該当箇所を修正、再検証。WARNING は配信可
+- TX (v10.0.0)：G1〜G16 のうち ERROR があれば該当箇所を修正、再検証。WARNING は配信可
 - TX (legacy)：S1〜S91 のうち ERROR があれば該当箇所を修正、再検証
 - JX：J1〜J20 のうち ERROR があれば該当箇所を修正、再検証
 - 何度も失敗する場合：canonical/GENESIS.html から clone し直して section ごとに再執筆
@@ -385,7 +385,7 @@ canonical/GENESIS.html と inputs/tx-pdfs/{NNN}.pdf のみから生成
    - PART D drill 12
    - footer-spec（配色記載しない・feature-tag は TX v10.0.0 GOLD-SKELETON 先頭）
 4. SVG 重なり機械検査（rect/ellipse 全ペア AABB）
-5. validate-tx-gold.py → G1〜G15 ERROR 0 件確認
+5. validate-tx-gold.py → G1〜G16 ERROR 0 件確認
 ```
 
 ### API socket error 発生時の対処
