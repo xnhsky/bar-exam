@@ -1,11 +1,12 @@
 ---
-description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-skeleton：311 baseline + 配色 V2 + SVG 重なり検査）
+description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-skeleton：GENESIS baseline + 配色 V3 + SVG 重なり検査）
 ---
 
 新規 TX ファイル（短答式 HTML カード）を問題 PDF から生成する。
 
-> **v10.0.0 GOLD-SKELETON 経路（2026-05-27 確定）**：刑TX311 で確定した「baseline HTML スケルトン
-> + 配色 V2 (27 色 AI 自由選定) + SVG 重なり機械検査」の 3 本柱経路を新規生成の唯一の標準とする。
+> **v10.0.0 GOLD-SKELETON 経路（2026-05-27 確定・2026-05-28 配色 V3 移行）**：刑TX311 で確定した
+> 「baseline HTML スケルトン + 配色 V3 (11 名前付きパレット・5 役割定義) + SVG 重なり機械検査」の
+> 3 本柱経路を新規生成の唯一の標準とする。
 > 旧 v9.2.0 DEEP-DIVE 経路（§Annex B body skeleton + 6 段階 Write）は廃止。
 > 旧 render.py 経路（JSON-render）も新規生成では使用しない（WIP 上書き事故予防）。
 
@@ -28,42 +29,56 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
     - `Read outputs/*.html` や `cp outputs/*.html` の痕跡があれば即停止して
       `canonical/GENESIS.html` から再開
 
-### Phase 1：PDF 解析と配色 V2 判定
+### Phase 1：PDF 解析と配色 V3 判定
 
 1. **PDF 読解**：問題番号・科目・年度・全選択肢・正解・正答率・出題テーマ・出題形式
    （single-choice-5 / ox-grid-5 / multi-choice / etc.）を抽出
 
-2. **冒頭応答必須**：「正答率 __%→パターン_『___』適用」を最初に出力
+2. **冒頭応答必須**：「正答率 __%→パターン_『___』 → 採用パレット『___』」を最初に出力
 
-3. **パターン判定**（配色 V2）：
-   - 正答率 ≥ 60% → **P1** ピンクを使った可愛い配色
-   - 正答率 40〜60% → **P2** グリーンを使った可愛い配色
-   - 正答率 < 40% → **P3** ロマンティックなパープル配色
+3. **パターン判定**（配色 V3）：
+   - 正答率 ≥ 60% → **P1** ピンク系（候補：Sweet Berry / Fresh Citrus / Rose Mist / Antique Pearl / Maison Blanche）
+   - 正答率 40〜60% → **P2** グリーン・ブルー系（候補：Crystal Blue / Dusty Sage / Mint Tea / Fresh Mint）
+   - 正答率 < 40% → **P3** バイオレット系（候補：Twilight Violet / Sunset Harmony）
 
-4. **Concept 設計**（AI 判断・問題ごとに別 Concept）：
-   - テーマの重さ（道徳論点／重罪 → 落ち着き寄り、日常論点 → 爽やか）
-   - 難度（易 → 明るめ、難 → 重め）
-   - 罪名イメージ（財産罪 → ピンク系優先、身体犯 → 暖系、手続 → クール）
-   - 正解の意外性（罠多い → コントラスト強、素直 → 同系統調和）
+4. **パレット選定**（11 個から 1 つを AI 判断・問題ごとに別）：
+   - テーマの重さ（道徳論点／重罪 → Antique Pearl / Dusty Sage / Twilight Violet）
+   - 難度（易 → Rose Mist / Fresh Mint、難 → Maison Blanche / Sunset Harmony）
+   - 罪名イメージ（財産罪 → ピンク系、手続 → Crystal Blue、身体犯 → Sunset Harmony）
+   - 正解の意外性（罠多い → アクセント反対色強め、素直 → 同系統サブで統一）
 
-5. **色選定**：`memory/reference_ingectar_palette.md` の該当パターン 27 色から
-   AI 判断で 15〜20 色を選択し、CSS 変数 ~20 個（`--accent` / `--mid` / `--light` /
-   `--base` / `--soft` / `--bg-dark` / `--accent-3` / `--accent-soft` / `--border-mid` /
-   `--kp-text-color` + 派生色 10 個）へ役割割当て
+5. **5 色役割割当て**：選定パレットの 5 色を以下に対応させる
+   （`memory/reference_palette_v3.md` カタログ参照）：
 
-   **コントラスト制約（最重要・2026-05-27 追加）**：
+   | 役割 | 比率 | CSS 変数 | 選定基準 |
+   |:--|:-:|:--|:--|
+   | ベース | 70% | `--base` | 最も pale で大面積背景に展開できる色 |
+   | メイン | 25% | `--accent` | palette タイトルが描かれている最 chromatic な色（chip 直接使用・改変禁止） |
+   | アクセント | 5% | `--mid` | メインと色相が離れた contrast 色。**11 パレット内 chip からのみ借用可**（P 越境 OK・palette 外独自 hex 禁止） |
+   | サブ 1 | 残 | `--soft` | card surface に使えるニュートラル色 |
+   | サブ 2 | 残 | `--light` | 補助 surface・薄塗り用 |
+   | 文字色 | — | `--bg-dark` | 白・黒・黒寄りグレー（text 用は L<40 dark 可） |
+
+   **派生色 10 個（2026-05-28 改訂・mid-tone 制限）：**
+   - bg 系派生（`--accent-darker` / `--accent-soft` / `--accent-3` / `--border-mid`）は
+     **L=55-65 の mid-tone に制限**（gradient で white text を contrast 維持するときは
+     mid-tone でも可・真の dark L<40 は禁止）
+   - text 系派生（`--kp-text-color` / `--freq-high-deep` / `--freq-mid-deep` / `--freq-low-deep`）
+     は L<40 dark 可（text なので濃い方が読みやすい）
+
+   **コントラスト制約（最重要・2026-05-27 追加 / V3 でも維持）**：
    - **`--border-mid` は `--paper`（白系）と `--base`（クリーム系）の双方に対し
      視認可能な濃さを確保**（推奨：HSL の L < 65、目安として #C0B0D0 より暗い）
-     - 過去事故：刑TX310 v10.0.0 first-light で `--border-mid:#C3B4D1`（薄ラベンダー）に
-       設定したため表罫線・cross-card 境界が背景と同化（コントラスト ~1.4:1）
+     - 過去事故：刑TX310 で `--border-mid:#C3B4D1`（薄ラベンダー）に設定したため
+       表罫線・cross-card 境界が背景と同化（コントラスト ~1.4:1）
    - **濃色（`--accent` / `--bg-dark` / `--accent-darker`）を背景に使う場合、
      その上の text は必ず light variant（`--paper` / `--light` / `--base`）を充てる**
-     - 同じ濃色系の text を重ねない（例：`--accent` 背景 × `--accent-soft` text = NG）
-   - **ユーザー要望**：濃ゆい色は単独使用を避け、**「選定した色の薄いバージョン」を
-     背景に使い、濃い変種を文字色に充てる**（dark text on light bg pattern を優先）
+   - **V3 11 パレットは全て pastel/soft なので、`--accent`（メイン）をそのまま
+     background に使うと contrast 不足になりやすい**。メイン色は header／heading の
+     text 色や border 色として使い、background は base/soft/light の薄色を採用
 
-6. **Semantic exception**：
-   - ✓ 緑（`--recall-correct`）：P2 #438B48 / #7BA980 を借用（P1/P3 採用時）
+6. **Semantic exception**（[[feedback-semantic-exceptions]]）：
+   - ✓ 緑（`--recall-correct`）：`#438B48` / `#7BA980` を全パレットで借用
    - 🏆 金（ARENA）：`#ffd54f` / `#ffaa00` inline hex で保持（CSS 変数化しない）
 
 ### Phase 2：ファイル名・出力先の確定（CLAUDE.md §2）
@@ -108,10 +123,20 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 各 section を独立して差替える。**1 メッセージで 50KB 超の Write/Edit は禁止**
 （API socket error 予防）。Edit 単位で section ごとに分割。
 
-#### 4a. HEAD（`<style>` 内 `:root{}`）の配色 V2 適用
+#### 4a. HEAD（`<style>` 内 `:root{}`）の配色 V3 適用
 - Phase 1-5 で決定した CSS 変数 ~20 個を `:root{}` に反映
-- 派生色 10 個（`--accent-darker`／`--mid-warm` 等）も合わせて設定
-- header／footer の表示テキストには **配色情報を書かない**（Concept 説明文を入れない）
+  - 主要 6 個：`--base`(70%) / `--accent`(25%) / `--mid`(5%) / `--soft`(サブ1) / `--light`(サブ2) / `--bg-dark`(文字色)
+  - 派生色 10 個（`--accent-darker` / `--accent-light` / `--mid-warm` / `--border-mid` / `--kp-text-color` 等）
+- **V3 contrast 規律**（[[project-palette-v3]] / [[reference-palette-v3]]）：
+  - 11 パレットは全 pastel なので、chip 1〜5 をそのまま `--accent` に当てると白文字背景に contrast 不足
+  - `--accent` は palette identity hex を **HSL で暗くした派生**を採用（例：Antique Pearl chip 1 #D4B5C4 → `--accent: #A07895`、palette identity は `--accent-light` で保存）
+  - `--mid` は palette 内 contrast 色がない場合、**palette 外の反対色 dark teal/dark mauve 等**を AI 判断で導入（例：Rose Mist は全部 rose 系なので `--mid: #5A8B8E` dusty dark teal を外挿）
+- **structural CSS 規律**（GENESIS baseline で確立、改変禁止）：
+  - 見出し系 12 セレクタ（`.section-title` / `.basis-card-header` / `.part-title` / `.container > section > h3` / `.memory-item .mem-title` 等）は **`color:var(--bg-dark)`** で固定
+  - badge gradient は `linear-gradient(135deg, var(--accent), var(--accent-darker))` パターン（旧 `var(--accent), var(--mid)` は pale palette で右端白文字が消える構造的問題）
+  - SVG tree L2/L3 active text は `--paper` 白（active cells の bg `--mid` は dark teal）
+  - freq-mid / freq-low / priority-b / priority-c badge は `color:var(--bg-dark)`
+- header／footer の表示テキストには **配色情報を書かない**（パレット名・役割割合・「AI 自由選定」等）
 
 #### 4b. HEADER 差替
 - `<div class="doc-header">` の問題番号
@@ -174,10 +199,15 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 - 1 行目：`<strong>{接頭辞}{NNN}</strong>・{科目}（{出典}）`
 - 2 行目：`正答率 {N}%／難度 {★}`（**配色情報は書かない**）
 - 3 行目：`作成日：{YYYY-MM-DD}`
-- `.footer-meta-hidden` 内 feature-tag：
+- `.footer-meta-hidden` 内 feature-tag（順序自由・先頭のみ固定）：
   - `TX v10.0.0 GOLD-SKELETON`（必須・先頭）
-  - `genesis-baseline`／`palette-v2-ai-selection`／`svg-overlap-checked`／
-    `content-independence`／`jp-prefix-naming`
+  - `genesis-baseline`
+  - `palette-v3-11-named`
+  - `palette: {パレット名} (P{N})` — 例：`palette: Antique Pearl (P1)`
+  - `roles: base 70% / main 25% / accent 5% / sub 2`
+  - `svg-overlap-checked`
+  - `content-independence`
+  - `jp-prefix-naming`
 
 ### Phase 5：SVG 重なり機械検査（必須・新規）
 
@@ -204,7 +234,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 
 18. **G1〜G16 ERROR 0 件確認**：
     - G1〜G5：構造（HEAD/HEADER/PART A〜D/footer 存在）
-    - G6〜G8：配色 V2（:root 内 CSS 変数 ~20 個・派生色 10 個・配色情報がヘッダー／フッター本文にない）
+    - G6〜G8：配色 V3（:root 内 5 役割 CSS 変数 + 派生色 10 個・配色情報がヘッダー／フッター本文にない）
     - G9〜G11：SVG（3 種存在・ボックス重なり 0 件・viewBox 余白十分）
     - G12〜G13：content-independence（KTX301 / GENESIS 本文逐語コピー禁止）
     - G14〜G15：命名規則（ID 形式・出力先サブフォルダ）
@@ -239,9 +269,9 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
   上書きし WIP 作業全消失（過去事故あり）
 - 新規生成は問題 PDF + canonical baseline のみから新規鋳造
 
-### 配色 V2 の越境（Semantic exception）
+### 配色 V3 の越境（Semantic exception）
 
-- ✓ 緑（recall-correct）：P1/P3 採用時も P2 緑 #438B48 / #7BA980 を借用
+- ✓ 緑（recall-correct）：全パレットで #438B48 / #7BA980 を借用（V3 11 パレットは全 pastel で vivid green を持たないため強制継承）
 - 🏆 金（ARENA）：全パターンで #ffd54f / #ffaa00 inline hex 保持
 - 詳細：[[feedback-semantic-exceptions]]
 

@@ -91,6 +91,23 @@ PALETTE_LEAKAGE_PATTERNS_HEADER = [
     r"配色\s*[:：]",
     r"P[123][\s　]*[「『]",
     r"AI\s*自由選定",
+    # V3 11 named palettes
+    r"Sweet\s*Berry",
+    r"Fresh\s*Citrus",
+    r"Rose\s*Mist",
+    r"Antique\s*Pearl",
+    r"Maison\s*Blanche",
+    r"Crystal\s*Blue",
+    r"Dusty\s*Sage",
+    r"Mint\s*Tea",
+    r"Fresh\s*Mint",
+    r"Twilight\s*Violet",
+    r"Sunset\s*Harmony",
+    # V3 役割定義の漏出
+    r"ベース\s*70\s*%",
+    r"メイン\s*25\s*%",
+    r"アクセント\s*5\s*%",
+    # 旧 V2 (歴史的・残存防止)
     r"ピンクを使った可愛い配色",
     r"グリーンを使った可愛い配色",
     r"ロマンティックなパープル配色",

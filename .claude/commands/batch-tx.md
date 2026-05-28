@@ -1,5 +1,5 @@
 ---
-description: 5 問バッチで TX を連続生成（v10.0.0-gold-skeleton：311 baseline + 配色 V2 + SVG 重なり検査・new-tx の全規律を継承）
+description: 5 問バッチで TX を連続生成（v10.0.0-gold-skeleton：GENESIS baseline + 配色 V3 + SVG 重なり検査・new-tx の全規律を継承）
 ---
 
 # batch-tx：5 問バッチ生成コマンド
@@ -9,7 +9,7 @@ description: 5 問バッチで TX を連続生成（v10.0.0-gold-skeleton：311 
 `inputs/tx-pdfs/` 配下の PDF を 5 問単位で連続生成する。
 `.claude/commands/new-tx.md` の全規律（v10.0.0-gold-skeleton：
 canonical/GENESIS.html からのスケルトン clone +
-配色 V2 (27 色 AI 自由選定) + SVG 重なり機械検査）をそのまま継承し、
+配色 V3 (11 名前付きパレット・5 役割定義) + SVG 重なり機械検査）をそのまま継承し、
 5 問ループで実行する。
 
 ## 引数
@@ -43,7 +43,7 @@ canonical/GENESIS.html からのスケルトン clone +
 バッチ 1 対象：312.pdf 〜 316.pdf（5 ファイル）
 推定時間：1 時間 30 分〜2 時間
 baseline：canonical/GENESIS.html
-配色：問題ごとに正答率帯 → P1/P2/P3 自動判定、27 色 AI 自由選定
+配色：問題ごとに正答率帯 → P1/P2/P3 自動判定、11 パレットから AI 選定（V3）
 開始してよろしいですか？ [y/n]
 ```
 
@@ -57,7 +57,7 @@ baseline：canonical/GENESIS.html
 
 - **Phase 0** 環境確認（outputs 既存確認・_quarantine 復活確認・template 流用経路チェック）
 - **Phase 1** PDF 解析・正答率からパターン判定・冒頭応答
-  （「正答率 __%→パターン_『___』適用」）・Concept 設計・27 色選定
+  （「正答率 __%→パターン_『___』 → 採用パレット『___』」）・11 パレットから 1 つ選定
 - **Phase 2** 命名（CLAUDE.md §2）
 - **Phase 3** canonical/GENESIS.html を Read → 対象ファイル名でコピー →
   本文を空文字列で初期化
@@ -191,7 +191,7 @@ PARTIAL: N 問（番号リスト・原因併記）
 - **`outputs/*/` 配下からの template 流用は絶対禁止**
 - **render.py 経路の使用禁止**
 - **本文を空文字列で初期化してから問題 PDF を見て新規執筆**
-- **配色 V2**：正答率帯から P1/P2/P3、27 色から AI 自由選定、Concept は問題ごとに別
+- **配色 V3**：正答率帯から P1/P2/P3、11 パレットから AI 選定（パレット名 + 役割割当て）
 - **Semantic exception**：✓ 緑は P2 借用、🏆 金は inline 保持
 - **SVG 重なり機械検査必須**：bounding box AABB 全ペア検査
 - **ヘッダー／フッター本文に配色記載禁止**：`.exam-meta` と `.footer-meta-info` から
