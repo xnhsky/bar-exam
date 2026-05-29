@@ -22,6 +22,11 @@ TX v10.0.0 GOLD-SKELETON 自己検証スクリプト
   G16：SVG class 整合性
     G16: SVG 内 <rect>/<text>/<ellipse>/<polygon> の class が <style> 内に定義済み
          （未定義 class は SVG デフォルトの fill="black" で黒塗りになる事故対策）
+  G17〜G18：PART D 12問ドリルの自己完結性（2026-05-29 追加）
+    G17: drill-block の quiz-question に「本問の正解は肢N」型の正解再問設問がない
+         （答えの暗記には学習効果がないため法理問題に差替）
+    G18: PART D（section#part-d）に .arena-premise（前提ブロック）が存在し非空
+         （見解・事案・記述を再掲し、12問エリアを遡読不要で自己完結させる）
 
 使い方：
     python scripts/validate-tx-gold.py <HTML ファイルパス>
@@ -111,6 +116,21 @@ PALETTE_LEAKAGE_PATTERNS_HEADER = [
     r"ピンクを使った可愛い配色",
     r"グリーンを使った可愛い配色",
     r"ロマンティックなパープル配色",
+]
+
+# G17：drill quiz-question が「本問の正解そのもの」を再問する設問を検出する。
+# 答えの暗記には学習効果がないため、転用可能な法理を問う設問に差し替える。
+# .quiz-question の表示テキストにのみ適用（解説 .quiz-answer は正解に言及して可）。
+DRILL_ANSWER_RECALL_PATTERNS = [
+    r"本問の正解",
+    r"本問正解",
+    r"正解は肢[0-9０-９]",
+    r"正解は記述[0-9０-９]",
+    r"の組合せは肢[0-9０-９]",
+    r"本問[（(][^）)]*[）)]の[0-9０-９]\s*記述",
+    r"本問の[0-9０-９]\s*記述は",
+    r"誤っている記述の組合せは肢",
+    r"正しい記述の組合せは肢",
 ]
 
 CANONICAL_301_LEAKAGE = [
@@ -546,6 +566,41 @@ class Validator:
                      f"SVG 内に未定義 class が {len(unique)} 種類あり（黒塗りリスク）: "
                      f"{samples}")
 
+    # --- G17〜G18：PART D 12問ドリルの自己完結性 ---
+
+    def g17_no_answer_recall_drill(self):
+        """drill-block の quiz-question が本問の正解そのものを再問していないか検査。"""
+        for drill in self.soup.find_all(class_="drill-block"):
+            q = drill.find(class_="quiz-question")
+            if not q:
+                continue
+            txt = q.get_text()
+            for pat in DRILL_ANSWER_RECALL_PATTERNS:
+                if re.search(pat, txt):
+                    tag = drill.find(class_="drill-tag")
+                    label = tag.get_text().strip() if tag else "?"
+                    self.err("G17",
+                             f"drill「{label}」の設問が本問の正解を再問している"
+                             f"（'{pat}' に一致）。法理を問う設問に差し替えること")
+                    break
+
+    def g18_arena_premise(self):
+        """PART D に前提ブロック .arena-premise が存在し非空か検査。"""
+        part_d = self.soup.find(id="part-d")
+        if not part_d:
+            return  # G4 で報告済
+        premise = part_d.find(class_="arena-premise")
+        if not premise:
+            self.err("G18",
+                     ".arena-premise（前提ブロック）が PART D に存在しない"
+                     "（見解・事案・記述を再掲し 12問エリアを自己完結させること）")
+            return
+        items = premise.find_all(class_="arena-premise-item")
+        if len(items) < 2:
+            self.err("G18",
+                     f".arena-premise の項目（.arena-premise-item）が {len(items)} 件"
+                     "（事案・見解・各記述で最低 2 件以上を期待）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -563,6 +618,8 @@ class Validator:
         self.g14_filename_dir()
         self.g15_version_tag()
         self.g16_svg_class_defined()
+        self.g17_no_answer_recall_drill()
+        self.g18_arena_premise()
 
 
 # ============================================================
@@ -602,7 +659,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL G1〜G16 PASS")
+        print("✅ ALL G1〜G18 PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

@@ -114,6 +114,7 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
     - PART A-3（参考｜共通根拠条文・判例）の各 `.basis-card-body` 本文
     - PART C C-1〜C-7 各 section 本文（table 内容含む）
     - SVG 内の `<text>` 要素テキスト（座標・class は据置・テキストのみ空文字列化）
+    - PART D 前提ブロック `.arena-premise` の各 `.arena-premise-item` 本文
     - PART D drill-block × 12 の問題文・解説
     - footer-spec 1〜3 行目
     - これらを **空文字列で初期化**してから問題 PDF を見て新規執筆
@@ -192,8 +193,19 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 - C-7 memory-item（3 層 priority-a/b/c）
 
 #### 4h. PART D 差替（ARENA drill 12 問）
+- **冒頭に前提ブロック `.arena-premise` を必ず配置**（`arena-intro` の直後・`arena-counter` の前）：
+  - 12問エリアを**自己完結**させ、見解・事案・記述を確認するため上部 PART を遡読させない
+  - `.arena-premise-item` を最低 2 件（事案／見解／各記述ア〜オ等）。本問の要点のみ簡潔に再掲
+  - 構造シェル（`.arena-premise` / `-head` / `-icon` / `-note` / `-body` / `-item` / `-label`）と
+    `.arena-premise-note` 定型文は GENESIS から逐語コピー。中身（事案・見解・記述）は本問固有で執筆
 - ○×=6:6 で構築（本問オリジナル）
 - 各 drill-block：問題文・選択肢・解説（本問関連で完結）
+- **「本問の正解は肢N」型の正解再問 DRILL は禁止**（答えの暗記は学習効果ゼロ）：
+  - DRILL 12 等で「本問の正解」「正解は肢N」「誤っている記述の組合せは肢N」を **quiz-question に書かない**
+  - 代わりに**転用可能な法理**（判定基準・規範・概念）を問う設問にする
+    （例：虚像射撃／実像狙撃の判定、規範の射程、構成要件の核心命題）
+  - 解説 `.quiz-answer` は正解に言及して可（禁止は設問文 `.quiz-question` のみ）
+  - `validate-tx-gold.py` G17（正解再問禁止）・G18（前提ブロック必須）が機械検出
 
 #### 4i. footer-spec 差替
 - 1 行目：`<strong>{接頭辞}{NNN}</strong>・{科目}（{出典}）`
@@ -238,6 +250,8 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
     - G9〜G11：SVG（3 種存在・ボックス重なり 0 件・viewBox 余白十分）
     - G12〜G13：content-independence（KTX301 / GENESIS 本文逐語コピー禁止）
     - G14〜G15：命名規則（ID 形式・出力先サブフォルダ）
+    - G16：SVG class 整合性（未定義 class の黒塗り防止）
+    - G17〜G18：PART D 自己完結（正解再問 DRILL なし・前提ブロック存在）
 
 19. **視覚確認推奨**：ユーザーがブラウザで開いて gold quality 到達判定
 
