@@ -142,6 +142,7 @@ if ($DryRun) {
         Write-Host "      ① JX 出力  : $($t.JxOutputPath)"
         Write-Host "      ② validate : python `"$ValidateJx`" `"$($t.JxOutputPath)`""
         Write-Host "      ③ TTS 出力 : $($t.TtsOutputDir)\"
+        Write-Host "          [DRYRUN] would clean: $($t.TtsOutputDir)  (*.txt のみ・leaf=$($t.ProblemId) 一致時のみ・他フォルダは触らない)"
         Write-Host "      ④ validate : python `"$ValidateTts`" `"$($t.TtsOutputDir)`" $($t.ProblemId)"
     }
     Write-Host "`n[DRY-RUN] 終了（実生成なし）。" -ForegroundColor Yellow
@@ -186,6 +187,34 @@ function Get-Sentinel {
     }
     if ($Text -match "BATCH_ITEM_FAILED:$esc") { return "FAILED" }
     return "UNKNOWN"
+}
+
+# TTS 出力dir の stale クリーン（限定的・安全）
+#   - その問題の dir 内の *.txt のみ削除（非再帰・他フォルダや他拡張子は触らない）
+#   - dir が無ければ作成のみ
+#   - 誤爆防止：dir の leaf が PROBLEM_ID と一致しない場合は何もしない
+function Clear-TtsOutputDir {
+    param(
+        [Parameter(Mandatory)][string]$Dir,
+        [Parameter(Mandatory)][string]$ExpectedLeaf  # = PROBLEM_ID
+    )
+    $leaf = Split-Path $Dir -Leaf
+    if ($leaf -ne $ExpectedLeaf) {
+        Write-Host "[CLEAN-SKIP] dir leaf '$leaf' != PROBLEM_ID '$ExpectedLeaf'、安全のためクリーンしない" -ForegroundColor Yellow
+        return
+    }
+    if (Test-Path $Dir) {
+        $stale = @(Get-ChildItem -Path $Dir -Filter "*.txt" -File -ErrorAction SilentlyContinue)
+        if ($stale.Count -gt 0) {
+            $stale | Remove-Item -Force
+            Write-Host "[CLEAN] $Dir 内の旧 *.txt $($stale.Count) 件を削除" -ForegroundColor DarkYellow
+        } else {
+            Write-Host "[CLEAN] $Dir に旧 *.txt なし（クリーン不要）"
+        }
+    } else {
+        New-Item -Path $Dir -ItemType Directory -Force | Out-Null
+        Write-Host "[CLEAN] $Dir を新規作成（既存ファイルなし）"
+    }
 }
 
 # === 1 問処理ループ ===
@@ -248,7 +277,8 @@ foreach ($t in $Targets) {
     if ($jxPass) {
         Write-Host "`n--- ③ TTS 生成開始 $(Get-Date -Format 'HH:mm:ss')---" -ForegroundColor Cyan
         $ttsStart = Get-Date
-        if (-not (Test-Path $t.TtsOutputDir)) { New-Item -Path $t.TtsOutputDir -ItemType Directory -Force | Out-Null }
+        # stale クリーン：この問題の TTS dir 内 *.txt のみ削除（dir 無ければ作成）
+        Clear-TtsOutputDir -Dir $t.TtsOutputDir -ExpectedLeaf $t.ProblemId
 
         $ttsTemplate = Get-Content $TtsPromptSrc -Raw -Encoding utf8
         $ttsPrompt = $ttsTemplate `
