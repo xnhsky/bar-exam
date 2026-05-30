@@ -74,3 +74,24 @@
 
 - TX シリーズ v10.0.0 GOLD-SKELETON（稼働中・`night-batch-runner.ps1`）
 - JX シリーズ v3.2 master（手動運用中・自動化は本 BACKLOG の commit2 で着手）
+
+
+---
+
+## 2026-05-30 batch-tx 316-320: tool-format slips and fixes
+
+### Issue
+- 316/317 batch-tx had repeated empty runs from 2 causes:
+  1. tool-call open tag misspelling -> some Edit/Bash/Write calls did not parse (DRILL blocks etc.)
+  2. heredoc breakage: bash heredoc with long JP text + many quotes -> unexpected EOF
+- side effects:
+  - DRILL12 mis-perceived as duplicate (empty runs showed old+new in log); file was 01-12 unique, DRILL12 body was GENESIS leftover.
+  - G13 rework miss on C-2/C-3 section headings -> validate-tx-gold G13 FAIL; reworded per-problem to fix.
+
+### Fix
+1. new-tx.md 4h-bis added: canonical drill-block HTML + 4 rules (data-correct == data-correct-value; data-explanation duplicated in attr and .quiz-answer; data-value fixed; no answer-restate).
+2. bulk replace: avoid heredoc, Write script to file then run.
+3. structural heading per-problem rework done right after generation, verified by G13.
+
+### Result
+- 316 and 317 both validate-tx-gold.py G1-G18 ALL PASS (Errors 0).

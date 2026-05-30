@@ -207,6 +207,30 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
   - 解説 `.quiz-answer` は正解に言及して可（禁止は設問文 `.quiz-question` のみ）
   - `validate-tx-gold.py` G17（正解再問禁止）・G18（前提ブロック必須）が機械検出
 
+##### 4h-bis. 1 drill-block の正典フォーマット（GENESIS 構造シェル・逐語）
+
+各 drill は次の構造を厳守する。`{TAG}` `{○or×}` `{設問}` `{解説}` のみ本問固有で差替え、
+class／属性キー／ネスト順は逐語コピーする。
+
+```html
+<div class="drill-block">
+  <div class="drill-label"><span class="drill-num">DRILL&nbsp;NN</span><span class="drill-tag">{TAG}</span></div>
+  <div class="self-check-quiz" data-arena="1" data-correct-value="{○or×}" data-explanation="{解説}">
+    <div class="quiz-question">Q. {設問（正解再問は禁止・転用可能な法理を問う）}</div>
+    <div class="quiz-buttons"><button class="quiz-btn" type="button" data-correct="{TRUE_IF_○}" data-value="○">○</button><button class="quiz-btn" type="button" data-correct="{TRUE_IF_×}" data-value="×">×</button></div>
+    <div class="quiz-answer" hidden=""><span class="quiz-result"></span>{解説（data-explanation と同一文）}</div>
+  </div>
+</div>
+```
+
+**鉄則（一発で正しく出すための4項）：**
+1. **`data-correct` と `data-correct-value` を必ず一致**させる。正解 `○` → ○ ボタン `data-correct="true"`／
+   × ボタン `data-correct="false"`。正解 `×` → 逆。**両方 true／両方 false は不可**（採点 JS が破綻）。
+2. **`data-explanation` 属性の文と `.quiz-answer` 内の本文は同一文**にする（解説は 2 箇所に同じものを書く）。
+3. `data-value` は ○ ボタン＝`○`、× ボタン＝`×` で固定（差替えない）。
+4. ○:× 比率は概ね半々。各設問は**転用可能な法理**（規範・判定基準・概念・判例の射程）を問い、
+   「本問の正解は肢N」型は書かない（G17）。
+
 #### 4i. footer-spec 差替
 - 1 行目：`<strong>{接頭辞}{NNN}</strong>・{科目}（{出典}）`
 - 2 行目：`正答率 {N}%／難度 {★}`（**配色情報は書かない**）
