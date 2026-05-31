@@ -24,6 +24,7 @@ JX v3.2 軽量検証スクリプト
   J18  PART 5 (back-refs) ≥ 3
   J19  フッターに励まし文言
   J20  スムーズスクロール JS
+  J21  深度フロア（bytes/h4/li/第4部見出し4-1〜4-6/重要度ランクrank-A〜D網羅）※当面WARNING
 
 使い方：
   python scripts/validate-jx.py outputs/jx/刑JX/刑JX001.html
@@ -48,6 +49,20 @@ except ImportError:
     print("ERROR: beautifulsoup4 が必要です。以下を実行してインストールしてください：")
     print("  pip install beautifulsoup4")
     sys.exit(1)
+
+
+# ============================================================
+# J21 深度フロア定数（再較正はここ1箇所を編集するだけ）
+#   ※ floor は validate 側のみに置く。prompt new-jx-headless.md には
+#     数値を一切書かない（モデルが floor に最適化する水増しを防ぐため）。
+#   ※ 値は 刑JX032.bak.html（162KB 手動ゴールド版）の実測由来の仮値。
+#     刑JX032 再生成の実測が出たら再較正し、WARNING→ERROR 格上げを検討（末尾 TODO 参照）。
+# ============================================================
+J21_MIN_BYTES = 120000        # 実測 161,982
+J21_MIN_H4 = 50               # 実測 79
+J21_MIN_LI = 60               # 実測 90
+J21_PART4_HEADINGS = ['4-1', '4-2', '4-3', '4-4', '4-5', '4-6']  # <h3>4-N. で検出（h4 ではない）
+J21_REQUIRED_RANKS = ['rank-A', 'rank-B', 'rank-C', 'rank-D']    # 重要度4段階（rank-E〜H は存在しない）
 
 
 # ============================================================
@@ -346,6 +361,54 @@ def check_J20_smooth_scroll(script_text, style_text, results):
                         'スムーズスクロール JS/CSS が見つかりません'))
 
 
+def check_J21_depth(html, soup, results):
+    """深度フロア（水増し検出）。当面 WARNING（floor は未較正の仮値のため）。
+    計測: bytes / <h4> / <li> / 第4部見出し 4-1〜4-6(h3) / 重要度ランク rank-A〜D 網羅。
+    各メッセージに実測値と floor を併記する（例: "h4=79 (floor 50)"）。
+    """
+    # bytes（UTF-8 実バイト数 = wc -c 相当）
+    nbytes = len(html.encode('utf-8'))
+    if nbytes < J21_MIN_BYTES:
+        results.append(('J21', 'WARN',
+                        f'本文量が薄い: bytes={nbytes} (floor {J21_MIN_BYTES})'))
+
+    # <h4> 数
+    nh4 = len(soup.find_all('h4'))
+    if nh4 < J21_MIN_H4:
+        results.append(('J21', 'WARN',
+                        f'見出し階層が浅い: h4={nh4} (floor {J21_MIN_H4})'))
+
+    # <li> 数
+    nli = len(soup.find_all('li'))
+    if nli < J21_MIN_LI:
+        results.append(('J21', 'WARN',
+                        f'箇条書きが少ない: li={nli} (floor {J21_MIN_LI})'))
+
+    # 第4部見出し 4-1〜4-6（<h3> テキスト先頭一致で検出。h4 ではない）
+    h3_texts = [h.get_text(strip=True) for h in soup.find_all('h3')]
+    missing_h = [p for p in J21_PART4_HEADINGS
+                 if not any(t.startswith(p + '.') for t in h3_texts)]
+    if missing_h:
+        found = len(J21_PART4_HEADINGS) - len(missing_h)
+        results.append(('J21', 'WARN',
+                        f'第4部見出し <h3>4-N. 不足: {", ".join(missing_h)} '
+                        f'(検出 {found}/{len(J21_PART4_HEADINGS)})'))
+
+    # 重要度ランク網羅 rank-A〜D（各 1 回以上出現すること）
+    #   論点が薄いとランク付けが欠落し網羅が崩れる → 水増し検出に資する。
+    missing_r = [r for r in J21_REQUIRED_RANKS if soup.find(class_=r) is None]
+    if missing_r:
+        present = len(J21_REQUIRED_RANKS) - len(missing_r)
+        results.append(('J21', 'WARN',
+                        f'重要度ランク網羅不足: {", ".join(missing_r)} 不在 '
+                        f'(検出 {present}/{len(J21_REQUIRED_RANKS)} 段階)'))
+
+
+# TODO(J21): 刑JX032 再生成の実測値で floor(J21_MIN_BYTES/H4/LI) を再較正後、
+#            WARNING → ERROR への格上げを検討する。
+#            将来強化案: rank-A〜D の網羅を「第4部見出し 4-1〜4-6 の各配下スコープ」で判定。
+
+
 # ============================================================
 # Driver
 # ============================================================
@@ -393,6 +456,7 @@ def validate(html_path, verbose=False):
     check_J18_back_refs(soup, results)
     check_J19_footer_encouragement(soup, results)
     check_J20_smooth_scroll(script_text, style_text, results)
+    check_J21_depth(html, soup, results)
 
     errors = [r for r in results if r[1] == 'ERROR']
     warnings = [r for r in results if r[1] == 'WARN']
@@ -402,7 +466,7 @@ def validate(html_path, verbose=False):
     print(f'{"=" * 60}')
 
     if not results:
-        print(f'\n✅ 全件通過（J1〜J20）')
+        print(f'\n✅ 全件通過（J1〜J21）')
         return 0
 
     if errors:
