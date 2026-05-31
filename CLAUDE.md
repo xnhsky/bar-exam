@@ -375,3 +375,21 @@ Phase 0 で 5×1 / 5×2 / キャンセル を user 確認。
 
 エラー時は自動継続（3 問連続失敗で停止）。
 失敗問の再生成は `/new-tx` で個別実施。
+
+### 外出先ナイトバッチ（Claude Code on the web・2026-05-31 追加）
+
+スマホ / GitHub Web からブランチ `claude/night-batch-pdf-github-aGVYp` に
+PDF をコミットし、web セッションで遠隔運用する経路。ローカルの
+`night-batch-runner.ps1`（Windows / タスクスケジューラ / Drive 前提）は
+リモート（Linux）では動かないため、以下の 3 導線を使う：
+
+1. **取り込み**：外出先用 PDF は専用ドロップゾーン
+   `inputs/{tx|jx}-pdfs/_remote-inbox/` に置く（ローカル staging の
+   `_pending/` とは別物）。`bash scripts/remote-intake.sh`（JX は `--jx`）で
+   §2-3 命名規則に正規化し `inputs/tx-pdfs/{NNN}.pdf` 直下へ展開。
+   batch-tx / runner は直下しか見ないため、この一段が必須。
+2. **生成**：`/batch-tx {最若番}`（TX）または `/new-jx`（JX）。
+3. **回収**：`outputs/**/*.html` は gitignore 除外かつリモートに Drive が
+   無いため、`bash scripts/remote-collect.sh` で生成 HTML を `git add -f` し
+   当ブランチへ push（GitHub から回収）。回収用 HTML コミットは
+   **当ブランチ専用・master へは非マージ**（master は code/spec のみ）。
