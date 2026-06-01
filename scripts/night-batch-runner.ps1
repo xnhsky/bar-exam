@@ -85,10 +85,23 @@ $SubjectPrefix = "刑"
 # 生成は local outputs/tx/{Prefix}TX/ へ。validate PASS 後に Drive と backup へ配信。
 # 旧 DriveFS 直書き ($env:USERPROFILE\マイドライブ\...) は廃止。
 $OutputDir = Join-Path $OutputBase "${SubjectPrefix}TX"
-# Drive 配信先：マイドライブのマウント先が PC により C:/G:/H: 等と異なるため自動検出する。
-# 旧実装は $env:USERPROFILE\マイドライブ 固定＋旧フォルダ名（"1 短 答\☆TX"）で、
-# xnrg2 PC（H:\マイドライブ・"1 TX_短 答"）では全配信が失敗していた（2026-06-01 修正）。
-$DriveRel = "CATALINA＿G共有\■予備試験進行中\1 TX_短 答\001＿刑法TX\改訂版はここ"
+# Drive 配信先：マイドライブのマウント先(C:/G:/H: 等)とフォルダ改名に強いよう、
+# CATALINA＿G共有 を含むマイドライブを自動検出し、科目フォルダ直下をパターン解決する。
+# 配信規律(2026-06-01 ユーザー指示)：HTML は各科目フォルダ「直下」に置く
+# （"改訂版はここ" 等のサブフォルダには入れない）。
+# 旧実装は $env:USERPROFILE\マイドライブ 固定＋旧フォルダ名（"1 短 答\☆TX\…\改訂版はここ"）で、
+# xnrg2 PC（H:\マイドライブ・"1 TX_短 答"・科目直下）では全配信が失敗していた。
+# 科目接頭辞 → Drive 科目フォルダ番号（"{番号}_{科目名}" に前方一致）
+$DriveSubjectPat = switch ($SubjectPrefix) {
+    "刑"   { "001_*" }   # 001_刑法
+    "刑訴" { "002_*" }   # 002_刑事訴訟法
+    "民"   { "003_*" }   # 003_民法
+    "商"   { "004_*" }   # 004_商法
+    "民訴" { "005_*" }   # 005_民事訴訟法
+    "行政" { "006_*" }   # 006_行政法
+    "憲"   { "007_*" }   # 007_憲法
+    default { $null }
+}
 $DriveDir = $null
 foreach ($myDrive in @(
         (Join-Path $env:USERPROFILE "マイドライブ"),
@@ -96,14 +109,19 @@ foreach ($myDrive in @(
         (Join-Path $env:USERPROFILE "Google ドライブ"),
         (Join-Path $env:USERPROFILE "Google Drive"),
         "H:\My Drive", "G:\My Drive")) {
-    if (Test-Path (Join-Path $myDrive "CATALINA＿G共有")) {
-        $DriveDir = Join-Path $myDrive $DriveRel
-        break
-    }
+    $yobi = Join-Path (Join-Path $myDrive "CATALINA＿G共有") "■予備試験進行中"
+    if (-not (Test-Path $yobi)) { continue }
+    $txDir = Get-ChildItem $yobi -Directory -ErrorAction SilentlyContinue |
+             Where-Object Name -like "1 TX*" | Select-Object -First 1
+    if (-not $txDir -or -not $DriveSubjectPat) { continue }
+    $subjDir = Get-ChildItem $txDir.FullName -Directory -ErrorAction SilentlyContinue |
+               Where-Object Name -like $DriveSubjectPat | Select-Object -First 1
+    if ($subjDir) { $DriveDir = $subjDir.FullName; break }
 }
 if (-not $DriveDir) {
-    # 見つからない場合は従来パスを既定にし、配信時に [DELIVER FAIL] を出して継続
-    $DriveDir = Join-Path $env:USERPROFILE "マイドライブ\$DriveRel"
+    # 見つからなければ非存在パスを既定にし、配信時に [DELIVER FAIL] を出して継続
+    # （backup には必ず配信されるので消失はしない）
+    $DriveDir = Join-Path $env:USERPROFILE "マイドライブ\CATALINA＿G共有(未検出)"
 }
 $BackupDir = "C:\bar-exam-backup\current\${SubjectPrefix}TX"
 if (-not (Test-Path $OutputDir)) { New-Item -Path $OutputDir -ItemType Directory -Force | Out-Null }
