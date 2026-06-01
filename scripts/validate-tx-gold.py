@@ -458,6 +458,35 @@ class Validator:
             if phrase in text:
                 self.err("G12", f"KTX301 由来禁止文言が残存: '{phrase}'")
 
+    # G13: 構造シェル（CLAUDE.md §3-3 が逐語コピー必須と定める骨格）は
+    # content leakage 判定から除外する。これらは全問題で baseline と一致して
+    # 当然であり、含めると「骨格の忠実コピー＝正しい挙動」を leakage と誤検出する
+    # （擬陽性）。除外対象：sec-nav 航行ラベル／sec-icon／marker-legend 凡例／
+    # part-title／answer-instruction 固定文／reveal-answer-btn／arena 系 UI／
+    # arena-premise-note 定型文／footer-spec（feature-tag を含む）。
+    _G13_SHELL_CLASSES = (
+        "sec-nav", "sec-icon", "marker-legend", "part-title",
+        "answer-instruction", "reveal-answer-btn",
+        "arena-intro", "arena-premise-note",
+        "arena-counter", "arena-scorecard", "arena-reset",
+        "footer-spec",
+    )
+    # 本文一致がこの件数以上で content leakage と判定。
+    # 構造シェル除外後、別問題（クリーン）は最大 ~9 件、本物のリーク（baseline
+    # 問題の本文流用）は 200+ 件と大きく乖離するため、余裕を見て 20 に設定する。
+    # （旧実装は shell 込み・閾値 5 で擬陽性多発・本物との識別不能だった）
+    _G13_LEAK_THRESHOLD = 20
+
+    @staticmethod
+    def _g13_content_tokens(html_str):
+        """構造シェルを DOM から除いた body 本文のトークン列を返す（G13 用）。"""
+        soup = BeautifulSoup(html_str, "html.parser")
+        body = soup.find("body") or soup
+        for cls in Validator._G13_SHELL_CLASSES:
+            for el in body.select("." + cls):
+                el.decompose()
+        return re.findall(r"\S+", body.get_text())
+
     def g13_no_genesis_baseline_copy(self):
         # GENESIS 自身（canonical/）または 311 の派生検証時はスキップ
         if self.html_path.parent.name == "canonical":
@@ -467,18 +496,14 @@ class Validator:
         if not BASELINE_GENESIS.exists():
             self.warn("G13", f"baseline {BASELINE_GENESIS.name} が見つからずスキップ")
             return
-        baseline_text = BeautifulSoup(
-            BASELINE_GENESIS.read_text(encoding="utf-8"), "html.parser"
-        ).get_text()
-        # body 本文のみ 5-gram 一致を簡易検出
-        cur_text = self._body_text()
-        # 句読点で粗く split
-        baseline_tokens = re.findall(r"\S+", baseline_text)
-        # 5-gram set（負担軽減のため間引き）
+        # 構造シェルを除いた本文のみで 5-gram 一致を検出（擬陽性回避）
+        baseline_tokens = self._g13_content_tokens(
+            BASELINE_GENESIS.read_text(encoding="utf-8"))
+        # 5-gram set（負担軽減のため 3 トークン間引き）
         baseline_5grams = set()
         for k in range(0, len(baseline_tokens) - 4, 3):
             baseline_5grams.add(" ".join(baseline_tokens[k:k + 5]))
-        cur_tokens = re.findall(r"\S+", cur_text)
+        cur_tokens = self._g13_content_tokens(self.html)
         hits = 0
         sample = []
         for k in range(len(cur_tokens) - 4):
@@ -487,11 +512,10 @@ class Validator:
                 hits += 1
                 if len(sample) < 3:
                     sample.append(g)
-                if hits >= 10:
-                    break
-        if hits >= 5:
+        if hits >= self._G13_LEAK_THRESHOLD:
             self.err("G13",
-                     f"baseline GENESIS と 5-gram が {hits} 件以上一致（content leakage 疑い）: "
+                     f"baseline GENESIS と本文 5-gram が {hits} 件一致"
+                     f"（閾値 {self._G13_LEAK_THRESHOLD}・content leakage 疑い）: "
                      f"例 {sample}")
 
     # --- G14〜G15：命名規則・version-tag ---

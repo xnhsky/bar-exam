@@ -17,6 +17,8 @@
 param(
     [int]$MaxProblems = 5,             # 1 起動あたり最大処理数
     [int]$MaxConsecutiveFailures = 3,  # 連続失敗で abort
+    [int]$FromNumber = 0,              # 処理対象の最小問題番号 (0 = 下限なし)
+    [int]$ToNumber = 0,                # 処理対象の最大問題番号 (0 = 上限なし)
     [switch]$DryRun,                   # 実 claude -p 呼ばずパス解決確認のみ
     [ValidateSet('v10.0.0','v9.2.0','v9.1.0')]
     [string]$SpecVersion = 'v10.0.0'   # 既定 v10.0.0 GOLD-SKELETON（GENESIS baseline）
@@ -73,6 +75,7 @@ Start-Transcript -Path $RunLog -Append
 Write-Host "=== night-batch-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun"
 Write-Host "SpecVersion: $SpecVersion / SpecFile: $SpecFile"
+Write-Host "NumberRange: From=$FromNumber To=$ToNumber (0 = 無制限)"
 
 # === 科目接頭辞マップ ===
 # PDF は inputs/tx-pdfs/{NNN}.pdf 形式だが、生成出力は {科目接頭辞}TX{NNN}.html。
@@ -82,7 +85,26 @@ $SubjectPrefix = "刑"
 # 生成は local outputs/tx/{Prefix}TX/ へ。validate PASS 後に Drive と backup へ配信。
 # 旧 DriveFS 直書き ($env:USERPROFILE\マイドライブ\...) は廃止。
 $OutputDir = Join-Path $OutputBase "${SubjectPrefix}TX"
-$DriveDir  = Join-Path $env:USERPROFILE "マイドライブ\CATALINA＿G共有\■予備試験進行中\1 短 答\☆TX\001＿刑法TX\改訂版はここ"
+# Drive 配信先：マイドライブのマウント先が PC により C:/G:/H: 等と異なるため自動検出する。
+# 旧実装は $env:USERPROFILE\マイドライブ 固定＋旧フォルダ名（"1 短 答\☆TX"）で、
+# xnrg2 PC（H:\マイドライブ・"1 TX_短 答"）では全配信が失敗していた（2026-06-01 修正）。
+$DriveRel = "CATALINA＿G共有\■予備試験進行中\1 TX_短 答\001＿刑法TX\改訂版はここ"
+$DriveDir = $null
+foreach ($myDrive in @(
+        (Join-Path $env:USERPROFILE "マイドライブ"),
+        "H:\マイドライブ", "G:\マイドライブ",
+        (Join-Path $env:USERPROFILE "Google ドライブ"),
+        (Join-Path $env:USERPROFILE "Google Drive"),
+        "H:\My Drive", "G:\My Drive")) {
+    if (Test-Path (Join-Path $myDrive "CATALINA＿G共有")) {
+        $DriveDir = Join-Path $myDrive $DriveRel
+        break
+    }
+}
+if (-not $DriveDir) {
+    # 見つからない場合は従来パスを既定にし、配信時に [DELIVER FAIL] を出して継続
+    $DriveDir = Join-Path $env:USERPROFILE "マイドライブ\$DriveRel"
+}
 $BackupDir = "C:\bar-exam-backup\current\${SubjectPrefix}TX"
 if (-not (Test-Path $OutputDir)) { New-Item -Path $OutputDir -ItemType Directory -Force | Out-Null }
 if (-not (Test-Path $BackupDir)) { New-Item -Path $BackupDir -ItemType Directory -Force | Out-Null }
@@ -91,9 +113,18 @@ if (-not (Test-Path $BackupDir)) { New-Item -Path $BackupDir -ItemType Directory
 $AllPdfs = Get-ChildItem -Path $PdfDir -Filter "*.pdf" | Sort-Object Name
 $Pending = @()
 foreach ($pdf in $AllPdfs) {
-    $num = [System.IO.Path]::GetFileNameWithoutExtension($pdf.Name)
+    $rawNum = [System.IO.Path]::GetFileNameWithoutExtension($pdf.Name)
+    $isNumeric = $rawNum -match '^\d+$'
+    # レンジ絞り込み（最若番優先の既定動作に対し、特定番号帯だけを対象にする catch-up 用）。
+    # FromNumber / ToNumber が 0 のときは無制限（＝従来動作を完全保持）。
+    if ($FromNumber -gt 0 -or $ToNumber -gt 0) {
+        if (-not $isNumeric) { continue }                                   # 番号なし PDF はレンジ指定時は対象外
+        $numInt = [int]$rawNum
+        if ($FromNumber -gt 0 -and $numInt -lt $FromNumber) { continue }
+        if ($ToNumber  -gt 0 -and $numInt -gt $ToNumber)   { continue }
+    }
     # CLAUDE.md §2-3: 3 桁未満は前ゼロで 0 埋め (45 → 045)。4 桁以上は ToString('000') が保持。
-    if ($num -match '^\d+$') { $num = ([int]$num).ToString('000') }
+    $num = if ($isNumeric) { ([int]$rawNum).ToString('000') } else { $rawNum }
     $expectedHtml = Join-Path $OutputDir "${SubjectPrefix}TX${num}.html"
     if (-not (Test-Path $expectedHtml)) {
         $Pending += [PSCustomObject]@{
@@ -154,6 +185,22 @@ foreach ($target in $Targets) {
         -replace '\{SPEC_FILE\}',      $SpecFile `
         -replace '\{SPEC_VERSION\}',   $SpecVersion `
         -replace '\{SPEC_VERSION_TAG\}', $SpecVersionTag
+
+    # === 実行命令の前置（最重要）===
+    # 生プロンプトは冒頭が説明文（"# new-tx-headless-v10.md ..."）のため、claude -p が
+    # 仕様書（参照資料）と解釈して「依頼内容が分かりません」と挨拶で終了する事故が発生。
+    # 先頭に強い実行命令を前置し、参照資料ではなく実行指示であることを明示する。
+    $execDirective = @"
+【最優先・実行指示 / headless】これは参照資料ではなく実行命令である。あなたは今すぐ
+TX 問題 $($target.ProblemId) を生成するタスクを実行せよ。挨拶・確認・「依頼内容を
+教えてください」「内容が表示されているだけ」等の応答は禁止。下記手順書（new-tx-headless-v10）に
+従い、対象 PDF を読解して直ちに着手し、最後に必ず Section 9/10/11 の
+sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出力=$($target.OutputPath)
+
+━━━━━━━━━━━━━━━━ 以下、手順書本体 ━━━━━━━━━━━━━━━━
+
+"@
+    $prompt = $execDirective + $prompt
 
     # プロンプトを一時ファイルに書き出し（debug 用）
     $promptOut = Join-Path $LogsDir "night-prompt-$($target.ProblemId).txt"
