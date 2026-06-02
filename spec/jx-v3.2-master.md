@@ -2,6 +2,12 @@
 
 司法試験・予備試験対策の事例問題型 HTML 教材（**刑JX／刑訴JX／民JX／商JX／民訴JX／行JX／憲JX**）を、単一の自己完結型 HTML として生成・再生成するための仕様書。
 
+> **ゴールド参照実装：`canonical/ATHENA.html`**（TX の `GENESIS` に相当する JX の gold 基準）。
+> 配色 V3 自由選定（第5項）＋ TX 完全一致フォント（第6項）＋ `.lecturer-advice`（第13-2-bis項）を
+> 実装した刑JX001 ベースの参照例。**構造・CSS・コンポーネント・配置の視覚参照**に使う。
+> ただし content independence（第2項末・他 JX 流用禁止）は維持し、**ATHENA から本文・解説・
+> 判例引用の文章を流用してはならない**（KTX301 が TX の構造参考であるのと同じ位置づけ）。
+
 > **v3.1 → v3.2 の主要変更（KTX v6.19 デザイン要素統合）**
 > 1. **タイポグラフィ拡張**：6 役割 → **11 役割**へ拡張。新たに `--font-keyword`（Kaisei Decol）／`--font-judgment`（Zen Old Mincho 700）／`--font-note`（Zen Kaku Gothic Antique）／`--font-professor`（Kosugi Maru）／`--font-mono`（Source Code Pro）を追加。既存 6 役割の用途は完全保持。
 > 2. **`.key-box` の豪華装飾化**：KTX流『🔑 KEY』ラベル付き Kaisei Decol ボックスへ。`padding:56px 44px 38px 72px`／radial 装飾／specificity 防御セレクタ三者結合。
@@ -14,8 +20,9 @@
 > 9. **ハイライト・タンの潰れ防止**：`.tan`／`.hl-*`／`.exam-mark` 系の `letter-spacing` を `.06em–.09em` に強化。マーカー透明度 `.42`。
 > 10. **`.statute-emphasis`／`.case-emphasis` の `border-bottom` 廃止**：太字＋字間で表現。
 
-> **v2.9〜v3.1 から継続している原則**（再掲）
-> ・科目アンカー二色制（`--accent` `--mid` のみ固定／`--light` `--base` `--soft` は AI 自由設計）
+> **v2.9〜v3.1 から継続している原則**（再掲・※配色のみ v3.2 で改訂）
+> ・〜v3.1：科目アンカー二色制（科目ごと `--accent` `--mid` 固定）→ **v3.2 で廃止**。
+>   配色 V3（11 名前付きパレットを問題の雰囲気で選定・5 役割割当て）に統一（第5項）
 > ・section カード化（KJX2 流標準）
 > ・三層ペルソナ／A〜H 構造／第5部完全プロファイル
 > ・再生成モードはユーザー指示に応じた柔軟運用
@@ -44,10 +51,12 @@
 - **本文インデント**：本文段落のみ 1.4em インデントで「見出しの文字開始位置」と「本文の文字開始位置」の縦ラインを整合（第23項）
 
 ### 第三層：機能的色彩設計＋アートディレクター
-色彩を「意味の符号」として運用しつつ、4 色 palette を**対比的・調和的にアートディレクション**する：
+色彩を「意味の符号」として運用しつつ、5 色 palette を**対比的・調和的にアートディレクション**する：
 
-- 科目別 `--accent` `--mid` は意味アンカーとして固定遵守（第5項）
-- `--light` `--base` `--soft` は AI が創造的設計（base × accent の対比または調和）
+- **全パレット（全 15 案＋派生）から問題の雰囲気で AI が自由に配色を選定**し、5 色相当を
+  5 役割（ベース70%／メイン25%／アクセント5%／サブ×2）へ割り当てる（第5項・11 種に限定しない）
+- 11 パレットは全 pastel：背景は base／soft／light の薄色、文字・見出しは dark text で
+  contrast 確保（pale bg + dark text）
 - 純白 `#FFFFFF` の `body` 背景禁止／純黒 `#000000` の文字色禁止
 - 本文（`--text` × `--paper`）で WCAG AA 4.5:1 以上を確保
 - 学習指標は色＋記号／文字／配置の三重符号化
@@ -63,17 +72,18 @@
 4. **作業先**：`/home/claude/{ファイルID}.html` で執筆。
 5. **コードブロック禁止**：```` ```html ```` で囲んでの提示禁止。実ファイル書き込みのみ。
 6. **ID 命名**：科目略称＋シリーズ＋連番（例：`刑JX1`、`憲JX2`）。
-7. **科目自動判定**：ID 冒頭の科目略称で第5項アンカーパレットを適用。
+7. **科目自動判定**：ID 冒頭の科目略称で出力先・接頭辞を決定（配色は科目に紐付かず、
+   配色は第5項に従い全パレットから問題の雰囲気で AI 自由選定する）。
 
 ---
 
 ## 第2項　再生成モード
 
 ### 2-1. 通常再生成
-既存 HTML が v2.9 以降のフォーマット（`--accent` `--mid` `--light` `--base` `--soft` `--paper` `--text` 体系）の場合、`--accent` と `--mid` を保持し、その他は新規設計してよい。フォント変数（`--font-*`）は第6項 v3.2 の **11 役割定義**を遵守する。v3.1 以前のファイルを再生成する場合、6 → 11 役割への拡張を必ず行う。
+既存 HTML が v2.9 以降のフォーマット（`--accent` `--mid` `--light` `--base` `--soft` `--paper` `--text` 体系）の場合、CSS 変数体系は流用してよいが、**配色は第5項に従い全パレットから問題の雰囲気で AI 自由選定し直す**（旧・科目アンカー固定色は引き継がない）。フォント変数（`--font-*`）は第6項 v3.2 の **11 役割定義（＋ `--font-impact`）** を遵守する。v3.1 以前のファイルを再生成する場合、6 → 11 役割への拡張を必ず行う。
 
 ### 2-2. 完全リフレッシュ（ユーザー明示指示時）
-ユーザーが「AI にお任せ」「このファイルのように」「リファレンス〇〇 流儀で」等を明示した場合、配色・フォント・レイアウトを全面再設計する。**`--accent` と `--mid` は第5項の科目アンカーから取得**する（自由設計の対象外）。**フォントは第6項の 11 役割を必ず保持**する（用途毎の書体差し替えは可）。
+ユーザーが「AI にお任せ」「このファイルのように」「リファレンス〇〇 流儀で」等を明示した場合、配色・フォント・レイアウトを全面再設計する。**配色は第5項に従い全パレットから問題の雰囲気で AI が自由に選定**し、5 役割に割り当てる（11 種に限定せず・科目固定色は使わない）。**フォントは第6項の 11 役割（＋ `--font-impact`）を必ず保持**する（用途毎の書体差し替えは可）。
 
 ### 2-3. 共通禁則
 配色パターン名（"ホワイト・ノーブル"等の固有名）は本文・ヘッダー・カバー・凡例のいずれにも記載しない。
@@ -131,35 +141,97 @@
 
 ---
 
-## 第5項　配色：科目アンカー＋AI 設計
+## 第5項　配色：全パレットから雰囲気で AI 自由選定（5 役割・pale bg + dark text）
 
-### 5-1. 科目アンカーパレット（固定・改変禁止）
+> **v3.2 改訂（2026-06-02・TX V3 統一 → 2026-06-02 JX 自由選定化）**：
+> 従来の「科目アンカー二色制」（科目ごとに `--accent`／`--mid` を固定）は**廃止**。
+> 配色 V3 の 5 役割（ベース70%／メイン25％／アクセント5％／サブ×2）と
+> 「pale bg + dark text」設計は TX と共通だが、**パレット選定は 11 種に限定しない**。
+> TX は正答率帯で P1/P2/P3 を絞り 11 名前付きから 1 つ選ぶが、**JX には正答率がないため、
+> 出典 `docs/palette-v3_2.pdf` の全パレット（全 15 案・`docs/palette-v3-images/` 参照）と
+> その派生色の中から、問題の雰囲気（事案テーマ・難度・論点の重さ・科目イメージ）に
+> 合わせて AI が自由に配色を選定**する（ユーザー指示・2026-06-02）。
+> - 必ずしも 11 名前付きパレットの 1 つに収める必要はない。**全 15 案から選ぶ／複数パレットの
+>   chip を組み合わせる／雰囲気に合う中間色を派生させる**ことを許容する。
+> - 下記 5-1 の 11 名前付きカタログは**代表例・出発点**（hex 確定済で即使用できる参照）。
+> - 科目ごとの固定色は無く、同一科目でも問題ごとに別配色になる。
 
-| 科目 | `--accent` | `--mid` | キャラクター |
-|---|---|---|---|
-| 刑JX | `#2d7282` 深ティール | `#00adc1` 鮮ティール | 静謐で峻厳 |
-| 刑訴JX | `#585257` スレート | `#94b5b2` スモーキー | 沈思・分析的 |
-| 民JX | `#582341` 深プラム | `#a53d59` ローズ | 重厚で人間味 |
-| 商JX | `#B5611A` 深オレンジ※ | `#ED9455` 鮮オレンジ | 活気と経済性 |
-| 民訴JX | `#6e618e` パープル | `#bda4a1` ローズブラウン | 上品で手続美 |
-| 行JX | `#425B80` ネイビー | `#78B9C6` スカイ | 清新・公共性（+ `--accent-2:#6FC885`） |
-| 憲JX | `#14518e` ロイヤル | `#c59650` ゴールド | 紺×金の古典権威 |
+### 5-1. パレットカタログ（11 名前付き＝代表例・各 5 色）
 
-※商JX の `--accent` は palette 派生暗色（視認性確保のため）。
-※行JX のみ `--accent-2: #6FC885`（鮮グリーン）を `.success-box` 系・「肯定／許容」系の限定強調用に追加定義する。
+下表は全 15 案のうち hex 確定済の 11 名前付き代表例。**これに限定せず**、雰囲気が合えば
+全 15 案（`docs/palette-v3-images/`）や複数パレットの組合せ・派生色から自由に選んでよい。
+選んだ 5 色（相当）を 5-2 の 5 役割へ割り当てる。
 
-### 5-2. AI が創造設計する変数
+| 系統 | パレット | KEYWORDS（雰囲気） | hex1 | hex2 | hex3 | hex4 | hex5 |
+|:-:|:--|:--|:--|:--|:--|:--|:--|
+| ピンク | Sweet Berry | 甘美・可憐・みずみずしさ・優しさ | `#F2D4D7` | `#E8B4BC` | `#D4E2E9` | `#E8E4E4` | `#F9E7E7` |
+| ピンク | Fresh Citrus | フレッシュ・元気・明るい・若々しい | `#F4E8B8` | `#E8F4D9` | `#F2D6C9` | `#D9E8E8` | `#F2EEE2` |
+| ピンク | Rose Mist | 優しさ・女性らしさ・上品な可愛らしさ | `#FFE8E8` | `#F5D4D4` | `#F4ACB7` | `#E8D6D7` | `#FFE5E5` |
+| ピンク | Antique Pearl | 気品・優美・輝き・しっとり・エレガント | `#D4B5C4` | `#E8E2EC` | `#D9E5E5` | `#E8E4DC` | `#F2E6E6` |
+| ピンク | Maison Blanche | 洗練・エレガント・都会的・優美さ | `#E8D4DC` | `#D4E2E2` | `#E2E2E2` | `#F2E6E6` | `#F5F2F2` |
+| 緑青 | Crystal Blue | 透明感・清らか・みずみずしい・繊細な輝き | `#D4E6EB` | `#F0E8ED` | `#FFFCD6` | `#DCE8E8` | `#F5F0F2` |
+| 緑青 | Dusty Sage | 落ち着き・上質・ナチュラル・シンプル・洗練 | `#BCCFC5` | `#E2D5D5` | `#D5E2E2` | `#E8E0D4` | `#F2F2EC` |
+| 緑青 | Mint Tea | 爽やか・癒し・みずみずしさ・清涼感 | `#AAD1B0` | `#F0F4D8` | `#F2F2EC` | `#C3DBC5` | `#E2EFE4` |
+| 緑青 | Fresh Mint | 爽やか・癒し・ナチュラル・優しい清涼感 | `#D4E9E2` | `#F9E4E4` | `#B8DCD4` | `#F2D8D6` | `#E8F4F1` |
+| 紫 | Twilight Violet | 優美・エレガント・しっとり・落ち着き | `#E2D4E2` | `#F7EBD6` | `#E8D4D4` | `#D4E2E2` | `#F8F2F2` |
+| 紫 | Sunset Harmony | ロマンティック・優美・柔らか | `#F2D6C9` | `#E8B5B5` | `#D4C6E2` | `#F7E8D6` | `#F2E6E6` |
 
-| 変数 | 役割 | 設計指針 |
-|---|---|---|
-| `--light` | `.key-box` 背景補助／`.back-refs` 背景 | accent 系の極淡または light 寄り |
-| `--base` | `body` 全体の地色 | accent との**対比または調和**で個性を演出 |
-| `--soft` | 表ストライプ／柔らかい背景帯 | accent の極淡派生 |
-| `--paper` | カード内部地色（小面積限定） | 通常 `#FFFFFF` または生成紙系 |
-| `--text` | 本文文字色 | 純黒禁止。accent と整合する濃ダークトーン |
-| `--bg-dark` | ヘッダー暗色／重要結論ボックス | accent の暗色派生（KTX 流オプション） |
+### 5-2. 5 役割割当て（TX と同一）
 
-### 5-3. 12 色固定指標（全科目共通・不変）
+選定パレットの 5 色を以下の役割に対応させる。hex 順は参考順序であり、役割割当ては
+問題ごとに AI 判断（最 pale をベース、最 chromatic をメイン 等）。
+
+| 役割 | 比率 | CSS 変数 | 選定基準 |
+|:--|:-:|:--|:--|
+| ベース | 約70% | `--base` | 最も pale で大面積背景に展開できる色 |
+| メイン | 約25% | `--accent` | palette タイトルが描かれる最 chromatic な色（card / 見出し / ボタンの主色） |
+| アクセント | 約5% | `--mid` | メインと色相が離れた contrast 色（**全パレットの chip 借用・複数パレット越境・雰囲気に合う派生色 OK**）|
+| サブ1 | 残 | `--soft` | 表ストライプ・card 枠・border に使うニュートラル色 |
+| サブ2 | 残 | `--light` | `.key-box`／`.back-refs` 背景・補助 surface・薄塗り用 |
+| 紙地 | — | `--paper` | カード内部地色（小面積限定）。通常 `#FFFFFF` または生成紙系 |
+| 文字色 | — | `--text`／`--bg-dark` | 白・黒・黒寄りグレー（**text 用は L<40 dark 可**）|
+
+**派生色・コントラスト規律（pale bg + dark text）**：
+パステル系を主体に選ぶと、`--accent`（メイン）をそのまま白文字背景に使うと
+contrast 不足になりやすい。**色の選定は自由だが、以下の可読性ガードレールは守る**：
+
+- **bg 系**（背景・surface・薄塗り）は **pale〜mid-tone** を基本とし、大面積に真の dark を敷かない
+- **text 系派生**（`--text` / `--bg-dark` / 見出し / `.judgment-text` / `--tan-*-deep` 等）は
+  L<40 dark 可（text なので濃い方が読みやすい）
+- **濃色を背景に使う箇所（header／重要結論ボックス等）の上の文字は light variant を充てる**
+- **濃色背景セル内のリンクも light に**：`th`／header／`--bg-dark` ボックス内の `a`・`a.xref` は
+  `color:#fff` で上書きする（`a.xref` の既定色は `--accent`＝濃色のため、濃 `th` 背景と同化する。
+  `th a, th a.xref{color:#fff}` を必ず定義）
+- 本文（`--text` × `--paper`）で **WCAG AA 4.5:1 以上**を確保（5-6 と共通）
+- 原則は「pale bg + dark text」。メイン色は header／見出しの text 色・border 色として活かす
+- **palette 外 hex の使用は JX では許容**（雰囲気に合えば全 15 案の chip・複数パレット越境・
+  中間派生色を自由に使ってよい。ただし上記コントラストと 5-6 の 5 系統制限・調和を守る）
+
+### 5-3. 配色の AI 自由選定の判断指標（正答率に依らない・全パレット対象）
+
+全 15 案（＋派生色）から問題の雰囲気に合わせて自由に選ぶ。下記は方向づけの目安であり、
+**11 名前付きは代表例**。複数パレットの組合せや中間色の派生も可：
+
+1. **テーマの重さ／難度**：道徳論点・重罪・難解・深刻 → 落ち着いた／くすんだ／紫・スレート系
+   （例：Antique Pearl / Dusty Sage / Twilight Violet / Maison Blanche）／軽快・基礎・日常 →
+   明るいピンク・ミント系（例：Sweet Berry / Fresh Citrus / Rose Mist / Mint Tea / Fresh Mint）
+2. **科目イメージ（参考・固定ではない）**：財産・人間味・家族 → ピンク系／手続・公共・行政 →
+   ブルー・セージ系（例：Crystal Blue / Dusty Sage）／重厚な権威・統治 → 紫・パール系／経済・活気 → 黄橙系
+3. **論点の対立・意外性**：対立が激しい・罠が多い → アクセント反対色を強めに／素直・一本道 → 同系統サブで統一
+4. 必ずしも上記の名前付き例に収めず、**雰囲気が最もしっくり来る配色を AI が自由に組む**。
+   選定理由（雰囲気の意図・採用色の方向性）は出力冒頭に 1〜2 文で記述する。
+
+### 5-4. semantic exception（TX と同一）
+
+11 パレットは全 pastel のため、普遍認知色のみ palette 越境を許容する：
+
+- ✓ 緑（肯定・許容・`.success-box`）：`#438B48` / `#7BA980` を全パレットで借用
+- 🏆 金（最重要強調）：`#ffd54f` / `#ffaa00` を inline hex で保持
+
+> **行JX 専用 `--accent-2:#6FC885` の固定は廃止**：科目アンカー廃止に伴い、肯定／許容の
+> 限定強調は上記 semantic 緑（`#438B48` / `#7BA980`）を全科目共通で使用する。
+
+### 5-5. 12 色固定指標（全科目共通・不変）
 
 ```css
 --hl-super:#ffd54f; --hl-high:#aed581; --hl-std:#90caf9;
@@ -167,7 +239,7 @@
 --rank-A:#c62828;   --rank-B:#e65100;   --rank-C:#1565c0; --rank-D:#333333;
 ```
 
-### 5-4. 色彩運用原則
+### 5-6. 色彩運用原則
 
 - **5 系統制限**：1 ページの意味色系統は最大 5。
 - **大面積禁止**：純白 `#FFFFFF` を `body` 背景に、純黒 `#000000` を文字色に使用しない。
@@ -189,7 +261,7 @@
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&family=Shippori+Mincho+B1:wght@400;500;700;800&family=Shippori+Antique&family=Zen+Old+Mincho:wght@500;700;800&family=Zen+Maru+Gothic:wght@400;500;700;900&family=Zen+Kaku+Gothic+Antique:wght@300;400;500;700;900&family=Zen+Antique&family=Kosugi+Maru&family=Kaisei+Decol:wght@400;500;700&family=M+PLUS+Rounded+1c:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Source+Code+Pro:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700;800&family=Shippori+Antique&family=Zen+Old+Mincho:wght@400;500;700;900&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Kaisei+Decol:wght@400;500;700&family=Kosugi+Maru&family=Source+Code+Pro:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@500;700;800&family=M+PLUS+1p:wght@500;700;800;900&display=swap" rel="stylesheet">
 ```
 
 ### 6-3. 11 役割と CSS 変数定義（必須・改変禁止）
@@ -233,8 +305,17 @@
 
   /* ⑪ 等幅・ラベル・ID 表示（Source Code Pro） */
   --font-mono:    "Source Code Pro","Consolas","Menlo",monospace;
+
+  /* ⑫ インパクト・大型数字／強調見出し（M PLUS 1p）：TX と共通定義。
+        JX では任意使用（用途がなければ未使用でよいが、TX と font 設定を
+        揃えるため定義は保持する） */
+  --font-impact:  "M PLUS 1p","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
 }
 ```
+
+> **TX との font 設定統一（2026-06-02）**：Google Fonts ロード行・`--font-*` 変数は
+> TX `canonical/GENESIS.html` と完全一致させる。`--font-impact`（M PLUS 1p）は TX 由来の
+> 12 番目の役割で、JX では任意使用だが定義は保持する（設定の byte-level 統一のため）。
 
 ### 6-4. 役割別の用途マトリクス
 
@@ -292,8 +373,8 @@ h5{ font-family:var(--font-soft);    font-weight:700; letter-spacing:.03em; }
 - 11 役割の用途を入れ替えての使用（例：模範答案を Zen 丸ゴシックで組む／判旨を游明朝で組む）。
 - `:root` 外での `font-family` 直接指定（必ず `var(--font-*)` 経由）。
   - ただし SVG 内の `<text>` は例外として直接書体名を記述してよい（変数が継承されないため）。SVG 内でも本仕様の役割（見出し的なら明朝、ナビ的なら丸ゴシ）に整合させる。
-- 11 役割を無視した独自の 12 番目フォントの追加。
-- ロード書体（Google Fonts）を上記指定セット以外に拡張すること（パフォーマンス／一貫性のため）。
+- 11 役割（＋ TX 由来の `--font-impact`）を無視した独自の追加フォントの新設。
+- ロード書体（Google Fonts）を TX `canonical/GENESIS.html` の指定セット以外に拡張すること（パフォーマンス／TX との一貫性のため）。
 
 ---
 
@@ -718,12 +799,83 @@ a.xref:hover{ background:var(--light); color:var(--accent) }
 }
 ```
 
+### 13-2-bis. 講師のアドバイス（講義逐語ベース・教授ボイス／必須コンポーネント）
+
+講義の逐語録（`*_文字起こし.txt` 等）が入力にある場合、その要点を**論点ごとに整理**して
+`.lecturer-advice` ボックスに収め、**該当する論点・部の冒頭に配置**する（学習効果が高い重要要素）。
+本文は教授ボイス（`--font-professor`／Kosugi Maru）、ラベルは `--font-mono`。
+バッジ・背景は「目立つ」設計（accent→mid の鮮やかバッジ＋薄色パネル＋太い左罫）。
+
+```css
+.lecturer-advice{
+  position:relative;
+  margin:30px 0 26px;
+  padding:28px 26px 18px 28px;
+  border-radius:10px;
+  /* 薄色パネル：選定パレットの淡色〜極淡色で構成（下例は紫系。雰囲気に合わせAI調整） */
+  background:linear-gradient(135deg, {palette淡色} 0%, {palette極淡色} 58%, var(--paper) 100%);
+  border:1px solid {accentのrgba .40前後};
+  border-left:7px solid var(--accent);
+  font-family:var(--font-professor);
+  font-weight:500; line-height:1.95; letter-spacing:.02em;
+  color:var(--text);
+  box-shadow:0 4px 16px {accentのrgba .20}, inset 0 0 0 1px rgba(255,255,255,.55);
+}
+.lecturer-advice::before{
+  content:'🎓 講師のアドバイス';
+  position:absolute; top:-15px; left:20px;
+  font-family:var(--font-mono);
+  font-size:.84rem; font-weight:700; letter-spacing:.13em;
+  color:#fff; padding:6px 18px 5px; border-radius:5px;
+  background:linear-gradient(135deg, var(--accent) 0%, var(--mid) 100%);
+  box-shadow:0 3px 9px {accentのrgba .42};
+  white-space:nowrap;
+}
+.lecturer-advice .la-lead{                 /* 小見出し（その箱の主題） */
+  display:block; font-family:var(--font-soft); font-weight:700;
+  color:var(--accent); font-size:1.04em; letter-spacing:.03em; margin:.2em 0 .6em;
+}
+.lecturer-advice p{ margin:.55em 0; }
+.lecturer-advice ul{ margin:.6em 0; padding-left:1.45em; }
+.lecturer-advice li{ margin:.34em 0; }
+.lecturer-advice .la-key{                  /* 核心語（キーワード強調） */
+  font-family:var(--font-keyword); font-weight:700; color:var(--accent); letter-spacing:.02em;
+}
+.lecturer-advice .la-quote{                /* キーフレーズの軽い網掛け */
+  font-family:var(--font-quote); color:var(--bg-dark); font-style:normal;
+  background:{accentのrgba .07}; padding:1px 6px; border-radius:3px;
+}
+```
+
+**インデント防御**：`section > .lecturer-advice` / `.card > .lecturer-advice` を第23項の
+`margin-left:0` 防御リストに加える。**印刷**：`page-break-inside:avoid` 群に含める。
+**レスポンシブ**：`@media(max-width:768px)` で `padding:20px 18px 14px 18px`。
+
+**HTML テンプレート**（中身のみ本問固有で執筆）：
+
+```html
+<div class="lecturer-advice">
+  <span class="la-lead">{その箱の主題（例：本問最大のポイント）}</span>
+  <p>{講義要点を整理した解説。<span class="la-key">{核心語}</span> や
+     <span class="la-quote">{キーフレーズ}</span> を適宜強調}</p>
+</div>
+```
+
+**配置規律（丁寧に・該当箇所へ）**：
+- 逐語録を**そのまま貼らない**。論点ごとに要点を抽出・再構成して配置する。
+- 総論（問題処理パターン・検討順序等）は第2部冒頭、各論点固有の助言は当該論点（`<h3>`）の直後。
+- 1 論点に複数主題があれば `.la-lead` で区切るか箱を分ける。誇張・新情報の創作はしない（逐語に忠実）。
+- 逐語録が無い問題では本コンポーネントは省略可（必須は「逐語録がある場合」）。
+
 ### 13-3. テーブル
 
 ```css
 table{ width:100%; border-collapse:collapse; margin:18px 0; font-size:.96em; page-break-inside:avoid; }
 th,td{ border:1px solid {AI設計のmid派生色}; padding:10px 12px; text-align:left; vertical-align:top; }
 th{ background:var(--accent); color:#fff; font-family:var(--font-soft); font-weight:700; letter-spacing:.04em; }
+/* 濃い --accent 背景の th 内リンクは light に（a.xref 既定色=--accent と同化するため・必須） */
+th a, th a.xref{ color:#fff; text-decoration-color:rgba(255,255,255,.6); }
+th a.xref:hover{ background:rgba(255,255,255,.18); color:#fff; }
 tr:nth-child(even) td{ background:var(--soft) }
 ```
 
@@ -1112,7 +1264,8 @@ document.addEventListener('DOMContentLoaded',function(){
 4. 中央タイトル要素・バージョン番号タグの追加
 5. 第0部凡例の 4 項目以外の追加（`.font-guide` のみ第10項に基づくオプション例外）
 6. 出力の分割提出・継続要求
-7. **科目アンカー（`--accent` `--mid`）の改変**（第5-1 表から逸脱禁止）
+7. **配色の規律違反**：5 役割（ベース70%／メイン25%／アクセント5%／サブ×2）・「pale bg + dark text」・
+   WCAG AA 4.5:1・5 系統制限を満たさない配色（色そのものの選定は全 15 案＋派生から自由／第5項）
 8. **12 色固定指標（`--hl-*` / `--tan-*` / `--rank-*`）の科目別変更**
 9. 純白 `#FFFFFF` の `body` 背景使用、純黒 `#000000` の文字色使用
 10. 5 系統制限を超える独自色系統の新設
@@ -1121,7 +1274,7 @@ document.addEventListener('DOMContentLoaded',function(){
 13. ハイライト系の段落全体塗布
 14. **第6項 11 役割の用途を入れ替えての書体使用**（例：模範答案を丸ゴシで組む／判旨を游明朝で組む等）
 15. **`:root` 外での `font-family` 直接指定**（SVG 内 `<text>` のみ例外）
-16. **11 役割を超える独自フォントの追加・Google Fonts ロード書体の拡張**
+16. **11 役割（＋ `--font-impact`）を超える独自フォントの追加・TX 指定セット外への Google Fonts ロード拡張**
 17. 1 見出し配下の 9 項目超チャンク（明示分節必須）
 18. **`.key-box` を `> ` 子セレクタで上書きする CSS の追加**（specificity 衝突で内部 padding が壊れるため）
 19. **`<strong>第1項</strong>` 形式の旧条文番号表記**（必ず `<span class="para-num">` を使用）
@@ -1146,19 +1299,23 @@ document.addEventListener('DOMContentLoaded',function(){
 - [ ] 重要概念の言語＋視覚二重表示
 - [ ] xref／back-refs で双方向リンク
 - [ ] 本文段落のみ 1.4em インデント／見出し系は左ベースライン整合
+- [ ] **（逐語録がある場合）`.lecturer-advice`（🎓 講師のアドバイス）を該当論点・部の冒頭に配置**
+      （第13-2-bis項・総論は第2部冒頭／論点固有は各 `<h3>` 直後・逐語そのまま貼り付け禁止）
 
 ### 機能的色彩設計＋アートディレクション
 - [ ] `body { background:var(--base); color:var(--text); }`（純白・純黒大面積禁止）
-- [ ] `--accent` `--mid` は第5-1 表の科目アンカー値に**完全一致**
-- [ ] `--light` `--base` `--soft` は AI が**創造的に設計**（アートディレクション）
-- [ ] 行JX のみ `--accent-2:#6FC885` を定義しているか
+- [ ] **全 15 案＋派生から問題の雰囲気で AI 自由選定**した配色を、5 色相当を 5 役割に割当て（11 種に限定しない）
+- [ ] 5 役割（ベース70%／メイン25%／アクセント5%／サブ×2）が成立している
+- [ ] 「pale bg + dark text」：背景は pale〜mid-tone、見出し・本文は dark／本文 WCAG AA 4.5:1 以上
+- [ ] 5 系統制限内で配色が調和している（雰囲気の意図を冒頭に 1〜2 文記述）
+- [ ] semantic 緑（`#438B48`/`#7BA980`）・金（`#ffd54f`/`#ffaa00`）は維持
 - [ ] 12 色固定指標は不変
 - [ ] 学習指標は色＋記号／文字／配置の三重符号化
 - [ ] 条文（薄グレー）／判例（薄ピンク or accent 派生）でカード地色差別化済み
 
 ### タイポグラフィ（v3.2：11 役割）
-- [ ] Google Fonts `<link>` で **Noto Serif JP / Shippori Mincho B1 / Shippori Antique / Zen Old Mincho / Zen Maru Gothic / Zen Kaku Gothic Antique / Zen Antique / Kosugi Maru / Kaisei Decol / M PLUS Rounded 1c / Noto Sans JP / Source Code Pro** をロード
-- [ ] `:root` に **11 個の `--font-*` 変数**を定義済み（body/soft/display/statute/quote/answer/keyword/judgment/note/professor/mono）
+- [ ] Google Fonts `<link>` は TX `canonical/GENESIS.html` と**完全一致**（**Shippori Mincho B1 / Shippori Antique / Zen Old Mincho / Zen Kaku Gothic Antique / Zen Maru Gothic / Noto Serif JP / Noto Sans JP / Kaisei Decol / Kosugi Maru / Source Code Pro / M PLUS Rounded 1c / M PLUS 1p** をロード）
+- [ ] `:root` に **11 個の `--font-*` 変数＋ `--font-impact`** を定義済み（body/soft/display/statute/quote/answer/keyword/judgment/note/professor/mono/impact）
 - [ ] `body` は `var(--font-body)`／weight 500／line-height 2.0／letter-spacing .04em
 - [ ] `h1` `h2` は `var(--font-display)`（しっぽり明朝 B1 先頭）
 - [ ] `h3`〜`h5`、`.subject-tag`、`.tan`、`.arg-tier`、`.back-to-toc`、`th`、`.timeline-label` は `var(--font-soft)`
@@ -1262,18 +1419,24 @@ section > ol,
 
 ---
 
-## 付録 A　v3.2 における AI 自由設計の運用例
+## 付録 A　v3.2 における配色 V3 パレット選定の運用例
 
-KJX5 例（刑JX = 深ティール `#2d7282` × 鮮ティール `#00adc1` がアンカー）に対する AI 設計の方向性：
+全パレット（全 15 案＋派生）から問題の雰囲気で AI が自由に選び、5 役割に割り当てる運用例
+（下表の名前付きは代表例。これに限定せず複数パレットの組合せ・中間派生色も可）：
 
-| 戦略 | `--base` | `--light` | `--soft` | 印象 |
-|---|---|---|---|---|
-| 同系統調和 | `#E8EFEF` 淡ティール | `#C8DDDF` ライトティール | `#F0F5F5` 極淡 | 一体感・落ち着き |
-| 寒色×暖色対比 | `#A8C5C2` ダスティティール | `#F4D9B0` サンド | `#F2E4DA` 淡サンド | KJX2 流の鮮度・アート性 |
-| 紙質風 | `#F4EDE0` クリーム | `#DFECEB` 極淡ティール | `#ECE4D3` バニラ | 古典書籍風（fontDemo 採用） |
-| 黒板風 | `#E8E5DD` 紙白 | `#D5E0DF` 淡ティール | `#F5F2E9` バニラ | 教育・伝統 |
+| 問題の雰囲気 | 選定パレット | ベース `--base` | メイン `--accent` | アクセント `--mid` | 印象 |
+|---|---|---|---|---|---|
+| 重厚・道徳論点・難解 | Antique Pearl | `#F2E6E6` 極淡 | `#D4B5C4` モーヴ※暗色派生 | （別 chip 借用 contrast）| 気品・しっとり |
+| 手続・公共・清新 | Crystal Blue | `#F5F0F2` 極淡 | `#D4E6EB` ブルー※暗色派生 | `#FFFCD6` 淡イエロー | 透明感・冷静 |
+| 軽快・基礎・親しみ | Sweet Berry | `#F9E7E7` 極淡 | `#E8B4BC` ベリー※暗色派生 | `#D4E2E9` ブルー借用 | 甘美・優しさ |
+| 深刻・対立が激しい | Twilight Violet | `#F8F2F2` 極淡 | `#E2D4E2` バイオレット※暗色派生 | `#F7EBD6` サンド | 優美・落ち着き |
 
-AI は事案テーマ・受験生の学習状態誘導意図に応じて自由に戦略を選択し、その意図を 1〜2 文で出力冒頭に記述することが望ましい。
+※ 11 パレットは全 pastel のため、メイン `--accent` は palette identity chip を **HSL で
+mid-tone（L=55-65）に暗くした派生**を採り、background ではなく見出し／border の色として使う。
+背景はベース／サブの薄色、文字は dark text で contrast を確保する（pale bg + dark text）。
+
+AI は事案テーマ・難度・科目イメージ・論点の重さに応じてパレットを選択し、その意図（雰囲気）を
+1〜2 文で出力冒頭に記述することが望ましい。正典 hex は第5-1 表（TX と共通・`docs/palette-v3_2.pdf`）。
 
 ---
 

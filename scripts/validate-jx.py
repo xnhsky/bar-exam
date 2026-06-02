@@ -20,7 +20,7 @@ JX v3.2 軽量検証スクリプト
   J14  .container max-width: 1080px
   J15  .doc-header に position:absolute
   J16  旧 <strong>第N項</strong> 表記の不在
-  J17  配色パターン名の <body> 内不在
+  J17  配色パターン名（V3 11 パレット名・役割割合）の <body> 内不在
   J18  PART 5 (back-refs) ≥ 3
   J19  フッターに励まし文言
   J20  スムーズスクロール JS
@@ -317,17 +317,22 @@ def check_J17_no_palette_names_in_body(soup, results):
     if not body:
         return
     body_text = body.get_text()
-    palette_names = [
-        'ホワイト・ノーブル', 'ローズシャンブル', 'セージブラリー',
-        'ラベンダードーン', 'P1', 'P2', 'P3'
+    # 配色 V3（2026-06-02 TX 統一）：11 名前付きパレット名・役割割合を本文に出さない。
+    # 配色情報は :root{} のみで管理し、ヘッダー／フッター／凡例の表示テキストに書かない。
+    palette_strict = [
+        # V3 11 名前付きパレット（英名）
+        'Sweet Berry', 'Fresh Citrus', 'Rose Mist', 'Antique Pearl',
+        'Maison Blanche', 'Crystal Blue', 'Dusty Sage', 'Mint Tea',
+        'Fresh Mint', 'Twilight Violet', 'Sunset Harmony',
+        # 役割割合の記載（TX G8 と同趣旨）
+        'ベース 70', 'メイン 25', 'アクセント 5',
+        # 旧パレット名（歴史的・残存検出）
+        'ホワイト・ノーブル', 'ローズシャンブル', 'セージブラリー', 'ラベンダードーン',
     ]
-    # P1/P2/P3 は本文に他用法あり得るので除外
-    palette_strict = ['ホワイト・ノーブル', 'ローズシャンブル',
-                      'セージブラリー', 'ラベンダードーン']
     for name in palette_strict:
         if name in body_text:
             results.append(('J17', 'ERROR',
-                            f'配色パターン名 "{name}" が <body> 内に出現'))
+                            f'配色パターン名／役割割合 "{name}" が <body> 内に出現'))
 
 
 def check_J18_back_refs(soup, results):

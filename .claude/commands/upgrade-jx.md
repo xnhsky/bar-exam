@@ -17,6 +17,10 @@ description: 既存 JX HTML を v3.2 にアップグレード
    - 第 23 項（本文インデント設計）
    - 付録 C（v3.1 → v3.2 移行クイックリファレンス）
 2. **対象ファイルを view**：既存 HTML 全体を読み込み、現状の構造・色変数・タイポを把握
+   - **ゴールド参照**：`canonical/ATHENA.html` を構造・CSS・配色・`.lecturer-advice` の視覚参照に
+     view してよい（本文・解説の文章流用は禁止＝content independence）
+   - **（補）講義逐語録の確認**：同じ問題の逐語録（`*_文字起こし.txt` 等）があれば読み込み、
+     論点ごとに要点を整理 → Phase 4 で `.lecturer-advice`（第13-2-bis項）を該当論点冒頭に配置
 
 ### Phase 2: 旧スタイルの破棄（最優先）
 
@@ -36,7 +40,14 @@ description: 既存 JX HTML を v3.2 にアップグレード
    - `--font-note`（Zen Kaku Gothic Antique）
    - `--font-professor`（Kosugi Maru）
    - `--font-mono`（Source Code Pro）
-5. **Google Fonts ロード**（第 6-2 項）：上記 5 役割対応のフォントを `<link>` で追加
+5. **Google Fonts ロード**（第 6-2 項）：`<link>` を **TX `canonical/GENESIS.html` と完全一致**に
+   置換し、`--font-impact`（M PLUS 1p）も定義（11 役割＋impact）
+5-bis. **配色を V3 自由選定へ移行**（第5項）：旧・科目アンカー固定色は破棄し、**全パレット
+   （全 15 案＋派生）から問題の雰囲気で AI 自由選定**して 5 役割（`--base`/`--accent`/`--mid`/
+   `--soft`/`--light`）に割当て。pale bg + dark text／WCAG AA／5 系統制限を守る（semantic 緑/金は維持）。
+   旧色をハードコードした SVG fill・gradient 等も新配色へ一括置換（旧色残存ゼロを確認）
+5-ter. **th 内リンクのコントラスト対策**（第13-3項）：`th a, th a.xref{color:#fff}` を追加
+   （`a.xref` 既定色＝`--accent` が濃い th 背景と同化するため・必須）
 6. **base CSS 更新**（第 6-5 項）：
    - `body { line-height:2.0; letter-spacing:.04em; font-weight:500; }`
 7. **container 寸法調整**（第 8 項）：
@@ -66,11 +77,16 @@ description: 既存 JX HTML を v3.2 にアップグレード
 13. **第N項網掛け**（第 13-11 項）：本文中の `<strong>第N項</strong>` → `<span class="para-num">第N項</span>` 全件置換
 14. **模範答案**：`.model-answer::before { content:'MODEL ANSWER'; }` を追加（しっぽりアンチック）
 15. **採点講評**：`.grading::before { content:'GRADING'; }` を追加
+15-bis. **講師のアドバイス（逐語録がある場合・必須）**：`.lecturer-advice`（第13-2-bis項）を
+    該当論点・部の冒頭に配置（総論は第2部冒頭、論点固有は各 `<h3>` 直後）。逐語をそのまま
+    貼らず論点ごとに要点を整理し `.la-lead`/`.la-key`/`.la-quote` で構造化。バッジ＝accent→mid
+    グラデ・背景＝選定パレット淡色・左罫 7px。`section>.lecturer-advice` 等をインデント防御・
+    印刷・レスポンシブに登録
 
 ### Phase 5: 第 23 項本文インデント設計（v3.2 新設）
 
 16. **本文段落のみ**：`padding-left:1.4em`
-17. **specificity 防御**で除外：`.key-box` / `.note-box` / `.warn-box` / `.success-box` / `.danger-box` / `blockquote` / `.model-answer` / `.grading` 内の `<p>` には適用しない
+17. **specificity 防御**で除外：`.key-box` / `.note-box` / `.warn-box` / `.success-box` / `.danger-box` / `.lecturer-advice` / `blockquote` / `.model-answer` / `.grading` 内の `<p>` には適用しない
 
 ### Phase 6: マーカーの潰れ防止強化
 
@@ -96,8 +112,8 @@ description: 既存 JX HTML を v3.2 にアップグレード
 ## 鉄則（絶対遵守）
 
 - **三層ペルソナ統合判断**を維持（v3.1 で確立した法学教育者・認知心理・色彩設計の三層は v3.2 でも継承）
-- **科目アンカー `--accent`／`--mid` は改変しない**（既存値を温存）
-- **`--light`／`--base`／`--soft` の AI 創造設計は維持**（既存値を温存・上書き禁止）
+- **配色は V3 へ移行**（2026-06-02 統一）：旧・科目アンカー固定色は引き継がず、第 5 項の 11 名前付きパレットから**問題の雰囲気で 1 つ選び直し**、5 役割（`--base`/`--accent`/`--mid`/`--soft`/`--light`）に割当てる。palette 外 hex 禁止（semantic 緑／金のみ越境可）
+- **フォントは TX と完全一致**：Google Fonts リンクを TX `canonical/GENESIS.html` に揃え、11 役割＋`--font-impact` を定義
 - **第 21 項禁止事項を再点検**：通則違反を新たに作らない
 - **他 JX ファイルからの本文引用は禁止**（v3.1 → v3.2 移行であっても本文は当該問題固有のまま）
 - **`<script>...</script>` 内に `</body>` リテラル文字列禁止**（Lexia 致命的バグ）
