@@ -290,6 +290,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 |---|---|
 | `/new-tx <PDFパス>` | 新規 TX ファイルを問題 PDF から生成（v10.0.0 GOLD-SKELETON） |
 | `/batch-tx <番号 or PDFパス>` | 5 問バッチで連続生成（v10.0.0 GOLD-SKELETON） |
+| `/rb <N-M>` | **リモートバッチ**：N番〜M番を連続生成＋各問 Drive 自動保存（「346-350 を RB して」で起動） |
 | `/new-jx <PDFパス>` | 新規 JX ファイルを問題 PDF から生成 |
 | `/upgrade-tx <HTMLパス>` | 既存 TX（legacy）を v8.11.1 にアップグレード |
 | `/validate <HTMLパス>` | TX または JX を自動判別して検証実行（修正なし） |
