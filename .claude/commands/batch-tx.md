@@ -64,6 +64,10 @@ baseline：canonical/GENESIS.html
 - **Phase 4** section-by-section 内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
 - **Phase 5** SVG 重なり機械検査（bounding box AABB 全ペア衝突判定）
 - **Phase 6** 検証（`scripts/validate-tx-gold.py` で G1〜G16 全件通過確認）と配信
+- **Phase 7** Drive 自動保存（必須）：検証通過後、`docs/drive-folders.md` の
+  科目フォルダ ID へ Drive MCP `create_file`（base64・`text/html`）でアップロード。
+  全 7 科目とも `マイドライブ / 1 TX_短答 / {00N_科目}` 配下へ。**各問完了ごとに即保存**
+  （バッチ途中で中断してもコンテナ回収による HTML ロストを防ぐ）。
 
 ### 各問完了時の内部記録
 
@@ -76,8 +80,13 @@ baseline：canonical/GENESIS.html
 - `palette_pattern`（P1/P2/P3）, `concept_description`
 - `svg_overlap_detected`（あれば該当 SVG と要素名）
 - `phase_completed`
+- `drive_saved`（Drive 保存先フォルダ名 + 成否。未保存なら最終レポートで警告）
 - `status`: `SUCCESS` / `PARTIAL` / `FAILED`
 - `failure_reason`
+
+> **バッチ終了時の確認（必須）**：最終レポートで `drive_saved` が未完の問が
+> 残っていないか点検する。コンテナ回収で HTML が消える前に、全 SUCCESS 問が
+> Drive に上がっていることを保証する。
 
 ---
 

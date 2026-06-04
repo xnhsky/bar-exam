@@ -283,6 +283,27 @@ class／属性キー／ネスト順は逐語コピーする。
 
 21. **ERROR があれば**：該当箇所を修正し、再検証
 
+### Phase 7：Drive 自動保存（必須・2026-06-04 追加）
+
+> リモート実行環境は ephemeral でコンテナが回収される。HTML は `.gitignore` で
+> git 管理外＝**Drive が唯一の永続先**。検証通過後、必ず Drive へアップロードする。
+
+22. **保存先 ID を `docs/drive-folders.md` から引く**：出力ファイル名の接頭辞
+    （`刑TX`/`刑訴TX`/`民TX`/`商TX`/`民訴TX`/`行政TX`/`憲TX`）→ 該当科目フォルダ ID。
+    全 7 科目とも `マイドライブ / 1 TX_短答 / {00N_科目}` 配下に保存する。
+
+23. **重複確認**：Drive MCP `search_files`
+    （`parentId = '<科目ID>' and title = '<ファイル名>'`）で存在確認。
+    既存なら既定は skip（上書き要否は user 確認）。
+
+24. **アップロード**：Drive MCP `create_file` で送る。
+    - `title` = 出力ファイル名（例 `刑TX346.html`）
+    - `parentId` = 科目フォルダ ID
+    - `base64Content` = HTML を base64 化（日本語・大容量を安全に転送）
+    - `contentMimeType` = `text/html`、`disableConversionToGoogleType` = `true`
+
+25. **報告**：`present_files` 完了報告に Drive 保存先（フォルダ名＋件数）を併記。
+
 ---
 
 ## 鉄則（絶対遵守）

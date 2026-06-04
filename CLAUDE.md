@@ -522,3 +522,42 @@ Phase 0 で 5×1 / 5×2 / キャンセル を user 確認。
 失敗問の再生成は `/new-tx` で個別実施。
 
 **v10.0.0 推定時間**：5×1 モードで 1 時間 30 分〜2 時間（1 問あたり 20〜30 分）。
+
+---
+
+## §9. HTML 成果物の Google Drive 自動保存（2026-06-04 確定）
+
+### なぜ必須か
+
+リモート実行環境（Claude Code on the web）は **ephemeral でコンテナが回収**される。
+HTML 成果物は `.gitignore`（`outputs/**/*.html`）で git 管理外＝**Drive が唯一の永続先**。
+保存しないままセッションが終わると、生成した HTML は失われる。
+
+### 鉄則
+
+1. **生成・バッチで作った HTML は、検証通過後に必ず Drive へアップロードする**
+   （TX は `new-tx` Phase 7 / `batch-tx` は各問完了ごとに即保存）。
+2. **全 7 科目とも同じ系統**＝`マイドライブ / 1 TX_短答 / {00N_科目}` 配下に、
+   ファイル名（`刑TX346.html` 等）そのままで保存する。科目フォルダ ID の正典は
+   **`docs/drive-folders.md`**（接頭辞 → Folder ID の対応表）。
+3. **アップロードは Drive MCP `create_file`**：`base64Content`（HTML を base64 化）＋
+   `contentMimeType='text/html'` ＋ `disableConversionToGoogleType=true`。
+4. **重複回避**：`search_files`（`parentId='<科目ID>' and title='<名>'`）で存在確認し、
+   既存なら既定 skip（上書き要否は user 確認）。
+5. **完了報告に Drive 保存先（フォルダ名＋件数）を必ず併記**。バッチ最終レポートでは
+   `drive_saved` 未完の問が無いか点検し、全 SUCCESS 問の Drive 反映を保証する。
+
+### 保存先 ID（要約・正典は `docs/drive-folders.md`）
+
+| 接頭辞 | 科目 | フォルダ | Folder ID |
+|---|---|---|---|
+| `刑TX` | 刑法 | `001_刑法` | `1Izo2LwFv72K6nOJBLRRuBn876D-lydn5` |
+| `刑訴TX` | 刑訴 | `002_刑事訴訟法` | `1RMqEabOYCLq2LrpFHTmny8eMFh4ere0f` |
+| `民TX` | 民法 | `003_民法` | `1dP0BcbySxIh033oOK2Q_bhEhz6fdqcYH` |
+| `商TX` | 商法 | `004_商法` | `1PwYjfsSm-6NgBRq6x5TOEYPRPYTES4mi` |
+| `民訴TX` | 民訴 | `005_民事訴訟法` | `1MdEnlzT6weW7b6pPAJVQHxb8fq4GU9EL` |
+| `行政TX` | 行政法 | `006_行政法` | `1IihxYyE8czOIAAPAVHvZFmzbNe7VzbOJ` |
+| `憲TX` | 憲法 | `007_憲法` | `1AZ_ZhFsOSdlqteeQYJzbGzcwxUpUJuri` |
+
+> JX HTML の Drive 保存先は未確定。初回 JX バッチ時に `search_files` でフォルダ ID を
+> 特定し、`docs/drive-folders.md` と本表に追記すること。
