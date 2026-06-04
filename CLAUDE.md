@@ -393,6 +393,33 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 ## §8. 運用上のヒント
 
+### 二台運用（owner PC / xnrg2 PC）と本線一元化（最重要・2026-06-04 確定）
+
+このプロジェクトは 2 台の PC（OWNER PC・xnrg2 PC＝DESKTOP-5664QR6）＋複数の
+Claude Code Web セッションで並行運用する。過去、各セッション／PC が**古い `master`
+から別々のフィーチャーブランチを切り、`master` へ戻さない**運用をした結果、
+入力 PDF（445 問）や spec（genesis v10.0.0）が「ブランチに無い＝消えた」ように
+見える事故が頻発した（真因は二台すれ違いではなく**本線非更新**。二台運用は同期漏れを
+増幅させる要因）。今後は以下を厳守する：
+
+1. **本線は `master` の一本**。入力 PDF・spec・code はすべて `master` に集約する
+   （HTML 成果物のみ `.gitignore` で除外し Drive 管理）。
+2. **作業開始時：必ず本線を取得してから枝を切る**
+   ```
+   git checkout master && git pull origin master
+   git fetch && git log --oneline origin/master -5   # 相手 PC / 別セッションの最新を確認
+   git switch -c <作業ブランチ>
+   ```
+   古い `master` やローカルキャッシュから直接ブランチを切らない。
+3. **作業終了時：本線へ戻す**（直接マージ or PR）。「ブランチを作って放置」を禁止。
+   - fast-forward 可能なら `git checkout master && git merge --ff-only <作業ブランチ> && git push origin master`
+4. **二台運用の鉄則**：一方の PC で push したら、もう一方の PC は**作業前に必ず `pull`**。
+   両 PC とも git 識別子が同一（`xnh`）でコミットからは PC を区別できないため、
+   「どっちで何をやったか」は人間側で意識する。
+5. **PDF が見つからない時の最初の確認**：`git log --oneline --all -- inputs/tx-pdfs/`
+   と Drive「1 TX_短答 / 001_刑法 / 抽出PDF」（445 問の原本）を突き合わせる。
+   原本は Drive に常在するのでデータロスではなく**ブランチ／同期の問題**である。
+
 ### コマンド呼び出しは明示的に
 
 「処理して」のような曖昧な指示は文脈で誤解釈される。**`/new-tx inputs/tx-pdfs/299.pdf`** のように明示的なパス＋スラッシュコマンドを使う。
