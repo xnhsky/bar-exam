@@ -1,22 +1,29 @@
 # jx-batch-runner.ps1
 #
-# JX→TTS 自動化バッチランナー（commit2 本丸）。
-# inputs/jx-pdfs/ の未生成 PDF を最若番から処理し、1 問あたり 2 段で通す：
-#   ① claude -p (prompts/new-jx-headless.md)  PDF → JX HTML
+# JX→TTS→音声 一気通貫バッチランナー（v2: 逐語入力＋PDF削除＋音声全自動）。
+# inputs/jx-pdfs/ の「PDF＋同番号の講義逐語(.txt/.md)」を最若番から処理し、
+# 1 問あたり以下の段で通す：
+#   ① claude -p (prompts/new-jx-headless.md)  PDF＋逐語 → JX HTML
 #   ② python validate-jx.py                    exit 0 = PASS（ERROR 0・WARNING 許容）
-#   ③ claude -p (prompts/tts-jx-headless.md)   JX HTML → TTS 台本（既存 prompt 流用）
+#      └→ PASS 時点で入力 PDF のみ削除（逐語は保持）
+#   ③ claude -p (prompts/tts-jx-headless.md)   JX HTML → TTS 台本
 #   ④ python validate-tts.py                   exit 0 = PASS
-# ②が exit≠0 / HTML 未生成 / sentinel=FAILED の場合は③④をスキップ。
-# 成功しても PDF は削除しない（保持）。Drive/Backup 配信も行わない。
+#      └→ PASS 時点で台本 *.txt を tts/input_texts/ へ集約（既 wav はスキップ）
+#   ⑤ tts/run-tts.ps1 (generate_tts.py)        集約済み台本 → wav（バッチ末尾で一括・全自動）
+# 逐語が無い PDF は処理対象外（SKIP_NO_TRANSCRIPT）。②が PASS でなければ③以降をスキップ。
+#
+# 入力配置（同ディレクトリ・同番号）:
+#   inputs/jx-pdfs/032.pdf  ＋  inputs/jx-pdfs/032.txt（または 032.md）
 #
 # 実行例:
 #   pwsh -NoProfile -File scripts/jx-batch-runner.ps1 -DryRun
 #   pwsh -NoProfile -File scripts/jx-batch-runner.ps1 -Subject 刑 -MaxProblems 3
-#   pwsh -NoProfile -File scripts/jx-batch-runner.ps1 -Subject 民訴
+#   pwsh -NoProfile -File scripts/jx-batch-runner.ps1 -Subject 民訴 -SkipAudio   # 音声段だけ手動に
 #
 # 既知の対策:
 #   - sentinel は Select-String / -match で grep 検出（JSON parse は脆弱なため不使用）
 #   - validate の PASS 判定は $LASTEXITCODE（0=PASS）を主、sentinel grep を従とする
+#   - 音声は課金。GEMINI_API_KEY 未設定なら音声段のみ自動スキップ（JX/台本は保持）
 #   - エンコーディングは UTF-8（pwsh 7.x 想定）
 
 param(
@@ -24,6 +31,7 @@ param(
     [string]$Subject = '刑',            # 科目接頭辞（出力先・PROBLEM_ID・配色アンカーに使用）
     [int]$MaxProblems = 5,              # 1 起動あたり最大処理数
     [int]$MaxConsecutiveFailures = 3,   # 連続失敗で abort
+    [switch]$SkipAudio,                 # 指定時は⑤音声生成をスキップ（台本集約まで・課金回避）
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
 )
 
@@ -39,6 +47,12 @@ $JxPromptSrc   = Join-Path $ProjectRoot "prompts\new-jx-headless.md"
 $TtsPromptSrc  = Join-Path $ProjectRoot "prompts\tts-jx-headless.md"
 $ValidateJx    = Join-Path $ProjectRoot "scripts\validate-jx.py"
 $ValidateTts   = Join-Path $ProjectRoot "scripts\validate-tts.py"
+
+# 音声段（⑤）: 台本集約先と generate_tts.py 起動ラッパ
+$TtsInputDir   = Join-Path $ProjectRoot "tts\input_texts"   # generate_tts.py の入力
+$TtsAudioDir   = Join-Path $ProjectRoot "tts\output_audio"  # 既 wav 判定
+$RunTts        = Join-Path $ProjectRoot "tts\run-tts.ps1"
+$StagedAny     = $false   # この起動で input_texts へ何か集約したか（末尾の音声生成トリガ）
 
 $CostCsv       = Join-Path $LogsDir "jx-cost-summary.csv"
 $RunLog        = Join-Path $LogsDir "jx-batch-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
@@ -58,10 +72,18 @@ if (-not (Test-Path $LogsDir)) { New-Item -Path $LogsDir -ItemType Directory -Fo
 Start-Transcript -Path $RunLog -Append | Out-Null
 
 Write-Host "=== jx-batch-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
-Write-Host "Subject: $Subject (接頭=$SubjectDir) / MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun"
-Write-Host "PDF dir   : $PdfDir"
+Write-Host "Subject: $Subject (接頭=$SubjectDir) / MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun / SkipAudio: $SkipAudio"
+Write-Host "PDF dir   : $PdfDir  (PDF＋同番号逐語 .txt/.md)"
 Write-Host "JX  output: $JxOutputDir"
 Write-Host "TTS output: $TtsOutputBase\{PROBLEM_ID}\"
+Write-Host "音声(⑤)   : $TtsInputDir → $TtsAudioDir  (run-tts.ps1)"
+
+# 音声段の事前診断（課金。キー未設定なら音声のみ自動スキップ予告）
+$AudioEnabled = (-not $SkipAudio)
+if ($AudioEnabled -and [string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) {
+    Write-Host "[NOTE] GEMINI_API_KEY 未設定 → 音声段(⑤)は自動スキップ。JX/台本は生成・集約する。" -ForegroundColor Yellow
+    Write-Host "       後で音声化する場合:  `$env:GEMINI_API_KEY='...'; pwsh -NoProfile -File `"$RunTts`"" -ForegroundColor Yellow
+}
 
 # === 前提ファイル存在確認 ===
 $missing = @()
@@ -80,34 +102,55 @@ if ($missing.Count -gt 0) {
 # === 出力ディレクトリ確保 ===
 if (-not (Test-Path $JxOutputDir)) { New-Item -Path $JxOutputDir -ItemType Directory -Force | Out-Null }
 
-# === PDF 検出と分類（PENDING / SKIP_EXISTS）===
-# inputs/jx-pdfs/{NNN}.pdf を列挙。既に {Subject}JX{NNN}.html があれば SKIP_EXISTS。
+# === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
+# inputs/jx-pdfs/{NNN}.pdf を列挙。同番号の逐語(.txt/.md)が必須。既に HTML があれば SKIP_EXISTS。
 $AllPdfs = Get-ChildItem -Path $PdfDir -Filter "*.pdf" | Sort-Object Name
+# 同ディレクトリの逐語候補（.txt/.md）を 1 度だけ列挙（.txt を優先）
+$TranscriptCands = @(Get-ChildItem -Path $PdfDir -File -ErrorAction SilentlyContinue |
+    Where-Object { $_.Extension -in '.txt', '.md' } |
+    Sort-Object @{ Expression = { $_.Extension } } -Descending)  # .txt > .md
+
+# 同番号逐語の探索ヘルパ（先頭連続数字が一致する最初の .txt/.md）
+function Find-Transcript {
+    param([int]$NumInt)
+    foreach ($f in $TranscriptCands) {
+        $stem = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
+        if ($stem -match '^\d+' -and [int]$Matches[0] -eq $NumInt) { return $f.FullName }
+    }
+    return $null
+}
+
 $Catalog = @()
 foreach ($pdf in $AllPdfs) {
     $raw = [System.IO.Path]::GetFileNameWithoutExtension($pdf.Name)
     # ファイル名先頭の連続数字を抽出（例: "32a" → "32", "032_x" → "032"）
     if ($raw -match '^\d+') {
-        $num = ([int]$Matches[0]).ToString('000')  # 3 桁ゼロ埋め
+        $numInt = [int]$Matches[0]
+        $num = $numInt.ToString('000')  # 3 桁ゼロ埋め
     } else {
         # 数字抽出不能：処理対象外として記録のみ（headless でも判定不能なため事前除外）
         $Catalog += [PSCustomObject]@{
             PdfPath = $pdf.FullName; Number = $null; ProblemId = $null
-            JxOutputPath = $null; TtsOutputDir = $null; Status = "SKIP_NONUMERIC"
+            JxOutputPath = $null; TtsOutputDir = $null; TranscriptPath = $null; Status = "SKIP_NONUMERIC"
         }
         continue
     }
     $problemId    = "${Subject}JX${num}"
     $jxOutputPath = Join-Path $JxOutputDir "${problemId}.html"
     $ttsOutputDir = Join-Path $TtsOutputBase $problemId
-    $status = if (Test-Path $jxOutputPath) { "SKIP_EXISTS" } else { "PENDING" }
+    $transcript   = Find-Transcript -NumInt $numInt   # 同番号逐語（必須）
+    # 判定優先順位：既存 HTML > 逐語欠如 > 処理対象
+    $status = if (Test-Path $jxOutputPath) { "SKIP_EXISTS" }
+              elseif (-not $transcript)    { "SKIP_NO_TRANSCRIPT" }
+              else                         { "PENDING" }
     $Catalog += [PSCustomObject]@{
-        PdfPath      = $pdf.FullName
-        Number       = $num
-        ProblemId    = $problemId
-        JxOutputPath = $jxOutputPath
-        TtsOutputDir = $ttsOutputDir
-        Status       = $status
+        PdfPath        = $pdf.FullName
+        Number         = $num
+        ProblemId      = $problemId
+        JxOutputPath   = $jxOutputPath
+        TtsOutputDir   = $ttsOutputDir
+        TranscriptPath = $transcript
+        Status         = $status
     }
 }
 
@@ -118,12 +161,19 @@ $Targets = @($Pending | Select-Object -First $MaxProblems)
 Write-Host "`n--- PDF 検出結果（全 $($Catalog.Count) 件）---" -ForegroundColor Yellow
 foreach ($c in $Catalog) {
     $color = switch ($c.Status) {
-        "PENDING"        { "Green" }
-        "SKIP_EXISTS"    { "DarkGray" }
-        "SKIP_NONUMERIC" { "Red" }
+        "PENDING"            { "Green" }
+        "SKIP_EXISTS"        { "DarkGray" }
+        "SKIP_NO_TRANSCRIPT" { "Magenta" }
+        "SKIP_NONUMERIC"     { "Red" }
     }
     $idText = if ($c.ProblemId) { $c.ProblemId } else { "(番号抽出不能)" }
-    Write-Host ("  [{0,-14}] {1}  <- {2}" -f $c.Status, $idText, (Split-Path $c.PdfPath -Leaf)) -ForegroundColor $color
+    $trText = if ($c.TranscriptPath) { " ＋逐語=" + (Split-Path $c.TranscriptPath -Leaf) } `
+              elseif ($c.Status -eq "SKIP_NO_TRANSCRIPT") { " ＋逐語=なし(要配置)" } else { "" }
+    Write-Host ("  [{0,-18}] {1}  <- {2}{3}" -f $c.Status, $idText, (Split-Path $c.PdfPath -Leaf), $trText) -ForegroundColor $color
+}
+$NoTrans = @($Catalog | Where-Object { $_.Status -eq "SKIP_NO_TRANSCRIPT" })
+if ($NoTrans.Count -gt 0) {
+    Write-Host "[NOTE] 逐語欠如で除外 $($NoTrans.Count) 件。同番号の .txt/.md を $PdfDir に置くと対象化されます。" -ForegroundColor Magenta
 }
 Write-Host "`nPENDING: $($Pending.Count) 件 / 本起動の処理対象: $($Targets.Count) 件（最大 $MaxProblems）" -ForegroundColor Yellow
 
@@ -135,16 +185,23 @@ if ($Targets.Count -eq 0) {
 
 # === DryRun はパス解決の確認まで ===
 if ($DryRun) {
-    Write-Host "`n[DRY-RUN] 以下を処理予定（claude -p / validate は呼ばない）:" -ForegroundColor Yellow
+    Write-Host "`n[DRY-RUN] 以下を処理予定（claude -p / validate / 削除 / 音声 は呼ばない）:" -ForegroundColor Yellow
     foreach ($t in $Targets) {
         Write-Host "  ● $($t.ProblemId)" -ForegroundColor Cyan
         Write-Host "      PDF        : $($t.PdfPath)"
+        Write-Host "      逐語       : $($t.TranscriptPath)  (注入: {TRANSCRIPT_PATH})"
         Write-Host "      ① JX 出力  : $($t.JxOutputPath)"
         Write-Host "      ② validate : python `"$ValidateJx`" `"$($t.JxOutputPath)`""
+        Write-Host "          [DRYRUN] PASS 時 would delete PDF: $($t.PdfPath)  (逐語は保持)"
         Write-Host "      ③ TTS 出力 : $($t.TtsOutputDir)\"
         Write-Host "          [DRYRUN] would clean: $($t.TtsOutputDir)  (*.txt のみ・leaf=$($t.ProblemId) 一致時のみ・他フォルダは触らない)"
         Write-Host "      ④ validate : python `"$ValidateTts`" `"$($t.TtsOutputDir)`" $($t.ProblemId)"
+        Write-Host "          [DRYRUN] PASS 時 would stage *.txt → $TtsInputDir  (既 wav はスキップ)"
     }
+    $audioPlan = if ($SkipAudio) { "スキップ(-SkipAudio)" }
+                 elseif ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) { "スキップ(GEMINI_API_KEY 未設定)" }
+                 else { "末尾で run-tts.ps1 を一括実行（課金）" }
+    Write-Host "  ⑤ 音声生成   : $audioPlan" -ForegroundColor Cyan
     Write-Host "`n[DRY-RUN] 終了（実生成なし）。" -ForegroundColor Yellow
     Stop-Transcript | Out-Null
     exit 0
@@ -237,11 +294,12 @@ foreach ($t in $Targets) {
 
     $jxTemplate = Get-Content $JxPromptSrc -Raw -Encoding utf8
     $jxPrompt = $jxTemplate `
-        -replace '\{TARGET_PDF\}',      $t.PdfPath `
-        -replace '\{PROBLEM_NUMBER\}',  $t.Number `
-        -replace '\{PROBLEM_ID\}',      $t.ProblemId `
-        -replace '\{OUTPUT_PATH\}',     $t.JxOutputPath `
-        -replace '\{SUBJECT_PREFIX\}',  $Subject
+        -replace '\{TARGET_PDF\}',       $t.PdfPath `
+        -replace '\{TRANSCRIPT_PATH\}',  $t.TranscriptPath `
+        -replace '\{PROBLEM_NUMBER\}',   $t.Number `
+        -replace '\{PROBLEM_ID\}',       $t.ProblemId `
+        -replace '\{OUTPUT_PATH\}',      $t.JxOutputPath `
+        -replace '\{SUBJECT_PREFIX\}',   $Subject
     ($jxPrompt) | Out-File -FilePath (Join-Path $LogsDir "jx-prompt-$($t.ProblemId).txt") -Encoding utf8
 
     $jxRes = Invoke-ClaudeHeadless -Prompt $jxPrompt -JsonOutPath (Join-Path $LogsDir "jx-$($t.ProblemId).json")
@@ -269,6 +327,19 @@ foreach ($t in $Targets) {
     } else {
         $jxValidate = "skipped_no_html"
         Write-Host "[② validate-jx] スキップ（HTML 未生成 or FAILED）" -ForegroundColor Yellow
+    }
+
+    # ----- ②-bis 入力 PDF 削除（validate PASS 時のみ・逐語は保持）-----
+    # ユーザー方針: 作成できた JX（検証 PASS）の元 PDF は削除する。逐語(.txt/.md)は残す。
+    if ($jxPass) {
+        if (Test-Path $t.PdfPath) {
+            try {
+                Remove-Item -Path $t.PdfPath -Force -ErrorAction Stop
+                Write-Host "[②-bis PDF削除] 入力 PDF を削除しました（逐語は保持）: $($t.PdfPath)" -ForegroundColor DarkYellow
+            } catch {
+                Write-Host "[②-bis PDF削除] 削除失敗（手動削除可・処理は継続）: $_" -ForegroundColor Yellow
+            }
+        }
     }
 
     # =========================================================
@@ -304,6 +375,18 @@ foreach ($t in $Targets) {
             if ($tvCode -eq 0) {
                 $ttsValidate = "PASS"
                 Write-Host "[④ validate-tts] PASS (exit 0)" -ForegroundColor Green
+
+                # ----- ④-bis 台本 *.txt を tts/input_texts/ へ集約（音声は末尾で一括生成）-----
+                if (-not (Test-Path $TtsInputDir)) { New-Item -Path $TtsInputDir -ItemType Directory -Force | Out-Null }
+                $staged = 0; $skipWav = 0
+                foreach ($txt in @(Get-ChildItem -Path $t.TtsOutputDir -Filter "*.txt" -File -ErrorAction SilentlyContinue)) {
+                    $stem = [System.IO.Path]::GetFileNameWithoutExtension($txt.Name)
+                    if (Test-Path (Join-Path $TtsAudioDir "$stem.wav")) { $skipWav++; continue }  # 既 wav は再集約しない
+                    Copy-Item -Path $txt.FullName -Destination (Join-Path $TtsInputDir $txt.Name) -Force
+                    $staged++
+                }
+                if ($staged -gt 0) { $StagedAny = $true }
+                Write-Host "[④-bis 集約] input_texts へ $staged 件コピー（既 wav スキップ $skipWav 件）" -ForegroundColor Green
             } else {
                 $ttsValidate = "ERROR(exit=$tvCode)"
                 Write-Host "[④ validate-tts] ERROR (exit $tvCode)" -ForegroundColor Yellow
@@ -351,6 +434,28 @@ foreach ($t in $Targets) {
     }
 
     $ProcessedCount++
+}
+
+# =========================================================
+# ⑤ 音声生成（バッチ末尾で一括・全自動・課金）
+#   - input_texts へ何か集約された場合のみ run-tts.ps1 を 1 回起動
+#   - generate_tts.py 側で既 wav はスキップ・DAILY_LIMIT/リトライを内蔵
+#   - GEMINI_API_KEY 未設定 or -SkipAudio の場合は集約のみで停止（後で手動起動可）
+# =========================================================
+Write-Host "`n--- ⑤ 音声生成（run-tts.ps1）---" -ForegroundColor Cyan
+$inTxtCount = @(Get-ChildItem -Path $TtsInputDir -Filter "*.txt" -File -ErrorAction SilentlyContinue).Count
+if (-not $StagedAny) {
+    Write-Host "[⑤ AUDIO] 本起動で新規集約された台本なし → 音声生成スキップ（input_texts に未処理 $inTxtCount 件）" -ForegroundColor Yellow
+} elseif ($SkipAudio) {
+    Write-Host "[⑤ AUDIO] -SkipAudio 指定 → 集約のみで停止。手動起動:  pwsh -NoProfile -File `"$RunTts`"" -ForegroundColor Yellow
+} elseif ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) {
+    Write-Host "[⑤ AUDIO] GEMINI_API_KEY 未設定 → 音声生成スキップ。後で:  `$env:GEMINI_API_KEY='...'; pwsh -NoProfile -File `"$RunTts`"" -ForegroundColor Yellow
+} elseif (-not (Test-Path $RunTts)) {
+    Write-Host "[⑤ AUDIO] run-tts.ps1 が見つかりません: $RunTts（集約のみ完了）" -ForegroundColor Yellow
+} else {
+    Write-Host "[⑤ AUDIO] input_texts $inTxtCount 件を音声化します（既 wav はスキップ・課金）" -ForegroundColor Cyan
+    & pwsh -NoProfile -File $RunTts
+    Write-Host "[⑤ AUDIO] run-tts 完了 (exit=$LASTEXITCODE)。残件があれば再実行で続行可。" -ForegroundColor Cyan
 }
 
 Write-Host "`n=== jx-batch-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
