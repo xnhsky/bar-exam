@@ -64,8 +64,12 @@ $argString = $argList -join ' '
 
 $Action = New-ScheduledTaskAction -Execute $PwshExe -Argument $argString -WorkingDirectory $ProjectRoot
 
-# === 5 トリガー（各時刻の毎日起動）===
-$Triggers = foreach ($t in $Times) { New-ScheduledTaskTrigger -Daily -At $t }
+# === 5 トリガー（各時刻の毎日起動）＋ 起動時トリガー ===
+$Triggers = @(foreach ($t in $Times) { New-ScheduledTaskTrigger -Daily -At $t })
+# 起動時トリガー（BSOD/再起動後の自動再開・DriveFS/ネットワーク準備待ちで 3 分遅延）
+$startupTrigger = New-ScheduledTaskTrigger -AtStartup
+$startupTrigger.Delay = 'PT3M'
+$Triggers += $startupTrigger
 
 # === 実行ユーザー（現在のユーザー・ログオン時のみ）===
 $Principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" -LogonType Interactive -RunLevel Limited
@@ -81,7 +85,7 @@ $Settings = New-ScheduledTaskSettingsSet `
     -DontStopIfGoingOnBatteries
 
 $rangeDesc = if ($FromNumber -gt 0 -or $ToNumber -gt 0) { "範囲 $FromNumber〜$ToNumber" } else { '無制限' }
-$Description = "bar-exam NBR 夜間分割生成（$($Times -join ' / ')・1 起動 $MaxProblems 問・$rangeDesc）"
+$Description = "bar-exam NBR 夜間分割生成（$($Times -join ' / ')・起動時トリガー(遅延3分)含む・1 起動 $MaxProblems 問・$rangeDesc）"
 
 # === 既存タスクがあれば置き換え ===
 if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
