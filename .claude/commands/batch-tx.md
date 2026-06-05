@@ -64,6 +64,10 @@ baseline：canonical/GENESIS.html
 - **Phase 4** section-by-section 内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
 - **Phase 5** SVG 重なり機械検査（bounding box AABB 全ペア衝突判定）
 - **Phase 6** 検証（`scripts/validate-tx-gold.py` で G1〜G16 全件通過確認）と配信
+- **Phase 7** git コミットで永続化（必須）：検証通過後、`outputs/tx/{科目TX}/` の
+  HTML を `git add` → **本問単位で commit** → `git push`（本線 master へ集約・§8/§9）。
+  生成＝コミットで GitHub に永続化。**各問完了ごとに即 commit/push**
+  （バッチ途中で中断してもコンテナ回収による HTML ロストを防ぐ）。
 
 ### 各問完了時の内部記録
 
@@ -76,8 +80,13 @@ baseline：canonical/GENESIS.html
 - `palette_pattern`（P1/P2/P3）, `concept_description`
 - `svg_overlap_detected`（あれば該当 SVG と要素名）
 - `phase_completed`
+- `committed`（commit hash + push 成否。未 commit なら最終レポートで警告）
 - `status`: `SUCCESS` / `PARTIAL` / `FAILED`
 - `failure_reason`
+
+> **バッチ終了時の確認（必須）**：最終レポートで `committed` が未完の問が
+> 残っていないか点検する。コンテナ回収で HTML が消える前に、全 SUCCESS 問が
+> GitHub に push 済みであることを保証する。
 
 ---
 

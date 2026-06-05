@@ -283,6 +283,23 @@ class／属性キー／ネスト順は逐語コピーする。
 
 21. **ERROR があれば**：該当箇所を修正し、再検証
 
+### Phase 7：git コミットで永続化（必須・2026-06-05 改訂）
+
+> リモート実行環境は ephemeral でコンテナが回収される。HTML も git 管理（§9）。
+> Drive MCP `create_file` は 250KB 級 HTML をインライン転送できず破綻したため、
+> **生成＝コミットで GitHub に永続化**する方式へ統一した。
+
+22. **commit**：検証通過後、`outputs/tx/{科目TX}/{ファイル名}.html` を `git add` →
+    本問単位で `git commit`（メッセージ例：`feat(刑TX): 刑TX346 を genesis で生成`）。
+
+23. **push**：作業ブランチへ `git push -u origin <branch>`。本線運用（§8）では
+    最終的に master へ集約する。
+
+24. **報告**：`present_files` 完了報告に commit hash と push 先ブランチを併記。
+
+> Drive へは任意で手動ミラー（GitHub からダウンロード → `1 TX_短答/{00N_科目}`）。
+> フォルダ ID は `docs/drive-folders.md` 参照。自動 Drive 保存は行わない。
+
 ---
 
 ## 鉄則（絶対遵守）

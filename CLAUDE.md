@@ -290,6 +290,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 |---|---|
 | `/new-tx <PDFパス>` | 新規 TX ファイルを問題 PDF から生成（v10.0.0 GOLD-SKELETON） |
 | `/batch-tx <番号 or PDFパス>` | 5 問バッチで連続生成（v10.0.0 GOLD-SKELETON） |
+| `/rb <N-M>` | **リモートバッチ**：N番〜M番を連続生成＋各問 git commit/push で永続化（「346-350 を RB して」で起動） |
 | `/new-jx <PDFパス>` | 新規 JX ファイルを問題 PDF から生成 |
 | `/upgrade-tx <HTMLパス>` | 既存 TX（legacy）を v8.11.1 にアップグレード |
 | `/validate <HTMLパス>` | TX または JX を自動判別して検証実行（修正なし） |
@@ -393,6 +394,33 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 ## §8. 運用上のヒント
 
+### 二台運用（owner PC / xnrg2 PC）と本線一元化（最重要・2026-06-04 確定）
+
+このプロジェクトは 2 台の PC（OWNER PC・xnrg2 PC＝DESKTOP-5664QR6）＋複数の
+Claude Code Web セッションで並行運用する。過去、各セッション／PC が**古い `master`
+から別々のフィーチャーブランチを切り、`master` へ戻さない**運用をした結果、
+入力 PDF（445 問）や spec（genesis v10.0.0）が「ブランチに無い＝消えた」ように
+見える事故が頻発した（真因は二台すれ違いではなく**本線非更新**。二台運用は同期漏れを
+増幅させる要因）。今後は以下を厳守する：
+
+1. **本線は `master` の一本**。入力 PDF・spec・code はすべて `master` に集約する
+   （HTML 成果物も 2026-06-05 から git 管理。生成＝コミットで永続化＝CLAUDE.md §9）。
+2. **作業開始時：必ず本線を取得してから枝を切る**
+   ```
+   git checkout master && git pull origin master
+   git fetch && git log --oneline origin/master -5   # 相手 PC / 別セッションの最新を確認
+   git switch -c <作業ブランチ>
+   ```
+   古い `master` やローカルキャッシュから直接ブランチを切らない。
+3. **作業終了時：本線へ戻す**（直接マージ or PR）。「ブランチを作って放置」を禁止。
+   - fast-forward 可能なら `git checkout master && git merge --ff-only <作業ブランチ> && git push origin master`
+4. **二台運用の鉄則**：一方の PC で push したら、もう一方の PC は**作業前に必ず `pull`**。
+   両 PC とも git 識別子が同一（`xnh`）でコミットからは PC を区別できないため、
+   「どっちで何をやったか」は人間側で意識する。
+5. **PDF が見つからない時の最初の確認**：`git log --oneline --all -- inputs/tx-pdfs/`
+   と Drive「1 TX_短答 / 001_刑法 / 抽出PDF」（445 問の原本）を突き合わせる。
+   原本は Drive に常在するのでデータロスではなく**ブランチ／同期の問題**である。
+
 ### コマンド呼び出しは明示的に
 
 「処理して」のような曖昧な指示は文脈で誤解釈される。**`/new-tx inputs/tx-pdfs/299.pdf`** のように明示的なパス＋スラッシュコマンドを使う。
@@ -495,3 +523,36 @@ Phase 0 で 5×1 / 5×2 / キャンセル を user 確認。
 失敗問の再生成は `/new-tx` で個別実施。
 
 **v10.0.0 推定時間**：5×1 モードで 1 時間 30 分〜2 時間（1 問あたり 20〜30 分）。
+
+---
+
+## §9. HTML 成果物の永続化＝git コミット（2026-06-05 方針変更）
+
+### なぜ git か（Drive 自動保存が破綻した経緯）
+
+リモート実行環境（Claude Code on the web）は **ephemeral でコンテナが回収**される。
+旧運用は HTML を `.gitignore` で除外し Drive MCP `create_file` で保存する設計だったが、
+**`create_file` は内容をモデルがインライン出力する必要があり、250KB 級の TX-HTML は
+1 問でも転送不能**（1 問読むだけで約 107K トークン）。実際に 346-350 のバッチで
+Drive 自動保存が失敗した。よって **HTML も git 管理し、生成＝コミットで GitHub に
+永続化**する方式へ統一した（`.gitignore` から `outputs/**/*.html` の除外を撤廃）。
+
+### 鉄則
+
+1. **生成・バッチで作った HTML は、検証通過後に必ず git に commit して push する**
+   （TX は `new-tx` Phase 7 / `batch-tx`・`rb` は各問完了ごとに commit）。
+   生成＝コミットなので、コンテナ回収でも GitHub に残り失われない。
+2. **本線 `master` に集約**（§8）。作業ブランチで commit → 本線へマージ。
+   ファイル名は §2 命名規則どおり（`outputs/tx/刑TX/刑TX346.html` 等）。
+3. **巨大 diff を避ける**：1 問ずつ commit（5 問バッチなら最大 5 commit）。
+   1 コミットに数十問まとめない（push 失敗・レビュー困難の予防）。
+4. **完了報告に commit 済みファイルと push 先ブランチを併記**。バッチ最終レポートでは
+   `committed` 未完の問が無いか点検し、全 SUCCESS 問の GitHub 反映を保証する。
+
+### Drive へのコピー（任意・手動）
+
+Drive は閲覧用ミラーとして任意で使う（自動保存はしない）。必要時は GitHub から
+ダウンロードして `マイドライブ / 1 TX_短答 / {00N_科目}` へ手動アップロードする。
+科目フォルダ ID は `docs/drive-folders.md` 参照（接頭辞 → Folder ID）。
+小さなファイル（数十 KB）に限り Drive MCP `create_file` も使えるが、TX-HTML
+（250KB 級）はインライン転送不可のため Drive 自動保存には使わない。
