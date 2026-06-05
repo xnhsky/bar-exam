@@ -283,26 +283,22 @@ class／属性キー／ネスト順は逐語コピーする。
 
 21. **ERROR があれば**：該当箇所を修正し、再検証
 
-### Phase 7：Drive 自動保存（必須・2026-06-04 追加）
+### Phase 7：git コミットで永続化（必須・2026-06-05 改訂）
 
-> リモート実行環境は ephemeral でコンテナが回収される。HTML は `.gitignore` で
-> git 管理外＝**Drive が唯一の永続先**。検証通過後、必ず Drive へアップロードする。
+> リモート実行環境は ephemeral でコンテナが回収される。HTML も git 管理（§9）。
+> Drive MCP `create_file` は 250KB 級 HTML をインライン転送できず破綻したため、
+> **生成＝コミットで GitHub に永続化**する方式へ統一した。
 
-22. **保存先 ID を `docs/drive-folders.md` から引く**：出力ファイル名の接頭辞
-    （`刑TX`/`刑訴TX`/`民TX`/`商TX`/`民訴TX`/`行政TX`/`憲TX`）→ 該当科目フォルダ ID。
-    全 7 科目とも `マイドライブ / 1 TX_短答 / {00N_科目}` 配下に保存する。
+22. **commit**：検証通過後、`outputs/tx/{科目TX}/{ファイル名}.html` を `git add` →
+    本問単位で `git commit`（メッセージ例：`feat(刑TX): 刑TX346 を genesis で生成`）。
 
-23. **重複確認**：Drive MCP `search_files`
-    （`parentId = '<科目ID>' and title = '<ファイル名>'`）で存在確認。
-    既存なら既定は skip（上書き要否は user 確認）。
+23. **push**：作業ブランチへ `git push -u origin <branch>`。本線運用（§8）では
+    最終的に master へ集約する。
 
-24. **アップロード**：Drive MCP `create_file` で送る。
-    - `title` = 出力ファイル名（例 `刑TX346.html`）
-    - `parentId` = 科目フォルダ ID
-    - `base64Content` = HTML を base64 化（日本語・大容量を安全に転送）
-    - `contentMimeType` = `text/html`、`disableConversionToGoogleType` = `true`
+24. **報告**：`present_files` 完了報告に commit hash と push 先ブランチを併記。
 
-25. **報告**：`present_files` 完了報告に Drive 保存先（フォルダ名＋件数）を併記。
+> Drive へは任意で手動ミラー（GitHub からダウンロード → `1 TX_短答/{00N_科目}`）。
+> フォルダ ID は `docs/drive-folders.md` 参照。自動 Drive 保存は行わない。
 
 ---
 

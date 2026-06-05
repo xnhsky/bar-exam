@@ -1,8 +1,10 @@
-# Google Drive 保存先フォルダ ID（HTML 成果物の自動保存・正典）
+# Google Drive 保存先フォルダ ID（任意の手動ミラー・正典）
 
-> リモート実行環境（Claude Code on the web）は ephemeral でコンテナが回収される。
-> HTML 成果物は `.gitignore`（`outputs/**/*.html`）で git 管理外＝**Drive が唯一の永続先**。
-> 生成・バッチ完了時に、本ファイルの ID へ HTML を **必ずアップロードする**（CLAUDE.md §9）。
+> **2026-06-05 方針変更**：HTML 成果物の永続化は **git コミット**で行う（CLAUDE.md §9）。
+> Drive MCP `create_file` は 250KB 級 HTML をインライン転送できず自動保存が破綻したため、
+> **Drive 自動保存は廃止**。Drive は閲覧用ミラーとして**任意・手動**で使う
+> （GitHub からダウンロード → 下表のフォルダへ手動アップロード）。
+> 下表の Folder ID はその手動コピー先・既存 HTML（〜345）の所在として保持する。
 
 ## TX 短答（`マイドライブ / 1 TX_短答 /` 配下）
 
