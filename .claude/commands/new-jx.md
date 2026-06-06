@@ -8,6 +8,15 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
 ## 必須手順
 
+### Phase 0: 入力アラインメント・チェック（最初に必ず実行）
+
+0. **逐語の解決とズレ検出**：`python scripts/check-jx-alignment.py {科目} {番号}` を実行。
+   - `[OK]` → 表示された逐語ファイルを第一次情報源として使う。
+   - `[ERROR]`（逐語欠落・keyword 不一致＝ズレ疑い）→ **生成を中断**し、内容照合で正しい逐語を特定して
+     `inputs/jx/transcript-map.json` の `overrides` に追記してから再実行（無断推定禁止）。
+   - **重問PDFと講義逐語は番号がズレる系列がある**（刑28/29/30 は −7 ズレ）。同番号を無断前提にしない。
+   - 詳細：`docs/jx-pipeline.md` ①。
+
 ### Phase 1: 準備
 
 1. **規律を view**：`spec/jx-v3.2-master.md` を view（第 0 項〜第 23 項＋付録 A〜C 全文）
@@ -109,7 +118,14 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
     ```
 33. **J1〜J20 ERROR 0 件確認**
 34. **ERROR 0 件確認後**：`present_files` で完了報告
-35. **ERROR があれば**：該当箇所を修正し、再検証 → 通過するまで繰り返し
+
+### Phase 9: 回収（永続化）と後始末（docs/jx-pipeline.md ②③）
+
+36. **回収＝git push**：`scripts/jx-push.sh "feat(jx): {ID} を生成保存（J1〜J21 PASS）"`
+    （add→commit→push、ネットワークエラー時は指数バックオフ再試行。リモートはコンテナ回収前に必ず push）。
+37. **処理済 PDF 削除**：`scripts/jx-cleanup-pdf.sh {科目} {番号} --commit` →
+    `scripts/jx-push.sh "chore(jx): remove processed input PDFs"`（HTML が commit 済のときのみ削除＝安全ガード）。
+38. **ERROR があれば**：該当箇所を修正し、再検証 → 通過するまで繰り返し
 
 ## 鉄則（絶対遵守）
 
