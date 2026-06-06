@@ -93,6 +93,18 @@ def check_keywords(path, keywords):
     return (len(missing) == 0), missing
 
 
+def head_preview(path, n=6):
+    """逐語冒頭の非空行を n 本返す（人間が『ざっと』ズレを見抜くため）。"""
+    lines = []
+    for raw in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        s = raw.strip()
+        if s:
+            lines.append(s[:60])
+        if len(lines) >= n:
+            break
+    return lines
+
+
 def check_one(man, subject, n, quiet=False):
     path, source, meta = resolve(man, subject, n)
     if path is None or not path.exists():
@@ -114,6 +126,9 @@ def check_one(man, subject, n, quiet=False):
             print(f"{GREEN}[OK]{RST} {label} → {path.name}（override・keyword検証通過: {kws}）")
             if meta.get("note"):
                 print(f"     {DIM}{meta['note']}{RST}")
+            print(f"     {DIM}冒頭プレビュー（ざっと内容照合用）：{RST}")
+            for ln in head_preview(path):
+                print(f"       {DIM}| {ln}{RST}")
             return 0
         else:
             print(f"{RED}[ERROR]{RST} {label} → {path.name}（override 指定だが keyword 欠落: {missing}）")
@@ -121,7 +136,10 @@ def check_one(man, subject, n, quiet=False):
             return 2
     else:
         print(f"{YELLOW}[WARN]{RST} {label} → {path.name}（同番号・未検証）")
-        print(f"     content 照合で確定したい場合は overrides に keywords を追加してください。")
+        print(f"     {DIM}冒頭プレビュー（ざっと内容照合用・PDFの論点と食い違わないか目視）：{RST}")
+        for ln in head_preview(path):
+            print(f"       {DIM}| {ln}{RST}")
+        print(f"     ズレを感じたら overrides に正しい逐語を登録してください（1字1句の検証は不要）。")
         return 0
 
 
