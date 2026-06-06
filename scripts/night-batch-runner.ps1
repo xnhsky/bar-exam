@@ -228,8 +228,12 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
     $jsonOut   = Join-Path $LogsDir "night-$($target.ProblemId).json"
     $resultOut = Join-Path $LogsDir "night-$($target.ProblemId).result.txt"
 
+    # 重要: 大きな複数行プロンプトを `-p $prompt`（引数）で渡すと PowerShell の
+    # ネイティブ引数処理で壊れ、claude に未達のまま空プロンプトで起動される
+    # （特に nested 実行＝別 claude セッションから起動した場合に再現）。
+    # → プロンプトは stdin パイプで渡す（claude -p は引数値が無ければ stdin から読む）。
     $claudeArgs = @(
-        '-p', $prompt,
+        '-p',
         '--output-format', 'json',
         '--permission-mode', 'acceptEdits',
         '--allowedTools', 'Write,Edit,Read,Bash,Glob,Grep'
@@ -239,7 +243,7 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
 
     # 標準出力と stderr 両方をキャプチャ
     try {
-        $output = & claude @claudeArgs 2>&1
+        $output = $prompt | & claude @claudeArgs 2>&1
         $exitCode = $LASTEXITCODE
         $output | Out-File -FilePath $jsonOut -Encoding utf8
     } catch {

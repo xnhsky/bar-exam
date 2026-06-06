@@ -34,6 +34,9 @@ param(
     [int]$MaxProblems = 5,              # 1 起動あたり最大処理数
     [int]$MaxConsecutiveFailures = 3,   # 連続失敗で abort
     [switch]$SkipAudio,                 # 指定時は⑤音声生成をスキップ（台本集約まで・課金回避）
+    [ValidateSet('main','sub')]
+    [string]$KeyName = 'main',          # 使う鍵：.secrets\gemini_{main|sub}.key を自動読込
+    [string]$TtsModel = '',             # ⑤音声のモデル上書き（空=generate_tts.py 既定=Pro / 'gemini-2.5-flash-preview-tts' で無料Flash）
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
 )
 
@@ -66,6 +69,23 @@ $RunLog        = Join-Path $LogsDir "jx-batch-$(Get-Date -Format 'yyyyMMdd-HHmms
 $SubjectDir    = "${Subject}JX"
 $JxOutputDir   = Join-Path $JxOutputBase $SubjectDir
 
+# === API キー自動読込（⑤音声用・直書き禁止／git管理外の .secrets から）===
+# 既に環境変数 GEMINI_API_KEY があればそれを優先。無ければ .secrets\gemini_{KeyName}.key を読む。
+$SecretsDir    = Join-Path $ProjectRoot ".secrets"
+$KeyFile       = Join-Path $SecretsDir "gemini_$KeyName.key"
+if ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) {
+    if (Test-Path $KeyFile) {
+        $loadedKey = (Get-Content $KeyFile -Raw -ErrorAction SilentlyContinue).Trim()
+        if (-not [string]::IsNullOrWhiteSpace($loadedKey)) {
+            $env:GEMINI_API_KEY = $loadedKey
+            # 鍵そのものは表示しない（先頭数文字のみ）
+            $env:GEMINI_API_KEY_SOURCE = "secrets:$KeyName"
+        }
+    }
+}
+# ⑤音声モデルの上書き（指定時のみ）。generate_tts.py が TTS_MODEL を参照する。
+if (-not [string]::IsNullOrWhiteSpace($TtsModel)) { $env:TTS_MODEL = $TtsModel }
+
 # === stdout/stderr UTF-8 化 ===
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -82,6 +102,11 @@ Write-Host "PDF dir   : $PdfDir  (PDF＋同番号逐語 .txt/.md)"
 Write-Host "JX  output: $JxOutputDir"
 Write-Host "TTS output: $TtsOutputBase\{PROBLEM_ID}\"
 Write-Host "音声(⑤)   : $TtsInputDir → $TtsAudioDir  (run-tts.ps1)"
+# 鍵ソース表示（値は出さない・先頭4文字のみ）
+$keyHint = if ($env:GEMINI_API_KEY) { $env:GEMINI_API_KEY.Substring(0,[Math]::Min(4,$env:GEMINI_API_KEY.Length)) + '…' } else { '(なし)' }
+$keySrc  = if ($env:GEMINI_API_KEY_SOURCE) { $env:GEMINI_API_KEY_SOURCE } elseif ($env:GEMINI_API_KEY) { 'env' } else { '未設定' }
+$modelHint = if ($env:TTS_MODEL) { $env:TTS_MODEL } else { 'generate_tts.py 既定(Pro)' }
+Write-Host "APIキー   : 源=$keySrc  先頭=$keyHint  / TTSモデル=$modelHint  (KeyName=$KeyName)"
 
 # 音声段の事前診断（課金。キー未設定なら音声のみ自動スキップ予告）
 $AudioEnabled = (-not $SkipAudio)

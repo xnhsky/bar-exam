@@ -56,6 +56,11 @@ output_dir.mkdir(exist_ok=True)
 DAILY_LIMIT = int(os.environ.get("TTS_DAILY_LIMIT", "14"))  # まず 1 件で試すなら 1 に下げる
 SLEEP_TIME = int(os.environ.get("TTS_SLEEP_TIME", "6"))     # 連続呼び出し間の待機（秒）
 
+# 使用モデル（環境変数 TTS_MODEL で上書き可）。
+# 既定は本番品質の Pro TTS（要・課金有効プロジェクト。無料枠は上限0で 429 になる）。
+# 無料枠での検証時は TTS_MODEL=gemini-2.5-flash-preview-tts を指定する。
+TTS_MODEL = os.environ.get("TTS_MODEL", "gemini-2.5-pro-preview-tts")
+
 # WAV フォーマット（Gemini TTS 出力基準）
 WAV_CHANNELS = 1       # モノラル
 WAV_SAMPWIDTH = 2      # 16bit
@@ -106,6 +111,7 @@ def main():
     total_files = len(text_files)
     print(f"入力フォルダ: {input_dir}")
     print(f"出力フォルダ: {output_dir}")
+    print(f"使用モデル: {TTS_MODEL}")
     print(f"合計 {total_files} 件のファイルを処理します。（DAILY_LIMIT={DAILY_LIMIT}）")
 
     # 警告が出たファイルを記録するリスト（最後にまとめて表示）
@@ -132,7 +138,7 @@ def main():
         for attempt in range(MAX_RETRIES):
             try:
                 response = client.models.generate_content(
-                    model="gemini-2.5-pro-preview-tts",
+                    model=TTS_MODEL,
                     contents=STYLE_PROMPT + "\n\n「" + text_content + "」",
                     config=types.GenerateContentConfig(
                         response_modalities=["AUDIO"],
