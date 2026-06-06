@@ -12,8 +12,10 @@
 #   ⑤ tts/run-tts.ps1 (generate_tts.py)        集約済み台本 → wav（バッチ末尾で一括・全自動）
 # 逐語が無い PDF は処理対象外（SKIP_NO_TRANSCRIPT）。②が PASS でなければ③以降をスキップ。
 #
-# 入力配置（同ディレクトリ・同番号）:
-#   inputs/jx-pdfs/032.pdf  ＋  inputs/jx-pdfs/032.txt（または 032.md）
+# 入力配置（科目フォルダに同居・同番号）:
+#   inputs/jx/{科目}/032.pdf  ＋  inputs/jx/{科目}/032.txt（または 032.md）
+#   例: inputs/jx/刑/1.pdf ＋ inputs/jx/刑/1.txt
+# 生成動線: 各問は canonical/ATHENA.html を clone → 本文空文字列化 → 部ごと差替（TX の GENESIS 同様）
 #
 # 実行例:
 #   pwsh -NoProfile -File scripts/jx-batch-runner.ps1 -DryRun
@@ -38,13 +40,16 @@ param(
 # === パス定義 ===
 # スクリプト自身の位置 (= scripts\) の親をプロジェクトルートとする
 $ProjectRoot   = Split-Path -Parent $PSScriptRoot
-$PdfDir        = Join-Path $ProjectRoot "inputs\jx-pdfs"
+# 入力は科目フォルダに PDF＋同番号逐語を同居：inputs\jx\{科目}\NN.pdf ＋ NN.txt（2026-06-06 確定）
+$PdfDir        = Join-Path $ProjectRoot "inputs\jx\$Subject"
 $JxOutputBase  = Join-Path $ProjectRoot "outputs\jx"
 $TtsOutputBase = Join-Path $ProjectRoot "outputs\tts"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 
 $JxPromptSrc   = Join-Path $ProjectRoot "prompts\new-jx-headless.md"
 $TtsPromptSrc  = Join-Path $ProjectRoot "prompts\tts-jx-headless.md"
+# JX 正典スケルトン（唯一の clone 起点・TX の GENESIS に相当）
+$CanonicalAthena = Join-Path $ProjectRoot "canonical\ATHENA.html"
 $ValidateJx    = Join-Path $ProjectRoot "scripts\validate-jx.py"
 $ValidateTts   = Join-Path $ProjectRoot "scripts\validate-tts.py"
 
@@ -92,6 +97,7 @@ if (-not (Test-Path $JxPromptSrc))  { $missing += "JX prompt: $JxPromptSrc" }
 if (-not (Test-Path $TtsPromptSrc)) { $missing += "TTS prompt: $TtsPromptSrc" }
 if (-not (Test-Path $ValidateJx))   { $missing += "validate-jx: $ValidateJx" }
 if (-not (Test-Path $ValidateTts))  { $missing += "validate-tts: $ValidateTts" }
+if (-not (Test-Path $CanonicalAthena)) { $missing += "canonical ATHENA: $CanonicalAthena" }
 if ($missing.Count -gt 0) {
     Write-Host "[ABORT] 前提ファイルが見つかりません:" -ForegroundColor Red
     foreach ($m in $missing) { Write-Host "  - $m" -ForegroundColor Red }
@@ -299,6 +305,7 @@ foreach ($t in $Targets) {
         -replace '\{PROBLEM_NUMBER\}',   $t.Number `
         -replace '\{PROBLEM_ID\}',       $t.ProblemId `
         -replace '\{OUTPUT_PATH\}',      $t.JxOutputPath `
+        -replace '\{CANONICAL_PATH\}',   $CanonicalAthena `
         -replace '\{SUBJECT_PREFIX\}',   $Subject
     ($jxPrompt) | Out-File -FilePath (Join-Path $LogsDir "jx-prompt-$($t.ProblemId).txt") -Encoding utf8
 

@@ -58,10 +58,15 @@
 | 入力 PDF | 科目 | シリーズ | 出力 |
 |---|---|---|---|
 | `inputs/tx-pdfs/299.pdf` | 刑法 | TX | `outputs/tx/刑TX/刑TX299.html` |
-| `inputs/jx-pdfs/15.pdf` | 民法 | JX | `outputs/jx/民JX/民JX015.html` |
+| `inputs/jx/民/15.pdf` ＋ `inputs/jx/民/15.txt` | 民法 | JX | `outputs/jx/民JX/民JX015.html` |
 | `inputs/tx-pdfs/予備R1-16詐欺.pdf` | 刑法 | TX | `outputs/tx/刑TX/刑TX001.html`（※最初の連続数字「1」を採用） |
-| `inputs/jx-pdfs/kenpo-question-05.pdf` | 憲法 | JX | `outputs/jx/憲JX/憲JX005.html` |
+| `inputs/jx/憲/5.pdf` ＋ `inputs/jx/憲/5.txt` | 憲法 | JX | `outputs/jx/憲JX/憲JX005.html` |
 | `inputs/tx-pdfs/民訴.pdf`（数字なし） | 民訴 | TX | **処理中断 → 番号確認** |
+
+> **JX 入力レイアウト（2026-06-06 確定）：** 問題 PDF と同番号の講義逐語を
+> **科目フォルダに同居** させる ── `inputs/jx/{科目}/NN.pdf` ＋ `inputs/jx/{科目}/NN.txt`
+> （科目 = `刑/憲/民/商/民訴/刑訴/行政`）。逐語が無い PDF は `jx-batch-runner.ps1` が
+> `SKIP_NO_TRANSCRIPT` で対象外にする。TX は従来どおり `inputs/tx-pdfs/` フラット。
 
 ---
 
@@ -191,10 +196,15 @@ v10.0.0 GOLD-SKELETON 経路への昇格は新規生成扱いとし、PDF から
 ### 4-1. 必読ファイル
 
 - **規律本体**：`spec/jx-v3.2-master.md`（第 0 項〜第 23 項＋付録 A〜C・byte-level 正典）
-- **ゴールド参照実装**：`canonical/ATHENA.html`（JX の gold 基準＝TX の `GENESIS`/`KTX301` に相当。
-  V3 自由配色＋TX フォント＋`.lecturer-advice` を実装した刑JX001 ベースの参照例。
-  **構造・CSS・コンポーネント・配置の視覚参照に使う**。ただし JX は content independence
-  （§4-4）を維持し、**本文・解説・判例引用の流用は禁止**＝ATHENA から文章をコピーしない）
+- **正典スケルトン（唯一の clone 起点）**：`canonical/ATHENA.html`（JX の gold 基準＝TX の
+  `GENESIS` に相当。V3 自由配色＋TX フォント＋`.lecturer-advice` 4 ブロックを実装した
+  刑JX001 ベースの正典）。**2026-06-06 確定：新規 JX は TX 同様、ATHENA を物理複製
+  （`cp`）→ 本文を空文字列化 → 問題固有内容を部ごとに Edit で鋳造する**（構造・CSS・
+  11 タイポ・5 コンポーネント・`.lecturer-advice` 骨格が必ず正典品質で揃う＝二台運用でも
+  同一出力）。**構造シェルは ATHENA から逐語コピー可。ただし本文（解説・規範・あてはめ・
+  判例引用・`.lecturer-advice` 中身・採点講評・用語集 等）は完全新規執筆**（§4-4・
+  content independence）＝ATHENA の文章をそのまま残さない。`outputs/jx/*/` の**他の**
+  既存 HTML を起点にすることは禁止（起点は ATHENA のみ）。
 
 ### 4-2. JX の基本的な性質
 
@@ -207,22 +217,32 @@ v10.0.0 GOLD-SKELETON 経路への昇格は新規生成扱いとし、PDF から
 
 ### 4-3. 新規 JX 生成手順
 
-1. 問題 PDF を読解（`inputs/jx-pdfs/` 配下）。**講義逐語録があれば併せて読み込む**
-2. `spec/jx-v3.2-master.md` を view（仕様確認）
-3. **配色**：問題の雰囲気で全パレット（全 15 案＋派生）から AI 自由選定 → 5 色相当を 5 役割（`--base`/`--accent`/`--mid`/`--soft`/`--light`）に割当て（11 種に限定しない・科目固定色なし・冒頭に採用配色の方向性と雰囲気の意図を記述）
-4. 第 3 項全体構成（第 0〜5 部）に従って骨格組立。**逐語録があれば `.lecturer-advice` を該当論点冒頭に配置**
-5. 第 22 項チェックリスト全項目を満たすよう実装
-6. **§2 命名規則**に従ってファイル名・出力先を決定
+1. 問題 PDF を読解（`inputs/jx/{科目}/NN.pdf`）。**同番号の講義逐語 `inputs/jx/{科目}/NN.txt` を必ず併読**（逐語が論点・規範・あてはめの第一次情報源）
+2. **§2 命名規則**でファイル名・出力先を確定 → `canonical/ATHENA.html` を出力先へ **`cp` で複製**
+3. 複製直後に**本文を空文字列で初期化**（content-independence 確保・§4-4）
+4. **配色**：複製した `:root{}` を更新。問題の雰囲気で全パレット（全 15 案＋派生）から AI 自由選定（科目固定色なし）。科目が `刑` で ATHENA 配色のままでよければ流用可
+5. 第 3 項全体構成（第 0〜5 部）に従い、**空化した各部を Edit で問題固有内容に鋳造**。**`.lecturer-advice`（複製済み骨格）に逐語ベースの講師アドバイスを該当論点冒頭で執筆**
+6. 第 22 項チェックリスト全項目を満たすよう実装
 7. 配信前に `python scripts/validate-jx.py <出力ファイル>` を実行
 8. **J1〜J20 ERROR 0 件**を確認してから `present_files`
 
-### 4-4. JX における content independence
+> headless バッチ（`jx-batch-runner.ps1` ＋ `prompts/new-jx-headless.md`）も同一動線。
+> ランナーが `{CANONICAL_PATH}=canonical/ATHENA.html` を注入し、プロンプトが複製→空化→鋳造する。
 
-JX には TX の §0-quad のような明示的なコンテンツ独立性プロトコルは存在しないが、JX v3.2 仕様の三層ペルソナ設計が事実上同等の原則を担う：
+### 4-4. JX における content independence（2026-06-06 改訂・ATHENA 複製動線）
 
-- 各 JX ファイルは「その問題固有の事案・論点・判例」に基づく独自設計
-- 他問題の文言・判例引用・体系説明を流用してはならない
-- canonical 的参考実装が存在しないため、TX のような text leakage は構造的に発生しにくいが、**他 JX ファイルからの内容流用は禁止**
+TX §3-3 と対称の構造的解決を採る。ATHENA 複製動線では**逐語コピー対象**と
+**完全新規執筆対象**を物理的に分離する：
+
+- **逐語コピー対象（structural shell only）**：タグ名・class 名・id 名・属性キー・
+  ネスト順序・CSS 全規則・JS 全規則・`.lecturer-advice` を含む全コンポーネントの骨格・
+  第 0〜5 部のシェル・`::before` 凡例（`🔑 KEY`／`🎓 講師のアドバイス`）
+- **完全新規執筆対象（problem-specific content）**：`.problem-text`／各部の解説・規範・
+  あてはめ・結論／判例引用／`.lecturer-advice` の `.la-lead` 見出しと本文／採点講評／
+  用語集／第 5 部各カード本文。**ATHENA の本文を残してはならない**
+- **手順**：複製したら**まず本文を空文字列で初期化**してから問題 PDF＋逐語を見て新規執筆。
+  ATHENA の本文を参照しながら書かない
+- **唯一の起点は ATHENA**。他 JX ファイルからの内容流用は禁止
 
 ---
 
