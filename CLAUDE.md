@@ -317,6 +317,25 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 
 詳細は `.claude/commands/` 配下の各 `*.md` を参照。
 
+### 6-2. 実行パターン（「パターン名で実行」運用・2026-06-06 確定）
+
+バッチ生成は **パターン名**で呼び出す（チャットで「**JX-MAIN で**」「**TX-PICK 366**」等）。
+一覧・コマンド・鍵管理は **`docs/run-patterns.md`** が正典。
+
+| パターン名 | 系統 | 動作 | 鍵 / 音声 |
+|---|---|---|---|
+| **TX-MARCH** | TX 連番NBR | tx-pdfs 最若番から N問（既定5）生成→検証→commit/push（GENESIS） | — |
+| **TX-PICK** | TX 任意NBR | 指定番号/範囲の TX を生成（GENESIS） | — |
+| **JX-MAIN** | JX 一気通貫 | inputs/jx 最若番から N問（既定3）JX→台本→**Pro音声**まで（ATHENA） | `.secrets/gemini_main.key` / Pro |
+| **JX-SUB** | JX 一気通貫 | 同上をサブ鍵で。音声は既定 **Flash(無料)** | `.secrets/gemini_sub.key` / Flash |
+
+- 実体は `scripts/patterns/{TX-MARCH,TX-PICK,JX-MAIN,JX-SUB}.ps1`（薄ラッパー）。
+- **API キーは `.secrets/` にローカル保存し git 管理外**（`.gitignore` で `.secrets/`・`*.key` 除外）。
+  ランナーは `$env:GEMINI_API_KEY` 優先、無ければ `KeyName`(main/sub) に応じた鍵ファイルを自動読込。
+  鍵を更新/再発行したら `.secrets/*.key` を差し替える（コード・ドキュメントに鍵を書かない）。
+- JX 音声(⑤)の既定は Pro TTS（課金有効鍵が必要）。無料検証は Flash（`-TtsModel gemini-2.5-flash-preview-tts`）。
+- headless 起動は巨大プロンプトを **stdin パイプ**で `claude -p` に渡す（`-p 引数`渡しは PowerShell が壊す・nested 実行で顕著）。
+
 ---
 
 ## §7. 絶対禁止事項
