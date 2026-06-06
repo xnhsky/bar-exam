@@ -109,19 +109,49 @@ if ($missing.Count -gt 0) {
 if (-not (Test-Path $JxOutputDir)) { New-Item -Path $JxOutputDir -ItemType Directory -Force | Out-Null }
 
 # === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
-# inputs/jx-pdfs/{NNN}.pdf を列挙。同番号の逐語(.txt/.md)が必須。既に HTML があれば SKIP_EXISTS。
-$AllPdfs = Get-ChildItem -Path $PdfDir -Filter "*.pdf" | Sort-Object Name
-# 同ディレクトリの逐語候補（.txt/.md）を 1 度だけ列挙（.txt を優先）
-$TranscriptCands = @(Get-ChildItem -Path $PdfDir -File -ErrorAction SilentlyContinue |
-    Where-Object { $_.Extension -in '.txt', '.md' } |
-    Sort-Object @{ Expression = { $_.Extension } } -Descending)  # .txt > .md
+# 入力レイアウト（2026-06-06 分類確定）:
+#   PDF  : inputs\jx\{科目}\重問PDF\NN.pdf
+#   逐語 : inputs\jx\{科目}\講義逐語\{科目名}_重問NN[_文字起こし].txt（または .md）
+# 後方互換: 旧フラット（{科目}\NN.pdf ＋ {科目}\NN.txt）も拾う。
+$PdfSubDir   = Join-Path $PdfDir "重問PDF"
+$TransSubDir = Join-Path $PdfDir "講義逐語"
 
-# 同番号逐語の探索ヘルパ（先頭連続数字が一致する最初の .txt/.md）
+# PDF は 重問PDF\ を優先、その後フラット {科目}\ 直下。同名 PDF はサブフォルダ優先で 1 つに。
+$PdfSearchDirs = @()
+if (Test-Path $PdfSubDir) { $PdfSearchDirs += $PdfSubDir }
+$PdfSearchDirs += $PdfDir
+$seenPdf = @{}
+$AllPdfs = @()
+foreach ($dir in $PdfSearchDirs) {
+    foreach ($p in @(Get-ChildItem -Path $dir -Filter "*.pdf" -File -ErrorAction SilentlyContinue | Sort-Object Name)) {
+        if (-not $seenPdf.ContainsKey($p.Name)) { $seenPdf[$p.Name] = $true; $AllPdfs += $p }
+    }
+}
+
+# 逐語候補（.txt/.md）は 講義逐語\ ＋ フラット {科目}\ 直下の両方から（.txt 優先）
+$TransSearchDirs = @()
+if (Test-Path $TransSubDir) { $TransSearchDirs += $TransSubDir }
+$TransSearchDirs += $PdfDir
+$TranscriptCands = @($TransSearchDirs | ForEach-Object {
+        Get-ChildItem -Path $_ -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -in '.txt', '.md' }
+    } | Sort-Object @{ Expression = { $_.Extension } } -Descending)  # .txt > .md
+
+# 逐語ファイル名から問題番号を抽出（'重問NN' を最優先、無ければ先頭連続数字）
+function Get-TranscriptNumber {
+    param([string]$Stem)
+    if ($Stem -match '重問\s*0*(\d+)') { return [int]$Matches[1] }
+    if ($Stem -match '^0*(\d+)')       { return [int]$Matches[1] }
+    return $null
+}
+
+# 同番号逐語の探索ヘルパ（番号一致する最初の .txt/.md）
 function Find-Transcript {
     param([int]$NumInt)
     foreach ($f in $TranscriptCands) {
         $stem = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
-        if ($stem -match '^\d+' -and [int]$Matches[0] -eq $NumInt) { return $f.FullName }
+        $n = Get-TranscriptNumber -Stem $stem
+        if ($null -ne $n -and $n -eq $NumInt) { return $f.FullName }
     }
     return $null
 }
@@ -160,7 +190,8 @@ foreach ($pdf in $AllPdfs) {
     }
 }
 
-$Pending = @($Catalog | Where-Object { $_.Status -eq "PENDING" })
+# 番号で数値ソート（文字列ソートだと "10" が "2" より前に来てしまうため）
+$Pending = @($Catalog | Where-Object { $_.Status -eq "PENDING" } | Sort-Object { [int]$_.Number })
 $Targets = @($Pending | Select-Object -First $MaxProblems)
 
 # === 検出結果サマリ ===
@@ -198,7 +229,12 @@ if ($DryRun) {
         Write-Host "      逐語       : $($t.TranscriptPath)  (注入: {TRANSCRIPT_PATH})"
         Write-Host "      ① JX 出力  : $($t.JxOutputPath)"
         Write-Host "      ② validate : python `"$ValidateJx`" `"$($t.JxOutputPath)`""
-        Write-Host "          [DRYRUN] PASS 時 would delete PDF: $($t.PdfPath)  (逐語は保持)"
+        $pdfParentDr = Split-Path -Parent $t.PdfPath
+        if ((Split-Path $pdfParentDr -Leaf) -eq '重問PDF') {
+            Write-Host "          [DRYRUN] PASS 時 PDF は保持（原本ストア 重問PDF\）: $($t.PdfPath)"
+        } else {
+            Write-Host "          [DRYRUN] PASS 時 would delete PDF（フラット配置）: $($t.PdfPath)  (逐語は保持)"
+        }
         Write-Host "      ③ TTS 出力 : $($t.TtsOutputDir)\"
         Write-Host "          [DRYRUN] would clean: $($t.TtsOutputDir)  (*.txt のみ・leaf=$($t.ProblemId) 一致時のみ・他フォルダは触らない)"
         Write-Host "      ④ validate : python `"$ValidateTts`" `"$($t.TtsOutputDir)`" $($t.ProblemId)"
@@ -223,14 +259,33 @@ if (-not (Test-Path $CostCsv)) {
 # プロンプト本文を渡して JSON 出力で起動し、生出力とexit codeを返す
 function Invoke-ClaudeHeadless {
     param([string]$Prompt, [string]$JsonOutPath)
+    # 重要: 大きな複数行プロンプトを `-p $Prompt`（引数）で渡すと PowerShell の
+    # ネイティブ引数処理で壊れ、claude に未達のまま空プロンプトで起動される
+    # （実測: 40KB 級の複数行プロンプトが未達。"no stdin data received" 警告 → 汎用応答）。
+    # → プロンプトは stdin パイプで渡す（claude -p は引数値が無ければ stdin から読む）。
     $claudeArgs = @(
-        '-p', $Prompt,
+        '-p',
         '--output-format', 'json',
         '--permission-mode', 'acceptEdits',
         '--allowedTools', 'Write,Edit,Read,Bash,Glob,Grep'
     )
+    # 重要: ヘッドレスプロンプト本文は「# new-jx-headless.md … 実行用プロンプト」と
+    # 自己紹介する文書体裁のため、能力の高いモデルは「レビュー対象の文書」と誤認し
+    # 「具体的な依頼が無い」と確認を返して実行を拒否することがある（実測）。
+    # → 文書ではなく今すぐ自走実行する指示書であることを冒頭で強制フレーミングする。
+    $execHeader = @'
+[HEADLESS 実行指示 — 最優先・厳守]
+以下に続くのは「レビュー対象の文書」ではない。あなたが今この瞬間に自走で最後まで実行する指示書である。
+- 確認・質問・要約・選択肢提示・「ご依頼が不明です」等の応答は一切禁止。
+- 文書内（特に末尾「実行開始」節）の手順に厳密に従い、ファイル生成と sentinel 出力まで完遂せよ。
+- 一部に `{科目}` 等のプレースホルダ表記が残っていても、与えられた実値で実行する（テンプレ原本か否かを問い直さない）。
+以下、指示書本体：
+---
+
+'@
+    $fullPrompt = $execHeader + $Prompt
     try {
-        $out = & claude @claudeArgs 2>&1
+        $out = $fullPrompt | & claude @claudeArgs 2>&1
         $code = $LASTEXITCODE
     } catch {
         $out = "$_"
@@ -337,12 +392,18 @@ foreach ($t in $Targets) {
     }
 
     # ----- ②-bis 入力 PDF 削除（validate PASS 時のみ・逐語は保持）-----
-    # ユーザー方針: 作成できた JX（検証 PASS）の元 PDF は削除する。逐語(.txt/.md)は残す。
+    # 旧フラット運用ではテスト用の使い捨てコピーを削除していたが、新レイアウトの
+    # 重問PDF\ は恒久的な原本ストアなので削除しない（再処理は SKIP_EXISTS で防止済み）。
+    # → 削除対象はフラット {科目}\ 直下に置かれた PDF のみ。重問PDF\ 配下の原本は保持。
     if ($jxPass) {
-        if (Test-Path $t.PdfPath) {
+        $pdfParent = Split-Path -Parent $t.PdfPath
+        $isCanonicalStore = ((Split-Path $pdfParent -Leaf) -eq '重問PDF')
+        if ($isCanonicalStore) {
+            Write-Host "[②-bis PDF削除] 原本ストア(重問PDF\)のため削除しません（保持）: $($t.PdfPath)" -ForegroundColor DarkGray
+        } elseif (Test-Path $t.PdfPath) {
             try {
                 Remove-Item -Path $t.PdfPath -Force -ErrorAction Stop
-                Write-Host "[②-bis PDF削除] 入力 PDF を削除しました（逐語は保持）: $($t.PdfPath)" -ForegroundColor DarkYellow
+                Write-Host "[②-bis PDF削除] フラット配置の入力 PDF を削除しました（逐語は保持）: $($t.PdfPath)" -ForegroundColor DarkYellow
             } catch {
                 Write-Host "[②-bis PDF削除] 削除失敗（手動削除可・処理は継続）: $_" -ForegroundColor Yellow
             }
@@ -429,7 +490,10 @@ foreach ($t in $Targets) {
     Add-Content -Path $CostCsv -Value $csvLine -Encoding utf8
 
     # ----- 連続失敗判定 -----
-    if ($overall -eq "JX_FAILED" -or $jxExit -ne 0 -or $jxBytes -eq 0) {
+    # 真の失敗のみカウント（JX_FAILED or HTML 0 バイト）。claude -p が exit≠0 を
+    # 返しても、validate-jx PASS かつ bytes>0 なら実質成功なので失敗に数えない
+    # （headless で sentinel echo 周りが非0終了することがあり、誤って連続失敗 abort を招く）。
+    if ($overall -eq "JX_FAILED" -or $jxBytes -eq 0) {
         $ConsecutiveFailures++
         Write-Host "[WARN] 連続失敗: $ConsecutiveFailures / $MaxConsecutiveFailures" -ForegroundColor Yellow
         if ($ConsecutiveFailures -ge $MaxConsecutiveFailures) {
