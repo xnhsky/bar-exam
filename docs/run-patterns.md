@@ -59,6 +59,33 @@ inputs/jx/{科目}/講義逐語/{科目}_重問NN[_文字起こし].txt
 ```
 （旧フラット `inputs/jx/{科目}/NN.pdf ＋ NN.txt` も後方互換で拾う）
 
+## 成果物の配置（⑥ deploy・Drive＋repo ミラー）
+
+JX バッチ（JX-MAIN / JX-SUB）は末尾 ⑥ で、生成できた各問の成果物を **2 系統**へ自動配置する。
+
+- **科目別の配置先**（`scripts/jx-deploy.ps1` が解決）:
+
+  | 種別 | 配置先（`2 JX_論 文\` 以下） |
+  |---|---|
+  | JX HTML | `00N_科目\`（例 刑=`001_刑法`） |
+  | TTS 台本 txt | `A_重問耳トレ\N 科目\TTSファイル原本\`（例 刑=`1 刑法`） |
+  | 音声 wav | `A_重問耳トレ\N 科目\` |
+
+- **2 系統**:
+  - ① repo ミラー：`deploy\2 JX_論 文\…`（常時。構造のみ git 管理＝`.gitkeep`／実ファイルは `.gitignore`）
+  - ② Google Drive：`H:\マイドライブ\CATALINA＿G共有\■予備試験進行中\2 JX_論 文\…`（**H: マウント時のみ**。未マウントなら repo ミラーだけ）
+
+- **フォルダ作成（初回 / 科目追加時）**:
+  ```powershell
+  pwsh -NoProfile -File scripts/jx-deploy.ps1 -InitAll      # 全7科目を repo＋Drive 両方に作成
+  ```
+- **手動配置**（バッチを通さず既存成果物を置き直す）:
+  ```powershell
+  pwsh -NoProfile -File scripts/jx-deploy.ps1 -Subject 刑 -ProblemId 刑JX002
+  pwsh -NoProfile -File scripts/jx-deploy.ps1 -Subject 刑                 # 科目の全HTML分
+  ```
+- バッチで配置を止めるには `-SkipDeploy`（例 `JX-MAIN.ps1` 経由なら underlying runner へ委譲）。
+
 ## 備考
 
 - いずれのパターンも、巨大プロンプトは **stdin パイプ**で claude -p に渡す（`-p 引数`渡しは PowerShell が壊すため・特に nested 実行で顕著）。

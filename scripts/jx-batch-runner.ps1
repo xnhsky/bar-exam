@@ -32,11 +32,14 @@ param(
     [ValidateSet('刑','刑訴','民','商','民訴','憲','行政')]
     [string]$Subject = '刑',            # 科目接頭辞（出力先・PROBLEM_ID・配色アンカーに使用）
     [int]$MaxProblems = 5,              # 1 起動あたり最大処理数
+    [int]$FromNumber = 0,               # 処理対象の最小問題番号 (0 = 下限なし)
+    [int]$ToNumber = 0,                 # 処理対象の最大問題番号 (0 = 上限なし)
     [int]$MaxConsecutiveFailures = 3,   # 連続失敗で abort
     [switch]$SkipAudio,                 # 指定時は⑤音声生成をスキップ（台本集約まで・課金回避）
     [ValidateSet('main','sub')]
     [string]$KeyName = 'main',          # 使う鍵：.secrets\gemini_{main|sub}.key を自動読込
     [string]$TtsModel = '',             # ⑤音声のモデル上書き（空=generate_tts.py 既定=Pro / 'gemini-2.5-flash-preview-tts' で無料Flash）
+    [switch]$SkipDeploy,                # 指定時は⑥配置（Drive＋repoミラー）をスキップ
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
 )
 
@@ -96,8 +99,24 @@ if (-not (Test-Path $LogsDir)) { New-Item -Path $LogsDir -ItemType Directory -Fo
 # === 開始ログ ===
 Start-Transcript -Path $RunLog -Append | Out-Null
 
+# === スリープ抑止（self-contained・DryRun 以外）===
+# 長時間バッチ中の PC スリープ/ディスプレイ停止を防ぐ。ES_CONTINUOUS はスレッド/プロセスに
+# 紐づくため、本 runner プロセス終了で OS が自動的に既定の電源ポリシーへ復帰する（明示解除不要）。
+# NBR 共通方針（feedback_nbr_keep_awake）に従い JX runner も自己完結で組み込む。
+if (-not $DryRun) {
+    try {
+        $sig = '[DllImport("kernel32.dll", SetLastError=true)] public static extern uint SetThreadExecutionState(uint esFlags);'
+        $PW = Add-Type -MemberDefinition $sig -Name PW -Namespace Win32 -PassThru -ErrorAction Stop
+        # ES_CONTINUOUS(0x80000000)|ES_SYSTEM_REQUIRED(0x1)|ES_DISPLAY_REQUIRED(0x2)
+        [void]$PW::SetThreadExecutionState([uint32]2147483651)
+        Write-Host "[KEEP-AWAKE] スリープ抑止 ON（プロセス終了で自動復帰）" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "[KEEP-AWAKE] 抑止設定に失敗（続行）: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 Write-Host "=== jx-batch-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
-Write-Host "Subject: $Subject (接頭=$SubjectDir) / MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun / SkipAudio: $SkipAudio"
+Write-Host "Subject: $Subject (接頭=$SubjectDir) / MaxProblems: $MaxProblems / NumberRange: From=$FromNumber To=$ToNumber (0=無制限) / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun / SkipAudio: $SkipAudio"
 Write-Host "PDF dir   : $PdfDir  (PDF＋同番号逐語 .txt/.md)"
 Write-Host "JX  output: $JxOutputDir"
 Write-Host "TTS output: $TtsOutputBase\{PROBLEM_ID}\"
@@ -217,6 +236,15 @@ foreach ($pdf in $AllPdfs) {
 
 # 番号で数値ソート（文字列ソートだと "10" が "2" より前に来てしまうため）
 $Pending = @($Catalog | Where-Object { $_.Status -eq "PENDING" } | Sort-Object { [int]$_.Number })
+# レンジ絞り込み（最若番優先の既定動作に対し、特定番号帯だけを対象にする catch-up 用）。
+# FromNumber / ToNumber が 0 のときは無制限（＝従来動作を完全保持）。TX night-batch-runner と対称。
+if ($FromNumber -gt 0 -or $ToNumber -gt 0) {
+    $Pending = @($Pending | Where-Object {
+        $numInt = [int]$_.Number
+        (($FromNumber -le 0) -or ($numInt -ge $FromNumber)) -and
+        (($ToNumber   -le 0) -or ($numInt -le $ToNumber))
+    })
+}
 $Targets = @($Pending | Select-Object -First $MaxProblems)
 
 # === 検出結果サマリ ===
@@ -363,6 +391,7 @@ function Clear-TtsOutputDir {
 # === 1 問処理ループ ===
 $ConsecutiveFailures = 0
 $ProcessedCount = 0
+$DeployIds = @()   # ⑥配置対象（HTML 生成＝jxPass の問題 ID）
 
 foreach ($t in $Targets) {
     Write-Host "`n==================== [$($t.ProblemId)] ====================" -ForegroundColor Cyan
@@ -529,6 +558,9 @@ foreach ($t in $Targets) {
         $ConsecutiveFailures = 0
     }
 
+    # ⑥配置対象として記録（HTML 生成済み＝jxPass）。実配置はバッチ末尾（⑤音声の後）。
+    if ($jxPass) { $DeployIds += $t.ProblemId }
+
     $ProcessedCount++
 }
 
@@ -552,6 +584,27 @@ if (-not $StagedAny) {
     Write-Host "[⑤ AUDIO] input_texts $inTxtCount 件を音声化します（既 wav はスキップ・課金）" -ForegroundColor Cyan
     & pwsh -NoProfile -File $RunTts
     Write-Host "[⑤ AUDIO] run-tts 完了 (exit=$LASTEXITCODE)。残件があれば再実行で続行可。" -ForegroundColor Cyan
+}
+
+# =========================================================
+# ⑥ 配置（Drive＋repo ミラー）
+#   - jxPass の各問題の HTML/台本/wav を jx-deploy.ps1 で両配置先へコピー
+#   - HTML は常時、台本/wav は存在するものだけ。Drive 未マウントなら repo ミラーのみ
+# =========================================================
+$JxDeploy = Join-Path $ProjectRoot "scripts\jx-deploy.ps1"
+Write-Host "`n--- ⑥ 配置（Drive＋repoミラー）---" -ForegroundColor Cyan
+if ($SkipDeploy) {
+    Write-Host "[⑥ DEPLOY] -SkipDeploy 指定 → 配置スキップ。" -ForegroundColor Yellow
+} elseif ($DeployIds.Count -eq 0) {
+    Write-Host "[⑥ DEPLOY] 配置対象なし（jxPass 0 件）。" -ForegroundColor Yellow
+} elseif (-not (Test-Path $JxDeploy)) {
+    Write-Host "[⑥ DEPLOY] jx-deploy.ps1 が見つかりません: $JxDeploy（配置スキップ）" -ForegroundColor Yellow
+} else {
+    foreach ($id in $DeployIds) {
+        Write-Host "[⑥ DEPLOY] $id を配置..." -ForegroundColor Cyan
+        & pwsh -NoProfile -File $JxDeploy -Subject $Subject -ProblemId $id
+    }
+    Write-Host "[⑥ DEPLOY] $($DeployIds.Count) 問の配置完了。" -ForegroundColor Green
 }
 
 Write-Host "`n=== jx-batch-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
