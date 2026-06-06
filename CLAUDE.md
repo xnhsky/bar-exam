@@ -326,14 +326,15 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 |---|---|---|---|
 | **TX-MARCH** | TX 連番NBR | tx-pdfs 最若番から N問（既定5）生成→検証→commit/push（GENESIS） | — |
 | **TX-PICK** | TX 任意NBR | 指定番号/範囲の TX を生成（GENESIS） | — |
-| **JX-MAIN** | JX 一気通貫 | inputs/jx 最若番から N問（既定3）JX→台本→**Pro音声**まで（ATHENA） | `.secrets/gemini_main.key` / Pro |
-| **JX-SUB** | JX 一気通貫 | 同上をサブ鍵で。音声は既定 **Flash(無料)** | `.secrets/gemini_sub.key` / Flash |
+| **JX-MAIN** | JX レーン1 | inputs/jx 最若番から N問（既定3）JX→validate→台本→validate→配置まで（ATHENA・**音声なし**） | — |
+| **JX-SUB** | JX レーン2 | JX-MAIN と同一スコープ（二台運用で番号帯を分ける第2レーン・**音声なし**） | — |
 
 - 実体は `scripts/patterns/{TX-MARCH,TX-PICK,JX-MAIN,JX-SUB}.ps1`（薄ラッパー）。
-- **API キーは `.secrets/` にローカル保存し git 管理外**（`.gitignore` で `.secrets/`・`*.key` 除外）。
-  ランナーは `$env:GEMINI_API_KEY` 優先、無ければ `KeyName`(main/sub) に応じた鍵ファイルを自動読込。
-  鍵を更新/再発行したら `.secrets/*.key` を差し替える（コード・ドキュメントに鍵を書かない）。
-- JX 音声(⑤)の既定は Pro TTS（課金有効鍵が必要）。無料検証は Flash（`-TtsModel gemini-2.5-flash-preview-tts`）。
+- **JX-MAIN／JX-SUB は TTS 台本生成まで。音声（wav）は自動化せず AI Studio で手動生成する**（2026-06-06 方針変更）。
+  台本は `outputs/tts/{問題ID}/`（配置後は `…TTSファイル原本\{問題ID}\`）。これを AI Studio で音声化し
+  wav を `…A_重問耳トレ\N 科目\{問題ID}\` に置く。鍵（main/sub）・Pro/Flash の区別・自動音声段(旧⑤)は撤回。
+  - 理由：Gemini Pro TTS は API 無料枠が上限0（429）で課金必須・Flash は使わない方針のため。
+  - 旧自動音声資産（`jx-batch-runner.ps1 ⑤` / `tts/run-tts.ps1` / `generate_tts.py`）は残置するがパターン経由では呼ばない。
 - headless 起動は巨大プロンプトを **stdin パイプ**で `claude -p` に渡す（`-p 引数`渡しは PowerShell が壊す・nested 実行で顕著）。
 - JX バッチは末尾 ⑥ で成果物を **Drive＋repo ミラー**へ自動配置（`scripts/jx-deploy.ps1`）。
   配置先：HTML→`2 JX_論 文\00N_科目`（フラット）／台本→`A_重問耳トレ\N 科目\TTSファイル原本\{問題ID}`／音声→`A_重問耳トレ\N 科目\{問題ID}`（台本・音声は問題IDサブフォルダ）。
