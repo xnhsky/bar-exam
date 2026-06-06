@@ -336,7 +336,7 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 - JX 音声(⑤)の既定は Pro TTS（課金有効鍵が必要）。無料検証は Flash（`-TtsModel gemini-2.5-flash-preview-tts`）。
 - headless 起動は巨大プロンプトを **stdin パイプ**で `claude -p` に渡す（`-p 引数`渡しは PowerShell が壊す・nested 実行で顕著）。
 - JX バッチは末尾 ⑥ で成果物を **Drive＋repo ミラー**へ自動配置（`scripts/jx-deploy.ps1`）。
-  配置先：HTML→`2 JX_論 文\00N_科目`／台本→`A_重問耳トレ\N 科目\TTSファイル原本`／音声→`A_重問耳トレ\N 科目`。
+  配置先：HTML→`2 JX_論 文\00N_科目`（フラット）／台本→`A_重問耳トレ\N 科目\TTSファイル原本\{問題ID}`／音声→`A_重問耳トレ\N 科目\{問題ID}`（台本・音声は問題IDサブフォルダ）。
   repo ミラーは `deploy\`（構造のみ git・実ファイルは `.gitignore`）。Drive は H: マウント時のみ。
   フォルダ作成は `jx-deploy.ps1 -InitAll`、配置停止は `-SkipDeploy`。
 

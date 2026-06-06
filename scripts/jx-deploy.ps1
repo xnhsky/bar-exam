@@ -5,9 +5,10 @@
 #   ② Google Drive: H:\マイドライブ\CATALINA＿G共有\■予備試験進行中\2 JX_論 文\...（マウント時のみ）
 #
 # 科目ごとの配置:
-#   - JX HTML  → 「{2 JX_論 文}\00N_科目\」
-#   - TTS 台本 → 「{2 JX_論 文}\A_重問耳トレ\N 科目\TTSファイル原本\」
-#   - 音声 wav → 「{2 JX_論 文}\A_重問耳トレ\N 科目\」
+#   - JX HTML  → 「{2 JX_論 文}\00N_科目\」（フラット）
+#   - TTS 台本 → 「{2 JX_論 文}\A_重問耳トレ\N 科目\TTSファイル原本\{問題ID}\」（問題IDサブフォルダ内）
+#   - 音声 wav → 「{2 JX_論 文}\A_重問耳トレ\N 科目\{問題ID}\」（問題IDサブフォルダ内）
+#     ※ 台本/wav は問題ごとにフォルダを作ってその中へ格納（ユーザー指示 2026-06-06）。HTML は従来どおりフラット。
 #
 # 使い方:
 #   pwsh -NoProfile -File scripts/jx-deploy.ps1 -InitAll                 # 全7科目のフォルダを両方に作成
@@ -115,17 +116,25 @@ foreach ($t in $Targets) {
             if ($DryRun) { Write-Host "  [DRYRUN] HTML $id.html -> $($t.Label):$($info.html)" }
             else { Copy-Item -LiteralPath $html -Destination $d.Html -Force; $sumHtml++ }
         }
-        # TTS 台本 txt（outputs/tts/{ID}/*.txt）
+        # TTS 台本 txt（outputs/tts/{ID}/*.txt）→ TTSファイル原本\{問題ID}\ サブフォルダ内へ
         $txts = @(Get-ChildItem -Path (Join-Path $TtsBase $id) -Filter "*.txt" -File -ErrorAction SilentlyContinue)
-        foreach ($x in $txts) {
-            if ($DryRun) { } else { Copy-Item -LiteralPath $x.FullName -Destination $d.Tts -Force; $sumTxt++ }
+        if ($txts.Count -gt 0) {
+            $ttsDest = Join-Path $d.Tts $id          # 例: ...\TTSファイル原本\刑JX025\
+            Ensure-Dir $ttsDest
+            foreach ($x in $txts) {
+                if ($DryRun) { } else { Copy-Item -LiteralPath $x.FullName -Destination $ttsDest -Force; $sumTxt++ }
+            }
         }
-        # 音声 wav（tts/output_audio/{ID}-*.wav）
+        # 音声 wav（tts/output_audio/{ID}-*.wav）→ 耳トレ\N 科目\{問題ID}\ サブフォルダ内へ
         $wavs = @(Get-ChildItem -Path $WavDir -Filter "$id-*.wav" -File -ErrorAction SilentlyContinue)
-        foreach ($w in $wavs) {
-            if ($DryRun) { } else { Copy-Item -LiteralPath $w.FullName -Destination $d.Mimi -Force; $sumWav++ }
+        if ($wavs.Count -gt 0) {
+            $wavDest = Join-Path $d.Mimi $id         # 例: ...\A_重問耳トレ\1 刑法\刑JX025\
+            Ensure-Dir $wavDest
+            foreach ($w in $wavs) {
+                if ($DryRun) { } else { Copy-Item -LiteralPath $w.FullName -Destination $wavDest -Force; $sumWav++ }
+            }
         }
-        if ($DryRun) { Write-Host ("  [DRYRUN] {0}: txt {1}本 / wav {2}本 -> {3}" -f $id, $txts.Count, $wavs.Count, $t.Label) }
+        if ($DryRun) { Write-Host ("  [DRYRUN] {0}: txt {1}本 -> {3}:{2}\TTSファイル原本\{0}\ ／ wav {5}本 -> {3}:{4}\{0}\" -f $id, $txts.Count, $info.mimi, $t.Label, $info.mimi, $wavs.Count) }
     }
     Write-Host "  [$($t.Label)] 配置先ベース: $($t.Base)" -ForegroundColor DarkGray
 }
