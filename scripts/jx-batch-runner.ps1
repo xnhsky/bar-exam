@@ -181,11 +181,15 @@ $TranscriptCands = @($TransSearchDirs | ForEach-Object {
             Where-Object { $_.Extension -in '.txt', '.md' }
     } | Sort-Object @{ Expression = { $_.Extension } } -Descending)  # .txt > .md
 
-# 逐語ファイル名から問題番号を抽出（'重問NN' を最優先、無ければ先頭連続数字）
+# 逐語ファイル名から問題番号を抽出
+#   '重問逐語NN'（2026-06-07 内容照合後の新命名）と '重問NN'（旧命名）の両方に対応。
+#   ※ 逐語は PDF と「同番号」になるよう内容照合で改名済み（正典: inputs/jx/刑/逐語-PDF対応表.md）。
+#      旧フォールバック '^0*(\d+)' は '刑法_重問逐語NN' のように科目接頭辞付きステムでは
+#      先頭が数字でないため発火せず番号を取れなかった。'重問(?:逐語)?' で確実に拾う。
 function Get-TranscriptNumber {
     param([string]$Stem)
-    if ($Stem -match '重問\s*0*(\d+)') { return [int]$Matches[1] }
-    if ($Stem -match '^0*(\d+)')       { return [int]$Matches[1] }
+    if ($Stem -match '重問(?:逐語)?\s*0*(\d+)') { return [int]$Matches[1] }
+    if ($Stem -match '^0*(\d+)')               { return [int]$Matches[1] }
     return $null
 }
 
