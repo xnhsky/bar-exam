@@ -90,6 +90,10 @@
 > 1. PDF を画像化して全問の事案を読解（画像PDFは pdftotext 不可・pymupdf で rasterize）。
 > 2. 各逐語の中身と PDF 事案を**内容照合**し、一致した PDF 番号で `{科目}_重問逐語NN.txt` に改名。
 >    識別子（登場人物 甲乙丙・罪名・金額・凶器・判例年）で突き合わせ、低信頼は「要確認」に隔離。
+>    照合補助に **`python scripts/jx-match-transcripts.py --subject {科目}`**（OCR＋文字n-gram
+>    TF-IDF コサイン）を使うと CONFIDENT/REVIEW/RESIDUAL/逐語欠落PDF に層別した提案
+>    `_match-proposal.md` が出る（刑法で top-3=100%・CONFIDENT 69件実証）。**自動改名はせず**
+>    CONFIDENT を `--apply` で改名、REVIEW/RESIDUAL は PDF 実物で人手確定（§5-4）。
 > 3. **PDF に対応しない余り逐語は「数字を抽出できない名前」**（例 `{科目}_重問_余り旧NN_{論点}.txt`）
 >    にして番号一致ペアリングから除外（数字付き旧名で残すと別 PDF と誤ペアリングする）。
 > 4. 結果を `inputs/jx/{科目}/逐語-PDF対応表.md`（科目別正典）に記録し来歴も残す。
@@ -328,6 +332,31 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 - 構文要素（J16〜J17）：旧第N項表記禁止／pattern 名禁止
 - 部構成（J18）：第 5 部 back-refs ≥ 3
 - 仕上げ（J19〜J20）：フッター励まし文言／スムーズスクロール JS
+
+### 5-4. JX 逐語↔PDF 照合補助（番号ズレ対策・新規科目の取り込み）
+
+```bash
+python scripts/jx-match-transcripts.py --subject 刑              # 提案を _match-proposal.md に出力
+python scripts/jx-match-transcripts.py --subject 刑 --validate   # 既存 重問逐語NN 命名で精度検証
+python scripts/jx-match-transcripts.py --subject 刑 --apply      # CONFIDENT 層のみ git mv で改名
+```
+
+**目的：** 講義逐語の番号は動画通し番号で PDF 問題番号と別系統（CLAUDE.md §4 取り込み
+プロトコル）。番号を結合キーにせず**中身で照合**して `{科目}_重問逐語NN.txt` 命名へ揃える。
+
+**仕組み：** 重問PDF を pymupdf でラスタライズ→tesseract(jpn) OCR（`_ocr_cache/` に
+キャッシュ）。ひらがな（話し言葉ノイズ）を除去し、漢字/カタカナ/英数字の**文字 n-gram
+TF-IDF コサイン**で各逐語を最近傍 PDF へ競合 greedy 割当。結果を 4 層に出力：
+
+- **CONFIDENT**：1 位かつ相対余白十分 → `--apply` で改名可
+- **REVIEW**：競合・余白僅少 → PDF 実物で人手確認
+- **RESIDUAL**：どの PDF にも割り当たらない逐語＝**総合問題/余り候補**（N問目以降と固定
+  しきい値で決め打ちしない設計）
+- **逐語欠落PDF**：逐語の付かない PDF（欠落／総合問題で対象外の可能性）
+
+**実証（刑法）：** top-1≈96%・top-3=100%／CONFIDENT 69・REVIEW 6・RESIDUAL 3。
+**自動改名はしない**（CONFIDENT のみ `--apply`）。生成時の照合ガード（冒頭で事案一致を
+自己照合）が最終安全網。依存：`pymupdf pytesseract pillow scikit-learn` ＋ `tesseract-ocr-jpn`。
 
 ---
 
