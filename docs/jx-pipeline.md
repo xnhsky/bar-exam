@@ -47,7 +47,7 @@ python scripts/check-jx-alignment.py 刑 --all
    `"<番号>": {"transcript": "<逐語ファイル名>", "keywords": ["論点語", ...], "note": "..."}` を追記。
 3. `python scripts/check-jx-alignment.py <科目> <番号>` で `[OK]` を確認。
 
-> **生成フローへの組み込み**：新規 JX 生成（new-jx / JX-MAIN/SUB）では、
+> **生成フローへの組み込み**：新規 JX 生成（new-jx / JX パターン）では、
 > PDF を読む前に必ず本チェッカーで逐語を解決する。`[ERROR]`（コード1・2）なら
 > **生成を中断**し、マニフェストを修正してから着手する（無断推定禁止）。
 
