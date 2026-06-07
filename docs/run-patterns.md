@@ -9,8 +9,12 @@
 |---|---|---|---|---|
 | **TX-MARCH** | TX① 連番NBR | GENESIS | tx-pdfs 最若番から N 問（既定5）生成→検証→各問 commit/push | — |
 | **TX-PICK** | TX② 任意NBR | GENESIS | 指定番号 / 範囲の TX を生成 | — |
-| **JX-MAIN** | JX① メイン | ATHENA | inputs/jx 最若番から N 問（既定3）JX→台本→**Pro 音声**まで一気通貫 | `gemini_main.key` / Pro |
-| **JX-SUB** | JX② サブ | ATHENA | JX-MAIN と同じ一気通貫をサブ鍵で。音声は既定 **Flash(無料)** | `gemini_sub.key` / Flash |
+| **JX-MAIN** | JX① レーン1 | ATHENA | inputs/jx 最若番から N 問（既定3）JX→validate→台本→validate→配置まで（**音声は含まない**） | — |
+| **JX-SUB** | JX② レーン2 | ATHENA | JX-MAIN と同一スコープ。二台運用で番号帯を分ける第2レーン（**音声は含まない**） | — |
+
+> **2026-06-06 方針変更：** JX-MAIN／JX-SUB は **TTS 台本生成まで**で止める。**音声（wav）は自動化せず、
+> 台本（`outputs/tts/{問題ID}/` ＝ 配置先 `TTSファイル原本\`）から AI Studio で手動生成**する。
+> これに伴い Gemini API を使った自動音声生成（旧 ⑤ 段）・鍵（main/sub）・Pro/Flash の区別は両パターンから撤回した。
 
 ## コマンド
 
@@ -24,32 +28,32 @@ pwsh -NoProfile -File scripts/patterns/TX-MARCH.ps1 -DryRun
 pwsh -NoProfile -File scripts/patterns/TX-PICK.ps1 -Number 366
 pwsh -NoProfile -File scripts/patterns/TX-PICK.ps1 -FromNumber 366 -ToNumber 370
 
-# JX-MAIN（メイン鍵・Pro音声・既定3問）
+# JX-MAIN（JX→台本まで・既定3問。音声は AI Studio で手動）
 pwsh -NoProfile -File scripts/patterns/JX-MAIN.ps1
 pwsh -NoProfile -File scripts/patterns/JX-MAIN.ps1 -Subject 民 -MaxProblems 3
-pwsh -NoProfile -File scripts/patterns/JX-MAIN.ps1 -DryRun        # 検出のみ・無課金
-pwsh -NoProfile -File scripts/patterns/JX-MAIN.ps1 -SkipAudio     # ④まで（音声なし）
+pwsh -NoProfile -File scripts/patterns/JX-MAIN.ps1 -DryRun        # 検出のみ
+pwsh -NoProfile -File scripts/patterns/JX-MAIN.ps1 -FromNumber 25 -ToNumber 27  # 25〜27 だけ
 
-# JX-SUB（サブ鍵・Flash音声=無料・既定3問）
+# JX-SUB（JX→台本まで・第2レーン。音声は AI Studio で手動）
 pwsh -NoProfile -File scripts/patterns/JX-SUB.ps1
-pwsh -NoProfile -File scripts/patterns/JX-SUB.ps1 -TtsModel ''    # サブ鍵が課金可なら Pro 音声に
+pwsh -NoProfile -File scripts/patterns/JX-SUB.ps1 -Subject 商 -MaxProblems 3
+pwsh -NoProfile -File scripts/patterns/JX-SUB.ps1 -FromNumber 28 -ToNumber 30  # 28〜30 だけ
 ```
 
-## 鍵の管理（重要・git 管理外）
+## 鍵の管理（JX-MAIN／JX-SUB では不要）
 
-- 鍵は `.secrets/` に置く。**git 管理外**（`.gitignore` で `.secrets/` と `*.key` を除外）。GitHub に載らない。
-  - `.secrets/gemini_main.key` … JX-MAIN 用（**Pro 利用可**の鍵）
-  - `.secrets/gemini_sub.key`  … JX-SUB 用（サブ鍵）
-- ランナーは `$env:GEMINI_API_KEY` があればそれを優先、無ければ `KeyName`（main/sub）に応じた鍵ファイルを自動読込。
-- 鍵を更新するときは該当 `.key` ファイルの中身を差し替えるだけ。コードや本ドキュメントには鍵を書かない。
-- **鍵をローテーション（再発行）したら `.secrets/*.key` も更新**すること。
+- **JX-MAIN／JX-SUB は API 鍵を使わない**（音声を自動生成しないため）。`.secrets/gemini_*.key` の用意は不要。
+- 鍵を使うのは、下の jx-batch-runner.ps1 を**直接** `-SkipAudio` なしで叩いて自動音声を出す場合のみ
+  （通常運用では使わない）。その場合に限り `.secrets/gemini_{main|sub}.key`（git 管理外）か `$env:GEMINI_API_KEY` を読む。
 
-## 音声モデルと課金（JX の ⑤ 段）
+## 音声（wav）の作り方 — AI Studio で手動（2026-06-06〜）
 
-- 既定（JX-MAIN）= `gemini-2.5-pro-preview-tts`（本番品質・**課金有効プロジェクトの鍵が必要**。無料枠は上限0で 429）。
-- JX-SUB 既定 = `gemini-2.5-flash-preview-tts`（**無料枠で動く**・品質は一段下）。
-- 音声を止めて台本までにするなら `-SkipAudio`。
-- `GEMINI_API_KEY` 未設定かつ鍵ファイルも無い場合は ⑤ 音声のみ自動スキップ（JX/台本は生成）。
+- JX-MAIN／JX-SUB は**台本（txt）まで**生成する。音声は**自動化しない**。
+- 各問の台本は `outputs/tts/{問題ID}/`（配置後は `…\A_重問耳トレ\N 科目\TTSファイル原本\{問題ID}\`）にある。
+  これを **AI Studio（aistudio.google.com）で手動**に音声化し、wav を `…\A_重問耳トレ\N 科目\{問題ID}\` に置く。
+- 演技指示・声の指定（旧 `STYLE_PROMPT` / `Laomedeia` 等）は AI Studio 側で都度指定する。
+- 旧・自動音声段（`jx-batch-runner.ps1 ⑤` / `tts/run-tts.ps1` / `generate_tts.py`）は残置するが、
+  パターン経由では呼ばれない（Gemini Pro TTS は無料枠が上限0＝429・Flash は使わない方針のため撤回）。
 
 ## 入力レイアウト（JX）
 

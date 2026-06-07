@@ -67,6 +67,37 @@
 > **科目フォルダに同居** させる ── `inputs/jx/{科目}/NN.pdf` ＋ `inputs/jx/{科目}/NN.txt`
 > （科目 = `刑/憲/民/商/民訴/刑訴/行政`）。逐語が無い PDF は `jx-batch-runner.ps1` が
 > `SKIP_NO_TRANSCRIPT` で対象外にする。TX は従来どおり `inputs/tx-pdfs/` フラット。
+>
+> **逐語の番号は「内容照合済み」前提（2026-06-07 確定・最重要）：** 講義逐語の番号は
+> 元々 PDF 番号と無関係な並びだった（例：旧 `刑法_重問28.txt` の中身は実は PDF34 の問題）。
+> これを **PDF の事案と内容照合して同番号へ改名**することで、`jx-batch-runner.ps1` の
+> 番号一致ペアリングが初めて正しく機能する。刑法は `inputs/jx/刑/重問PDF/NN.pdf` ＋
+> `inputs/jx/刑/講義逐語/刑法_重問逐語NN.txt`（NN は PDF と一致）に整備済み・正典は
+> **`inputs/jx/刑/逐語-PDF対応表.md`**。番号抽出は `Get-TranscriptNumber` が
+> `重問(?:逐語)?\s*0*(\d+)` で `重問逐語NN`／旧 `重問NN` 双方に対応。**PDF に対応する逐語が
+> 無い余り逐語は `刑法_重問_余り旧NN_{論点}.txt` 等の「数字を抽出できない名前」にして
+> ペアリング対象から除外**する（数字付き旧名で残すと別 PDF と誤ペアリングする）。
+> 他科目（憲/民/商/民訴/刑訴/行政）も未照合なら同手順で内容照合→改名すること。
+>
+> **照合ガード（新規/再生成の冒頭で必須）：** JX 生成時は冒頭で **逐語の事案と PDF の事案が
+> 一致するか自己照合**し、不一致なら逐語を使わず**中断・報告**する（番号ミスの将来検知）。
+>
+> **逐語取り込みプロトコル（再発防止・新規科目で必須・2026-06-07 確定）：** 講義動画の
+> Whisper 逐語は**動画の通し番号で命名されており、重問PDFの問題番号とは別系統**（講座は
+> 教育順、PDF はテキスト順）。刑法では動画連番≠PDF番号で全面的にズレていた（原因の実証は
+> `inputs/jx/刑/逐語-PDF対応表.md` 付録）。**番号を結合キーにしてはならない。中身だけが正。**
+> 新規科目の取り込みは必ず次の順で行う：
+> 1. PDF を画像化して全問の事案を読解（画像PDFは pdftotext 不可・pymupdf で rasterize）。
+> 2. 各逐語の中身と PDF 事案を**内容照合**し、一致した PDF 番号で `{科目}_重問逐語NN.txt` に改名。
+>    識別子（登場人物 甲乙丙・罪名・金額・凶器・判例年）で突き合わせ、低信頼は「要確認」に隔離。
+>    照合補助に **`python scripts/jx-match-transcripts.py --subject {科目}`**（OCR＋文字n-gram
+>    TF-IDF コサイン）を使うと CONFIDENT/REVIEW/RESIDUAL/逐語欠落PDF に層別した提案
+>    `_match-proposal.md` が出る（刑法で top-3=100%・CONFIDENT 69件実証）。**自動改名はせず**
+>    CONFIDENT を `--apply` で改名、REVIEW/RESIDUAL は PDF 実物で人手確定（§5-4）。
+> 3. **PDF に対応しない余り逐語は「数字を抽出できない名前」**（例 `{科目}_重問_余り旧NN_{論点}.txt`）
+>    にして番号一致ペアリングから除外（数字付き旧名で残すと別 PDF と誤ペアリングする）。
+> 4. 結果を `inputs/jx/{科目}/逐語-PDF対応表.md`（科目別正典）に記録し来歴も残す。
+> 5. **総合問題など対象外の PDF レンジは対応表に明記**（逐語欠如の誤警告を防ぐ）。
 
 ---
 
@@ -218,7 +249,7 @@ v10.0.0 GOLD-SKELETON 経路への昇格は新規生成扱いとし、PDF から
 ### 4-3. 新規 JX 生成手順
 
 0. **入力アラインメント・チェック（必須・最初に実行）**：`python scripts/check-jx-alignment.py {科目} {番号}` で逐語を解決。`[OK]` 以外（逐語欠落・keyword 不一致＝ズレ疑い）は**生成を中断**してマニフェスト（`inputs/jx/transcript-map.json`）を修正（§4-5）。**重問PDFと講義逐語は番号がズレる系列がある**（刑28/29/30 は −7 ズレ）ため、同番号を無断前提にしない
-1. 問題 PDF を読解（実レイアウト：`inputs/jx/{科目}/重問PDF/{n}.pdf`）。**手順0で解決した講義逐語を必ず併読**（逐語が論点・規範・あてはめの第一次情報源）
+1. 問題 PDF を読解（実レイアウト：`inputs/jx/{科目}/重問PDF/{n}.pdf`）。**手順0で解決した講義逐語を必ず併読**（逐語が論点・規範・あてはめの第一次情報源）。刑法の逐語は `inputs/jx/刑/講義逐語/刑法_重問逐語NN.txt`（内容照合で PDF と同番号に改名済み・§2 注記）。**併読の冒頭で逐語の事案と PDF の事案が一致するか自己照合**し、不一致なら使わず中断・報告する（番号ミス検知の照合ガード）
 2. **§2 命名規則**でファイル名・出力先を確定 → `canonical/ATHENA.html` を出力先へ **`cp` で複製**
 3. 複製直後に**本文を空文字列で初期化**（content-independence 確保・§4-4）
 4. **配色**：複製した `:root{}` を更新。問題の雰囲気で全パレット（全 15 案＋派生）から AI 自由選定（科目固定色なし）。科目が `刑` で ATHENA 配色のままでよければ流用可
@@ -319,6 +350,31 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 - 部構成（J18）：第 5 部 back-refs ≥ 3
 - 仕上げ（J19〜J20）：フッター励まし文言／スムーズスクロール JS
 
+### 5-4. JX 逐語↔PDF 照合補助（番号ズレ対策・新規科目の取り込み）
+
+```bash
+python scripts/jx-match-transcripts.py --subject 刑              # 提案を _match-proposal.md に出力
+python scripts/jx-match-transcripts.py --subject 刑 --validate   # 既存 重問逐語NN 命名で精度検証
+python scripts/jx-match-transcripts.py --subject 刑 --apply      # CONFIDENT 層のみ git mv で改名
+```
+
+**目的：** 講義逐語の番号は動画通し番号で PDF 問題番号と別系統（CLAUDE.md §4 取り込み
+プロトコル）。番号を結合キーにせず**中身で照合**して `{科目}_重問逐語NN.txt` 命名へ揃える。
+
+**仕組み：** 重問PDF を pymupdf でラスタライズ→tesseract(jpn) OCR（`_ocr_cache/` に
+キャッシュ）。ひらがな（話し言葉ノイズ）を除去し、漢字/カタカナ/英数字の**文字 n-gram
+TF-IDF コサイン**で各逐語を最近傍 PDF へ競合 greedy 割当。結果を 4 層に出力：
+
+- **CONFIDENT**：1 位かつ相対余白十分 → `--apply` で改名可
+- **REVIEW**：競合・余白僅少 → PDF 実物で人手確認
+- **RESIDUAL**：どの PDF にも割り当たらない逐語＝**総合問題/余り候補**（N問目以降と固定
+  しきい値で決め打ちしない設計）
+- **逐語欠落PDF**：逐語の付かない PDF（欠落／総合問題で対象外の可能性）
+
+**実証（刑法）：** top-1≈96%・top-3=100%／CONFIDENT 69・REVIEW 6・RESIDUAL 3。
+**自動改名はしない**（CONFIDENT のみ `--apply`）。生成時の照合ガード（冒頭で事案一致を
+自己照合）が最終安全網。依存：`pymupdf pytesseract pillow scikit-learn` ＋ `tesseract-ocr-jpn`。
+
 ---
 
 ## §6. カスタムコマンド
@@ -343,14 +399,15 @@ python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
 |---|---|---|---|
 | **TX-MARCH** | TX 連番NBR | tx-pdfs 最若番から N問（既定5）生成→検証→commit/push（GENESIS） | — |
 | **TX-PICK** | TX 任意NBR | 指定番号/範囲の TX を生成（GENESIS） | — |
-| **JX-MAIN** | JX 一気通貫 | inputs/jx 最若番から N問（既定3）JX→台本→**Pro音声**まで（ATHENA） | `.secrets/gemini_main.key` / Pro |
-| **JX-SUB** | JX 一気通貫 | 同上をサブ鍵で。音声は既定 **Flash(無料)** | `.secrets/gemini_sub.key` / Flash |
+| **JX-MAIN** | JX レーン1 | inputs/jx 最若番から N問（既定3）JX→validate→台本→validate→配置まで（ATHENA・**音声なし**） | — |
+| **JX-SUB** | JX レーン2 | JX-MAIN と同一スコープ（二台運用で番号帯を分ける第2レーン・**音声なし**） | — |
 
 - 実体は `scripts/patterns/{TX-MARCH,TX-PICK,JX-MAIN,JX-SUB}.ps1`（薄ラッパー）。
-- **API キーは `.secrets/` にローカル保存し git 管理外**（`.gitignore` で `.secrets/`・`*.key` 除外）。
-  ランナーは `$env:GEMINI_API_KEY` 優先、無ければ `KeyName`(main/sub) に応じた鍵ファイルを自動読込。
-  鍵を更新/再発行したら `.secrets/*.key` を差し替える（コード・ドキュメントに鍵を書かない）。
-- JX 音声(⑤)の既定は Pro TTS（課金有効鍵が必要）。無料検証は Flash（`-TtsModel gemini-2.5-flash-preview-tts`）。
+- **JX-MAIN／JX-SUB は TTS 台本生成まで。音声（wav）は自動化せず AI Studio で手動生成する**（2026-06-06 方針変更）。
+  台本は `outputs/tts/{問題ID}/`（配置後は `…TTSファイル原本\{問題ID}\`）。これを AI Studio で音声化し
+  wav を `…A_重問耳トレ\N 科目\{問題ID}\` に置く。鍵（main/sub）・Pro/Flash の区別・自動音声段(旧⑤)は撤回。
+  - 理由：Gemini Pro TTS は API 無料枠が上限0（429）で課金必須・Flash は使わない方針のため。
+  - 旧自動音声資産（`jx-batch-runner.ps1 ⑤` / `tts/run-tts.ps1` / `generate_tts.py`）は残置するがパターン経由では呼ばない。
 - headless 起動は巨大プロンプトを **stdin パイプ**で `claude -p` に渡す（`-p 引数`渡しは PowerShell が壊す・nested 実行で顕著）。
 - JX バッチは末尾 ⑥ で成果物を **Drive＋repo ミラー**へ自動配置（`scripts/jx-deploy.ps1`）。
   配置先：HTML→`2 JX_論 文\00N_科目`（フラット）／台本→`A_重問耳トレ\N 科目\TTSファイル原本\{問題ID}`／音声→`A_重問耳トレ\N 科目\{問題ID}`（台本・音声は問題IDサブフォルダ）。
