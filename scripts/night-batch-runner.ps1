@@ -72,6 +72,22 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 # === 開始ログ ===
 Start-Transcript -Path $RunLog -Append
 
+# === スリープ抑止（self-contained・DryRun 以外）===
+# 長時間バッチ中の PC スリープ/ディスプレイ停止を防ぐ。ES_CONTINUOUS はスレッド/プロセスに
+# 紐づくため、本 runner プロセス終了で OS が自動的に既定の電源ポリシーへ復帰する（明示解除不要）。
+# NBR 共通方針（feedback_nbr_keep_awake）に従い TX runner も自己完結で組み込む（JX runner と対称）。
+if (-not $DryRun) {
+    try {
+        $sig = '[DllImport("kernel32.dll", SetLastError=true)] public static extern uint SetThreadExecutionState(uint esFlags);'
+        $PW = Add-Type -MemberDefinition $sig -Name PW -Namespace Win32 -PassThru -ErrorAction Stop
+        # ES_CONTINUOUS(0x80000000)|ES_SYSTEM_REQUIRED(0x1)|ES_DISPLAY_REQUIRED(0x2)
+        [void]$PW::SetThreadExecutionState([uint32]2147483651)
+        Write-Host "[KEEP-AWAKE] スリープ抑止 ON（プロセス終了で自動復帰）" -ForegroundColor DarkGray
+    } catch {
+        Write-Host "[KEEP-AWAKE] 抑止設定に失敗（続行）: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
 Write-Host "=== night-batch-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun"
 Write-Host "SpecVersion: $SpecVersion / SpecFile: $SpecFile"
