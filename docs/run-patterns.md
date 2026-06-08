@@ -48,7 +48,10 @@ pwsh -NoProfile -File scripts/patterns/JX.ps1 -Number 25     # 25 を1問だけ
 
 - JX は**台本（txt）まで**生成する。音声は**自動化しない**。
 - 各問の台本は `outputs/tts/{問題ID}/`（配置後は `…\A_重問耳トレ\N 科目\TTSファイル原本\{問題ID}\`）にある。
+  ファイル名は **`{問題ID}-{連番}.txt`**（2026-06-08〜・フラット通し番号。例 `刑JX029-1.txt` … `刑JX029-13.txt`）。
   これを **AI Studio（aistudio.google.com）で手動**に音声化し、wav を `…\A_重問耳トレ\N 科目\{問題ID}\` に置く。
+- **音声（DL）ファイルの保存名は台本の連番に合わせる**：`{問題番号}-{連番}`（例 `29-1.wav` … `29-13.wav`）。
+  AI Studio は出力名を事前固定できないため、**DL 時に手動で台本の番号へリネーム**する（台本 `刑JX029-3.txt` → 音声 `29-3.wav`）。
 - 演技指示・声の指定（旧 `STYLE_PROMPT` / `Laomedeia` 等）は AI Studio 側で都度指定する。
 - 旧・自動音声段（`jx-batch-runner.ps1 ⑤` / `tts/run-tts.ps1` / `generate_tts.py`）は残置するが、
   パターン経由では呼ばれない（Gemini Pro TTS は無料枠が上限0＝429・Flash は使わない方針のため撤回）。

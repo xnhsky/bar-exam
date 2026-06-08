@@ -23,7 +23,9 @@ from pathlib import Path
 CHAR_FLOOR = 1200
 CHAR_CEIL = 2500
 
-FNAME_PAT = re.compile(r"^(?P<id>.+?)-(?P<main>[1-7])(?P<sub>[a-d])\.txt$")
+# 新命名（2026-06-08〜）：{問題ID}-{連番}.txt （フラット通し番号・1 起点・ゼロ埋めなし）
+#   例 刑JX029-1.txt … 刑JX029-13.txt
+FNAME_PAT = re.compile(r"^(?P<id>.+?)-(?P<seq>\d+)\.txt$")
 
 TAG_CHECKS = [
     ("html_or_ssml_tag", re.compile(r"<[a-zA-Z/!?][^>]*>")),
@@ -33,8 +35,6 @@ TAG_CHECKS = [
     ("markdown_blockquote", re.compile(r"^>", re.MULTILINE)),
     ("bracket_markup", re.compile(r"\[[^\]\n]{1,30}\]")),
 ]
-
-SUBS = ("a", "b", "c", "d")
 
 
 def count_chars(text: str) -> int:
@@ -65,10 +65,10 @@ def validate_file(path: Path) -> tuple[bool, list[str], dict | None, int | None]
 
     m = FNAME_PAT.match(fname)
     if not m:
-        reasons.append("filename_format: must be {ID}-{1-7}{a-d}.txt")
+        reasons.append("filename_format: must be {ID}-{連番}.txt (例 刑JX029-1.txt)")
         return False, reasons, None, None
 
-    parsed = {"id": m.group("id"), "main": int(m.group("main")), "sub": m.group("sub")}
+    parsed = {"id": m.group("id"), "seq": int(m.group("seq"))}
 
     try:
         text = path.read_text(encoding="utf-8-sig")
@@ -89,40 +89,27 @@ def validate_file(path: Path) -> tuple[bool, list[str], dict | None, int | None]
 
 
 def validate_group(problem_id: str, members: list[tuple[Path, dict]]) -> list[str]:
-    """グループ単位の連番・必須要件検証"""
+    """グループ単位の連番・必須要件検証（フラット通し番号 1..N が欠番なく連続）"""
     reasons: list[str] = []
-    layout: dict[int, set[str]] = defaultdict(set)
-    for _, parsed in members:
-        layout[parsed["main"]].add(parsed["sub"])
+    seqs = sorted(parsed["seq"] for _, parsed in members)
 
-    if not layout:
+    if not seqs:
         return ["group: no parseable files"]
 
-    if 1 not in layout or "a" not in layout[1]:
-        reasons.append("group: 1a missing (required)")
+    if seqs[0] != 1:
+        reasons.append(f"group: 連番 1 missing (starts at {seqs[0]})")
 
-    max_main = max(layout.keys())
-    for m in range(1, max_main + 1):
-        if m not in layout:
+    dup = {s for s in seqs if seqs.count(s) > 1}
+    if dup:
+        reasons.append(f"group: 連番 重複 {sorted(dup)}")
+
+    max_seq = seqs[-1]
+    present = set(seqs)
+    for n in range(1, max_seq + 1):
+        if n not in present:
             reasons.append(
-                f"group: main part {m} missing (expected 1..{max_main} continuous)"
+                f"group: 連番 {n} missing (expected 1..{max_seq} continuous)"
             )
-
-    for m in sorted(layout.keys()):
-        subs = layout[m]
-        if not subs:
-            continue
-        sub_indices = sorted(SUBS.index(s) for s in subs)
-        max_sub_idx = max(sub_indices)
-        for i in range(max_sub_idx + 1):
-            if SUBS[i] not in subs:
-                reasons.append(
-                    f"group: main {m} sub {SUBS[i]} missing "
-                    f"(expected a..{SUBS[max_sub_idx]} continuous)"
-                )
-
-    if max_main in layout and not layout[max_main]:
-        reasons.append(f"group: last main part {max_main} has no subpart")
 
     return reasons
 

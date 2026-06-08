@@ -2,7 +2,7 @@
 #
 # 【JX パイプライン → Gemini TTS 連携・橋渡し】
 # 既存 jx-batch-runner.ps1 が生成・検証した音声台本
-#   outputs/tts/{PROBLEM_ID}/{ID}-{N}{a-d}.txt
+#   outputs/tts/{PROBLEM_ID}/{ID}-{連番}.txt  （例 刑JX029-1.txt … 刑JX029-13.txt）
 # を、Gemini TTS の入力フォルダ
 #   tts/input_texts/
 # へコピー（集約）する。コピー後 tts/run-tts.ps1 で wav 化する想定。

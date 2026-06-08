@@ -35,17 +35,17 @@
   - `markdown_header` (行頭 `#`)
   - `markdown_blockquote` (行頭 `>`)
   - `bracket_markup` (`[...]`)
-- **命名規則**：`^{PROBLEM_ID}-{1〜7}{a-d}\.txt$` 厳密一致
+- **命名規則（2026-06-08〜・フラット通し番号）**：`^{PROBLEM_ID}-{連番}\.txt$` 厳密一致（連番は 1 起点・ゼロ埋めなし）
+  - 旧式 `{1〜7}{a-d}`（例 `1a`）は廃止。既存ファイルは `scripts/migrate-tts-sequential.py` で移行済み
 - **グループ単位**：
-  - `1a` 必須
-  - メインパート 1..max（max は 5〜7 変動）連続性
-  - 各メインパート内 a..max_sub 連続性
+  - 連番 `1` 必須
+  - 通し番号 1..max 連続性（欠番・重複なし）
 - **入力**：`utf-8-sig` 読込（BOM 付き UTF-8・cp932 誤読回避）
 - **CLI 2 形態**：
   - `python scripts/validate-tts.py {OUTPUT_DIR}` → ID 別グループ化して一括
   - `python scripts/validate-tts.py {OUTPUT_DIR} {PROBLEM_ID}` → ID 前方一致で絞込（runner 連結用）
 - **終了コード**：0=全 PASS / 1=FAIL / 2=引数エラー or 対象 0 件
-- **自己テスト全 9 ケース PASS**：正常 / 字数不足 / SSML 混入 / prefix filter（2 ID）/ 存在しない ID / 1a 欠落 / メインパート飛ばし / サブパート飛ばし
+- **自己テスト**：正常 / 字数不足 / SSML 混入 / prefix filter（2 ID）/ 存在しない ID / 連番 1 欠落 / 通し番号飛ばし / 連番重複
 
 ---
 
