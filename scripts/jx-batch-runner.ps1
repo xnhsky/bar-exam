@@ -40,6 +40,8 @@ param(
     [string]$KeyName = 'main',          # 使う鍵：.secrets\gemini_{main|sub}.key を自動読込
     [string]$TtsModel = '',             # ⑤音声のモデル上書き（空=generate_tts.py 既定=Pro / 'gemini-2.5-flash-preview-tts' で無料Flash）
     [switch]$SkipDeploy,                # 指定時は⑥配置（Drive＋repoミラー）をスキップ
+    [switch]$Finalize,                  # 指定時は⑦永続化＋入力削除（git commit/push＋PDF・逐語 git rm）を実行
+    [switch]$NoPush,                    # ⑦で push を抑止（commit のみ）
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
 )
 
@@ -609,6 +611,29 @@ if ($SkipDeploy) {
         & pwsh -NoProfile -File $JxDeploy -Subject $Subject -ProblemId $id
     }
     Write-Host "[⑥ DEPLOY] $($DeployIds.Count) 問の配置完了。" -ForegroundColor Green
+}
+
+# =========================================================
+# ⑦ 永続化＋入力クリーンアップ（-Finalize 指定時のみ）
+#   - jx-finalize.ps1 で各問題の HTML＋TTS を git commit/push（GitHub バックアップ）し、
+#     Drive バックアップ済みを確認してから入力 PDF＋逐語を git rm する。
+#   - 配置（⑥）が済んだ DeployIds を対象にする（Drive バックアップは⑥で担保済み）。
+# =========================================================
+$JxFinalize = Join-Path $ProjectRoot "scripts\jx-finalize.ps1"
+if ($Finalize -and -not $DryRun) {
+    Write-Host "`n--- ⑦ 永続化＋入力クリーンアップ ---" -ForegroundColor Cyan
+    if ($DeployIds.Count -eq 0) {
+        Write-Host "[⑦ FINALIZE] 対象なし（jxPass 0 件）。" -ForegroundColor Yellow
+    } elseif (-not (Test-Path $JxFinalize)) {
+        Write-Host "[⑦ FINALIZE] jx-finalize.ps1 が見つかりません: $JxFinalize（スキップ）" -ForegroundColor Yellow
+    } else {
+        $finArgs = @('-NoProfile','-File',$JxFinalize,'-Subject',$Subject,'-Ids',($DeployIds -join ','))
+        if ($NoPush) { $finArgs += '-NoPush' }
+        & pwsh @finArgs
+        Write-Host "[⑦ FINALIZE] 完了（commit/push＋入力削除）。" -ForegroundColor Green
+    }
+} elseif ($Finalize -and $DryRun) {
+    Write-Host "`n[⑦ FINALIZE] DryRun のためスキップ（実行時に commit/push＋入力削除）。" -ForegroundColor DarkGray
 }
 
 Write-Host "`n=== jx-batch-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan

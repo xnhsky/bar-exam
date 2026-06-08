@@ -69,10 +69,19 @@ function Ensure-Dir([string]$p) {
 function Get-SubjectDirs([string]$base, $info) {
     # base = "...\2 JX_論 文"
     [PSCustomObject]@{
-        Html = Join-Path $base $info.html
-        Mimi = Join-Path (Join-Path $base $MimiRoot) $info.mimi
-        Tts  = Join-Path (Join-Path (Join-Path $base $MimiRoot) $info.mimi) $TtsOrigName
+        Html  = Join-Path $base $info.html
+        Mimi  = Join-Path (Join-Path $base $MimiRoot) $info.mimi
+        Tts   = Join-Path (Join-Path (Join-Path $base $MimiRoot) $info.mimi) $TtsOrigName
+        # 入力 PDF / 逐語の原本バックアップ（科目フォルダ直下・TX の「抽出PDF」と並行）
+        Pdf   = Join-Path (Join-Path $base $info.html) '重問PDF'
+        Trans = Join-Path (Join-Path $base $info.html) '講義逐語'
     }
+}
+
+# ID（例 刑JX025）末尾の数字 → PDF/逐語の問題番号
+function Get-IdNumber([string]$id) {
+    if ($id -match '(\d+)\s*$') { return [int]$Matches[1] }
+    return $null
 }
 
 # === -InitAll: 全7科目のフォルダを両配置先に作成 ===
@@ -83,6 +92,8 @@ if ($InitAll) {
         foreach ($subj in $Map.Keys) {
             $d = Get-SubjectDirs $t.Base $Map[$subj]
             Ensure-Dir $d.Html; Ensure-Dir $d.Mimi; Ensure-Dir $d.Tts
+            # PDF/逐語の原本バックアップ先は Drive のみ（repo ミラーには作らない＝git 肥大化回避）
+            if ($t.Label -ne 'repo') { Ensure-Dir $d.Pdf; Ensure-Dir $d.Trans }
             Write-Host ("  {0,-4} -> {1} / {2}\{3}" -f $subj, $Map[$subj].html, $Map[$subj].mimi, $TtsOrigName)
         }
     }
@@ -98,6 +109,20 @@ $info = $Map[$Subject]
 $JxOutDir = Join-Path $ProjectRoot "outputs\jx\${Subject}JX"
 $TtsBase  = Join-Path $ProjectRoot "outputs\tts"
 $WavDir   = Join-Path $ProjectRoot "tts\output_audio"
+# 入力 PDF / 逐語（原本バックアップ元）
+$PdfInDir   = Join-Path $ProjectRoot "inputs\jx\$Subject\重問PDF"
+$TransInDir = Join-Path $ProjectRoot "inputs\jx\$Subject\講義逐語"
+
+# 問題番号に一致する逐語（.txt 優先）を探す。命名: {科目}_重問逐語NN / 旧 重問NN。
+function Find-TranscriptFile([int]$num) {
+    if (-not (Test-Path -LiteralPath $TransInDir)) { return $null }
+    $cands = @(Get-ChildItem -LiteralPath $TransInDir -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.Extension -in '.txt','.md' } |
+        Where-Object { ($_.BaseName -match '重問(?:逐語)?\s*0*(\d+)') -and ([int]$Matches[1] -eq $num) } |
+        Sort-Object { $_.Extension -ne '.txt' })   # .txt を先頭に
+    if ($cands.Count -gt 0) { return $cands[0] }
+    return $null
+}
 $Ids = @()
 if ($ProblemId) { $Ids = @($ProblemId) }
 else { $Ids = @(Get-ChildItem -Path $JxOutDir -Filter "*.html" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.BaseName }) }
@@ -105,7 +130,7 @@ else { $Ids = @(Get-ChildItem -Path $JxOutDir -Filter "*.html" -File -ErrorActio
 if ($Ids.Count -eq 0) { Write-Host "[NOTE] 配置対象 ID なし（$JxOutDir に HTML が無い）。" -ForegroundColor Yellow; exit 0 }
 
 Write-Host "=== jx-deploy：$Subject / 対象 $($Ids.Count) 問 / 配置先 $($Targets.Count) 系統（DryRun=$DryRun）===" -ForegroundColor Cyan
-$sumHtml = 0; $sumTxt = 0; $sumWav = 0
+$sumHtml = 0; $sumTxt = 0; $sumWav = 0; $sumPdf = 0; $sumTr = 0
 foreach ($t in $Targets) {
     $d = Get-SubjectDirs $t.Base $info
     Ensure-Dir $d.Html; Ensure-Dir $d.Mimi; Ensure-Dir $d.Tts
@@ -134,9 +159,29 @@ foreach ($t in $Targets) {
                 if ($DryRun) { } else { Copy-Item -LiteralPath $w.FullName -Destination $wavDest -Force; $sumWav++ }
             }
         }
+        # 入力 PDF / 逐語の原本バックアップ（Drive のみ。repo ミラーは大容量 PDF の git 肥大化を避け対象外）。
+        # ※ TX の「抽出PDF」と並行＝Drive を入力原本の恒久アーカイブにする。inputs からの削除は
+        #    jx-cleanup-pdf.sh が「HTML コミット済み＋本バックアップ存在」を確認してから git rm する。
+        if ($t.Label -ne 'repo') {
+            $num = Get-IdNumber $id
+            if ($null -ne $num) {
+                $srcPdf = Join-Path $PdfInDir "$num.pdf"
+                if (Test-Path -LiteralPath $srcPdf) {
+                    Ensure-Dir $d.Pdf
+                    if ($DryRun) { Write-Host "  [DRYRUN] PDF $num.pdf -> $($t.Label):$($info.html)\重問PDF" }
+                    else { Copy-Item -LiteralPath $srcPdf -Destination $d.Pdf -Force; $sumPdf++ }
+                }
+                $srcTr = Find-TranscriptFile $num
+                if ($srcTr) {
+                    Ensure-Dir $d.Trans
+                    if ($DryRun) { Write-Host "  [DRYRUN] 逐語 $($srcTr.Name) -> $($t.Label):$($info.html)\講義逐語" }
+                    else { Copy-Item -LiteralPath $srcTr.FullName -Destination $d.Trans -Force; $sumTr++ }
+                }
+            }
+        }
         if ($DryRun) { Write-Host ("  [DRYRUN] {0}: txt {1}本 -> {3}:{2}\TTSファイル原本\{0}\ ／ wav {5}本 -> {3}:{4}\{0}\" -f $id, $txts.Count, $info.mimi, $t.Label, $info.mimi, $wavs.Count) }
     }
     Write-Host "  [$($t.Label)] 配置先ベース: $($t.Base)" -ForegroundColor DarkGray
 }
-if (-not $DryRun) { Write-Host ("=== 配置完了: HTML {0} / 台本 {1} / wav {2}（全系統合計）===" -f $sumHtml, $sumTxt, $sumWav) -ForegroundColor Green }
+if (-not $DryRun) { Write-Host ("=== 配置完了: HTML {0} / 台本 {1} / wav {2} / PDF {3} / 逐語 {4}（全系統合計）===" -f $sumHtml, $sumTxt, $sumWav, $sumPdf, $sumTr) -ForegroundColor Green }
 exit 0

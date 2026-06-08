@@ -25,6 +25,8 @@ param(
     [int]$Number = 0,           # 単一番号（指定時は From/To をこの番号に固定・MaxProblems=1）
     [int]$FromNumber = 0,       # 任意レンジの下限（最若番優先の既定に対し特定番号帯のみ対象に）
     [int]$ToNumber = 0,         # 任意レンジの上限
+    [switch]$NoFinalize,        # 指定時は⑦永続化＋入力削除を行わない（既定は実行）
+    [switch]$NoPush,            # ⑦で push 抑止（commit のみ）
     [switch]$DryRun
 )
 if ($Number -gt 0) { $FromNumber = $Number; $ToNumber = $Number; $MaxProblems = 1 }
@@ -32,7 +34,11 @@ $ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $Runner = Join-Path $ProjectRoot 'scripts\jx-batch-runner.ps1'
 
 # 音声(⑤)は行わない。-SkipAudio で台本集約まで（音声は AI Studio で手動）。
+# 既定で ⑦Finalize（HTML＋TTS を git commit/push＝GitHub バックアップ → Drive バックアップ確認後に
+# 入力 PDF＋逐語を git rm）まで通す。バックアップ無しでの削除は finalize 側のガードで防止。
 $params = @{ Subject = $Subject; MaxProblems = $MaxProblems; SkipAudio = $true }
+if (-not $NoFinalize) { $params.Finalize = $true }
+if ($NoPush)    { $params.NoPush = $true }
 if ($FromNumber -gt 0) { $params.FromNumber = $FromNumber }
 if ($ToNumber   -gt 0) { $params.ToNumber   = $ToNumber }
 if ($DryRun)    { $params.DryRun = $true }
