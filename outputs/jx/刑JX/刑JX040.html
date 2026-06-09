@@ -1,0 +1,2491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刑JX040　死者の占有・不法領得の意思のシステマティック解法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700;800&family=Shippori+Antique&family=Zen+Old+Mincho:wght@400;500;700;900&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Kaisei+Decol:wght@400;500;700&family=Kosugi+Maru&family=Source+Code+Pro:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@500;700;800&family=M+PLUS+1p:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* ==========================================
+     配色 V3（科目アンカー：刑＝深ティール／全パレット自由選定）
+     雰囲気選定：深ティール基調（強制性交・死者からの窃盗という
+     重く硬質な事案に呼応／冷静・厳格・知的）
+     役割：ベース70% / メイン25% / アクセント5% / サブ×2
+     ========================================== */
+  --accent:#2d7282;            /* メイン25%：深ティール（見出し・ヘッダー・白文字背景） */
+  --mid:#00adc1;               /* アクセント5%：鮮ティール（badge・強調） */
+  --base:#f1f7f8;              /* ベース70%：極淡ティールホワイト（body 地色） */
+  --soft:#e0eef0;              /* サブ1：淡ティール（テーブル縞・柔背景） */
+  --light:#d3e7ea;             /* サブ2：ティールグレー（key-box / back-refs） */
+  --paper:#fcffff;             /* 温白（カード内地色・小面積） */
+  --text:#243034;              /* 本文：ダークティールグレー（純黒回避・text-dark L<40） */
+  --bg-dark:#1d4e58;           /* 暗ティール（重要結論・白文字背景） */
+  --accent-3:#f1f7f8;          /* para-num 極淡背景 */
+  --border-soft:#bcd9dd;       /* 淡ティール境界線 */
+  --shadow-soft:rgba(45,114,130,.10);
+  --shadow-mid:rgba(45,114,130,.18);
+
+  /* ==========================================
+     12 色固定指標（全科目共通・不変）
+     ========================================== */
+  --hl-super:#ffd54f; --hl-high:#aed581; --hl-std:#90caf9;
+  --tan-super:#c62828; --tan-high:#ef6c00; --tan-std:#1565c0;
+  --rank-A:#c62828; --rank-B:#e65100; --rank-C:#1565c0; --rank-D:#333333;
+
+  /* ==========================================
+     11 役割タイポグラフィ（v3.2・改変禁止）
+     ========================================== */
+  /* ① 本文ゴシック */
+  --font-body:    "A1 Gothic","A-OTF A1ゴシック Std","Zen Kaku Gothic Antique","Hiragino Sans","Yu Gothic Medium","Noto Sans JP",sans-serif;
+  /* ② 柔強調・タグ・中見出し */
+  --font-soft:    "Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif;
+  /* ③ 大見出し・カバー */
+  --font-display: "Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ④ 条文 */
+  --font-statute: "Noto Serif JP","Yu Mincho","Hiragino Mincho ProN",serif;
+  /* ⑤ 引用一般 */
+  --font-quote:   "Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑥ 模範答案・論証 */
+  --font-answer:  "Shippori Antique","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑦ KEY フレーズ */
+  --font-keyword: "Kaisei Decol","M PLUS Rounded 1c","Yu Mincho",serif;
+  /* ⑧ 判旨原文 */
+  --font-judgment:"Zen Old Mincho","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑨ 注釈・補足 */
+  --font-note:    "Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif;
+  /* ⑩ 教授コメント */
+  --font-professor:"Kosugi Maru","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  /* ⑪ 等幅・ラベル */
+  --font-mono:    "Source Code Pro","Consolas","Menlo",monospace;
+  /* ⑫ インパクト（M PLUS 1p・TX 由来・任意使用） */
+  --font-impact:  "M PLUS 1p","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+
+body{
+  font-family:var(--font-body);
+  font-weight:500;
+  line-height:2.0;
+  font-size:16px;
+  letter-spacing:.04em;
+  font-feature-settings:"palt" 1;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  background:var(--base);
+  color:var(--text);
+  margin:0;padding:0;
+}
+
+/* ==========================================
+   見出し階層
+   ========================================== */
+h1{font-family:var(--font-display);font-weight:700;letter-spacing:.06em;line-height:1.4;}
+h2{
+  font-family:var(--font-display);
+  color:var(--accent);font-size:1.6em;font-weight:700;
+  letter-spacing:.06em;
+  margin:0 0 18px 0;
+  padding:10px 16px;
+  background:var(--soft);
+  border-left:8px solid var(--accent);
+  border-radius:4px;
+  line-height:1.4;
+}
+h3{
+  font-family:var(--font-soft);
+  color:var(--accent);font-size:1.25em;font-weight:700;
+  letter-spacing:.04em;
+  margin:26px 0 14px 0;
+  padding:7px 14px;
+  background:var(--light);
+  border-left:5px solid var(--mid);
+}
+h4{
+  font-family:var(--font-soft);
+  color:var(--mid);font-size:1.08em;font-weight:700;
+  margin:18px 0 10px 0;
+  padding-bottom:4px;
+  border-bottom:1.5px dashed var(--mid);
+  letter-spacing:.03em;
+}
+h5{
+  font-family:var(--font-soft);
+  color:var(--accent);font-size:1em;font-weight:700;
+  margin:14px 0 8px 0;letter-spacing:.03em;
+}
+
+/* 第5部スキーマ用 点線見出し */
+section[id^="ref-"] h3,
+section[id^="part5"] h3{
+  border-bottom:3px dotted var(--accent);
+  padding-bottom:14px;margin-bottom:28px;
+  background:transparent;border-left:none;padding-left:0;
+}
+section[id^="ref-"] h4{
+  border-bottom:2px dotted var(--border-soft);
+  padding-bottom:6px;
+}
+
+/* ==========================================
+   ヘッダー：右上 ID タグ
+   ========================================== */
+.doc-header{
+  position:absolute;
+  top:14px;right:18px;
+  z-index:100;
+  display:inline-block;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;
+  padding:6px 14px;
+  border-radius:8px;
+  font-family:var(--font-mono);
+  font-weight:600;font-size:16px;letter-spacing:.10em;
+  border:1.5px solid rgba(255,255,255,.65);
+  box-shadow:0 2px 6px rgba(0,0,0,.20);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+
+/* カバーヘッダー */
+header.cover{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;padding:70px 32px 44px 32px;text-align:center;
+  border-radius:0 0 20px 20px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+header.cover::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at top right, rgba(255,255,255,.12) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0,0,0,.10) 0%, transparent 60%);
+}
+header.cover h1{
+  margin:0 0 10px 0;
+  font-family:var(--font-display);
+  font-size:1.9em;font-weight:700;letter-spacing:.06em;
+  color:#fff;line-height:1.45;
+}
+header.cover h2{
+  margin:0 0 10px 0;
+  font-family:var(--font-display);
+  font-size:1.7em;font-weight:700;letter-spacing:.04em;
+  color:#fff;line-height:1.45;
+  background:transparent;border:none;padding:0;
+}
+header.cover .subtitle{
+  margin:0;
+  font-family:var(--font-quote);
+  font-size:1em;opacity:.94;color:#fff;
+  font-weight:400;
+}
+header.cover .subject-tag{
+  display:inline-block;margin-bottom:14px;padding:4px 14px;
+  background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.45);
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-size:.78em;font-weight:700;letter-spacing:.18em;
+}
+
+/* ==========================================
+   レイアウト：container + section カード
+   ========================================== */
+.container{
+  max-width:1080px;
+  margin:0 auto;
+  padding:0 20px 32px 20px;
+  background:transparent;
+  position:relative;
+}
+@media (min-width:769px){
+  .container{padding:0 40px 48px 40px;}
+}
+
+.container > section,
+.container > nav.toc,
+.container > nav#toc{
+  background:var(--paper);
+  border-radius:14px;
+  padding:32px 36px;
+  margin:24px 0;
+  box-shadow:0 4px 14px var(--shadow-soft);
+  border:none;
+}
+section section,
+section .card{
+  background:transparent;padding:0;
+  margin:24px 0 0 0;box-shadow:none;border-radius:0;
+}
+/* 内側 .card は薄い区切りを演出（v3.2 準拠：透明＋ラインのみ） */
+section .card{
+  background:transparent;
+  border-top:1px solid var(--border-soft);
+  padding-top:18px;margin-top:32px;
+}
+section .card:first-of-type{
+  border-top:none;padding-top:0;margin-top:24px;
+}
+
+/* ==========================================
+   本文インデント設計（第23項）
+   ========================================== */
+section > p,
+section > ul,
+section > ol,
+.card > p,
+.card > ul,
+.card > ol,
+.ref-entry > p,
+.ref-entry > ul,
+.ref-entry > ol{
+  padding-left:1.4em;
+}
+section > h2,
+section > h3,
+section > h4,
+section > h5,
+.card > h3,
+.card > h4,
+.card > h5,
+section > .key-box,
+section > .note-box,
+section > .warn-box,
+section > .success-box,
+section > .danger-box,
+section > .lecturer-advice,
+section > .arg-card,
+section > .model-answer,
+section > .grading,
+section > .svg-wrap,
+section > blockquote,
+section > .timeline,
+section > table,
+section > .flow,
+.card > .key-box,
+.card > .note-box,
+.card > .warn-box,
+.card > .success-box,
+.card > .danger-box,
+.card > .lecturer-advice,
+.card > .arg-card,
+.card > .model-answer,
+.card > .grading,
+.card > .svg-wrap,
+.card > blockquote,
+.card > .timeline,
+.card > table,
+.card > .flow{
+  margin-left:0;
+}
+
+/* ==========================================
+   key-box（KTX v6.19 流豪華装飾・specificity 防御）
+   ========================================== */
+.key-box,
+.section .key-box,
+.container .key-box,
+section .key-box,
+.card .key-box{
+  position:relative;
+  background:linear-gradient(135deg,#fff8f0 0%,var(--light) 60%,var(--soft) 100%);
+  border:2px solid var(--accent);
+  border-radius:8px;
+  padding:56px 44px 38px 72px;
+  margin:30px 0 24px;
+  font-family:var(--font-keyword);
+  font-size:1.05rem;
+  font-weight:500;
+  line-height:2.0;
+  letter-spacing:.04em;
+  color:var(--text);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,.10),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.key-box::before{
+  content:'🔑 KEY';
+  position:absolute;top:-14px;left:22px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;
+  padding:5px 16px 4px;
+  border-radius:4px;
+  font-family:var(--font-mono);
+  font-size:.80rem;font-weight:600;letter-spacing:.14em;
+  box-shadow:0 2px 6px rgba(0,0,0,.20);
+  white-space:nowrap;
+}
+.key-box::after{
+  content:'';position:absolute;top:0;right:0;
+  width:64px;height:64px;
+  background:radial-gradient(circle at top right, rgba(0,0,0,.08), transparent 70%);
+  border-radius:0 8px 0 64px;
+  pointer-events:none;
+}
+.key-box p{margin:.4em 0;}
+.key-box .kp-strong{
+  font-weight:700;color:var(--accent);
+  font-size:1.10rem;letter-spacing:.05em;
+}
+
+/* ==========================================
+   状況伝達系：ラベル付きカード（v3.2 全周 border + ::before）
+   ========================================== */
+.note-box, .warn-box, .success-box, .danger-box{
+  position:relative;
+  margin:18px 0;
+  padding:20px 22px 16px;
+  border-radius:8px;
+  font-family:var(--font-note);
+  font-weight:500;
+  line-height:1.95;
+  letter-spacing:.03em;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.06),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.note-box   {background:#e7f1ff;border:1px solid rgba(21,101,192,.30);}
+.warn-box   {background:#fff7e0;border:1px solid rgba(239,108,0,.32);}
+.success-box{background:#e8f5e9;border:1px solid rgba(46,125,50,.32);}
+.danger-box {background:#ffeef0;border:1px solid rgba(198,40,40,.32);}
+
+.note-box::before, .warn-box::before, .success-box::before, .danger-box::before{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;
+  color:#fff;
+  padding:3px 10px 2px;
+  border-radius:3px;
+  margin-bottom:10px;margin-right:8px;
+  vertical-align:2px;
+  box-shadow:0 1px 2px rgba(0,0,0,.18);
+}
+.note-box::before   {content:'ℹ NOTE';   background:linear-gradient(135deg,#0d47a1,#1565c0);}
+.warn-box::before   {content:'⚠ WARN';   background:linear-gradient(135deg,#bf360c,#ef6c00);}
+.success-box::before{content:'✓ TIP';    background:linear-gradient(135deg,#1b5e20,#2e7d32);}
+.danger-box::before {content:'✗ NG';     background:linear-gradient(135deg,#7f0000,#c62828);}
+
+.note-box h4, .warn-box h4, .success-box h4, .danger-box h4{
+  display:inline;font-family:var(--font-soft);
+  font-size:1em;font-weight:700;margin:0;
+  border:none;padding:0;color:inherit;
+}
+.note-box p, .warn-box p, .success-box p, .danger-box p{margin:.5em 0;}
+.note-box ul, .warn-box ul, .success-box ul, .danger-box ul{margin:.6em 0;padding-left:1.4em;}
+.note-box ol, .warn-box ol, .success-box ol, .danger-box ol{margin:.6em 0;padding-left:1.4em;}
+
+/* ==========================================
+   講師のアドバイス（講義逐語ベース・教授ボイス／Kosugi Maru）
+   ========================================== */
+.lecturer-advice{
+  position:relative;
+  margin:30px 0 26px;
+  padding:28px 26px 18px 28px;
+  border-radius:10px;
+  background:linear-gradient(135deg, #ece0e8 0%, #f4ebf0 58%, var(--paper) 100%);
+  border:1px solid rgba(92,69,102,.42);
+  border-left:7px solid var(--accent);
+  font-family:var(--font-professor);
+  font-weight:500;
+  line-height:1.95;
+  letter-spacing:.02em;
+  color:var(--text);
+  box-shadow:
+    0 4px 16px rgba(92,69,102,.20),
+    inset 0 0 0 1px rgba(255,255,255,.55);
+}
+.lecturer-advice::before{
+  content:'🎓 講師のアドバイス';
+  position:absolute;top:-15px;left:20px;
+  font-family:var(--font-mono);
+  font-size:.84rem;font-weight:700;letter-spacing:.13em;
+  color:#fff;
+  padding:6px 18px 5px;
+  border-radius:5px;
+  background:linear-gradient(135deg, var(--accent) 0%, var(--mid) 100%);
+  box-shadow:0 3px 9px rgba(92,69,102,.42);
+  white-space:nowrap;
+}
+.lecturer-advice .la-lead{
+  display:block;
+  font-family:var(--font-soft);font-weight:700;
+  color:var(--accent);
+  font-size:1.04em;letter-spacing:.03em;
+  margin:.2em 0 .6em;
+}
+.lecturer-advice p{margin:.55em 0;}
+.lecturer-advice ul{margin:.6em 0;padding-left:1.45em;}
+.lecturer-advice li{margin:.34em 0;}
+.lecturer-advice .la-key{
+  font-family:var(--font-keyword);font-weight:700;
+  color:var(--accent);letter-spacing:.02em;
+}
+.lecturer-advice .la-quote{
+  font-family:var(--font-quote);
+  color:var(--bg-dark);font-style:normal;
+  background:rgba(92,69,102,.07);
+  padding:1px 6px;border-radius:3px;
+}
+
+/* ==========================================
+   テーブル
+   ========================================== */
+table{
+  width:100%;border-collapse:collapse;margin:18px 0;font-size:.96em;
+  page-break-inside:avoid;
+}
+th,td{
+  border:1px solid var(--border-soft);
+  padding:10px 12px;text-align:left;vertical-align:top;
+}
+th{
+  background:var(--accent);color:#fff;
+  font-family:var(--font-soft);font-weight:700;letter-spacing:.04em;
+}
+/* ヘッダーセル内のリンクは白（濃い --accent 背景と同化させない） */
+th a, th a.xref{color:#fff;text-decoration-color:rgba(255,255,255,.6);}
+th a.xref:hover{background:rgba(255,255,255,.18);color:#fff;}
+tr:nth-child(even) td{background:var(--soft);}
+
+/* ==========================================
+   タイムライン
+   ========================================== */
+.timeline{position:relative;padding-left:32px;margin:18px 0;}
+.timeline::before{
+  content:'';position:absolute;left:10px;top:0;bottom:0;
+  width:3px;background:var(--mid);border-radius:2px;
+}
+.timeline-item{position:relative;margin-bottom:18px;padding-left:18px;}
+.timeline-item::before{
+  content:'';position:absolute;left:-26px;top:8px;
+  width:14px;height:14px;background:var(--accent);
+  border-radius:50%;border:3px solid var(--light);
+}
+.timeline-label{
+  display:block;font-family:var(--font-soft);font-weight:700;
+  color:var(--accent);font-size:1.02em;letter-spacing:.04em;
+  margin-bottom:4px;
+}
+.timeline p{margin:.3em 0;}
+
+/* ==========================================
+   SVG ラップ
+   ========================================== */
+.svg-wrap{
+  text-align:center;margin:24px 0;
+  background:var(--paper);border-radius:10px;
+  padding:18px;overflow-x:auto;page-break-inside:avoid;
+  border:1px solid var(--border-soft);
+}
+.svg-wrap svg{max-width:100%;height:auto;}
+.svg-wrap h3{
+  background:transparent;border-left:none;
+  text-align:left;padding:0 0 12px 0;
+  border-bottom:none;
+}
+
+/* フローボックス */
+.flow{
+  background:var(--soft);border:1.5px solid var(--mid);
+  border-radius:8px;padding:20px 24px;margin:18px 0;
+  page-break-inside:avoid;
+}
+.flow .step{
+  margin:6px 0;padding:8px 0;
+  border-bottom:1px dashed var(--border-soft);
+  font-weight:500;font-family:var(--font-note);
+  line-height:1.85;
+}
+.flow .step:last-child{border-bottom:none;}
+.flow .arrow{
+  text-align:center;color:var(--mid);
+  font-weight:700;font-size:1.1em;margin:4px 0;
+}
+
+/* ==========================================
+   学習指標（v3.2 潰れ防止強化）
+   ========================================== */
+.tan{
+  display:inline-block;
+  font-family:var(--font-soft);
+  font-size:.78em;padding:2px 9px;border-radius:4px;
+  color:#fff;font-weight:700;margin-right:4px;
+  letter-spacing:.08em;vertical-align:1px;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.tan-super{background:var(--tan-super);border:2px solid #8a1818;}
+.tan-high {background:var(--tan-high);}
+.tan-std  {background:var(--tan-std);}
+
+.rank-A{color:var(--rank-A);font-weight:700;letter-spacing:.04em;}
+.rank-B{color:var(--rank-B);font-weight:700;letter-spacing:.04em;}
+.rank-C{color:var(--rank-C);font-weight:500;letter-spacing:.04em;}
+.rank-D{color:var(--rank-D);font-weight:500;letter-spacing:.04em;}
+
+.arg-tier{
+  display:inline-block;
+  font-family:var(--font-soft);
+  font-size:.78em;font-weight:700;
+  padding:2px 9px;border-radius:4px;color:#fff;
+  margin-right:6px;letter-spacing:.08em;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.arg-required, .arg-must         {background:#c62828;border:2px solid #8a1818;}
+.arg-recommended, .arg-recommend {background:#ef6c00;}
+.arg-advanced, .arg-develop      {background:#1565c0;}
+
+/* ハイライト */
+.hl-super{
+  background:linear-gradient(transparent 55%,rgba(255,213,79,.55) 55%);
+  padding:0 4px 1px;font-weight:700;letter-spacing:.08em;
+}
+.hl-high{
+  background:linear-gradient(transparent 60%,rgba(174,213,129,.55) 60%);
+  padding:0 4px 1px;font-weight:700;letter-spacing:.08em;
+}
+.hl-std{
+  background:linear-gradient(transparent 70%,rgba(144,202,249,.50) 70%);
+  padding:0 4px 1px;font-weight:500;letter-spacing:.06em;
+}
+
+/* exam-mark */
+.exam-mark{
+  background-size:100% 100%;background-repeat:no-repeat;
+  padding:0 4px 1px;font-weight:700;letter-spacing:.09em;
+  margin:0 1px;-webkit-font-smoothing:antialiased;
+}
+.exam-mark.freq-high{background:linear-gradient(transparent 55%,rgba(198,40,40,.42) 55%);color:#8a1818;}
+.exam-mark.freq-mid {background:linear-gradient(transparent 55%,rgba(239,108,0,.42) 55%);color:#a04500;}
+.exam-mark.freq-low {background:linear-gradient(transparent 55%,rgba(21,101,192,.36) 55%);color:#1565c0;}
+
+/* 条文・判例の行内強調（v3.2 border-bottom 廃止） */
+.statute-emphasis{font-family:var(--font-statute);font-weight:700;padding:0 3px;letter-spacing:.06em;}
+.case-emphasis{font-family:var(--font-statute);font-weight:700;font-style:italic;padding:0 3px;letter-spacing:.06em;}
+
+/* ==========================================
+   第〇項 網掛け
+   ========================================== */
+.para-num{
+  display:inline-block;
+  background:var(--accent-3);
+  color:var(--accent);
+  padding:2px 10px;
+  border-radius:3px;
+  font-family:var(--font-statute);
+  font-weight:700;font-size:.96em;
+  margin-right:8px;
+  border:1px solid var(--border-soft);
+  letter-spacing:.04em;
+}
+
+/* ==========================================
+   引用：条文（薄グレー）／判例（薄ピンク）／問題文
+   ========================================== */
+blockquote{
+  margin:14px 0;padding:14px 18px;
+  background:var(--soft);border-left:5px solid var(--accent);
+  border-radius:6px;
+  font-family:var(--font-quote);font-weight:400;line-height:1.95;
+}
+blockquote p{margin:.4em 0;}
+
+blockquote.statute{
+  background:#f3f4f6;
+  border:1px solid rgba(0,0,0,.10);
+  border-left:4px solid #6b7280;
+  border-radius:6px;padding:14px 18px;
+  font-family:var(--font-statute);
+  font-weight:500;letter-spacing:.04em;
+}
+blockquote.case,
+blockquote.case-law{
+  background:#ffeef1;
+  border:1px solid rgba(0,0,0,.10);
+  border-left:4px solid var(--mid);
+  border-radius:6px;padding:14px 18px;
+  font-family:var(--font-quote);
+}
+blockquote.problem{
+  background:var(--soft);
+  border:1px solid var(--border-soft);
+  border-left:4px solid var(--mid);
+  border-radius:6px;padding:18px 22px;
+  font-family:var(--font-quote);
+  font-weight:400;line-height:2.0;
+}
+
+.judgment-text{
+  font-family:var(--font-judgment);
+  font-weight:700;letter-spacing:.03em;line-height:1.95;
+}
+
+/* ==========================================
+   論証カード
+   ========================================== */
+.arg-card{
+  background:var(--paper);
+  border:2px solid var(--mid);
+  border-radius:10px;
+  padding:22px 24px;margin:20px 0;
+  page-break-inside:avoid;
+  box-shadow:0 4px 12px var(--shadow-soft);
+}
+.arg-card h5{
+  margin-top:0;color:var(--accent);
+  border-bottom:1.5px dashed var(--mid);
+  padding-bottom:6px;
+  font-family:var(--font-soft);font-weight:700;font-size:1.05em;
+}
+.arg-card .arg-meta{
+  font-family:var(--font-mono);
+  font-size:.78em;font-weight:600;letter-spacing:.10em;
+  color:var(--mid);
+  margin:0 0 12px 0;
+}
+.arg-card .arg-body{
+  font-family:var(--font-answer);
+  font-weight:400;line-height:2.05;letter-spacing:.02em;
+  background:var(--light);
+  padding:16px 18px;border-radius:6px;
+  border-left:3px solid var(--mid);
+  margin:8px 0 10px 0;
+}
+.arg-card p{margin:.5em 0;font-family:var(--font-note);font-size:.92em;}
+
+/* ==========================================
+   模範答案
+   ========================================== */
+.model-answer, blockquote.model-answer{
+  position:relative;
+  background:linear-gradient(180deg,var(--light) 0%,var(--paper) 100%);
+  border:2px solid var(--accent);border-radius:10px;
+  padding:38px 30px 28px 30px;margin:24px 0;
+  font-family:var(--font-answer);
+  font-weight:400;line-height:2.05;letter-spacing:.02em;
+  page-break-inside:avoid;
+  box-shadow:0 4px 14px var(--shadow-soft);
+}
+.model-answer::before{
+  content:'MODEL ANSWER';
+  position:absolute;top:-12px;left:24px;
+  background:linear-gradient(135deg,var(--accent),var(--mid));
+  color:#fff;padding:4px 14px 3px;
+  border-radius:3px;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:600;letter-spacing:.18em;
+  box-shadow:0 2px 5px rgba(0,0,0,.18);
+}
+.model-answer h4, .model-answer h5{
+  font-family:var(--font-display);
+  color:var(--accent);letter-spacing:.04em;
+  margin-top:0;border-bottom:1.5px dashed var(--mid);
+  padding-bottom:6px;
+}
+.model-answer p{margin:.7em 0;line-height:2.0;font-weight:400;}
+
+/* ==========================================
+   採点講評
+   ========================================== */
+.grading{
+  position:relative;
+  background:#fff8e1;
+  border:1px solid rgba(255,179,0,.45);
+  border-radius:10px;
+  padding:34px 24px 22px;margin:22px 0;
+  page-break-inside:avoid;
+  box-shadow:0 2px 6px rgba(255,179,0,.12);
+}
+.grading::before{
+  content:'GRADING';
+  position:absolute;top:-12px;left:24px;
+  background:linear-gradient(135deg,#bf6b00,#ef6c00);
+  color:#fff;padding:4px 14px 3px;
+  border-radius:3px;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:600;letter-spacing:.18em;
+  box-shadow:0 2px 5px rgba(0,0,0,.18);
+}
+.grading h4{
+  font-family:var(--font-soft);
+  color:#bf6b00;margin-top:0;
+  border-bottom:1.5px solid rgba(255,179,0,.45);
+  padding-bottom:6px;
+}
+.grading h5{
+  font-family:var(--font-soft);
+  color:#bf6b00;
+}
+.grading p{margin:.5em 0;}
+
+/* ==========================================
+   目次
+   ========================================== */
+nav.toc, nav#toc{
+  background:var(--paper);
+  border:2px solid var(--mid);
+  border-radius:14px;
+  padding:24px 28px;margin:24px 0;
+  box-shadow:0 4px 14px var(--shadow-soft);
+}
+nav.toc h2, nav#toc h2{
+  margin-top:0;
+  font-family:var(--font-display);
+  background:transparent;border-left:none;
+  border-bottom:3px solid var(--accent);
+  border-radius:0;padding:0 0 8px 0;
+  font-size:1.3em;
+}
+nav.toc ul, nav#toc ul{list-style:none;padding-left:0;margin:8px 0;}
+nav.toc li, nav#toc li{margin:6px 0;line-height:1.6;font-family:var(--font-soft);}
+nav.toc a, nav#toc a{
+  color:var(--accent);text-decoration:none;
+  border-bottom:1px dotted transparent;
+  transition:.2s;font-weight:700;
+  letter-spacing:.02em;
+}
+nav.toc a:hover, nav#toc a:hover{
+  color:var(--mid);border-bottom:1px dotted var(--mid);
+}
+nav.toc .l2, nav#toc .l2{padding-left:18px;font-size:.96em;}
+nav.toc .l3, nav#toc .l3{padding-left:36px;font-size:.92em;color:#555;}
+nav.toc .l3 a, nav#toc .l3 a{color:#555;font-weight:500;}
+
+/* ==========================================
+   相互リンク
+   ========================================== */
+a.xref{
+  text-decoration:underline;
+  text-decoration-thickness:2px;
+  text-underline-offset:3px;
+  color:var(--accent);font-weight:700;
+  border-radius:2px;padding:0 2px;
+  transition:.18s;
+}
+a.xref:hover{background:var(--light);color:var(--accent);}
+
+.back-refs{
+  margin-top:14px;padding:10px 14px;
+  background:var(--light);border-radius:6px;
+  font-size:.92em;font-weight:700;
+  border-left:3px solid var(--accent);
+  font-family:var(--font-note);
+}
+.back-refs::before{content:'📌 ';font-size:1.1em;}
+.back-refs a{
+  color:var(--accent);text-decoration:none;
+  margin:0 6px;
+  border-bottom:1px dotted var(--accent);
+  font-weight:700;
+}
+.back-refs a:hover{color:var(--mid);border-bottom-color:var(--mid);}
+
+/* ==========================================
+   戻るリンク
+   ========================================== */
+.back-to-toc{
+  display:inline-block;margin:18px 0 4px 0;
+  padding:8px 18px;
+  background:var(--accent);color:#fff;
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-size:.85em;text-decoration:none;font-weight:700;
+  letter-spacing:.05em;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+  transition:.2s;
+}
+.back-to-toc:hover{background:var(--mid);}
+
+/* ==========================================
+   凡例（コンパクト版・3 カラム横並び）
+   ========================================== */
+.legend-card{
+  background:var(--paper);
+  border:1.5px solid var(--mid);
+  border-radius:10px;
+  padding:18px 20px;margin:18px 0;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;
+}
+.legend-card .legend-block{
+  padding:12px 14px;background:var(--soft);
+  border-radius:6px;
+}
+.legend-card .legend-block h4{
+  margin:0 0 8px 0;font-size:.95em;color:var(--accent);
+  border:none;padding:0 0 4px 0;
+  border-bottom:1px solid var(--border-soft);
+}
+.legend-card .legend-block ul{
+  list-style:none;padding:0;margin:6px 0 0 0;
+}
+.legend-card .legend-block li{
+  padding:3px 0;font-size:.85em;line-height:1.55;font-weight:500;
+}
+
+/* ==========================================
+   チェックリスト
+   ========================================== */
+.checklist{margin:14px 0;padding-left:0;list-style:none;}
+.checklist li{
+  margin:6px 0;padding:8px 10px 8px 32px;position:relative;
+  background:var(--light);border-radius:4px;
+  font-family:var(--font-note);font-weight:500;line-height:1.85;
+}
+.checklist li::before{
+  content:'☐';position:absolute;left:10px;top:7px;
+  font-size:1.15em;color:var(--accent);font-weight:700;
+}
+
+/* ==========================================
+   ref-entry（第5部用）
+   ========================================== */
+.ref-entry{
+  background:var(--paper);
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  padding:22px 24px;margin:22px 0;
+  page-break-inside:avoid;
+}
+.ref-entry h4{
+  margin-top:0;
+  font-family:var(--font-soft);
+  color:var(--accent);
+  border-bottom:1.5px solid var(--mid);
+  border-bottom-style:solid;
+  padding-bottom:8px;
+  font-size:1.1em;
+}
+.ref-entry h5{
+  margin-top:18px;
+  font-family:var(--font-soft);
+  color:var(--mid);font-size:.98em;
+}
+.ref-entry p{margin:.4em 0;}
+.ref-entry.arg-card .arg-body{
+  font-family:var(--font-answer);
+}
+
+/* ==========================================
+   フッター
+   ========================================== */
+footer{
+  background:linear-gradient(135deg,var(--accent),var(--mid));
+  color:#fff;text-align:center;
+  padding:32px 24px;
+  margin:48px 0 0 0;
+  border-radius:16px 16px 0 0;
+}
+footer p{
+  margin:.5em 0;
+  font-family:var(--font-quote);
+  font-weight:400;color:#fff;line-height:1.95;
+}
+footer .closing{
+  font-family:var(--font-display);
+  font-weight:700;letter-spacing:.1em;
+}
+
+/* ==========================================
+   印刷最適化
+   ========================================== */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:#fff;font-size:11pt;line-height:1.85;color:var(--text);letter-spacing:.02em;}
+  .container{max-width:100%;padding:0;}
+  .container > section, .container > nav#toc, .container > nav.toc{
+    box-shadow:none;border-radius:0;padding:14px 0;margin:14px 0;
+  }
+  @page{size:A4;margin:20mm 15mm;}
+  .doc-header{position:absolute;top:8mm;right:8mm;font-size:13px;padding:4px 10px;box-shadow:none;}
+  header.cover{background:var(--accent)!important;color:#fff!important;padding:24px 20px;border-radius:0;margin-bottom:18px;}
+  .back-to-toc, .back-to-top{display:none!important;}
+  h2,h3,h4{page-break-after:avoid;}
+  .key-box, .note-box, .warn-box, .success-box, .danger-box, .lecturer-advice,
+  .model-answer, blockquote, blockquote.statute, blockquote.case, blockquote.problem,
+  table, .svg-wrap, .legend-card, .arg-card, .grading, .ref-entry, .timeline, .flow{
+    page-break-inside:avoid;
+  }
+  .hl-super,.hl-high,.hl-std,.tan,.rank-A,.rank-B,.rank-C,.arg-tier,.exam-mark,.para-num{
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;
+  }
+  a{color:var(--accent);text-decoration:none;}
+  a.xref{text-decoration:underline;}
+  details{display:block;} details > summary{display:none;}
+  footer{margin:24px 0 0 0;border-radius:0;}
+}
+
+/* ==========================================
+   レスポンシブ
+   ========================================== */
+@media screen and (max-width:768px){
+  body{font-size:15px;line-height:1.92;}
+  .container{padding:0 14px 32px 14px;}
+  .doc-header{top:10px;right:12px;font-size:13px;padding:4px 10px;}
+  header.cover{padding:60px 16px 30px;}
+  header.cover h1, header.cover h2{font-size:1.4em;letter-spacing:.04em;}
+  .container > section, .container > nav#toc, .container > nav.toc{padding:22px 18px;}
+  h2{font-size:1.25em;}
+  h3{font-size:1.1em;}
+  .key-box{padding:46px 24px 28px 28px;font-size:1rem;}
+  .note-box, .warn-box, .success-box, .danger-box{padding:18px 18px 14px;}
+  .lecturer-advice{padding:20px 18px 14px 18px;}
+  .model-answer{padding:32px 20px 22px;}
+  .arg-card{padding:18px 18px;}
+  .ref-entry{padding:18px 18px;}
+  table{font-size:.88em;} th,td{padding:7px;}
+}
+</style>
+</head>
+<body>
+
+<!-- 右上 ID タグ -->
+<div class="doc-header">刑JX040</div>
+
+<header class="cover">
+  <span class="subject-tag">刑　法</span>
+  <h1>死者の占有・不法領得の意思のシステマティック解法</h1>
+  <p class="subtitle">上智大学法科大学院 平成20年度 改題 ― 強制性交等致傷罪と窃盗罪の体系的攻略</p>
+</header>
+
+<div class="container">
+<!-- ============================================
+     第0部　本書の使い方・凡例
+     ============================================ -->
+<section id="part0">
+<h2>第0部　本書の使い方・凡例</h2>
+
+<div class="legend-card">
+
+  <div class="legend-block">
+    <h4>論文式試験 出題頻度マーカー</h4>
+    <ul>
+      <li><span class="hl-super">超頻出</span>（5回以上）　濃イエロー</li>
+      <li><span class="hl-high">頻出</span>（3〜4回）　グリーン</li>
+      <li><span class="hl-std">標準</span>（1〜2回）　ライトブルー</li>
+      <li>未出題（0回）　マーカーなし</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>短答式試験 出題頻度マーク</h4>
+    <ul>
+      <li><span class="tan tan-super">短答★★★</span> 超頻出(7回以上)</li>
+      <li><span class="tan tan-high">短答★★</span> 頻出（4〜6回）</li>
+      <li><span class="tan tan-std">短答★</span> 標準（1〜3回）</li>
+      <li>未出題（0回）　表記なし</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>重要度（文字色）</h4>
+    <ul>
+      <li><span class="rank-A">最重要A</span> 通説・判例として確立</li>
+      <li><span class="rank-B">重要B</span> 出題実績あり＋実務上重要</li>
+      <li><span class="rank-C">標準C</span> 基本論点</li>
+      <li><span class="rank-D">参考D</span> 知識の幅を広げる補足</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>答案必要度（論証ブロック）</h4>
+    <ul>
+      <li><span class="arg-tier arg-required">必須</span> 省略不可・大幅減点</li>
+      <li><span class="arg-tier arg-recommended">推奨</span> 上位答案には必要・加点</li>
+      <li><span class="arg-tier arg-advanced">発展</span> 余裕があれば・差をつける一手</li>
+    </ul>
+  </div>
+
+</div>
+</section>
+
+<!-- ============================================
+     目次
+     ============================================ -->
+<nav class="toc" id="toc">
+<h2>目次（Table of Contents）</h2>
+<ul>
+  <li><a href="#part0">第0部　本書の使い方・凡例</a></li>
+  <li><a href="#part1">第1部　問題のシステマティック分析</a></li>
+  <li class="l2"><a href="#exec-summary">エグゼクティブサマリー</a></li>
+  <li class="l2"><a href="#case-overview">本問の事案概要</a></li>
+  <li class="l2"><a href="#relationship-diagram">登場人物・法律関係図</a></li>
+  <li class="l2"><a href="#timeline">時系列整理</a></li>
+  <li class="l2"><a href="#fact-analysis">ファクトの仕分け</a></li>
+  <li class="l2"><a href="#issue-extraction">論点の自動抽出と構造化</a></li>
+  <li><a href="#part2">第2部　論点別 詳細解説</a></li>
+  <li class="l2"><a href="#issue-1">論点1　死者の占有（窃盗罪の故意・占有侵害の認識）</a></li>
+  <li class="l3"><a href="#i1-A">A. 事案要旨と問題の所在</a></li>
+  <li class="l3"><a href="#i1-B">B. 論点抽出（客観面と主観面の分離）</a></li>
+  <li class="l3"><a href="#i1-C">C. 規範定立（判例・学説）</a></li>
+  <li class="l3"><a href="#i1-D">D. 本問へのあてはめ</a></li>
+  <li class="l3"><a href="#i1-E">E. 結論</a></li>
+  <li class="l3"><a href="#i1-F">F. 関連論点・補足</a></li>
+  <li class="l3"><a href="#i1-G">G. 頻出論証ブロック</a></li>
+  <li class="l3"><a href="#i1-H">H. 失点回避チェックリスト</a></li>
+  <li class="l2"><a href="#issue-2">論点2　不法領得の意思（利用処分意思・証拠隠滅目的）</a></li>
+  <li class="l3"><a href="#i2-A">A. 事案要旨と問題の所在</a></li>
+  <li class="l3"><a href="#i2-B">B. 論点抽出（権利者排除意思と利用処分意思）</a></li>
+  <li class="l3"><a href="#i2-C">C. 規範定立（判例・学説）</a></li>
+  <li class="l3"><a href="#i2-D">D. 本問へのあてはめ</a></li>
+  <li class="l3"><a href="#i2-E">E. 結論</a></li>
+  <li class="l3"><a href="#i2-F">F. 関連論点・補足</a></li>
+  <li class="l3"><a href="#i2-G">G. 頻出論証ブロック</a></li>
+  <li class="l3"><a href="#i2-H">H. 失点回避チェックリスト</a></li>
+  <li class="l2"><a href="#issue-pre">前提　強制性交等致傷罪（181条2項）</a></li>
+  <li><a href="#part3">第3部　模範答案全文</a></li>
+  <li class="l2"><a href="#answer-full">完成答案</a></li>
+  <li class="l2"><a href="#grading-comment">採点講評</a></li>
+  <li><a href="#part4">第4部　知識の体系化と実践的補足</a></li>
+  <li class="l2"><a href="#correlation-map">4-1. 論点相関マップ</a></li>
+  <li class="l2"><a href="#priority-flow">4-2. 論点間の優先順位フロー</a></li>
+  <li class="l2"><a href="#column-comprehensive">4-3. 網羅的思考（法的構成の選択）</a></li>
+  <li class="l2"><a href="#column-memory">4-4. 実践的記憶術</a></li>
+  <li class="l2"><a href="#column-history">4-5. 歴史的背景</a></li>
+  <li class="l2"><a href="#column-practice">4-6. 実務との架橋</a></li>
+  <li class="l2"><a href="#exam-strategy">試験戦略アドバイス</a></li>
+  <li><a href="#part5">第5部　参考資料</a></li>
+  <li class="l2"><a href="#ref-statute">5-1　条文集</a></li>
+  <li class="l2"><a href="#ref-case">5-2　判例集</a></li>
+  <li class="l2"><a href="#ref-theory">5-3　学説一覧</a></li>
+  <li class="l2"><a href="#ref-arg">5-4　答案論証集</a></li>
+  <li class="l2"><a href="#ref-term">5-5　用語集</a></li>
+  <li class="l2"><a href="#ref-abbrev">5-6　略語・出典一覧</a></li>
+</ul>
+</nav>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+
+<!-- ============================================
+     第1部　問題のシステマティック分析
+     ============================================ -->
+<section id="part1">
+<h2>第1部　問題のシステマティック分析</h2>
+
+<div class="card" id="exec-summary">
+<h3>エグゼクティブサマリー</h3>
+
+<h4>1. 問題の核心（3文以内）</h4>
+<div class="key-box">
+<p>本問は、<span class="hl-super">Xが甲を強いて姦淫しようと暴行を加えて負傷させた上、甲を殺害したと思い込み、強盗の犯行に見せかけるため甲の装飾品とレジの金品を持ち去った</span>事案である。</p>
+<p>核心は、<span class="rank-A">甲が生存しているにもかかわらず「殺した」と誤信して財物を奪取したXに窃盗罪の故意が認められるか（死者の占有）</span>、および<span class="rank-A">証拠隠滅目的で財物を奪ったXに不法領得の意思（特に利用処分意思）が認められるか</span>である。</p>
+<p>前提として、未遂に終わった強制性交行為と致傷結果から<span class="rank-A">強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）</span>が成立し、窃盗罪との罪数（<a class="xref" href="#ref-stat-keih-45">45条前段</a>）も検討する。</p>
+</div>
+
+<h4>2. 法的争点の完全リスト</h4>
+<table>
+  <tr><th style="width:8%">優先度</th><th style="width:36%">争点</th><th>トリガーファクト</th></tr>
+  <tr>
+    <td><span class="rank-A">★★★</span></td>
+    <td><span class="tan tan-super">短答★★★</span><span class="hl-super">死者の占有 ― 行為者が被害者を死亡させた（と認識した）後に財物を奪った場合の罪責</span></td>
+    <td>Xは甲を「殺害した」と誤信して財物を奪取</td>
+  </tr>
+  <tr>
+    <td><span class="rank-A">★★★</span></td>
+    <td><span class="tan tan-super">短答★★★</span><span class="hl-super">不法領得の意思 ― 利用処分意思</span>（証拠隠滅目的での領得）</td>
+    <td>「強盗の仕業に見せかけよう」と考えて奪取</td>
+  </tr>
+  <tr>
+    <td><span class="rank-B">★★</span></td>
+    <td><span class="tan tan-high">短答★★</span><span class="hl-high">窃盗罪の故意（<a class="xref" href="#ref-stat-keih-38">38条1項</a>）と占有侵害の認識</span></td>
+    <td>客観面は生者からの窃盗・主観面は死者からの取得</td>
+  </tr>
+  <tr>
+    <td><span class="rank-A">★★★</span></td>
+    <td><span class="tan tan-super">短答★★★</span><span class="hl-super">強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）の成否</span>（性交未遂でも成立するか）</td>
+    <td>姦淫の意図で殴打・絞扼し負傷させたが性交には至らず</td>
+  </tr>
+  <tr>
+    <td><span class="rank-B">★★</span></td>
+    <td><span class="tan tan-high">短答★★</span><span class="hl-high">強盗罪（<a class="xref" href="#ref-stat-keih-236">236条1項</a>）が成立しないこと</span>（暴行時の財物奪取意思）</td>
+    <td>暴行は姦淫目的・財物奪取意思は暴行後に発生</td>
+  </tr>
+  <tr>
+    <td><span class="rank-C">★</span></td>
+    <td><span class="tan tan-std">短答★</span><span class="hl-std">罪数処理（併合罪・<a class="xref" href="#ref-stat-keih-45">45条前段</a>）</span></td>
+    <td>性犯罪と財産犯という別個の法益侵害</td>
+  </tr>
+</table>
+
+<h4>3. 解答の骨子（結論先出し型）</h4>
+<div class="success-box">
+<p><strong>【結論】</strong></p>
+<ul>
+  <li><span class="rank-A">第1に、強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）が成立</span>する。姦淫の意図による殴打・絞扼は「暴行」に当たり、性交は未遂にとどまるが、致傷結果が生じている以上、同罪が成立する。</li>
+  <li><span class="rank-A">第2に、装飾品・金品の奪取につき窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）が成立</span>する。客観的には甲は生存しており占有侵害が認められる。Xは甲の死亡を誤信するが、<span class="hl-super">一連の行為を全体として観察すれば生前の占有侵害が認められ、その認識を基準としても窃盗罪の故意が肯定</span>される。証拠隠滅目的でも<span class="hl-high">利用処分意思は否定されず不法領得の意思が認められる</span>（東京高判平12.5.15）。</li>
+  <li><span class="rank-C">強盗罪（<a class="xref" href="#ref-stat-keih-236">236条</a>）は成立しない</span>。暴行は姦淫目的であり、財物奪取意思は暴行後に生じたため、暴行・脅迫を手段とする財物奪取とはいえない。</li>
+  <li><span class="rank-C">強制性交等致傷罪と窃盗罪は併合罪（<a class="xref" href="#ref-stat-keih-45">45条前段</a>）</span>となる。</li>
+</ul>
+</div>
+
+<h4>4. 答案戦略（配点・時間配分・差がつくポイント）</h4>
+<table>
+  <tr><th>項目</th><th>予想配点</th><th>推奨時間</th><th>差がつくポイント</th></tr>
+  <tr><td>強制性交等致傷罪（前提）</td><td>20%</td><td>構成3分・記述8分</td><td>「暴行」概念と未遂でも致傷罪が成立する点を端的に処理できるか</td></tr>
+  <tr><td>死者の占有（窃盗罪の故意）</td><td>35%</td><td>構成7分・記述20分</td><td>客観面と主観面を分離し、認識レベルで死者の占有を論じられるか</td></tr>
+  <tr><td>不法領得の意思（利用処分意思）</td><td>30%</td><td>構成6分・記述17分</td><td>証拠隠滅目的でなぜ利用処分意思が認められるか（毀棄隠匿目的との区別）を説明できるか</td></tr>
+  <tr><td>罪数・論理構成</td><td>15%</td><td>構成2分・記述5分</td><td>客観面→主観面の検討順序と併合罪処理</td></tr>
+</table>
+
+<h4>5. 初学者向け／上級者向けポイント</h4>
+<div class="note-box">
+<p><strong>【初学者向け：前提知識の確認】</strong></p>
+<ul>
+  <li><a class="xref" href="#ref-term-shishanosenyu"><span class="rank-C">死者の占有</span></a>の基本構造（占有は本来生者の事実的支配であること）</li>
+  <li>窃盗罪の<span class="rank-B">故意（<a class="xref" href="#ref-stat-keih-38">38条1項</a>）と占有侵害の認識</span>の関係</li>
+  <li><a class="xref" href="#ref-term-fuhouryotoku">不法領得の意思</a>の二要素（権利者排除意思・利用処分意思）</li>
+  <li>客観的構成要件と主観的構成要件を<span class="rank-B">分離して検討する</span>思考の型</li>
+</ul>
+</div>
+<div class="warn-box">
+<p><strong>【上級者向け：見落としやすい応用論点】</strong></p>
+<ul>
+  <li><span class="rank-A">「死者の占有」は客観面ではなく主観面（故意）で問題になる</span>点（本問は甲が生存しているため客観的占有侵害は当然認められる）</li>
+  <li>利用処分意思の判断基準を<span class="rank-B">「物自体から効用を得る意思」</span>と捉えるか、<span class="rank-B">「毀棄隠匿目的の排除」</span>と捉えるかで結論が分かれうること</li>
+  <li>強盗罪を否定する理由（暴行と財物奪取意思の時間的先後）の正確な摘示</li>
+  <li>仮に甲が現実に死亡していた場合の罪責（占有離脱物横領罪との区別）との対比</li>
+</ul>
+</div>
+
+<h4>6. 関連過去問・出題傾向</h4>
+<ul>
+  <li><span class="hl-super">司法試験 平成29年刑法</span>：死者の占有・不法領得の意思（本問と同型の複合）</li>
+  <li><span class="hl-high">司法試験 平成27年刑法</span>：不法領得の意思（利用処分意思の認定）</li>
+  <li><span class="hl-std">旧司法試験 平成元年第2問・平成19年第2問</span>：不法領得の意思</li>
+  <li><span class="hl-std">最判昭41.4.8（百選Ⅱ29）</span>：死者の占有のリーディングケース</li>
+</ul>
+<p><strong>今後の出題可能性：<span class="rank-A">高</span></strong> ― 死者の占有と不法領得の意思は財産犯の二大論点であり、両者を一事案で問う本問は典型的な複合問題として頻出する。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="case-overview">
+<h3>本問の事案概要</h3>
+
+<h4>問題文原文</h4>
+<blockquote class="problem">
+<p>Xは、スナックを経営する甲女に好意を抱き、高価な時計、ネックレス等をたびたびプレゼントしていた。しかし甲は、それらの品は受け取っていたものの、Xと個人的に交際する気は全くなく、デートの誘いを受けても、「また今度」などとはぐらかしていた。ある日Xは、スナックで酒を飲み、他の客もいなかったことから、甲に交際を強く迫ったが、甲から、他に交際している男性がいるのでつきあえないといわれたため、頭に血が上り、強いて姦淫（注：現行法では「性交」（177条）、以下略）してしまおうと考え、甲に突然飛びかかり、その顔面を殴打して、負傷させた上、さらに頸部を両手で締め上げた。これによって、甲はぐったりして、人事不省に陥った。Xはこれを見て、甲を殺害してしまったと思い込み、犯行がばれないように強盗の仕業に見せかけようと考えて、店内を荒らし、甲が身につけていた高価な装飾品などを取り、また、レジスターをこじ開けて金品を持ち出した。</p>
+<p>以上の事案におけるXの罪責について論じなさい。</p>
+<p style="text-align:right">（上智大学法科大学院 平成20年度 改題）</p>
+</blockquote>
+
+<h4>設問の分析</h4>
+<p>本問は「Xの罪責について論じなさい」という単独行為者型の事例であり、Xの行為を時系列に沿って分節し、以下の三つの行為群について検討を要する。</p>
+<ul>
+  <li><span class="rank-A">第1行為（姦淫目的の暴行・致傷）</span>：強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）の成否</li>
+  <li><span class="rank-A">第2行為（財物の奪取）</span>：窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）の成否 ⇒ <span class="hl-super">死者の占有</span>・<span class="hl-super">不法領得の意思</span>の問題</li>
+  <li><span class="rank-C">罪数</span>：両罪の関係（併合罪・<a class="xref" href="#ref-stat-keih-45">45条前段</a>）</li>
+</ul>
+<div class="key-box">
+<p><strong>【検討順序の選択】</strong>行為の時系列に沿い、第1行為（性犯罪）→第2行為（財産犯）の順で検討する。財産犯では、まず<span class="la-key">客観的構成要件（占有侵害）が充足されること</span>を確認し、次に<span class="la-key">主観面（故意・不法領得の意思）</span>で問題が生じる、という順序を厳守するのが本問処理の要諦である。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="svg-wrap" id="relationship-diagram">
+<h3>登場人物・法律関係図</h3>
+<svg viewBox="0 0 800 470" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="470" fill="#f1f7f8"/>
+  <circle cx="150" cy="130" r="52" fill="#2d7282" stroke="#1d4e58" stroke-width="2"/>
+  <text x="150" y="126" text-anchor="middle" font-size="22" font-weight="bold" fill="#fff">X</text>
+  <text x="150" y="148" text-anchor="middle" font-size="11" fill="#fff">行為者（男性）</text>
+  <circle cx="630" cy="130" r="52" fill="#7fb8c2" stroke="#2d7282" stroke-width="2"/>
+  <text x="630" y="126" text-anchor="middle" font-size="22" font-weight="bold" fill="#143036">甲</text>
+  <text x="630" y="148" text-anchor="middle" font-size="11" fill="#143036">スナック経営・女性</text>
+  <line x1="204" y1="118" x2="576" y2="118" stroke="#888" stroke-width="2" stroke-dasharray="8,5"/>
+  <text x="390" y="106" text-anchor="middle" font-size="12" fill="#555" font-weight="bold">好意・贈与／交際拒絶</text>
+  <defs>
+    <marker id="ar-a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2d7282"/></marker>
+    <marker id="ar-m" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#00adc1"/></marker>
+    <marker id="ar-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#888"/></marker>
+  </defs>
+  <path d="M 198 158 Q 400 215 578 158" fill="none" stroke="#2d7282" stroke-width="2.8" marker-end="url(#ar-a)"/>
+  <text x="390" y="205" text-anchor="middle" font-size="13" fill="#2d7282" font-weight="bold">①姦淫目的で殴打・頸部絞扼 → 負傷</text>
+  <text x="390" y="223" text-anchor="middle" font-size="11" fill="#2d7282">＝ 強制性交等致傷罪（181条2項）／性交は未遂</text>
+  <rect x="500" y="248" width="270" height="74" fill="#fff" stroke="#00adc1" stroke-width="1.6" stroke-dasharray="6,4" rx="6"/>
+  <text x="635" y="270" text-anchor="middle" font-size="12" fill="#0a6e7c" font-weight="bold">②甲が人事不省 → Xは「殺害した」と誤信</text>
+  <text x="635" y="290" text-anchor="middle" font-size="11" fill="#444">客観：甲は生存（占有あり）</text>
+  <text x="635" y="308" text-anchor="middle" font-size="11" fill="#444">主観：死者からの取得と認識</text>
+  <rect x="30" y="248" width="270" height="74" fill="#fff" stroke="#2d7282" stroke-width="1.6" rx="6"/>
+  <text x="165" y="270" text-anchor="middle" font-size="12" fill="#2d7282" font-weight="bold">③装飾品・レジ金品を奪取</text>
+  <text x="165" y="290" text-anchor="middle" font-size="11" fill="#444">「強盗の仕業に見せかけよう」</text>
+  <text x="165" y="308" text-anchor="middle" font-size="11" fill="#444">＝ 窃盗罪（235条）／強盗は不成立</text>
+  <path d="M 470 285 Q 385 300 305 285" fill="none" stroke="#888" stroke-width="2" marker-end="url(#ar-g)"/>
+  <rect x="190" y="360" width="420" height="92" fill="#e0eef0" stroke="#bcd9dd" stroke-width="1.4" rx="8"/>
+  <text x="400" y="384" text-anchor="middle" font-size="13" fill="#1d4e58" font-weight="bold">二大論点</text>
+  <text x="400" y="408" text-anchor="middle" font-size="12" fill="#143036">論点1：死者の占有 → 窃盗罪の故意（38条1項）</text>
+  <text x="400" y="430" text-anchor="middle" font-size="12" fill="#143036">論点2：不法領得の意思 → 利用処分意思（証拠隠滅目的）</text>
+  <rect x="20" y="395" width="155" height="57" fill="#fff" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="412" font-size="11" font-weight="bold" fill="#333">【凡例】</text>
+  <line x1="30" y1="425" x2="58" y2="425" stroke="#2d7282" stroke-width="2.8"/>
+  <text x="64" y="428" font-size="10" fill="#333">Xの作為（暴行・奪取）</text>
+  <line x1="30" y1="442" x2="58" y2="442" stroke="#00adc1" stroke-width="2.8"/>
+  <text x="64" y="445" font-size="10" fill="#333">Xの誤信（殺害）</text>
+</svg>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="timeline">
+<h3>時系列整理</h3>
+<div class="timeline">
+  <div class="timeline-item">
+    <span class="timeline-label">時点①　好意と贈与・交際拒絶</span>
+    <p>Xはスナックを経営する甲に好意を抱き、高価な時計・ネックレス等をたびたび贈与。甲は品は受け取るが交際する気はなく、デートの誘いを「また今度」とはぐらかしていた。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点②　姦淫目的の暴行・絞扼</span>
+    <p>ある日、他に客のいないスナックでXが交際を強く迫るも、甲が「他に交際相手がいる」と拒絶。頭に血が上ったXは<strong>強いて姦淫しようと考え</strong>、甲に飛びかかり<strong>顔面を殴打して負傷させ、さらに頸部を両手で締め上げた</strong>。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点③　人事不省と殺害の誤信</span>
+    <p>これにより甲はぐったりして<strong>人事不省</strong>に陥った。Xはこれを見て<strong>「甲を殺害してしまった」と思い込んだ</strong>（客観的には甲は生存）。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点④　強盗偽装と財物奪取</span>
+    <p>Xは<strong>犯行がばれないよう強盗の仕業に見せかけよう</strong>と考え、店内を荒らし、甲が身につけていた高価な装飾品等を取り、レジスターをこじ開けて金品を持ち出した。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点⑤　法的評価</span>
+    <p>第1行為につき強制性交等致傷罪、第2行為につき窃盗罪が問題となり、両罪は併合罪となる。</p>
+  </div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="fact-analysis">
+<h3>ファクトの仕分け</h3>
+
+<h4>確定事実（評価の余地のない事実）</h4>
+<ul>
+  <li>Xは甲に好意を抱き高価な品を贈与していた</li>
+  <li>甲は交際の意思がなく誘いをはぐらかしていた</li>
+  <li>Xは強いて姦淫しようと考え、甲の顔面を殴打して負傷させ、頸部を両手で締め上げた</li>
+  <li>性交（姦淫）には至っていない</li>
+  <li>甲は人事不省に陥ったが、客観的には死亡していない（生存）</li>
+  <li>Xは甲を殺害したと思い込んだ</li>
+  <li>Xは強盗の仕業に見せかける目的で装飾品・レジ内金品を持ち去った</li>
+</ul>
+
+<h4>評価を要する事実（法的評価が必要な事実）</h4>
+<table>
+  <tr><th>事実</th><th>法的評価のポイント</th></tr>
+  <tr><td>姦淫目的の殴打・頸部絞扼</td><td>強制性交罪の手段としての<span class="rank-A">「暴行」（反抗を著しく困難にする程度）</span>に当たるか</td></tr>
+  <tr><td>性交未遂＋甲の負傷</td><td><span class="rank-A">強制性交等致傷罪（181条2項）</span>が未遂でも成立するかの評価</td></tr>
+  <tr><td>Xは甲を「殺害した」と誤信して財物を奪取</td><td><span class="rank-A">窃盗罪の故意（占有侵害の認識）</span>＝死者の占有の評価</td></tr>
+  <tr><td>「強盗の仕業に見せかけよう」という奪取目的</td><td><span class="rank-A">利用処分意思（不法領得の意思）</span>の有無の評価</td></tr>
+  <tr><td>財物奪取意思が暴行後に生じた</td><td><span class="rank-B">強盗罪の成否</span>（暴行・脅迫時の奪取意思）の評価</td></tr>
+</table>
+
+<h4>トリガーファクト（特定論点を起動させる事実）</h4>
+<table>
+  <tr><th>事実</th><th>起動する論点</th></tr>
+  <tr><td>Xは甲を「殺害した」と誤信した</td><td>→ <span class="hl-super">死者の占有</span>（窃盗罪の故意・占有侵害の認識）</td></tr>
+  <tr><td>客観的には甲は生存している</td><td>→ <span class="hl-high">客観面では当然に占有侵害＝窃盗</span>（死者の占有は主観面の問題）</td></tr>
+  <tr><td>証拠隠滅（強盗偽装）目的での奪取</td><td>→ <span class="hl-super">不法領得の意思（利用処分意思）</span></td></tr>
+  <tr><td>姦淫目的の暴行で負傷させた</td><td>→ <span class="hl-high">強制性交等致傷罪</span>（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）</td></tr>
+  <tr><td>暴行後に財物奪取意思が発生</td><td>→ <span class="hl-std">強盗罪の不成立</span>（<a class="xref" href="#ref-stat-keih-236">236条</a>）</td></tr>
+  <tr><td>性犯罪と財産犯の併存</td><td>→ <span class="hl-std">罪数（併合罪）</span></td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="issue-extraction">
+<h3>論点の自動抽出と構造化</h3>
+
+<h4>[前提] 強制性交等致傷罪（第1行為）</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>適用条文</td><td><span class="rank-A">強制性交等致死傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）・強制性交等罪（<a class="xref" href="#ref-stat-keih-177">177条</a>）・未遂（<a class="xref" href="#ref-stat-keih-180">180条</a>）</span></td></tr>
+  <tr><td>手段</td><td>「暴行」＝反抗を著しく困難にする程度（殴打・頸部絞扼）</td></tr>
+  <tr><td>未遂処理</td><td>性交は未遂だが、致傷結果が生じれば181条2項成立</td></tr>
+  <tr><td>結論</td><td>強制性交等致傷罪が成立（争いなく明らか）</td></tr>
+</table>
+
+<h4>[1] 死者の占有（窃盗罪の故意）</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>適用条文</td><td><span class="rank-A">窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）・故意（<a class="xref" href="#ref-stat-keih-38">38条1項</a>）</span></td></tr>
+  <tr><td>客観面</td><td>甲は生存 → 占有侵害は当然に充足（窃盗罪の客観的構成要件充足）</td></tr>
+  <tr><td>核心論点</td><td><span class="hl-super">主観面：死者と誤信した者に占有侵害の認識（故意）が認められるか</span></td></tr>
+  <tr><td>規範</td><td>一連の行為を全体として観察し、生前の占有を侵害したと認められる限度で占有を保護（最判昭41.4.8）</td></tr>
+</table>
+
+<h4>[2] 不法領得の意思（利用処分意思）</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>適用条文</td><td><span class="rank-A">窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）の主観的超過要素</span></td></tr>
+  <tr><td>二要素</td><td>①権利者排除意思　②経済的用法に従い利用・処分する意思（利用処分意思）</td></tr>
+  <tr><td>核心論点</td><td><span class="hl-super">証拠隠滅（強盗偽装）目的の奪取に利用処分意思が認められるか</span></td></tr>
+  <tr><td>本問の結論</td><td>毀棄隠匿目的とはいえず利用処分意思を肯定（東京高判平12.5.15）。否定説もあり得る</td></tr>
+</table>
+
+<h4>核心論点（争点）の確定 ― 配点の高い順</h4>
+<div class="key-box">
+<ol>
+  <li><span class="rank-A">最重要</span>：<span class="hl-super">死者の占有</span>＝窃盗罪の故意（占有侵害の認識）の認定（予想配点 30%）</li>
+  <li><span class="rank-A">最重要</span>：<span class="hl-super">不法領得の意思（利用処分意思）</span>の規範定立と当てはめ（予想配点 25%）</li>
+  <li><span class="rank-B">重要</span>：<span class="hl-high">強制性交等致傷罪</span>の成否（未遂でも致傷罪成立）（予想配点 20%）</li>
+  <li><span class="rank-B">重要</span>：窃盗罪の<span class="hl-high">客観的構成要件の充足</span>と<span class="hl-high">強盗罪の不成立</span>（予想配点 15%）</li>
+  <li><span class="rank-C">補足</span>：<span class="hl-std">罪数処理（併合罪）</span>（予想配点 10%）</li>
+</ol>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第2部　論点別 詳細解説
+     ============================================ -->
+<section id="part2">
+<h2>第2部　論点別 詳細解説</h2>
+
+<div class="lecturer-advice">
+<span class="la-lead">総論：刑法の問題処理パターンと検討順序</span>
+<p>「X及びYの罪責を論ぜよ」——刑法の問題の9割5分以上はこの型です。処理手順はほぼ決まっていて、これを愚直に繰り返すだけ。<span class="la-key">①犯罪になりそうな行為をピックアップ → ②該当する構成要件を特定 → ③客観的・主観的構成要件要素を検討 → ④違法性阻却事由（正当防衛等）→ ⑤責任阻却事由</span>という犯罪論体系に則って進めれば、答案構成で大きく迷うことはありません。</p>
+<p>複数人の罪責が問われたら、<span class="la-key">重い責任を負う者（犯罪の中核をなす者）から検討する</span>のがセオリーです。本問では殺人未遂を負う <strong>Y から書く</strong>のが収まりがよい（X から書いても構いません）。立て付けは「Yの罪責 → Xの罪責 → 共犯」。2人登場するので、最後に<strong>共犯関係へ一言触れる余地</strong>がある点も意識しておきましょう。</p>
+</div>
+
+<!-- ====== 論点1：Yの罪責 ====== -->
+<div class="card" id="issue-1">
+<h3><span class="rank-A">A</span>　論点1　死者の占有（窃盗罪の故意・占有侵害の認識）</h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">死者の占有は「主観面」の問題 ― ここを外すと総崩れ</span>
+<p>繰り返しますが、<span class="la-key">客観面では甲は生きているので当然に窃盗</span>です。死者の占有が顔を出すのは「Xが死んでいると誤信した甲から物を取る」という<span class="la-quote">認識（故意）のレベル</span>。判例の発想は「犯人自身が、被害者を死亡させた後、その直後に同一機会で物を取れば、生前の占有侵害として窃盗が成立する」というもの。Xの認識ベースでもこの関係が認められるので、窃盗の故意を肯定できます。</p>
+</div>
+
+<!-- A. 事案要旨と問題の所在 -->
+<div id="i1-A">
+<h4>A. 事案要旨と問題の所在（論点固有の視点）</h4>
+<p>本論点で問題となる中心条文は<a class="xref" href="#ref-stat-keih-235">刑法235条</a>（窃盗罪）である。Xは甲が身につけた装飾品とレジ内の金品を奪取しており、客観的には<strong>他人（甲）の財物を意思に反して自己の支配下に移した</strong>といえる。条文全文・改正履歴・関連条文網は<a class="xref" href="#ref-stat-keih-235">第5-1</a>を参照。</p>
+<div class="key-box">
+<p><strong>【問題の所在】</strong>Xは甲を「殺害してしまった」と思い込んでいる。Xの認識を基準とすると、<span class="hl-super">死者から財物を取得したという認識</span>になる。占有は本来生者の事実的支配であるから、死者には占有が認められないのが原則である。そうすると、Xの認識を基準とした場合に、なお<span class="rank-A">窃盗罪の故意（占有侵害の認識）</span>を肯定できるかが問題となる。</p>
+</div>
+<h5>当該論点で問題となる要件の特定</h5>
+<table>
+  <tr><th>要件</th><th>本問における争点</th></tr>
+  <tr><td>客体「他人の財物」</td><td>装飾品・金品は甲の財物（争いなし）</td></tr>
+  <tr><td>客観的「窃取」（占有侵害）</td><td>甲は生存 → 占有侵害は当然に充足（争いなし）</td></tr>
+  <tr><td><span class="rank-A">故意（<a class="xref" href="#ref-stat-keih-38">38条1項</a>）＝占有侵害の認識</span></td><td><span class="hl-super">死者と誤信した者に占有侵害の認識が認められるか</span>＝本論点の核心</td></tr>
+  <tr><td>不法領得の意思</td><td>論点2で別途検討</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- B. 論点抽出 -->
+<div id="i1-B">
+<h4>B. 論点抽出（客観面と主観面の分離）</h4>
+<p>本論点の処理で最も重要なのは、<span class="rank-A">客観面と主観面を厳格に分離する</span>ことである。両者を混同すると、「死者には占有がないから窃盗にならない」という誤った結論に飛びつく危険がある。</p>
+<div class="success-box">
+<p><strong>【客観面】</strong>本問において甲は<strong>現実には死亡しておらず生存している</strong>。したがって、甲は装飾品等につき占有を有し、Xがこれを意思に反して奪取した以上、<span class="rank-A">窃盗罪の客観的構成要件（占有侵害）は当然に充足</span>される。ここに死者の占有の問題は生じない。</p>
+</div>
+<div class="warn-box">
+<p><strong>【主観面】</strong>他方、Xの認識は「甲を殺害した後、その死者から財物を取得する」というものである。占有侵害の認識（窃盗の故意）が認められるためには、Xの認識を基準としても占有侵害があると評価できなければならない。<span class="hl-super">ここで初めて「死者の占有」が問題となる</span>。すなわち死者の占有は、客観的構成要件ではなく<strong>故意（主観的構成要件）のレベルで問題となる</strong>。</p>
+</div>
+<h5>思考の分岐</h5>
+<div class="flow">
+<p class="step"><strong>客観面：</strong>甲は生存 → 占有あり → 窃取あり → 窃盗罪の客観的構成要件充足（明らか）</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>主観面：</strong>Xは甲死亡と誤信 → 「死者からの取得」と認識 → 占有侵害の認識（故意）を肯定できるか</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>帰結：</strong>主観面で占有侵害の認識が肯定されれば、客観・主観が符合し窃盗罪が成立</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- C. 規範定立 -->
+<div id="i1-C">
+<h4>C. 規範定立（判例・学説）</h4>
+<p>本論点のリーディングケースは<a class="xref" href="#ref-case-saihan-s41-4-8">最判昭和41年4月8日（百選Ⅱ29）</a>である。被害者を殺害した後に領得意思を生じて被害者の財物を奪取した事案で、判例は次のように述べる。各判例の事案詳細・出典は<a class="xref" href="#ref-case-saihan-s41-4-8">第5-2</a>を参照。</p>
+<blockquote class="case">
+<p class="judgment-text">『被害者が生前有していた財物の所持はその死亡直後においてもなお継続して保護するのが法の目的にかなうものというべきである。そうすると、被害者からその財物の占有を離脱させた自己の行為を利用して右財物を奪取した一連の被告人の行為は、これを全体的に考察して、他人の財物に対する所持を侵害したものというべきであるから、右奪取行為は、占有離脱物横領ではなく、窃盗罪を構成する』</p>
+</blockquote>
+<div class="key-box">
+<p><strong>【規範のコア】</strong>死者そのものに占有は認められないとしても、<span class="hl-super">行為者との関係では、一連の行為を全体として観察し、被害者の生前の占有を侵害したと認められることを条件に、窃盗罪の成立を認める</span>（時間的・場所的近接性のある同一機会の奪取に限る）。</p>
+<p><strong>【射程】</strong>この規範は「自ら被害者を死亡させた行為者が、その死亡直後に同一機会で財物を奪取した場合」に妥当する。第三者がたまたま死者から財物を取得した場合（占有離脱物横領）や、当初から財物奪取意思で殺害した場合（強盗）とは区別される。</p>
+</div>
+<h5>学説の整理</h5>
+<table>
+  <tr><th style="width:25%">学説</th><th>結論</th><th>論拠・批判</th></tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-senyu-hogo"><span class="rank-A">生前占有継続保護説（判例）</span></a></td>
+    <td>行為者との関係で生前占有を保護し窃盗成立</td>
+    <td>同一機会の一連の行為を全体評価。財産的秩序の保護に資する／「死者の占有」という擬制への批判あり</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-senyu-ridatsu"><span class="rank-C">占有離脱物横領説</span></a></td>
+    <td>死者に占有なし → 占有離脱物横領罪（254条）</td>
+    <td>占有概念に忠実／死亡直後の財産秩序保護に欠け、行為者を不当に利する</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-senyu-koui"><span class="rank-B">行為時占有説</span></a></td>
+    <td>死亡時点を基準に占有の継続を擬制</td>
+    <td>判例と結論はほぼ同じ／理論構成が異なる</td>
+  </tr>
+</table>
+<div class="note-box">
+<p><strong>【本問の特殊性＝主観面での問題】</strong>本問は甲が現実には生存しているため、客観的には端的に窃盗罪が成立する。判例の規範は、<span class="rank-A">Xの認識（甲死亡）を基準としても占有侵害の認識が認められるか</span>を判断する際の評価基準として用いる。Xの認識ベースでも「一連の行為を全体観察し生前占有を侵害した」関係が認められるから、占有侵害の認識（窃盗の故意）が肯定される。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- D. あてはめ -->
+<div id="i1-D">
+<h4>D. 本問へのあてはめ</h4>
+<div class="flow">
+<p class="step"><strong>手順1：</strong>客観面の確認 → 甲は生存しており占有あり。Xの奪取は意思に反する占有移転 → <span class="rank-A">窃盗罪の客観的構成要件を充足</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順2：</strong>主観面の問題提起 → Xは甲を殺害したと誤信。「死者からの取得」という認識で占有侵害の認識（故意）が認められるか</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順3：</strong>規範の適用 → 行為者との関係では一連の行為を全体観察し生前占有侵害が認められれば足りる</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順4：</strong>あてはめ → Xは自ら甲を人事不省に陥らせ（占有を弛緩させ）、その直後・同一場所（同一機会）で甲の装飾品等を奪取。Xの認識を基準としても、自己の先行行為を利用して生前の占有を侵害したと評価できる</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順5：</strong>結論 → Xの認識を基準としても占有侵害の認識が認められ、<span class="rank-A">窃盗罪の故意を肯定</span></p>
+</div>
+<h5>あてはめのコツ（トリガーファクト・評価語）</h5>
+<table>
+  <tr><th>事実</th><th>評価語</th><th>結論</th></tr>
+  <tr><td>Xが自ら甲を絞扼し人事不省に陥らせた</td><td>占有弛緩状態を自ら作出した先行行為</td><td>一連の行為としての全体評価が可能</td></tr>
+  <tr><td>殺害（と誤信）の直後に同一店内で奪取</td><td>時間的・場所的近接性／同一機会性</td><td>生前占有侵害の認識を肯定</td></tr>
+  <tr><td>装飾品は甲が「身につけていた」物</td><td>身体に密着した強固な占有</td><td>占有侵害の認識が明確</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- E. 結論 -->
+<div id="i1-E">
+<h4>E. 結論</h4>
+<div class="success-box">
+<p>Xの認識（甲死亡）を基準としても、自己の行為を利用して甲の生前の占有を侵害したと評価でき、<span class="rank-A">占有侵害の認識＝窃盗罪の故意（<a class="xref" href="#ref-stat-keih-38">38条1項</a>）が認められる</span>。客観面では当然に占有侵害があるから、客観・主観が符合し、窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）の故意・実行行為は肯定される（残るは不法領得の意思＝論点2）。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- F. 関連論点・補足 -->
+<div id="i1-F">
+<h4>F. 関連論点・補足</h4>
+<h5>死者の占有をめぐる三類型の整理</h5>
+<table>
+  <tr><th>類型</th><th>事案</th><th>罪責</th></tr>
+  <tr><td><span class="rank-A">①行為者が殺害後に領得意思</span></td><td>自ら殺害（と誤信）した者が死亡直後に同一機会で奪取（＝本問）</td><td>窃盗罪（生前占有侵害として）</td></tr>
+  <tr><td><span class="rank-B">②当初から財物奪取意思</span></td><td>財物奪取目的で人を殺害し奪取</td><td>強盗殺人罪（240条後段）</td></tr>
+  <tr><td><span class="rank-C">③無関係の第三者が領得</span></td><td>他人が殺害した死者から通りすがりに奪取</td><td>占有離脱物横領罪（254条）</td></tr>
+</table>
+<div class="note-box">
+<p><strong>【仮に甲が現実に死亡していたら】</strong>それでも本問のXは<strong>類型①</strong>に当たり、判例によれば窃盗罪が成立する。本問は甲が生存しているため客観的にはなお容易に窃盗が成立し、判例規範は主観面の評価基準として機能する点に注意。</p>
+</div>
+<h5>芋づる式関連知識</h5>
+<ul>
+  <li><span class="rank-B">占有の意義</span>：財物に対する事実的支配。占有の事実（客観的支配）と占有の意思（主観的支配意思）から判断</li>
+  <li><span class="rank-C">封緘物の占有</span>：受託者と委託者のいずれに占有があるかの論点（本問とは別系統だが占有概念の理解に資する）</li>
+  <li><span class="rank-D">抽象的事実の錯誤</span>：認識と客観がずれる場面という意味で隣接するが、本問は同一構成要件内（窃盗）の問題であり錯誤論には立ち入らない</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- G. 頻出論証ブロック -->
+<div id="i1-G">
+<h4>G. 頻出論証ブロック</h4>
+<p>転記可能な頻出論証を3層構造で提示する。出典・使用条文・判例は<a class="xref" href="#ref-arg">第5-4答案論証集</a>を参照。</p>
+<div class="arg-card" id="arg-1-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証1-1：死者の占有と窃盗罪の故意</h5>
+<div class="arg-meta"><strong>出題実績：</strong>司法試験 平成29年／最判昭41.4.8（百選Ⅱ29）　<strong>想定文字数：</strong>完成形 約240字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">Xは甲を殺害したと誤信しており、その認識を基準とすると死者から財物を取得したことになる。占有は本来生者の事実的支配であるから、死者には占有が認められないのが原則である。もっとも、被害者を死亡させた者との関係では、一連の行為を全体として観察し、被害者の生前の占有を侵害したと認められる限度で、なお生前の占有を刑法上保護するのが相当である。本件でXは自ら甲を人事不省に陥らせた直後、同一機会に甲の財物を奪取しており、その認識を基準としても生前の占有を侵害したと評価できる。よって占有侵害の認識（窃盗の故意）が認められる。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">死者に占有はないが、被害者を死亡させた者が一連の行為で生前の占有を侵害したと認められれば窃盗罪となる。Xの認識を基準としてもこの関係が認められ、窃盗の故意が肯定される。</div>
+<p><strong>【発展版（加点要素）】</strong></p>
+<div class="arg-body">最判昭41.4.8は、被害者の生前の所持はその死亡直後においてもなお継続して保護するのが法の目的にかなうとして、占有離脱物横領ではなく窃盗罪の成立を認めた。本件は甲が現実には生存しているため客観的占有侵害は当然に認められ、同判例の規範は主観面（占有侵害の認識）を肯定する評価基準として機能する。</div>
+</div>
+<div class="arg-card" id="arg-1-2">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>論証1-2：客観面・主観面の分離</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>完成形 約120字</div>
+<div class="arg-body">本件で甲は現実には生存しているから、客観的には甲の占有を侵害しており窃盗罪の客観的構成要件は充足される。死者の占有が問題となるのは、甲死亡を誤信したXに占有侵害の認識（故意）が認められるかという主観面においてである。</div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- H. 失点回避チェックリスト -->
+<div id="i1-H">
+<h4>H. 失点回避チェックリスト</h4>
+<h5>論点漏れチェック</h5>
+<ul class="checklist">
+  <li>客観面（甲生存＝占有侵害あり）を先に確定したか</li>
+  <li>死者の占有が「主観面（故意）」の問題であると明示したか</li>
+  <li>占有が原則として生者の事実的支配であることを述べたか</li>
+  <li>一連の行為を全体観察する判例規範を提示したか</li>
+  <li>Xの認識を基準としても占有侵害の認識が認められると当てはめたか</li>
+</ul>
+<h5>規範の正確性チェック</h5>
+<ul class="checklist">
+  <li>「生前の占有を侵害したと認められる限度で保護」という規範を正確に書いたか</li>
+  <li>最判昭41.4.8の事案（殺害後に領得意思）との同型性を意識したか</li>
+  <li>占有離脱物横領罪（254条）・強盗殺人罪（240条）との区別を理解しているか</li>
+</ul>
+<h5>あてはめチェック</h5>
+<ul class="checklist">
+  <li>「自ら絞扼して人事不省に陥らせた」を先行行為として用いたか</li>
+  <li>「直後・同一店内」を時間的場所的近接性の評価語と結合したか</li>
+  <li>「身につけていた装飾品」を強固な占有の事実として用いたか</li>
+</ul>
+<h5>形式チェック</h5>
+<ul class="checklist">
+  <li>条文番号は<a class="xref" href="#ref-stat-keih-235">235条</a>・<a class="xref" href="#ref-stat-keih-38">38条1項</a>を正確に書いたか</li>
+  <li>客観面→主観面の検討順序を答案上も守ったか</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</div><!-- /論点1 -->
+
+
+<!-- ====== 論点2：不法領得の意思 ====== -->
+<div class="card" id="issue-2">
+<h3><span class="rank-A">A</span>　論点2　不法領得の意思（利用処分意思・証拠隠滅目的）</h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">難所は利用処分意思 ― 説明は苦しいが肯定・否定どちらでも可</span>
+<p>権利者排除意思は問題なく認められます。難所は<span class="la-key">利用処分意思</span>。「物自体から効用を得る意思」という一般的基準では、本問は証拠隠滅（強盗偽装）目的なので、<strong>物そのものから効用を得ているわけではない</strong>→否定に傾きます。裁判例（東京高判平12.5.15）は肯定しますが、その理由付けは苦しい。本解説は<span class="la-quote">毀棄隠匿目的を窃盗から排除するために利用処分意思を要求しているのだから、本問は毀棄隠匿目的ではない以上、裏返せば利用処分意思はある</span>という説明で肯定します。否定して占有離脱物横領にとどめる処理も十分あり得ます。</p>
+</div>
+
+<!-- A. 事案要旨と問題の所在 -->
+<div id="i2-A">
+<h4>A. 事案要旨と問題の所在（論点固有の視点）</h4>
+<p>窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）の成立には、条文に明示されない主観的超過要素として<a class="xref" href="#ref-term-fuhouryotoku">不法領得の意思</a>が必要と解されている。Xは「強盗の仕業に見せかけよう」という<strong>証拠隠滅目的</strong>で財物を奪っており、この目的の下でも不法領得の意思が認められるかが問題となる。</p>
+<div class="key-box">
+<p><strong>【問題の所在】</strong>不法領得の意思は、①権利者を排除して他人の物を自己の所有物としてその経済的用法に従い利用・処分する意思、と定義される（<a class="xref" href="#ref-case-daihan-t4-5-21">大判大正4年5月21日</a>）。本問では、証拠隠滅目的での奪取につき、特に<span class="hl-super">②利用処分意思</span>が認められるかが問題となる。</p>
+</div>
+<h5>当該論点で問題となる要件の特定</h5>
+<table>
+  <tr><th>要素</th><th>本問における争点</th></tr>
+  <tr><td><span class="rank-B">①権利者排除意思</span></td><td>装飾品等の利用阻害は明らか → 問題なく肯定</td></tr>
+  <tr><td><span class="rank-A">②利用処分意思（経済的用法に従う意思）</span></td><td><span class="hl-super">証拠隠滅目的の奪取に認められるか</span>＝本論点の核心</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- B. 論点抽出 -->
+<div id="i2-B">
+<h4>B. 論点抽出（権利者排除意思と利用処分意思）</h4>
+<p>不法領得の意思を二要素に分解し、それぞれが何のために要求されるのかを意識すると処理が安定する。</p>
+<table>
+  <tr><th>要素</th><th>機能（何を区別するためか）</th><th>本問</th></tr>
+  <tr><td>権利者排除意思</td><td><span class="rank-B">不可罰的な使用窃盗（一時使用）との区別</span></td><td>返還意思なく利用を排除 → 肯定</td></tr>
+  <tr><td>利用処分意思</td><td><span class="rank-A">毀棄・隠匿罪（258条以下）との区別</span></td><td>証拠隠滅目的 → 認められるかが問題</td></tr>
+</table>
+<div class="warn-box">
+<p>領得罪（窃盗）の法定刑は毀棄罪より重い。これは、財物を利用・処分する意思に出た領得行為の方が、単に効用を害する毀棄行為より<span class="rank-A">違法性・有責性が高い</span>と評価されるためである。そこで、毀棄隠匿目的にすぎない場合を窃盗から除外するため、利用処分意思が要求される。本問の証拠隠滅目的が「毀棄隠匿目的」と同視されるのか、それとも利用処分意思を肯定できるのかが分水嶺となる。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- C. 規範定立 -->
+<div id="i2-C">
+<h4>C. 規範定立（判例・学説）</h4>
+<p>不法領得の意思の定義は<a class="xref" href="#ref-case-daihan-t4-5-21">大判大正4年5月21日</a>が示す。証拠隠滅目的の領得につき利用処分意思を肯定した裁判例として<a class="xref" href="#ref-case-tokyokoso-h12-5-15">東京高判平成12年5月15日</a>がある。各判例の詳細は<a class="xref" href="#ref-case-tokyokoso-h12-5-15">第5-2</a>を参照。</p>
+<blockquote class="statute">
+<p><span class="tan tan-super">短答★★★</span><span class="rank-A">不法領得の意思（大判大4.5.21）</span></p>
+<p><span class="para-num">第1要素</span>権利者を排除して他人の物を自己の所有物と<strong>して、<span class="para-num">第2要素</span>その経済的用法に従いこれを利用し又は処分する意思</strong></p>
+</blockquote>
+<h5>利用処分意思の判断基準をめぐる学説</h5>
+<table>
+  <tr><th style="width:28%">学説</th><th>基準</th><th>本問の帰結</th></tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-riyo-koyo"><span class="rank-A">効用享受説（一般的理解）</span></a></td>
+    <td>物自体から何らかの効用・利益を得る意思を要する</td>
+    <td>物自体から効用を得ていない → <span class="rank-C">否定に傾く</span></td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-riyo-kiki"><span class="rank-B">毀棄隠匿区別説（裁判例の発想）</span></a></td>
+    <td>毀棄・隠匿のみを目的とする場合を除けば利用処分意思を肯定</td>
+    <td>毀棄隠匿目的ではない → <span class="rank-A">肯定できる</span></td>
+  </tr>
+</table>
+<div class="key-box">
+<p><strong>【規範定立（本解説の採用）】</strong>利用処分意思は、領得罪と毀棄罪を区別するために要求される。そうすると、<span class="hl-high">単純に毀棄・隠匿する目的で奪ったとは認められない場合には、なお経済的用法に従って利用処分する意思を認めることができる</span>と解する。もっとも、効用享受説からは否定する処理も合理的であり、いずれの結論もとりうる（<span class="rank-B">本問は説明の仕方次第で両結論があり得る論点である</span>）。</p>
+</div>
+<blockquote class="case">
+<p class="judgment-text">『物取りの犯行を装うために財物を持ち去ったという事案において、不法領得の意思を肯定した（東京高判平成12年5月15日。ただし、後に領得する意思もうかがわれる事案であった）。』</p>
+</blockquote>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- D. あてはめ -->
+<div id="i2-D">
+<h4>D. 本問へのあてはめ</h4>
+<div class="flow">
+<p class="step"><strong>手順1：</strong>権利者排除意思 → 装飾品等の利用阻害が生じることは明らか → <span class="rank-A">肯定</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順2：</strong>利用処分意思の問題提起 → Xは強盗偽装（証拠隠滅）目的で奪取 → 物自体から効用を得る意思があるか</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順3：</strong>規範の適用 → 単純な毀棄・隠匿目的か否かを検討</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順4：</strong>あてはめ → Xは装飾品等を犯行隠蔽目的で奪っているものの、これを破壊・隠匿する目的で奪ったとは認められない。単純な毀棄隠匿目的とはいえない</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順5：</strong>結論 → なお経済的用法に従い利用処分する意思を認めることができ、<span class="rank-A">不法領得の意思を肯定</span>（否定説もあり得る）</p>
+</div>
+<h5>あてはめのコツ（両論の書き分け）</h5>
+<table>
+  <tr><th>立場</th><th>あてはめの筋</th><th>結論</th></tr>
+  <tr><td><span class="rank-A">肯定（裁判例）</span></td><td>毀棄隠匿目的ではない以上、利用処分意思を否定すべき場合に当たらない</td><td>窃盗罪成立</td></tr>
+  <tr><td><span class="rank-C">否定（効用享受説）</span></td><td>物自体から効用を得る意思を欠く（隠蔽の道具として奪っただけ）</td><td>窃盗不成立 → 占有離脱物横領等にとどまる</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- E. 結論 -->
+<div id="i2-E">
+<h4>E. 結論</h4>
+<div class="success-box">
+<p>Xの奪取行為には権利者排除意思が認められ、証拠隠滅目的は単純な毀棄隠匿目的とは異なるから、なお利用処分意思も肯定できる。よって<span class="rank-A">不法領得の意思が認められ、窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）が成立する</span>。なお、効用享受説から利用処分意思を否定する処理も成り立ち、その場合は窃盗不成立となる（本解説は裁判例に従い肯定）。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- F. 関連論点・補足 -->
+<div id="i2-F">
+<h4>F. 関連論点・補足</h4>
+<h5>強盗罪が成立しないことの確認</h5>
+<div class="note-box">
+<p>本問では<span class="rank-A">強盗罪（<a class="xref" href="#ref-stat-keih-236">236条1項</a>）は成立しない</span>。強盗罪は暴行・脅迫を手段として財物を強取する点に本質があり、<strong>暴行・脅迫の時点で財物奪取の意思が必要</strong>である。本問のXの暴行は姦淫目的であり、財物奪取意思は甲を「殺害した」と誤信した後に生じている。したがって、暴行・脅迫を手段とする財物奪取とはいえず、強盗罪は成立しない。</p>
+</div>
+<h5>芋づる式関連知識</h5>
+<ul>
+  <li><span class="rank-B">使用窃盗</span>：一時使用後の返還意思がある場合は権利者排除意思を欠き不可罰（自動車等は例外的に肯定されうる）</li>
+  <li><span class="rank-A">毀棄・隠匿罪との区別</span>：器物損壊罪（261条）等は利用処分意思を欠く場合の受け皿。窃盗との境界を画する</li>
+  <li><span class="rank-C">領得後の処分</span>：本問でXがその後装飾品を売却・着用すれば、利用処分意思は一層明確になる（事後の事情も推認材料）</li>
+  <li><span class="rank-D">不法領得の意思不要説</span>：少数説として存在するが、使用窃盗・毀棄罪との区別が困難になるとして通説・判例は採らない</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- G. 頻出論証ブロック -->
+<div id="i2-G">
+<h4>G. 頻出論証ブロック</h4>
+<p>転記可能な頻出論証を3層構造で提示する。出典・使用条文・判例は<a class="xref" href="#ref-arg">第5-4答案論証集</a>を参照。</p>
+<div class="arg-card" id="arg-2-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証2-1：不法領得の意思の定義と機能</h5>
+<div class="arg-meta"><strong>出題実績：</strong>司法試験 平成27年・平成29年／旧司平成元年・19年　<strong>想定文字数：</strong>完成形 約200字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">窃盗罪の成立には、条文上明示されないが不法領得の意思が必要である。これは、可罰的な領得行為と不可罰的な使用窃盗とを区別し、また領得罪と毀棄隠匿罪とを区別するためである。その内容は、①権利者を排除して他人の物を自己の所有物としてその経済的用法に従い、②これを利用し又は処分する意思をいう。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">不法領得の意思とは、①権利者排除意思と②利用処分意思をいい、使用窃盗および毀棄隠匿罪との区別のために要求される。</div>
+</div>
+<div class="arg-card" id="arg-2-2">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>論証2-2：証拠隠滅目的と利用処分意思</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>完成形 約180字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">利用処分意思は領得罪と毀棄隠匿罪を区別するために要求される。そうすると、単純に毀棄・隠匿する目的で奪ったとは認められない場合には、なお経済的用法に従って利用処分する意思を認めることができる。本件でXは犯行隠蔽目的で装飾品等を奪っているが、これを破壊・隠匿する目的で奪ったとは認められないから、利用処分意思を肯定でき、不法領得の意思が認められる。</div>
+<p><strong>【発展版（反対結論）】</strong></p>
+<div class="arg-body">もっとも、利用処分意思を物自体から効用を得る意思と解する立場からは、本件でXは隠蔽の道具として奪ったにすぎず物自体から効用を得ていないから、利用処分意思を否定し窃盗罪の成立を認めない処理も合理的である。</div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- H. 失点回避チェックリスト -->
+<div id="i2-H">
+<h4>H. 失点回避チェックリスト</h4>
+<h5>論点漏れチェック</h5>
+<ul class="checklist">
+  <li>不法領得の意思を二要素に分けて検討したか</li>
+  <li>権利者排除意思を先に肯定したか</li>
+  <li>利用処分意思が「毀棄隠匿罪との区別」のために要求されると述べたか</li>
+  <li>証拠隠滅目的が単純な毀棄隠匿目的と異なる点を論じたか</li>
+  <li>強盗罪が成立しないこと（暴行時の奪取意思の欠如）に触れたか</li>
+</ul>
+<h5>規範の正確性チェック</h5>
+<ul class="checklist">
+  <li>不法領得の意思の定義（大判大4.5.21）を正確に書いたか</li>
+  <li>利用処分意思の判断基準（効用享受説／毀棄隠匿区別説）を意識したか</li>
+  <li>肯定・否定いずれの結論でも論理が通る書き方をしたか</li>
+</ul>
+<h5>あてはめチェック</h5>
+<ul class="checklist">
+  <li>「強盗の仕業に見せかけよう」を証拠隠滅目的の事実として用いたか</li>
+  <li>「破壊・隠匿目的ではない」を利用処分意思肯定の理由に用いたか</li>
+  <li>採点者に苦しい説明であることを自覚した上で筋を通したか</li>
+</ul>
+<h5>形式チェック</h5>
+<ul class="checklist">
+  <li>条文番号は<a class="xref" href="#ref-stat-keih-235">235条</a>・<a class="xref" href="#ref-stat-keih-236">236条</a>を正確に書いたか</li>
+  <li>「不法領得の意思」の語を正確に用いたか（不法領得の「意志」ではない）</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</div><!-- /論点2 -->
+
+<!-- ====== 前提：強制性交等致傷罪 ====== -->
+<div class="card" id="issue-pre">
+<h3>前提　強制性交等致傷罪（181条2項）の成否</h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">第1行為は強制性交等致傷罪で確定 ― 要件を拾って簡潔に</span>
+<p>第1行為（姦淫目的の暴行・絞扼）は、答案では最初に検討します（本解説は二大論点を先に詳述する構成上ここに置いていますが、答案の記述順は第1＝強制性交等致傷罪が先です）。<span class="la-key">強制性交等致傷罪（181条2項）の成立は明らか</span>なので、要件をピックアップして簡単に当てはめれば十分。性交（姦淫）そのものは<strong>未遂でも構いません</strong>。負傷という致傷結果が生じている以上、致傷罪が成立します。</p>
+<p>注意点は罪名の現行法対応。旧法の「姦淫」「強姦」は、現行法では<span class="la-quote">「性交」「強制性交等罪」（177条）</span>に置き換わっています（平成29年改正）。事案の評価そのものに変更はありません。</p>
+</div>
+
+<h4>該当条文</h4>
+<blockquote class="statute">
+<p><span class="tan tan-super">短答★★★</span><span class="rank-A">刑法181条2項（強制性交等致死傷）</span></p>
+<p>第177条……の罪……を犯し、よって人を死傷させた者は、無期又は6年以上の懲役に処する。</p>
+</blockquote>
+<p>条文の完全プロファイルは<a class="xref" href="#ref-stat-keih-181">第5-1</a>を参照。</p>
+
+<h4>成立要件と検討順序</h4>
+<div class="key-box">
+<p>強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）は、強制性交等罪（<a class="xref" href="#ref-stat-keih-177">177条</a>）の結果的加重犯である。①「暴行又は脅迫」を手段とし、②性交等に及ぶ意図で実行に着手し、③よって人を死傷させたことを要する。<span class="hl-high">基本犯（性交等）は未遂でも、致死傷結果が生じれば本罪が成立する</span>（最判昭和25年などの確立した解釈）。</p>
+</div>
+
+<h4>本問への当てはめ</h4>
+<p>強制性交罪の手段である「暴行」とは、<span class="rank-A">相手方の反抗を著しく困難にする程度</span>のものをいう。Xは甲に突然飛びかかり、顔面を殴打して負傷させ、頸部を両手で締め上げている。男女の体格差も考慮すれば、かかる暴行は反抗を著しく困難にする程度に達しており、「暴行」に当たる。</p>
+<p>もっとも、Xは結局「性交」に至っていないから、強制性交等罪自体は<span class="rank-B">未遂（<a class="xref" href="#ref-stat-keih-180">180条</a>・<a class="xref" href="#ref-stat-keih-177">177条</a>）</span>にとどまる。しかし、上記暴行により甲は負傷している。したがって「177条……の罪……を犯し、よって人を傷害した」（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）といえ、<span class="rank-A">強制性交等致傷罪が成立する</span>。</p>
+
+<h4>頻出論証ブロック</h4>
+<div class="arg-card" id="arg-pre-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証P-1：強制性交等致傷罪（未遂でも致傷罪成立）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>完成形 約110字</div>
+<div class="arg-body">強制性交等罪の手段たる「暴行」は反抗を著しく困難にする程度を要する。本件殴打・絞扼はこれに当たる。性交は未遂にとどまるが、致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）は基本犯が未遂でも致死傷結果が生じれば成立するから、甲の負傷により強制性交等致傷罪が成立する。</div>
+</div>
+
+<h4>陥りやすいミス</h4>
+<div class="danger-box">
+<ul>
+  <li><span class="rank-B">ミス①</span>：性交未遂だから致傷罪も未遂・不成立と誤る → 基本犯未遂でも致傷結果があれば<a class="xref" href="#ref-stat-keih-181">181条2項</a>は成立</li>
+  <li><span class="rank-C">ミス②</span>：旧法の「強姦致傷罪」と書く → 現行法は「強制性交等致傷罪」（平成29年改正）</li>
+  <li><span class="rank-C">ミス③</span>：暴行の程度（反抗を著しく困難にする程度）の規範を落とす</li>
+</ul>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第3部　模範答案全文
+     ============================================ -->
+<section id="part3">
+<h2>第3部　模範答案全文</h2>
+
+<div class="card" id="answer-full">
+<h3>本試験形式・完成答案</h3>
+
+<div class="key-box">
+<p><strong>【想定文字数・枚数】</strong></p>
+<ul>
+  <li>本問の予想答案分量：<span class="rank-B">約1,600〜2,000字（3〜4頁程度）</span></li>
+  <li>本試験では、答案用紙3〜4枚（1枚600字程度）を想定</li>
+  <li>第1：強制性交等致傷罪（簡潔）／第2：窃盗罪（死者の占有・不法領得の意思＝最厚め）／第3：罪数</li>
+</ul>
+</div>
+
+<div class="model-answer">
+<h4>解答</h4>
+
+<p><strong>第1　甲を姦淫しようとして負傷させた行為</strong></p>
+
+<p><strong>1</strong>　Xは、強いて姦淫しようと考え、甲に飛びかかってその顔面を殴打し負傷させた上、頸部を両手で締め上げている。この行為について、強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）の成否を検討する（→ 論証は<a class="xref" href="#arg-pre-1">第2部前提G 論証P-1</a>）。</p>
+
+<p><strong>2(1)</strong>　強制性交等罪（<a class="xref" href="#ref-stat-keih-177">177条</a>）の手段である「暴行」とは、相手方の反抗を著しく困難にする程度のものをいう。Xは、甲に突然飛びかかり、顔面を殴打して負傷させ、頸部を両手で締め上げている。一般的な男女の体格差も考慮すれば、かかる暴行は相手方の反抗を著しく困難にする程度に達しており、「暴行」に当たる。</p>
+
+<p>(2)　もっとも、Xは結局「性交」に至っていないから、強制性交等罪自体は未遂（<a class="xref" href="#ref-stat-keih-180">180条</a>、<a class="xref" href="#ref-stat-keih-177">177条</a>）にとどまる。</p>
+
+<p><strong>3</strong>　しかし、上記Xの暴行によって甲は負傷している。基本犯たる強制性交等罪が未遂であっても、致死傷結果が生じた以上、「177条……の罪……を犯し、よって人を傷害した」（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）といえ、強制性交等致傷罪が成立する。</p>
+
+<p>　以上より、Xには<u>強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）</u>が成立する。</p>
+
+<p style="margin-top:1.5em"><strong>第2　装飾品を奪い、レジから金品を持ち出した行為</strong></p>
+
+<p><strong>1</strong>　Xは、甲が身につけていた装飾品及びレジ内の金品を持ち去っている。なお、Xの暴行は姦淫目的であり、財物奪取意思は甲を殺害したと誤信した後に生じているから、暴行・脅迫を手段とする財物奪取とはいえず、強盗罪（<a class="xref" href="#ref-stat-keih-236">236条1項</a>）は成立しない。そこで、窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）の成否を検討する。</p>
+
+<p><strong>2</strong>　甲が身につけていた装飾品及びレジ内の金品は「他人の財物」であり、Xはこれを意思に反して自己の支配下に移している。<u>客観的には、甲はなお生存しているのであるから、Xは甲の占有を侵害しており</u>、窃盗罪の客観的構成要件要素を充足する。</p>
+
+<p><strong>3(1)</strong>　もっとも、Xは甲を殺害してしまったと誤信しているから、窃盗罪の故意（<a class="xref" href="#ref-stat-keih-38">38条1項</a>）が認められるか。Xの認識を基準とすると、死者から財物を取得したことになるところ、占有は本来生者の事実的支配であって死者には認められないのが原則であるから、占有侵害の認識が認められるかが問題となる（→ <a class="xref" href="#arg-1-1">論証1-1</a>）。</p>
+
+<p>(2)　この点、死者そのものに占有は認められないとしても、被害者を死亡させた者との関係では、一連の行為を全体として観察し、被害者の生前の占有を侵害したと認められる限度で、なお生前の占有を刑法上保護するのが相当である。</p>
+
+<p>(3)　本件で、Xは自ら甲を絞扼して人事不省に陥らせた直後、同一の店内で甲の装飾品等を奪取している。そうすると、Xの認識を基準としても、自己の先行行為を利用して甲の生前の占有を侵害したと評価でき、占有侵害の認識が認められる。よって、窃盗罪の故意が肯定される。</p>
+
+<p><strong>4(1)</strong>　次に、窃盗罪の成立には不法領得の意思、すなわち①権利者を排除して他人の物を自己の所有物としてその経済的用法に従い、②これを利用・処分する意思が必要である。Xは犯行を隠蔽するために財物を奪っているから、特に②利用処分意思が認められるかが問題となる（→ <a class="xref" href="#arg-2-2">論証2-2</a>）。</p>
+
+<p>(2)　装飾品等に対する利用阻害が生じることは明らかであるから、①権利者排除意思は認められる。</p>
+
+<p>(3)　利用処分意思は、領得罪と毀棄隠匿罪とを区別するために要求される。そうすると、単純に毀棄・隠匿する目的で奪ったとは認められない場合には、なお経済的用法に従って利用処分する意思を認めることができる。本件でXは犯行隠蔽目的で奪っているものの、これを破壊・隠匿する目的で奪ったとは認められないから、なお利用処分意思を認めることができる。よって、不法領得の意思が認められる。</p>
+
+<p><strong>5</strong>　以上より、Xには<u>窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）</u>が成立する。</p>
+
+<p style="margin-top:1.5em"><strong>第3　罪数</strong></p>
+
+<p>　以上から、Xには強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）と窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）が成立し、両者は<u>併合罪（<a class="xref" href="#ref-stat-keih-45">45条前段</a>）</u>となる。</p>
+
+<p style="text-align:right;margin-top:2em"><strong>以上</strong></p>
+</div>
+</div>
+
+<!-- 採点講評 -->
+<div class="grading" id="grading-comment">
+<h4>採点講評</h4>
+
+<h5>A答案として評価されるポイント（上位2割）</h5>
+<ul class="checklist">
+  <li><strong>第1段（強制性交等致傷罪）</strong>：「暴行」の程度規範を示し、性交が未遂でも致傷結果により181条2項が成立する点を簡潔に処理している点。深追いせず分量を抑えられている点。</li>
+  <li><strong>第2段（客観面の先行確定）</strong>：「甲は生存しているから客観的に占有侵害がある」と<span class="rank-A">客観面を先に確定</span>し、死者の占有を主観面（故意）の問題として整理している点。</li>
+  <li><strong>第3段（死者の占有の規範・あてはめ）</strong>：判例の「一連の行為を全体観察し生前占有侵害」の規範を示し、Xの認識を基準としても占有侵害の認識が認められると論じている点。</li>
+  <li><strong>第4段（不法領得の意思）</strong>：利用処分意思が毀棄隠匿罪との区別のために要求されることを示し、苦しいながらも筋の通った理由付けで結論を導いている点（肯定・否定いずれでも可）。</li>
+  <li><strong>第5段（強盗の否定・罪数）</strong>：暴行時に財物奪取意思がない点を指摘して強盗罪を排除し、併合罪処理を正確に行っている点。</li>
+</ul>
+
+<h5>減点リスク（避けるべき失点パターン）</h5>
+<table>
+  <tr><th>失点パターン</th><th>減点幅の目安</th><th>対策</th></tr>
+  <tr><td>死者の占有を「客観面」の問題として論じる</td><td><span class="rank-A">大幅減点（−15〜20点）</span></td><td>甲は生存＝客観的占有侵害あり。死者の占有は主観面（故意）の問題</td></tr>
+  <tr><td>「死者に占有なし→窃盗にならない」で終了</td><td><span class="rank-A">大幅減点（−10〜15点）</span></td><td>判例規範を示し主観面で占有侵害の認識を肯定</td></tr>
+  <tr><td>利用処分意思の検討漏れ</td><td><span class="rank-A">大幅減点（−10〜15点）</span></td><td>証拠隠滅目的での領得は利用処分意思が最大の争点</td></tr>
+  <tr><td>強盗罪を成立させてしまう</td><td><span class="rank-B">中程度減点（−5〜10点）</span></td><td>暴行時に財物奪取意思がないことを摘示</td></tr>
+  <tr><td>性交未遂だから致傷罪も不成立とする</td><td><span class="rank-B">中程度減点（−5〜8点）</span></td><td>基本犯未遂でも致傷結果で181条2項成立</td></tr>
+  <tr><td>不法領得の意思の検討を落とす</td><td><span class="rank-B">中程度減点（−5〜8点）</span></td><td>二要素を分けて検討</td></tr>
+  <tr><td>条文番号の誤り（旧法の罪名）</td><td><span class="rank-C">−1〜2点／箇所</span></td><td><a class="xref" href="#ref-stat-keih-181">181条2項</a>・<a class="xref" href="#ref-stat-keih-235">235条</a>・<a class="xref" href="#ref-stat-keih-45">45条前段</a>を正確に</td></tr>
+</table>
+
+<h5>分量のバランス（上位答案の分配）</h5>
+<table>
+  <tr><th>項目</th><th>分量目安</th><th>備考</th></tr>
+  <tr><td>第1（強制性交等致傷罪）</td><td>300〜400字</td><td>暴行の規範＋致傷罪成立を簡潔に</td></tr>
+  <tr><td>第2（窃盗罪）</td><td>1,000〜1,300字</td><td>客観面確定200字＋死者の占有500字＋不法領得の意思500字</td></tr>
+  <tr><td>第3（罪数）</td><td>50〜100字</td><td>一段落で完結</td></tr>
+</table>
+
+<h5>本問特有の評価ポイント</h5>
+<div class="success-box">
+<p><strong>客観面・主観面の分離（最大の評価軸）</strong>：本問は甲が生存しているため客観的には端的に窃盗が成立する。死者の占有が主観面（故意）でのみ問題となることを正確に整理できているかが、A答案とB答案を分ける最大のポイントである。</p>
+<p><strong>利用処分意思の理由付け</strong>：講師も「説明は苦しい」と認める論点。「毀棄隠匿目的の排除」という機能から逆算して肯定する筋、または効用享受説から否定する筋のいずれでも、理由を尽くしていれば高評価。結論の当否ではなく論証の説得力で採点される。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第4部　知識の体系化と実践的補足
+     ============================================ -->
+<section id="part4">
+<h2>第4部　知識の体系化と実践的補足</h2>
+
+<!-- 4-1 論点相関マップ -->
+<div class="svg-wrap" id="correlation-map">
+<h3>4-1.　論点相関マップ</h3>
+<p>本問は、第1行為（強制性交等致傷罪）と第2行為（窃盗罪）が時系列で連なり、第2行為に二大論点（死者の占有・不法領得の意思）が集中する。各論点の相関を示す。</p>
+<svg viewBox="0 0 880 470" xmlns="http://www.w3.org/2000/svg">
+  <rect width="880" height="470" fill="#f1f7f8"/>
+  <rect x="60" y="40" width="200" height="74" rx="10" fill="#2d7282" stroke="#1d4e58" stroke-width="2"/>
+  <text x="160" y="68" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">第1行為</text>
+  <text x="160" y="88" text-anchor="middle" font-size="11" fill="#fff">姦淫目的の暴行・絞扼</text>
+  <text x="160" y="105" text-anchor="middle" font-size="11" fill="#ffd54f">→ 強制性交等致傷罪</text>
+  <rect x="620" y="40" width="200" height="74" rx="10" fill="#2d7282" stroke="#1d4e58" stroke-width="2"/>
+  <text x="720" y="68" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">第2行為</text>
+  <text x="720" y="88" text-anchor="middle" font-size="11" fill="#fff">装飾品・金品の奪取</text>
+  <text x="720" y="105" text-anchor="middle" font-size="11" fill="#ffd54f">→ 窃盗罪</text>
+  <defs>
+    <marker id="cm-a" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2d7282"/></marker>
+  </defs>
+  <line x1="260" y1="77" x2="616" y2="77" stroke="#888" stroke-width="2" stroke-dasharray="7,5" marker-end="url(#cm-a)"/>
+  <text x="438" y="68" text-anchor="middle" font-size="11" fill="#555">殺害の誤信を挟んで連続</text>
+  <rect x="330" y="150" width="220" height="50" rx="8" fill="#e0eef0" stroke="#2d7282" stroke-width="1.6"/>
+  <text x="440" y="172" text-anchor="middle" font-size="12" font-weight="bold" fill="#1d4e58">窃盗罪（235条）の検討</text>
+  <text x="440" y="190" text-anchor="middle" font-size="10" fill="#444">客観面（占有侵害）は当然充足</text>
+  <line x1="720" y1="114" x2="500" y2="150" stroke="#2d7282" stroke-width="2" marker-end="url(#cm-a)"/>
+  <rect x="60" y="250" width="320" height="92" rx="10" fill="#fff" stroke="#00adc1" stroke-width="2"/>
+  <text x="220" y="274" text-anchor="middle" font-size="13" font-weight="bold" fill="#0a6e7c">論点1　死者の占有</text>
+  <text x="220" y="295" text-anchor="middle" font-size="11" fill="#333">主観面：窃盗罪の故意（38条1項）</text>
+  <text x="220" y="313" text-anchor="middle" font-size="11" fill="#333">占有侵害の認識が認められるか</text>
+  <text x="220" y="331" text-anchor="middle" font-size="11" fill="#c62828">最判昭41.4.8（百選Ⅱ29）</text>
+  <rect x="500" y="250" width="320" height="92" rx="10" fill="#fff" stroke="#00adc1" stroke-width="2"/>
+  <text x="660" y="274" text-anchor="middle" font-size="13" font-weight="bold" fill="#0a6e7c">論点2　不法領得の意思</text>
+  <text x="660" y="295" text-anchor="middle" font-size="11" fill="#333">利用処分意思（証拠隠滅目的）</text>
+  <text x="660" y="313" text-anchor="middle" font-size="11" fill="#333">毀棄隠匿罪との区別</text>
+  <text x="660" y="331" text-anchor="middle" font-size="11" fill="#c62828">東京高判平12.5.15</text>
+  <line x1="360" y1="200" x2="220" y2="250" stroke="#00adc1" stroke-width="2" marker-end="url(#cm-a)"/>
+  <line x1="520" y1="200" x2="660" y2="250" stroke="#00adc1" stroke-width="2" marker-end="url(#cm-a)"/>
+  <rect x="300" y="385" width="280" height="56" rx="10" fill="#1d4e58" stroke="#143036" stroke-width="2"/>
+  <text x="440" y="409" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">罪数：併合罪（45条前段）</text>
+  <text x="440" y="428" text-anchor="middle" font-size="10" fill="#fff">強制性交等致傷罪 ＋ 窃盗罪</text>
+  <line x1="220" y1="342" x2="380" y2="385" stroke="#1d4e58" stroke-width="1.5"/>
+  <line x1="660" y1="342" x2="500" y2="385" stroke="#1d4e58" stroke-width="1.5"/>
+</svg>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-2 論点間の優先順位フロー -->
+<div class="card" id="priority-flow">
+<h3>4-2.　論点間の優先順位フロー（複数論点の処理順序）</h3>
+<p>本問は単独行為者（X）の事案であり、行為の時系列に沿った処理順序がそのまま論述順序となる。財産犯では<strong>客観面→主観面</strong>の順を厳守する。</p>
+<div class="key-box">
+<h4>【推奨順序】第1行為（強制性交等致傷）→ 第2行為の客観面 → 死者の占有 → 不法領得の意思 → 罪数</h4>
+<p style="text-align:center;font-size:1.05em;font-weight:700">
+　第1段　強制性交等致傷罪（181条2項）<br>
+　　　　　　↓<br>
+　第2段　窃盗罪の客観的構成要件（占有侵害）の確認<br>
+　　　　　　↓<br>
+　第3段　論点1　死者の占有（窃盗罪の故意）<br>
+　　　　　　↓<br>
+　第4段　論点2　不法領得の意思（利用処分意思）<br>
+　　　　　　↓<br>
+　第5段　強盗罪の不成立確認・罪数（併合罪）
+</p>
+</div>
+<h4>順序選択の理由</h4>
+<table>
+  <tr><th>順序</th><th>選択理由</th><th>避けるべき順序</th></tr>
+  <tr><td><strong>第1段＝強制性交等致傷</strong></td><td>時系列で先行する行為。争いがなく簡潔に確定でき、答案の導入として適切</td><td>財産犯を先に書くと時系列が乱れる</td></tr>
+  <tr><td><strong>第2段＝客観面の確認</strong></td><td>甲が生存＝占有侵害ありを先に確定することで、死者の占有が主観面の問題であることが明確になる</td><td>客観面を飛ばすと死者の占有を客観面で誤って論じる</td></tr>
+  <tr><td><strong>第3段＝死者の占有</strong></td><td>故意（占有侵害の認識）の問題。客観面確定後に主観面へ進む</td><td>故意を先に論じると客観的占有侵害の前提が宙に浮く</td></tr>
+  <tr><td><strong>第4段＝不法領得の意思</strong></td><td>故意が認められて初めて主観的超過要素を検討する意味がある</td><td>不法領得の意思を故意より先に書くと体系が崩れる</td></tr>
+  <tr><td><strong>第5段＝強盗否定・罪数</strong></td><td>窃盗確定後に強盗を排除し、最後に全成立罪の罪数処理</td><td>—</td></tr>
+</table>
+<div class="warn-box">
+<p><strong>【最頻出の崩れ方】</strong>「死者には占有がないから窃盗にならない」と客観面で死者の占有を論じてしまうミス。本問は甲が生存しているため<strong>客観的占有侵害は当然にあり、死者の占有は故意の問題にすぎない</strong>。この順序を守れば崩れない。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-3 網羅的思考 -->
+<div class="card" id="column-comprehensive">
+<h3>4-3.　網羅的思考（法的構成の選択）</h3>
+<h4>第2行為（財物奪取）について検討しうる法的構成</h4>
+<table>
+  <tr><th>法的構成</th><th>採否</th><th>理由</th></tr>
+  <tr><td><span class="rank-A">窃盗罪（<a class="xref" href="#ref-stat-keih-235">235条</a>）</span></td><td>○ 採用</td><td>甲生存＝占有侵害あり。死者の占有・不法領得の意思を肯定</td></tr>
+  <tr><td>強盗罪（<a class="xref" href="#ref-stat-keih-236">236条1項</a>）</td><td>× 不採用</td><td>暴行は姦淫目的。財物奪取意思は暴行後に発生（手段としての暴行でない）</td></tr>
+  <tr><td>強盗殺人罪（240条後段）</td><td>× 不採用</td><td>当初から財物奪取目的で殺害したわけではない</td></tr>
+  <tr><td>占有離脱物横領罪（254条）</td><td>△ 反対説</td><td>死者の占有を否定する立場・利用処分意思を否定する立場からはこちらに至りうる</td></tr>
+  <tr><td>器物損壊罪（261条）</td><td>× 不採用</td><td>毀棄隠匿目的とまではいえず、利用処分意思を肯定する以上は領得罪</td></tr>
+</table>
+<h4>第1行為（暴行）について検討しうる法的構成</h4>
+<table>
+  <tr><th>法的構成</th><th>採否</th><th>理由</th></tr>
+  <tr><td><span class="rank-A">強制性交等致傷罪（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）</span></td><td>○ 採用</td><td>姦淫目的の暴行＝強制性交等罪の着手＋致傷結果</td></tr>
+  <tr><td>傷害罪（204条）</td><td>× 不採用</td><td>致傷は強制性交等致傷罪に吸収される</td></tr>
+  <tr><td>殺人未遂罪（199条・203条）</td><td>× 不採用</td><td>Xに殺意はなく、絞扼は姦淫の手段。殺害は「誤信」にすぎない</td></tr>
+</table>
+<div class="note-box">
+<p><strong>【ポイント】</strong>罪名選択の鍵は、<span class="hl-super">①暴行の目的（姦淫か財物奪取か）</span>と<span class="hl-super">②財物奪取意思の発生時期（暴行時か暴行後か）</span>の正確な認定にある。これにより強制性交等致傷罪＋窃盗罪という帰結が導かれ、強盗（殺人）罪は排除される。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-4 実践的記憶術 -->
+<div class="card" id="column-memory">
+<h3>4-4.　実践的記憶術</h3>
+<h4>死者の占有の処理：「キャク → シュ → イチレン」で覚える</h4>
+<div class="key-box">
+<p style="font-size:1.2em;text-align:center"><strong>キャク</strong>観面（占有あり）→ <strong>シュ</strong>観面（故意）で死者の占有 → <strong>イチレン</strong>の行為を全体観察</p>
+<p style="text-align:center;font-size:.95em">客観→主観→一連。順序を間違えなければ崩れない</p>
+</div>
+<h4>不法領得の意思の二要素：「ハイ・リヨ」で覚える</h4>
+<div class="key-box">
+<p style="font-size:1.25em;text-align:center"><strong>ハイ</strong>除意思（使用窃盗との区別）／<strong>リヨ</strong>用処分意思（毀棄隠匿罪との区別）</p>
+<p style="text-align:center;font-size:.92em">「何と区別するための要素か」をセットで暗記</p>
+</div>
+<h4>強盗罪を否定するキーフレーズ</h4>
+<div class="key-box">
+<p style="text-align:center"><strong>「暴行・脅迫の時点で財物奪取意思があったか」</strong></p>
+<p style="text-align:center;font-size:.92em">本問：暴行＝姦淫目的／奪取意思＝暴行後 → 強盗不成立</p>
+</div>
+<h4>利用処分意思の説明（苦しいが筋を通す）</h4>
+<table>
+  <tr><th>基準</th><th>キーフレーズ</th><th>本問の帰結</th></tr>
+  <tr><td>効用享受説</td><td>「物自体から効用を得る意思」</td><td><span class="rank-C">否定に傾く</span></td></tr>
+  <tr><td>毀棄隠匿区別説</td><td>「毀棄隠匿目的でなければ肯定」</td><td><span class="rank-A">肯定できる</span></td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-5 歴史的背景 -->
+<div class="card" id="column-history">
+<h3>4-5.　歴史的背景</h3>
+<h4>死者の占有論の展開</h4>
+<p>占有は本来生者の事実的支配であり、死者には占有を認めないのが論理的に一貫する。しかし、行為者が被害者を殺害した直後にその財物を奪う事案で占有離脱物横領罪にとどめると、被害者を死亡させた者を不当に利することになる。そこで<a class="xref" href="#ref-case-saihan-s41-4-8"><span class="rank-A">最判昭和41年4月8日</span></a>は、被害者の生前の占有を死亡直後においてもなお保護すべきとし、一連の行為を全体として観察して窃盗罪の成立を認めた。これが死者の占有に関するリーディングケースとして定着している。</p>
+<h4>不法領得の意思論の沿革</h4>
+<p>不法領得の意思は条文に明文がないが、<a class="xref" href="#ref-case-daihan-t4-5-21"><span class="rank-A">大判大正4年5月21日</span></a>が「権利者を排除して他人の物を自己の所有物としてその経済的用法に従い利用・処分する意思」と定義して以来、判例・通説の地位を占める。証拠隠滅・犯行隠蔽目的での領得における利用処分意思の有無は、<a class="xref" href="#ref-case-tokyokoso-h12-5-15"><span class="rank-B">東京高判平成12年5月15日</span></a>が肯定したが、学説には批判が強く、なお議論が続いている。</p>
+<h4>性犯罪規定の改正（本問の罪名対応）</h4>
+<p>本問の出題当時は「強姦罪」「強姦致傷罪」であったが、<strong>平成29年改正</strong>により「強制性交等罪」（<a class="xref" href="#ref-stat-keih-177">177条</a>）・「強制性交等致死傷罪」（<a class="xref" href="#ref-stat-keih-181">181条2項</a>）へと罪名・構成要件が改められた（さらに令和5年改正で「不同意性交等罪」へ再編）。事案の評価そのものに実質的変更はないが、答案では<strong>現行法の罪名</strong>で論ずる。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-6 実務との架橋 -->
+<div class="card" id="column-practice">
+<h3>4-6.　実務との架橋（学説対立が実務でどう現れるか）</h3>
+<h4>1. 死者の占有と実務処理</h4>
+<p>実務では、被害者を殺害（または重篤化）させた行為者が直後に財物を奪取した事案は、最判昭41.4.8の枠組みに従い<strong>窃盗罪として起訴・処理される</strong>のが通例である。占有離脱物横領罪にとどめる処理は、第三者が無関係に死者から領得した場合に限られる。</p>
+<h4>2. 学説対立の実務上の現れ方</h4>
+<table>
+  <tr><th>論点</th><th>学説対立</th><th>実務での処理</th></tr>
+  <tr><td>死者の占有</td><td>生前占有継続保護説 vs 占有離脱物横領説</td><td><strong>判例（生前占有継続保護説）で運用</strong>。一連・同一機会の奪取は窃盗</td></tr>
+  <tr><td>利用処分意思</td><td>効用享受説 vs 毀棄隠匿区別説</td><td>下級審に肯定例（東京高判平12.5.15）。<strong>事案ごとに後の領得意思の有無も推認材料</strong>とする</td></tr>
+  <tr><td>強盗との区別</td><td>暴行時の奪取意思の要否</td><td><strong>暴行・脅迫時の奪取意思を要求</strong>。事後的奪取意思では強盗を否定</td></tr>
+</table>
+<h4>3. 本問の事案が実務に提起する問題</h4>
+<div class="note-box">
+<p>本問は、性犯罪と財産犯が時系列で連なる複合事案であり、実務上は次の点が問題となる：</p>
+<ul>
+<li><strong>強制性交等致傷罪</strong>：基本犯が未遂でも致傷結果で成立するため、起訴罪名の選択で実益が大きい（法定刑が重い）。</li>
+<li><strong>窃盗 vs 占有離脱物横領</strong>：死者の占有・不法領得の意思の評価次第で罪名と法定刑が変わる。検察は窃盗で構成するのが通常。</li>
+<li><strong>罪数</strong>：性犯罪と財産犯は保護法益を異にし、併合罪（45条前段）として処理される。</li>
+</ul>
+</div>
+<h4>4. 受験生として押さえるべき視点</h4>
+<p>本問の二大論点は、いずれも<strong>「結論よりも理由付けの説得力」</strong>で採点される論点である。特に利用処分意思は、講師も認めるとおり肯定説の理由付けが苦しい。<strong>どちらの結論でもよいが、なぜその結論になるのかを規範の機能（何と区別するための要件か）に遡って説明できるか</strong>が、実務家としての法的思考力の試金石となる。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 試験戦略 -->
+<div class="card" id="exam-strategy">
+<h3>試験戦略アドバイス</h3>
+<h4>過去の出題傾向分析</h4>
+<table>
+  <tr><th>論点</th><th>出題実績</th><th>今後の出題可能性</th></tr>
+  <tr><td><span class="hl-super">死者の占有</span></td><td>司法試験 平成29年ほか・最判昭41.4.8は基本判例</td><td><span class="rank-A">高</span></td></tr>
+  <tr><td><span class="hl-super">不法領得の意思（利用処分意思）</span></td><td>司法試験 平成27年・29年／旧司多数</td><td><span class="rank-A">高</span></td></tr>
+  <tr><td><span class="hl-high">強制性交等致傷罪</span></td><td>性犯罪の基本類型として頻出</td><td><span class="rank-B">中〜高</span></td></tr>
+  <tr><td><span class="hl-high">強盗罪との区別</span></td><td>財産犯の事案で頻繁に問われる</td><td><span class="rank-B">中</span></td></tr>
+</table>
+<h4>配点予想と時間配分</h4>
+<table>
+  <tr><th>項目</th><th>配点目安</th><th>時間配分</th></tr>
+  <tr><td>強制性交等致傷罪</td><td>20点／100点</td><td>構成 3分・記述 8分</td></tr>
+  <tr><td>死者の占有（窃盗罪の故意）</td><td>35点／100点</td><td>構成 7分・記述20分</td></tr>
+  <tr><td>不法領得の意思</td><td>30点／100点</td><td>構成 6分・記述17分</td></tr>
+  <tr><td>強盗の否定・罪数・全体構成</td><td>15点／100点</td><td>構成 2分・記述 5分</td></tr>
+</table>
+<h4>合格ラインの目安</h4>
+<div class="success-box">
+<p><strong>【合格答案の要件】</strong></p>
+<ul>
+  <li>強制性交等致傷罪を未遂でも致傷罪が成立する点とともに簡潔に認定</li>
+  <li>客観面（占有侵害）を先に確定し、死者の占有を主観面の問題として整理</li>
+  <li>死者の占有の判例規範を示し、Xの認識を基準に占有侵害の認識を肯定</li>
+  <li>不法領得の意思を二要素に分け、利用処分意思について理由を尽くす</li>
+  <li>強盗罪の不成立・併合罪処理を正確に行う</li>
+</ul>
+</div>
+<div class="warn-box">
+<p><strong>【上位答案の要件 ― 差がつくポイント】</strong></p>
+<ul>
+  <li><span class="rank-A">死者の占有が「主観面（故意）」の問題であること</span>を正確に位置づけられるか</li>
+  <li>利用処分意思の理由付け（毀棄隠匿罪との区別という機能からの逆算）を説得的に書けるか</li>
+  <li>強盗罪を排除する理由（暴行時の奪取意思の欠如）を明示できるか</li>
+  <li>肯定・否定いずれの結論でも論理が一貫しているか</li>
+</ul>
+</div>
+<h4>想定外出題への対応戦略</h4>
+<table>
+  <tr><th>想定出題</th><th>処理方針</th></tr>
+  <tr><td>甲が現実に死亡していた事案</td><td>類型①として判例規範で窃盗罪。占有離脱物横領罪との区別を明示</td></tr>
+  <tr><td>当初から財物奪取目的で暴行した事案</td><td>強盗罪（236条）・致死傷なら強盗致死傷罪（240条）</td></tr>
+  <tr><td>奪った物を後に売却・着用した事案</td><td>利用処分意思が一層明確化（事後事情も推認材料）</td></tr>
+  <tr><td>第三者が死者から財物を取得した事案</td><td>占有離脱物横領罪（254条）</td></tr>
+</table>
+<h4>本問が学習する全受験生に伝える論点感覚</h4>
+<p>本問は<span class="hl-super">「客観面と主観面の分離」</span>と<span class="hl-super">「規範の機能から逆算する思考」</span>を同時に試す良問である。死者の占有では客観・主観の切り分けを、不法領得の意思では「何と区別するための要件か」を意識すれば、類似の財産犯事案すべてに応用できる。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第5部　参考資料
+     ============================================ -->
+<section id="part5">
+<h2>第5部　参考資料</h2>
+
+<!-- 5-1 条文集 -->
+<div class="card" id="ref-statute">
+<h3>5-1　条文集</h3>
+<p style="font-size:.95em;color:#555">本問に登場した全条文の完全プロファイル。スキーマ：識別／視覚マーク／全文／体系的位置／要件・効果／立法趣旨・保護法益／答案での使い方／本編出現箇所。</p>
+
+<section class="ref-entry" id="ref-stat-keih-235">
+<h4><span class="rank-A">刑法235条（窃盗）</span><span class="tan tan-super">短答★★★</span></h4>
+<blockquote class="statute"><p>他人の財物を窃取した者は、窃盗の罪とし、十年以下の懲役又は五十万円以下の罰金に処する。</p></blockquote>
+<h5>要件・効果</h5>
+<table>
+  <tr><th>要件</th><td>①他人の財物　②窃取（占有者の意思に反する占有移転）　③故意　④不法領得の意思（明文なき主観的超過要素）</td></tr>
+  <tr><th>保護法益</th><td>財物に対する占有（所持説が判例・通説）</td></tr>
+</table>
+<h5>答案での使い方</h5>
+<p>本問では客観的占有侵害は当然に充足。死者の占有（故意）と不法領得の意思を主観面で検討する。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-1">第2部 論点1（死者の占有）</a> ／
+<a href="#issue-2">第2部 論点2（不法領得の意思）</a> ／
+<a href="#part3">第3部 模範答案 第2</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-38">
+<h4><span class="rank-A">刑法38条1項（故意）</span><span class="tan tan-super">短答★★★</span></h4>
+<blockquote class="statute"><p>罪を犯す意思がない行為は、罰しない。ただし、法律に特別の規定がある場合は、この限りでない。</p></blockquote>
+<h5>答案での使い方</h5>
+<p>窃盗罪の故意＝占有侵害の認識。死者と誤信したXに占有侵害の認識が認められるかを論ずる根拠条文。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i1-A">第2部 論点1 A（条文分析）</a> ／
+<a href="#part3">第3部 模範答案 第2</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-181">
+<h4><span class="rank-A">刑法181条2項（強制性交等致死傷）</span><span class="tan tan-super">短答★★★</span></h4>
+<blockquote class="statute"><p>第百七十七条……の罪……を犯し、よって人を死傷させた者は、無期又は六年以上の懲役に処する。</p></blockquote>
+<h5>要件・効果</h5>
+<table>
+  <tr><th>性質</th><td>強制性交等罪（177条）の結果的加重犯</td></tr>
+  <tr><th>未遂処理</th><td>基本犯（性交等）が未遂でも、致死傷結果が生じれば本罪が成立</td></tr>
+</table>
+<h5>答案での使い方</h5>
+<p>第1行為につき、姦淫目的の暴行＋致傷結果で本罪成立。性交未遂でも成立する点を明示。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-pre">第2部 前提（強制性交等致傷罪）</a> ／
+<a href="#part3">第3部 模範答案 第1</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-177">
+<h4><span class="rank-B">刑法177条（強制性交等／現：不同意性交等）</span><span class="tan tan-high">短答★★</span></h4>
+<blockquote class="statute"><p>十三歳以上の者に対し、暴行又は脅迫を用いて性交……をした者は、強制性交等の罪とし、五年以上の有期懲役に処する。（平成29年改正・令和5年に不同意性交等罪へ再編）</p></blockquote>
+<h5>答案での使い方</h5>
+<p>「暴行」＝反抗を著しく困難にする程度。旧法の「強姦罪」「姦淫」を現行罪名へ読み替える。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-pre">第2部 前提</a> ／
+<a href="#column-history">第4部 4-5 歴史的背景</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-180">
+<h4><span class="rank-C">刑法180条（未遂罪）</span><span class="tan tan-std">短答★</span></h4>
+<blockquote class="statute"><p>第百七十六条、第百七十七条……の罪の未遂は、罰する。</p></blockquote>
+<h5>答案での使い方</h5>
+<p>性交未遂それ自体は177条・180条の未遂。本問では致傷結果があるため181条2項（既遂）で処理。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-pre">第2部 前提</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-236">
+<h4><span class="rank-B">刑法236条1項（強盗）</span><span class="tan tan-high">短答★★</span></h4>
+<blockquote class="statute"><p>暴行又は脅迫を用いて他人の財物を強取した者は、強盗の罪とし、五年以上の有期懲役に処する。</p></blockquote>
+<h5>答案での使い方</h5>
+<p>暴行・脅迫時に財物奪取意思が必要。本問は奪取意思が暴行後に生じたため強盗を否定し窃盗とする。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i2-F">第2部 論点2 F（強盗の否定）</a> ／
+<a href="#part3">第3部 模範答案 第2</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-45">
+<h4><span class="rank-C">刑法45条前段（併合罪）</span><span class="tan tan-std">短答★</span></h4>
+<blockquote class="statute"><p>確定裁判を経ていない二個以上の罪を併合罪とする。</p></blockquote>
+<h5>答案での使い方</h5>
+<p>性犯罪（強制性交等致傷罪）と財産犯（窃盗罪）は保護法益を異にし、併合罪として処理する。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#part3">第3部 模範答案 第3（罪数）</a> ／
+<a href="#priority-flow">第4部 4-2 優先順位フロー</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-2 判例集 -->
+<div class="card" id="ref-case">
+<h3>5-2　判例集</h3>
+<p style="font-size:.95em;color:#555">本問に登場した判例の完全プロファイル。スキーマ：事案／判旨／規範のコア／本問への射程／本編出現箇所。</p>
+
+<section class="ref-entry" id="ref-case-saihan-s41-4-8">
+<h4><span class="rank-A">判例①　最判昭和41年4月8日（百選Ⅱ29・死者の占有）</span><span class="tan tan-super">短答★★★</span></h4>
+<h5>事案</h5>
+<p>被告人が屋外で人を殺害した後、領得意思を生じ、犯行直後に現場で被害者が身につけていた時計等を奪取した。</p>
+<h5>判旨</h5>
+<blockquote class="case">
+<p class="judgment-text">『被害者が生前有していた財物の所持はその死亡直後においてもなお継続して保護するのが法の目的にかなう……被害者からその財物の占有を離脱させた自己の行為を利用して右財物を奪取した一連の被告人の行為は、これを全体的に考察して、他人の財物に対する所持を侵害したものというべきであるから……窃盗罪を構成する』</p>
+</blockquote>
+<h5>規範のコア・射程</h5>
+<p>死者そのものに占有は認められないが、被害者を死亡させた者との関係では、一連の行為を全体観察して生前占有侵害が認められれば窃盗罪が成立する。本問はXの認識（甲死亡）を基準とする占有侵害の認識（故意）肯定の評価基準として用いる。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i1-C">第2部 論点1 C（規範定立）</a> ／
+<a href="#part3">第3部 模範答案 第2</a> ／
+<a href="#column-history">第4部 4-5 歴史的背景</a></div>
+</section>
+
+<section class="ref-entry" id="ref-case-daihan-t4-5-21">
+<h4><span class="rank-A">判例②　大判大正4年5月21日（不法領得の意思の定義）</span><span class="tan tan-super">短答★★★</span></h4>
+<h5>規範のコア</h5>
+<blockquote class="case">
+<p class="judgment-text">『不法領得の意思とは、権利者を排除して他人の物を自己の所有物としてその経済的用法に従いこれを利用し又は処分する意思をいう』</p>
+</blockquote>
+<h5>射程</h5>
+<p>不法領得の意思を二要素（権利者排除意思・利用処分意思）に分解する判例の定義。本問の利用処分意思の検討の出発点となる。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i2-C">第2部 論点2 C（規範定立）</a> ／
+<a href="#column-history">第4部 4-5 歴史的背景</a></div>
+</section>
+
+<section class="ref-entry" id="ref-case-tokyokoso-h12-5-15">
+<h4><span class="rank-B">判例③　東京高判平成12年5月15日（証拠隠滅目的と利用処分意思）</span><span class="tan tan-high">短答★★</span></h4>
+<h5>事案・判旨</h5>
+<p>物取りの犯行を装うために財物を持ち去った事案で、不法領得の意思を肯定した（ただし、後に領得する意思もうかがわれる事案であった）。</p>
+<h5>射程・批判</h5>
+<p>証拠隠滅・犯行隠蔽目的の領得につき利用処分意思を肯定した裁判例。もっとも高裁レベルであり、効用享受説からは批判が強い。本問では肯定説の根拠として引用しうるが、否定する処理も合理的。</p>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i2-C">第2部 論点2 C（規範定立）</a> ／
+<a href="#part3">第3部 模範答案 第2</a> ／
+<a href="#column-practice">第4部 4-6 実務との架橋</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-3 学説一覧 -->
+<div class="card" id="ref-theory">
+<h3>5-3　学説一覧</h3>
+<p style="font-size:.95em;color:#555">本問に登場した学説の完全プロファイル。スキーマ：識別／内容／論拠／批判／答案での使い方／本編出現箇所。</p>
+
+<h4>《1》死者の占有をめぐる学説</h4>
+<section class="ref-entry" id="ref-doctrine-senyu-hogo">
+<h5><span class="rank-A">① 生前占有継続保護説（判例・通説）</span></h5>
+<table>
+  <tr><th>内容</th><td>死者に占有はないが、被害者を死亡させた行為者との関係では一連の行為を全体観察し生前占有侵害が認められれば窃盗罪</td></tr>
+  <tr><th>論拠</th><td>死亡直後の財産的秩序を保護し、被害者を死亡させた者を不当に利しない</td></tr>
+  <tr><th>批判</th><td>「死者の占有」を擬制するもので占有概念に反するとの指摘</td></tr>
+  <tr><th>答案での使い方</th><td>本問の自説。Xの認識を基準とした占有侵害の認識肯定の評価基準とする</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i1-C">第2部 論点1 C</a></div>
+</section>
+<section class="ref-entry" id="ref-doctrine-senyu-ridatsu">
+<h5><span class="rank-C">② 占有離脱物横領説</span></h5>
+<table>
+  <tr><th>内容</th><td>死者に占有はないから、死者からの取得は占有離脱物横領罪（254条）</td></tr>
+  <tr><th>論拠</th><td>占有概念に忠実</td></tr>
+  <tr><th>批判</th><td>死亡直後の財産秩序保護に欠け、行為者を不当に利する</td></tr>
+  <tr><th>答案での使い方</th><td>反対説として簡潔に切る</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i1-C">第2部 論点1 C</a></div>
+</section>
+<section class="ref-entry" id="ref-doctrine-senyu-koui">
+<h5><span class="rank-B">③ 行為時占有説</span></h5>
+<table>
+  <tr><th>内容</th><td>死亡時点を基準に占有の継続を擬制し窃盗罪を認める</td></tr>
+  <tr><th>判例との関係</th><td>結論は判例とほぼ同じだが理論構成が異なる</td></tr>
+  <tr><th>答案での使い方</th><td>判例の補強・対比として言及可能</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i1-C">第2部 論点1 C</a></div>
+</section>
+
+<h4>《2》利用処分意思の判断基準をめぐる学説</h4>
+<section class="ref-entry" id="ref-doctrine-riyo-koyo">
+<h5><span class="rank-A">④ 効用享受説（一般的理解）</span></h5>
+<table>
+  <tr><th>内容</th><td>物自体から何らかの効用・利益を得る意思を要する</td></tr>
+  <tr><th>本問の帰結</th><td>証拠隠滅目的では物自体から効用を得ていない → 利用処分意思を否定しうる</td></tr>
+  <tr><th>答案での使い方</th><td>否定説の根拠。説明がしやすい</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i2-C">第2部 論点2 C</a></div>
+</section>
+<section class="ref-entry" id="ref-doctrine-riyo-kiki">
+<h5><span class="rank-B">⑤ 毀棄隠匿区別説（裁判例の発想）</span></h5>
+<table>
+  <tr><th>内容</th><td>利用処分意思は領得罪と毀棄隠匿罪を区別するための要件。単純な毀棄隠匿目的でなければ肯定</td></tr>
+  <tr><th>本問の帰結</th><td>証拠隠滅目的は毀棄隠匿目的ではない → 利用処分意思を肯定（東京高判平12.5.15と整合）</td></tr>
+  <tr><th>批判</th><td>「物自体から効用」という一般的基準を満たさず説明が苦しい</td></tr>
+  <tr><th>答案での使い方</th><td>本解説の採用。要件の機能から逆算して肯定</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i2-C">第2部 論点2 C</a> ／
+<a href="#part3">第3部 模範答案 第2</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-4 答案論証集 -->
+<div class="card" id="ref-arg">
+<h3>5-4　答案論証集</h3>
+<p style="font-size:.95em;color:#555">本問で頻出する論証ブロックを集約。詳細な3層（完成形・簡略版・発展版）は第2部G参照。</p>
+
+<section class="ref-entry arg-card" id="ref-arg-list-1">
+<h4>論証1-1：死者の占有と窃盗罪の故意 <span class="arg-tier arg-must">必須</span></h4>
+<table>
+  <tr><th>使用条文</th><td><a class="xref" href="#ref-stat-keih-235">235条</a>・<a class="xref" href="#ref-stat-keih-38">38条1項</a></td></tr>
+  <tr><th>使用判例</th><td><a class="xref" href="#ref-case-saihan-s41-4-8">最判昭41.4.8</a></td></tr>
+  <tr><th>使用上の注意</th><td>客観面（占有侵害あり）を先に確定し、死者の占有は主観面の問題として論ずる</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i1-G">第2部 論点1 G</a> ／
+<a href="#part3">第3部 模範答案 第2</a></div>
+</section>
+
+<section class="ref-entry arg-card" id="ref-arg-list-2">
+<h4>論証2-2：証拠隠滅目的と利用処分意思 <span class="arg-tier arg-recommend">推奨</span></h4>
+<table>
+  <tr><th>使用条文</th><td><a class="xref" href="#ref-stat-keih-235">235条</a></td></tr>
+  <tr><th>使用判例・学説</th><td><a class="xref" href="#ref-case-tokyokoso-h12-5-15">東京高判平12.5.15</a>／<a class="xref" href="#ref-doctrine-riyo-kiki">毀棄隠匿区別説</a></td></tr>
+  <tr><th>使用上の注意</th><td>肯定・否定いずれの結論でも、規範の機能（毀棄隠匿罪との区別）から理由を尽くす</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#i2-G">第2部 論点2 G</a> ／
+<a href="#part3">第3部 模範答案 第2</a></div>
+</section>
+
+<section class="ref-entry arg-card" id="ref-arg-list-3">
+<h4>論証P-1：強制性交等致傷罪（未遂でも致傷罪成立） <span class="arg-tier arg-must">必須</span></h4>
+<table>
+  <tr><th>使用条文</th><td><a class="xref" href="#ref-stat-keih-181">181条2項</a>・<a class="xref" href="#ref-stat-keih-177">177条</a>・<a class="xref" href="#ref-stat-keih-180">180条</a></td></tr>
+  <tr><th>使用上の注意</th><td>「暴行」＝反抗を著しく困難にする程度。基本犯未遂でも致傷結果で成立</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-pre">第2部 前提 G</a> ／
+<a href="#part3">第3部 模範答案 第1</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-5 用語集 -->
+<div class="card" id="ref-term">
+<h3>5-5　用語集</h3>
+<p style="font-size:.95em;color:#555">本問の主要法律用語を1語1項目で解説。</p>
+
+<section class="ref-entry" id="ref-term-shishanosenyu">
+<h4><span class="rank-A">死者の占有</span></h4>
+<p>被害者を死亡させた行為者が、その死亡直後に同一機会で財物を奪取した場合、死者自体に占有はないが、生前の占有を一連の行為の全体評価により保護し窃盗罪を認める考え方・論点。本問では甲が生存しているため、占有侵害の認識（故意）の評価基準として機能する。</p>
+</section>
+<section class="ref-entry" id="ref-term-fuhouryotoku">
+<h4><span class="rank-A">不法領得の意思</span></h4>
+<p>権利者を排除して他人の物を自己の所有物としてその経済的用法に従い利用・処分する意思。条文に明文はないが窃盗罪等の主観的超過要素として要求される。</p>
+</section>
+<section class="ref-entry" id="ref-term-kenrisha">
+<h4><span class="rank-B">権利者排除意思</span></h4>
+<p>不法領得の意思の第1要素。一時使用（使用窃盗）との区別のために要求される。</p>
+</section>
+<section class="ref-entry" id="ref-term-riyoshobun">
+<h4><span class="rank-A">利用処分意思</span></h4>
+<p>不法領得の意思の第2要素。毀棄・隠匿罪との区別のために要求される。本問の最大の難所。</p>
+</section>
+<section class="ref-entry" id="ref-term-senyu">
+<h4><span class="rank-B">占有</span></h4>
+<p>財物に対する事実的支配。占有の事実（客観的支配）と占有の意思から判断される。本来は生者についてのみ認められる。</p>
+</section>
+<section class="ref-entry" id="ref-term-sesshu">
+<h4><span class="rank-C">窃取</span></h4>
+<p>占有者の意思に反して財物の占有を自己または第三者に移転すること。窃盗罪の実行行為。</p>
+</section>
+<section class="ref-entry" id="ref-term-kyoseiseiko">
+<h4><span class="rank-B">強制性交等致傷罪</span></h4>
+<p>強制性交等罪（177条）の結果的加重犯。基本犯が未遂でも致死傷結果が生じれば成立する（181条2項）。</p>
+</section>
+<section class="ref-entry" id="ref-term-goto">
+<h4><span class="rank-B">強盗罪</span></h4>
+<p>暴行・脅迫を手段として財物を強取する罪。暴行・脅迫の時点で財物奪取意思が必要。</p>
+</section>
+<section class="ref-entry" id="ref-term-iridatsu">
+<h4><span class="rank-C">占有離脱物横領罪</span></h4>
+<p>占有を離れた他人の物を横領する罪（254条）。死者の占有を否定する立場や利用処分意思を否定する立場が至りうる受け皿。</p>
+</section>
+<section class="ref-entry" id="ref-term-kiki">
+<h4><span class="rank-C">毀棄隠匿罪</span></h4>
+<p>財物の効用を害し、または隠匿する罪（258条以下）。利用処分意思を欠く場合の受け皿で、領得罪より法定刑が軽い。</p>
+</section>
+<section class="ref-entry" id="ref-term-shiyosetto">
+<h4><span class="rank-D">使用窃盗</span></h4>
+<p>返還意思をもって一時使用する行為。権利者排除意思を欠き、原則として不可罰。</p>
+</section>
+<section class="ref-entry" id="ref-term-koi">
+<h4><span class="rank-B">故意</span></h4>
+<p>構成要件該当事実の認識・認容（38条1項）。窃盗罪では占有侵害の認識を意味する。</p>
+</section>
+<section class="ref-entry" id="ref-term-heigozai">
+<h4><span class="rank-C">併合罪</span></h4>
+<p>確定裁判を経ていない二個以上の罪（45条前段）。保護法益を異にする数罪の処理形態。</p>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-6 略語・出典一覧 -->
+<div class="card" id="ref-abbrev">
+<h3>5-6　略語・出典一覧</h3>
+<table>
+  <tr><th>略語</th><th>正式名称・意味</th></tr>
+  <tr><td>百選Ⅱ</td><td>刑法判例百選Ⅱ各論（有斐閣）</td></tr>
+  <tr><td>最判</td><td>最高裁判所判決</td></tr>
+  <tr><td>大判</td><td>大審院判決</td></tr>
+  <tr><td>東京高判</td><td>東京高等裁判所判決</td></tr>
+  <tr><td>177条・181条2項</td><td>刑法（特記なき条文は刑法）</td></tr>
+  <tr><td>254条／258条</td><td>占有離脱物横領罪／毀棄隠匿罪（刑法）</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#ref-case">5-2 判例集</a> ／
+<a href="#ref-statute">5-1 条文集</a></div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+<footer>
+<p>本教材は、司法試験・予備試験の上位合格を目指す受験生のために作成された一元化教材である。</p>
+<p>死者の占有と不法領得の意思は財産犯の二大論点であり、本教材で示した「客観面→主観面の分離」と「規範の機能（何と区別するための要件か）から逆算する思考」を身につけることで、どのような財産犯の事例問題にも対応できる応用力が養われる。</p>
+<p>本問の核心である「死者の占有は主観面（故意）の問題である」という視点と、「利用処分意思を毀棄隠匿罪との区別という機能から説明する」筋を、最判昭41.4.8・東京高判平12.5.15の射程理解に基づいて突破できれば、類似事案にも自在に応用できる。一冊の教材を完全消化することが、十冊の参考書を流し読みすることよりも遥かに学力を伸ばすことを、ここに記しておく。</p>
+<p class="closing" style="margin-top:18px;font-size:1.05em">― 一日一論点の積み重ねが、必ず合格の扉を開く。あなたの努力は、必ず報われる。健闘を祈る。―</p>
+</footer>
+
+</div><!-- /.container -->
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var t=document.querySelector(this.getAttribute('href'));
+      if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
+    });
+  });
+});
+</script>
+</body>
+</html>
