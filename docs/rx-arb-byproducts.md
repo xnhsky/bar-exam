@@ -59,5 +59,18 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
 - RX/ARB も `claude -p` を 1 回ずつ消費する（1 問あたり計 +2 セッション）。
   夜間バッチの所要時間・コスト見積りに織り込むこと。
 - `<script>` 内 `</body>` リテラル禁止は RX/ARB にも適用（validate-rx R8 で機械検証）。
-- ⑥配置（jx-deploy）・⑦永続化（jx-finalize）は現状 JX/TTS のみ対象。
+- ⑦永続化（jx-finalize）は現状 JX/TTS のみ対象。
   RX/ARB の成果物は通常の git commit で永続化する（§9 の方針に従う）。
+
+## Drive バックアップ（⑥配置・2026-06-11 対応済み）
+
+`jx-deploy.ps1` が RX/ARB も repo ミラー＋Drive の両方へ配置する：
+
+```
+{2 JX_論 文}\B_RX\00N_科目\{科目}RX{NNN}_{n}.html      ← RX 論証カード
+{2 JX_論 文}\C_ARBOR\00N_科目\{科目}JX{NNN}_ARB.html   ← ARBOR 樹形図
+```
+
+- 科目フォルダ（001_刑法〜007_憲法）は `jx-deploy.ps1 -InitAll` で作成済み（再実行可）
+- バッチランナーの ⑥ は jx-deploy を呼ぶので、新規 JX は副産物も自動で Drive バックアップされる
+- バックフィルで作った RX/ARB は `jx-deploy.ps1 -Subject 刑` （科目一括）で後追い配置できる
