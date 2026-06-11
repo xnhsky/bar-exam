@@ -59,8 +59,10 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
 - RX/ARB も `claude -p` を 1 回ずつ消費する（1 問あたり計 +2 セッション）。
   夜間バッチの所要時間・コスト見積りに織り込むこと。
 - `<script>` 内 `</body>` リテラル禁止は RX/ARB にも適用（validate-rx R8 で機械検証）。
-- ⑦永続化（jx-finalize）は現状 JX/TTS のみ対象。
-  RX/ARB の成果物は通常の git commit で永続化する（§9 の方針に従う）。
+- ⑦永続化（jx-finalize）は **RX/ARB も同じコミットで GitHub バックアップする**
+  （2026-06-11 対応済み。①バックアップの add 対象に outputs/rx・outputs/arb の該当ファイルを含む）。
+  バックフィルで後追い生成した分は `jx-finalize.ps1 -Subject 刑 -Ids 刑JX001,... -NoCleanup`
+  か、通常の git commit で永続化できる。
 
 ## Drive バックアップ（⑥配置・2026-06-11 対応済み）
 

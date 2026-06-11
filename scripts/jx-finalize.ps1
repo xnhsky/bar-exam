@@ -1,7 +1,9 @@
 # jx-finalize.ps1 — JX 生成物の「永続化＋入力クリーンアップ」を 1 本にまとめる（pwsh ネイティブ）
 #
 # 各問題 ID について、以下を安全な順序で行う:
-#   ① GitHub バックアップ : outputs/jx/{Subject}JX/{ID}.html ＋ outputs/tts/{ID}/ を git add → commit
+#   ① GitHub バックアップ : outputs/jx/{Subject}JX/{ID}.html ＋ outputs/tts/{ID}/
+#                          ＋ 副産物 outputs/rx/{Subject}RX/{Subject}RX{NNN}_*.html
+#                          ＋ outputs/arb/{Subject}ARB/{ID}_ARB.html を git add → commit
 #   ② 入力クリーンアップ  : 入力 PDF（inputs/jx/{科目}/重問PDF/{n}.pdf）＋ 逐語 を git rm → commit
 #       └ 削除の多重ガード（1 つでも欠ければ削除しない）:
 #            (a) HTML が git にコミット済み（①で担保）
@@ -86,10 +88,20 @@ foreach ($id in $Ids) {
         Write-Host "[SKIP] HTML が無い: $htmlAbs" -ForegroundColor Yellow; continue
     }
 
-    # --- ① GitHub バックアップ（HTML + TTS 台本）---
+    # --- ① GitHub バックアップ（HTML + TTS 台本 + RX/ARB 副産物）---
     $addPaths = @($htmlRel)
     $ttsDir = Join-Path $TtsBase $id
     if (Test-Path -LiteralPath $ttsDir) { $addPaths += "outputs/tts/$id" }
+    # 副産物（RX 論証カード / ARBOR 樹形図）も同じコミットで永続化（存在するものだけ）
+    if ($null -ne $num) {
+        $rxDirAbs = Join-Path $ProjectRoot "outputs\rx\${Subject}RX"
+        $rxFilter = "${Subject}RX" + $num.ToString('000') + "_*.html"
+        foreach ($r in @(Get-ChildItem -Path $rxDirAbs -Filter $rxFilter -File -ErrorAction SilentlyContinue)) {
+            $addPaths += "outputs/rx/${Subject}RX/$($r.Name)"
+        }
+    }
+    $arbAbs = Join-Path $ProjectRoot "outputs\arb\${Subject}ARB\${id}_ARB.html"
+    if (Test-Path -LiteralPath $arbAbs) { $addPaths += "outputs/arb/${Subject}ARB/${id}_ARB.html" }
     if ($DryRun) {
         Write-Host "  [DRYRUN] git add $($addPaths -join ' ') ; commit"
     } else {
@@ -97,7 +109,7 @@ foreach ($id in $Ids) {
         # 差分があれば commit（無ければ既コミット済みとして続行）
         git diff --cached --quiet -- $addPaths
         if ($LASTEXITCODE -ne 0) {
-            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本）"
+            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本＋RX/ARB）"
             Write-Host "  [① backup] commit 済み: $id" -ForegroundColor Green
             $pushNeeded = $true
         } else {
