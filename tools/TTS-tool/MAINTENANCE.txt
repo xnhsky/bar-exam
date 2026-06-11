@@ -1,0 +1,86 @@
+============================================================
+ メンテナンス手順：AI StudioのUI変更で動かなくなった時
+============================================================
+
+prep_tts_tabs.py は AI Studio画面の「ボタン名」「ラベル」を頼りに
+操作している。Googleが画面を変えると、それらが見つからず
+[FAIL] が出るようになる。そのときは下記でセレクタを取り直す。
+
+------------------------------------------------------------
+【症状の見分け方】
+------------------------------------------------------------
+・実行すると毎回 [FAIL] が出る（一時的でなく必ず失敗）
+・fail_*.png を見ると、画面は正常に表示されているのに
+  ボタンが押せていない / パネルが開いていない
+  → UI変更によるセレクタずれの可能性大
+
+※ fail画面が「An unknown error occurred」の場合はGoogle側の
+  一時エラーなので、UI変更ではない（時間をおいて再実行でOK）。
+
+------------------------------------------------------------
+【セレクタ取り直し手順】
+------------------------------------------------------------
+1) ログイン済みChromeをデバッグ起動
+     & "C:\Program Files\Google\Chrome\Application\chrome.exe" `
+       --remote-debugging-port=9222 `
+       --user-data-dir="$env:USERPROFILE\chrome-tts-profiles\acc1-aoede"
+
+2) 録画スクリプトを実行
+     python record_tts.py
+
+3) 開いた Playwright Inspector で「Record」を押す
+
+4) AI Studioのタブで「1タブ分」を手動操作:
+     a. Speaker 1（上段の枠）をクリック
+     b. Voiceパネルの検索欄に Aoede と入力
+     c. 「Aoede」の行をクリック
+     d. パネルを閉じる
+     e. Text欄をクリック → Ctrl+A → Delete
+
+5) Inspectorに表示されたコードをコピー
+
+------------------------------------------------------------
+【取得したコードの当てはめ方】
+------------------------------------------------------------
+prep_tts_tabs.py の中の関数 _setup_page() を開く。
+録画コードの各行を、対応する箇所に差し替える。
+
+現行（2026-06時点）の対応:
+
+  録画コード                                  → prep_tts_tabs.py の行
+  -----------------------------------------------------------------
+  get_by_role("button", name=                preset = page.get_by_role(
+    "The Energetic Co-Host -").click()         "button", name="The Energetic Co-Host -")
+  get_by_role("radio", name="Text").click()  page.get_by_role("radio", name="Text").click()
+  locator("ms-voice-settings").filter(...)   ms-voice-settings の filter 行
+    .get_by_label("Open voice settings")
+  get_by_role("button", name="Aoede")        voice_btn = page.get_by_role(
+    .click()                                   "button", name=voice, exact=True)
+  textbox name="Enter a prompt"              box = page.get_by_role(
+                                               "textbox", name="Enter a prompt")
+
+※ボイス選択の行だけは name="Aoede" を name=voice（変数）に
+  置き換えること。そうすればAoede/Laomedeia両方で使い回せる。
+※録画では「div.nth(2)でパネルを閉じる」が出ることがあるが、
+  これは脆いので使わず、現行どおり keyboard.press("Escape") のままにする。
+
+------------------------------------------------------------
+【現行セレクタの記録（2026-06-11 時点）】
+------------------------------------------------------------
+プリセット : role=button, name="The Energetic Co-Host -"
+Textトグル : role=radio,  name="Text"
+Speaker1枠 : locator("ms-voice-settings").filter(has_text="Speaker 1")
+              .get_by_label("Open voice settings")
+ボイス選択 : role=button, name=<voice>  (exact=True)
+パネル閉じ : keyboard Escape
+テキスト欄 : role=textbox, name="Enter a prompt"
+URL        : https://aistudio.google.com/generate-speech?model=gemini-2.5-pro-preview-tts
+
+------------------------------------------------------------
+【更新したら必ずテスト】
+------------------------------------------------------------
+  python prep_tts_tabs.py --voice Aoede --port 9222 --count 1
+  python prep_tts_tabs.py --voice Laomedeia --port 9223 --count 1
+
+両方 [OK] が出れば修復完了。本番(count 15)へ。
+============================================================
