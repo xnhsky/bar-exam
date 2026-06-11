@@ -2,63 +2,66 @@
  AI Studio TTS タブ一括準備ツール  使い方メモ
 ============================================================
 
-【構成ファイル（2つ・同じフォルダに置く）】
+【構成ファイル（同じフォルダに置く）】
+  TTS_start.bat      … ★これをダブルクリックするだけ（アカウント選択式）
   run_tts_prep.ps1   … ランチャー（Chrome起動＋準備をまとめて実行）
   prep_tts_tabs.py   … 本体（Playwrightでタブを準備）
+  record_tts.py      … 【メンテ用】UI変更時のセレクタ録画
+  MAINTENANCE.txt    … 【メンテ用】UI変更時の修復手順＋セレクタ記録
+  README.txt         … このファイル
 
   ※両PC（xnrg2 / OWNER PC）共用。パスは自動判別なので編集不要。
 
 ------------------------------------------------------------
-【初回だけ・各PCで1回】
+【一番カンタンな使い方】
 ------------------------------------------------------------
-1) 実行ポリシーを緩める（xnrg2は設定済み。OWNER PCでは初回必要）
+  TTS_start.bat をダブルクリック
+    → アカウント番号(1〜5)を選ぶ
+    → タブ数を入力（そのままEnterで15）
+    → 自動でChromeを2つ開いて準備
+
+  ※選択肢A（時間差運用）に対応:
+    バッチは起動前に既存Chromeを全部閉じてメモリを解放する。
+    なので常に1アカウント分(2ウィンドウ)だけが動く。
+
+------------------------------------------------------------
+【初回だけ・各PC / 各アカウントで1回】
+------------------------------------------------------------
+1) 実行ポリシーを緩める（各PCで初回のみ）
      Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
-2) 初回起動時、各Chromeで AI Studio にログイン
-   （acc1で2ウィンドウ、acc2で2ウィンドウ = 計4回。一度きり）
-
-------------------------------------------------------------
-【通常運用：acc1を使う】
-------------------------------------------------------------
-  cd $env:USERPROFILE        # スクリプトを置いたフォルダへ
-  powershell -ExecutionPolicy Bypass -File .\run_tts_prep.ps1 -Account acc1
-
-  → Chrome2つ起動 → 「Press Enter」でEnter → 各15タブ準備
-
-------------------------------------------------------------
-【acc2に切り替え（acc1終了後）】
-  ※選択肢A：時間差運用。メモリ節約のため必ずacc1を閉じてから。
-------------------------------------------------------------
-  Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force
-  Start-Sleep 3
-  powershell -ExecutionPolicy Bypass -File .\run_tts_prep.ps1 -Account acc2
-
-  ※注意: Stop-Process は普段使いのChromeも閉じます。
-          作業中のChromeタブは先に保存してから実行。
-
-------------------------------------------------------------
-【タブ数を変える（例：各5タブ・テスト）】
-------------------------------------------------------------
-  powershell -ExecutionPolicy Bypass -File .\run_tts_prep.ps1 -Account acc1 -Count 5
+2) 初回起動時、各Chromeで AI Studio にそのアカウントでログイン
+   （アカウントごとに2ウィンドウ分。一度やれば保存される）
 
 ------------------------------------------------------------
 【ポート割り当て（参考）】
 ------------------------------------------------------------
-  acc1 Aoede=9222  Laomedeia=9223
-  acc2 Aoede=9224  Laomedeia=9225
+  acc1  Aoede=9222  Laomedeia=9223
+  acc2  Aoede=9224  Laomedeia=9225
+  acc3  Aoede=9226  Laomedeia=9227
+  acc4  Aoede=9228  Laomedeia=9229
+  acc5  Aoede=9230  Laomedeia=9231
 
   プロファイル保存先: %USERPROFILE%\chrome-tts-profiles\
 
 ------------------------------------------------------------
+【コマンドで直接やりたい場合】
+------------------------------------------------------------
+  powershell -ExecutionPolicy Bypass -File .\run_tts_prep.ps1 -Account acc3 -Count 15
+
+  またはPython直接（Chromeが既に起動済みのとき）:
+  python prep_tts_tabs.py --voice Aoede --port 9226 --count 15
+  python prep_tts_tabs.py --voice Laomedeia --port 9227 --count 15
+
+------------------------------------------------------------
 【困ったとき】
 ------------------------------------------------------------
-・署名エラーで動かない:
-    先頭に  powershell -ExecutionPolicy Bypass -File  を付けて実行
-・ランチャーが動かない → Python直接実行でも同じ結果:
-    python prep_tts_tabs.py --voice Aoede --port 9222 --count 15
-    python prep_tts_tabs.py --voice Laomedeia --port 9223 --count 15
-・タブ準備が失敗(FAIL): fail_<voice>_<n>.png を確認
-    （AI Studioの一時エラーは自動で最大3回リトライ）
-・メモリ不足: 4ウィンドウ同時は重い。acc1→acc2の時間差運用推奨。
-    タブ数を --Count 5〜10 に減らすのも有効。
+・署名エラー: バッチ経由ならBypass済み。手打ち時は
+    powershell -ExecutionPolicy Bypass -File ... を付ける
+・タブ準備が失敗(FAIL)が必ず出る → UI変更の可能性
+    MAINTENANCE.txt を参照してセレクタ取り直し
+・fail画面が「An unknown error occurred」→ Google側の一時エラー
+    自動で最大3回リトライ。残れば時間をおいて再実行
+・メモリ不足: 4ウィンドウ同時は重い。時間差運用(バッチ標準)推奨。
+    タブ数を 5〜10 に減らすのも有効。
 ============================================================

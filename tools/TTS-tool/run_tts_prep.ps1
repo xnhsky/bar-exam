@@ -13,7 +13,7 @@
 # After that, auto login (saved per profile dir).
 # ============================================================
 param(
-    [ValidateSet("acc1","acc2")]
+    [ValidateSet("acc1","acc2","acc3","acc4","acc5")]
     [string]$Account = "acc1",
     [int]$Count = 15
 )
@@ -45,6 +45,7 @@ $PC = $env:COMPUTERNAME
 $Base = Join-Path $env:USERPROFILE "chrome-tts-profiles"
 
 # --- Port / profile config per account ---
+# acc1: 9222/9223, acc2: 9224/9225, acc3: 9226/9227, acc4: 9228/9229, acc5: 9230/9231
 $Config = @{
     "acc1" = @{
         "Aoede"     = @{ Port = 9222; Profile = (Join-Path $Base "acc1-aoede") }
@@ -53,6 +54,18 @@ $Config = @{
     "acc2" = @{
         "Aoede"     = @{ Port = 9224; Profile = (Join-Path $Base "acc2-aoede") }
         "Laomedeia" = @{ Port = 9225; Profile = (Join-Path $Base "acc2-laome") }
+    }
+    "acc3" = @{
+        "Aoede"     = @{ Port = 9226; Profile = (Join-Path $Base "acc3-aoede") }
+        "Laomedeia" = @{ Port = 9227; Profile = (Join-Path $Base "acc3-laome") }
+    }
+    "acc4" = @{
+        "Aoede"     = @{ Port = 9228; Profile = (Join-Path $Base "acc4-aoede") }
+        "Laomedeia" = @{ Port = 9229; Profile = (Join-Path $Base "acc4-laome") }
+    }
+    "acc5" = @{
+        "Aoede"     = @{ Port = 9230; Profile = (Join-Path $Base "acc5-aoede") }
+        "Laomedeia" = @{ Port = 9231; Profile = (Join-Path $Base "acc5-laome") }
     }
 }
 
