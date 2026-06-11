@@ -42,6 +42,9 @@ param(
     [switch]$SkipDeploy,                # 指定時は⑥配置（Drive＋repoミラー）をスキップ
     [switch]$Finalize,                  # 指定時は⑦永続化＋入力削除（git commit/push＋PDF・逐語 git rm）を実行
     [switch]$NoPush,                    # ⑦で push を抑止（commit のみ）
+    [switch]$SkipRx,                    # 指定時は②-rx RX論証カード生成（Lexia 用副産物）をスキップ
+    [switch]$SkipArb,                   # 指定時は②-arb ARBOR樹形図生成（Lexia 用副産物）をスキップ
+    [string]$ArborRoot = 'C:\Users\xnrg2.DESKTOP-5664QR6\arbor',  # ARBOR 正典リポジトリのルート
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
 )
 
@@ -61,6 +64,16 @@ $CanonicalAthena = Join-Path $ProjectRoot "canonical\ATHENA.html"
 $ValidateJx    = Join-Path $ProjectRoot "scripts\validate-jx.py"
 $ValidateTts   = Join-Path $ProjectRoot "scripts\validate-tts.py"
 
+# 副産物（②-rx RX 論証カード / ②-arb ARBOR 樹形図 — Lexia 取込用）
+$RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
+$ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"
+$ValidateRx    = Join-Path $ProjectRoot "scripts\validate-rx.py"
+$RxOutputBase  = Join-Path $ProjectRoot "outputs\rx"
+$ArbOutputBase = Join-Path $ProjectRoot "outputs\arb"
+$ArborMaster   = Join-Path $ArborRoot "ARBOR_v5.0_master_prompt.md"
+$ArborRef      = Join-Path $ArborRoot "Reference\ARBOR_002_shucho_tekikaku.html"
+$ArborVerify   = Join-Path $ArborRoot "scripts\verify.py"
+
 # 音声段（⑤）: 台本集約先と generate_tts.py 起動ラッパ
 $TtsInputDir   = Join-Path $ProjectRoot "tts\input_texts"   # generate_tts.py の入力
 $TtsAudioDir   = Join-Path $ProjectRoot "tts\output_audio"  # 既 wav 判定
@@ -73,6 +86,9 @@ $RunLog        = Join-Path $LogsDir "jx-batch-$(Get-Date -Format 'yyyyMMdd-HHmms
 # 科目接頭辞 → 出力ディレクトリ名（{Subject}JX）
 $SubjectDir    = "${Subject}JX"
 $JxOutputDir   = Join-Path $JxOutputBase $SubjectDir
+$RxOutputDir   = Join-Path $RxOutputBase  "${Subject}RX"
+$ArbOutputDir  = Join-Path $ArbOutputBase "${Subject}ARB"
+$RxArbCsv      = Join-Path $LogsDir "rx-arb-summary.csv"
 
 # === API キー自動読込（⑤音声用・直書き禁止／git管理外の .secrets から）===
 # 既に環境変数 GEMINI_API_KEY があればそれを優先。無ければ .secrets\gemini_{KeyName}.key を読む。
@@ -153,6 +169,16 @@ if ($missing.Count -gt 0) {
 
 # === 出力ディレクトリ確保 ===
 if (-not (Test-Path $JxOutputDir)) { New-Item -Path $JxOutputDir -ItemType Directory -Force | Out-Null }
+
+# === 副産物（②-rx / ②-arb）有効判定 ===
+# 前提欠如は警告のみで自動スキップ（JX 本流のバッチは絶対に止めない）
+$RxEnabled = (-not $SkipRx)
+if ($RxEnabled -and -not (Test-Path $RxPromptSrc)) { Write-Host "[NOTE] RX prompt 不在 → ②-rx 自動スキップ: $RxPromptSrc" -ForegroundColor Yellow; $RxEnabled = $false }
+if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate-rx.py 不在 → ②-rx 自動スキップ: $ValidateRx" -ForegroundColor Yellow; $RxEnabled = $false }
+$ArbEnabled = (-not $SkipArb)
+if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] ARB prompt 不在 → ②-arb 自動スキップ: $ArbPromptSrc" -ForegroundColor Yellow; $ArbEnabled = $false }
+if ($ArbEnabled -and -not (Test-Path $ArborMaster))  { Write-Host "[NOTE] ARBOR 正典不在 → ②-arb 自動スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false }
+Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / ARB(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir"
 
 # === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
 # 入力レイアウト（2026-06-06 分類確定）:
@@ -298,6 +324,8 @@ if ($DryRun) {
         Write-Host "          [DRYRUN] would clean: $($t.TtsOutputDir)  (*.txt のみ・leaf=$($t.ProblemId) 一致時のみ・他フォルダは触らない)"
         Write-Host "      ④ validate : python `"$ValidateTts`" `"$($t.TtsOutputDir)`" $($t.ProblemId)"
         Write-Host "          [DRYRUN] PASS 時 would stage *.txt → $TtsInputDir  (既 wav はスキップ)"
+        Write-Host "      ②-rx RX    : $RxOutputDir\${Subject}RX$($t.Number)_*.html  (enabled=$RxEnabled)"
+        Write-Host "      ②-arb ARB  : $ArbOutputDir\$($t.ProblemId)_ARB.html  (enabled=$ArbEnabled)"
     }
     $audioPlan = if ($SkipAudio) { "スキップ(-SkipAudio)" }
                  elseif ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) { "スキップ(GEMINI_API_KEY 未設定)" }
@@ -312,6 +340,10 @@ if ($DryRun) {
 $CsvHeader = "timestamp,subject,problem_id,jx_elapsed,jx_html_bytes,jx_sentinel,jx_exit,jx_validate,tts_elapsed,tts_file_count,tts_sentinel,tts_exit,tts_validate,overall"
 if (-not (Test-Path $CostCsv)) {
     $CsvHeader | Out-File -FilePath $CostCsv -Encoding utf8
+}
+# 副産物（RX/ARB）は列構成が違うため別 CSV に記録（既存 CSV の互換維持）
+if (-not (Test-Path $RxArbCsv)) {
+    "timestamp,subject,problem_id,kind,elapsed,files,sentinel,exit,validate" | Out-File -FilePath $RxArbCsv -Encoding utf8
 }
 
 # === claude -p 共通起動ヘルパ ===
@@ -468,6 +500,79 @@ foreach ($t in $Targets) {
                 Write-Host "[②-bis PDF削除] 削除失敗（手動削除可・処理は継続）: $_" -ForegroundColor Yellow
             }
         }
+    }
+
+    # =========================================================
+    # ②-rx 論証カード生成（Lexia RX・jxPass 時のみ・非致命）
+    #   検証 PASS 済み JX を素材に 1論点1HTML のカードを抽出。
+    #   失敗しても JX/TTS の進行・連続失敗判定・overall には影響させない。
+    # =========================================================
+    if ($jxPass -and $RxEnabled) {
+        Write-Host "`n--- ②-rx RX 論証カード生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
+        $rxStart = Get-Date
+        if (-not (Test-Path $RxOutputDir)) { New-Item -Path $RxOutputDir -ItemType Directory -Force | Out-Null }
+        $rxBase = "${Subject}RX$($t.Number)"
+        $rxTemplate = Get-Content $RxPromptSrc -Raw -Encoding utf8
+        $rxPrompt = $rxTemplate `
+            -replace '\{SOURCE_HTML_PATH\}', $t.JxOutputPath `
+            -replace '\{PROBLEM_ID\}',       $t.ProblemId `
+            -replace '\{PROBLEM_NUMBER\}',   $t.Number `
+            -replace '\{SUBJECT_PREFIX\}',   $Subject `
+            -replace '\{RX_BASENAME\}',      $rxBase `
+            -replace '\{OUTPUT_DIR\}',       $RxOutputDir `
+            -replace '\{VALIDATE_RX\}',      $ValidateRx
+        ($rxPrompt) | Out-File -FilePath (Join-Path $LogsDir "rx-prompt-$($t.ProblemId).txt") -Encoding utf8
+
+        $rxRes = Invoke-ClaudeHeadless -Prompt $rxPrompt -JsonOutPath (Join-Path $LogsDir "rx-$($t.ProblemId).json")
+        $rxSent = Get-Sentinel -Text $rxRes.Output -ProblemId "$($t.ProblemId)-RX"
+        $rxFiles = @(Get-ChildItem -Path $RxOutputDir -Filter "${rxBase}_*.html" -File -ErrorAction SilentlyContinue).Count
+        $rxValidate = "skipped_no_files"
+        if ($rxFiles -gt 0) {
+            $rvOut = & python $ValidateRx $RxOutputDir $rxBase 2>&1
+            $rxValidate = if ($LASTEXITCODE -eq 0) { "PASS" } else { "ERROR(exit=$LASTEXITCODE)" }
+            ($rvOut -join "`n") | Out-File -FilePath (Join-Path $LogsDir "rx-validate-$($t.ProblemId).txt") -Encoding utf8
+        }
+        $rxElapsed = [int]((Get-Date) - $rxStart).TotalSeconds
+        $rxColor = if ($rxValidate -eq "PASS") { "Green" } else { "Yellow" }
+        Write-Host "[②-rx DONE] files=$rxFiles, sentinel=$rxSent, validate=$rxValidate, elapsed=$([math]::Round($rxElapsed/60,1))min" -ForegroundColor $rxColor
+        Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
+            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'RX',
+            $rxElapsed, $rxFiles, $rxSent, $rxRes.ExitCode, $rxValidate) -join ',')
+    }
+
+    # =========================================================
+    # ②-arb ARBOR 樹形図生成（Lexia ARB・jxPass 時のみ・非致命）
+    #   ARBOR 正典仕様 (arbor リポジトリ) に従い 1問1枚を生成。
+    # =========================================================
+    if ($jxPass -and $ArbEnabled) {
+        Write-Host "`n--- ②-arb ARBOR 生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
+        $arbStart = Get-Date
+        if (-not (Test-Path $ArbOutputDir)) { New-Item -Path $ArbOutputDir -ItemType Directory -Force | Out-Null }
+        $arbOut = Join-Path $ArbOutputDir "$($t.ProblemId)_ARB.html"
+        $arbTemplate = Get-Content $ArbPromptSrc -Raw -Encoding utf8
+        $arbPrompt = $arbTemplate `
+            -replace '\{SOURCE_HTML_PATH\}', $t.JxOutputPath `
+            -replace '\{PROBLEM_ID\}',       $t.ProblemId `
+            -replace '\{PROBLEM_NUMBER\}',   $t.Number `
+            -replace '\{SUBJECT_PREFIX\}',   $Subject `
+            -replace '\{OUTPUT_PATH\}',      $arbOut `
+            -replace '\{ARBOR_MASTER\}',     $ArborMaster `
+            -replace '\{ARBOR_REFERENCE\}',  $ArborRef `
+            -replace '\{ARBOR_VERIFY\}',     $ArborVerify
+        ($arbPrompt) | Out-File -FilePath (Join-Path $LogsDir "arb-prompt-$($t.ProblemId).txt") -Encoding utf8
+
+        $arbRes = Invoke-ClaudeHeadless -Prompt $arbPrompt -JsonOutPath (Join-Path $LogsDir "arb-$($t.ProblemId).json")
+        $arbSent = Get-Sentinel -Text $arbRes.Output -ProblemId "$($t.ProblemId)-ARB"
+        $arbBytes = if (Test-Path $arbOut) { (Get-Item $arbOut).Length } else { 0 }
+        $arbValidate = if ($arbBytes -gt 0 -and $arbSent -eq "COMPLETED") { "PASS" }
+                       elseif ($arbBytes -gt 0) { "CHECK($arbSent)" }
+                       else { "no_html" }
+        $arbElapsed = [int]((Get-Date) - $arbStart).TotalSeconds
+        $arbColor = if ($arbValidate -eq "PASS") { "Green" } else { "Yellow" }
+        Write-Host "[②-arb DONE] bytes=$arbBytes, sentinel=$arbSent, validate=$arbValidate, elapsed=$([math]::Round($arbElapsed/60,1))min" -ForegroundColor $arbColor
+        Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
+            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'ARB',
+            $arbElapsed, $arbBytes, $arbSent, $arbRes.ExitCode, $arbValidate) -join ',')
     }
 
     # =========================================================

@@ -306,6 +306,13 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   （CLAUDE.md 旧記載の「同フォルダ同居・NN.txt」は実態と異なる。マニフェストが正典）。
 - **既知のズレ**：刑 28/29/30 は重問PDFと講義逐語が **−7 ズレ**（内容照合で 21/22/23 が一致）。
 
+### §4-6. RX/ARB 副産物（2026-06-11 導入）
+
+検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/rx/`・1論点1HTML）と
+**ARB 樹形図**（`outputs/arb/`・ARBOR 正典仕様）をバッチランナーの ②-rx / ②-arb 段で
+自動生成する（既定 ON・非致命・`-SkipRx` / `-SkipArb` で抑止）。
+既存 JX への後追いは `scripts/rx-arb-backfill.ps1`。**詳細は `docs/rx-arb-byproducts.md` が正典**。
+
 ---
 
 ## §5. 検証スクリプト
