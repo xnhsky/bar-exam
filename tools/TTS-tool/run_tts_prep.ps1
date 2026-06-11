@@ -191,7 +191,9 @@ function Show-Menu {
         Write-Host "------------------------------------------------------------"
         Write-Host "  Closing all Chrome to free memory (time-shift operation)..."
         Write-Host "------------------------------------------------------------"
-        taskkill /F /IM chrome.exe 2>$null | Out-Null
+        # cmd /c so taskkill's "not found" stderr (when no Chrome is running)
+        # never becomes a terminating error under $ErrorActionPreference=Stop.
+        cmd /c "taskkill /F /IM chrome.exe >nul 2>nul"
         Start-Sleep -Seconds 3
 
         Write-Host ""
