@@ -48,10 +48,15 @@
 ------------------------------------------------------------
 【初回だけ・各PC / 各アカウントで1回】
 ------------------------------------------------------------
-1) 実行ポリシーを緩める（各PCで初回のみ）
+1) 依存パッケージを入れる（各PCで初回のみ・これが無いと即エラー）
+     python -m pip install playwright
+   ※既存Chromeにつなぐ方式なので「playwright install」(ブラウザDL)は不要。
+   ※入っていないと ModuleNotFoundError: No module named 'playwright' で落ちる。
+
+2) 実行ポリシーを緩める（各PCで初回のみ）
      Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 
-2) 初回起動時、各Chromeで AI Studio にそのアカウントでログイン
+3) 初回起動時、各Chromeで AI Studio にそのアカウントでログイン
    （アカウントごとに2ウィンドウ分。一度やれば保存される）
 
 ------------------------------------------------------------
