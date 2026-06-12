@@ -27,6 +27,10 @@ TX v10.0.0 GOLD-SKELETON 自己検証スクリプト
          （答えの暗記には学習効果がないため法理問題に差替）
     G18: PART D（section#part-d）に .arena-premise（前提ブロック）が存在し非空
          （見解・事案・記述を再掲し、12問エリアを遡読不要で自己完結させる）
+  G19：解答前ネタバレ検査（2026-06-12 追加・TX324 事故対応）
+    G19: .section-title および PART A の可視テキスト（hidden の .final-answer を除く）に
+         「正解は記述N」「正しいのは記述1・4」型の解答開示が出現しない
+         （見出し『A-2 解答（正しいのは記述1・4）』が解答前に正解を晒した事故の再発防止）
 
 使い方：
     python scripts/validate-tx-gold.py <HTML ファイルパス>
@@ -38,6 +42,7 @@ TX v10.0.0 GOLD-SKELETON 自己検証スクリプト
     pip install beautifulsoup4
 """
 
+import copy
 import re
 import sys
 from pathlib import Path
@@ -131,6 +136,18 @@ DRILL_ANSWER_RECALL_PATTERNS = [
     r"本問の[0-9０-９]\s*記述は",
     r"誤っている記述の組合せは肢",
     r"正しい記述の組合せは肢",
+]
+
+# G19：解答ボタンを押す前から見えるテキスト（section-title・PART A 可視部）に
+# 正解を開示する文言を検出する。隠しブロック（hidden の .final-answer）と
+# data-* 属性（data-explanation 等）は判定ボタン後にのみ表示されるため対象外。
+ANSWER_SPOILER_VISIBLE_PATTERNS = [
+    r"正解は[肢記述]?[0-9０-９]",
+    r"正しいのは[肢記述]*[0-9０-９]",
+    r"誤っているのは[肢記述]*[0-9０-９]",
+    r"誤りは[肢記述]*[0-9０-９]",
+    r"解答[（(][^）)]*[0-9０-９][^）)]*[）)]",
+    r"答え?は[肢記述][0-9０-９]",
 ]
 
 CANONICAL_301_LEAKAGE = [
@@ -625,6 +642,46 @@ class Validator:
                      f".arena-premise の項目（.arena-premise-item）が {len(items)} 件"
                      "（事案・見解・各記述で最低 2 件以上を期待）")
 
+    # --- G19：解答前ネタバレ検査（TX324 事故対応・2026-06-12 追加） ---
+
+    def g19_no_answer_spoiler_before_reveal(self):
+        """解答ボタンを押す前から見えるテキストに正解開示がないか検査。
+
+        対象：全 .section-title ＋ PART A の可視テキスト。
+        対象外：hidden 属性付き要素・.final-answer 配下（判定ボタン後に表示）・
+        data-* 属性値（get_text に含まれない）。
+        """
+        for st in self.soup.find_all(class_="section-title"):
+            txt = st.get_text()
+            for pat in ANSWER_SPOILER_VISIBLE_PATTERNS:
+                if re.search(pat, txt):
+                    self.err("G19",
+                             f"section-title「{txt.strip()[:40]}」が正解を開示している"
+                             f"（'{pat}' に一致）。見出しは中立表記（例：A-2 解答）にすること")
+                    break
+
+        part_a = self.soup.find(id="part-a")
+        if not part_a:
+            return  # G3 で報告済
+        visible = copy.copy(part_a)
+        for el in visible.find_all(attrs={"hidden": True}):
+            el.decompose()
+        for el in visible.find_all(class_="final-answer"):
+            el.decompose()
+        for el in visible.find_all(class_="section-title"):
+            el.decompose()  # 見出しは上で検査済（二重報告防止）
+        for el in visible.find_all(["script", "style"]):
+            el.decompose()
+        txt = visible.get_text()
+        for pat in ANSWER_SPOILER_VISIBLE_PATTERNS:
+            m = re.search(pat, txt)
+            if m:
+                self.err("G19",
+                         f"PART A の可視テキストが正解を開示している"
+                         f"（'{m.group(0)}'）。正解値は hidden の .final-answer と"
+                         f"data-explanation のみに置くこと")
+                break
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -644,6 +701,7 @@ class Validator:
         self.g16_svg_class_defined()
         self.g17_no_answer_recall_drill()
         self.g18_arena_premise()
+        self.g19_no_answer_spoiler_before_reveal()
 
 
 # ============================================================
@@ -683,7 +741,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL G1〜G18 PASS")
+        print("✅ ALL G1〜G19 PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
