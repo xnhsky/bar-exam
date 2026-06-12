@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""既存 TTS 台本の出だしに連番ラベル「{問題番号}の{連番}」を後付けする。
+"""既存 TTS 台本の出だしを連番ラベル仕様に揃える。
 
-仕様（prompts/tts-jx-headless.md・c617bbc）:
-  - 全 .txt の出だし最初の発話 = 「{N}の{k}」(N=問題IDの数字・先頭ゼロ除去)
-  - 連番1: ラベル「Nの1」を言ってから冒頭スパルタへ
-  - 連番2+: 「Nのk、続きから行くよ」型の冒頭接続文がラベルを兼ねる
+仕様（prompts/tts-jx-headless.md・2026-06-12 改訂）:
+  - 連番2+: 出だし最初の発話 = 「{N}の{k}」(N=問題IDの数字・先頭ゼロ除去)。
+    「Nのk、続きから行くよ」型の冒頭接続文がラベルを兼ねる → 無ければ前置
+  - 連番1: 連番ラベルを言わない（冒頭スパルタから直接）→ 付いていれば除去
 
 使い方:
   python fix-tts-labels.py           # dry-run（変更予定の一覧）
@@ -41,14 +41,19 @@ def main():
             with open(path, encoding="utf-8") as f:
                 text = f.read()
             label = f"{n}の{k}"
-            # 既にラベル始まりなら skip
-            if re.match(r"^\s*" + re.escape(label) + r"[、。]", text):
-                skipped.append(fn)
-                continue
+            has_label = bool(re.match(r"^\s*" + re.escape(label) + r"[、。]", text))
             if k == 1:
-                new = f"{label}。\n\n" + text.lstrip("\n")
-                how = f"prepend「{label}。」(独立発話)"
+                # 連番1はラベル禁止 → 付いていれば除去
+                if not has_label:
+                    skipped.append(fn)
+                    continue
+                new = re.sub(r"^\s*" + re.escape(label) + r"[、。]\s*", "", text)
+                how = f"先頭の「{label}。」を除去"
             else:
+                # 連番2+ はラベル必須 → 無ければ前置
+                if has_label:
+                    skipped.append(fn)
+                    continue
                 new = f"{label}、" + text.lstrip("\n")
                 how = f"先頭文に「{label}、」前置"
             fixed.append((fn, how))
@@ -56,7 +61,7 @@ def main():
                 with open(path, "w", encoding="utf-8", newline="") as f:
                     f.write(new)
 
-    print(f"対象: fix={len(fixed)} skip(ラベル済)={len(skipped)} err={len(errors)}")
+    print(f"対象: fix={len(fixed)} skip(仕様適合済)={len(skipped)} err={len(errors)}")
     for fn, how in fixed:
         print(f"  FIX  {fn}: {how}")
     for e in errors:
