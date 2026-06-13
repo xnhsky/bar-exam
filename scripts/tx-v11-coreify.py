@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-TX v11 真コア化（第2パス）: 既に ox-grid 化済みの v11 ファイルを「真のコア」へ。
+TX v11 真コア化（第2パス・刑TX326-445 全120問で適用済 2026-06-13）: 既に ox-grid 化済みの v11 ファイルを「真のコア」へ。
 
 第1パス（_v11_upgrade_recipe.md）は validate は通すが 2 点を保留していた：
   (A) 教授ブロックを①②③④のまま残置（コア本来は①②のみ・③④/key-phrase-box/analogy/

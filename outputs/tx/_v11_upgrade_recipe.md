@@ -69,8 +69,14 @@
 ```
   先頭は必ず `TX v11.0.0 LOOP-CORE`。footer-date に `v11 LOOP-CORE 改訂：2026-06-13` と `深掘り別冊：刑TX{NNN}-deep.html（未生成）` を併記してよい。
 
-### S6. 教授ブロック（professor）は **そのまま保存**（①〜④・key-phrase-box 等）
-- v11 では本来①②のみだが、本バッチでは**深掘り別冊送りを後追いにするため、コアに残置**（検証は通る）。触らない。
+### S6. 教授ブロックを①②のみに＋choice-points 前倒し（真コア化・必須）
+- v11 コアの professor は **①ポイント・②考え方の道筋のみ**。③イメージ・④あてはめ・key-phrase-box・
+  prof-analogy・warning・cross-link は別冊 D-1 送り＝**コアから削除**。
+- PART B のブロック順は **ヘッダー→choice-points（論点コア前倒し）→記述原文→解説→根拠リンク→教授①②**。
+- ox-grid 化（S1〜S5）の後、**`python scripts/tx-v11-coreify.py <file...>`**（決定的・冪等）で一括適用すると
+  教授③④等の削除＋choice-points 前倒しが行われ「真コア」になる。**validator は professor 数・ブロック順序を
+  検査しない**ため、これを省くと validate は通るが真コアにならない（刑TX326-445 で実証・第1パスで漏らした）。
+- 削除した③④等の中身は git 履歴に残る（必要時 /deepen-tx で別冊 -deep.html へ）。
 
 ### S7. 検証
 - `python scripts/validate-tx-core.py outputs/tx/刑TX/刑TX{NNN}.html` → **ERROR 0** まで修正。WARNING は許容。
