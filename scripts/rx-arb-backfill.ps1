@@ -70,8 +70,11 @@ if (-not (Test-Path $RxArbCsv)) {
 # === claude -p 起動ヘルパ（jx-batch-runner.ps1 と同実装）===
 function Invoke-ClaudeHeadless {
     param([string]$Prompt, [string]$JsonOutPath)
+    # --model を明示固定（2026-06-13）: グローバル既定が claude-fable-5[1m]（アクセス権なし）に
+    # 化けると 0秒/0byte/exit1 の即時失敗が連発する事故への対策。動作確認済みモデルに固定。
     $claudeArgs = @(
         '-p',
+        '--model', 'claude-opus-4-8[1m]',
         '--output-format', 'json',
         '--permission-mode', 'acceptEdits',
         '--allowedTools', 'Write,Edit,Read,Bash,Glob,Grep'

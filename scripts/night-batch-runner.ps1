@@ -248,8 +248,11 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
     # ネイティブ引数処理で壊れ、claude に未達のまま空プロンプトで起動される
     # （特に nested 実行＝別 claude セッションから起動した場合に再現）。
     # → プロンプトは stdin パイプで渡す（claude -p は引数値が無ければ stdin から読む）。
+    # --model を明示固定（2026-06-13）: 既定モデルが claude-fable-5[1m]（アクセス権なし）に
+    # 解決され 0秒/0byte/exit1 の即時失敗が連発した事故への対策。動作確認済みモデルに固定する。
     $claudeArgs = @(
         '-p',
+        '--model', 'claude-opus-4-8[1m]',
         '--output-format', 'json',
         '--permission-mode', 'acceptEdits',
         '--allowedTools', 'Write,Edit,Read,Bash,Glob,Grep'
