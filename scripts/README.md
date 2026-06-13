@@ -50,3 +50,38 @@
 cost-summary.csv には `cleanup` (True/False) と `validate_status`
 (PASS / ERROR_detected / exec_failed / skipped_failed_generation) の
 2 カラムが追加されており、各問の判定結果を後追い確認できる。
+
+## 配布前ゲート: check-duplicates.py（ファイル間の重複・ID 不整合）
+
+`validate-tx.py` / `validate-jx.py` は **1 ファイル内** の検証専用で、
+「別ファイル同士」の問題は拾えない。これを補うのが `check-duplicates.py`。
+
+検出ルール（いずれかで exit 1）:
+
+- **D80 ID-MISMATCH** … `<title>` / `.doc-header` / `.footer-problem` の問題コードが
+  ファイル名と不一致（例: 刑TX338/358/123 の `<title>` や 刑TX055 の footer が
+  「刑TX311」のまま＝**他問からのコピペ残り**）。0 埋め差(JX1/JX001)は数値比較で吸収。
+  ※ `validate-jx.py` は footer/header の ID を見ないため、JX/RX もこの D80 がカバーする。
+- **D81 DUP-TITLE** … 2 件以上が同一 `<title>`（別問題が同一タイトル＝Lexia 取込時に
+  重複誤検出される元凶）。
+- **D82 DUP-BODY** … 2 件以上が本文バイト完全一致（同一問題を別名で重複保存）。
+
+使い方:
+
+```
+python scripts/check-duplicates.py                # 既定で outputs/ を走査
+python scripts/check-duplicates.py outputs deploy # 各ルートを独立に検査（ミラー間一致は無視）
+```
+
+### 自動ゲート化
+
+- `night-batch-runner.ps1` … バッチ完走後に `outputs/tx` を横断監査。検出時 exit 1。
+- `jx-finalize.ps1` … git commit/push の**前**に `outputs` を検査。検出時は commit せず中止
+  （緊急回避は `-NoGate`）。これにより **Lexia の取り込み元である git に不整合な HTML を入れない**。
+
+### 運用ルール（重要）
+
+既存 HTML を**コピーして別番号の問題を作らない**こと。コピー編集は `<title>` /
+doc-header / footer の ID 書き換え漏れ（D80）や本文重複（D82）の温床になる。
+新規問題は必ず生成パイプライン（`night-batch-runner.ps1` / `jx-batch-runner.ps1`）で
+PDF・逐語から生成する。万一コピー作成しても、上記ゲートが push 前に検出する。
