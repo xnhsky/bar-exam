@@ -75,6 +75,12 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
 #### 4c. PART A 差替（ox-grid・肢データ源・最重要）
 - A-1 `.problem-text`：問題文・記述ア〜オ原文を PDF 逐語。組合せ型は【見解】を `.case-description`/`.case-scene` に。
   （**この【見解】は Lexia が記述の孤立復習時に文脈として表示する**＝省略しない）
+- **単純5択型（独立5命題・「誤っているものはどれか」等）の場合は要削除**：組合せ型 canonical
+  （GENESIS-CORE は刑TX311＝組合せ型）由来で PART A 末尾に残る ①「（参照条文）… の `blockquote.statute`」と
+  ②「【組合せ】── 正しい記述の組合せを次から選択」見出し＋「1 ア　エ …」リストを**必ず削除**する
+  （本問固有の参照条文があれば差替、無ければ丸ごと削除）。○×ラベル・`data-stmt`・`data-answer-key` は
+  **肢1〜5**（例 `data-answer-key="1:x,2:o,3:o,4:o,5:o"`）。【見解】が無い問題は `.case-description` を本問の
+  前提説明に差替。（※刑TX325 でこの2ブロックの消し忘れ事故あり・2026-06-13）
 - A-2 `.answer-area`：
   - `data-answer-type="ox-grid"`／`data-correct-value="××○×○"`（記述ア〜オの正誤を○×で連結）
   - 5 `.ox-row`（`data-stmt="ア"…`）。各行 `.ox-label`＋`.ox-stmt`（記述の短い要約）＋`.ox-btn`（○/×・`data-value`）
@@ -102,7 +108,7 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
 - 条文カード（`.basis-card.statute-card`）：文言＋**保護法益**＋**制度趣旨**（`<strong>保護法益</strong>`/
   `<strong>制度趣旨</strong>` の hanging 行）。要件効果の網羅一覧は別冊。
 - 判例カード（`.basis-card.case-card`）：**重要度濃淡**。★★★＝事案要旨＋判旨核心＋射程の段落要約、
-  補助判例＝事件名＋一行ルール。**【事案】【判旨】【補足】のラベル付き完全プロファイルは書かない（G24・別冊D-2）**。
+  補助判例＝事件名＋規範。**【事案】【判旨】【補足】のラベル付き完全プロファイルは書かない（G24・別冊D-2）**。
 - ref-backlinks は `#choice-N`（記述）へ。
 
 #### 4f. SVG 差替（体系ツリー＋放射マップの2枚のみ）
