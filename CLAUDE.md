@@ -125,8 +125,8 @@
 - **配色カタログ**：`memory/reference_palette_v3.md`（11 名前付きパレット × 5 色 hex 一覧）
 - **生成コマンド**：`.claude/commands/new-tx.md`（v10.0.0 GOLD-SKELETON 経路の全工程）
 - **補助構造参考**：`canonical/KTX301.html`（v9.x 系の構造参考。本文流用は AP-42 違反）
-- **旧 spec（read-only / 歴史的参照）**：`spec/tx-v9.2.0-deepdive-core.md`／
-  `spec/tx-v9.1.0-mindmap-core.md`／`spec/tx-v9.0.0-genkei-core.md`
+- **旧 spec（read-only / 歴史的参照）**：`spec/legacy/tx-v9.2.0-deepdive-core.md`／
+  `spec/legacy/tx-v9.1.0-mindmap-core.md`／`spec/legacy/tx-v9.0.0-genkei-core.md`
   （新規生成では使用しない。既存ファイルの解読補助のみ）
 
 ### 3-2. 新規 TX 生成手順（v10.0.0 GOLD-SKELETON）

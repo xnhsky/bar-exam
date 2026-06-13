@@ -56,7 +56,7 @@ PowerShell から 1 問単位で呼び出されることを前提とする。
 | 項目 | 値 |
 |---|---|
 | **参照する spec** | `{SPEC_FILE}` |
-| 参照しない spec | `spec/tx-v9.0.0-genkei-core.md`（旧版） |
+| 参照しない spec | `spec/legacy/tx-v9.0.0-genkei-core.md`（旧版） |
 | footer feature-tag 必須文言 | **`{SPEC_VERSION_TAG}`** |
 
 `{SPEC_FILE}` の §0-tri／§0-quad／§0-bis／§1-bis を Phase 1 冒頭で必ず view し、§Annex A / B / C と §22-quad（マインドマップ）を Phase 5 で使用する。

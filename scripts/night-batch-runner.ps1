@@ -30,8 +30,8 @@ param(
 # v9.1.0：旧 MINDMAP 経路
 $SpecFile = switch ($SpecVersion) {
     'v10.0.0' { '.claude/commands/new-tx.md' }
-    'v9.2.0'  { 'spec/tx-v9.2.0-deepdive-core.md' }
-    'v9.1.0'  { 'spec/tx-v9.1.0-mindmap-core.md' }
+    'v9.2.0'  { 'spec/legacy/tx-v9.2.0-deepdive-core.md' }
+    'v9.1.0'  { 'spec/legacy/tx-v9.1.0-mindmap-core.md' }
     default   { throw "Unknown spec version: $SpecVersion" }
 }
 $SpecVersionTag = switch ($SpecVersion) {

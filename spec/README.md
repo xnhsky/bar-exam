@@ -46,8 +46,8 @@ legacy アップグレードツールや歴史的 docs（計46ファイル）が
 | 系統 | 旧版ファイル | 位置づけ |
 |---|---|---|
 | TX v10 GOLD-SKELETON | `canonical/GENESIS.html`／`scripts/validate-tx-gold.py`（G1〜G18） | v10 の凍結正典。既存197問の保守検証に使用 |
-| TX v9.x（full master） | `spec/tx-v9.0.0-genkei-core.md`／`tx-v9.1.0-mindmap-core.md`／`tx-v9.2.0-deepdive-core.md` | 歴史的参照（最後の full master・巨大） |
-| TX v8.11.x | `spec/tx-v8.11.{1,3,4,5,6}-*`（core＋annex A/A-bis/B/C） | `upgrade-tx`/`upgrade-ktx` が依存。最古 |
+| TX v9.x（full master） | `spec/legacy/tx-v9.0.0-genkei-core.md`／`tx-v9.1.0-mindmap-core.md`／`tx-v9.2.0-deepdive-core.md` | 歴史的参照（最後の full master・巨大） |
+| TX v8.11.x | `spec/legacy/tx-v8.11.{1,3,4,5,6}-*`（core＋annex A/A-bis/B/C） | `upgrade-tx`/`upgrade-ktx` が依存。最古 |
 | TX 構造参考 | `canonical/KTX301.html` | v9.x 系の構造参考（本文流用は AP-42 違反） |
 | TX legacy 検証 | `scripts/validate-tx.py`（S1〜S91） | v8.x〜v9.x 既存ファイルの保守検証 |
 | JX v3.2（構造部分） | `spec/jx-v3.2-master.md` の**構造記述のみ** | 構造は v4 が上書き。タイポ等の規律は現役（上の現行版表参照） |

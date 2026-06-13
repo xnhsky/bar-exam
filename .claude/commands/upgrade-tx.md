@@ -14,7 +14,7 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
 > 3. 新規生成（305 番台以降）は v9.2.0 で直接生成する方が品質的・実装的に明快
 >
 > **例外**：何らかの事情で既存ファイルを v9.2.0 化する必要が生じた場合は、
-> `spec/tx-v9.2.0-deepdive-core.md` §0-tri ゼロベース再構築プロトコルを完全に最初から実行する
+> `spec/legacy/tx-v9.2.0-deepdive-core.md` §0-tri ゼロベース再構築プロトコルを完全に最初から実行する
 > こと。逐次パッチではなく、PDF 原典からの新規生成として `/new-tx` を使う。
 >
 > 本コマンド `/upgrade-tx` は v8.x → v8.11.7 の minor 更新パスのみを扱う。
@@ -26,7 +26,7 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
 
 ### Phase 1: 準備
 
-1. **規律を view**：`spec/tx-v9.0.0-genkei-core.md` を view（特に §0-tri／§0-quad／§34-bis を重点的に。GENKEI 設計により §Annex B は純骨格スケルトン）
+1. **規律を view**：`spec/legacy/tx-v9.0.0-genkei-core.md` を view（特に §0-tri／§0-quad／§34-bis を重点的に。GENKEI 設計により §Annex B は純骨格スケルトン）
 2. **対象ファイルを view**：既存 HTML 全体を読み込み
 
 ### Phase 2: §0-tri STEP 1 ゼロベース再構築（最優先・例外なし）

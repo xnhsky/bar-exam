@@ -12,13 +12,13 @@ description: 新規 TX ファイルを問題 PDF から生成
 2. **パターン判定**：正答率 ≥60%→P1／40-60%→P2／<40%→P3
 3. **冒頭応答必須**：「正答率__%→パターン_『___』適用」を最初に出力
 4. **規律確認**：以下を順に view
-   - `spec/tx-v8.11.6-core.md`
+   - `spec/legacy/tx-v8.11.6-core.md`
 5. **canonical コード取得**：以下を順に view
-   - `spec/tx-v8.11.6-annex-A.css`
-   - `spec/tx-v8.11.6-annex-B.html`
-   - `spec/tx-v8.11.6-annex-C.js`
-   - P2 の場合のみ `spec/tx-v8.11.6-annex-A-bis-2.css`
-   - P3 の場合のみ `spec/tx-v8.11.6-annex-A-bis-3.css`
+   - `spec/legacy/tx-v8.11.6-annex-A.css`
+   - `spec/legacy/tx-v8.11.6-annex-B.html`
+   - `spec/legacy/tx-v8.11.6-annex-C.js`
+   - P2 の場合のみ `spec/legacy/tx-v8.11.6-annex-A-bis-2.css`
+   - P3 の場合のみ `spec/legacy/tx-v8.11.6-annex-A-bis-3.css`
 6. **canonical 実装例の確認**：`canonical/KTX301.html`（必要な部分のみ view_range で）
 7. **新ファイル組み立て**：
    - annex-A.css 全文を `<style>` 内に逐語コピー

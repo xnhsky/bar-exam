@@ -161,7 +161,7 @@ v8.11.7 は、v8.11.1 で確立した本クリーン版（jp-prefix-naming + con
 
 ---
 
-詳しくは `spec/tx-v9.0.0-genkei-core.md` の冒頭 GENKEI 設計哲学・§33 footer-spec canonical（v9.0.0 GENKEI 版）・§37 仕様書終了の v9.0.0 経路総括を参照。v8.11.x 系の差分史は §0-prime（v8.11.1 → v8.11.7 統合差分）と §34-bis〜§34-novies に保持。
+詳しくは `spec/legacy/tx-v9.0.0-genkei-core.md` の冒頭 GENKEI 設計哲学・§33 footer-spec canonical（v9.0.0 GENKEI 版）・§37 仕様書終了の v9.0.0 経路総括を参照。v8.11.x 系の差分史は §0-prime（v8.11.1 → v8.11.7 統合差分）と §34-bis〜§34-novies に保持。
 
 ## トラブルシューティング
 

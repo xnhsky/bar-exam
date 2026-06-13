@@ -62,9 +62,22 @@
 
 ---
 
-## 旧 spec の扱い（整理メモ）
+## 旧 spec の扱い（整理済み・2026-06-13）
 
-`spec/` には legacy が多数残存（`tx-v8.11.1〜8.11.6` の core＋annex A/B/C/css 計36点・`tx-v9.0/9.1/9.2`）。
-read-only で参照されるのみ（CLAUDE.md §3-1 が v9.x を「歴史的参照」と明記、upgrade 系スキルが v8.11.x を参照）。
-**現行で使うのは `spec/tx-v11.0.0-core.md` のみ。** 退避（`spec/legacy/` 等）する場合は参照元
-（CLAUDE.md §3-1・upgrade-tx/upgrade-ktx スキル）も更新すること。
+`spec/` 直下は **active のみ**に整理した：
+
+```
+spec/
+  tx-v11.0.0-core.md     ← TX 現行
+  jx-v3.2-master.md      ← JX 現行運用
+  jx-v4.0.0-core.md      ← JX v4 骨子
+  README.md
+  legacy/                ← ★ 退避済み（read-only・新規生成では使わない）
+    tx-v8.11.1〜8.11.6 の core＋annex A/B/C/css（30点）
+    tx-v9.0.0-genkei / tx-v9.1.0-mindmap / tx-v9.2.0-deepdive（3点）
+```
+
+`tx-v8.11.x`・`tx-v9.x`（計33点）は `spec/legacy/` へ `git mv`（履歴保持）。
+アクティブな参照（CLAUDE.md §3-1・`upgrade-tx`/`upgrade-ktx`/`new-ktx` スキル・night-batch-runner・
+new-tx-headless・README・MIGRATION）のパスも `spec/legacy/` に更新済み。歴史的 handoff/session 文書
+（docs/PHASE-*・SESSION-*・v9.2.0-*）は記録として旧パスのまま据置。
