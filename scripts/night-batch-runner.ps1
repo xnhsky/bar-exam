@@ -373,5 +373,19 @@ Write-Host "`n=== night-batch-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm
 Write-Host "処理件数: $ProcessedCount / $($Targets.Count)"
 Write-Host "コストログ: $CostCsv"
 
+# === バッチ後監査ゲート: ファイル間の重複・ID 不整合チェック ===
+# 各問題は per-item の validate-tx で配信前検証済みだが、それは「1 ファイル内」検査。
+# 同一 title・同一本文・footer/title の ID コピペ残り(例 刑TX055←刑TX311)は
+# ファイル間でしか分からないため、バッチ終了時に outputs/tx 全体を横断チェックする。
+# 検出時は exit 1（push 前に気付けるように）。配信自体は per-item で既に済んでいる点に注意。
+Write-Host "`n--- バッチ後監査: scripts/check-duplicates.py outputs/tx ---" -ForegroundColor Cyan
+& python (Join-Path $ProjectRoot 'scripts/check-duplicates.py') (Join-Path $ProjectRoot 'outputs\tx')
+$dupExit = $LASTEXITCODE
+if ($dupExit -ne 0) {
+    Write-Host "[AUDIT FAIL] 重複/ID 不整合を検出。push 前に上記 D80/D81/D82 を修正してください。" -ForegroundColor Red
+} else {
+    Write-Host "[AUDIT PASS] ファイル間の重複・ID 不整合なし。" -ForegroundColor Green
+}
+
 Stop-Transcript
-exit 0
+exit $dupExit

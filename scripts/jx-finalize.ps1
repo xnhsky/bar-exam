@@ -25,6 +25,7 @@ param(
     [switch]$NoPush,            # push を抑止（既定は push する）
     [switch]$NoCleanup,         # ①のみ（GitHub バックアップ）で入力削除はしない
     [switch]$NoDriveCheck,      # Drive 未マウント時の緊急用（git 履歴のみが復元元になる）
+    [switch]$NoGate,            # 配布前ゲート（重複/ID 不整合チェック）を抑止する緊急用
     [switch]$DryRun
 )
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -78,6 +79,21 @@ function Git-Clean([string]$relPath) {
 
 $pushNeeded = $false
 $cleanupHold = $false
+
+# === 配布前ゲート: ファイル間の重複・ID 不整合チェック（Lexia 重複バグ再発防止）===
+# title/doc-header/footer の問題コード不一致や、同一 title・同一本文の重複を検出したら
+# commit/push せず中止する。git(=Lexia の取り込み元)に不整合な生成物を入れないための関門。
+# ※ DryRun でも実行（事前確認になる）。緊急回避は -NoGate。
+if (-not $NoGate) {
+    Write-Host "`n--- 配布前ゲート: scripts/check-duplicates.py outputs ---" -ForegroundColor Cyan
+    python (Join-Path $ProjectRoot 'scripts/check-duplicates.py') (Join-Path $ProjectRoot 'outputs')
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ABORT] 重複/ID 不整合を検出。修正するまで finalize（commit/push）を中止します。" -ForegroundColor Red
+        Write-Host "        （緊急時のみ -NoGate で回避可能。原因は上記 D80/D81/D82 を参照）" -ForegroundColor DarkGray
+        exit 1
+    }
+    Write-Host "[GATE PASS] 重複・ID 不整合なし。finalize を続行します。" -ForegroundColor Green
+}
 
 foreach ($id in $Ids) {
     Write-Host "`n=== finalize $id ===" -ForegroundColor Cyan
