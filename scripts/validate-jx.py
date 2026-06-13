@@ -495,6 +495,22 @@ def check_JD1_core_self_sufficient(soup, results):
                         'コア前半の自己充足要素が不足: ' + ', '.join(missing)))
 
 
+def check_JSB_tag_balance(html, results):
+    """div/section/details の開閉タグ均衡（生成時の閉じタグ欠落を検出）。
+    BeautifulSoup は寛容パースで自動補完するため J 系では拾えない構造欠陥を、
+    生 HTML のタグ計数で検出する。全ファイル対象・当面 WARNING（誤検出回避）。
+    ※ 開タグは `<div ...>` / `<div>`、閉は `</div>` を数える（属性内の文字列は対象外の近似）。
+    """
+    for tag in ('div', 'section', 'details'):
+        opens = len(re.findall(rf'<{tag}(?=[\s>])', html))
+        closes = len(re.findall(rf'</{tag}\s*>', html))
+        if opens != closes:
+            diff = opens - closes
+            results.append(('JSB', 'WARN',
+                            f'<{tag}> 開閉不均衡: 開 {opens} / 閉 {closes} '
+                            f'(差 {diff:+d}・{"閉じタグ欠落" if diff > 0 else "閉じタグ過多"}の可能性)'))
+
+
 # TODO(JC/JD): 新 v 系（v4 LOOP-FOLD）の生成が安定したら WARNING → ERROR へ格上げ。
 #              既存 v3.2 生成物は is_v4_loopfold=False で対象外のまま温存する。
 
@@ -549,6 +565,7 @@ def validate(html_path, verbose=False, mode='all'):
         check_J18_back_refs(soup, results)
         check_J19_footer_encouragement(soup, results)
         check_J20_smooth_scroll(script_text, style_text, results)
+        check_JSB_tag_balance(html, results)
         # v4 LOOP-FOLD 追加（<details id="deep-dive"> 検出時のみ・当面 WARNING）
         if is_v4_loopfold(soup):
             check_JC1_no_exec_summary(soup, results)
