@@ -479,9 +479,11 @@ class Validator:
                 self.err("G20", f"choice-section#{sec.get('id')} に .choice-big-badge が無い")
                 continue
             label = badge.get_text().strip()
-            if not re.fullmatch(r"[アイウエオ]", label):
+            # 記述ア〜オ（組合せ型）／肢1〜5（単純5択型）の単一記述ラベルを許可。
+            # 組合せ見出し（「ア・イ」「アエ」等の複合）は不可（spec 原理1）。
+            if not re.fullmatch(r"[アイウエオ1-5１-５]", label):
                 self.err("G20", f"choice-section#{sec.get('id')} のバッジ '{label}' が単一記述でない"
-                                "（組合せ単位は禁止＝記述ア〜オ各1セクション・spec 原理1）")
+                                "（組合せ単位は禁止＝記述ア〜オ／肢1〜5 各1セクション・spec 原理1）")
 
     # --- G21：禁止句 ---
 
@@ -516,8 +518,8 @@ class Validator:
                             "（Lexia 肢キー記録の一次情報源・spec 第9項）")
             return
         key = table.get("data-answer-key", "")
-        if not re.search(r"[アイウエオ]\s*[:：]\s*[ox]", key):
-            self.warn("G23", f"data-answer-key の書式が想定外: '{key}'（例 'ア:x,イ:x,...'）")
+        if not re.search(r"[アイウエオ1-5１-５]\s*[:：]\s*[ox]", key):
+            self.warn("G23", f"data-answer-key の書式が想定外: '{key}'（例 'ア:x,...' / '1:x,2:o,...'）")
 
     # --- G24：参考条文判例に完全プロファイル無し ---
 
