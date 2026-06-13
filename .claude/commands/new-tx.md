@@ -1,14 +1,18 @@
 ---
-description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-skeleton：GENESIS baseline + 配色 V3 + SVG 重なり検査）
+description: 新規 TX コア（メイン）を問題 PDF から生成（v11.0.0 LOOP-CORE：GENESIS-CORE baseline + PART A ox-grid + 記述単位 PART B + 肢単位管理）
 ---
 
-新規 TX ファイル（短答式 HTML カード）を問題 PDF から生成する。
+新規 TX コア HTML（短答式・周回＋誤答修正が単体で完結するメイン）を問題 PDF から生成する。
 
-> **v10.0.0 GOLD-SKELETON 経路（2026-05-27 確定・2026-05-28 配色 V3 移行）**：刑TX311 で確定した
-> 「baseline HTML スケルトン + 配色 V3 (11 名前付きパレット・5 役割定義) + SVG 重なり機械検査」の
-> 3 本柱経路を新規生成の唯一の標準とする。
-> 旧 v9.2.0 DEEP-DIVE 経路（§Annex B body skeleton + 6 段階 Write）は廃止。
-> 旧 render.py 経路（JSON-render）も新規生成では使用しない（WIP 上書き事故予防）。
+> **v11.0.0 LOOP-CORE 経路（2026-06-13 確定）**：正典 `spec/tx-v11.0.0-core.md`（v0.4）。
+> 過去問を**問題単位でなく記述（肢）単位で管理**する設計に対応。
+> - **PART A は ox-grid（5記述の○×収集）＋機械可読 answer-key**（Lexia 肢キー記録の一次情報源）。
+> - **PART B は出題形式によらず記述（ア〜オ）単位**。choice-points は論点コアを前倒し。教授は①②のみ。
+> - **PART C・PART D（12問ドリル）は廃止**。深掘り層（教授③④・判例完全プロファイル・フローチャート・
+>   PART C）は別冊 `-deep.html`（`/deepen-tx` で誤答データ解禁時に後追い生成）。
+> - 参考条文・判例＝条文（文言＋保護法益＋制度趣旨）／判例（重要度濃淡）。体系ツリー＋放射マップの2枚。
+> - 唯一の起点は `canonical/GENESIS-CORE.html`。validate は `scripts/validate-tx-core.py`（G1〜G26）。
+> - 旧 v10 GOLD-SKELETON（GENESIS.html・PART C/D・validate-tx-gold.py）は既存197問の保守に限定。
 
 引数：問題 PDF のパス（例：`inputs/tx-pdfs/312.pdf`）
 
@@ -18,345 +22,142 @@ description: 新規 TX ファイルを問題 PDF から生成（v10.0.0-gold-ske
 
 ### Phase 0：環境確認（最優先）
 
-0a. **outputs/tx/{対象科目}/ に既存ファイルがあるか確認**
-    - 既存ファイルが存在しても **template として Read/Edit 起点にしない**
-    - 同番号が既存の場合のみユーザーに上書き可否を確認
-
-0b. **`_quarantine*` や非 canonical フォルダが復活していないか確認**
-    - 復活している場合は `bar-exam-archive\` への再排除を提案
-
-0c. **直近のセッションログから「template 流用経路」が選ばれていないか確認**
-    - `Read outputs/*.html` や `cp outputs/*.html` の痕跡があれば即停止して
-      `canonical/GENESIS.html` から再開
+0a. **outputs/tx/{対象科目}/ に既存ファイルがあるか確認**。既存でも **template として Read/Edit 起点にしない**。
+    同番号が既存の場合のみ上書き可否を確認。
+0b. **直近ログで「template 流用経路」（`Read outputs/*.html` / `cp outputs/*.html`）が選ばれていないか確認**。
+    痕跡があれば即停止して `canonical/GENESIS-CORE.html` から再開。
 
 ### Phase 1：PDF 解析と配色 V3 判定
 
-1. **PDF 読解**：問題番号・科目・年度・全選択肢・正解・正答率・出題テーマ・出題形式
-   （single-choice-5 / ox-grid-5 / multi-choice / etc.）を抽出
+1. **PDF 読解**：問題番号・科目・年度・全記述（ア〜オ）・正解・正答率・出題テーマ・出題形式を抽出。
+   - **記述別の正誤（○×）を必ず確定**（ア:○/× … オ:○/×）＝ox-grid の answer-key と final-answer 表の素。
+   - 組合せ問題でも「組合せ番号」ではなく**各記述の○×**を一次データとして扱う（導き書§3-1）。
+2. **冒頭応答必須**：「正答率 __%→パターン_『___』 → 採用パレット『___』」を最初に出力。
+3. **パターン判定**（配色 V3）：≥60%→P1 ピンク系／40〜60%→P2 グリーン・ブルー系／<40%→P3 バイオレット系。
+4. **パレット選定**（11個から1つ・問題ごとに別）：テーマの重さ・難度・罪名イメージ・正解の意外性で AI 判断。
+5. **5色役割割当て**（`memory/reference_palette_v3.md`）：ベース70%`--base`／メイン25%`--accent`／
+   アクセント5%`--mid`（11パレット内 chip 借用・palette外 hex 禁止）／サブ1`--soft`／サブ2`--light`／文字`--bg-dark`。
+   派生色は bg系 L=55-65 mid-tone 制限、text系 L<40 可。`--border-mid` は白系/クリーム系双方に視認可能な濃さ。
+6. **Semantic exception**：✓緑`#438B48`/`#7BA980`・🏆金`#ffd54f`/`#ffaa00`（[[feedback-semantic-exceptions]]）。
 
-2. **冒頭応答必須**：「正答率 __%→パターン_『___』 → 採用パレット『___』」を最初に出力
+### Phase 2：ファイル名・出力先（CLAUDE.md §2）
 
-3. **パターン判定**（配色 V3）：
-   - 正答率 ≥ 60% → **P1** ピンク系（候補：Sweet Berry / Fresh Citrus / Rose Mist / Antique Pearl / Maison Blanche）
-   - 正答率 40〜60% → **P2** グリーン・ブルー系（候補：Crystal Blue / Dusty Sage / Mint Tea / Fresh Mint）
-   - 正答率 < 40% → **P3** バイオレット系（候補：Twilight Violet / Sunset Harmony）
+7. PDF 番号抽出（最初の連続数字→3桁ゼロ埋め）。数字抽出不能なら**中断**しユーザーに番号確認。
+8. 科目接頭辞・出力先：刑→`outputs/tx/刑TX/刑TX{NNN}.html`（憲/民/商/民訴/刑訴/行政 同様）。
 
-4. **パレット選定**（11 個から 1 つを AI 判断・問題ごとに別）：
-   - テーマの重さ（道徳論点／重罪 → Antique Pearl / Dusty Sage / Twilight Violet）
-   - 難度（易 → Rose Mist / Fresh Mint、難 → Maison Blanche / Sunset Harmony）
-   - 罪名イメージ（財産罪 → ピンク系、手続 → Crystal Blue、身体犯 → Sunset Harmony）
-   - 正解の意外性（罠多い → アクセント反対色強め、素直 → 同系統サブで統一）
+### Phase 3：GENESIS-CORE の clone と本文初期化
 
-5. **5 色役割割当て**：選定パレットの 5 色を以下に対応させる
-   （`memory/reference_palette_v3.md` カタログ参照）：
+9. **`canonical/GENESIS-CORE.html` を Read**（v11 コア生成の唯一の起点。GENESIS.html や outputs/*.html は使わない）。
+10. **対象ファイル名でコピー作成**（Write 経由 or bash `cp`。前面 PowerShell は Copy-Item がブロックされる→
+    `.NET File` か bash を使う・[[feedback-powershell-remove-item-guard]]）：
+    `cp canonical/GENESIS-CORE.html outputs/tx/{科目TX}/{接頭辞}{NNN}.html`
+11. **コピー直後に本文を空文字列で初期化**（content-independence・§4-4）。空化対象：
+    - PART A `.problem-text`／`.case-description`（見解・事例）／ox-row の `.ox-stmt`／`data-explanation`／final-answer 表
+    - 各 choice-section の `.choice-summary`／`.choice-points`／`.sub-card.original`／`.explanation`／
+      `.basis-link`／`.sub-card.professor`（①②）本文
+    - 参考条文・判例（#basis）の各 `.basis-card-body` 本文（保護法益・制度趣旨・判例要約）
+    - 体系ツリー・放射マップ SVG 内 `<text>` テキスト（座標・class は据置）
+    - footer-spec 1〜3行目
+    - **GENESIS-CORE には PART C・PART D は無い**（別冊送り）。空化リストにも無いことを確認。
 
-   | 役割 | 比率 | CSS 変数 | 選定基準 |
-   |:--|:-:|:--|:--|
-   | ベース | 70% | `--base` | 最も pale で大面積背景に展開できる色 |
-   | メイン | 25% | `--accent` | palette タイトルが描かれている最 chromatic な色（chip 直接使用・改変禁止） |
-   | アクセント | 5% | `--mid` | メインと色相が離れた contrast 色。**11 パレット内 chip からのみ借用可**（P 越境 OK・palette 外独自 hex 禁止） |
-   | サブ 1 | 残 | `--soft` | card surface に使えるニュートラル色 |
-   | サブ 2 | 残 | `--light` | 補助 surface・薄塗り用 |
-   | 文字色 | — | `--bg-dark` | 白・黒・黒寄りグレー（text 用は L<40 dark 可） |
+### Phase 4：section-by-section 内容差替（各 Edit 30〜50KB・1メッセージ50KB超禁止）
 
-   **派生色 10 個（2026-05-28 改訂・mid-tone 制限）：**
-   - bg 系派生（`--accent-darker` / `--accent-soft` / `--accent-3` / `--border-mid`）は
-     **L=55-65 の mid-tone に制限**（gradient で white text を contrast 維持するときは
-     mid-tone でも可・真の dark L<40 は禁止）
-   - text 系派生（`--kp-text-color` / `--freq-high-deep` / `--freq-mid-deep` / `--freq-low-deep`）
-     は L<40 dark 可（text なので濃い方が読みやすい）
-
-   **コントラスト制約（最重要・2026-05-27 追加 / V3 でも維持）**：
-   - **`--border-mid` は `--paper`（白系）と `--base`（クリーム系）の双方に対し
-     視認可能な濃さを確保**（推奨：HSL の L < 65、目安として #C0B0D0 より暗い）
-     - 過去事故：刑TX310 で `--border-mid:#C3B4D1`（薄ラベンダー）に設定したため
-       表罫線・cross-card 境界が背景と同化（コントラスト ~1.4:1）
-   - **濃色（`--accent` / `--bg-dark` / `--accent-darker`）を背景に使う場合、
-     その上の text は必ず light variant（`--paper` / `--light` / `--base`）を充てる**
-   - **V3 11 パレットは全て pastel/soft なので、`--accent`（メイン）をそのまま
-     background に使うと contrast 不足になりやすい**。メイン色は header／heading の
-     text 色や border 色として使い、background は base/soft/light の薄色を採用
-
-6. **Semantic exception**（[[feedback-semantic-exceptions]]）：
-   - ✓ 緑（`--recall-correct`）：`#438B48` / `#7BA980` を全パレットで借用
-   - 🏆 金（ARENA）：`#ffd54f` / `#ffaa00` inline hex で保持（CSS 変数化しない）
-
-### Phase 2：ファイル名・出力先の確定（CLAUDE.md §2）
-
-7. **PDF ファイル名から番号抽出**：最初の連続数字 → 3 桁ゼロ埋め
-
-8. **科目接頭辞・出力先決定**：
-   - 刑法 → `outputs/tx/刑TX/刑TX{NNN}.html`
-   - 憲法 → `outputs/tx/憲TX/憲TX{NNN}.html`
-   - 民法 → `outputs/tx/民TX/民TX{NNN}.html`
-   - 商法 → `outputs/tx/商TX/商TX{NNN}.html`
-   - 民訴 → `outputs/tx/民訴TX/民訴TX{NNN}.html`
-   - 刑訴 → `outputs/tx/刑訴TX/刑訴TX{NNN}.html`
-   - 行政法 → `outputs/tx/行政TX/行政TX{NNN}.html`
-
-9. **数字抽出不能なら処理中断** → ユーザーに番号確認
-
-### Phase 3：Baseline スケルトンの取得
-
-10. **`canonical/GENESIS.html` を Read**（構造参考の唯一の正典）
-    - 例外：`canonical/KTX301.html` も「構造参考」として Read 可
-      （ただし 311 baseline の方が v10.0.0 設計に沿うため優先）
-
-11. **対象ファイル名でコピー作成**（PowerShell `Copy-Item` または Write 経由）：
-    ```powershell
-    Copy-Item canonical/GENESIS.html outputs/tx/{科目TX}/{接頭辞}{NNN}.html
-    ```
-
-12. **コピー直後に本文初期化**（content-independence 確保）：
-    - PART A `.problem-text` 本文
-    - 各 choice-section の `.sub-card.original`／`.sub-card.explanation`／
-      `.sub-card.basis-link`／`.sub-card.professor` 本文
-    - PART A-3（参考｜共通根拠条文・判例）の各 `.basis-card-body` 本文
-    - PART C C-1〜C-7 各 section 本文（table 内容含む）
-    - SVG 内の `<text>` 要素テキスト（座標・class は据置・テキストのみ空文字列化）
-    - PART D 前提ブロック `.arena-premise` の各 `.arena-premise-item` 本文
-    - PART D drill-block × 12 の問題文・解説
-    - footer-spec 1〜3 行目
-    - これらを **空文字列で初期化**してから問題 PDF を見て新規執筆
-
-### Phase 4：section-by-section 内容差替
-
-各 section を独立して差替える。**1 メッセージで 50KB 超の Write/Edit は禁止**
-（API socket error 予防）。Edit 単位で section ごとに分割。
-
-#### 4a. HEAD（`<style>` 内 `:root{}`）の配色 V3 適用
-- Phase 1-5 で決定した CSS 変数 ~20 個を `:root{}` に反映
-  - 主要 6 個：`--base`(70%) / `--accent`(25%) / `--mid`(5%) / `--soft`(サブ1) / `--light`(サブ2) / `--bg-dark`(文字色)
-  - 派生色 10 個（`--accent-darker` / `--accent-light` / `--mid-warm` / `--border-mid` / `--kp-text-color` 等）
-- **V3 contrast 規律**（[[project-palette-v3]] / [[reference-palette-v3]]）：
-  - 11 パレットは全 pastel なので、chip 1〜5 をそのまま `--accent` に当てると白文字背景に contrast 不足
-  - `--accent` は palette identity hex を **HSL で暗くした派生**を採用（例：Antique Pearl chip 1 #D4B5C4 → `--accent: #A07895`、palette identity は `--accent-light` で保存）
-  - `--mid` は palette 内 contrast 色がない場合、**palette 外の反対色 dark teal/dark mauve 等**を AI 判断で導入（例：Rose Mist は全部 rose 系なので `--mid: #5A8B8E` dusty dark teal を外挿）
-- **structural CSS 規律**（GENESIS baseline で確立、改変禁止）：
-  - 見出し系 12 セレクタ（`.section-title` / `.basis-card-header` / `.part-title` / `.container > section > h3` / `.memory-item .mem-title` 等）は **`color:var(--bg-dark)`** で固定
-  - badge gradient は `linear-gradient(135deg, var(--accent), var(--accent-darker))` パターン（旧 `var(--accent), var(--mid)` は pale palette で右端白文字が消える構造的問題）
-  - SVG tree L2/L3 active text は `--paper` 白（active cells の bg `--mid` は dark teal）
-  - freq-mid / freq-low / priority-b / priority-c badge は `color:var(--bg-dark)`
-- header／footer の表示テキストには **配色情報を書かない**（パレット名・役割割合・「AI 自由選定」等）
+#### 4a. HEAD `:root{}` 配色 V3 適用
+Phase 1-5 の CSS 変数 ~20個（主要6＋派生10）を反映。pastel パレットは `--accent` をそのまま背景にすると
+contrast 不足→`--accent` は HSL で暗くした派生、palette identity は `--accent-light` で保存。
+見出し系は `color:var(--bg-dark)` 固定、badge は `linear-gradient(135deg,var(--accent),var(--accent-darker))`。
+ヘッダー/フッター表示テキストに配色情報を書かない（G8）。
 
 #### 4b. HEADER 差替
-- `<div class="doc-header">` の問題番号
-- `<h1>` の問題タイトル（出典・テーマ）
-- `.exam-badge`（科目／試験種別／年度／問題番号）
-- `.theme-tag`（本問の主要論点 5〜10 個）
-- `.exam-meta`：**正答率と難度のみ**（配色記載なし）
-- `.toc-row`（本問の section リンク）
+doc-header 問題番号／h1 タイトル（出典・テーマ）／exam-meta（**正答率と難度のみ**）／toc-row（本問の
+section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#mindmap-radial）。
 
-#### 4c. PART A 差替（出題形式に応じて）
-- A-1 `.problem-text`：PDF 逐語コピー
+#### 4c. PART A 差替（ox-grid・肢データ源・最重要）
+- A-1 `.problem-text`：問題文・記述ア〜オ原文を PDF 逐語。組合せ型は【見解】を `.case-description`/`.case-scene` に。
+  （**この【見解】は Lexia が記述の孤立復習時に文脈として表示する**＝省略しない）
 - A-2 `.answer-area`：
-  - `data-answer-type` を出題形式に合わせて設定（single / multi / ox-grid）
-  - `data-correct-value` を正解値で設定（例：`5` / `1,3` / `11112`）
+  - `data-answer-type="ox-grid"`／`data-correct-value="××○×○"`（記述ア〜オの正誤を○×で連結）
+  - 5 `.ox-row`（`data-stmt="ア"…`）。各行 `.ox-label`＋`.ox-stmt`（記述の短い要約）＋`.ox-btn`（○/×・`data-value`）
   - `<button class="reveal-answer-btn" type="button" disabled>解答を表示</button>` 必須
-  - `data-explanation` 先頭に正解値リテラル禁止（AP-37）
+  - `data-explanation` 先頭に正解値リテラル禁止（AP-37）。組合せ導出ナラティブを書かない（G21）
+  - **final-answer 記述○×一覧表（G23）**：`<table class="statement-verdict-table" data-answer-key="ア:x,イ:x,ウ:o,エ:x,オ:o">`
+    ＋各行 `<tr data-stmt="ア" data-verdict="x">`＋論点コアのセル。`.final-answer` は hidden（reveal で JS が開く）。
+    **answer-key の o/x は data-correct-value と必ず一致**。
 
-#### 4d. PART B 差替（記述ア〜オ または ○× 各記述）
-- 各 choice-section に 4 sub-card（original / explanation / basis-link / professor）
-- prof-heading 4 段構成 + key-phrase-box + analogy + warning + cross-link
-- ref-stat / ref-case リンクは本問関連条文・判例の id を参照
+#### 4d. PART B 差替（記述ア〜オ・記述単位）
+各 choice-section（choice-1=記述ア…choice-5=記述オ）の**バッジは単一記述（ア〜オ）**（組合せ見出し禁止・G20）。
+ブロック順を厳守：
+1. `.choice-header-block`：`.choice-big-badge`（ア）＋`.verdict`（✓/✗＋法理とのズレ一文・組合せ判定を書かない）＋`.choice-summary`
+2. **`.choice-points`（論点コア・前倒し）**：2〜4点。各バレットの主語は法概念（規範コア／判例の結論と射程／
+   区別基準／決め手の限定句）。任意で1点「ひっかけの型」（`exam-mark` マーカー流用）。
+   **禁止：正解は肢N／組合せ判定／本記述は誤り・正しい／他記述参照「記述Xは」（G22）**
+3. `.sub-card.original`（記述原文）
+4. `.sub-card.explanation`（解説原文：法理の説明→本記述がどこでズレるか の順）
+5. `.sub-card.basis-link`（参考条文・判例セクションへのアンカー）
+6. `.sub-card.professor`：**①ポイント・②考え方の道筋のみ**（`prof-num` 1,2）。③イメージ④あてはめ・
+   key-phrase-box・analogy・warning・cross-link は**書かない**（別冊 D-1 送り）。
 
-#### 4e. A-3（参考｜共通根拠条文・判例）差替
-- 本問に直接関係する条文・判例のみ 3〜5 枚に絞る（AI 判断）
-- `.basis-card.statute` / `.basis-card.case` で振り分け
-- 各 `.basis-card-body` は本問の文脈で執筆
+#### 4e. 参考条文・判例 差替（#basis）
+本問関連の条文・判例のみ。
+- 条文カード（`.basis-card.statute-card`）：文言＋**保護法益**＋**制度趣旨**（`<strong>保護法益</strong>`/
+  `<strong>制度趣旨</strong>` の hanging 行）。要件効果の網羅一覧は別冊。
+- 判例カード（`.basis-card.case-card`）：**重要度濃淡**。★★★＝事案要旨＋判旨核心＋射程の段落要約、
+  補助判例＝事件名＋一行ルール。**【事案】【判旨】【補足】のラベル付き完全プロファイルは書かない（G24・別冊D-2）**。
+- ref-backlinks は `#choice-N`（記述）へ。
 
-#### 4f. SVG 差替（座標は 311 baseline のまま、テキスト・色 class のみ）
-- **体系ツリー** (mindmap-tree)：L0/L1/L2/L3 の text を本問体系に
-- **論点マインドマップ放射** (mindmap-radial)：8 主要枝・サブ要素 text を本問論点に
-- **C-5 総合フローチャート** (flow-svg)：decision diamond / chip / end の text を本問判断フローに
-- 詳細は **Phase 5 SVG 重なり検査** で全 bounding box を機械検査してから出力
+#### 4f. SVG 差替（体系ツリー＋放射マップの2枚のみ）
+座標・色 class は GENESIS-CORE 据置、テキストのみ本問に差替。
+- 体系ツリー（mindmap-tree）：L0/L1/L2/L3 を本問体系に。
+- 放射マップ（mindmap-radial）：主要枝・サブ要素を本問論点に。
+- **フローチャート（flow-svg）は core に置かない**（別冊 D-3）。
+- class は GENESIS-CORE の `<style>` 定義済みのみ使用（独自命名は黒塗り・G16）。
 
-##### 4f-rules. SVG class 命名規律（最重要・2026-05-27 追加）
+#### 4g. footer-spec 差替
+1行目 `<strong>{接頭辞}{NNN}</strong>・{科目}（{出典}）`／2行目 `正答率 {N}%／難度 {★}`（配色記載なし）／
+3行目 `作成日：{YYYY-MM-DD}`／別冊リンク行 `{接頭辞}{NNN}-deep.html`。
+feature-tag 先頭＝**`TX v11.0.0 LOOP-CORE`**（必須）。続けて genesis-core-baseline／part-b-statement-unit／
+choice-points-front-loaded／refs-hogo-eki-shushi／mindmap-tree-and-radial／deep-volume-separated／
+palette-v3-11-named／`palette: {名} (P{N})`／svg-overlap-checked／content-independence／jp-prefix-naming。
 
-- **GENESIS.html の `<style>` 内に CSS 定義がある class 名のみ使用可**
-  - 新たな class 名を勝手に発明しない（例：`branch-active` / `tx-branch-active` / `node-positive` 等の独自命名は禁止）
-  - SVG `<rect>` / `<text>` 等で `class` 属性を付ける際は、GENESIS のスタイル定義済 class（例：`branch-fill` / `tx-branch` / `sub-elem` / `tx-elem` / `sub-case` / `tx-case` / `sub-statute` / `tx-statute` / `issue-branch-fill` / `tx-issue-ttl` / `tx-issue-body` 等）から **必ず選択**
-  - 独自命名された class は CSS 規則がないため SVG デフォルトの `fill="black"` が適用され、**黒塗りボックス**として描画される（過去事故：刑TX310 v10.0.0 first-light で `branch-active` 黒塗り 3 箇所）
-- **肯定/否定など差別表示が必要な場合**：
-  - 既存 class の組合せで対応（例：肯定＝`branch-fill`、否定＝`branch-fill` + stroke-dasharray を inline 適用）
-  - または新 class を **GENESIS.html の CSS にも追加**してから使用（baseline 改修扱い・別 commit 推奨）
+### Phase 5：SVG 重なり機械検査（体系ツリー＋放射マップ）
 
-#### 4g. PART C 差替（C-1〜C-7）
-- C-1 体系図解説（key-phrase-box + cmp-table）
-- C-2 概念比較・全肢俯瞰（cmp-table 2 枚）
-- C-3 cross-grid（関連の深い科目との接続・3 cross-card）
-- C-4 学説対立（cmp-table + theory-detail-grid：主要説 vs 少数説）
-  - 主要 2 説を AI 判断で選定
-  - dt.why-adopted / why-not-adopted 必須
-- C-5 総合フローチャート（4f で配置済）+ 解説
-- C-6 ref-cases（重要判例 1〜3 件詳細）
-- C-7 memory-item（3 層 priority-a/b/c）
-
-#### 4h. PART D 差替（ARENA drill 12 問）
-- **冒頭に前提ブロック `.arena-premise` を必ず配置**（`arena-intro` の直後・`arena-counter` の前）：
-  - 12問エリアを**自己完結**させ、見解・事案・記述を確認するため上部 PART を遡読させない
-  - `.arena-premise-item` を最低 2 件（事案／見解／各記述ア〜オ等）。本問の要点のみ簡潔に再掲
-  - 構造シェル（`.arena-premise` / `-head` / `-icon` / `-note` / `-body` / `-item` / `-label`）と
-    `.arena-premise-note` 定型文は GENESIS から逐語コピー。中身（事案・見解・記述）は本問固有で執筆
-- ○×=6:6 で構築（本問オリジナル）
-- 各 drill-block：問題文・選択肢・解説（本問関連で完結）
-- **「本問の正解は肢N」型の正解再問 DRILL は禁止**（答えの暗記は学習効果ゼロ）：
-  - DRILL 12 等で「本問の正解」「正解は肢N」「誤っている記述の組合せは肢N」を **quiz-question に書かない**
-  - 代わりに**転用可能な法理**（判定基準・規範・概念）を問う設問にする
-    （例：虚像射撃／実像狙撃の判定、規範の射程、構成要件の核心命題）
-  - 解説 `.quiz-answer` は正解に言及して可（禁止は設問文 `.quiz-question` のみ）
-  - `validate-tx-gold.py` G17（正解再問禁止）・G18（前提ブロック必須）が機械検出
-
-##### 4h-bis. 1 drill-block の正典フォーマット（GENESIS 構造シェル・逐語）
-
-各 drill は次の構造を厳守する。`{TAG}` `{○or×}` `{設問}` `{解説}` のみ本問固有で差替え、
-class／属性キー／ネスト順は逐語コピーする。
-
-```html
-<div class="drill-block">
-  <div class="drill-label"><span class="drill-num">DRILL&nbsp;NN</span><span class="drill-tag">{TAG}</span></div>
-  <div class="self-check-quiz" data-arena="1" data-correct-value="{○or×}" data-explanation="{解説}">
-    <div class="quiz-question">Q. {設問（正解再問は禁止・転用可能な法理を問う）}</div>
-    <div class="quiz-buttons"><button class="quiz-btn" type="button" data-correct="{TRUE_IF_○}" data-value="○">○</button><button class="quiz-btn" type="button" data-correct="{TRUE_IF_×}" data-value="×">×</button></div>
-    <div class="quiz-answer" hidden=""><span class="quiz-result"></span>{解説（data-explanation と同一文）}</div>
-  </div>
-</div>
-```
-
-**鉄則（一発で正しく出すための4項）：**
-1. **`data-correct` と `data-correct-value` を必ず一致**させる。正解 `○` → ○ ボタン `data-correct="true"`／
-   × ボタン `data-correct="false"`。正解 `×` → 逆。**両方 true／両方 false は不可**（採点 JS が破綻）。
-2. **`data-explanation` 属性の文と `.quiz-answer` 内の本文は同一文**にする（解説は 2 箇所に同じものを書く）。
-3. `data-value` は ○ ボタン＝`○`、× ボタン＝`×` で固定（差替えない）。
-4. ○:× 比率は概ね半々。各設問は**転用可能な法理**（規範・判定基準・概念・判例の射程）を問い、
-   「本問の正解は肢N」型は書かない（G17）。
-
-#### 4i. footer-spec 差替
-- 1 行目：`<strong>{接頭辞}{NNN}</strong>・{科目}（{出典}）`
-- 2 行目：`正答率 {N}%／難度 {★}`（**配色情報は書かない**）
-- 3 行目：`作成日：{YYYY-MM-DD}`
-- `.footer-meta-hidden` 内 feature-tag（順序自由・先頭のみ固定）：
-  - `TX v10.0.0 GOLD-SKELETON`（必須・先頭）
-  - `genesis-baseline`
-  - `palette-v3-11-named`
-  - `palette: {パレット名} (P{N})` — 例：`palette: Antique Pearl (P1)`
-  - `roles: base 70% / main 25% / accent 5% / sub 2`
-  - `svg-overlap-checked`
-  - `content-independence`
-  - `jp-prefix-naming`
-
-### Phase 5：SVG 重なり機械検査（必須・新規）
-
-13. SVG 3 種すべての `<rect>` / `<ellipse>` / `<polygon>` について bounding box
-    `(x_min, x_max, y_min, y_max)` を計算
-
-14. 全ペアで衝突判定：
-    `x_min_A < x_max_B AND x_max_A > x_min_B AND y_min_A < y_max_B AND y_max_A > y_min_B`
-    が成立してはならない
-
-15. マージン 16px 以上を確認（重なりなくても窮屈な隙間は避ける）
-
-16. **衝突発見時の対処順序**（[[feedback-svg-box-overlap]]）：
-    1. viewBox 拡張（最も安全・他要素への影響なし）
-    2. 中心から放射する要素を更に外側へ
-    3. ラベル短縮（最終手段）
+12. 2枚の `<rect>`/`<ellipse>` の bounding box を計算し全ペア AABB 衝突判定（衝突 0・マージン16px以上）。
+13. 衝突時は viewBox 拡張を最優先（[[feedback-svg-box-overlap]]）。
 
 ### Phase 6：検証と配信
 
-17. **新仕様 validate 実行**：
-    ```bash
-    python scripts/validate-tx-gold.py <出力ファイル>
-    ```
+14. **`python scripts/validate-tx-core.py <出力ファイル>`** を実行。
+15. **G1〜G26 ERROR 0 件確認**（特に G20 記述単位・G21 禁止句・G22 choice-points・G23 answer-key・
+    G24 完全プロファイル不在・G25 ox-grid・G26 PART D不在）。WARNING は配信可。
+16. ERROR があれば該当箇所を修正し再検証。視覚確認推奨 → `present_files`。
 
-18. **G1〜G16 ERROR 0 件確認**：
-    - G1〜G5：構造（HEAD/HEADER/PART A〜D/footer 存在）
-    - G6〜G8：配色 V3（:root 内 5 役割 CSS 変数 + 派生色 10 個・配色情報がヘッダー／フッター本文にない）
-    - G9〜G11：SVG（3 種存在・ボックス重なり 0 件・viewBox 余白十分）
-    - G12〜G13：content-independence（KTX301 / GENESIS 本文逐語コピー禁止）
-    - G14〜G15：命名規則（ID 形式・出力先サブフォルダ）
-    - G16：SVG class 整合性（未定義 class の黒塗り防止）
-    - G17〜G18：PART D 自己完結（正解再問 DRILL なし・前提ブロック存在）
+### Phase 7：git コミットで永続化（§9）
 
-19. **視覚確認推奨**：ユーザーがブラウザで開いて gold quality 到達判定
+17. 検証通過後 `git add outputs/tx/{科目TX}/{ファイル名}.html` → 本問単位で `git commit`
+    （例：`feat(刑TX): 刑TX346 を v11 LOOP-CORE で生成`）→ push（本線運用は master へ集約・§8）。
+18. `present_files` 完了報告に commit hash を併記。
 
-20. **ERROR 0 件 + 視覚 OK** → `present_files` で完了報告
+### Phase 8：深掘り別冊（任意・後追い）
 
-21. **ERROR があれば**：該当箇所を修正し、再検証
-
-### Phase 7：git コミットで永続化（必須・2026-06-05 改訂）
-
-> リモート実行環境は ephemeral でコンテナが回収される。HTML も git 管理（§9）。
-> Drive MCP `create_file` は 250KB 級 HTML をインライン転送できず破綻したため、
-> **生成＝コミットで GitHub に永続化**する方式へ統一した。
-
-22. **commit**：検証通過後、`outputs/tx/{科目TX}/{ファイル名}.html` を `git add` →
-    本問単位で `git commit`（メッセージ例：`feat(刑TX): 刑TX346 を genesis で生成`）。
-
-23. **push**：作業ブランチへ `git push -u origin <branch>`。本線運用（§8）では
-    最終的に master へ集約する。
-
-24. **報告**：`present_files` 完了報告に commit hash と push 先ブランチを併記。
-
-> Drive へは任意で手動ミラー（GitHub からダウンロード → `1 TX_短答/{00N_科目}`）。
-> フォルダ ID は `docs/drive-folders.md` 参照。自動 Drive 保存は行わない。
+19. 別冊（`-deep.html`）は**全問では作らない**。Lexia の誤答データが解禁条件（同じ記述を繰返し誤答／
+    弱点克服帳に同一論点が反復／直前期）を満たした問題にだけ **`/deepen-tx {NNN}`** で後追い生成
+    （GENESIS-DEEP clone・教授③④＋判例完全プロファイル＋フローチャート＋PART C・validate-tx-deep）。
 
 ---
 
 ## 鉄則（絶対遵守）
 
-### template 流用の物理的禁止（最重要）
-
-- **`outputs/*/` 配下の既存 HTML を別問題生成の template として
-  `cp` / `Read` / `Edit` の起点にすることは絶対禁止**
-- **唯一許可される起点**：`canonical/GENESIS.html`（最優先）
-  および `canonical/KTX301.html`（補助・構造参考のみ）
-- 既存 `.html` を「速い経路」として参照することは canonical text leakage の温床
-
-### canonical text leakage の禁止
-
-- canonical/GENESIS.html および KTX301.html の本文・解説・判例引用を
-  別問題ファイルにコピー禁止（AP-42）
-- スケルトンを clone した直後に **本文を空文字列で初期化**してから執筆開始
-
-### render.py 経路の禁止
-
-- **`python scripts/render.py {問題番号}` 実行禁止**：JSON-render 結果が target ファイルを
-  上書きし WIP 作業全消失（過去事故あり）
-- 新規生成は問題 PDF + canonical baseline のみから新規鋳造
-
-### 配色 V3 の越境（Semantic exception）
-
-- ✓ 緑（recall-correct）：全パレットで #438B48 / #7BA980 を借用（V3 11 パレットは全 pastel で vivid green を持たないため強制継承）
-- 🏆 金（ARENA）：全パターンで #ffd54f / #ffaa00 inline hex 保持
-- 詳細：[[feedback-semantic-exceptions]]
-
-### SVG ボックス重なり禁止
-
-- Phase 5 の機械検査を必ず実施
-- 311 で「本問の論点ボックス」が左右サブ要素と重なる事故あり
-- 詳細：[[feedback-svg-box-overlap]]
-
-### ヘッダー／フッター本文への配色記載禁止
-
-- `.exam-meta` 内に「配色: P1 …」を書かない
-- `.footer-meta-info` に「配色 P1「…」AI 自由選定」を書かない
-- 配色情報は CSS の `:root{}` と footer-spec hidden feature-tag のみに記載
-
-### 単一巨大出力の禁止（API socket error 予防）
-
-- **1 メッセージで 50KB 超の `Write` / `Edit` 出力は禁止**
-- section-by-section で Edit を分割（各 30〜50 KB 以下）
-
-### 中断・再開時の禁則
-
-- API socket error 等で中断した場合、**既存 outputs/*.html を template として
-  参照する経路を選んではならない**
-- 必ず canonical/GENESIS.html + PDF から続行
-- 失敗した section だけ再生成し、他 section は流用しない
-
-### 行動原則
-
-- **「保守的書き換え」を絶対にしない**（既存コードを引き継ごうとする AI の癖を強制無効化）
-- **冒頭応答必須**：「正答率__%→パターン_『___』適用」
+- **template 流用の物理的禁止**：`outputs/*/` の既存 HTML を起点に `cp`/`Read`/`Edit` しない。
+  唯一の起点は `canonical/GENESIS-CORE.html`。clone 直後に本文を空文字列初期化してから執筆（AP-42）。
+- **render.py 経路の禁止**（`python scripts/render.py` は WIP 上書き事故）。
+- **第一原理：解説の対象は記述であって肢ではない**。組合せ導出ナラティブ・選択戦略語彙
+  （消去法/絞り込み/2肢で正解 等）を全域で書かない（G21・導き書§3-1 と正反対の有害情報）。
+- **PART C・PART D を core に作らない**（G26）。深掘りは別冊 `-deep.html`（`/deepen-tx`）。
+- **ox-grid の answer-key／data-correct-value／final-answer 表の○×は三者一致**（Lexia 肢キー記録の整合性）。
+- **SVG ボックス重なり禁止**（Phase 5 機械検査）。class は GENESIS-CORE 定義済みのみ（G16）。
+- ヘッダー／フッター本文に配色情報を書かない（G8）。
+- **1メッセージで 50KB 超の Write/Edit 禁止**（section 単位で分割・API socket error 予防）。
+- 中断・再開時も**必ず GENESIS-CORE ＋ PDF から続行**。既存 outputs/*.html を template 参照しない。
+- 「保守的書き換え」をしない。**冒頭応答必須**：「正答率__%→パターン_『___』→パレット『___』」。
 
 $ARGUMENTS
