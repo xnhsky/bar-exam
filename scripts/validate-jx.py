@@ -26,8 +26,17 @@ JX v3.2 軽量検証スクリプト
   J20  スムーズスクロール JS
   J21  深度フロア（bytes/h4/li/第4部見出し4-1〜4-6/重要度ランクrank-A〜D網羅）※当面WARNING
 
+  --- v4 LOOP-FOLD 追加（<details id="deep-dive"> 検出時のみ・当面WARNING）---
+  JC1  エグゼクティブサマリー(#exec-summary)の不在（答えを先出ししない）
+  JC2  物理順序：コア（模範答案）→ deep（折りたたみ）
+  JC3  第4部・第5部が <details id="deep-dive"> 内に折りたたまれている
+  JC4  模範答案が <details class="reveal-answer"> で封じられている
+  JD1  コア前半の自己充足（事案足場・模範答案・講師アドバイス・論点抽出）
+
 使い方：
   python scripts/validate-jx.py outputs/jx/刑JX/刑JX001.html
+  python scripts/validate-jx.py outputs/jx/刑JX/刑JX001.html --core-only   # J1-J20＋JC/JD（J21省略）
+  python scripts/validate-jx.py outputs/jx/刑JX/刑JX001.html --deep-only   # J21 深度フロアのみ
 """
 
 import sys
@@ -415,10 +424,86 @@ def check_J21_depth(html, soup, results):
 
 
 # ============================================================
+# v4 LOOP-FOLD 追加チェック（JC1〜JD1）
+#   単一ファイル維持・前半コア/後半deep折りたたみ・exec-summary削除・模範答案reveal。
+#   v4 判定（<details id="deep-dive"> の存在）時のみ実行。当面 WARNING。
+#   ※ 既存 v3.2 生成物（exec-summary あり・deep-dive なし）は v4 判定されず影響なし。
+#   ※ 新 v 系の生成が安定したら ERROR へ格上げ（末尾 TODO）。
+# ============================================================
+
+def is_v4_loopfold(soup):
+    """v4 LOOP-FOLD かどうか（後半 deep 折りたたみの存在で判定）"""
+    return soup.find('details', id='deep-dive') is not None
+
+
+def check_JC1_no_exec_summary(soup, results):
+    """答えを先出しするエグゼクティブサマリーが無いこと（reveal 前確定の構造担保）"""
+    if soup.find(id='exec-summary') is not None:
+        results.append(('JC1', 'WARN',
+                        'エグゼクティブサマリー(#exec-summary)が残存。v4 では削除する'
+                        '（答えを先出ししない・事案足場は別カードに残す）'))
+
+
+def check_JC2_core_before_deep(html, soup, results):
+    """物理順序：コア（模範答案）→ deep（折りたたみ）になっていること"""
+    if soup.find(class_='model-answer') is None:
+        return
+    pos_ma = html.find('class="model-answer"')
+    pos_deep = html.find('id="deep-dive"')
+    if pos_ma != -1 and pos_deep != -1 and pos_deep < pos_ma:
+        results.append(('JC2', 'WARN',
+                        'deep 層(#deep-dive)が模範答案より前にある。'
+                        '前半コア→後半deep の物理順序にする'))
+
+
+def check_JC3_deep_folds_part45(soup, results):
+    """第4部・第5部が <details id="deep-dive"> 内に折りたたまれていること"""
+    deep = soup.find('details', id='deep-dive')
+    if deep is None:
+        return
+    if deep.find('section', id='part4') is None:
+        results.append(('JC3', 'WARN', '第4部(#part4)が deep-dive 折りたたみ内にない'))
+    if deep.find('section', id='part5') is None:
+        results.append(('JC3', 'WARN', '第5部(#part5)が deep-dive 折りたたみ内にない'))
+
+
+def check_JC4_reveal_answer(soup, results):
+    """模範答案が reveal（<details class="reveal-answer">）で封じられていること"""
+    reveal = soup.find('details', class_='reveal-answer')
+    if reveal is None:
+        results.append(('JC4', 'WARN',
+                        '模範答案の reveal(<details class="reveal-answer">)が無い。'
+                        '模範答案を先に見せない構造にする'))
+        return
+    if reveal.find(class_='model-answer') is None:
+        results.append(('JC4', 'WARN', 'reveal-answer 内に .model-answer が無い'))
+
+
+def check_JD1_core_self_sufficient(soup, results):
+    """コア前半が周回＋誤答修正で自己充足（事案足場・模範答案・講師アドバイス・論点抽出）"""
+    missing = []
+    if soup.find(id='case-overview') is None and soup.find(id='relationship-diagram') is None:
+        missing.append('事案足場(case-overview/relationship-diagram)')
+    if soup.find(class_='model-answer') is None:
+        missing.append('模範答案(.model-answer)')
+    if soup.find(class_='lecturer-advice') is None:
+        missing.append('講師のアドバイス(.lecturer-advice)')
+    if soup.find(id='issue-extraction') is None:
+        missing.append('論点抽出(#issue-extraction)')
+    if missing:
+        results.append(('JD1', 'WARN',
+                        'コア前半の自己充足要素が不足: ' + ', '.join(missing)))
+
+
+# TODO(JC/JD): 新 v 系（v4 LOOP-FOLD）の生成が安定したら WARNING → ERROR へ格上げ。
+#              既存 v3.2 生成物は is_v4_loopfold=False で対象外のまま温存する。
+
+
+# ============================================================
 # Driver
 # ============================================================
 
-def validate(html_path, verbose=False):
+def validate(html_path, verbose=False, mode='all'):
     path = Path(html_path)
     if not path.exists():
         print(f'ERROR: ファイルが存在しません: {html_path}')
@@ -440,34 +525,48 @@ def validate(html_path, verbose=False):
     script_text = get_script_text(soup)
 
     results = []
+    run_core = mode in ('all', 'core')
+    run_deep = mode in ('all', 'deep')
 
-    check_J1_html_lang(soup, results)
-    check_J2_title(soup, results)
-    check_J3_google_fonts(soup, results)
-    check_J4_font_vars(style_text, results)
-    check_J5_accent_mid(style_text, results)
-    check_J6_body_typography(style_text, results)
-    check_J7_keybox_specificity(style_text, results)
-    check_J8_keybox_before(style_text, results)
-    check_J9_label_boxes(style_text, results)
-    check_J10_judgment_text(style_text, results)
-    check_J11_para_num(style_text, results)
-    check_J12_model_answer(style_text, results)
-    check_J13_grading(style_text, results)
-    check_J14_container_maxwidth(style_text, results)
-    check_J15_docheader_absolute(style_text, results)
-    check_J16_no_legacy_paragraph_num(soup, results)
-    check_J17_no_palette_names_in_body(soup, results)
-    check_J18_back_refs(soup, results)
-    check_J19_footer_encouragement(soup, results)
-    check_J20_smooth_scroll(script_text, style_text, results)
-    check_J21_depth(html, soup, results)
+    if run_core:
+        check_J1_html_lang(soup, results)
+        check_J2_title(soup, results)
+        check_J3_google_fonts(soup, results)
+        check_J4_font_vars(style_text, results)
+        check_J5_accent_mid(style_text, results)
+        check_J6_body_typography(style_text, results)
+        check_J7_keybox_specificity(style_text, results)
+        check_J8_keybox_before(style_text, results)
+        check_J9_label_boxes(style_text, results)
+        check_J10_judgment_text(style_text, results)
+        check_J11_para_num(style_text, results)
+        check_J12_model_answer(style_text, results)
+        check_J13_grading(style_text, results)
+        check_J14_container_maxwidth(style_text, results)
+        check_J15_docheader_absolute(style_text, results)
+        check_J16_no_legacy_paragraph_num(soup, results)
+        check_J17_no_palette_names_in_body(soup, results)
+        check_J18_back_refs(soup, results)
+        check_J19_footer_encouragement(soup, results)
+        check_J20_smooth_scroll(script_text, style_text, results)
+        # v4 LOOP-FOLD 追加（<details id="deep-dive"> 検出時のみ・当面 WARNING）
+        if is_v4_loopfold(soup):
+            check_JC1_no_exec_summary(soup, results)
+            check_JC2_core_before_deep(html, soup, results)
+            check_JC3_deep_folds_part45(soup, results)
+            check_JC4_reveal_answer(soup, results)
+            check_JD1_core_self_sufficient(soup, results)
+
+    if run_deep:
+        check_J21_depth(html, soup, results)
 
     errors = [r for r in results if r[1] == 'ERROR']
     warnings = [r for r in results if r[1] == 'WARN']
 
+    ver_label = ' [v4 LOOP-FOLD]' if is_v4_loopfold(soup) else ' [v3.2]'
+    mode_label = '' if mode == 'all' else f' ({mode}-only)'
     print(f'\n{"=" * 60}')
-    print(f'JX v3.2 検証結果: {html_path}')
+    print(f'JX 検証結果{ver_label}{mode_label}: {html_path}')
     print(f'{"=" * 60}')
 
     if not results:
@@ -507,9 +606,18 @@ ERROR が 0 件なら配信可能。
     parser.add_argument('html_path', help='検証対象の HTML ファイルパス')
     parser.add_argument('-v', '--verbose', action='store_true',
                        help='詳細出力')
+    parser.add_argument('--core-only', action='store_true',
+                       help='コア検査のみ（J1-J20＋JC/JD・J21 深度フロアを省略）')
+    parser.add_argument('--deep-only', action='store_true',
+                       help='深度フロア(J21)のみ')
     args = parser.parse_args()
 
-    return validate(args.html_path, args.verbose)
+    mode = 'all'
+    if args.core_only:
+        mode = 'core'
+    elif args.deep_only:
+        mode = 'deep'
+    return validate(args.html_path, args.verbose, mode)
 
 
 if __name__ == '__main__':
