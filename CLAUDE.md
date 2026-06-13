@@ -9,10 +9,13 @@
 
 ### 2 つのシリーズ
 
-| シリーズ | 内容 | 仕様書 | ファイル数の目安 |
+| シリーズ | 内容 | 現行仕様（正典スケルトン／骨子） | ファイル数の目安 |
 |---|---|---|---|
-| **TX** | 短答式（5択・○×・組合せ）の単問解説 HTML | `spec/tx-v9.1.0-mindmap-core.md` | 1 問 = 1 HTML（約 130〜180 KB） |
-| **JX** | 事例問題型（論文・予備）の総合教材 HTML | `spec/jx-v3.2-master.md` | 1 問 = 1 HTML（A〜H 8 サブ＋第 3〜5 部） |
+| **TX** | 短答式（5択・○×・組合せ）の単問解説 HTML | **v11.0.0 LOOP-CORE**：`canonical/GENESIS-CORE.html`＋`GENESIS-DEEP.html`／`spec/tx-v11.0.0-core.md` | 1 問 = コア＋別冊 |
+| **JX** | 事例問題型（論文・予備）の総合教材 HTML | **v4.0.0 LOOP-FOLD**：`canonical/ATHENA.html`／`spec/jx-v4.0.0-core.md`（＋基盤規律 `jx-v3.2-master.md`） | 1 問 = 1 HTML（前半コア／後半deep折りたたみ） |
+
+> **現行版・旧版の一覧は `spec/README.md`（早見表）が正典。** 旧 spec（TX v8.x/v9.x・GENESIS.html 等）は
+> legacy アップグレードツールが依存するため残置するが、新規生成では現行版のみを使う。
 
 ### 7 科目共通
 
