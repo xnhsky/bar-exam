@@ -14,7 +14,8 @@
 | **TX** | 短答式（5択・○×・組合せ）の単問解説 HTML | **v11.0.0 LOOP-CORE**：`canonical/GENESIS-CORE.html`＋`GENESIS-DEEP.html`／`spec/tx-v11.0.0-core.md` | 1 問 = コア＋別冊 |
 | **JX** | 事例問題型（論文・予備）の総合教材 HTML | **v4.0.0 LOOP-FOLD**：`canonical/ATHENA.html`／`spec/jx-v4.0.0-core.md`（＋基盤規律 `jx-v3.2-master.md`） | 1 問 = 1 HTML（前半コア／後半deep折りたたみ） |
 
-> **現行版・旧版の一覧は `spec/README.md`（早見表）が正典。** 旧 spec（TX v8.x/v9.x・GENESIS.html 等）は
+> **現行版・旧版・コードネームの一覧は `docs/canonical-lineage.md`（系譜・早見表）が正典**
+> （`spec/README.md` はそこへの入口）。旧 spec（TX v8.x/v9.x は `spec/legacy/`・GENESIS.html 等）は
 > legacy アップグレードツールが依存するため残置するが、新規生成では現行版のみを使う。
 
 ### 7 科目共通
