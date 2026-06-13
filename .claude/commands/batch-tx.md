@@ -1,5 +1,5 @@
 ---
-description: 5 問バッチで TX を連続生成（v10.0.0-gold-skeleton：GENESIS baseline + 配色 V3 + SVG 重なり検査・new-tx の全規律を継承）
+description: 5 問バッチで TX を連続生成（v11.0.0 LOOP-CORE：GENESIS baseline + 配色 V3 + SVG 重なり検査・new-tx の全規律を継承）
 ---
 
 # batch-tx：5 問バッチ生成コマンド
@@ -7,8 +7,8 @@ description: 5 問バッチで TX を連続生成（v10.0.0-gold-skeleton：GENE
 ## 概要
 
 `inputs/tx-pdfs/` 配下の PDF を 5 問単位で連続生成する。
-`.claude/commands/new-tx.md` の全規律（v10.0.0-gold-skeleton：
-canonical/GENESIS.html からのスケルトン clone +
+`.claude/commands/new-tx.md` の全規律（v11.0.0 LOOP-CORE：
+canonical/GENESIS-CORE.html からのスケルトン clone +
 配色 V3 (11 名前付きパレット・5 役割定義) + SVG 重なり機械検査）をそのまま継承し、
 5 問ループで実行する。
 
@@ -42,7 +42,7 @@ canonical/GENESIS.html からのスケルトン clone +
 ```
 バッチ 1 対象：312.pdf 〜 316.pdf（5 ファイル）
 推定時間：1 時間 30 分〜2 時間
-baseline：canonical/GENESIS.html
+baseline：canonical/GENESIS-CORE.html
 配色：問題ごとに正答率帯 → P1/P2/P3 自動判定、11 パレットから AI 選定（V3）
 開始してよろしいですか？ [y/n]
 ```
@@ -59,11 +59,13 @@ baseline：canonical/GENESIS.html
 - **Phase 1** PDF 解析・正答率からパターン判定・冒頭応答
   （「正答率 __%→パターン_『___』 → 採用パレット『___』」）・11 パレットから 1 つ選定
 - **Phase 2** 命名（CLAUDE.md §2）
-- **Phase 3** canonical/GENESIS.html を Read → 対象ファイル名でコピー →
+- **Phase 3** canonical/GENESIS-CORE.html を Read → 対象ファイル名でコピー →
   本文を空文字列で初期化
-- **Phase 4** section-by-section 内容差替（HEAD配色／HEADER／PART A〜D／SVG／footer）
-- **Phase 5** SVG 重なり機械検査（bounding box AABB 全ペア衝突判定）
-- **Phase 6** 検証（`scripts/validate-tx-gold.py` で G1〜G16 全件通過確認）と配信
+- **Phase 4** section-by-section 内容差替（HEAD配色／HEADER／PART A=ox-grid 5記述○×＋answer-key／
+  記述単位 PART B（choice-points 前倒し・教授①②）／参考条文判例（保護法益・制度趣旨・判例濃淡）／
+  体系ツリー・放射マップ2枚／footer。**PART C・PART D は作らない**＝深掘りは別冊 `/deepen-tx`）
+- **Phase 5** SVG 重なり機械検査（体系ツリー・放射マップの bounding box AABB 全ペア衝突判定）
+- **Phase 6** 検証（`scripts/validate-tx-core.py` で G1〜G26 全件通過確認）と配信
 - **Phase 7** git コミットで永続化（必須）：検証通過後、`outputs/tx/{科目TX}/` の
   HTML を `git add` → **本問単位で commit** → `git push`（本線 master へ集約・§8/§9）。
   生成＝コミットで GitHub に永続化。**各問完了ごとに即 commit/push**
@@ -75,7 +77,7 @@ baseline：canonical/GENESIS.html
 
 - `pdf_number`, `start_time`, `end_time`, `duration_minutes`
 - `output_path`, `output_size_kb`
-- `validate_errors`, `validate_warnings`（validate-tx-gold.py の G1〜G16）
+- `validate_errors`, `validate_warnings`（validate-tx-core.py の G1〜G26）
 - `socket_error_count`, `template_leakage`
 - `palette_pattern`（P1/P2/P3）, `concept_description`
 - `svg_overlap_detected`（あれば該当 SVG と要素名）
@@ -99,7 +101,7 @@ baseline：canonical/GENESIS.html
 - 中断ファイル（あれば）はそのまま残置
 - 次の問へ進む（停止しない）
 
-### ケース B：validate-tx-gold ERROR（生成完了したが検証失敗）
+### ケース B：validate-tx-core ERROR（生成完了したが検証失敗）
 
 - その問を **FAILED** とマーク
 - `failure_reason` に `"[G{番号}] {エラー文}"` を記録
@@ -194,9 +196,9 @@ PARTIAL: N 問（番号リスト・原因併記）
 
 ---
 
-## v10.0.0 GOLD-SKELETON 鉄則（new-tx から継承）
+## v11.0.0 LOOP-CORE 鉄則（new-tx から継承）
 
-- **唯一許可される skeleton 起点**：`canonical/GENESIS.html`
+- **唯一許可される skeleton 起点**：`canonical/GENESIS-CORE.html`
 - **`outputs/*/` 配下からの template 流用は絶対禁止**
 - **render.py 経路の使用禁止**
 - **本文を空文字列で初期化してから問題 PDF を見て新規執筆**

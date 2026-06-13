@@ -1,7 +1,7 @@
 # TX-MARCH — TX 連番 NBR パターン①（最若番から順に生成）
 #
 # tx-pdfs の未生成 PDF を最若番から MaxProblems 問、GENESIS 経路で
-# 生成→validate-tx-gold→各問 commit/push（night-batch-runner の既定動線）。
+# 生成→validate-tx-core→各問 commit/push（night-batch-runner の既定動線）。
 #
 # 使い方:
 #   pwsh -NoProfile -File scripts/patterns/TX-MARCH.ps1                # 最若番から5問
