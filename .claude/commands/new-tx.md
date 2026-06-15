@@ -81,6 +81,10 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
   （本問固有の参照条文があれば差替、無ければ丸ごと削除）。○×ラベル・`data-stmt`・`data-answer-key` は
   **肢1〜5**（例 `data-answer-key="1:x,2:o,3:o,4:o,5:o"`）。【見解】が無い問題は `.case-description` を本問の
   前提説明に差替。（※刑TX325 でこの2ブロックの消し忘れ事故あり・2026-06-13）
+- **（参照条文ブロックの要否・全型共通・2026-06-15 確定）**：A-1 末尾の「（参照条文）…」
+  `blockquote.statute` は、**PDF の問題文原文に参照条文が印刷されている場合のみ**その条文を載せる。
+  PDF 原文に参照条文が無ければ（組合せ型・5択型を問わず）**丸ごと削除**する。条文は A-3 共通根拠
+  条文・判例で足り、二重掲載しない（ユーザー指示）。
 - A-2 `.answer-area`：
   - `data-answer-type="ox-grid"`／`data-correct-value="××○×○"`（記述ア〜オの正誤を○×で連結）
   - 5 `.ox-row`（`data-stmt="ア"…`）。各行 `.ox-label`＋`.ox-stmt`（記述の短い要約）＋`.ox-btn`（○/×・`data-value`）
