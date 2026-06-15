@@ -49,19 +49,27 @@ $ArbRoot     = 'C_ARBOR'         # ARBOR 樹形図の系統フォルダ（同上
 # ① repo ミラー（常時）
 $RepoBase = Join-Path (Join-Path $ProjectRoot 'deploy') $JxRootName
 # ② Drive（実体をワイルドカード解決＝全角ゆれ対策。未マウントなら $null）
+#    PC により Drive のマウント形態が異なる（H:\マイドライブ … or D:\GoogleDrive …）ため
+#    複数候補ルートを順に試し、最初に存在したものを採用する。
 $DriveBase = $null
-$DriveRootCand = 'H:\マイドライブ\CATALINA＿G共有\■予備試験進行中'
-if (Test-Path -LiteralPath $DriveRootCand) {
-    $jxDir = Get-ChildItem -LiteralPath $DriveRootCand -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -like '*JX*論*文*' } | Select-Object -First 1
-    if ($jxDir) { $DriveBase = $jxDir.FullName }
+$DriveRootCands = @(
+    'H:\マイドライブ\CATALINA＿G共有\■予備試験進行中',
+    'D:\GoogleDrive\CATALINA＿G共有\■予備試験進行中',
+    'G:\マイドライブ\CATALINA＿G共有\■予備試験進行中'
+)
+foreach ($DriveRootCand in $DriveRootCands) {
+    if (Test-Path -LiteralPath $DriveRootCand) {
+        $jxDir = Get-ChildItem -LiteralPath $DriveRootCand -Directory -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -like '*JX*論*文*' } | Select-Object -First 1
+        if ($jxDir) { $DriveBase = $jxDir.FullName; break }
+    }
 }
 
 # 配置先（存在するもの）一覧
 $Targets = @()
 $Targets += [PSCustomObject]@{ Label = 'repo'; Base = $RepoBase }
-if ($DriveBase) { $Targets += [PSCustomObject]@{ Label = 'Drive(H:)'; Base = $DriveBase } }
-else { Write-Host "[NOTE] H: ドライブ未マウント → repo ミラーのみ配置（後で Drive 同期）。" -ForegroundColor Yellow }
+if ($DriveBase) { $Targets += [PSCustomObject]@{ Label = "Drive($(($DriveBase -split '\\')[0]))"; Base = $DriveBase } }
+else { Write-Host "[NOTE] Drive 未マウント（H:\マイドライブ / D:\GoogleDrive / G:\マイドライブ いずれも不在）→ repo ミラーのみ配置（後で Drive 同期）。" -ForegroundColor Yellow }
 
 function Ensure-Dir([string]$p) {
     if (-not (Test-Path -LiteralPath $p)) {
