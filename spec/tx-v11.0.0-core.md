@@ -16,6 +16,13 @@
 >   失っていた問題（[[lexia-tx-statement-tracking]] 参照）への対処として、**過去問の記述（肢）を
 >   管理単位にする**。これに伴い **12問クイズ（PART D）を完全廃止**し、PART A を **5記述の○×収集
 >   （ox-grid）** にする。要復習プール＋弱点アーカイブを **肢キー**で扱う。
+>
+> **v11.1.0 デザイン進化（2026-06-15・刑TX327 を baseline に昇格）：** 本骨子（v0.4）の**構造規律は不変**の
+> まま、`canonical/GENESIS-CORE.html` に①誌面リスキン（明朝＋極細罫・`--ed-*`）②SYNTHESIS 子カード
+> （syn-orig/syn-lead/syn-path/syn-image）＋ PART B+ 横断コラム（cross-column）③判例＝判旨バッジ＋判旨以外NOTE化
+> （条文＝スモークブルー系）④**3層配色**（大前提＝V3 3パターン／PART A 問題解答＝ナチュラルマイルド色／それ以外＝
+> 4分類パレット役割固定色・§18〜§22 に内蔵）を加えた。**生成規律の正典は `.claude/commands/new-tx.md`**、
+> 系譜は `docs/canonical-lineage.md`。validator G1〜G26 は v11.0.0 と互換（構造不変のため）。
 
 ---
 

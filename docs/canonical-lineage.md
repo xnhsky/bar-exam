@@ -8,16 +8,21 @@
 
 ## TX（短答式）
 
-### 現行 active ＝ **v11.0.0 LOOP-CORE**
+### 現行 active ＝ **v11.1.0 LOOP-CORE**（2026-06-15・刑TX327 を baseline に昇格）
 
 | 役割 | canonical | 生成コマンド | validator |
 |---|---|---|---|
-| **コア**（全問生成・周回＋誤答修正が単体完結） | **`canonical/GENESIS-CORE.html`** | `/new-tx`（batch-tx・rb 継承） | `scripts/validate-tx-core.py`（G1〜G26） |
+| **コア**（全問生成・周回＋誤答修正が単体完結） | **`canonical/GENESIS-CORE.html`**（v11.1.0） | `/new-tx`（batch-tx・rb 継承） | `scripts/validate-tx-core.py`（G1〜G26） |
 | **別冊**（深掘り・誤答データ解禁時のみ） | **`canonical/GENESIS-DEEP.html`** | `/deepen-tx` | `scripts/validate-tx-deep.py`（D1〜D13） |
 
-- 正典 spec：**`spec/tx-v11.0.0-core.md`**。
-- 設計の核：肢（記述）単位管理／PART A=ox-grid 5記述○×＋answer-key／記述単位 PART B／参考条文判例
+- 構造正典 spec：**`spec/tx-v11.0.0-core.md`**（v0.4 構造）。v11.1.0 の誌面/配色規律は `.claude/commands/new-tx.md` に明文化。
+- 設計の核（v11.0.0 から継承）：肢（記述）単位管理／PART A=ox-grid 5記述○×＋answer-key／記述単位 PART B／参考条文判例
   （保護法益・制度趣旨・判例濃淡）／体系ツリー＋放射マップ2枚／PART C・PART D（12問ドリル）は廃止。
+- **v11.1.0 デザイン進化（刑TX327 昇格・2026-06-15）**：①誌面リスキン（明朝＋極細罫・`--ed-*`・`<style>` §1〜§17）／
+  ②SYNTHESIS 子カード（syn-orig 記述原文・syn-lead THE GIST・syn-path①②③・syn-image INTUITION）＋ PART B+ 横断コラム
+  （cross-column／cb-cross・compare・trap／col-key・col-warn・col-type）／③判例カードは判旨に『⚖ 判旨』バッジ＋判旨以外を
+  NOTE 化（条文＝スモークブルー系）／④**3層配色**：大前提＝V3 3パターン基調・PART A 問題解答＝ナチュラルマイルド色・
+  それ以外＝4分類パレット役割固定色（§18〜§22 に内蔵＝複製で自動継承・生成時に再選定しない）。正誤○緑/×赤は semantic。
 - Lexia 連携：間違えた肢を `{問題ID}#stmt-{記述}` で要復習プール＋弱点克服帳へ。
 
 ### 世代の系譜（frozen / legacy）
@@ -26,7 +31,7 @@
 |---|---|---|---|---|
 | v8/v9 | `canonical/KTX301.html` | v8.11.x／v9.0.0-genkei／v9.1.0-mindmap／v9.2.0-deepdive | **legacy** | 構造参考のみ。本文流用は AP-42 違反 |
 | v10 | `canonical/GENESIS.html` | v10.0.0 GOLD-SKELETON | **凍結** | 刑TX311 ベース。既存197問（v10）の保守用。`validate-tx-gold.py`(G1〜G19)・`validate-tx.py`(legacy S1〜S91) |
-| **v11** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v11.0.0 LOOP-CORE** | **active** | GENESIS を再編して CORE/DEEP に分割 |
+| **v11** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v11.1.0 LOOP-CORE**（v11.0.0→2026-06-15 刑TX327 昇格） | **active** | GENESIS を再編して CORE/DEEP に分割。v11.1.0 で誌面リスキン＋3層配色＋SYNTHESIS子カード＋PART B+ |
 
 > **「GENESIS」名の整理**：無印 `GENESIS.html` ＝ **v10 凍結**。新規生成の起点は **`GENESIS-CORE`／`GENESIS-DEEP`**。
 > 改名はしない（spec・validator・commands・CLAUDE.md に配線済みで churn のみ）。曖昧さは本表で解消する。

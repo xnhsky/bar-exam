@@ -13,7 +13,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
     G9  → SVG はコアに体系ツリー＋放射マップの2枚。フローチャートは別冊専用＝不在を要求
     G10 → AABB 衝突（tree+radial の2枚）
     G11 → viewBox 余白（tree+radial の2枚）
-    G15 → feature-tag 先頭が "TX v11.0.0 LOOP-CORE"
+    G15 → feature-tag 先頭が "TX v11.x.x LOOP-CORE"（v11.0.0／v11.1.0 等）
   新設（v11 中核）：
     G20 記述単位検査：choice-section の見出しバッジが単一記述（ア〜オ）。組合せ見出しを禁止
     G21 禁止句検査：組合せ導出・選択戦略語彙が body に出現しない
@@ -417,8 +417,9 @@ class Validator:
             self.err("G15", "footer-spec に feature-tag が一つもない")
             return
         first = tags[0].get_text().strip()
-        if not first.startswith("TX v11.0.0 LOOP-CORE"):
-            self.err("G15", f"feature-tag 先頭が 'TX v11.0.0 LOOP-CORE' でない: '{first}'")
+        # v11.x.x LOOP-CORE を許容（v11.0.0 既存／v11.1.0 誌面・配色進化版・後方互換）
+        if not (first.startswith("TX v11.") and "LOOP-CORE" in first):
+            self.err("G15", f"feature-tag 先頭が 'TX v11.x.x LOOP-CORE' でない: '{first}'")
 
     # --- G16：SVG class 整合性 ---
 
