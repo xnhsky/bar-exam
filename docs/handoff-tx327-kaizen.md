@@ -1,8 +1,11 @@
 # 引き継ぎ書 ── 刑TX327 コア再設計（統合解説＋横断コラム）
 
-> 最終更新：2026-06-14 / セッション：Claude Code on the web → VS Code へ引き継ぎ
-> ブランチ：`claude/keisatsu-tx327-kaizen-xz6c15`（push 済み・作業ツリー clean）
-> 直近コミット：`bdee1d5 feat(tx): 刑TX327 コア記述ブロックを再設計（統合解説＋横断コラム試作）`
+> 最終更新：2026-06-15 / セッション：VS Code（Claude Code）で UI/ビジュアル調整中
+> ブランチ：`claude/keisatsu-tx327-kaizen-xz6c15`
+> 直近コミット：`773313e docs: 刑TX327 再設計の引き継ぎ書を追加（VS Code 続行用）`
+> **⚠️ 作業ツリーに未コミットの UI 変更あり**（下記「6. 2026-06-15 セッション」）。
+> プレビュー駆動の微調整は **VS Code のまま継続が最適**（ローカル HTML を Chrome で開き、
+> 編集→`Ctrl+R` リロードで即確認。web チャットは 177KB の貼り直しになり非推奨）。
 
 ---
 
@@ -119,3 +122,52 @@ for t in $(grep -oE 'href="#ref-[a-z0-9-]+"' outputs/tx/刑TX/刑TX327.html | se
 | 検証（別冊） | `scripts/validate-tx-deep.py`（D1〜D13） |
 | 重複ゲート | `scripts/check-duplicates.py` |
 | 生成コマンド | `.claude/commands/new-tx.md`（v11）/ `/deepen-tx` |
+
+---
+
+## 6. 2026-06-15 セッション：UI/ビジュアル調整（未コミット・受験生フィードバック反映）
+
+iPad プレビューのスクショ指示に沿って 327 の**見た目だけ**を調整（本文ロジック・論点は不変）。
+対象は `outputs/tx/刑TX/刑TX327.html` のみ。`validate-tx-core.py` G1〜G26＝ERROR/WARNING 0、
+`check-duplicates.py`＝重複なしを維持。**validator はこれらの class 文言/存在を要求しないので
+自由に微調整して良い**（ただし G8 配色文言・G13 本文 5-gram・G19/G21/G22 は従来どおり死守）。
+
+### 6-1. バッジの英語化（THE GIST 系）
+- `.syn-tag`：`一言で`→**THE GIST**（4）／`イメージ`→**INTUITION**（4）
+- `.col-warn`：`罠①②③`→**TRAP 1/2/3（エ/イ/ウ）**／`.col-type`：`横断の覚え方`・`横断の型`→**THROUGH-LINE**（2）
+- 地の文・節タイトルの「横断/罠」は**保持**（バッジのみ英語化）。
+
+### 6-2. 記述カード冒頭の要約文 `.choice-summary` を削除（全4カード）
+verdict＋肢ポイント＋統合解説と重複していたため撤去（CSS 規則は未使用のまま残置・無害）。
+
+### 6-3. ORIGINAL を最上部へ移動＋一文解説を箱内に（全4カード）
+- `.sub-card.original` を **verdict 直下（`.choice-points` より前）** へ移動。
+- 箱内＝**原文 →(点線 `.orig-gist` の border-top)→ `<p class="orig-gist">` 一文解説**。
+- verdict 見出しは説明節を削り `✗ ×（誤り）`/`✓ ○（正しい）` に簡潔化（説明は一文解説へ集約）。
+- 新 CSS：`.sub-card.original .orig-gist` ／ `.orig-gist-tag`（`一文解説` バッジ）。
+
+### 6-4. SYNTHESIS の筋道 ①〜④ を美装（核心の調整ポイント）
+- 番号：丸囲み文字 `①②③④` → **プレーン数字 `1〜4`**（`.syn-step` 円内で明瞭。視認性の主因）。
+- 見出し：`.syn-step + strong`（隣接セレクタで**見出し strong だけ**を特定）を
+  **小型・淡色バッジ**化（`--accent-soft` 地＋`--accent-darker` 字＋`--accent` 細枠・`font-size:.8em`）。
+  見出し直後の全角コロン「：」は16か所とも除去（バッジ直後に本文が続く形）。
+- 整列（ずれ対策）：**絶対配置をやめ `padding-left + text-indent` のぶら下げ**に変更。
+  番号は行頭、本文は段下げ。番号円と見出しバッジは `vertical-align:middle` で芯合わせ。
+- ④結論 `.syn-concl`：**緑の淡色帯**（番号円・バッジも緑）で締めのメリハリ。
+- 色の流れ：THE GIST(淡violet帯) → 1〜3(violet数字＋淡バッジ・点線区切り) → 4結論(緑帯) → INTUITION(金帯)。
+
+### 6-5. 該当 CSS の場所（`<style>` 内）
+`.sub-card.original` 群（`.orig-gist`/`.orig-gist-tag` を直後に追加）／
+`.syn-path` `.syn-step` `.syn-step + strong` `.syn-concl`（synthesis 美装ブロック）。
+
+### 6-6. 次にやること（プレビュー駆動の微調整・候補）
+- 数字円/バッジのサイズ・色・余白の最終詰め（メリハリの好みに合わせて）。
+- 同じ仕上げを **PART A の ox-grid 表・「間違いやすいポイント(TRAP)」コラム**へ広げるか判断。
+- OK 確定後に **1問1コミットで commit/push**（CLAUDE.md §9）。**確定するまで未コミットのまま微調整**。
+- 骨子（GENESIS-CORE）への横展開は「4. 次のステップ」の通り（UI も含めるか別途決定）。
+
+### 6-7. 環境メモ
+- ブランチ切替時、未追跡の 刑JX044 TTS（1〜16・本ブランチ未管理）が衝突 →
+  `C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-tts-backup\刑JX044\` へ退避済み。
+  `jx-v4-loopfold` に戻る際は `outputs/tts/刑JX044/` へ戻す。
+- 依存：`pip install beautifulsoup4`。プレビューは `file:///C:/Users/xnrg2.DESKTOP-5664QR6/bar-exam/outputs/tx/刑TX/刑TX327.html` を Chrome で。
