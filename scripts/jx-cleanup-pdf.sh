@@ -42,7 +42,17 @@ declare -A DRIVE_HTML=(
   [刑]=001_刑法 [刑訴]=002_刑事訴訟法 [民]=003_民法 [商]=004_商法
   [民訴]=005_民事訴訟法 [行政]=006_行政法 [憲]=007_憲法
 )
-DRIVE_ROOT="/h/マイドライブ/CATALINA＿G共有/■予備試験進行中/2 JX_論 文"
+# Drive のマウント形態は PC により異なる（H:\マイドライブ … or D:\GoogleDrive …）。
+# 候補を順に試し、最初に存在したものを DRIVE_ROOT に採用する。
+DRIVE_ROOT=""
+for cand in \
+  "/h/マイドライブ/CATALINA＿G共有/■予備試験進行中/2 JX_論 文" \
+  "/d/GoogleDrive/CATALINA＿G共有/■予備試験進行中/2 JX_論 文" \
+  "/g/マイドライブ/CATALINA＿G共有/■予備試験進行中/2 JX_論 文" ; do
+  if [ -d "$cand" ]; then DRIVE_ROOT="$cand"; break; fi
+done
+# どれも無ければ既定（H:）を残す＝未マウント扱いで以降のガードが働く
+[ -z "$DRIVE_ROOT" ] && DRIVE_ROOT="/h/マイドライブ/CATALINA＿G共有/■予備試験進行中/2 JX_論 文"
 
 if [ "$#" -lt 2 ]; then
   echo "usage: $0 <科目> <番号...> [--commit] [--no-drive-check]"; exit 2
