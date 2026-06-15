@@ -67,6 +67,11 @@ Phase 1-5 の CSS 変数 ~20個（主要6＋派生10）を反映。pastel パレ
 contrast 不足→`--accent` は HSL で暗くした派生、palette identity は `--accent-light` で保存。
 見出し系は `color:var(--bg-dark)` 固定、badge は `linear-gradient(135deg,var(--accent),var(--accent-darker))`。
 ヘッダー/フッター表示テキストに配色情報を書かない（G8）。
+- **バッジ共通規約（2026-06-15 確定・全バッジ/タブで遵守）**：`letter-spacing` を付けるラベル・タブ
+  （`.sub-card::before` 等）には**必ず同値の `text-indent` を併記**する。letter-spacing は文字の右側だけに
+  余白を足すため、text-indent で左にも同量入れて視覚的に中央へ揃える（例 `letter-spacing:.18em; text-indent:.18em;`）。
+  **絵文字付きラベルは絵文字の直後に半角スペースを1つ**入れて密着を防ぐ（例 `content:'📚 BASIS'`）。
+  GENESIS-CORE は `.sub-card::before` に適用済み。バッジを新設・改名する時も同様に。
 
 #### 4b. HEADER 差替
 doc-header 問題番号／h1 タイトル（出典・テーマ）／exam-meta（**正答率と難度のみ**）／toc-row（本問の
