@@ -39,6 +39,8 @@ description: 新規 TX コア（メイン）を問題 PDF から生成（v11.1.0
 4. **パレット選定**（11個から1つ・問題ごとに別）：テーマの重さ・難度・罪名イメージ・正解の意外性で AI 判断。
 5. **5色役割割当て**（`memory/reference_palette_v3.md`）：ベース70%`--base`／メイン25%`--accent`／
    アクセント5%`--mid`（11パレット内 chip 借用・palette外 hex 禁止）／サブ1`--soft`／サブ2`--light`／文字`--bg-dark`。
+   **ただし `--base`（紙面背景・70%surface）は全問固定クリーム `#F7F1E9`（パレット非依存・紙面統一・2026-06-16 確定）。
+   パレット選定で base 役割色は使わず `--base` は GENESIS-CORE の `#F7F1E9` を変えない**（残り `--accent`/`--mid`/`--soft`/`--light`/`--bg-dark` のみ問題ごとに割当て）。
    派生色は bg系 L=55-65 mid-tone 制限、text系 L<40 可。`--border-mid` は白系/クリーム系双方に視認可能な濃さ。
 6. **Semantic exception**：✓緑`#438B48`/`#7BA980`・🏆金`#ffd54f`/`#ffaa00`（[[feedback-semantic-exceptions]]）。
 6-bis. **配色住み分け（v11.1.0・最重要）**：上記 V3 5色は **大前提のみ**（ヘッダー/フッター/紙面背景/PART見出し・
