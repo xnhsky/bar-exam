@@ -116,6 +116,12 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
 各 choice-section（choice-1=記述ア…）の**バッジは単一記述**（組合せ見出し禁止・G20）。GENESIS-CORE の
 v11.1.0 ブロック構造を埋める（順序厳守）：
 1. `.choice-header-block`：`.verdict`（✓○/✗×＋法理とのズレ一文。**組合せ判定を書かない**）。
+1-bis. **【学説・見解適用問題のみ】`.choice-premise`（🔎 この記述が前提とする見解）**：`.choice-header-block`
+   直後に置く。その記述が前提とする見解（A説/B説/見解A…）の定義を **PART A の `.case-description`/`.case-scene`/
+   `.problem-text` 原文どおり（要約せず）再掲**する（`.cp-title`＝見解見出し＋`.cp-body`＝定義本文）。複数見解を
+   参照する記述（「Aの見解に対しBの見解から」「いずれの見解でも」）は参照する全見解を並べる。**目的＝遡読防止**：
+   記述に入った瞬間に前提が確定し、PART A 冒頭へ戻らずに解説を読める。事案型・単純5択型では使わない（G28 が
+   学説問題のみ検出・WARNING）。既存問題への一括挿入・抽出は `python scripts/add-choice-premise.py`。
 2. `.sub-card.synthesis`（🎯 SYNTHESIS）：`.syn-orig`（📜 記述原文＝PDF逐語）→ `.syn-lead`（💡 THE GIST＝
    一文要約）→ `.syn-path`（①②③ の噛み砕き・イメージを交える）→ `.syn-image`（💭 INTUITION＝直感像）。
 3. **`.choice-points`（📌 POINT・論点コア前倒し）**：2〜4点。主語は法概念（規範コア／判例の結論と射程／
