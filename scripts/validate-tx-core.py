@@ -560,6 +560,14 @@ class Validator:
         if drills:
             self.err("G26", f"drill-block が {len(drills)} 個存在する（12問クイズは廃止・spec 原理3）")
 
+    def g27_part_a_statute_ref(self):
+        # §4c: PART A の参照条文 blockquote.statute は、PDF問題文原文に条文が印字されている場合のみ残す。
+        # baseline(GENESIS-CORE)は 0 個。在れば WARNING で要確認を促す（無ければ削除＝A-3共通根拠で足りる・二重掲載しない）。
+        # A-3 共通根拠は .basis-card.statute-card（div）で別物なので対象外。
+        refs = self.soup.find_all("blockquote", class_="statute")
+        if refs:
+            self.warn("G27", f"PART A に参照条文 blockquote.statute が {len(refs)} 個あり。PDF問題文原文に条文が印字されている場合のみ残す（§4c）。無ければ削除すること（A-3共通根拠で足りる・二重掲載しない）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -585,6 +593,7 @@ class Validator:
         self.g24_no_full_profile()
         self.g25_part_a_oxgrid()
         self.g26_no_part_d()
+        self.g27_part_a_statute_ref()
 
 
 def main():
@@ -616,7 +625,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G26, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G27, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
