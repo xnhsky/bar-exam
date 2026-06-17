@@ -560,6 +560,30 @@ class Validator:
         if drills:
             self.err("G26", f"drill-block が {len(drills)} 個存在する（12問クイズは廃止・spec 原理3）")
 
+    def g28_choice_premise(self):
+        # 学説・見解適用問題のみ対象（WARNING）。PART A に見解定義（【見解X】/X説：等）が複数あり、
+        # 記述原文（syn-orig）が見解を名指し参照しているのに .choice-premise（前提見解の原文再掲）が
+        # 無いセクションを警告。遡読防止のため各記述冒頭に PART A の見解定義を要約せず再掲する。
+        pa = self.soup.find(id="part-a")
+        if not pa:
+            return
+        pa_text = pa.get_text()
+        has_defs = len(re.findall(r"【\s*見解\s*[A-ZＡ-Ｚ甲乙丙]|[A-ZＡ-Ｚ甲乙丙]\s*説\s*[（(：:─―—-]", pa_text)) >= 2
+        if not has_defs:
+            return
+        ref = re.compile(r"[A-ZＡ-Ｚ甲乙丙]の見解|[A-ZＡ-Ｚ甲乙丙]\s*説|いずれの見解|両(?:説|見解)")
+        missing = []
+        for sec in self.soup.find_all("section", class_="choice-section"):
+            so = sec.find(class_="syn-orig")
+            t = so.get_text() if so else ""
+            if ref.search(t) and not sec.find(class_="choice-premise"):
+                missing.append(sec.get("id"))
+        if len(missing) >= 2:
+            self.warn("G28", f"学説・見解問題と推定（PART A に見解定義あり）だが {len(missing)} 記述に "
+                             f"前提見解の原文再掲（.choice-premise）が無い: {missing}。"
+                             "各記述冒頭に PART A の見解定義を要約せず再掲して遡読を防ぐ"
+                             "（scripts/add-choice-premise.py で自動挿入可）")
+
     def g27_part_a_statute_ref(self):
         # §4c: PART A の参照条文 blockquote.statute は、PDF問題文原文に条文が印字されている場合のみ残す。
         # baseline(GENESIS-CORE)は 0 個。在れば WARNING で要確認を促す（無ければ削除＝A-3共通根拠で足りる・二重掲載しない）。
@@ -594,6 +618,7 @@ class Validator:
         self.g25_part_a_oxgrid()
         self.g26_no_part_d()
         self.g27_part_a_statute_ref()
+        self.g28_choice_premise()
 
 
 def main():
@@ -625,7 +650,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G27, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G28, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
