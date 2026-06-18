@@ -66,7 +66,7 @@ baseline：canonical/GENESIS-CORE.html
   体系ツリー・放射マップ2枚／footer。**PART C・PART D は作らない**＝深掘りは別冊 `/deepen-tx`）
 - **Phase 5** SVG 重なり機械検査（体系ツリー・放射マップの bounding box AABB 全ペア衝突判定）
 - **Phase 6** 検証（`scripts/validate-tx-core.py` で G1〜G26 全件通過確認）と配信
-- **Phase 7** git コミットで永続化（必須）：検証通過後、`outputs/tx/{科目TX}/` の
+- **Phase 7** git コミットで永続化（必須）：検証通過後、`outputs/000_TX/{科目TX}/` の
   HTML を `git add` → **本問単位で commit** → `git push`（本線 master へ集約・§8/§9）。
   生成＝コミットで GitHub に永続化。**各問完了ごとに即 commit/push**
   （バッチ途中で中断してもコンテナ回収による HTML ロストを防ぐ）。

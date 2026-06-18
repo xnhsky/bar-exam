@@ -39,7 +39,7 @@ def fix(fp):
 
 
 def main():
-    folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\tx\刑TX'
+    folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\000_TX\刑TX'
     files = sorted(glob.glob(os.path.join(folder, '*.html')))
     for fp in files:
         changes = fix(fp)

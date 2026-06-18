@@ -8,7 +8,7 @@ NEW = ('<span class="feature-tag">ktx301-canon</span>・\n      '
        '<span class="feature-tag">spoiler-safe</span>・\n      '
        '<span class="feature-tag">multi-answer-css</span>・\n      ')
 
-folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\tx\刑TX'
+folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\000_TX\刑TX'
 files = sorted(glob.glob(os.path.join(folder, '*.html')))
 print(f'Processing {len(files)} files...')
 for fp in files:

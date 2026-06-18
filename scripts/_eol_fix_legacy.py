@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-base = r"C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\tx"
+base = r"C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\000_TX"
 files = [
     r"刑訴TX\刑訴TX001.html",
     r"商TX\商TX001.html",

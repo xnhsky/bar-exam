@@ -23,7 +23,7 @@ $Vars = @{
     'TARGET_PDF'     = 'C:\Users\OWNER\bar-exam\inputs\tx-pdfs\306.pdf'
     'PROBLEM_NUMBER' = '306'
     'PROBLEM_ID'     = '刑TX306'
-    'OUTPUT_PATH'    = 'C:\Users\OWNER\bar-exam\outputs\tx\刑TX\刑TX306.html'
+    'OUTPUT_PATH'    = 'C:\Users\OWNER\bar-exam\outputs\000_TX\刑TX\刑TX306.html'
 }
 
 $JsonOut      = Join-Path $LogsDir    "test-$($Vars['PROBLEM_ID']).json"

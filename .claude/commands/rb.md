@@ -54,7 +54,7 @@ v11.0.0 LOOP-CORE 規律そのままで連続生成し、**各問の検証通過
 - Phase 2 命名（CLAUDE.md §2） → Phase 3 GENESIS clone + 本文空初期化
 - Phase 4 section 差替 → Phase 5 SVG 重なり機械検査
 - Phase 6 `scripts/validate-tx-core.py` で G1〜G18 ERROR 0 件確認
-- **Phase 7 git コミット（必須）**：検証通過後、`outputs/tx/{科目TX}/{ファイル名}.html` を
+- **Phase 7 git コミット（必須）**：検証通過後、`outputs/000_TX/{科目TX}/{ファイル名}.html` を
   `git add` → **1 問ごとに commit** → `git push`（本線 master へ集約・§8 / §9）。
   生成＝コミットで GitHub に永続化し、コンテナ回収による HTML ロストを防ぐ。
   **問が 1 つ完了するたびに即 commit/push**（数十問を 1 コミットにまとめない）。

@@ -1,6 +1,6 @@
 # TX v10 GOLD → v11 LOOP-CORE 「中身保存・構造のみ更新」アップグレード recipe
 
-対象：`outputs/tx/刑TX/刑TX{NNN}.html`（既存 v10.0.0 GOLD-SKELETON）を **その場で（同ファイルを上書き編集）** v11.0.0 LOOP-CORE へ。
+対象：`outputs/000_TX/刑TX/刑TX{NNN}.html`（既存 v10.0.0 GOLD-SKELETON）を **その場で（同ファイルを上書き編集）** v11.0.0 LOOP-CORE へ。
 基準合格：`python scripts/validate-tx-core.py <file>` が **ERROR 0**。
 
 ## 大原則（厳守）
@@ -79,7 +79,7 @@
 - 削除した③④等の中身は git 履歴に残る（必要時 /deepen-tx で別冊 -deep.html へ）。
 
 ### S7. 検証
-- `python scripts/validate-tx-core.py outputs/tx/刑TX/刑TX{NNN}.html` → **ERROR 0** まで修正。WARNING は許容。
+- `python scripts/validate-tx-core.py outputs/000_TX/刑TX/刑TX{NNN}.html` → **ERROR 0** まで修正。WARNING は許容。
 
 ## 返却（必須・人手スポットチェック用）
 - 問題ID・出題テーマ・**確定した○×（記述別、根拠にした既存ソース行）**・組合せ型/独立正誤型の別・validate 結果（PASS/残ERROR）・主要な変更点。

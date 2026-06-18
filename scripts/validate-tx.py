@@ -24,7 +24,7 @@ version-aware ロジック:
     python scripts/validate-tx.py <HTML ファイルパス>
 
 例:
-    python scripts/validate-tx.py outputs/tx/刑TX/刑TX299.html
+    python scripts/validate-tx.py outputs/000_TX/刑TX/刑TX299.html
 
 要件:
     pip install beautifulsoup4
@@ -252,8 +252,8 @@ PROF_SYLLOGISM_SUBELEMENTS = [".syl-major", ".syl-minor", ".syl-conclusion"]
 def derive_problem_json_path(html_path):
     """HTML ファイルパスから対応する problems/{ID}.json を逆引きする。
     例:
-      outputs/tx/刑TX/刑TX327.html   → problems/327.json
-      outputs/tx/行政TX/行政TX001.html → problems/GSE001.json
+      outputs/000_TX/刑TX/刑TX327.html   → problems/327.json
+      outputs/000_TX/行政TX/行政TX001.html → problems/GSE001.json
     決定できない場合は None。
     """
     p = Path(html_path)
@@ -597,7 +597,7 @@ def check_naming(target_path, soup, rep):
     if parent_dir != expected_dir:
         rep.error(
             "S81",
-            f"出力先サブフォルダ不整合: 接頭辞 {prefix} は outputs/tx/{expected_dir}/ 配下のはずだが、"
+            f"出力先サブフォルダ不整合: 接頭辞 {prefix} は outputs/000_TX/{expected_dir}/ 配下のはずだが、"
             f"実際は .../{parent_dir}/",
         )
 

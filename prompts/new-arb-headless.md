@@ -27,11 +27,11 @@
 
 | 変数 | 例 | 意味 |
 |---|---|---|
-| `{SOURCE_HTML_PATH}` | `C:\...\outputs\jx\刑JX\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** |
+| `{SOURCE_HTML_PATH}` | `C:\...\outputs\001_JX\刑JX\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** |
 | `{PROBLEM_ID}` | `刑JX032` | 元 JX の識別子 |
 | `{PROBLEM_NUMBER}` | `032` | 元 JX の 3 桁番号（ARBOR の ID・Vol. に使う） |
 | `{SUBJECT_PREFIX}` | `刑` | 科目接頭辞 |
-| `{OUTPUT_PATH}` | `C:\...\outputs\arb\刑ARB\刑JX032_ARB.html` | 出力 HTML の絶対パス |
+| `{OUTPUT_PATH}` | `C:\...\outputs\004_JX_EX\ARB\刑ARB\刑JX032_ARB.html` | 出力 HTML の絶対パス |
 | `{ARBOR_MASTER}` | `C:\...\arbor\ARBOR_v5.0_master_prompt.md` | ARBOR 正典仕様（必読） |
 | `{ARBOR_REFERENCE}` | `C:\...\arbor\Reference\ARBOR_002_shucho_tekikaku.html` | 典範実装（視覚・コード雛形） |
 | `{ARBOR_VERIFY}` | `C:\...\arbor\scripts\verify.py` | S1-S20 自己検証スクリプト |

@@ -2,7 +2,7 @@
 r"""
 generate_tts.py - Gemini TTS 音声生成（bar-exam JX 音声台本 → wav）
 
-入力 : tts/input_texts/*.txt   （音声台本。JX パイプラインの outputs/tts/{ID}/*.txt を集約したもの）
+入力 : tts/input_texts/*.txt   （音声台本。JX パイプラインの outputs/002_TTS/{ID}/*.txt を集約したもの）
 出力 : tts/output_audio/*.wav  （24kHz / 16bit / モノラル。入力と同じ stem）
 
 仕様:

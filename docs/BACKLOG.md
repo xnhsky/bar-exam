@@ -53,7 +53,7 @@
 
 - `scripts/jx-batch-runner.ps1` 新規予定
   - 既存の TX 用 `night-batch-runner.ps1` の構造を踏襲
-  - `inputs/jx-pdfs/*.pdf` を入力に、`outputs/jx/{科目JX}/*.html` を出力
+  - `inputs/jx-pdfs/*.pdf` を入力に、`outputs/001_JX/{科目JX}/*.html` を出力
 - `prompts/new-jx-headless.md` 新規予定
   - JX 用 headless プロンプト
   - `spec/jx-v3.2-master.md` + `scripts/validate-jx.py` (J1〜J20) を連結
@@ -64,7 +64,7 @@
 
 - `jx-batch-runner.ps1` から `validate-jx.py` 通過後に：
   - `prompts/tts-jx-headless.md` を `claude -p` で実行
-  - `outputs/tts/{PROBLEM_ID}/*.txt` 群を生成
+  - `outputs/002_TTS/{PROBLEM_ID}/*.txt` 群を生成
   - `scripts/validate-tts.py` で検証
 - sentinel ロギング・失敗時リトライ・夜間連続稼働の一貫化
 

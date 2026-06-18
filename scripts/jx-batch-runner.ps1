@@ -53,8 +53,8 @@ param(
 $ProjectRoot   = Split-Path -Parent $PSScriptRoot
 # 入力は科目フォルダに PDF＋同番号逐語を同居：inputs\jx\{科目}\NN.pdf ＋ NN.txt（2026-06-06 確定）
 $PdfDir        = Join-Path $ProjectRoot "inputs\jx\$Subject"
-$JxOutputBase  = Join-Path $ProjectRoot "outputs\jx"
-$TtsOutputBase = Join-Path $ProjectRoot "outputs\tts"
+$JxOutputBase  = Join-Path $ProjectRoot "outputs\001_JX"
+$TtsOutputBase = Join-Path $ProjectRoot "outputs\002_TTS"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 
 $JxPromptSrc   = Join-Path $ProjectRoot "prompts\new-jx-headless.md"
@@ -68,8 +68,8 @@ $ValidateTts   = Join-Path $ProjectRoot "scripts\validate-tts.py"
 $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"
 $ValidateRx    = Join-Path $ProjectRoot "scripts\validate-rx.py"
-$RxOutputBase  = Join-Path $ProjectRoot "outputs\rx"
-$ArbOutputBase = Join-Path $ProjectRoot "outputs\arb"
+$RxOutputBase  = Join-Path $ProjectRoot "outputs\004_JX_EX\RX"
+$ArbOutputBase = Join-Path $ProjectRoot "outputs\004_JX_EX\ARB"
 $ArborMaster   = Join-Path $ArborRoot "ARBOR_v5.0_master_prompt.md"
 $ArborRef      = Join-Path $ArborRoot "Reference\ARBOR_002_shucho_tekikaku.html"
 $ArborVerify   = Join-Path $ArborRoot "scripts\verify.py"

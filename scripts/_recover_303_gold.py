@@ -23,7 +23,7 @@ OUTPUT = Path("303-recovered.html")
 
 # 同セッションで実際に Write が走った時点の baseline を取得するため、
 # 同時刻付近の Read tool_result からも初期状態を吸い上げられるようにする。
-BASE_FILE = Path("outputs/tx/刑TX/刑TX303-eta-wip.html")  # 既知の WIP 状態（210 KB）
+BASE_FILE = Path("outputs/000_TX/刑TX/刑TX303-eta-wip.html")  # 既知の WIP 状態（210 KB）
 
 
 def parse_session():

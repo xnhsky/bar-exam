@@ -26,12 +26,12 @@
 
 | 変数 | 例 | 意味 |
 |---|---|---|
-| `{SOURCE_HTML_PATH}` | `C:\...\outputs\jx\刑JX\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** の絶対パス |
+| `{SOURCE_HTML_PATH}` | `C:\...\outputs\001_JX\刑JX\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** の絶対パス |
 | `{PROBLEM_ID}` | `刑JX032` | 元 JX の識別子 |
 | `{PROBLEM_NUMBER}` | `032` | 元 JX の 3 桁番号 |
 | `{SUBJECT_PREFIX}` | `刑` | 科目接頭辞 |
 | `{RX_BASENAME}` | `刑RX032` | RX ファイル名の共通幹（科目接頭 + RX + 元 JX 番号） |
-| `{OUTPUT_DIR}` | `C:\...\outputs\rx\刑RX` | 出力ディレクトリの絶対パス |
+| `{OUTPUT_DIR}` | `C:\...\outputs\004_JX_EX\RX\刑RX` | 出力ディレクトリの絶対パス |
 | `{VALIDATE_RX}` | `C:\...\scripts\validate-rx.py` | 検証スクリプトの絶対パス |
 
 ---

@@ -20,7 +20,7 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
 > 本コマンド `/upgrade-tx` は v8.x → v8.11.7 の minor 更新パスのみを扱う。
 > v9.0.0-genkei → v9.1.0-mindmap → v9.2.0-deepdive は upgrade ではなく新規生成として処理せよ。
 
-引数：対象 HTML ファイルのパス（例：`inputs/tx-legacy/K302.html` または `outputs/tx/刑TX/刑TX302.html`）
+引数：対象 HTML ファイルのパス（例：`inputs/tx-legacy/K302.html` または `outputs/000_TX/刑TX/刑TX302.html`）
 
 ## 必須手順
 
@@ -85,7 +85,7 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
     - 基盤（v8.11.0）：`ktx301-canon`／`embedded-canon`／`readability-layer`／`hanging-grid`／`basis-order-v2`／`a2-feedback-canon`／`rbchip-patched`／`k302-immune`／`p2p3-unified`／`p1-absolute`
     - v8.11.1 由来：`jp-prefix-naming`／`content-independence`
     - v8.11.x 統合：`spoiler-safe`／`multi-answer-css`／`a2-two-stage-reveal`／`a2-multi-ox-support`／`spoiler-leak-eradication`／`spoiler-strong-elimination`／`ox-grid-fa-unification`／`host-injection-safe`
-14. **出力先サブフォルダ**：§1-bis-3 対応表通り（`outputs/tx/{科目TX}/` 配下）
+14. **出力先サブフォルダ**：§1-bis-3 対応表通り（`outputs/000_TX/{科目TX}/` 配下）
 
 ### Phase 6.5: v8.11.2〜v8.11.6 由来の機能を順次適用（§34-quater〜§34-octies）
 

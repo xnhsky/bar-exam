@@ -10,7 +10,7 @@ jx-drive-audit.py — JX 成果物の git↔Drive 配置ドリフト監査
     本スクリプトは両系統を突き合わせ、ドリフトを一覧して exit 1 を返す検知係。
 
 検査対象:
-    outputs/jx/{接頭辞}JX/*.html （= ローカル成果物。git 管理）
+    outputs/001_JX/{接頭辞}JX/*.html （= ローカル成果物。git 管理）
         ↕
     H:\\マイドライブ\\CATALINA＿G共有\\■予備試験進行中\\2 JX_論 文\\{NNN_科目}\\*.html
 

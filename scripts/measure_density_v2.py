@@ -7,7 +7,7 @@ Phase 13C-4: claude.ai 起草段階と HTML 生成後の両経路で同一の de
 
 使い方:
     python scripts/measure_density_v2.py problems/305.json     # JSON モード
-    python scripts/measure_density_v2.py outputs/tx/刑TX/刑TX305.html  # HTML モード
+    python scripts/measure_density_v2.py outputs/000_TX/刑TX/刑TX305.html  # HTML モード
 """
 import sys
 import json

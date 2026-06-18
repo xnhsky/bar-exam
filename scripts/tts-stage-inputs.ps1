@@ -2,7 +2,7 @@
 #
 # 【JX パイプライン → Gemini TTS 連携・橋渡し】
 # 既存 jx-batch-runner.ps1 が生成・検証した音声台本
-#   outputs/tts/{PROBLEM_ID}/{ID}-{連番}.txt  （例 刑JX029-1.txt … 刑JX029-13.txt）
+#   outputs/002_TTS/{PROBLEM_ID}/{ID}-{連番}.txt  （例 刑JX029-1.txt … 刑JX029-13.txt）
 # を、Gemini TTS の入力フォルダ
 #   tts/input_texts/
 # へコピー（集約）する。コピー後 tts/run-tts.ps1 で wav 化する想定。
@@ -10,16 +10,16 @@
 # 設計方針（疎結合・課金 API は手動トリガー）:
 #   - jx-batch-runner.ps1 は改変しない（無料のローカル生成と課金 TTS を分離）
 #   - 既に tts/output_audio/{stem}.wav がある台本はコピーしない（重複課金防止・generate_tts.py 側でも二重に防御）
-#   - コピーのみ。元の outputs/tts/ は一切削除・変更しない
+#   - コピーのみ。元の outputs/002_TTS/ は一切削除・変更しない
 #
 # 実行例:
 #   pwsh -NoProfile -File scripts\tts-stage-inputs.ps1 -ProblemId 刑JX032         # 1 問だけ集約
 #   pwsh -NoProfile -File scripts\tts-stage-inputs.ps1 -ProblemId 刑JX032 -DryRun  # コピー予定の確認のみ
-#   pwsh -NoProfile -File scripts\tts-stage-inputs.ps1                            # outputs/tts 配下の全問題を集約
+#   pwsh -NoProfile -File scripts\tts-stage-inputs.ps1                            # outputs/002_TTS 配下の全問題を集約
 #   pwsh -NoProfile -File scripts\tts-stage-inputs.ps1 -Run                       # 集約後に run-tts.ps1 を続けて実行
 
 param(
-    [string]$ProblemId = "",   # 例: 刑JX032。未指定なら outputs/tts 配下の全 ID
+    [string]$ProblemId = "",   # 例: 刑JX032。未指定なら outputs/002_TTS 配下の全 ID
     [switch]$Force,            # 既に wav がある台本もコピーする
     [switch]$Run,              # 集約後に tts/run-tts.ps1 を実行
     [switch]$DryRun            # コピーせず予定だけ表示
@@ -31,7 +31,7 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # === パス定義（scripts\ の親 = プロジェクトルート）===
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$TtsSrcBase  = Join-Path $ProjectRoot "outputs\tts"        # JX パイプラインの台本出力
+$TtsSrcBase  = Join-Path $ProjectRoot "outputs\002_TTS"        # JX パイプラインの台本出力
 $TtsInputDir = Join-Path $ProjectRoot "tts\input_texts"    # Gemini TTS 入力
 $TtsAudioDir = Join-Path $ProjectRoot "tts\output_audio"   # 既存 wav 判定用
 $RunTts      = Join-Path $ProjectRoot "tts\run-tts.ps1"

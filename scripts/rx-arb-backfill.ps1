@@ -1,8 +1,8 @@
 # rx-arb-backfill.ps1
 #
-# 既存の JX HTML（outputs/jx/{科目}JX/*.html）から、Lexia 用の副産物
-#   RX  = 論証カード（1論点1HTML / outputs/rx/{科目}RX/{科目}RX{NNN}_{n}.html）
-#   ARB = ARBOR 樹形図（1問1枚 / outputs/arb/{科目}ARB/{科目}JX{NNN}_ARB.html）
+# 既存の JX HTML（outputs/001_JX/{科目}JX/*.html）から、Lexia 用の副産物
+#   RX  = 論証カード（1論点1HTML / outputs/004_JX_EX/RX/{科目}RX/{科目}RX{NNN}_{n}.html）
+#   ARB = ARBOR 樹形図（1問1枚 / outputs/004_JX_EX/ARB/{科目}ARB/{科目}JX{NNN}_ARB.html）
 # が**未生成のものだけ**を後追い生成するバックフィルランナー。
 # 新規 JX は jx-batch-runner.ps1 の ②-rx / ②-arb 段が自動で副産物を作るので、
 # 本スクリプトは「ランナー導入以前に生成済みの JX 資産」を埋めるために使う。
@@ -25,9 +25,9 @@ param(
 )
 
 $ProjectRoot   = Split-Path -Parent $PSScriptRoot
-$JxOutputDir   = Join-Path $ProjectRoot "outputs\jx\${Subject}JX"
-$RxOutputDir   = Join-Path $ProjectRoot "outputs\rx\${Subject}RX"
-$ArbOutputDir  = Join-Path $ProjectRoot "outputs\arb\${Subject}ARB"
+$JxOutputDir   = Join-Path $ProjectRoot "outputs\001_JX\${Subject}JX"
+$RxOutputDir   = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\${Subject}RX"
+$ArbOutputDir  = Join-Path $ProjectRoot "outputs\004_JX_EX\ARB\${Subject}ARB"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"

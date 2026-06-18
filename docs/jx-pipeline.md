@@ -82,10 +82,10 @@ HTML が無い／未コミット／未コミット差分ありの場合は **`[H
 ### 中核ツール：`scripts/jx-push.sh`（回収＝add→commit→push を1コマンド）
 ```bash
 scripts/jx-push.sh "feat(jx): 刑JX028 を生成保存（J1〜J21 PASS）"
-scripts/jx-push.sh "msg" outputs/jx/刑JX/刑JX028.html   # 対象を明示
+scripts/jx-push.sh "msg" outputs/001_JX/刑JX/刑JX028.html   # 対象を明示
 scripts/jx-push.sh --dry "msg"                         # 確認のみ（add/commitしない）
 ```
-- 既定対象は `outputs/jx` 配下の追加/変更/未追跡。
+- 既定対象は `outputs/001_JX` 配下の追加/変更/未追跡。
 - `git push -u origin <現ブランチ>` を**ネットワークエラー時に指数バックオフ再試行**（2s,4s,8s,16s／最大4回）。
 - push 後に回収マニフェスト（下記）を自動表示。
 

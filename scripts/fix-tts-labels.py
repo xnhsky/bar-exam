@@ -14,7 +14,7 @@ import argparse
 import os
 import re
 
-TTS_ROOT = r"C:\Users\OWNER\bar-exam\outputs\tts"
+TTS_ROOT = r"C:\Users\OWNER\bar-exam\outputs\002_TTS"
 
 
 def main():

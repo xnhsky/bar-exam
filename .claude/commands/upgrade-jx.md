@@ -4,7 +4,7 @@ description: 既存 JX HTML を v3.2 にアップグレード
 
 既存の JX ファイル（v3.1 以下）を JX v3.2 にアップグレードする。
 
-引数：対象 HTML ファイルのパス（例：`inputs/jx-legacy/民JX001.html` または `outputs/jx/民JX/民JX001.html`）
+引数：対象 HTML ファイルのパス（例：`inputs/jx-legacy/民JX001.html` または `outputs/001_JX/民JX/民JX001.html`）
 
 ## 必須手順
 
@@ -97,7 +97,7 @@ description: 既存 JX HTML を v3.2 にアップグレード
 
 20. **ファイル名を「{日本語接頭辞}JX{3桁0埋め}.html」形式**に揃える
 21. **`<title>` / `.doc-header` / フッターのファイル ID** を一致させる
-22. **出力先**：`outputs/jx/{科目JX}/` 配下（科目接頭辞に対応）
+22. **出力先**：`outputs/001_JX/{科目JX}/` 配下（科目接頭辞に対応）
 
 ### Phase 8: 検証と配信
 

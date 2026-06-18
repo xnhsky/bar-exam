@@ -59,7 +59,7 @@ $ValidatePassRegex = switch ($SpecVersion) {
 # これで OWNER PC / xnrg2 PC など複数環境で同じスクリプトが動作する
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $PdfDir      = Join-Path $ProjectRoot "inputs\tx-pdfs"
-$OutputBase  = Join-Path $ProjectRoot "outputs\tx"
+$OutputBase  = Join-Path $ProjectRoot "outputs\000_TX"
 $LogsDir     = Join-Path $ProjectRoot "logs"
 $PromptSource= Join-Path $ProjectRoot ($PromptFile -replace '/', '\')
 $CostCsv     = Join-Path $LogsDir "cost-summary.csv"
@@ -98,7 +98,7 @@ Write-Host "NumberRange: From=$FromNumber To=$ToNumber (0 = 無制限)"
 # 現状は刑のみ運用想定（306-315 は全て刑法 PDF）。将来拡張時に番号レンジ判定を追加予定。
 $SubjectPrefix = "刑"
 # 2026-05-25: local-first write flow に復帰（validate-tx S81 規律維持のため）
-# 生成は local outputs/tx/{Prefix}TX/ へ。validate PASS 後に Drive と backup へ配信。
+# 生成は local outputs/000_TX/{Prefix}TX/ へ。validate PASS 後に Drive と backup へ配信。
 # 旧 DriveFS 直書き ($env:USERPROFILE\マイドライブ\...) は廃止。
 $OutputDir = Join-Path $OutputBase "${SubjectPrefix}TX"
 # Drive 配信先：マイドライブのマウント先(C:/G:/H: 等)とフォルダ改名に強いよう、
@@ -376,10 +376,10 @@ Write-Host "コストログ: $CostCsv"
 # === バッチ後監査ゲート: ファイル間の重複・ID 不整合チェック ===
 # 各問題は per-item の validate-tx で配信前検証済みだが、それは「1 ファイル内」検査。
 # 同一 title・同一本文・footer/title の ID コピペ残り(例 刑TX055←刑TX311)は
-# ファイル間でしか分からないため、バッチ終了時に outputs/tx 全体を横断チェックする。
+# ファイル間でしか分からないため、バッチ終了時に outputs/000_TX 全体を横断チェックする。
 # 検出時は exit 1（push 前に気付けるように）。配信自体は per-item で既に済んでいる点に注意。
-Write-Host "`n--- バッチ後監査: scripts/check-duplicates.py outputs/tx ---" -ForegroundColor Cyan
-& python (Join-Path $ProjectRoot 'scripts/check-duplicates.py') (Join-Path $ProjectRoot 'outputs\tx')
+Write-Host "`n--- バッチ後監査: scripts/check-duplicates.py outputs/000_TX ---" -ForegroundColor Cyan
+& python (Join-Path $ProjectRoot 'scripts/check-duplicates.py') (Join-Path $ProjectRoot 'outputs\000_TX')
 $dupExit = $LASTEXITCODE
 if ($dupExit -ne 0) {
     Write-Host "[AUDIT FAIL] 重複/ID 不整合を検出。push 前に上記 D80/D81/D82 を修正してください。" -ForegroundColor Red

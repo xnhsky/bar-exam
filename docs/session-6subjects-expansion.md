@@ -90,9 +90,9 @@ xnh と協議のうえ、**選択肢 A (採用 3 / 保留 3)** に方針変更:
 
 | 問題 ID | 科目 | 出題形式 | 正答率 | override | template | HTML パス | サイズ | structure | content |
 |---|---|---|---|---|---|---|---|---|---|
-| `MIN001`  | 民法     | combination-5 | 95% | P1 | KTX_template_comb5.html | `outputs/tx/民TX/民TX001.html`   | 119,619 B | WARN [S26] 1 件 | PASS |
-| `SYO001`  | 商法     | combination-5 | 32% | P3 | KTX_template_comb5.html | `outputs/tx/商TX/商TX001.html`   | 120,115 B | WARN [S26] 1 件 | PASS |
-| `MINS001` | 民事訴訟法 | multi-select-5 | 82% | P1 | KTX_template_msel5.html | `outputs/tx/民訴TX/民訴TX001.html` | 118,426 B | WARN [S26] 1 件 | PASS |
+| `MIN001`  | 民法     | combination-5 | 95% | P1 | KTX_template_comb5.html | `outputs/000_TX/民TX/民TX001.html`   | 119,619 B | WARN [S26] 1 件 | PASS |
+| `SYO001`  | 商法     | combination-5 | 32% | P3 | KTX_template_comb5.html | `outputs/000_TX/商TX/商TX001.html`   | 120,115 B | WARN [S26] 1 件 | PASS |
+| `MINS001` | 民事訴訟法 | multi-select-5 | 82% | P1 | KTX_template_msel5.html | `outputs/000_TX/民訴TX/民訴TX001.html` | 118,426 B | WARN [S26] 1 件 | PASS |
 
 #### MIN001 (民法、H20-1)
 
@@ -340,9 +340,9 @@ docs/
 
 | 問題 ID | 出題形式 | HTML パス | ERROR | WARN |
 |---|---|---|---|---|
-| MIN001  | combination-5  | `outputs/tx/民TX/民TX001.html`   | 0 | 1 ([S26] ○×比率 9:3) |
-| SYO001  | combination-5  | `outputs/tx/商TX/商TX001.html`   | 0 | 1 ([S26] ○×比率 10:2) |
-| MINS001 | multi-select-5 | `outputs/tx/民訴TX/民訴TX001.html` | 0 | 1 ([S26] ○×比率 11:1) |
+| MIN001  | combination-5  | `outputs/000_TX/民TX/民TX001.html`   | 0 | 1 ([S26] ○×比率 9:3) |
+| SYO001  | combination-5  | `outputs/000_TX/商TX/商TX001.html`   | 0 | 1 ([S26] ○×比率 10:2) |
+| MINS001 | multi-select-5 | `outputs/000_TX/民訴TX/民訴TX001.html` | 0 | 1 ([S26] ○×比率 11:1) |
 
 ### B. 326-330 byte-identical 維持確認
 
@@ -386,14 +386,14 @@ O-1〜O-8 を本文書 § 「想定外の挙動」に列挙。主要な点は (a
 
 | 順 | 問題 ID | 科目 | 出題形式 | template | 正答率 | override | HTML パス | バイト数 |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 326    | 刑法 (KEI)       | ox-grid-5      | KTX_template.html        | 47% | P2 | `outputs/tx/刑TX/刑TX326.html`     | 121,870 |
-| 2 | 327    | 刑法 (KEI)       | ox-grid-4      | KTX_template_ox4.html    | 81% | P1 | `outputs/tx/刑TX/刑TX327.html`     | 116,979 |
-| 3 | 328    | 刑法 (KEI)       | multi-select-5 | KTX_template_msel5.html  | 56% | P2 | `outputs/tx/刑TX/刑TX328.html`     | 117,075 |
-| 4 | 329    | 刑法 (KEI)       | single-choice-5 | KTX_template_sc5.html   | —   | —  | `outputs/tx/刑TX/刑TX329.html`     | 117,285 |
-| 5 | 330    | 刑法 (KEI)       | combination-5  | KTX_template_comb5.html  | 84% | P1 | `outputs/tx/刑TX/刑TX330.html`     | 120,663 |
-| 6 | MIN001 | 民法 (MIN)       | combination-5  | KTX_template_comb5.html  | 95% | P1 | `outputs/tx/民TX/民TX001.html`     | 119,619 |
-| 7 | SYO001 | 商法 (SYO)       | combination-5  | KTX_template_comb5.html  | 32% | P3 | `outputs/tx/商TX/商TX001.html`     | 120,115 |
-| 8 | MINS001| 民事訴訟法 (MINS) | multi-select-5 | KTX_template_msel5.html  | 82% | P1 | `outputs/tx/民訴TX/民訴TX001.html` | 118,426 |
+| 1 | 326    | 刑法 (KEI)       | ox-grid-5      | KTX_template.html        | 47% | P2 | `outputs/000_TX/刑TX/刑TX326.html`     | 121,870 |
+| 2 | 327    | 刑法 (KEI)       | ox-grid-4      | KTX_template_ox4.html    | 81% | P1 | `outputs/000_TX/刑TX/刑TX327.html`     | 116,979 |
+| 3 | 328    | 刑法 (KEI)       | multi-select-5 | KTX_template_msel5.html  | 56% | P2 | `outputs/000_TX/刑TX/刑TX328.html`     | 117,075 |
+| 4 | 329    | 刑法 (KEI)       | single-choice-5 | KTX_template_sc5.html   | —   | —  | `outputs/000_TX/刑TX/刑TX329.html`     | 117,285 |
+| 5 | 330    | 刑法 (KEI)       | combination-5  | KTX_template_comb5.html  | 84% | P1 | `outputs/000_TX/刑TX/刑TX330.html`     | 120,663 |
+| 6 | MIN001 | 民法 (MIN)       | combination-5  | KTX_template_comb5.html  | 95% | P1 | `outputs/000_TX/民TX/民TX001.html`     | 119,619 |
+| 7 | SYO001 | 商法 (SYO)       | combination-5  | KTX_template_comb5.html  | 32% | P3 | `outputs/000_TX/商TX/商TX001.html`     | 120,115 |
+| 8 | MINS001| 民事訴訟法 (MINS) | multi-select-5 | KTX_template_msel5.html  | 82% | P1 | `outputs/000_TX/民訴TX/民訴TX001.html` | 118,426 |
 
 出題形式の分布 (8 件): ox-grid-5 × 1 / ox-grid-4 × 1 / multi-select-5 × 2 / single-choice-5 × 1 / combination-5 × 3。**5 形式すべてに少なくとも 1 件の運用実績が積まれた**。
 

@@ -7,7 +7,7 @@
 """
 import subprocess, glob, os
 
-folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\tx\刑TX'
+folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\000_TX\刑TX'
 script = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\scripts\validate_structure.py'
 files = sorted(glob.glob(os.path.join(folder, '*.html')))
 

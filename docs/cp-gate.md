@@ -9,7 +9,7 @@
 
 **`_phase3_2_pre_patch_baseline.json`** が Phase 4 以降の唯一の CP gate baseline である。
 
-- 件数: 15 entries（全 outputs/tx/*.html）
+- 件数: 15 entries（全 outputs/000_TX/*.html）
 - 形式: `{ "tx/<科目>TX/<科目>TX<id>.html": "<sha256 hex>" }`
 - 補捉時点: 2026-05-19 16:31:54（Phase 3-2 basis_slot template patch 直前）
 - ハッシュ対象: 出力ファイルの **CRLF（Windows 改行）** バイト列（`pathlib.Path.write_text` 既定動作と一致）

@@ -34,13 +34,13 @@ Claude Code で：
 /new-jx inputs/jx-pdfs/15.pdf
 ```
 
-出力は `outputs/tx/{科目TX}/` または `outputs/jx/{科目JX}/` に保存される。
+出力は `outputs/000_TX/{科目TX}/` または `outputs/001_JX/{科目JX}/` に保存される。
 
 ### 4. 検証
 
 ```bash
-python scripts/validate-tx.py outputs/tx/刑TX/刑TX299.html
-python scripts/validate-jx.py outputs/jx/民JX/民JX015.html
+python scripts/validate-tx.py outputs/000_TX/刑TX/刑TX299.html
+python scripts/validate-jx.py outputs/001_JX/民JX/民JX015.html
 ```
 
 ## ディレクトリ構成

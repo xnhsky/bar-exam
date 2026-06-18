@@ -40,8 +40,8 @@ xnh の指示により本セッションで K-1 設計調査を実施 (ファイ
 
 **重要発見**:
 
-- `inputs/tx-pdfs/README.txt` は「科目はPDF内容からAIが自動判定し、outputs/tx/{科目}/{接頭辞}{NNN}.html に出力」と明記しており、**本プロジェクトの設計意図は元々マルチ科目**だった (現状は刑法のみ実装が進んだ状態)
-- `outputs/tx/` には既に 7 科目分のディレクトリが存在 (刑TX / 刑訴TX / 憲TX / 行TX / 商TX / 民TX / 民訴TX)
+- `inputs/tx-pdfs/README.txt` は「科目はPDF内容からAIが自動判定し、outputs/000_TX/{科目}/{接頭辞}{NNN}.html に出力」と明記しており、**本プロジェクトの設計意図は元々マルチ科目**だった (現状は刑法のみ実装が進んだ状態)
+- `outputs/000_TX/` には既に 7 科目分のディレクトリが存在 (刑TX / 刑訴TX / 憲TX / 行TX / 商TX / 民TX / 民訴TX)
 - `CLAUDE.md` 命名規約に「憲TX{NNN}.html」既載
 - `templates/KTX_template*.html` 5 本は **「罪」「crime」を 1 文字も含まず、完全に科目非依存**
 - `scripts/check_template_sync.py` は template 構造のみ検査、**完全に科目非依存**
@@ -114,7 +114,7 @@ xnh の指示により本セッションで K-1 設計調査を実施 (ファイ
 
 | 項目 | 値 |
 |---|---|
-| 出力先ディレクトリ | `outputs/tx/憲TX/` |
+| 出力先ディレクトリ | `outputs/000_TX/憲TX/` |
 | 出力ファイル名 | `憲TX{NNN}.html` |
 | problems JSON | `problems/KEN{NNN}.json` |
 | inputs PDF | `inputs/tx-pdfs/KEN{NNN}.pdf` または **連番継続** (xnh 選択) |
@@ -210,7 +210,7 @@ K-2 = namespace 確立 + KEN sample 1 件完走 = **約 1 セッション**。
 | ② | `scripts/render.py` パラメータ化 | `SUBJECT_OUTPUT_MAP`, `SUBJECT_PREFIX_MAP` 追加 + OUTPUT_DIR 算出関数化 | 約 20 行 | 326-330 再 render で SHA256 byte-identical 確認 (CP3) |
 | ③ | `scripts/validate_content.py` SIGNATURE_REGISTRY 拡張 | `CRIME_SIGNATURES` → `SIGNATURE_REGISTRY["KEI"]` rename + `SIGNATURE_REGISTRY["KEN"]` 初期 dict 投入 + `negative_check` で subject 切替 | 約 30-50 行 | 326-330 全件 validate_content PASS 確認 (CP4) |
 | ④ | `problems/KEN001.json` 起草 | PDF から構造抽出 + JSON 化 (PATCH §1 禁則遵守: canonical コピー禁止、explanation null は fail) | 100-150 行 | jsonschema validate PASS |
-| ⑤ | `render.py` で KEN001 生成 | `outputs/tx/憲TX/憲TX001.html` 出力 | - | render exit 0 |
+| ⑤ | `render.py` で KEN001 生成 | `outputs/000_TX/憲TX/憲TX001.html` 出力 | - | render exit 0 |
 | ⑥ | KEN001 validate_structure + validate_content | - | - | S1-S77 PASS + content PASS |
 | ⑦ | 326-330 regression 確認 | 全 5 件 SHA256 chain + validate_content 再確認 | - | byte-identical 維持 |
 | ⑧ | `slotmap.md §6.1` 新設 | KEN 展開設計記録 (本書を slotmap 形式に書き起こし) | 200-400 行 | check_template_sync exit 0 維持 |
@@ -305,7 +305,7 @@ CP1-CP5:
 - [x] 案 β 採用確定 (本書 §2.2)
 - [x] subject field 仕様確定 (optional, default="KEI", enum 7 科目)
 - [x] crime field 扱い確定 (rename しない、description 汎用化)
-- [x] 命名規約確定 (`outputs/tx/憲TX/憲TX{NNN}.html`, `problems/KEN{NNN}.json`)
+- [x] 命名規約確定 (`outputs/000_TX/憲TX/憲TX{NNN}.html`, `problems/KEN{NNN}.json`)
 - [x] 問題番号体系確定 (KEN001 から開始)
 - [x] slotmap 構成確定 (§6 を既存 slotmap に追記)
 - [x] signature 構築方針確定 (条文番号 + 判例略称ベース、論点単位 dict)

@@ -107,7 +107,7 @@ rc=0
 to_remove=()
 for n in "${NUMS[@]}"; do
   nnn=$(printf "%03d" "$n")          # HTML は3桁ゼロ埋め
-  html="outputs/jx/${pref}/${pref}${nnn}.html"
+  html="outputs/001_JX/${pref}/${pref}${nnn}.html"
   pdf="${pdfdir}/${n}.pdf"
   trans="$(find_transcript "$n" || true)"
 

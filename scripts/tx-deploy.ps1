@@ -24,7 +24,7 @@
 #>
 [CmdletBinding()]
 param(
-  # 対象科目フォルダ名（outputs/tx 配下の接頭辞）。省略時は全科目。
+  # 対象科目フォルダ名（outputs/000_TX 配下の接頭辞）。省略時は全科目。
   [ValidateSet('刑TX','刑訴TX','民TX','商TX','民訴TX','行政TX','憲TX')]
   [string]$Subject,
   # 番号帯フィルタ（省略時は全件）
@@ -73,7 +73,7 @@ $targets = if ($Subject) { @($Subject) } else { $folderMap.Keys }
 
 $totalCopied = 0
 foreach ($prefix in $targets) {
-  $srcDir = Join-Path $repoRoot "outputs\tx\$prefix"
+  $srcDir = Join-Path $repoRoot "outputs\000_TX\$prefix"
   if (-not (Test-Path -LiteralPath $srcDir)) { Write-Host "[skip] $prefix : outputs に無し"; continue }
   $destDir = Join-Path $txRoot $folderMap[$prefix]
 

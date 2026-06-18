@@ -7,7 +7,7 @@
 #   本スクリプトは「ファイルを回収して push する」一連の動線を1コマンドにまとめる。
 #
 # 動作：
-#   1) 対象（既定 outputs/jx 配下の追加/変更/未追跡 HTML）を git add
+#   1) 対象（既定 outputs/001_JX 配下の追加/変更/未追跡 HTML）を git add
 #   2) 差分が無ければ何もしない
 #   3) commit（メッセージは引数 or 既定）
 #   4) git push -u origin <現ブランチ> をネットワークエラー時に指数バックオフ再試行
@@ -16,7 +16,7 @@
 #
 # 使い方：
 #   scripts/jx-push.sh "feat(jx): 刑JX028 を生成保存（J1〜J21 PASS）"
-#   scripts/jx-push.sh "msg" outputs/jx/刑JX/刑JX028.html      # 対象を明示
+#   scripts/jx-push.sh "msg" outputs/001_JX/刑JX/刑JX028.html      # 対象を明示
 #   scripts/jx-push.sh --dry "msg"                            # add/commit せず確認のみ
 # =============================================================================
 set -uo pipefail
@@ -31,7 +31,7 @@ MSG="${1:-chore(jx): persist generated outputs}"
 shift || true
 TARGETS=("$@")
 if [ "${#TARGETS[@]}" -eq 0 ]; then
-  TARGETS=("outputs/jx")
+  TARGETS=("outputs/001_JX")
 fi
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"

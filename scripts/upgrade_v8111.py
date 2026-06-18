@@ -145,7 +145,7 @@ def upgrade(fp):
 
 
 def main():
-    folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\tx\刑TX'
+    folder = r'C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\outputs\000_TX\刑TX'
     files = sorted(glob.glob(os.path.join(folder, '*.html')))
     print(f'Target: {len(files)} files')
     for fp in files:

@@ -36,7 +36,7 @@ TX v10.0.0 GOLD-SKELETON 自己検証スクリプト
     python scripts/validate-tx-gold.py <HTML ファイルパス>
 
 例：
-    python scripts/validate-tx-gold.py outputs/tx/刑TX/刑TX312.html
+    python scripts/validate-tx-gold.py outputs/000_TX/刑TX/刑TX312.html
 
 要件：
     pip install beautifulsoup4

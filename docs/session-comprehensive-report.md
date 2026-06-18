@@ -71,20 +71,20 @@
 
 | # | ID | 科目 | 出典 | 形式 | template | 正答率 | パターン | HTML パス |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 326 | 刑法 | H29-12 | ox-grid-5 | KTX_template.html | 47% | P2 | `outputs/tx/刑TX/刑TX326.html` |
-| 2 | 327 | 刑法 | - | ox-grid-4 | KTX_template_ox4.html | 81% | P1 | `outputs/tx/刑TX/刑TX327.html` |
-| 3 | 328 | 刑法 | R7-19 | multi-select-5 | KTX_template_msel5.html | 56% | P2 | `outputs/tx/刑TX/刑TX328.html` |
-| 4 | 329 | 刑法 | - | single-choice-5 | KTX_template_sc5.html | - | - | `outputs/tx/刑TX/刑TX329.html` |
-| 5 | 330 | 刑法 | 予備 H23-10 | combination-5 | KTX_template_comb5.html | 84% | P1 | `outputs/tx/刑TX/刑TX330.html` |
-| 6 | MIN001 | 民法 | 予備 H20-1 | combination-5 | KTX_template_comb5.html | 95% | P1 | `outputs/tx/民TX/民TX001.html` |
-| 7 | SYO001 | 商法 | 予備 H19-37 | combination-5 | KTX_template_comb5.html | 32% | P3 | `outputs/tx/商TX/商TX001.html` |
-| 8 | MINS001 | 民訴 | 予備 H19-54 | multi-select-5 | KTX_template_msel5.html | 82% | P1 | `outputs/tx/民訴TX/民訴TX001.html` |
-| 9 | KEN001 | 憲法 | 予備 H19-1 | fill-in | **KTX_template_fillin.html** | 30% | P3 | `outputs/tx/憲TX/憲TX001.html` |
-| 10 | GSE001 | 行政法 | 予備 R4-13 | ox-grid-3+comb-8 | **KTX_template_ox3comb8.html** | 59% | P2 | `outputs/tx/行政TX/行政TX001.html` |
-| 11 | KEIS001 | 刑訴 | 予備 H18-21 | fillin8 | **KTX_template_fillin8.html** | 88% | P1 | `outputs/tx/刑訴TX/刑訴TX001.html` |
-| 12 | 303 | 刑法 | H26-20 | ox-grid-5 | KTX_template.html | 50% | P2 | `outputs/tx/刑TX/刑TX303.html` |
-| 13 | 304 | 刑法 | 予備 H25-8 | multi-select-5 (K=1) | KTX_template_msel5.html | 70% | P1 | `outputs/tx/刑TX/刑TX304.html` |
-| 14 | 305 | 刑法 | 共通 R5-10 | fillin8 | KTX_template_fillin8.html | 71% | P1 | `outputs/tx/刑TX/刑TX305.html` |
+| 1 | 326 | 刑法 | H29-12 | ox-grid-5 | KTX_template.html | 47% | P2 | `outputs/000_TX/刑TX/刑TX326.html` |
+| 2 | 327 | 刑法 | - | ox-grid-4 | KTX_template_ox4.html | 81% | P1 | `outputs/000_TX/刑TX/刑TX327.html` |
+| 3 | 328 | 刑法 | R7-19 | multi-select-5 | KTX_template_msel5.html | 56% | P2 | `outputs/000_TX/刑TX/刑TX328.html` |
+| 4 | 329 | 刑法 | - | single-choice-5 | KTX_template_sc5.html | - | - | `outputs/000_TX/刑TX/刑TX329.html` |
+| 5 | 330 | 刑法 | 予備 H23-10 | combination-5 | KTX_template_comb5.html | 84% | P1 | `outputs/000_TX/刑TX/刑TX330.html` |
+| 6 | MIN001 | 民法 | 予備 H20-1 | combination-5 | KTX_template_comb5.html | 95% | P1 | `outputs/000_TX/民TX/民TX001.html` |
+| 7 | SYO001 | 商法 | 予備 H19-37 | combination-5 | KTX_template_comb5.html | 32% | P3 | `outputs/000_TX/商TX/商TX001.html` |
+| 8 | MINS001 | 民訴 | 予備 H19-54 | multi-select-5 | KTX_template_msel5.html | 82% | P1 | `outputs/000_TX/民訴TX/民訴TX001.html` |
+| 9 | KEN001 | 憲法 | 予備 H19-1 | fill-in | **KTX_template_fillin.html** | 30% | P3 | `outputs/000_TX/憲TX/憲TX001.html` |
+| 10 | GSE001 | 行政法 | 予備 R4-13 | ox-grid-3+comb-8 | **KTX_template_ox3comb8.html** | 59% | P2 | `outputs/000_TX/行政TX/行政TX001.html` |
+| 11 | KEIS001 | 刑訴 | 予備 H18-21 | fillin8 | **KTX_template_fillin8.html** | 88% | P1 | `outputs/000_TX/刑訴TX/刑訴TX001.html` |
+| 12 | 303 | 刑法 | H26-20 | ox-grid-5 | KTX_template.html | 50% | P2 | `outputs/000_TX/刑TX/刑TX303.html` |
+| 13 | 304 | 刑法 | 予備 H25-8 | multi-select-5 (K=1) | KTX_template_msel5.html | 70% | P1 | `outputs/000_TX/刑TX/刑TX304.html` |
+| 14 | 305 | 刑法 | 共通 R5-10 | fillin8 | KTX_template_fillin8.html | 71% | P1 | `outputs/000_TX/刑TX/刑TX305.html` |
 
 ---
 

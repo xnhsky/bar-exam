@@ -74,8 +74,8 @@ PART D は本番設計から削除する。理由：
 
 ## 第1項 ファイル体系・命名
 
-- コア：`outputs/tx/{科目TX}/{接頭辞}{NNN}.html`
-- 別冊：`outputs/tx/{科目TX}/{接頭辞}{NNN}-deep.html`
+- コア：`outputs/000_TX/{科目TX}/{接頭辞}{NNN}.html`
+- 別冊：`outputs/000_TX/{科目TX}/{接頭辞}{NNN}-deep.html`
 - コア footer に別冊への固定リンクスロット。番号抽出・前ゼロは §2-3 継承。
 
 ## 第2項 コア（メイン）の構成

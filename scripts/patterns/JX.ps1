@@ -4,7 +4,7 @@
 #   ① JX HTML 生成 → ② validate-jx → ③ TTS 台本 → ④ validate-tts → ⑥ 配置（Drive＋repoミラー）
 # まで通す。
 #
-# ※ 音声生成（⑤）は行わない。音声は台本（outputs/tts/{問題ID}/ ＝ 配置先 TTSファイル原本\）から
+# ※ 音声生成（⑤）は行わない。音声は台本（outputs/002_TTS/{問題ID}/ ＝ 配置先 TTSファイル原本\）から
 #    AI Studio で手動生成する（2026-06-06〜手動運用。Pro TTS 課金見送り＝FULL 版はお蔵入り）。
 #
 # ※ 旧 JX-MAIN / JX-SUB を本パターンに統合（2026-06-08）。鍵（main/sub）区別の撤去で両者は

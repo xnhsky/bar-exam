@@ -38,13 +38,13 @@ inputs/tx-pdfs/313.pdf
 
 ---
 
-## 3. outputs/tx/刑TX/刑TX311.html の取得（参考視覚確認用）
+## 3. outputs/000_TX/刑TX/刑TX311.html の取得（参考視覚確認用）
 
 HTML 成果物は git 管理外（.gitignore で除外）。
 311 をブラウザで参照したい場合は Google Drive 等から：
 
 ```
-outputs/tx/刑TX/刑TX311.html
+outputs/000_TX/刑TX/刑TX311.html
 ```
 
 > **重要**：v10.0.0 経路では `canonical/GENESIS.html`（git 管理対象）が

@@ -12,7 +12,7 @@ description: 深掘り別冊 -deep.html を core HTML から後追い生成（v1
 > - 別冊の構成：D-1 記述別補講（教授③④）／D-2 判例完全プロファイル／D-3 総合フローチャート／D-4 PART C。
 >   **PART D（12問ドリル）は存在しない**。体系ツリー・放射マップは core にあるので別冊に重複させない。
 
-引数：問題番号（例：`341`）または core HTML のパス（例：`outputs/tx/刑TX/刑TX341.html`）
+引数：問題番号（例：`341`）または core HTML のパス（例：`outputs/000_TX/刑TX/刑TX341.html`）
 
 ---
 
@@ -25,7 +25,7 @@ description: 深掘り別冊 -deep.html を core HTML から後追い生成（v1
 
 ### Phase 0：前提確認
 
-0a. **対応する core HTML の存在を確認**（`outputs/tx/{科目TX}/{接頭辞}{NNN}.html`）。
+0a. **対応する core HTML の存在を確認**（`outputs/000_TX/{科目TX}/{接頭辞}{NNN}.html`）。
     無ければ**中断**（別冊の単独生成は禁止＝`/new-tx` で先にコアを作る・validate-tx-deep D12）。
 0b. **既存の `-deep.html` があるか確認**。あれば上書き可否を確認。
 0c. template 流用禁止：`outputs/*/` の既存 HTML を起点に `cp`/`Read`/`Edit` しない。起点は GENESIS-DEEP のみ。
@@ -39,13 +39,13 @@ description: 深掘り別冊 -deep.html を core HTML から後追い生成（v1
 
 ### Phase 2：ファイル名・出力先
 
-3. core と同フォルダ・同接頭辞で `{接頭辞}{NNN}-deep.html`（例：`outputs/tx/刑TX/刑TX341-deep.html`）。
+3. core と同フォルダ・同接頭辞で `{接頭辞}{NNN}-deep.html`（例：`outputs/000_TX/刑TX/刑TX341-deep.html`）。
 
 ### Phase 3：GENESIS-DEEP の clone と本文初期化
 
 4. **`canonical/GENESIS-DEEP.html` を Read**（別冊生成の唯一の起点）。
 5. **対象ファイル名でコピー作成**（Write 経由 or bash `cp`。前面 PowerShell の Copy-Item はブロック）：
-   `cp canonical/GENESIS-DEEP.html outputs/tx/{科目TX}/{接頭辞}{NNN}-deep.html`
+   `cp canonical/GENESIS-DEEP.html outputs/000_TX/{科目TX}/{接頭辞}{NNN}-deep.html`
 6. **コピー直後に本文を空文字列で初期化**（content-independence）。空化対象：
    - deep header の h1／exam-meta／back-link 先（core ファイル名へ）
    - D-1（#d-1）記述別補講の `.sub-card.professor` 本文（③④）
@@ -90,7 +90,7 @@ prof-34-full-profile-flow-partc／no-part-d／content-independence／jp-prefix-n
 
 ### Phase 7：git コミットで永続化（§9）
 
-11. `git add outputs/tx/{科目TX}/{ファイル名}-deep.html` → 本問単位 commit（例：`feat(刑TX): 刑TX341 深掘り別冊を生成`）→ push。
+11. `git add outputs/000_TX/{科目TX}/{ファイル名}-deep.html` → 本問単位 commit（例：`feat(刑TX): 刑TX341 深掘り別冊を生成`）→ push。
 12. `present_files` に commit hash 併記。
 
 ---

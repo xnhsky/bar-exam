@@ -24,7 +24,7 @@ choice-1=ア, choice-2=イ, choice-3=ウ, choice-4=エ, choice-5=オ（315と同
 --accent-darker #674C70 / --accent-light #E2D4E2。recall-correct 緑 #5FA565 維持。
 
 ## 検証
-python scripts/validate-tx-gold.py outputs/tx/刑TX/刑TX316.html  (G1-G18 ERROR 0)
+python scripts/validate-tx-gold.py outputs/000_TX/刑TX/刑TX316.html  (G1-G18 ERROR 0)
 
 ## 317（刑法 共通R2-2「横領罪」正答率37%→P3 Sunset Harmony）
 正答 22111（記述1・2=誤っている／3・4・5=正しい）。テーマ=横領罪と窃盗罪の区別（占有の所在）＋不法領得意思＋業務上横領。

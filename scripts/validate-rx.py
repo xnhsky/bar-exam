@@ -3,7 +3,7 @@
 
 Usage:
     python scripts/validate-rx.py <output_dir> <rx_basename>
-    例: python scripts/validate-rx.py outputs/rx/刑RX 刑RX032
+    例: python scripts/validate-rx.py outputs/004_JX_EX/RX/刑RX 刑RX032
 
 検証対象: <output_dir>/<rx_basename>_*.html (1 ファイル = 1 論点)
 

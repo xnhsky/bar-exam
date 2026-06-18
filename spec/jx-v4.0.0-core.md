@@ -88,7 +88,7 @@ ARB/TTS が壊れる**ため、「折りたたみ＝DOM 温存」を明文規律
 
 ## 第1項 ファイル体系・命名
 
-- JX 本体：`outputs/jx/{科目JX}/{接頭辞}{NNN}.html`（CLAUDE.md §2 と同一・**単一ファイル**）。
+- JX 本体：`outputs/001_JX/{科目JX}/{接頭辞}{NNN}.html`（CLAUDE.md §2 と同一・**単一ファイル**）。
 - **`-deep.html` は作らない**（TX v11 との違い）。番号抽出・前ゼロ規則は §2-3 を継承。
 - 物理構成は「前半コア領域 → 後半 deep 領域」。境界は最初の `<details id="deep-dive">`（第4部冒頭）。
 - DOM 温存の鉄則（原理4）：折りたたみ・reveal はいずれも要素を DOM に残す（`display:none`

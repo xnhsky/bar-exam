@@ -223,7 +223,7 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     apply = "--apply" in sys.argv
     files = args or [f for sub in ["刑TX","憲TX","民TX","商TX","民訴TX","刑訴TX","行政TX"]
-                     for f in sorted(glob.glob(f"outputs/tx/{sub}/*.html"))]
+                     for f in sorted(glob.glob(f"outputs/000_TX/{sub}/*.html"))]
     STRONG = re.compile(r"の見解によれば|の見解に立|の見解から|説によれば|説に立[つっ]|説からは|説の立場|この見解")
     conf = []; total = 0; review = []
     for f in files:

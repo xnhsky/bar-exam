@@ -4,8 +4,8 @@
 
 | 副産物 | 内容 | 出力先 | Lexia での扱い |
 |---|---|---|---|
-| **RX** | 論証カード（1論点1HTML・規範トグル＋○×クイズ付き） | `outputs/rx/{科目}RX/{科目}RX{NNN}_{n}.html` | TX/JX と同格の SRS カード（今日のキュー・逆算・弱点注入の対象） |
-| **ARB** | ARBOR 横向き樹形図（1問1枚） | `outputs/arb/{科目}ARB/{科目}JX{NNN}_ARB.html` | 参考教材（ARB カテゴリ・SRS 対象外） |
+| **RX** | 論証カード（1論点1HTML・規範トグル＋○×クイズ付き） | `outputs/004_JX_EX/RX/{科目}RX/{科目}RX{NNN}_{n}.html` | TX/JX と同格の SRS カード（今日のキュー・逆算・弱点注入の対象） |
+| **ARB** | ARBOR 横向き樹形図（1問1枚） | `outputs/004_JX_EX/ARB/{科目}ARB/{科目}JX{NNN}_ARB.html` | 参考教材（ARB カテゴリ・SRS 対象外） |
 
 ## 関連ファイル
 
@@ -51,7 +51,7 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
 
 ## Lexia への取込
 
-`outputs/rx/` と `outputs/arb/` の HTML をそのまま Lexia の一括取込（ZIP/ドラッグドロップ）へ。
+`outputs/004_JX_EX/RX/` と `outputs/004_JX_EX/ARB/` の HTML をそのまま Lexia の一括取込（ZIP/ドラッグドロップ）へ。
 ファイル名だけで科目・カテゴリが自動判定される（刑RX032_1 → 刑法/RX、刑JX032_ARB → 刑法/ARB）。
 
 ## 注意
@@ -60,7 +60,7 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
   夜間バッチの所要時間・コスト見積りに織り込むこと。
 - `<script>` 内 `</body>` リテラル禁止は RX/ARB にも適用（validate-rx R8 で機械検証）。
 - ⑦永続化（jx-finalize）は **RX/ARB も同じコミットで GitHub バックアップする**
-  （2026-06-11 対応済み。①バックアップの add 対象に outputs/rx・outputs/arb の該当ファイルを含む）。
+  （2026-06-11 対応済み。①バックアップの add 対象に outputs/004_JX_EX/RX・outputs/004_JX_EX/ARB の該当ファイルを含む）。
   バックフィルで後追い生成した分は `jx-finalize.ps1 -Subject 刑 -Ids 刑JX001,... -NoCleanup`
   か、通常の git commit で永続化できる。
 
