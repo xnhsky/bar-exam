@@ -70,7 +70,8 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
 
 ```
 {2 JX_論 文}\B_RX\00N_科目\{科目}RX{NNN}_{n}.html      ← RX 論証カード
-{2 JX_論 文}\C_ARBOR\00N_科目\{科目}JX{NNN}_TREE.html   ← ARBOR 樹形図
+{2 JX_論 文}\C_TREE\00N_科目\{科目}JX{NNN}_TREE.html    ← TREE 樹形図（旧 C_ARBOR・2026-06-18 改名）
+{2 JX_論 文}\D_ARIADNE\00N_科目\{科目}JX{NNN}_ARIADNE.html ← ARIADNE 解法ナビ＋周回
 ```
 
 - 科目フォルダ（001_刑法〜007_憲法）は `jx-deploy.ps1 -InitAll` で作成済み（再実行可）
