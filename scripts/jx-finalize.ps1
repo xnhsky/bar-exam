@@ -2,8 +2,9 @@
 #
 # 各問題 ID について、以下を安全な順序で行う:
 #   ① GitHub バックアップ : outputs/001_JX/{Subject}JX/{ID}.html ＋ outputs/002_TTS/{ID}/
-#                          ＋ 副産物 outputs/004_JX_EX/RX/{Subject}RX/{Subject}RX{NNN}_*.html
-#                          ＋ outputs/004_JX_EX/TREE/{Subject}TREE/{ID}_TREE.html を git add → commit
+#                          ＋ 副産物 outputs/004_JX_EX/RX/{00N_科目}/{Subject}RX{NNN}_*.html
+#                          ＋ outputs/004_JX_EX/TREE/{00N_科目}/{ID}_TREE.html
+#                          ＋ outputs/004_JX_EX/ARIADNE/{00N_科目}/{ID}_ARIADNE.html を git add → commit
 #   ② 入力クリーンアップ  : 入力 PDF（inputs/jx/{科目}/重問PDF/{n}.pdf）＋ 逐語 を git rm → commit
 #       └ 削除の多重ガード（1 つでも欠ければ削除しない）:
 #            (a) HTML が git にコミット済み（①で担保）
@@ -118,6 +119,9 @@ foreach ($id in $Ids) {
     }
     $arbAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE\$($DriveHtml[$Subject])\${id}_TREE.html"
     if (Test-Path -LiteralPath $arbAbs) { $addPaths += "outputs/004_JX_EX/TREE/$($DriveHtml[$Subject])/${id}_TREE.html" }
+    # ARIADNE 解法ナビ＋周回（Lexia 取込・存在すれば同じコミットで永続化）
+    $ariaAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\ARIADNE\$($DriveHtml[$Subject])\${id}_ARIADNE.html"
+    if (Test-Path -LiteralPath $ariaAbs) { $addPaths += "outputs/004_JX_EX/ARIADNE/$($DriveHtml[$Subject])/${id}_ARIADNE.html" }
     if ($DryRun) {
         Write-Host "  [DRYRUN] git add $($addPaths -join ' ') ; commit"
     } else {
@@ -125,7 +129,7 @@ foreach ($id in $Ids) {
         # 差分があれば commit（無ければ既コミット済みとして続行）
         git diff --cached --quiet -- $addPaths
         if ($LASTEXITCODE -ne 0) {
-            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本＋RX/TREE）"
+            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本＋RX/TREE/ARIADNE）"
             Write-Host "  [① backup] commit 済み: $id" -ForegroundColor Green
             $pushNeeded = $true
         } else {

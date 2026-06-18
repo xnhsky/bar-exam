@@ -3,12 +3,16 @@
 あなたは司法試験対策の最高峰教授兼フロントエンド実装者。**検証済み JX（ATHENA）HTML** を一次情報源に、
 初学者向けの「解法ナビ＋周回」教材 **ARIADNE** を1問分生成する。正典は `spec/jx-ariadne-v0.1-core.md`。
 
+> 生成・検証・修正・sentinel 出力までを完全自走で完遂する。**必ず末尾の「完了 sentinel」節の
+> いずれか 1 つを標準出力に echo してから終了する**（ランナーが sentinel で完了判定する）。
+
 ## 入力（ランナーが注入）
 - `{SUBJECT}`：科目（刑/刑訴/民/商/民訴/憲/行政）
 - `{NNN}`：3桁問題番号
-- `{JX_HTML}`：`outputs/001_JX/{SUBJECT}JX/{SUBJECT}JX{NNN}.html`（ATHENA・一次情報源）
+- `{PROBLEM_ID}`：問題ID（例 `刑JX029`）＝ sentinel に使う
+- `{JX_HTML}`：検証済み JX（ATHENA）HTML の実パス（ランナー注入・一次情報源）
 - `{SKELETON}`：`canonical/ARIADNE.html`（複製起点・v0.3 誌面風）
-- `{OUT}`：`outputs/004_JX_EX/ARIADNE/{00N_科目}/{SUBJECT}JX{NNN}_ARIADNE.html`
+- `{OUT}`：`outputs/004_JX_EX/ARIADNE/{00N_科目}/{PROBLEM_ID}_ARIADNE.html`
   （科目→フォルダは 001_刑法/002_刑事訴訟法/003_民法/004_商法/005_民事訴訟法/006_行政法/007_憲法）
 
 ## 手順
@@ -30,9 +34,26 @@
    - 設問文を Lexia メタ除去 regex（`(本問|本設問)[0-20字]正解｜正解は肢｜正解はどれ｜正解の組`）に当てない。
    - `<script>` 内に `</body>` リテラルを書かない（「`</`+`body>`」等で回避）。
 5. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A21 ERROR 0**。ERROR は該当部を修正して再検証。
-6. 完了後、生成パス・PASS/WARN/ERROR 件数を1行で報告（本文は返さない）。
+6. **完了 sentinel を echo**（下記節のいずれか1つ）してから終了。本文は返さない。
 
 ## 注意
 - 法的正確性は {JX_HTML}（検証済み正典）に厳密準拠。規範のすり替え・条文番号誤り・判例射程の誤用は禁止。
 - 巨大 Edit を避け、部ごとに鋳造（1メッセージ 50KB 超の出力禁止）。
 - 配色・フォント・誌面骨格は {SKELETON} を継承（フレーム＝ATHENA プラム／シート＝マイルドクールグレー／カード＝薄クリーム／内側＝マイルドライナー）。
+
+## 完了 sentinel（必ず 1 つだけ echo して終了）
+
+**完全成功時（validate A1〜A21 ERROR 0）：**
+```
+echo "BATCH_ITEM_COMPLETED:{PROBLEM_ID}-ARIADNE"
+```
+
+**生成成功・検証未達時（HTML はあるが ERROR/WARN 残）：**
+```
+echo "BATCH_ITEM_COMPLETED_WITH_ISSUES:{PROBLEM_ID}-ARIADNE:errors=<N>:warnings=<M>"
+```
+
+**生成不能時（中断・照合不一致・致命エラー）：**
+```
+echo "BATCH_ITEM_FAILED:{PROBLEM_ID}-ARIADNE:reason=<具体的理由>"
+```

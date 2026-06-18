@@ -6,6 +6,8 @@
 #   ① claude -p (prompts/new-jx-headless.md)  PDF＋逐語 → JX HTML
 #   ② python validate-jx.py                    exit 0 = PASS（ERROR 0・WARNING 許容）
 #      └→ PASS 時点で入力 PDF のみ削除（逐語は保持）
+#      └→ PASS 時点で副産物を蒸留（非致命・JX 本流は止めない）:
+#           ②-rx RX 論証カード / ②-arb TREE 樹形図 / ②-ariadne ARIADNE 解法ナビ＋周回
 #   ③ claude -p (prompts/tts-jx-headless.md)   JX HTML → TTS 台本
 #   ④ python validate-tts.py                   exit 0 = PASS
 #      └→ PASS 時点で台本 *.txt を tts/input_texts/ へ集約（既 wav はスキップ）
@@ -44,6 +46,7 @@ param(
     [switch]$NoPush,                    # ⑦で push を抑止（commit のみ）
     [switch]$SkipRx,                    # 指定時は②-rx RX論証カード生成（Lexia 用副産物）をスキップ
     [switch]$SkipArb,                   # 指定時は②-arb ARBOR樹形図生成（Lexia 用副産物）をスキップ
+    [switch]$SkipAriadne,               # 指定時は②-ariadne ARIADNE解法ナビ生成（Lexia 用副産物）をスキップ
     [string]$ArborRoot = 'C:\Users\xnrg2.DESKTOP-5664QR6\arbor',  # ARBOR 正典リポジトリのルート
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
 )
@@ -74,6 +77,12 @@ $ArborMaster   = Join-Path $ArborRoot "ARBOR_v5.0_master_prompt.md"
 $ArborRef      = Join-Path $ArborRoot "Reference\ARBOR_002_shucho_tekikaku.html"
 $ArborVerify   = Join-Path $ArborRoot "scripts\verify.py"
 
+# 副産物（②-ariadne ARIADNE 解法ナビ＋周回 — Lexia 取込用）
+$AriadnePromptSrc   = Join-Path $ProjectRoot "prompts\new-ariadne-headless.md"
+$ValidateAriadne    = Join-Path $ProjectRoot "scripts\validate-ariadne.py"
+$CanonicalAriadne   = Join-Path $ProjectRoot "canonical\ARIADNE.html"
+$AriadneOutputBase  = Join-Path $ProjectRoot "outputs\004_JX_EX\ARIADNE"
+
 # 音声段（⑤）: 台本集約先と generate_tts.py 起動ラッパ
 $TtsInputDir   = Join-Path $ProjectRoot "tts\input_texts"   # generate_tts.py の入力
 $TtsAudioDir   = Join-Path $ProjectRoot "tts\output_audio"  # 既 wav 判定
@@ -88,6 +97,7 @@ $SubjectDir    = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴
 $JxOutputDir   = Join-Path $JxOutputBase $SubjectDir
 $RxOutputDir   = Join-Path $RxOutputBase  $SubjectDir
 $ArbOutputDir  = Join-Path $ArbOutputBase $SubjectDir
+$AriadneOutputDir = Join-Path $AriadneOutputBase $SubjectDir
 $RxArbCsv      = Join-Path $LogsDir "rx-arb-summary.csv"
 
 # === API キー自動読込（⑤音声用・直書き禁止／git管理外の .secrets から）===
@@ -178,7 +188,11 @@ if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate
 $ArbEnabled = (-not $SkipArb)
 if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] TREE prompt 不在 → ②-arb 自動スキップ: $ArbPromptSrc" -ForegroundColor Yellow; $ArbEnabled = $false }
 if ($ArbEnabled -and -not (Test-Path $ArborMaster))  { Write-Host "[NOTE] ARBOR 正典不在 → ②-arb 自動スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false }
-Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir"
+$AriadneEnabled = (-not $SkipAriadne)
+if ($AriadneEnabled -and -not (Test-Path $AriadnePromptSrc)) { Write-Host "[NOTE] ARIADNE prompt 不在 → ②-ariadne 自動スキップ: $AriadnePromptSrc" -ForegroundColor Yellow; $AriadneEnabled = $false }
+if ($AriadneEnabled -and -not (Test-Path $ValidateAriadne))  { Write-Host "[NOTE] validate-ariadne.py 不在 → ②-ariadne 自動スキップ: $ValidateAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
+if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE] canonical ARIADNE 不在 → ②-ariadne 自動スキップ: $CanonicalAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
+Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'}) / ARIADNE(解法ナビ)=$(if($AriadneEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir / $AriadneOutputDir"
 
 # === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
 # 入力レイアウト（2026-06-06 分類確定）:
@@ -326,6 +340,7 @@ if ($DryRun) {
         Write-Host "          [DRYRUN] PASS 時 would stage *.txt → $TtsInputDir  (既 wav はスキップ)"
         Write-Host "      ②-rx RX    : $RxOutputDir\${Subject}RX$($t.Number)_*.html  (enabled=$RxEnabled)"
         Write-Host "      ②-arb TREE  : $ArbOutputDir\$($t.ProblemId)_TREE.html  (enabled=$ArbEnabled)"
+        Write-Host "      ②-ariadne   : $AriadneOutputDir\$($t.ProblemId)_ARIADNE.html  (enabled=$AriadneEnabled)"
     }
     $audioPlan = if ($SkipAudio) { "スキップ(-SkipAudio)" }
                  elseif ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) { "スキップ(GEMINI_API_KEY 未設定)" }
@@ -576,6 +591,43 @@ foreach ($t in $Targets) {
         Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
             (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'TREE',
             $arbElapsed, $arbBytes, $arbSent, $arbRes.ExitCode, $arbValidate) -join ',')
+    }
+
+    # =========================================================
+    # ②-ariadne ARIADNE 解法ナビ＋周回生成（Lexia ARIADNE・jxPass 時のみ・非致命）
+    #   検証 PASS 済み JX を素材に「解法7手＋骨子＋周回○×」の1問1HTMLを蒸留。
+    #   失敗しても JX/TTS の進行・連続失敗判定・overall には影響させない。
+    # =========================================================
+    if ($jxPass -and $AriadneEnabled) {
+        Write-Host "`n--- ②-ariadne ARIADNE 解法ナビ生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
+        $ariaStart = Get-Date
+        if (-not (Test-Path $AriadneOutputDir)) { New-Item -Path $AriadneOutputDir -ItemType Directory -Force | Out-Null }
+        $ariaOut = Join-Path $AriadneOutputDir "$($t.ProblemId)_ARIADNE.html"
+        $ariaTemplate = Get-Content $AriadnePromptSrc -Raw -Encoding utf8
+        $ariaPrompt = $ariaTemplate `
+            -replace '\{JX_HTML\}',    $t.JxOutputPath `
+            -replace '\{SKELETON\}',   $CanonicalAriadne `
+            -replace '\{OUT\}',        $ariaOut `
+            -replace '\{PROBLEM_ID\}', $t.ProblemId `
+            -replace '\{SUBJECT\}',    $Subject `
+            -replace '\{NNN\}',        $t.Number
+        ($ariaPrompt) | Out-File -FilePath (Join-Path $LogsDir "ariadne-prompt-$($t.ProblemId).txt") -Encoding utf8
+
+        $ariaRes = Invoke-ClaudeHeadless -Prompt $ariaPrompt -JsonOutPath (Join-Path $LogsDir "ariadne-$($t.ProblemId).json")
+        $ariaSent = Get-Sentinel -Text $ariaRes.Output -ProblemId "$($t.ProblemId)-ARIADNE"
+        $ariaBytes = if (Test-Path $ariaOut) { (Get-Item $ariaOut).Length } else { 0 }
+        $ariaValidate = "no_html"
+        if ($ariaBytes -gt 0) {
+            $avOut = & python $ValidateAriadne $ariaOut 2>&1
+            $ariaValidate = if ($LASTEXITCODE -eq 0) { "PASS" } else { "ERROR(exit=$LASTEXITCODE)" }
+            ($avOut -join "`n") | Out-File -FilePath (Join-Path $LogsDir "ariadne-validate-$($t.ProblemId).txt") -Encoding utf8
+        }
+        $ariaElapsed = [int]((Get-Date) - $ariaStart).TotalSeconds
+        $ariaColor = if ($ariaValidate -eq "PASS") { "Green" } else { "Yellow" }
+        Write-Host "[②-ariadne DONE] bytes=$ariaBytes, sentinel=$ariaSent, validate=$ariaValidate, elapsed=$([math]::Round($ariaElapsed/60,1))min" -ForegroundColor $ariaColor
+        Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
+            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'ARIADNE',
+            $ariaElapsed, $ariaBytes, $ariaSent, $ariaRes.ExitCode, $ariaValidate) -join ',')
     }
 
     # =========================================================

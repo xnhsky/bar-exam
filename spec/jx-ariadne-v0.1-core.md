@@ -92,12 +92,17 @@ outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 
 ---
 
-## 7. パイプライン連携（今後）
+## 7. パイプライン連携（2026-06-18 ②-ariadne 実装済み）
 
-- バッチ：`jx-batch-runner.ps1` の ②-rx / ②-arb と並ぶ **②-ariadne 段**（検証 PASS 済み JX から生成・非致命）。既定 ON 案・`-SkipAriadne` で抑止。
-- 後追い：`scripts/ariadne-backfill.ps1`（既存 JX 群へ後追い生成）。
-- デプロイ：`jx-deploy.ps1` に ARIADNE 系統（Drive `2 JX_論 文\D_ARIADNE\00N_科目\`）を追加（任意）。
-- **未確定**：①-rx/arb と同様に「論点ごと」でなく「1問1枚」。生成器の実体は LLM プロンプト（`prompts/new-ariadne-headless.md`）。
+- **バッチ（実装済み）**：`jx-batch-runner.ps1` の ②-rx / ②-arb と並ぶ **②-ariadne 段**（検証 PASS 済み
+  JX から蒸留・非致命＝失敗しても JX/TTS 本流は止めない）。**既定 ON**・`-SkipAriadne` で抑止。
+  sentinel は `BATCH_ITEM_COMPLETED:{ID}-ARIADNE`（プロンプト `prompts/new-ariadne-headless.md`）。
+  検証は `validate-ariadne.py`、ログは `logs/rx-arb-summary.csv` に kind=`ARIADNE` で追記。
+- **永続化（実装済み）**：`jx-finalize.ps1` ⑦ が `{ID}_ARIADNE.html` を RX/TREE と同コミットで git add→push
+  ＝GitHub 経由で Lexia 自動同期に乗る。`jx-deploy.ps1` ⑥ が Drive `2 JX_論 文\D_ARIADNE\00N_科目\` へも配置。
+- **後追い（未実装・任意）**：`scripts/ariadne-backfill.ps1`（既存 JX 群へ一括後追い）は未作成。
+  当面は既存 JX 1 問ずつ `.claude/commands/new-ariadne.md` か headless プロンプトで生成する。
+- 生成器の実体は LLM プロンプト（`prompts/new-ariadne-headless.md`）。①-rx/arb と同様「論点ごと」でなく「1問1枚」。
 
 ---
 
