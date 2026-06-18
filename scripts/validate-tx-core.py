@@ -22,6 +22,8 @@ spec: spec/tx-v11.0.0-core.md 第7項
     G24 参考条文判例の深度：ラベル付き完全プロファイル（<strong>【事案/判旨/補足】）が無い
     G25 PART A ox-grid：data-answer-type="ox-grid" で 5 記述の○×を収集
     G26 PART D 不在：drill-block / recall-arena / #part-d / flow-svg が無い
+    G29 答え整合：data-correct-value（位置）と data-answer-key（ラベル）が記述ごとに一致し、
+        各文字が全角○/×（半角 x/o 混入＝Lexia で判定不能を検出）
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -592,6 +594,53 @@ class Validator:
         if refs:
             self.warn("G27", f"PART A に参照条文 blockquote.statute が {len(refs)} 個あり。PDF問題文原文に条文が印字されている場合のみ残す（§4c）。無ければ削除すること（A-3共通根拠で足りる・二重掲載しない）")
 
+    def g29_answer_value_consistency(self):
+        # PART A ox-grid の data-correct-value（位置文字列）と reveal 正誤表の
+        # data-answer-key（記述ラベル対応）が記述ごとに一致するかを照合する。
+        # 両者がズレると Lexia 肢キー pool で○×判定が反転し、正答が誤答扱いになる
+        # （刑TX332/382/355/402/384 で実在・○位置のズレ／刑TX079 で半角 x 混入）。
+        area = self.soup.find(class_="answer-area")
+        if not area or area.get("data-answer-type", "") != "ox-grid":
+            return
+        rows = area.find_all(class_="ox-row")
+        cv = area.get("data-correct-value", "")
+        if not rows or not cv:
+            return
+
+        def norm(ch):
+            s = (ch or "").strip().lower()
+            if s in ("o", "○", "◯"):
+                return "o"
+            if s in ("x", "×", "✕", "✗"):
+                return "x"
+            return None
+
+        # reveal 正誤表のラベル→○× マップ
+        keymap = {}
+        table = self.soup.find("table", attrs={"data-answer-key": True})
+        if table:
+            for pair in (table.get("data-answer-key", "") or "").split(","):
+                pair = pair.strip()
+                mm = re.match(r"^\s*([アイウエオ1-5１-５])\s*[:：]\s*([oxOX○×])\s*$", pair)
+                if mm:
+                    keymap[mm.group(1)] = norm(mm.group(2))
+
+        for i, row in enumerate(rows):
+            label = (row.get("data-stmt") or "").strip()
+            # ① data-correct-value の i 文字目が正規の全角 ○/× か（半角 x/o 混入検出）
+            raw = cv[i] if i < len(cv) else ""
+            if raw not in ("○", "×"):
+                self.err("G29", f"記述{label or i+1} の data-correct-value 文字 '{raw}' が "
+                                "全角 ○/× でない（半角 x/o 等の混入＝Lexia で判定不能）")
+                continue
+            pos_v = norm(raw)
+            # ② 位置文字列とラベル対応正誤表が一致するか
+            key_v = keymap.get(label)
+            if key_v is not None and pos_v is not None and pos_v != key_v:
+                self.err("G29", f"記述{label} で data-correct-value（位置）='{raw}' と "
+                                f"正誤表 data-answer-key='{ '○' if key_v=='o' else '×' }' が不一致"
+                                "（○位置のズレ＝Lexia で正答が誤答扱いになる）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -619,6 +668,7 @@ class Validator:
         self.g26_no_part_d()
         self.g27_part_a_statute_ref()
         self.g28_choice_premise()
+        self.g29_answer_value_consistency()
 
 
 def main():
