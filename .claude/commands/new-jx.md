@@ -35,13 +35,13 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
 4. **PDF ファイル名から番号抽出**：最初の連続数字 → 3 桁ゼロ埋め
 5. **科目接頭辞・出力先決定**：
-   - 刑法 → `outputs/001_JX/刑JX/刑JX{NNN}.html`
-   - 憲法 → `outputs/001_JX/憲JX/憲JX{NNN}.html`
-   - 民法 → `outputs/001_JX/民JX/民JX{NNN}.html`
-   - 商法 → `outputs/001_JX/商JX/商JX{NNN}.html`
-   - 民訴 → `outputs/001_JX/民訴JX/民訴JX{NNN}.html`
-   - 刑訴 → `outputs/001_JX/刑訴JX/刑訴JX{NNN}.html`
-   - 行政法 → `outputs/001_JX/行政JX/行政JX{NNN}.html`
+   - 刑法 → `outputs/001_JX/001_刑法/刑JX{NNN}.html`
+   - 憲法 → `outputs/001_JX/007_憲法/憲JX{NNN}.html`
+   - 民法 → `outputs/001_JX/003_民法/民JX{NNN}.html`
+   - 商法 → `outputs/001_JX/004_商法/商JX{NNN}.html`
+   - 民訴 → `outputs/001_JX/005_民事訴訟法/民訴JX{NNN}.html`
+   - 刑訴 → `outputs/001_JX/002_刑事訴訟法/刑訴JX{NNN}.html`
+   - 行政法 → `outputs/001_JX/006_行政法/行政JX{NNN}.html`
 6. **数字抽出不能なら処理中断** → ユーザーに番号確認
 
 ### Phase 3: 配色の AI 自由選定（全パレット・雰囲気選定）

@@ -66,7 +66,7 @@ python -c "import json; d=json.load(open('problems/303.json',encoding='utf-8'));
 
 # 既存 HTML の現状確認（PART C が空のはず）
 python scripts\render.py 303
-$html = "outputs\000_TX\刑TX\刑TX303.html"
+$html = "outputs\000_TX\001_刑法\刑TX303.html"
 $cnt = (Select-String -Path $html -Pattern '<!-- TODO' -AllMatches).Matches.Count
 Write-Host "TODO stubs: $cnt (期待: 7 PART C + 1 basis = 8)"
 ```
@@ -96,7 +96,7 @@ Write-Host "TODO stubs: $cnt (期待: 7 PART C + 1 basis = 8)"
 #### Step 4: render → validate → 目視
 ```powershell
 python scripts\render.py 303
-python scripts\validate-tx.py outputs\000_TX\刑TX\刑TX303.html
+python scripts\validate-tx.py outputs\000_TX\001_刑法\刑TX303.html
 ```
 
 #### Step 5: STOP-for-review

@@ -26,7 +26,7 @@
 
 | 変数 | 例 | 意味 |
 |---|---|---|
-| `{SOURCE_HTML_PATH}` | `C:\...\outputs\001_JX\刑JX\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** の絶対パス |
+| `{SOURCE_HTML_PATH}` | `C:\...\outputs\001_JX\001_刑法\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** の絶対パス |
 | `{PROBLEM_ID}` | `刑JX032` | 元 JX の識別子 |
 | `{PROBLEM_NUMBER}` | `032` | 元 JX の 3 桁番号 |
 | `{SUBJECT_PREFIX}` | `刑` | 科目接頭辞 |

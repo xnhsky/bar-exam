@@ -6,7 +6,7 @@ v8.11.7 S51 タグ追補:
  - <span class="feature-tag">p1-absolute</span>・ 直後に
    jp-prefix-naming / content-independence を追補
 
-対象: outputs/000_TX/刑TX/*.html （_quarantine 配下を除く）
+対象: outputs/000_TX/001_刑法/*.html （_quarantine 配下を除く）
 """
 import glob, os, sys, re
 

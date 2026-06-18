@@ -2,7 +2,7 @@
 
 > 確定済み JX HTML（`{SOURCE_HTML_PATH}`）を読み、**初級編（理解トラック）と上級編（答案トラック）の
 > 二段構成**の TTS 用プレーンテキスト台本を `{OUTPUT_DIR}` 配下の `初級編/` と `上級編/` サブフォルダに
-> 分割出力する。刑JX047（`outputs/002_TTS/刑JX047/`）が唯一のゴールド見本。生成完了後に必ず sentinel を
+> 分割出力する。刑JX047（`outputs/002_TTS/001_刑法/刑JX047/`）が唯一のゴールド見本。生成完了後に必ず sentinel を
 > 標準出力に echo して終了する。
 
 ## Section 0: これは実行指示書（最優先・厳守）
@@ -15,15 +15,15 @@
 
 | 変数 | 例 | 意味 |
 |---|---|---|
-| `{SOURCE_HTML_PATH}` | `C:\Users\OWNER\bar-exam\outputs\001_JX\刑JX\刑JX048.html` | 入力 HTML の絶対パス（確定済み JX HTML・PDF ではない） |
+| `{SOURCE_HTML_PATH}` | `C:\Users\OWNER\bar-exam\outputs\001_JX\001_刑法\刑JX048.html` | 入力 HTML の絶対パス（確定済み JX HTML・PDF ではない） |
 | `{PROBLEM_ID}` | `刑JX048` | sentinel・参照用識別子 |
-| `{OUTPUT_DIR}` | `C:\Users\OWNER\bar-exam\outputs\002_TTS\刑JX048` | 出力先（この直下に `初級編/` `上級編/` を作る） |
+| `{OUTPUT_DIR}` | `C:\Users\OWNER\bar-exam\outputs\002_TTS\001_刑法\刑JX048` | 出力先（この直下に `初級編/` `上級編/` を作る） |
 
 ## Section 2: 最初に読むファイル（順守）
 
 1. **`prompts/tts-jx-design-spec.md`** … ペルソナ・口調・プレーンテキスト規則・アクティブリコール・
    HTML忠実原則・朗読忠実ルールの**正典**。二段構成の文体・規則はすべてここに従う。
-2. **`outputs/002_TTS/刑JX047/初級編/*.txt` と `outputs/002_TTS/刑JX047/上級編/*.txt`** …
+2. **`outputs/002_TTS/001_刑法/刑JX047/初級編/*.txt` と `outputs/002_TTS/001_刑法/刑JX047/上級編/*.txt`** …
    **唯一のゴールド見本**。ファイル構成・タイトル付け・1ファイルの分量（約2000〜4200字）・各ファイルの
    開き方（タイトル読み上げ→本体）・初級/上級の役割分担・締めの作法を、ここから完全に踏襲する。
 3. **`{SOURCE_HTML_PATH}`** … 今回の問題の確定済み JX HTML（内容の唯一の出典）。
@@ -113,6 +113,6 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}
 
 ## 実行開始
 
-いま `{SOURCE_HTML_PATH}` を Read し、`prompts/tts-jx-design-spec.md` と `outputs/002_TTS/刑JX047/` の
+いま `{SOURCE_HTML_PATH}` を Read し、`prompts/tts-jx-design-spec.md` と `outputs/002_TTS/001_刑法/刑JX047/` の
 二段構成を読み、上記仕様で `{OUTPUT_DIR}\初級編\` と `{OUTPUT_DIR}\上級編\` に二段構成 TTS 台本を
 生成せよ。完了したら sentinel を1行 echo して終了せよ。

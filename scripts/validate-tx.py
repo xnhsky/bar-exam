@@ -24,7 +24,7 @@ version-aware ロジック:
     python scripts/validate-tx.py <HTML ファイルパス>
 
 例:
-    python scripts/validate-tx.py outputs/000_TX/刑TX/刑TX299.html
+    python scripts/validate-tx.py outputs/000_TX/001_刑法/刑TX299.html
 
 要件:
     pip install beautifulsoup4
@@ -252,8 +252,8 @@ PROF_SYLLOGISM_SUBELEMENTS = [".syl-major", ".syl-minor", ".syl-conclusion"]
 def derive_problem_json_path(html_path):
     """HTML ファイルパスから対応する problems/{ID}.json を逆引きする。
     例:
-      outputs/000_TX/刑TX/刑TX327.html   → problems/327.json
-      outputs/000_TX/行政TX/行政TX001.html → problems/GSE001.json
+      outputs/000_TX/001_刑法/刑TX327.html   → problems/327.json
+      outputs/000_TX/006_行政法/行政TX001.html → problems/GSE001.json
     決定できない場合は None。
     """
     p = Path(html_path)

@@ -4,7 +4,7 @@
 render.py — テンプレート + JSON → HTML
 
 templates/KTX_template.html の {{SLOT}} を problems/{id}.json の値で置換し、
-outputs/000_TX/刑TX/刑TX{id}.html を生成する。
+outputs/000_TX/001_刑法/刑TX{id}.html を生成する。
 
 設計原則:
   - 未定義の {{SLOT}} が 1 つでも残ったら FAIL（黙って素通りさせない）
@@ -3855,7 +3855,7 @@ def resolve_arg(arg: str) -> tuple[str, str, Path]:
 def get_output_path(subject: str, problem_id: str) -> Path:
     """subject + problem_id から出力 HTML パスを決定する。
 
-    KEI: outputs/000_TX/刑TX/刑TX{id}.html (legacy、326-330 と一致)
+    KEI: outputs/000_TX/001_刑法/刑TX{id}.html (legacy、326-330 と一致)
     他:  outputs/000_TX/{jp}TX/{jp}TX{id}.html
     """
     jp = SUBJECT_TO_JP[subject]

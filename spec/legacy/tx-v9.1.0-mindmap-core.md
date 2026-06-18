@@ -1653,10 +1653,10 @@ S80 : §1-bis 命名規則準拠（v8.11.1）
 
 S81 : 出力先サブフォルダ整合（v8.11.1）
       - 出力先パスが §1-bis-3 対応表に従う
-      - 刑TX → outputs/000_TX/刑TX/、憲TX → outputs/000_TX/憲TX/、
-        民TX → outputs/000_TX/民TX/、商TX → outputs/000_TX/商TX/、
-        民訴TX → outputs/000_TX/民訴TX/、刑訴TX → outputs/000_TX/刑訴TX/、
-        行政TX → outputs/000_TX/行政TX/
+      - 刑TX → outputs/000_TX/001_刑法/、憲TX → outputs/000_TX/007_憲法/、
+        民TX → outputs/000_TX/003_民法/、商TX → outputs/000_TX/004_商法/、
+        民訴TX → outputs/000_TX/005_民事訴訟法/、刑訴TX → outputs/000_TX/002_刑事訴訟法/、
+        行政TX → outputs/000_TX/006_行政法/
 
 S82 : PDF ファイル名からの番号抽出整合（v8.11.1）
       - 入力 PDF ファイル名の最初の連続数字 = 出力ファイル ID 数字部分

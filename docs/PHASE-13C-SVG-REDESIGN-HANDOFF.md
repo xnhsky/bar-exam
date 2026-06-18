@@ -63,7 +63,7 @@ Phase 13B (`b9ac4f3` + `761c44c`) では fb-1〜fb-5 CSS + 群青蘭 palette + f
 3. ノード box 寸法（width × height）を node の text 文字数から推定し、その bounding rect の上下辺で接続線端点を補正
 4. 接続線が複数同じ親から出る場合、親 y+box_h/2 の同一 y から fanout（複数子に向かう均等放射）
 
-**現状の出力例**: outputs/000_TX/刑TX/刑TX303.html 内 `<section id="mindmap-tree">` 周辺 viewBox `0 0 1100 600` か 700
+**現状の出力例**: outputs/000_TX/001_刑法/刑TX303.html 内 `<section id="mindmap-tree">` 周辺 viewBox `0 0 1100 600` か 700
 
 **参考スクショ**: 303/スクリーンショット 2026-05-26 223222.png（L3 が下部で完全に重なっている）
 
@@ -176,7 +176,7 @@ Step 9. Phase 13C 完了 commit
 3. `scripts/render.py`:
    - 行 598-844: auto_layout_tree / auto_layout_radial / auto_layout_flowchart
    - 行 846-: render_mindmap_tree / render_mindmap_radial_v92 / render_flowchart_v2
-4. `outputs/000_TX/刑TX/刑TX303.html`（現状 SVG 出力・改修前 baseline）
+4. `outputs/000_TX/001_刑法/刑TX303.html`（現状 SVG 出力・改修前 baseline）
 5. `problems/303.json`（mindmap_tree / mindmap_radial / flowchart_v2 の JSON 構造例）
 
 参考スクショ（user 提供・git untracked）:
@@ -188,7 +188,7 @@ Step 9. Phase 13C 完了 commit
 
 ## 6. 絶対禁止事項（CLAUDE.md §7 由来 + 本 Phase 固有）
 
-- ❌ `outputs/000_TX/刑TX/刑TX303.html` の本文・解説文字列を template / render.py にコピーすること（AP-42 / S78 違反）
+- ❌ `outputs/000_TX/001_刑法/刑TX303.html` の本文・解説文字列を template / render.py にコピーすること（AP-42 / S78 違反）
 - ❌ `auto_layout_*` 関数の既存呼び出し位置（`render_mindmap_tree` 冒頭等）を変更すること（後方互換性破壊）
 - ❌ SVG fix のために validate-tx.py の検査をゆるめること（S80-S91 はそのまま）
 - ❌ render.py を 1 メッセージで 50KB 超出力（API socket error 予防）
@@ -206,7 +206,7 @@ Phase 13B 開始時、handoff §1 が前提とした 252,977 bytes の gold stan
 
 ### 7-2. eta-wip ファイル（参考）
 
-`outputs/000_TX/刑TX/刑TX303-eta-wip.html` (210,868 bytes) は戦略 η（AI 直接生成）の WIP。Phase 13C では参照しなくて OK（render.py 経路に集中）。
+`outputs/000_TX/001_刑法/刑TX303-eta-wip.html` (210,868 bytes) は戦略 η（AI 直接生成）の WIP。Phase 13C では参照しなくて OK（render.py 経路に集中）。
 
 ### 7-3. 8 templates 共通 CSS
 

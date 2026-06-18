@@ -12,7 +12,7 @@
 |---|---|---|
 | 目的 | 知識の事典（条文/判例/学説/論証の網羅） | **「次に何をするか」の解法手順＋答案構成までの高速周回** |
 | 起点 | `canonical/ATHENA.html` | `canonical/ARIADNE.html`（v0.3 誌面風・刑JX001 で実証） |
-| 生成元 | 問題PDF＋逐語 | **検証済み JX（ATHENA HTML）から蒸留**（RX/ARB と同じ副産物パターン） |
+| 生成元 | 問題PDF＋逐語 | **検証済み JX（ATHENA HTML）から蒸留**（RX/TREE と同じ副産物パターン） |
 | Lexia | 問題本体 | 別ID の周回教材（メイン JX と衝突しない） |
 
 ---
@@ -23,7 +23,7 @@
 outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 ```
 - 科目フォルダは jx-deploy の `$Map` と同名：`001_刑法 / 002_刑事訴訟法 / 003_民法 / 004_商法 / 005_民事訴訟法 / 006_行政法 / 007_憲法`。
-- 命名は ARB（`{科目}JX{NNN}_ARB.html`）に倣い **`{元問題ID}_ARIADNE`**＝例 `刑JX001_ARIADNE.html`。
+- 命名は TREE（`{科目}JX{NNN}_TREE.html`）に倣い **`{元問題ID}_ARIADNE`**＝例 `刑JX001_ARIADNE.html`。
 - メイン `刑JX001.html` と**別ファイル名**＝Lexia 上で別 question（questionId はファイル名由来）。
 
 ---

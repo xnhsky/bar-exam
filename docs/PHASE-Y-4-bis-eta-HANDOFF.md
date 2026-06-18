@@ -18,19 +18,19 @@ CC は本ドキュメント全文を読み、context を再構築してから残
 
 ### 0.1 状態整理（旧セッション終了時の退避処理済）
 
-- `outputs/000_TX/刑TX/刑TX303.html` = **HEAD = 8408439 時点の v9.4.0 HTML に復元済**
+- `outputs/000_TX/001_刑法/刑TX303.html` = **HEAD = 8408439 時点の v9.4.0 HTML に復元済**
   - `python scripts/render.py 303` で再生成した状態
   - validate-tx: ✅ ERROR 0 / WARNING 0
   - title: `刑TX303 - 詐欺、横領及び盗品等（共通H26-20）`
   - feature-tag: TX v9.4.0 COMPLETE-BASELINE
   - これは「次善の baseline」（戦略 ε / Commit 2-sexies 由来の v9.4.0 で、戦略 η の理想形ではない）
 
-- `outputs/000_TX/刑TX/刑TX303-eta-wip.html` = **戦略 η の WIP 退避ファイル**（210,868 bytes・git untracked）
+- `outputs/000_TX/001_刑法/刑TX303-eta-wip.html` = **戦略 η の WIP 退避ファイル**（210,868 bytes・git untracked）
   - 309 baseline base + 記述ア書き換え済（Step 1-3 + Step 4(1/5)）
   - **新セッションではこのファイルを参照し、Step 4(2-5/5) 以降の作業を再開する**
-  - 推奨: WIP ファイルを再び `outputs/000_TX/刑TX/刑TX303.html` に上書きコピーして作業継続
+  - 推奨: WIP ファイルを再び `outputs/000_TX/001_刑法/刑TX303.html` に上書きコピーして作業継続
     ```bash
-    cp "outputs/000_TX/刑TX/刑TX303-eta-wip.html" "outputs/000_TX/刑TX/刑TX303.html"
+    cp "outputs/000_TX/001_刑法/刑TX303-eta-wip.html" "outputs/000_TX/001_刑法/刑TX303.html"
     ```
 
 ---
@@ -82,7 +82,7 @@ b5f9376 fix(v94): PART B 上左 artifact 修正 (Commit 2-ter)
 
 ### 3.2 working tree の現状
 
-`outputs/000_TX/刑TX/刑TX303.html` (約 207 KB) の状態：
+`outputs/000_TX/001_刑法/刑TX303.html` (約 207 KB) の状態：
 
 - ✓ **Step 1**: ヒーロー部書き換え完了
   - title: `刑TX303 ｜ 共通H26-20 詐欺・横領及び盗品等の罪間関係`
@@ -243,10 +243,10 @@ b5f9376 fix(v94): PART B 上左 artifact 修正 (Commit 2-ter)
 | ファイル | 用途 |
 |---|---|
 | `/tmp/313-baseline/刑TX313.html` | v9.1.0 baseline の構造美参考（multi-select-2 形式・参考のみ） |
-| `outputs/000_TX/刑TX/刑TX303.html` | **現在の作業中ファイル**（309 base + 記述アまで 303 化済） |
+| `outputs/000_TX/001_刑法/刑TX303.html` | **現在の作業中ファイル**（309 base + 記述アまで 303 化済） |
 | `problems/303.json` | 303 のコンテンツデータ（chapter/section/case/basis/part_c/choices/mindmap_*/theory_deep_dive/drill_blocks 全 27-29 keys） |
 | `scripts/validate-tx.py` | 検証スクリプト（spec_version 自動判定・S95-S97 v9.4.0 検査含む） |
-| `git show f633cd5:outputs/000_TX/刑TX/刑TX309.html` | 309 baseline 原本（参考） |
+| `git show f633cd5:outputs/000_TX/001_刑法/刑TX309.html` | 309 baseline 原本（参考） |
 
 ---
 
@@ -304,7 +304,7 @@ absolute 派生 (全 sub-palette 共通):
 ## 7. 完了後の commit + push
 
 ```bash
-git add outputs/000_TX/刑TX/刑TX303.html docs/PHASE-Y-4-bis-eta-HANDOFF.md
+git add outputs/000_TX/001_刑法/刑TX303.html docs/PHASE-Y-4-bis-eta-HANDOFF.md
 git commit -m "feat(v94): 刑TX303 v9.4.0 完全再構築 (戦略 η・309 baseline + 群青蘭)"
 git push origin master
 ```

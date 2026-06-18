@@ -28,9 +28,9 @@ PowerShell ラッパから 1 問単位で呼び出されることを前提とす
 
 | 変数 | 例 | 意味 |
 |---|---|---|
-| `{SOURCE_HTML_PATH}` | `C:\Users\xnh\bar-exam\outputs\001_JX\刑JX\刑JX001.html` | 入力 HTML の絶対パス（**PDF ではない**・確定済み JX HTML） |
+| `{SOURCE_HTML_PATH}` | `C:\Users\xnh\bar-exam\outputs\001_JX\001_刑法\刑JX001.html` | 入力 HTML の絶対パス（**PDF ではない**・確定済み JX HTML） |
 | `{PROBLEM_ID}` | `刑JX001` | sentinel・ファイル名用識別子（科目接頭 + JX + 3 桁番号） |
-| `{OUTPUT_DIR}` | `C:\Users\xnh\bar-exam\outputs\002_TTS\刑JX001\` | 出力 .txt 群の格納先ディレクトリ |
+| `{OUTPUT_DIR}` | `C:\Users\xnh\bar-exam\outputs\002_TTS\001_刑法\刑JX001\` | 出力 .txt 群の格納先ディレクトリ |
 
 ---
 

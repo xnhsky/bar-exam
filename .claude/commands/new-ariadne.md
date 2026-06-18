@@ -1,12 +1,12 @@
 # /new-ariadne — 検証済み JX から ARIADNE 解法ナビを生成
 
 **用途**：既存の検証済み JX（ATHENA）から、初学者向けの「解法ナビ＋周回」教材 ARIADNE を1問生成する。
-ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/ARB と同じく検証済み JX から蒸留）。
+ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/TREE と同じく検証済み JX から蒸留）。
 
 ## 使い方
 ```
 /new-ariadne 刑 001          # 科目＋番号
-/new-ariadne outputs/001_JX/刑JX/刑JX001.html   # JX HTML パス直指定
+/new-ariadne outputs/001_JX/001_刑法/刑JX001.html   # JX HTML パス直指定
 ```
 
 ## 正典・依存

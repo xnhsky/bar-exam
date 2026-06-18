@@ -69,7 +69,7 @@ $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"
 $ValidateRx    = Join-Path $ProjectRoot "scripts\validate-rx.py"
 $RxOutputBase  = Join-Path $ProjectRoot "outputs\004_JX_EX\RX"
-$ArbOutputBase = Join-Path $ProjectRoot "outputs\004_JX_EX\ARB"
+$ArbOutputBase = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE"
 $ArborMaster   = Join-Path $ArborRoot "ARBOR_v5.0_master_prompt.md"
 $ArborRef      = Join-Path $ArborRoot "Reference\ARBOR_002_shucho_tekikaku.html"
 $ArborVerify   = Join-Path $ArborRoot "scripts\verify.py"
@@ -83,11 +83,11 @@ $StagedAny     = $false   # この起動で input_texts へ何か集約したか
 $CostCsv       = Join-Path $LogsDir "jx-cost-summary.csv"
 $RunLog        = Join-Path $LogsDir "jx-batch-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 
-# 科目接頭辞 → 出力ディレクトリ名（{Subject}JX）
-$SubjectDir    = "${Subject}JX"
+# 科目 → 00N_科目 サブフォルダ（全シリーズ共通）
+$SubjectDir    = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
 $JxOutputDir   = Join-Path $JxOutputBase $SubjectDir
-$RxOutputDir   = Join-Path $RxOutputBase  "${Subject}RX"
-$ArbOutputDir  = Join-Path $ArbOutputBase "${Subject}ARB"
+$RxOutputDir   = Join-Path $RxOutputBase  $SubjectDir
+$ArbOutputDir  = Join-Path $ArbOutputBase $SubjectDir
 $RxArbCsv      = Join-Path $LogsDir "rx-arb-summary.csv"
 
 # === API キー自動読込（⑤音声用・直書き禁止／git管理外の .secrets から）===
@@ -176,9 +176,9 @@ $RxEnabled = (-not $SkipRx)
 if ($RxEnabled -and -not (Test-Path $RxPromptSrc)) { Write-Host "[NOTE] RX prompt 不在 → ②-rx 自動スキップ: $RxPromptSrc" -ForegroundColor Yellow; $RxEnabled = $false }
 if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate-rx.py 不在 → ②-rx 自動スキップ: $ValidateRx" -ForegroundColor Yellow; $RxEnabled = $false }
 $ArbEnabled = (-not $SkipArb)
-if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] ARB prompt 不在 → ②-arb 自動スキップ: $ArbPromptSrc" -ForegroundColor Yellow; $ArbEnabled = $false }
+if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] TREE prompt 不在 → ②-arb 自動スキップ: $ArbPromptSrc" -ForegroundColor Yellow; $ArbEnabled = $false }
 if ($ArbEnabled -and -not (Test-Path $ArborMaster))  { Write-Host "[NOTE] ARBOR 正典不在 → ②-arb 自動スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false }
-Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / ARB(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir"
+Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir"
 
 # === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
 # 入力レイアウト（2026-06-06 分類確定）:
@@ -325,7 +325,7 @@ if ($DryRun) {
         Write-Host "      ④ validate : python `"$ValidateTts`" `"$($t.TtsOutputDir)`" $($t.ProblemId)"
         Write-Host "          [DRYRUN] PASS 時 would stage *.txt → $TtsInputDir  (既 wav はスキップ)"
         Write-Host "      ②-rx RX    : $RxOutputDir\${Subject}RX$($t.Number)_*.html  (enabled=$RxEnabled)"
-        Write-Host "      ②-arb ARB  : $ArbOutputDir\$($t.ProblemId)_ARB.html  (enabled=$ArbEnabled)"
+        Write-Host "      ②-arb TREE  : $ArbOutputDir\$($t.ProblemId)_TREE.html  (enabled=$ArbEnabled)"
     }
     $audioPlan = if ($SkipAudio) { "スキップ(-SkipAudio)" }
                  elseif ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) { "スキップ(GEMINI_API_KEY 未設定)" }
@@ -341,7 +341,7 @@ $CsvHeader = "timestamp,subject,problem_id,jx_elapsed,jx_html_bytes,jx_sentinel,
 if (-not (Test-Path $CostCsv)) {
     $CsvHeader | Out-File -FilePath $CostCsv -Encoding utf8
 }
-# 副産物（RX/ARB）は列構成が違うため別 CSV に記録（既存 CSV の互換維持）
+# 副産物（RX/TREE）は列構成が違うため別 CSV に記録（既存 CSV の互換維持）
 if (-not (Test-Path $RxArbCsv)) {
     "timestamp,subject,problem_id,kind,elapsed,files,sentinel,exit,validate" | Out-File -FilePath $RxArbCsv -Encoding utf8
 }
@@ -544,14 +544,14 @@ foreach ($t in $Targets) {
     }
 
     # =========================================================
-    # ②-arb ARBOR 樹形図生成（Lexia ARB・jxPass 時のみ・非致命）
+    # ②-arb ARBOR 樹形図生成（Lexia TREE・jxPass 時のみ・非致命）
     #   ARBOR 正典仕様 (arbor リポジトリ) に従い 1問1枚を生成。
     # =========================================================
     if ($jxPass -and $ArbEnabled) {
         Write-Host "`n--- ②-arb ARBOR 生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
         $arbStart = Get-Date
         if (-not (Test-Path $ArbOutputDir)) { New-Item -Path $ArbOutputDir -ItemType Directory -Force | Out-Null }
-        $arbOut = Join-Path $ArbOutputDir "$($t.ProblemId)_ARB.html"
+        $arbOut = Join-Path $ArbOutputDir "$($t.ProblemId)_TREE.html"
         $arbTemplate = Get-Content $ArbPromptSrc -Raw -Encoding utf8
         $arbPrompt = $arbTemplate `
             -replace '\{SOURCE_HTML_PATH\}', $t.JxOutputPath `
@@ -565,7 +565,7 @@ foreach ($t in $Targets) {
         ($arbPrompt) | Out-File -FilePath (Join-Path $LogsDir "arb-prompt-$($t.ProblemId).txt") -Encoding utf8
 
         $arbRes = Invoke-ClaudeHeadless -Prompt $arbPrompt -JsonOutPath (Join-Path $LogsDir "arb-$($t.ProblemId).json")
-        $arbSent = Get-Sentinel -Text $arbRes.Output -ProblemId "$($t.ProblemId)-ARB"
+        $arbSent = Get-Sentinel -Text $arbRes.Output -ProblemId "$($t.ProblemId)-TREE"
         $arbBytes = if (Test-Path $arbOut) { (Get-Item $arbOut).Length } else { 0 }
         $arbValidate = if ($arbBytes -gt 0 -and $arbSent -eq "COMPLETED") { "PASS" }
                        elseif ($arbBytes -gt 0) { "CHECK($arbSent)" }
@@ -574,7 +574,7 @@ foreach ($t in $Targets) {
         $arbColor = if ($arbValidate -eq "PASS") { "Green" } else { "Yellow" }
         Write-Host "[②-arb DONE] bytes=$arbBytes, sentinel=$arbSent, validate=$arbValidate, elapsed=$([math]::Round($arbElapsed/60,1))min" -ForegroundColor $arbColor
         Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
-            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'ARB',
+            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'TREE',
             $arbElapsed, $arbBytes, $arbSent, $arbRes.ExitCode, $arbValidate) -join ',')
     }
 

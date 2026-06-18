@@ -215,7 +215,7 @@ CP gate は **HTML ファイルを直接比較しない**：
 
 **v2**（2 回目・成功・JSON 不変で再生成）:
 ```powershell
-rm outputs/000_TX/刑TX/刑TX304.html
+rm outputs/000_TX/001_刑法/刑TX304.html
 .\scripts\night-batch-runner.ps1 -SpecVersion v9.2.0 -MaxProblems 1
 ```
 - 実行時間: 28.9 min (1733 sec)

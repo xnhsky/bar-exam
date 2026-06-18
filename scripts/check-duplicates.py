@@ -48,7 +48,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.S | re.I)
 # 既知カテゴリ + 番号のみを問題コードとして扱う (試験年度 H29 等を誤って拾わないため)
-CODE_RE = re.compile(r"(TX|JX|GX|PX|RX|ARB|MTD)0*([0-9]{1,4})", re.I)
+CODE_RE = re.compile(r"(TX|JX|GX|PX|RX|TREE|MTD)0*([0-9]{1,4})", re.I)
 
 
 def code_key(s):

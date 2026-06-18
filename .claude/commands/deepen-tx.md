@@ -12,7 +12,7 @@ description: 深掘り別冊 -deep.html を core HTML から後追い生成（v1
 > - 別冊の構成：D-1 記述別補講（教授③④）／D-2 判例完全プロファイル／D-3 総合フローチャート／D-4 PART C。
 >   **PART D（12問ドリル）は存在しない**。体系ツリー・放射マップは core にあるので別冊に重複させない。
 
-引数：問題番号（例：`341`）または core HTML のパス（例：`outputs/000_TX/刑TX/刑TX341.html`）
+引数：問題番号（例：`341`）または core HTML のパス（例：`outputs/000_TX/001_刑法/刑TX341.html`）
 
 ---
 
@@ -39,7 +39,7 @@ description: 深掘り別冊 -deep.html を core HTML から後追い生成（v1
 
 ### Phase 2：ファイル名・出力先
 
-3. core と同フォルダ・同接頭辞で `{接頭辞}{NNN}-deep.html`（例：`outputs/000_TX/刑TX/刑TX341-deep.html`）。
+3. core と同フォルダ・同接頭辞で `{接頭辞}{NNN}-deep.html`（例：`outputs/000_TX/001_刑法/刑TX341-deep.html`）。
 
 ### Phase 3：GENESIS-DEEP の clone と本文初期化
 

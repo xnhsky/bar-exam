@@ -31,9 +31,9 @@ description: 新規 TX ファイルを問題 PDF から生成
    - PART D ARENA を 12 問・○:×=6:6 で構築
    - 全 section-title に sec-icon 配置
 9. **出力先**：科目に応じて `outputs/{科目}/` 配下に保存
-   - 刑法 → `outputs/000_TX/刑TX/K{NNN}.html`
-   - 憲法 → `outputs/000_TX/憲TX/KEN{NNN}.html`
-   - 民法 → `outputs/000_TX/民TX/MIN{NNN}.html`
+   - 刑法 → `outputs/000_TX/001_刑法/K{NNN}.html`
+   - 憲法 → `outputs/000_TX/007_憲法/KEN{NNN}.html`
+   - 民法 → `outputs/000_TX/003_民法/MIN{NNN}.html`
    - 他科目も同様
 10. **検証実行**：`bash python scripts/validate.py <出力ファイル>` を実行
 11. **配信判定**：ERROR 0 件確認後に `present_files` で完了報告

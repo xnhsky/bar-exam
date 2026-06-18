@@ -39,17 +39,17 @@
 
 | 順 | ID | 科目 | 形式 | template | 正答率 | HTML パス | バイト | ERROR | WARN |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | 326 | 刑法 (KEI) | ox-grid-5 | KTX_template.html | 47% | `outputs/000_TX/刑TX/刑TX326.html` | 121,870 | 0 | 0 |
-| 2 | 327 | 刑法 (KEI) | ox-grid-4 | KTX_template_ox4.html | 81% | `outputs/000_TX/刑TX/刑TX327.html` | 116,979 | 0 | 0 |
-| 3 | 328 | 刑法 (KEI) | multi-select-5 | KTX_template_msel5.html | 56% | `outputs/000_TX/刑TX/刑TX328.html` | 117,075 | 0 | 0 |
-| 4 | 329 | 刑法 (KEI) | single-choice-5 | KTX_template_sc5.html | — | `outputs/000_TX/刑TX/刑TX329.html` | 117,285 | 0 | 0 |
-| 5 | 330 | 刑法 (KEI) | combination-5 | KTX_template_comb5.html | 84% | `outputs/000_TX/刑TX/刑TX330.html` | 120,663 | 0 | 0 |
-| 6 | MIN001 | 民法 | combination-5 | KTX_template_comb5.html | 95% | `outputs/000_TX/民TX/民TX001.html` | 119,619 | 0 | 1 |
-| 7 | SYO001 | 商法 | combination-5 | KTX_template_comb5.html | 32% | `outputs/000_TX/商TX/商TX001.html` | 120,115 | 0 | 1 |
-| 8 | MINS001 | 民訴 | multi-select-5 | KTX_template_msel5.html | 82% | `outputs/000_TX/民訴TX/民訴TX001.html` | 118,426 | 0 | 1 |
-| 9 | KEN001 | 憲法 | fill-in | KTX_template_fillin.html | 30% | `outputs/000_TX/憲TX/憲TX001.html` | 103,081 | 0 | 2 |
-| 10 | GSE001 | 行政法 | ox-grid-3+comb-8 | KTX_template_ox3comb8.html | 59% | `outputs/000_TX/行政TX/行政TX001.html` | 102,594 | 0 | 1 |
-| **11** | **KEIS001** | **刑訴** | **fillin8** | **KTX_template_fillin8.html** | **88%** | **`outputs/000_TX/刑訴TX/刑訴TX001.html`** | **102,755** | **0** | **1** |
+| 1 | 326 | 刑法 (KEI) | ox-grid-5 | KTX_template.html | 47% | `outputs/000_TX/001_刑法/刑TX326.html` | 121,870 | 0 | 0 |
+| 2 | 327 | 刑法 (KEI) | ox-grid-4 | KTX_template_ox4.html | 81% | `outputs/000_TX/001_刑法/刑TX327.html` | 116,979 | 0 | 0 |
+| 3 | 328 | 刑法 (KEI) | multi-select-5 | KTX_template_msel5.html | 56% | `outputs/000_TX/001_刑法/刑TX328.html` | 117,075 | 0 | 0 |
+| 4 | 329 | 刑法 (KEI) | single-choice-5 | KTX_template_sc5.html | — | `outputs/000_TX/001_刑法/刑TX329.html` | 117,285 | 0 | 0 |
+| 5 | 330 | 刑法 (KEI) | combination-5 | KTX_template_comb5.html | 84% | `outputs/000_TX/001_刑法/刑TX330.html` | 120,663 | 0 | 0 |
+| 6 | MIN001 | 民法 | combination-5 | KTX_template_comb5.html | 95% | `outputs/000_TX/003_民法/民TX001.html` | 119,619 | 0 | 1 |
+| 7 | SYO001 | 商法 | combination-5 | KTX_template_comb5.html | 32% | `outputs/000_TX/004_商法/商TX001.html` | 120,115 | 0 | 1 |
+| 8 | MINS001 | 民訴 | multi-select-5 | KTX_template_msel5.html | 82% | `outputs/000_TX/005_民事訴訟法/民訴TX001.html` | 118,426 | 0 | 1 |
+| 9 | KEN001 | 憲法 | fill-in | KTX_template_fillin.html | 30% | `outputs/000_TX/007_憲法/憲TX001.html` | 103,081 | 0 | 2 |
+| 10 | GSE001 | 行政法 | ox-grid-3+comb-8 | KTX_template_ox3comb8.html | 59% | `outputs/000_TX/006_行政法/行政TX001.html` | 102,594 | 0 | 1 |
+| **11** | **KEIS001** | **刑訴** | **fillin8** | **KTX_template_fillin8.html** | **88%** | **`outputs/000_TX/002_刑事訴訟法/刑訴TX001.html`** | **102,755** | **0** | **1** |
 
 形式分布: 8 形式すべてに最低 1 件の運用実績 (ox-grid-5/-4/multi-select-5/single-choice-5/combination-5/fill-in/ox-grid-3-combination-8/fillin8)。
 
@@ -79,7 +79,7 @@
 | script | `scripts/render.py` | edit (TEMPLATE_PATHS に "fillin8" 1 行追加) |
 | schema | `schema/problem.schema.json` | edit (instruction_type enum に "fillin8" 1 値追加) |
 | problem | `problems/KEIS001.json` | new |
-| output | `outputs/000_TX/刑訴TX/刑訴TX001.html` | new (render 生成物) |
+| output | `outputs/000_TX/002_刑事訴訟法/刑訴TX001.html` | new (render 生成物) |
 | docs | `docs/session-6subjects-final.md` | new (本ファイル) |
 | slotmap | `templates/KTX_template_slotmap.md` | edit (§6.6b §1〜§X 追記) |
 

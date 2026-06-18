@@ -34,9 +34,9 @@ JX v3.2 軽量検証スクリプト
   JD1  コア前半の自己充足（事案足場・模範答案・講師アドバイス・論点抽出）
 
 使い方：
-  python scripts/validate-jx.py outputs/001_JX/刑JX/刑JX001.html
-  python scripts/validate-jx.py outputs/001_JX/刑JX/刑JX001.html --core-only   # J1-J20＋JC/JD（J21省略）
-  python scripts/validate-jx.py outputs/001_JX/刑JX/刑JX001.html --deep-only   # J21 深度フロアのみ
+  python scripts/validate-jx.py outputs/001_JX/001_刑法/刑JX001.html
+  python scripts/validate-jx.py outputs/001_JX/001_刑法/刑JX001.html --core-only   # J1-J20＋JC/JD（J21省略）
+  python scripts/validate-jx.py outputs/001_JX/001_刑法/刑JX001.html --deep-only   # J21 深度フロアのみ
 """
 
 import sys
@@ -615,7 +615,7 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 使い方:
-  python scripts/validate-jx.py outputs/001_JX/刑JX/刑JX001.html
+  python scripts/validate-jx.py outputs/001_JX/001_刑法/刑JX001.html
 
 ERROR が 0 件なら配信可能。
         """

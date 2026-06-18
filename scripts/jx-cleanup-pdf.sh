@@ -27,6 +27,7 @@ cd "$ROOT"
 
 # 科目接頭辞 → 出力サブフォルダ
 declare -A PREFIX=( [刑]=刑JX [憲]=憲JX [民]=民JX [商]=商JX [民訴]=民訴JX [刑訴]=刑訴JX [行政]=行政JX )
+declare -A SUBJDIR=( [刑]=001_刑法 [刑訴]=002_刑事訴訟法 [民]=003_民法 [商]=004_商法 [民訴]=005_民事訴訟法 [行政]=006_行政法 [憲]=007_憲法 )
 declare -A PDFDIR=(
   [刑]="inputs/jx/刑/重問PDF"   [憲]="inputs/jx/憲/重問PDF"   [民]="inputs/jx/民/重問PDF"
   [商]="inputs/jx/商/重問PDF"   [民訴]="inputs/jx/民訴/重問PDF" [刑訴]="inputs/jx/刑訴/重問PDF"
@@ -107,7 +108,7 @@ rc=0
 to_remove=()
 for n in "${NUMS[@]}"; do
   nnn=$(printf "%03d" "$n")          # HTML は3桁ゼロ埋め
-  html="outputs/001_JX/${pref}/${pref}${nnn}.html"
+  html="outputs/001_JX/${SUBJDIR[$SUBJECT]}/${pref}${nnn}.html"
   pdf="${pdfdir}/${n}.pdf"
   trans="$(find_transcript "$n" || true)"
 

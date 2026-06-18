@@ -3,7 +3,7 @@
 # 各問題 ID について、以下を安全な順序で行う:
 #   ① GitHub バックアップ : outputs/001_JX/{Subject}JX/{ID}.html ＋ outputs/002_TTS/{ID}/
 #                          ＋ 副産物 outputs/004_JX_EX/RX/{Subject}RX/{Subject}RX{NNN}_*.html
-#                          ＋ outputs/004_JX_EX/ARB/{Subject}ARB/{ID}_ARB.html を git add → commit
+#                          ＋ outputs/004_JX_EX/TREE/{Subject}TREE/{ID}_TREE.html を git add → commit
 #   ② 入力クリーンアップ  : 入力 PDF（inputs/jx/{科目}/重問PDF/{n}.pdf）＋ 逐語 を git rm → commit
 #       └ 削除の多重ガード（1 つでも欠ければ削除しない）:
 #            (a) HTML が git にコミット済み（①で担保）
@@ -50,8 +50,8 @@ if (Test-Path -LiteralPath $cand) {
 
 $PdfInDir   = Join-Path $ProjectRoot "inputs\jx\$Subject\重問PDF"
 $TransInDir = Join-Path $ProjectRoot "inputs\jx\$Subject\講義逐語"
-$JxOutDir   = Join-Path $ProjectRoot "outputs\001_JX\${Subject}JX"
-$TtsBase    = Join-Path $ProjectRoot "outputs\002_TTS"
+$JxOutDir   = Join-Path $ProjectRoot "outputs\001_JX\$($DriveHtml[$Subject])"
+$TtsBase    = Join-Path $ProjectRoot "outputs\002_TTS\$($DriveHtml[$Subject])"
 
 function Get-IdNumber([string]$id) {
     if ($id -match '(\d+)\s*$') { return [int]$Matches[1] }
@@ -98,26 +98,26 @@ if (-not $NoGate) {
 foreach ($id in $Ids) {
     Write-Host "`n=== finalize $id ===" -ForegroundColor Cyan
     $num = Get-IdNumber $id
-    $htmlRel = "outputs/001_JX/${Subject}JX/$id.html"
+    $htmlRel = "outputs/001_JX/$($DriveHtml[$Subject])/$id.html"
     $htmlAbs = Join-Path $JxOutDir "$id.html"
     if (-not (Test-Path -LiteralPath $htmlAbs)) {
         Write-Host "[SKIP] HTML が無い: $htmlAbs" -ForegroundColor Yellow; continue
     }
 
-    # --- ① GitHub バックアップ（HTML + TTS 台本 + RX/ARB 副産物）---
+    # --- ① GitHub バックアップ（HTML + TTS 台本 + RX/TREE 副産物）---
     $addPaths = @($htmlRel)
     $ttsDir = Join-Path $TtsBase $id
-    if (Test-Path -LiteralPath $ttsDir) { $addPaths += "outputs/002_TTS/$id" }
+    if (Test-Path -LiteralPath $ttsDir) { $addPaths += "outputs/002_TTS/$($DriveHtml[$Subject])/$id" }
     # 副産物（RX 論証カード / ARBOR 樹形図）も同じコミットで永続化（存在するものだけ）
     if ($null -ne $num) {
-        $rxDirAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\${Subject}RX"
+        $rxDirAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\$($DriveHtml[$Subject])"
         $rxFilter = "${Subject}RX" + $num.ToString('000') + "_*.html"
         foreach ($r in @(Get-ChildItem -Path $rxDirAbs -Filter $rxFilter -File -ErrorAction SilentlyContinue)) {
-            $addPaths += "outputs/004_JX_EX/RX/${Subject}RX/$($r.Name)"
+            $addPaths += "outputs/004_JX_EX/RX/$($DriveHtml[$Subject])/$($r.Name)"
         }
     }
-    $arbAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\ARB\${Subject}ARB\${id}_ARB.html"
-    if (Test-Path -LiteralPath $arbAbs) { $addPaths += "outputs/004_JX_EX/ARB/${Subject}ARB/${id}_ARB.html" }
+    $arbAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE\$($DriveHtml[$Subject])\${id}_TREE.html"
+    if (Test-Path -LiteralPath $arbAbs) { $addPaths += "outputs/004_JX_EX/TREE/$($DriveHtml[$Subject])/${id}_TREE.html" }
     if ($DryRun) {
         Write-Host "  [DRYRUN] git add $($addPaths -join ' ') ; commit"
     } else {
@@ -125,7 +125,7 @@ foreach ($id in $Ids) {
         # 差分があれば commit（無ければ既コミット済みとして続行）
         git diff --cached --quiet -- $addPaths
         if ($LASTEXITCODE -ne 0) {
-            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本＋RX/ARB）"
+            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本＋RX/TREE）"
             Write-Host "  [① backup] commit 済み: $id" -ForegroundColor Green
             $pushNeeded = $true
         } else {

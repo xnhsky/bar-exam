@@ -39,8 +39,8 @@ Claude Code で：
 ### 4. 検証
 
 ```bash
-python scripts/validate-tx.py outputs/000_TX/刑TX/刑TX299.html
-python scripts/validate-jx.py outputs/001_JX/民JX/民JX015.html
+python scripts/validate-tx.py outputs/000_TX/001_刑法/刑TX299.html
+python scripts/validate-jx.py outputs/001_JX/003_民法/民JX015.html
 ```
 
 ## ディレクトリ構成
@@ -68,21 +68,21 @@ bar-exam/
 │   └── jx-legacy/                # 既存 JX HTML（アップグレード用）
 ├── outputs/
 │   ├── tx/
-│   │   ├── 刑TX/
-│   │   ├── 憲TX/
-│   │   ├── 民TX/
-│   │   ├── 商TX/
-│   │   ├── 民訴TX/
-│   │   ├── 刑訴TX/
-│   │   └── 行政TX/
+│   │   ├── 001_刑法/
+│   │   ├── 007_憲法/
+│   │   ├── 003_民法/
+│   │   ├── 004_商法/
+│   │   ├── 005_民事訴訟法/
+│   │   ├── 002_刑事訴訟法/
+│   │   └── 006_行政法/
 │   └── jx/
-│       ├── 刑JX/
-│       ├── 憲JX/
-│       ├── 民JX/
-│       ├── 商JX/
-│       ├── 民訴JX/
-│       ├── 刑訴JX/
-│       └── 行政JX/
+│       ├── 001_刑法/
+│       ├── 007_憲法/
+│       ├── 003_民法/
+│       ├── 004_商法/
+│       ├── 005_民事訴訟法/
+│       ├── 002_刑事訴訟法/
+│       └── 006_行政法/
 └── scripts/
     ├── validate-tx.py            # TX 構造＋コンテンツ独立性検証
     └── validate-jx.py            # JX 構造検証

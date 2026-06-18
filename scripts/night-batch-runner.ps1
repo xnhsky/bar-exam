@@ -100,7 +100,8 @@ $SubjectPrefix = "刑"
 # 2026-05-25: local-first write flow に復帰（validate-tx S81 規律維持のため）
 # 生成は local outputs/000_TX/{Prefix}TX/ へ。validate PASS 後に Drive と backup へ配信。
 # 旧 DriveFS 直書き ($env:USERPROFILE\マイドライブ\...) は廃止。
-$OutputDir = Join-Path $OutputBase "${SubjectPrefix}TX"
+$SubjectFolder = switch ($SubjectPrefix) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"${SubjectPrefix}TX"} }
+$OutputDir = Join-Path $OutputBase $SubjectFolder
 # Drive 配信先：マイドライブのマウント先(C:/G:/H: 等)とフォルダ改名に強いよう、
 # CATALINA＿G共有 を含むマイドライブを自動検出し、科目フォルダ直下をパターン解決する。
 # 配信規律(2026-06-01 ユーザー指示)：HTML は各科目フォルダ「直下」に置く

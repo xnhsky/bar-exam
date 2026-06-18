@@ -183,7 +183,7 @@ SVG は §3-3 で差替済前提
 
 ### 4-1. WIP HTML（次セッション開始時の起点）
 - **`_experimental/刑TX311-wip-gold-skeleton.html`**：現在の WIP（30%完了・260KB・4210行）
-- これを `outputs/000_TX/刑TX/刑TX311.html` にコピーして作業継続
+- これを `outputs/000_TX/001_刑法/刑TX311.html` にコピーして作業継続
 
 ### 4-2. 参考ファイル
 - `_experimental/刑TX303-gold.html` (258KB / 4243行)：構造リファレンス
@@ -205,11 +205,11 @@ SVG は §3-3 で差替済前提
 
 ```powershell
 # 1. WIP を outputs に復元
-cp _experimental/刑TX311-wip-gold-skeleton.html outputs/000_TX/刑TX/刑TX311.html
+cp _experimental/刑TX311-wip-gold-skeleton.html outputs/000_TX/001_刑法/刑TX311.html
 
 # 2. 現状確認
-wc -l outputs/000_TX/刑TX/刑TX311.html  # 4210行のはず
-grep -n 'id="choice-' outputs/000_TX/刑TX/刑TX311.html  # choice-1, 2 が 311 / choice-3,4,5 が 303
+wc -l outputs/000_TX/001_刑法/刑TX311.html  # 4210行のはず
+grep -n 'id="choice-' outputs/000_TX/001_刑法/刑TX311.html  # choice-1, 2 が 311 / choice-3,4,5 が 303
 
 # 3. 残作業を順次実行（推奨順序）
 # step 1: 肢3 (イウ・誤) リライト

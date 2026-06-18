@@ -27,11 +27,11 @@
 
 | 変数 | 例 | 意味 |
 |---|---|---|
-| `{SOURCE_HTML_PATH}` | `C:\...\outputs\001_JX\刑JX\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** |
+| `{SOURCE_HTML_PATH}` | `C:\...\outputs\001_JX\001_刑法\刑JX032.html` | 素材となる **検証 PASS 済み JX HTML** |
 | `{PROBLEM_ID}` | `刑JX032` | 元 JX の識別子 |
 | `{PROBLEM_NUMBER}` | `032` | 元 JX の 3 桁番号（ARBOR の ID・Vol. に使う） |
 | `{SUBJECT_PREFIX}` | `刑` | 科目接頭辞 |
-| `{OUTPUT_PATH}` | `C:\...\outputs\004_JX_EX\ARB\刑ARB\刑JX032_ARB.html` | 出力 HTML の絶対パス |
+| `{OUTPUT_PATH}` | `C:\...\outputs\004_JX_EX\TREE\001_刑法\刑JX032_TREE.html` | 出力 HTML の絶対パス |
 | `{ARBOR_MASTER}` | `C:\...\arbor\ARBOR_v5.0_master_prompt.md` | ARBOR 正典仕様（必読） |
 | `{ARBOR_REFERENCE}` | `C:\...\arbor\Reference\ARBOR_002_shucho_tekikaku.html` | 典範実装（視覚・コード雛形） |
 | `{ARBOR_VERIFY}` | `C:\...\arbor\scripts\verify.py` | S1-S20 自己検証スクリプト |
@@ -63,9 +63,9 @@
 
 ## Section 4: 出力仕様（Lexia 取込のための差分・厳守）
 
-- 出力先: `{OUTPUT_PATH}`（ファイル名 `{PROBLEM_ID}_ARB.html`）。
+- 出力先: `{OUTPUT_PATH}`（ファイル名 `{PROBLEM_ID}_TREE.html`）。
   arbor リポジトリの `ARBOR_NNN_{romaji}.html` 命名は**使わない**
-  （Lexia は `..._ARB.html` 接尾辞で科目＋ARB カテゴリを自動判定する）。
+  （Lexia は `..._TREE.html` 接尾辞で科目＋TREE カテゴリを自動判定する）。
 - ARBOR 内部の ID 表記・Vol. ローマ数字は `{PROBLEM_NUMBER}` に合わせる
   （arbor 正典の「入力番号ベース」規則と同じ）。
 - 自己完結 HTML（外部依存・CDN 不可）。
@@ -91,7 +91,7 @@
 S1-S20 すべて ✓ で生成完了したら：
 
 ```
-echo "BATCH_ITEM_COMPLETED:{PROBLEM_ID}-ARB"
+echo "BATCH_ITEM_COMPLETED:{PROBLEM_ID}-TREE"
 ```
 
 ## Section 7: ISSUES sentinel（生成成功・検証未達時）
@@ -99,7 +99,7 @@ echo "BATCH_ITEM_COMPLETED:{PROBLEM_ID}-ARB"
 HTML は生成できたが ×（または検証スクリプト実行不能）が残った場合：
 
 ```
-echo "BATCH_ITEM_COMPLETED_WITH_ISSUES:{PROBLEM_ID}-ARB:errors=<N>:warnings=<M>"
+echo "BATCH_ITEM_COMPLETED_WITH_ISSUES:{PROBLEM_ID}-TREE:errors=<N>:warnings=<M>"
 ```
 
 直前に残存項目の概要を 1 行ずつ出力すること。
@@ -109,7 +109,7 @@ echo "BATCH_ITEM_COMPLETED_WITH_ISSUES:{PROBLEM_ID}-ARB:errors=<N>:warnings=<M>"
 素材 HTML・正典仕様が読めない等：
 
 ```
-echo "BATCH_ITEM_FAILED:{PROBLEM_ID}-ARB:reason=<具体的理由>"
+echo "BATCH_ITEM_FAILED:{PROBLEM_ID}-TREE:reason=<具体的理由>"
 ```
 
 ---

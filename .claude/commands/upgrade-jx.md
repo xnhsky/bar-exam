@@ -4,7 +4,7 @@ description: 既存 JX HTML を v3.2 にアップグレード
 
 既存の JX ファイル（v3.1 以下）を JX v3.2 にアップグレードする。
 
-引数：対象 HTML ファイルのパス（例：`inputs/jx-legacy/民JX001.html` または `outputs/001_JX/民JX/民JX001.html`）
+引数：対象 HTML ファイルのパス（例：`inputs/jx-legacy/民JX001.html` または `outputs/001_JX/003_民法/民JX001.html`）
 
 ## 必須手順
 

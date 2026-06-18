@@ -2,7 +2,7 @@
 #
 # 既存の JX HTML（outputs/001_JX/{科目}JX/*.html）から、Lexia 用の副産物
 #   RX  = 論証カード（1論点1HTML / outputs/004_JX_EX/RX/{科目}RX/{科目}RX{NNN}_{n}.html）
-#   ARB = ARBOR 樹形図（1問1枚 / outputs/004_JX_EX/ARB/{科目}ARB/{科目}JX{NNN}_ARB.html）
+#   TREE = ARBOR 樹形図（1問1枚 / outputs/004_JX_EX/TREE/{科目}TREE/{科目}JX{NNN}_TREE.html）
 # が**未生成のものだけ**を後追い生成するバックフィルランナー。
 # 新規 JX は jx-batch-runner.ps1 の ②-rx / ②-arb 段が自動で副産物を作るので、
 # 本スクリプトは「ランナー導入以前に生成済みの JX 資産」を埋めるために使う。
@@ -15,7 +15,7 @@
 param(
     [ValidateSet('刑','刑訴','民','商','民訴','憲','行政')]
     [string]$Subject = '刑',
-    [int]$MaxProblems = 5,              # 1 起動あたり最大処理 JX 数（RX/ARB 合計ではなく問題数）
+    [int]$MaxProblems = 5,              # 1 起動あたり最大処理 JX 数（RX/TREE 合計ではなく問題数）
     [int]$FromNumber = 0,
     [int]$ToNumber = 0,
     [switch]$SkipRx,
@@ -25,9 +25,11 @@ param(
 )
 
 $ProjectRoot   = Split-Path -Parent $PSScriptRoot
-$JxOutputDir   = Join-Path $ProjectRoot "outputs\001_JX\${Subject}JX"
-$RxOutputDir   = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\${Subject}RX"
-$ArbOutputDir  = Join-Path $ProjectRoot "outputs\004_JX_EX\ARB\${Subject}ARB"
+# 科目 → 00N_科目 サブフォルダ
+$SubjDir = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
+$JxOutputDir   = Join-Path $ProjectRoot "outputs\001_JX\$SubjDir"
+$RxOutputDir   = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\$SubjDir"
+$ArbOutputDir  = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE\$SubjDir"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"
@@ -56,10 +58,10 @@ $RxEnabled = (-not $SkipRx)
 if ($RxEnabled -and -not (Test-Path $RxPromptSrc)) { Write-Host "[NOTE] RX prompt 不在 → RX スキップ" -ForegroundColor Yellow; $RxEnabled = $false }
 if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate-rx.py 不在 → RX スキップ" -ForegroundColor Yellow; $RxEnabled = $false }
 $ArbEnabled = (-not $SkipArb)
-if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] ARB prompt 不在 → ARB スキップ" -ForegroundColor Yellow; $ArbEnabled = $false }
-if ($ArbEnabled -and -not (Test-Path $ArborMaster))  { Write-Host "[NOTE] ARBOR 正典不在 → ARB スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false }
+if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] TREE prompt 不在 → TREE スキップ" -ForegroundColor Yellow; $ArbEnabled = $false }
+if ($ArbEnabled -and -not (Test-Path $ArborMaster))  { Write-Host "[NOTE] ARBOR 正典不在 → TREE スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false }
 if (-not ($RxEnabled -or $ArbEnabled)) {
-    Write-Host "[ABORT] RX/ARB とも無効。やることがありません。" -ForegroundColor Red
+    Write-Host "[ABORT] RX/TREE とも無効。やることがありません。" -ForegroundColor Red
     Stop-Transcript | Out-Null; exit 1
 }
 
@@ -122,7 +124,7 @@ foreach ($jx in @(Get-ChildItem -Path $JxOutputDir -Filter "*.html" -File | Sort
     $problemId = "${Subject}JX${num}"
     $rxBase  = "${Subject}RX${num}"
     $hasRx   = @(Get-ChildItem -Path $RxOutputDir -Filter "${rxBase}_*.html" -File -ErrorAction SilentlyContinue).Count -gt 0
-    $arbPath = Join-Path $ArbOutputDir "${problemId}_ARB.html"
+    $arbPath = Join-Path $ArbOutputDir "${problemId}_TREE.html"
     $hasArb  = Test-Path $arbPath
     $needRx  = $RxEnabled -and (-not $hasRx)
     $needArb = $ArbEnabled -and (-not $hasArb)
@@ -136,7 +138,7 @@ $Targets = @($Catalog | Sort-Object { [int]$_.Number } | Select-Object -First $M
 
 Write-Host "`n--- 副産物が欠けている JX: $($Catalog.Count) 件 / 本起動の処理対象: $($Targets.Count) 件 ---" -ForegroundColor Yellow
 foreach ($t in $Targets) {
-    $needs = @(); if ($t.NeedRx) { $needs += 'RX' }; if ($t.NeedArb) { $needs += 'ARB' }
+    $needs = @(); if ($t.NeedRx) { $needs += 'RX' }; if ($t.NeedArb) { $needs += 'TREE' }
     Write-Host ("  ● {0}  欠落: {1}" -f $t.ProblemId, ($needs -join '+')) -ForegroundColor Cyan
 }
 if ($Targets.Count -eq 0) {
@@ -182,7 +184,7 @@ foreach ($t in $Targets) {
     }
 
     if ($t.NeedArb) {
-        Write-Host "--- ARB 生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
+        Write-Host "--- TREE 生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
         $arbStart = Get-Date
         if (-not (Test-Path $ArbOutputDir)) { New-Item -Path $ArbOutputDir -ItemType Directory -Force | Out-Null }
         $arbTemplate = Get-Content $ArbPromptSrc -Raw -Encoding utf8
@@ -196,15 +198,15 @@ foreach ($t in $Targets) {
             -replace '\{ARBOR_REFERENCE\}',  $ArborRef `
             -replace '\{ARBOR_VERIFY\}',     $ArborVerify
         $arbRes = Invoke-ClaudeHeadless -Prompt $arbPrompt -JsonOutPath (Join-Path $LogsDir "arb-$($t.ProblemId).json")
-        $arbSent = Get-Sentinel -Text $arbRes.Output -ProblemId "$($t.ProblemId)-ARB"
+        $arbSent = Get-Sentinel -Text $arbRes.Output -ProblemId "$($t.ProblemId)-TREE"
         $arbBytes = if (Test-Path $t.ArbPath) { (Get-Item $t.ArbPath).Length } else { 0 }
         $arbValidate = if ($arbBytes -gt 0 -and $arbSent -eq "COMPLETED") { "PASS" }
                        elseif ($arbBytes -gt 0) { "CHECK($arbSent)" }
                        else { "no_html" }
         $arbElapsed = [int]((Get-Date) - $arbStart).TotalSeconds
-        Write-Host "[ARB DONE] bytes=$arbBytes, sentinel=$arbSent, validate=$arbValidate" -ForegroundColor $(if ($arbValidate -eq 'PASS') { 'Green' } else { 'Yellow' })
+        Write-Host "[TREE DONE] bytes=$arbBytes, sentinel=$arbSent, validate=$arbValidate" -ForegroundColor $(if ($arbValidate -eq 'PASS') { 'Green' } else { 'Yellow' })
         Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
-            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'ARB',
+            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'TREE',
             $arbElapsed, $arbBytes, $arbSent, $arbRes.ExitCode, $arbValidate) -join ',')
     }
 }

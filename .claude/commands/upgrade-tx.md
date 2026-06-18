@@ -20,7 +20,7 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
 > 本コマンド `/upgrade-tx` は v8.x → v8.11.7 の minor 更新パスのみを扱う。
 > v9.0.0-genkei → v9.1.0-mindmap → v9.2.0-deepdive は upgrade ではなく新規生成として処理せよ。
 
-引数：対象 HTML ファイルのパス（例：`inputs/tx-legacy/K302.html` または `outputs/000_TX/刑TX/刑TX302.html`）
+引数：対象 HTML ファイルのパス（例：`inputs/tx-legacy/K302.html` または `outputs/000_TX/001_刑法/刑TX302.html`）
 
 ## 必須手順
 

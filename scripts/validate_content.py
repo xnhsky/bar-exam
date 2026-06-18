@@ -22,7 +22,7 @@ fail 時は HTML を _quarantine/ に隔離し、exit code 1 で終了する。
     python validate_content.py <html_path> <json_path>
 
 例:
-    python scripts/validate_content.py outputs/000_TX/刑TX/刑TX326.html problems/326.json
+    python scripts/validate_content.py outputs/000_TX/001_刑法/刑TX326.html problems/326.json
 """
 
 from __future__ import annotations

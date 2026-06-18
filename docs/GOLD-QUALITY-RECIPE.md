@@ -253,14 +253,14 @@ python -c "import json; json.load(open('problems/{NNN}.json',encoding='utf-8'));
 python scripts/render.py {NNN}
 
 # 2. validate-tx で ERROR 0 / WARNING 0 確認
-python scripts/validate-tx.py outputs/000_TX/刑TX/刑TX{NNN}.html
+python scripts/validate-tx.py outputs/000_TX/001_刑法/刑TX{NNN}.html
 
 # 3. density-v2 で全 choice PASS 確認（1150+ chars 規律）
 python scripts/measure_density_v2.py problems/{NNN}.json
 
 # 4. richness count で gold-equivalent 確認
 for el in 'class="rb-chip"' 'class="ron-mark' 'class="case-emphasis' 'class="exam-mark' 'class="warning"' 'class="cross-link"' 'class="key-phrase-box' '<table'; do
-  e=$(grep -oE "$el" outputs/000_TX/刑TX/刑TX{NNN}.html | wc -l)
+  e=$(grep -oE "$el" outputs/000_TX/001_刑法/刑TX{NNN}.html | wc -l)
   printf '%-40s %3d\n' "$el" "$e"
 done
 ```

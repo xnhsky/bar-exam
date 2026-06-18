@@ -20,18 +20,18 @@
 
 | 出力 | template | 備考 |
 |---|---|---|
-| `tx/刑TX/刑TX303.html` 〜 `刑TX305.html` | sc5 / 各種 | 法学旧問 |
-| `tx/刑TX/刑TX326.html` 〜 `刑TX330.html` | ox4 / msel5 / 他 | 直近検証セット |
-| `tx/憲TX/憲TX001.html` | fillin | K1 案 β 検証 |
-| `tx/民TX/民TX001.html` | sc5 | — |
-| `tx/商TX/商TX001.html` | sc5 | — |
-| `tx/民訴TX/民訴TX001.html` | sc5 | — |
-| `tx/刑訴TX/刑訴TX001.html` | fillin8 | — |
-| `tx/行政TX/行政TX001.html` | ox3comb8 | — |
+| `tx/001_刑法/刑TX303.html` 〜 `刑TX305.html` | sc5 / 各種 | 法学旧問 |
+| `tx/001_刑法/刑TX326.html` 〜 `刑TX330.html` | ox4 / msel5 / 他 | 直近検証セット |
+| `tx/007_憲法/憲TX001.html` | fillin | K1 案 β 検証 |
+| `tx/003_民法/民TX001.html` | sc5 | — |
+| `tx/004_商法/商TX001.html` | sc5 | — |
+| `tx/005_民事訴訟法/民訴TX001.html` | sc5 | — |
+| `tx/002_刑事訴訟法/刑訴TX001.html` | fillin8 | — |
+| `tx/006_行政法/行政TX001.html` | ox3comb8 | — |
 
 ### byte-identical 非保護（1 件、意図的）
 
-- `tx/刑TX/刑TX300.html` — Phase 3-3 で `problems/300.json` に `basis` フィールドを追加（structured basis 描画の demo case）。baseline の hash `d41bdbf5...` は backup `problems/_300_v6_backup.json` 由来。新規 hash は Phase 3-3 適用後の正常な変化なので CP gate 評価では「DIFF 1 / 14 PASS」を成功状態とみなす。
+- `tx/001_刑法/刑TX300.html` — Phase 3-3 で `problems/300.json` に `basis` フィールドを追加（structured basis 描画の demo case）。baseline の hash `d41bdbf5...` は backup `problems/_300_v6_backup.json` 由来。新規 hash は Phase 3-3 適用後の正常な変化なので CP gate 評価では「DIFF 1 / 14 PASS」を成功状態とみなす。
 
 ## 2. CP gate 健全性チェック
 
