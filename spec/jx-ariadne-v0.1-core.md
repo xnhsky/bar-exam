@@ -30,7 +30,7 @@ outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 
 ## 2. 構造（誌面・上から下が学習導線）
 
-1. **マストヘッド**（ATHENA プラム）：キッカー＋大明朝タイトル＋シール＋虹罫。
+1. **マストヘッド**（難易度別ベースカラー・§5）：キッカー＋大明朝タイトル＋シール＋虹罫。
 2. **問題文**（`.problem`）＋登場人物（`.cast`・被害者/救助者は対象外マーク）＋講師プルクオート（`.pull`）。
 3. **解法ナビ**（`.steps-rail` ＋ `.step`×7）＝後述の7手。各手「▶自分で一手→開いて確認（`details.peek`）」＋周回ドリル○×。
 4. **骨子**（`.skeleton > .bone`）＝ゴール（答案構成）。**1周目はここを白紙再現できればクリア**。
@@ -72,13 +72,34 @@ outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 
 ---
 
-## 5. 配色・フォント（誌面）
+## 5. 配色・フォント（誌面・2026-06-18 改訂：TX v11 を見本に統一・恒久）
 
-- **フレーム（マストヘッド／フッター／大背景）＝ATHENA プラム基調**：大背景 `--a-base #f8f2f2`／ヘッダー `#5c4566`／フッター `#4a3556`。
-- **誌面シート＝マイルドクールグレー `#efefef`**（コンテンツ面・大背景と区分け）。**カード＝薄いクリーム `#fdf8ee`**。
-- **内側（バッジ・ラベル・ボックス・蛍光下線）＝ゼブラ マイルドライナー**：規範=青(`#cbd9f1`系)／効く事実=緑(`#dbefab`)／罠=コーラル(`#f7aa94`)／ヒント・ゴール=金(`#feea84`)／ナビ=ラベンダー(`#a6a5f1`)。淡背景＋濃文字（WCAG AA）。
-- **役割別フォント**：明朝(Shippori Mincho B1)＝問題文/模範/規範/大見出し／ゴシック(M PLUS 1p)＝本文/UI／Oswald＝英コードネーム・キッカー／mono＝骨子。
-- 重要点はバッジ＋色分けボックス（`.box-norm/.box-fact/.box-trap/.box-tip` ＋ `.badge.b-*`）。蛍光下線 `.emb`（`.c/.g/.b` 変種）。本文・解説・模範に字下げ（text-indent:1em）。
+> **【最重要・恒久】配色とフォントは TX v11 GENESIS（V3 Twilight Violet・刑TX327）を見本に統一**した
+> （旧 ATHENA プラム＋マイルドライナー固定配色は廃止）。`canonical/ARIADNE.html` に実装済みで、
+> 複製（§6）すれば自動継承する。設計の元ファイル＝`outputs/004_JX_EX/ARIADNE/001_刑法/刑JX001_ARIADNE.html`。
+> 既存生成物への一括反映は `scripts/ariadne-restyle-backfill.py`（冪等）。
+
+- **フォント＝TX 12 役割と同ファミリー**（`canonical/GENESIS-CORE.html` と同系）：
+  - `--f-disp`＝**Shippori Mincho B1**（大見出し・問題文・模範・規範＝法律文）
+  - `--f-body`＝**Zen Kaku Gothic Antique**（本文・解説・UI／字間 .04em・line-height 1.9）
+  - `--f-soft`＝**Zen Maru Gothic**（ナビ・ラベル・小見出し・バッジ・サマリー）
+  - `--f-code`＝**Source Code Pro**（英コードネーム SCAN〜BUILD・キッカー）／`--f-mono`＝Source Code Pro（骨子）
+- **★ ベースカラー＝難易度別に染色選定（TX P1/P2/P3 と同方針）。** `:root` の「▼ ACTIVE」プリセット
+  （フレーム `--a-base/--a-head/--a-head-lt/--a-foot` ＋ ナビ・解法 chrome `--li` 系が連動）を**問題の難易度で1つ選ぶ**：
+
+  | 難易度 | 系統 | 対応 TX | 目安 |
+  |---|---|---|---|
+  | **EASY 易** | ローズ | P1 Sweet Berry/Rose | 基礎・典型（1周で取りたい） |
+  | **STD 標準** | クリスタルブルー | P2 Crystal Blue | 中堅・応用・頻出（例：正当防衛/過失共犯） |
+  | **HARD 難** | バイオレット | P3 Twilight Violet | 重論点・罠多・錯誤/不作為/原自行為等の難所 |
+
+  3案の hex は `canonical/ARIADNE.html` の `:root` コメントに常時カタログ記載。切替は「▼ ACTIVE」直下の
+  **ラベル＋値2行**を差し替えるだけ（残り2案はコメントのまま）。
+- **機能色（意味で固定・難易度で変えない｜soft=塗り / line=罫・蛍光 / deep=文字）**：規範=ティール(`--ai`)／
+  効く事実・OK=グリーン(`--gr`＝TX `recall-correct`)／罠・注意=コーラル(`--shu`)／ヒント・ゴール=ゴールド(`--gd`)。
+  副アクセント＝ダスティティール `--a-mid #79a6a6`（TX `--mid`）。淡背景＋濃文字（WCAG AA）。蛍光下線 `.emb`（`.c/.g/.b`）。
+- カード＝純白／誌面シート＝暖オフホワイト `--sheet #fbf7f0`／大背景＝難易度別ベース。本文・解説・模範に字下げ（text-indent:1em）。
+- **周回ドリル○×ボタンはコンパクト固定（48×40px・左寄せ）**＝横幅いっぱいにしない（`flex:1` 禁止）。
 
 ---
 
