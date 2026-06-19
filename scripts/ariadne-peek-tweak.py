@@ -21,11 +21,11 @@ MARKER = "KP-PEEK-MOVE"
 # ② 目立つ配色（ゴールド＝spec §5 ヒント・ゴール）。難易度別ベース（ローズ/ブルー/バイオレット）に
 #    対して補色的に映える。
 NEW_PEEK = ('details.peek{margin:13px 0 4px; border-radius:11px; background:#fffdf6; '
-            'border:1.5px solid var(--gd-line); box-shadow:0 2px 8px rgba(200,160,40,.16)}')
+            'border:1.5px solid var(--gd-line); box-shadow:0 2px 7px rgba(200,160,40,.10)}')
 NEW_SUMMARY = ('details.peek > summary{cursor:pointer; list-style:none; padding:11px 15px; '
                'font-family:var(--f-soft); font-weight:800; font-size:.9rem; color:#5a4400; '
                'display:flex; align-items:center; gap:8px; '
-               'background:linear-gradient(135deg,#ffd45e,#f2af2b); border-radius:10px}')
+               'background:linear-gradient(135deg,#fff1c9,#ffe6a0); border-radius:10px}')
 NEW_HINT = ('details.peek > summary .hint{margin-left:auto; font-weight:600; '
             'font-size:.72rem; color:#7a5810}')
 
