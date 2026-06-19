@@ -115,6 +115,11 @@ def main():
         if re.match(r'^.+JX\d{3}_ARIADNE\.html$', base): P('A21', f'命名規則OK（{base}）')
         else: W('A21', f'命名が {{科目}}JX{{NNN}}_ARIADNE.html と不一致（{base}）')
 
+    # ---- A22 答案構成パズルエンジン（spec §9・当面 WARNING） ----
+    has_engine = ('KP-PUZZLE-BACKFILL' in html) or ('kp-levels' in html and 'kslot' in html)
+    if has_engine: P('A22', '答案構成パズルエンジンあり')
+    else: W('A22', 'パズルエンジン未実装（canonical 複製 or ariadne-puzzle-backfill.py で付与・spec §9）')
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")

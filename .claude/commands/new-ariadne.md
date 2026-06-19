@@ -23,6 +23,9 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
 5. **master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 
 ## 規律
+- **答案構成パズル（spec §9・周回の主役）**：エンジンは canonical 継承。生成時に骨子へ
+  規範 `.krule`／あてはめ `.kfact` タグ、`.bone` に `data-kp-decoys`、骨子直前に試験下書き `.drafting`、
+  ○× の3枚前後を想起カード（`.recall`/`data-recall`）へ格上げ。下書きは「生の事実抽出」までに留める。
 - 法的正確性は検証済み JX に厳密準拠（規範すり替え・条文誤り・判例射程の誤用禁止）。
 - ○× は**本問前提なしで解ける一般原則／例題**（復習プール孤立表示でも解ける）。メタ除去regex・`</body>`リテラルを避ける。
 - 配色・フォントは TX v11（V3 Twilight Violet・刑TX327）見本＝canonical 継承（spec §5）。役割別フォント（Shippori Mincho B1／Zen Kaku Gothic Antique／Zen Maru Gothic／Source Code Pro）・字下げ・バッジ＋色分けボックス。

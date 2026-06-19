@@ -133,3 +133,45 @@ outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 - Lexia 周回契約 A12〜A18：○×枚数／全カード `data-arena="1"`／`data-correct-value`／設問／解説／○×ボタン整合／メタregex非該当。
 - Lexia 安全 A19〜A20：`<script>`内 `</body>` リテラル無し／○×採点JS。
 - 命名 A21：`{科目}JX{NNN}_ARIADNE.html`。
+
+---
+
+## 9. 答案構成パズル＋想起カード＋試験下書き（2026-06-19 追加・周回の主役）
+
+> 初学者の最重要スキル＝**論点抽出と答案構成**を能動想起で鍛えるため、骨子を
+> 「穴埋めパズル」化する。エンジン（CSS/JS）は `canonical/ARIADNE.html` に実装済みで、
+> **複製すれば自動継承**する（既存物への後追いは `scripts/ariadne-puzzle-backfill.py`・冪等）。
+
+### 9-1. エンジン（canonical 継承・汎用・削除禁止）
+- 読込時に JS が `.bone` の伏せ字対象をスロット化＋チップ配置で自動採点。クリックは
+  **document 委譲**（Lexia の srcDoc iframe でも動く）。JS 無効環境（ファイルプレビュー等）は
+  `.kp-fallback` 注記が出て**完成形の骨子がそのまま見える**安全フォールバック。
+- 既定でパズル表示＝**答えは隠す**。模範は「答えを見る」で開閉。
+
+### 9-2. 骨子タグ規律（生成時に問題固有で付与）
+`.bone` 内に、伏せ字対象を次の class で必ずマークする：
+- **論点＝`<span class="iss">…</span>`**／**結論＝`<u>…</u>`**／**見出し＝`<span class="b1">第1…</span>`**（既存）。
+- **規範名＝`<span class="krule">三要件 等</span>`**／**あてはめキー事実＝`<span class="kfact">排他的支配 等</span>`**（Lv2 用に新規付与）。
+- 3 段階：**Lv1=論点(.iss)** ／ **Lv2=論点+規範+あてはめ** ／ **Lv3=+結論<u>+見出し.b1**（順序・誰からも再現）。
+
+### 9-3. おとりチップ（`.bone` の `data-kp-decoys`）
+`type:text` を `|` 区切りで列挙（**type∈{iss,u,rule,fact}**・各レベルに出る型のみ採用・最大6枚提示）。
+近い誤り（広義説↔狭義説、未遂↔既遂、遺棄↔遺棄致死 等）を 4〜6 個。例：
+`data-kp-decoys="iss:【論点】正当防衛|u:殺人既遂罪 成立|rule:狭義説|fact:先行行為"`
+
+### 9-4. 試験会場の下書き（`.drafting`・骨子の直前）
+本番の紙上整理を再現。`まず下書き用紙にこう整理する` 見出し＋：
+- `.draft-problem`＝問題文原文（再掲）。
+- `.draft-grid` 内に **①人物関係図 `.rel-map`**（`.p`人物/`.ob`客体/`.out`対象外）**②時系列 `.timeline>li`** **③拾う文言 `.facts>li`（`.ph`引用＋`.cue`なぜ拾うか）**。
+- **ネタバレ防止＝「生の事実抽出」までに限定**し、論点名・規範（排他的支配/未必の故意/三要件 等）は書かない（それはパズルの想起対象）。
+
+### 9-5. 想起カード（○×の一部を格上げ・Lexia 連携）
+○×は **10 枚前後**に整理し、**うち数枚を想起（1問1答）化**する：
+`<div class="self-check-quiz recall" data-arena="1" data-recall="1" data-correct-value="○">`
+＋`.quiz-question`（【想起】…を挙げよ）＋`<button class="recall-reveal" onclick="…答えを開示">`＋
+`.quiz-answer`（模範）＋`.quiz-btns.recall-grade` に `.quiz-btn[data-value="○"]`書けた/`[data-value="×"]`書けなかった。
+Lexia は `data-recall` を読み復習プールで「答えを見る→自己採点」UIに分岐（○=書けた=正解＝SM-2 卒業に前進）。
+
+### 9-6. 検証
+`validate-ariadne.py` A22：パズルエンジン（`KP-PUZZLE-BACKFILL` マーカー or `kp-levels`＋boot JS）の存在を確認（当面 WARNING）。
+Lv2タグ/おとり/下書き/想起は**推奨**（機械必須にはしない＝後追い可）。

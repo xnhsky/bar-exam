@@ -28,7 +28,12 @@
    - **照合・自己採点**（`.rubric`）＝採点講評の減点ポイントを☐リスト化（**AI採点に依存しない**）。
    - **模範答案**（`details.reveal-answer`）＝JX 模範を簡潔化して収録（字下げ・明朝）。
    - **深掘り層**（`details#deep-dive`）＝規範コア／判例射程／条文を**薄く**。フル解説は ATHENA へ誘導。
-4. **周回○×（10〜15枚・最重要・spec §4）**：
+3-bis. **答案構成パズル（spec §9・周回の主役）** ─ エンジン（CSS/JS/ヒント・フォールバック）は {SKELETON} 継承で自動。生成時に**問題固有の下記**を付与する：
+   - **骨子タグ**：`.bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。
+   - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。
+   - **試験下書き `.drafting`**（骨子の直前）：問題文再掲＋①人物関係図 `.rel-map`②時系列 `.timeline`③拾う文言 `.facts`。**生の事実抽出まで**（論点名・規範は書かない＝パズルの想起対象）。
+   - **想起カード**：○×のうち**規範名・要件・定義を問える3枚前後**を `class="self-check-quiz recall" data-recall="1" data-correct-value="○"`＋`.recall-reveal`（onclick で `.quiz-answer` 開示）＋`.recall-grade` に「書けた○/書けなかった×」へ格上げ。
+4. **周回○×（10枚前後・最重要・spec §4／§9-5）**：
    - 各 `.self-check-quiz` に **`data-arena="1"`** と **`data-correct-value="○/×"`**、`.quiz-question`、`.quiz-btn[data-value]`×2、`.quiz-answer`。
    - **本問の前提なしで解ける自己完結の一般原則／【例題】**にする（復習プールで孤立表示されても解ける）。状況依存設問は禁止。
    - 設問文を Lexia メタ除去 regex（`(本問|本設問)[0-20字]正解｜正解は肢｜正解はどれ｜正解の組`）に当てない。
