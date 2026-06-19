@@ -278,6 +278,12 @@ details#deep-dive > summary small{font-weight:500; font-size:.76rem; color:var(-
 .kp-meter-fill{height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,var(--shu),var(--gd-line) 55%,var(--gr)); transition:width .55s ease}
 .kp-msg{font-size:.86rem; margin-top:4px; color:var(--ink); line-height:1.7}
 .kp-free{width:100%; box-sizing:border-box; min-height:150px; font-family:var(--f-mono); font-size:.86rem; line-height:1.9; border:1px solid var(--li-line); border-radius:11px; padding:12px 14px; background:#fff; color:var(--ink); margin:8px 0}
+.kp-top{margin:11px 0 4px}
+.kp-reveal{background:#fff!important; color:var(--a-head)!important; border:1px solid var(--gd-line)!important}
+.kp-model{margin:12px 0 0; padding:13px 16px; border:1px dashed var(--gd-line); border-radius:12px; background:var(--gd-soft); font-family:var(--f-mono); font-size:.85rem; line-height:2.0; white-space:pre-wrap; color:#3a3540}
+.kp-model .b1{font-family:var(--f-disp); color:var(--a-head); font-weight:700}
+.kp-model .iss{color:var(--shu-deep); font-weight:700}
+.kp-model-h{font-family:var(--f-soft); font-weight:700; font-size:.8rem; color:var(--ink-soft); margin-bottom:6px; white-space:normal}
 </style>
 </head>
 <body>
@@ -473,8 +479,7 @@ details#deep-dive > summary small{font-weight:500; font-size:.76rem; color:var(-
   <div class="skeleton">
     <span class="badge b-goal">🏁 まずこの骨を自分で書けるように</span>
     <div class="kp-bar">
-      <button type="button" class="kp-toggle" aria-pressed="false">▶ パズルで組み立てる</button>
-      <span class="kp-hint">論点・結論を伏せて出題。移動中の能動周回用（自動採点）</span>
+      <span class="kp-hint">穴（論点・結論）を埋めて答案構成を完成させよう ─ 移動中の能動周回・自動採点。答えは「📖 答えを見る」で確認。</span>
     </div>
 <div class="bone" data-kp-decoys="【論点】正当防衛の成否|【論点】因果関係の有無|【論点】共謀共同正犯の成否|殺人既遂罪 成立|保護責任者遺棄致死罪 成立"><span class="b1">第1　Yの罪責（殺人未遂・199/203）</span>
   1 放置は不作為 → <span class="iss">【論点①】不真正不作為犯の実行行為性</span>（規範：三要件）
@@ -603,155 +608,181 @@ details#deep-dive > summary small{font-weight:500; font-size:.76rem; color:var(-
   });
 })();
 
-/* ===== 答案構成パズル（試作・骨子を能動再現／自動採点） =====
+/* ===== 答案構成パズル v2（既定でパズル表示＝答えは隠す／自動採点） =====
    静的HTMLは無改変。読込時に .bone の .iss(論点)/<u>(結論) を伏せ字スロットへ変換し、
-   チップ配置(Tier1)＋自由記述(Tier2)で答案構成の完成度を機械採点する。 */
+   穴埋め（Tier1チップ配置／Tier2自由記述）で完成度を機械採点する。クリックは
+   document 委譲（○×エンジンと同方式）＝Lexia の srcDoc iframe 内でも堅牢に動く。
+   JS が動かない環境では bone（=答え）がそのまま見える安全フォールバック。 */
 (function(){
-  var skeleton = document.querySelector('.skeleton');
-  var bone = skeleton && skeleton.querySelector('.bone');
-  var toggle = skeleton && skeleton.querySelector('.kp-toggle');
-  if(!skeleton || !bone || !toggle) return;
+  function boot(){
+    var skeleton = document.querySelector('.skeleton');
+    var bone = skeleton && skeleton.querySelector('.bone');
+    if(!skeleton || !bone) return;
 
-  var originalHTML = bone.innerHTML;   // モデル（答え）を温存
-  var host = null, tray = null, slots = [], selected = null, tier = 1, built = false;
+    var originalHTML = bone.innerHTML;   // モデル（答え）を温存
+    var topbar = null, host = null, tray = null, scoreBox = null, modelEl = null;
+    var slots = [], selected = null, tier = 1;
+    var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function(f){ return setTimeout(f, 16); };
 
-  function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
-  function isConclusion(t){ return /(成立|不成立|不可罰|単独犯)\s*$/.test(t); }
-  function clearNode(n){ while(n.firstChild) n.removeChild(n.firstChild); }
+    function each(list, fn){ Array.prototype.forEach.call(list, fn); }
+    function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+    function isConclusion(t){ return /(成立|不成立|不可罰|単独犯)\s*$/.test(t); }
+    function clearNode(n){ while(n.firstChild) n.removeChild(n.firstChild); }
+    function ph(type){ return type === 'u' ? '▢結論' : '▢論点'; }
 
-  function buildSlots(interactive){
-    bone.innerHTML = originalHTML;
-    var targets = bone.querySelectorAll('.iss, u');
-    slots = [];
-    Array.prototype.forEach.call(targets, function(el){
-      var type = el.tagName.toLowerCase() === 'u' ? 'u' : 'iss';
-      var s = document.createElement('span');
-      s.className = 'kslot'; s.dataset.type = type; s.dataset.answer = el.textContent.trim();
-      s.textContent = (type === 'u' ? '▢結論' : '▢論点');
-      if(interactive) s.addEventListener('click', function(){ onSlot(s); });
-      el.parentNode.replaceChild(s, el);
-      slots.push(s);
-    });
-  }
-
-  function emptySlots(){ return slots.filter(function(s){ return !s.dataset.fill; }); }
-  function findUsedChip(txt){ var cs = tray ? tray.querySelectorAll('.kp-chip.used') : []; for(var i=0;i<cs.length;i++){ if(cs[i].dataset.text === txt) return cs[i]; } return null; }
-
-  function fillSlot(s, text){
-    s.dataset.fill = text; s.classList.add('filled'); s.classList.remove('ok','ng');
-    clearNode(s); s.appendChild(document.createTextNode(text));
-    var x = document.createElement('span'); x.className = 'kx'; x.textContent = '✕'; s.appendChild(x);
-  }
-  function onSlot(s){
-    if(s.dataset.fill){                       // 入っていれば外す
-      var chip = findUsedChip(s.dataset.fill); if(chip) chip.classList.remove('used');
-      delete s.dataset.fill; s.classList.remove('filled','ok','ng');
-      s.textContent = (s.dataset.type === 'u' ? '▢結論' : '▢論点'); return;
-    }
-    if(selected) selected.classList.remove('sel');
-    selected = s; s.classList.add('sel');
-  }
-  function onChip(c){
-    if(c.classList.contains('used')) return;
-    var target = selected || emptySlots()[0]; if(!target) return;
-    fillSlot(target, c.dataset.text); c.classList.add('used');
-    if(selected){ selected.classList.remove('sel'); selected = null; }
-  }
-
-  function buildTray(){
-    var pool = slots.map(function(s){ return { text:s.dataset.answer, type:s.dataset.type }; });
-    (bone.dataset.kpDecoys || '').split('|').forEach(function(d){ d = d.trim(); if(d) pool.push({ text:d, type:isConclusion(d) ? 'u' : 'iss' }); });
-    shuffle(pool);
-    tray = document.createElement('div'); tray.className = 'kp-tray';
-    pool.forEach(function(p){
-      var c = document.createElement('button'); c.type = 'button';
-      c.className = 'kp-chip t-' + p.type; c.textContent = p.text; c.dataset.text = p.text;
-      c.addEventListener('click', function(){ onChip(c); });
-      tray.appendChild(c);
-    });
-    return tray;
-  }
-
-  function grade(scoreBox){
-    bone.querySelectorAll('.kslot-fix').forEach(function(n){ n.parentNode.removeChild(n); });
-    var totW = 0, gotW = 0, ok = 0, missIss = 0;
-    slots.forEach(function(s){
-      var w = s.dataset.type === 'iss' ? 2 : 1; totW += w;   // 論点は結論の2倍重み
-      s.classList.remove('ok','ng');
-      if((s.dataset.fill || '') === s.dataset.answer){ s.classList.add('ok'); gotW += w; ok++; }
-      else {
-        s.classList.add('ng'); if(s.dataset.type === 'iss') missIss++;
-        var fx = document.createElement('span'); fx.className = 'kslot-fix'; fx.textContent = '正: ' + s.dataset.answer;
-        s.insertAdjacentElement('afterend', fx);
-      }
-    });
-    var pct = totW ? Math.round(gotW / totW * 100) : 0;
-    var msg = pct >= 90 ? 'ほぼ完成。あとは表現を磨くだけ。'
-            : pct >= 70 ? '骨格はOK。赤の箇所（特に論点）を周回で詰めよう。'
-            : pct >= 40 ? '論点抽出に穴あり。落とした論点を最優先で復習。'
-            : 'まず7手ナビへ戻り、論点の拾い方から立て直そう。';
-    if(missIss) msg += '（落とした論点 ' + missIss + ' 件＝答案では致命傷になりやすい）';
-    clearNode(scoreBox);
-    var head = document.createElement('div'); head.innerHTML = '構成完成度 <span class="pct">' + pct + '%</span>　（' + ok + '/' + slots.length + ' 箇所）';
-    var meter = document.createElement('div'); meter.className = 'kp-meter';
-    var fill = document.createElement('div'); fill.className = 'kp-meter-fill'; meter.appendChild(fill);
-    var m = document.createElement('div'); m.className = 'kp-msg'; m.textContent = msg;
-    scoreBox.appendChild(head); scoreBox.appendChild(meter); scoreBox.appendChild(m);
-    requestAnimationFrame(function(){ fill.style.width = pct + '%'; });
-  }
-
-  function renderModes(){
-    var modes = document.createElement('div'); modes.className = 'kp-modes';
-    var b1 = document.createElement('button'); b1.type = 'button'; b1.textContent = '① チップ配置';
-    var b2 = document.createElement('button'); b2.type = 'button'; b2.textContent = '② 自由記述';
-    b1.className = tier === 1 ? 'on' : ''; b2.className = tier === 2 ? 'on' : '';
-    b1.addEventListener('click', function(){ tier = 1; render(); });
-    b2.addEventListener('click', function(){ tier = 2; render(); });
-    modes.appendChild(b1); modes.appendChild(b2);
-    host.appendChild(modes);
-  }
-
-  function render(){
-    clearNode(host); renderModes();
-    if(tier === 1){
-      buildSlots(true);
-      host.appendChild(buildTray());
-      var actions = document.createElement('div'); actions.className = 'kp-actions';
-      var g = document.createElement('button'); g.type = 'button'; g.className = 'kp-grade'; g.textContent = '答え合わせ';
-      var r = document.createElement('button'); r.type = 'button'; r.className = 'kp-reset'; r.textContent = 'やり直す';
-      actions.appendChild(g); actions.appendChild(r); host.appendChild(actions);
-      var scoreBox = document.createElement('div'); scoreBox.className = 'kp-score'; scoreBox.style.display = 'none'; host.appendChild(scoreBox);
-      g.addEventListener('click', function(){ scoreBox.style.display = 'block'; grade(scoreBox); });
-      r.addEventListener('click', function(){ render(); });
-    } else {
-      buildSlots(false);
-      var ta = document.createElement('textarea'); ta.className = 'kp-free';
-      ta.placeholder = '上の足場（第1／第2…）を見ながら、各論点名・規範・結論を自分の言葉で書き出す。書き切ってからモデルと照合。';
-      host.appendChild(ta);
-      var actions = document.createElement('div'); actions.className = 'kp-actions';
-      var rv = document.createElement('button'); rv.type = 'button'; rv.className = 'kp-grade'; rv.textContent = 'モデル骨子を表示して照合';
-      actions.appendChild(rv); host.appendChild(actions);
-      var note = document.createElement('div'); note.className = 'kp-msg'; note.style.marginTop = '8px';
-      note.textContent = '照合は下の「採点チェック」（減点ポイント）で自己採点する。AI採点なしで完結。';
-      host.appendChild(note);
-      rv.addEventListener('click', function(){
-        bone.innerHTML = originalHTML;
-        var collate = document.querySelector('.collate');
-        if(collate && collate.scrollIntoView) collate.scrollIntoView({ behavior:'smooth', block:'start' });
+    function buildSlots(){
+      bone.innerHTML = originalHTML;
+      slots = [];
+      each(bone.querySelectorAll('.iss, u'), function(el){
+        var type = el.tagName.toLowerCase() === 'u' ? 'u' : 'iss';
+        var s = document.createElement('span');
+        s.className = 'kslot'; s.dataset.type = type; s.dataset.answer = el.textContent.trim();
+        s.textContent = ph(type);
+        el.parentNode.replaceChild(s, el);
+        slots.push(s);
       });
     }
-  }
 
-  function activate(){
-    if(built){                                // OFF → 通常表示へ
-      built = false; toggle.setAttribute('aria-pressed','false'); toggle.textContent = '▶ パズルで組み立てる';
-      bone.innerHTML = originalHTML; if(host && host.parentNode) host.parentNode.removeChild(host); host = null; return;
+    function emptySlots(){ return slots.filter(function(s){ return !s.dataset.fill; }); }
+    function findUsedChip(txt){ if(!tray) return null; var cs = tray.querySelectorAll('.kp-chip.used'); for(var i=0;i<cs.length;i++){ if(cs[i].dataset.text === txt) return cs[i]; } return null; }
+
+    function fillSlot(s, text){
+      s.dataset.fill = text; s.classList.add('filled'); s.classList.remove('ok','ng');
+      clearNode(s); s.appendChild(document.createTextNode(text));
+      var x = document.createElement('span'); x.className = 'kx'; x.textContent = '✕'; s.appendChild(x);
     }
-    built = true; toggle.setAttribute('aria-pressed','true'); toggle.textContent = '✕ 通常表示に戻す';
-    host = document.createElement('div'); host.className = 'kp-host'; skeleton.appendChild(host);
-    tier = 1; render();
+    function onSlot(s){
+      if(s.dataset.fill){                       // 入っていれば外す（チップを戻す）
+        var chip = findUsedChip(s.dataset.fill); if(chip) chip.classList.remove('used');
+        delete s.dataset.fill; s.classList.remove('filled','ok','ng'); s.textContent = ph(s.dataset.type); return;
+      }
+      if(selected) selected.classList.remove('sel');
+      selected = s; s.classList.add('sel');
+    }
+    function onChip(c){
+      if(c.classList.contains('used')) return;
+      var target = selected || emptySlots()[0]; if(!target) return;
+      fillSlot(target, c.dataset.text); c.classList.add('used');
+      if(selected){ selected.classList.remove('sel'); selected = null; }
+    }
+
+    function buildTray(){
+      var pool = slots.map(function(s){ return { text:s.dataset.answer, type:s.dataset.type }; });
+      (bone.dataset.kpDecoys || '').split('|').forEach(function(d){ d = d.trim(); if(d) pool.push({ text:d, type:isConclusion(d) ? 'u' : 'iss' }); });
+      shuffle(pool);
+      tray = document.createElement('div'); tray.className = 'kp-tray';
+      pool.forEach(function(p){
+        var c = document.createElement('button'); c.type = 'button';
+        c.className = 'kp-chip t-' + p.type; c.textContent = p.text; c.dataset.text = p.text;
+        tray.appendChild(c);
+      });
+      return tray;
+    }
+
+    function doGrade(){
+      if(!scoreBox) return;
+      each(bone.querySelectorAll('.kslot-fix'), function(n){ n.parentNode.removeChild(n); });
+      var totW = 0, gotW = 0, ok = 0, missIss = 0;
+      slots.forEach(function(s){
+        var w = s.dataset.type === 'iss' ? 2 : 1; totW += w;   // 論点は結論の2倍重み
+        s.classList.remove('ok','ng');
+        if((s.dataset.fill || '') === s.dataset.answer){ s.classList.add('ok'); gotW += w; ok++; }
+        else {
+          s.classList.add('ng'); if(s.dataset.type === 'iss') missIss++;
+          var fx = document.createElement('span'); fx.className = 'kslot-fix'; fx.textContent = '正: ' + s.dataset.answer;
+          s.insertAdjacentElement('afterend', fx);
+        }
+      });
+      var pct = totW ? Math.round(gotW / totW * 100) : 0;
+      var msg = pct >= 90 ? 'ほぼ完成。あとは表現を磨くだけ。'
+              : pct >= 70 ? '骨格はOK。赤の箇所（特に論点）を周回で詰めよう。'
+              : pct >= 40 ? '論点抽出に穴あり。落とした論点を最優先で復習。'
+              : 'まず7手ナビへ戻り、論点の拾い方から立て直そう。';
+      if(missIss) msg += '（落とした論点 ' + missIss + ' 件＝答案では致命傷になりやすい）';
+      clearNode(scoreBox); scoreBox.style.display = 'block';
+      var head = document.createElement('div'); head.innerHTML = '構成完成度 <span class="pct">' + pct + '%</span>　（' + ok + '/' + slots.length + ' 箇所）';
+      var meter = document.createElement('div'); meter.className = 'kp-meter';
+      var fill = document.createElement('div'); fill.className = 'kp-meter-fill'; meter.appendChild(fill);
+      var m = document.createElement('div'); m.className = 'kp-msg'; m.textContent = msg;
+      scoreBox.appendChild(head); scoreBox.appendChild(meter); scoreBox.appendChild(m);
+      raf(function(){ fill.style.width = pct + '%'; });
+    }
+
+    function buildModel(){
+      modelEl = document.createElement('div'); modelEl.className = 'kp-model'; modelEl.style.display = 'none';
+      var h = document.createElement('div'); h.className = 'kp-model-h'; h.textContent = '◆ 完成した骨子（モデル）';
+      var body = document.createElement('div'); body.innerHTML = originalHTML;
+      modelEl.appendChild(h); modelEl.appendChild(body);
+      return modelEl;
+    }
+    function toggleModel(btn){
+      if(!modelEl) return;
+      var show = modelEl.style.display === 'none';
+      modelEl.style.display = show ? 'block' : 'none';
+      btn.textContent = show ? '🙈 答えを隠す' : '📖 答えを見る';
+    }
+
+    function btn(cls, kp, label){
+      var b = document.createElement('button'); b.type = 'button'; b.className = cls; b.setAttribute('data-kp', kp); b.textContent = label; return b;
+    }
+
+    function renderModes(){
+      var modes = document.createElement('div'); modes.className = 'kp-modes';
+      var b1 = btn(tier === 1 ? 'on' : '', 'm1', '① チップ配置');
+      var b2 = btn(tier === 2 ? 'on' : '', 'm2', '② 自由記述');
+      modes.appendChild(b1); modes.appendChild(b2); topbar.appendChild(modes);
+    }
+
+    function render(){
+      clearNode(topbar); clearNode(host); renderModes();
+      if(tier === 1){
+        buildSlots();
+        host.appendChild(buildTray());
+        var actions = document.createElement('div'); actions.className = 'kp-actions';
+        actions.appendChild(btn('kp-grade', 'grade', '答え合わせ'));
+        actions.appendChild(btn('kp-reset', 'reset', 'やり直す'));
+        actions.appendChild(btn('kp-reset kp-reveal', 'reveal', '📖 答えを見る'));
+        host.appendChild(actions);
+        scoreBox = document.createElement('div'); scoreBox.className = 'kp-score'; scoreBox.style.display = 'none'; host.appendChild(scoreBox);
+        host.appendChild(buildModel());
+      } else {
+        buildSlots();   // 足場（第1/第2…）を見せ、論点・結論は伏せたまま
+        var ta = document.createElement('textarea'); ta.className = 'kp-free';
+        ta.placeholder = '上の足場（第1／第2…）を見ながら、各論点名・規範・結論を自分の言葉で書き出す。書き切ってから答え合わせ。';
+        host.appendChild(ta);
+        var actions2 = document.createElement('div'); actions2.className = 'kp-actions';
+        actions2.appendChild(btn('kp-reset kp-reveal', 'reveal', '📖 答えを見る'));
+        actions2.appendChild(btn('kp-grade', 'collate', '減点ポイントで照合'));
+        host.appendChild(actions2);
+        var note = document.createElement('div'); note.className = 'kp-msg'; note.style.marginTop = '8px';
+        note.textContent = '自由記述は下の「採点チェック」（減点ポイント）で自己採点する。AI採点なしで完結。';
+        host.appendChild(note);
+        host.appendChild(buildModel());
+      }
+    }
+
+    // クリックは document 委譲（iframe 内でも堅牢）
+    document.addEventListener('click', function(e){
+      var t = e.target; if(!t || !t.closest) return;
+      var chip = t.closest('.kp-chip'); if(chip && host && host.contains(chip)){ onChip(chip); return; }
+      var slot = t.closest('.kslot'); if(slot && bone.contains(slot)){ onSlot(slot); return; }
+      var b = t.closest('[data-kp]'); if(!b || !((host && host.contains(b)) || (topbar && topbar.contains(b)))) return;
+      var act = b.getAttribute('data-kp');
+      if(act === 'm1'){ tier = 1; render(); }
+      else if(act === 'm2'){ tier = 2; render(); }
+      else if(act === 'grade'){ doGrade(); }
+      else if(act === 'reset'){ render(); }
+      else if(act === 'reveal'){ toggleModel(b); }
+      else if(act === 'collate'){ if(modelEl){ modelEl.style.display = 'block'; } var c = document.querySelector('.collate'); if(c && c.scrollIntoView) c.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    });
+
+    // 既定でパズルを起動（答えは隠す）
+    topbar = document.createElement('div'); topbar.className = 'kp-top'; bone.parentNode.insertBefore(topbar, bone);
+    host = document.createElement('div'); host.className = 'kp-host'; bone.parentNode.insertBefore(host, bone.nextSibling);
+    render();
   }
-  toggle.addEventListener('click', activate);
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 })();
 </script>
 </body>
