@@ -25,7 +25,7 @@ NEW_PEEK = ('details.peek{margin:13px 0 4px; border-radius:11px; background:#fff
 NEW_SUMMARY = ('details.peek > summary{cursor:pointer; list-style:none; padding:11px 15px; '
                'font-family:var(--f-soft); font-weight:800; font-size:.9rem; color:#5a4400; '
                'display:flex; align-items:center; gap:8px; '
-               'background:linear-gradient(135deg,#fff1c9,#ffe6a0); border-radius:10px}')
+               'background:linear-gradient(135deg,#fcf6a2,#f4ec55); border-radius:10px}')
 NEW_HINT = ('details.peek > summary .hint{margin-left:auto; font-weight:600; '
             'font-size:.72rem; color:#7a5810}')
 
