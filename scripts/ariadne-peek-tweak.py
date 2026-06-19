@@ -30,19 +30,30 @@ NEW_HINT = ('details.peek > summary .hint{margin-left:auto; font-weight:600; '
             'font-size:.72rem; color:#7a5810}')
 
 # ① peek を各手の末尾へ移す実行時 JS
+#    ただし末尾化は「想起型（自分で答え/挙げ・立ち止まる石）」のみ。
+#    「なぜ〜／理由」型（順序・前提のオリエン）は元位置（.do 直後＝冒頭）に残す。
 MOVE_JS = (
-    f'\n/* ==== {MARKER} ==== peek（自分で答えてから開く）を各手の末尾(○×の後)へ移動 */\n'
-    '(function(){function mv(){var s=document.querySelectorAll(".step");'
+    f'\n/* ==== {MARKER} ==== peek を末尾へ（想起型「自分で答え/挙げ・立ち止まる石」のみ。'
+    '前提・理由「なぜ〜」型は元位置=冒頭のまま） */\n'
+    '(function(){var RE=/自分で(答え|挙げ)|立ち止まる石/;function mv(){var s=document.querySelectorAll(".step");'
     'for(var i=0;i<s.length;i++){var p=s[i].querySelectorAll(":scope > details.peek");'
-    'for(var j=0;j<p.length;j++){s[i].appendChild(p[j]);}}}'
+    'for(var j=0;j<p.length;j++){var sm=p[j].querySelector("summary");'
+    'if(sm&&RE.test(sm.textContent||""))s[i].appendChild(p[j]);}}}'
     'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mv);else mv();})();\n'
 )
+# 既注入ブロックの差し替え用（コメント開始〜IIFE終端 })();）
+OLD_BLOCK_RE = re.compile(r'\n?/\* ==== ' + MARKER + r' ====.*?\}\)\(\);\n?', re.S)
 
 
 def apply_to(path):
     html = path.read_text(encoding="utf-8")
     if MARKER in html:
-        return "skip(適用済)"
+        # 既適用 → 移動JSブロックだけ最新（想起型のみ末尾）へ差し替え（CSSは触らない）
+        new = OLD_BLOCK_RE.sub(lambda m: MOVE_JS, html, count=1)
+        if new != html:
+            path.write_text(new, encoding="utf-8")
+            return "updated(想起型のみ末尾)"
+        return "skip(変化なし)"
     if 'details.peek' not in html or '</script>' not in html:
         return "skip(構造不一致)"
     # ② 配色（基底ルールを置換）
