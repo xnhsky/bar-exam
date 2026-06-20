@@ -41,8 +41,10 @@ SECTION_KEYS = [
 ]
 # 保持する inline / 構造タグ（その他のラッパ div/span はアンラップして中身を残す）
 KEEP_TAGS = {"p", "ul", "ol", "li", "b", "strong", "em", "i", "u", "br", "code", "span", "small", "sup", "sub",
-             "table", "thead", "tbody", "tr", "th", "td", "caption"}
+             "table", "thead", "tbody", "tr", "th", "td", "caption", "blockquote"}
 TABLE_ATTR = {"colspan", "rowspan"}
+# 中身だけ取り出すラッパ（外側タグを捨てる）。ol/ul/p/table 等の意味タグは外側ごと残す。
+WRAPPER_TAGS = {"div", "section", "article", "aside", "main", "header", "footer"}
 
 
 def classify(heading: str) -> str | None:
@@ -98,15 +100,19 @@ def clean_html(node: Tag) -> str:
     """ラッパ div を外し、保持タグだけ残した内側 HTML 文字列を返す。"""
     if not isinstance(node, Tag):
         return str(node).strip()
-    # コピーを破壊的に整形：保持タグ以外はアンラップ、保持タグは属性を落とす
-    # （ただし表の colspan/rowspan は残してセル結合を保つ）。canonical CSS に無い
-    # クラスを無効化し、58 種の独自スタイルへの依存を断つ。
+    # 内部を整形：保持タグ以外はアンラップ、保持タグは属性を落とす
+    # （ただし表の colspan/rowspan は残す）。canonical CSS に無いクラスを無効化。
     for tag in node.find_all(True):
         if tag.name not in KEEP_TAGS:
             tag.unwrap()
         else:
             tag.attrs = {k: v for k, v in tag.attrs.items() if k in TABLE_ATTR}
-    return node.decode_contents().strip()
+    # ラッパ（div 等）は中身だけ。ol/ul/p/table/blockquote 等の意味タグは外側ごと残す
+    # （これを誤って unwrap すると <ol> が外れて <li> が裸になり箇条書きが崩れる）。
+    if node.name in WRAPPER_TAGS:
+        return node.decode_contents().strip()
+    node.attrs = {k: v for k, v in node.attrs.items() if k in TABLE_ATTR}
+    return str(node).strip()
 
 
 def collect_section_nodes(card, flat: bool):
