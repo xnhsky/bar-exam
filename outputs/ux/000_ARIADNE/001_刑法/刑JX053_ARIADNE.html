@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>刑JX053 解法ナビ｜委託物横領（二項詐欺・盗品の横領）— ARIADNE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;600;700;800&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Noto+Serif+JP:wght@400;500;700&family=Source+Code+Pro:wght@500;600;700&family=M+PLUS+1p:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ARIADNE v0.3 ― JX 解法ナビ＋周回 正典（試作：刑JX001）｜誌面風
+   フレーム＋機能色＝TX v11 GENESIS（V3 Twilight Violet・刑TX327）を見本に統一
+   バイオレット #8E6E9A ＋ ダスティティール #79A6A6 ＋ 暖クリーム ＋ 緑（recall）
+   フォントは TX 12 役割と同ファミリー（Shippori Mincho B1 / Zen Kaku Gothic Antique 等） */
+:root{
+  /* ── 共通フレーム（難易度で変えない部分） ── */
+  --a-mid:#79a6a6;      /* ダスティティール（TX --mid・副アクセント／罫） */
+  --paper:#ffffff; --card:#ffffff;   /* 誌面カード＝純白（TX section paper） */
+  --sheet:#fbf7f0;                    /* 誌面シート＝暖オフホワイト（大背景と区分け） */
+  --ink:#2b2330; --ink-soft:#6e6370; --ink-faint:#a99da8;
+  --line:rgba(70,58,80,.12); --line-2:rgba(70,58,80,.18);
+  /* ── 機能色（意味で固定・難易度で変えない｜soft=塗り / line=罫・蛍光 / deep=文字） ── */
+  --shu:#c5543c;  --shu-soft:#fbeae4; --shu-line:#f0b3a2; --shu-deep:#a8412b;  /* 罠・注意（コーラル） */
+  --ai:#5e8e91;   --ai-soft:#e7f0ef;  --ai-line:#bcd8d6;  --ai-deep:#3e6363;   /* 規範（ティール＝TX --mid 系） */
+  --gr:#5fa565;   --gr-soft:#eef5e8;  --gr-line:#c8ddb4;  --gr-deep:#4f7d2a;   /* 効く事実・OK（グリーン＝TX recall-correct） */
+  --gd:#a17a1c;   --gd-soft:#fbf3df;  --gd-line:#ecd99a;  --gd-deep:#856212;   /* ヒント・ゴール（ゴールド） */
+  --hl-gold:#f7ebbe; --hl-coral:#f2cfc8; --hl-green:#d6e8bf; --hl-blue:#bfe0e0; /* 蛍光ペン下線（淡） */
+  /* ── 役割別フォント（TX 327 と同ファミリー・難易度で変えない） ── */
+  --f-disp:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; /* 大見出し・問題文・模範・規範＝法律文 */
+  --f-body:"Zen Kaku Gothic Antique","Hiragino Sans","Yu Gothic Medium","Noto Sans JP",sans-serif; /* 本文・解説・UI */
+  --f-soft:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; /* ナビ・ラベル・小見出し */
+  --f-code:"Source Code Pro","Consolas","Menlo",monospace; /* 英語コードネーム・キッカー */
+  --f-mono:"Source Code Pro","Consolas",monospace;         /* 骨子の構造 */
+  --maxw:1040px;
+
+  /* ============================================================
+     ★ ベースカラー＝難易度別に染色選定（TX V3 P1/P2/P3 と同方針）
+        フレーム（--a-base/head/head-lt/foot）＋ナビ・解法 chrome（--li 系）が難易度で連動。
+        切替は「▼ ACTIVE」直下の2行（＋ラベル）を下のカタログから差し替えるだけ。
+        ── カタログ（3案・常時コメント） ─────────────────────
+        EASY 易  基礎・典型（1周で取りたい）   ローズ系（TX P1 Sweet Berry/Rose）:
+          --a-base:#fbf0f1; --a-head:#c06a86; --a-head-lt:#d690a6; --a-foot:#7e3f57;
+          --li:#c06a86; --li-soft:#f4dde4; --li-line:#e6b3c4; --li-deep:#8a4a62;
+        STD  標準 中堅・応用                  クリスタルブルー系（TX P2 Crystal Blue）:
+          --a-base:#edf3f6; --a-head:#4d83a3; --a-head-lt:#6ba0bf; --a-foot:#2e5266;
+          --li:#4d83a3; --li-soft:#dde9f1; --li-line:#aecadd; --li-deep:#335066;
+        HARD 難  重論点・罠多・直前期向け       バイオレット系（TX P3 Twilight Violet）:
+          --a-base:#f7f1e9; --a-head:#8e6e9a; --a-head-lt:#a78ab0; --a-foot:#463a50;
+          --li:#8e6e9a; --li-soft:#e6dae8; --li-line:#c7aed1; --li-deep:#534260;
+     ============================================================ */
+  /* ▼ ACTIVE = HARD（テンプレ既定。問題の難易度で EASY/STD/HARD を選定する） */
+  --a-base:#f7f1e9; --a-head:#8e6e9a; --a-head-lt:#a78ab0; --a-foot:#463a50;
+  --li:#8e6e9a; --li-soft:#e6dae8; --li-line:#c7aed1; --li-deep:#534260;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%; scroll-behavior:smooth}
+body{margin:0; background:var(--a-base); color:var(--ink); font-family:var(--f-body); font-weight:500;
+  font-size:16px; line-height:1.9; letter-spacing:.04em; font-feature-settings:"palt" 1; overflow-wrap:anywhere;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility;
+  background-image:radial-gradient(rgba(142,110,154,.05) 1px,transparent 1px); background-size:22px 22px;}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 12px 80px}
+.sheet{background:var(--sheet); border:1px solid var(--line-2); border-radius:20px; padding:12px 14px 26px; margin-bottom:6px; box-shadow:0 5px 18px rgba(74,53,86,.10)}
+.sheet > .sec-h:first-child{margin-top:12px}
+p{margin:.55em 0}
+
+/* 蛍光ペン下線（マイルドライナーの“引く”質感） */
+.emb{font-weight:700; padding:0 .1em; background:linear-gradient(transparent 56%,var(--hl-gold) 56%,var(--hl-gold) 94%,transparent 94%)}
+.emb.c{background:linear-gradient(transparent 56%,var(--hl-coral) 56%,var(--hl-coral) 94%,transparent 94%)}
+.emb.g{background:linear-gradient(transparent 56%,var(--hl-green) 56%,var(--hl-green) 94%,transparent 94%)}
+.emb.b{background:linear-gradient(transparent 56%,var(--hl-blue) 56%,var(--hl-blue) 94%,transparent 94%)}
+
+/* ===== マストヘッド（ATHENA プラム） ===== */
+.masthead{background:linear-gradient(135deg,var(--a-head-lt) 0%,var(--a-head) 42%,var(--a-foot) 100%); color:#fff;
+  border-radius:0 0 18px 18px; padding:22px 24px 0; margin:0 -16px 24px; box-shadow:0 6px 20px rgba(70,58,80,.28)}
+.mast-row{display:flex; align-items:center; gap:16px; padding-bottom:18px}
+.seal{width:60px;height:60px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-disp); font-weight:800; font-size:30px; color:#fff;
+  background:linear-gradient(150deg,var(--a-head-lt),var(--a-head)); box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 8px rgba(0,0,0,.2)}
+.mast-txt{flex:1}
+.kicker{font-family:var(--f-code); font-size:.72rem; letter-spacing:.22em; color:rgba(255,255,255,.8); text-transform:uppercase}
+.masthead h1{font-family:var(--f-disp); font-weight:800; font-size:1.5rem; line-height:1.38; margin:3px 0 5px; color:#fff; letter-spacing:.04em; text-shadow:0 2px 4px rgba(0,0,0,.18)}
+.mast-type{font-size:.82rem; color:rgba(255,255,255,.86)}
+.mast-type b{font-family:var(--f-code); letter-spacing:.06em; background:rgba(255,255,255,.16); padding:1px 9px; border-radius:7px}
+.rainbow{height:5px; margin:0 -24px; border-radius:0; background:linear-gradient(90deg,var(--shu-line),var(--gd-line) 30%,var(--gr-line) 55%,var(--ai-line) 78%,var(--li-line))}
+
+/* ===== 誌面 共通：バッジ／タグ ===== */
+.badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--f-soft); font-weight:700; letter-spacing:.04em; font-size:.7rem;
+  color:#fff; border-radius:999px; padding:3px 12px; letter-spacing:.03em; line-height:1.6}
+.badge.b-norm{background:linear-gradient(135deg,var(--ai),var(--ai-deep))}
+.badge.b-fact{background:linear-gradient(135deg,var(--gr),var(--gr-deep))}
+.badge.b-trap{background:linear-gradient(135deg,var(--shu),var(--shu-deep))}
+.badge.b-tip,.badge.b-goal{background:linear-gradient(135deg,var(--gd),var(--gd-deep))}
+.badge.b-nav{background:linear-gradient(135deg,var(--li),var(--li-deep))}
+
+/* ===== 色分けボックス（重要ポイント・誌面） ===== */
+.box{border-radius:14px; padding:14px 17px; margin:14px 0; border:1px solid; box-shadow:0 2px 8px rgba(80,60,80,.05)}
+.box > .badge{margin-bottom:8px}
+.box p{margin:.3em 0; text-indent:1em} .box p.flush{text-indent:0}
+.box-norm{background:var(--ai-soft); border-color:var(--ai-line)} .box-norm p{font-family:var(--f-disp)}
+.box-fact{background:var(--gr-soft); border-color:var(--gr-line)}
+.box-trap{background:var(--shu-soft); border-color:var(--shu-line)}
+.box-tip{background:var(--gd-soft); border-color:var(--gd-line)}
+
+/* ===== セクション見出し（誌面キッカー） ===== */
+.sec-h{margin:38px 0 14px}
+.sec-h .kick{font-family:var(--f-code); font-size:.72rem; letter-spacing:.16em; color:var(--li-deep); display:flex; align-items:center; gap:8px; text-transform:uppercase}
+.sec-h .kick::before{content:""; width:22px; height:3px; border-radius:3px; background:var(--li-line)}
+.sec-h .ttl{font-family:var(--f-disp); font-weight:800; font-size:1.34rem; color:var(--a-head); margin:5px 0 0; display:flex; align-items:center; gap:11px}
+.sec-h .ttl .ico{font-size:1.1rem; flex:none; width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center;
+  background:linear-gradient(150deg,#fff,var(--li-soft)); border:1px solid var(--li-line); border-radius:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 1px 3px rgba(80,60,80,.08)}
+.lead{color:var(--ink-soft); font-size:.92rem; margin:0 0 16px; text-indent:1em}
+.lead b{color:var(--ink)}
+
+/* ===== 問題文 ===== */
+.problem{background:var(--card); border:1px solid var(--line-2); border-radius:16px; padding:8px 22px 18px; box-shadow:0 3px 12px rgba(80,60,80,.07); position:relative; overflow:hidden}
+.problem::before{content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:linear-gradient(180deg,var(--shu-line),var(--a-mid))}
+.case-kick{font-family:var(--f-code); font-size:.72rem; letter-spacing:.16em; color:var(--shu-deep); margin:14px 0 6px; display:flex; align-items:center; gap:8px}
+.case-kick::before{content:"CASE"; font-weight:700}
+.case-kick i{font-style:normal; color:var(--ink-faint)}
+.problem .pq{font-family:var(--f-disp); font-size:1.02rem; line-height:2.1; margin:0; text-indent:1em; color:#322b34}
+.problem .pq b{font-family:var(--f-disp)}
+.problem .src{text-align:right; color:var(--ink-faint); font-size:.8rem; margin-top:8px; text-indent:0}
+.cast{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 0}
+.cast .c{font-size:.8rem; background:var(--li-soft); border:1px solid var(--li-line); border-radius:20px; padding:4px 13px; color:var(--li-deep); font-weight:700}
+.cast .c.out{background:#f0ecec; border-color:var(--line-2); color:#8a8086; text-decoration:line-through}
+
+/* ===== 講師のひとこと（誌面プルクオート） ===== */
+.pull{background:var(--li-soft); border-left:5px solid var(--li-line); border-radius:14px; padding:16px 20px 16px 22px; margin:16px 0 0; position:relative; overflow:hidden}
+.pull::before{content:"\201C"; position:absolute; right:14px; top:-12px; font-family:var(--f-disp); font-weight:800; font-size:96px; color:var(--li-line); opacity:.4; line-height:1}
+.pull .pq-tag{display:inline-flex; align-items:center; gap:6px; font-family:var(--f-body); font-weight:800; font-size:.72rem; color:var(--li-deep); margin-bottom:6px}
+.pull p{margin:.2em 0; font-size:.93rem; position:relative; z-index:1}
+
+/* ===== 解法ナビ：ステッパー ===== */
+.steps-rail{display:flex; flex-wrap:wrap; gap:7px; margin:0 0 18px}
+.steps-rail span{font-family:var(--f-soft); font-size:.76rem; background:var(--card); border:1px solid var(--li-line);
+  color:var(--li-deep); border-radius:9px; padding:4px 10px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(80,60,80,.06)}
+.steps-rail span b{font-family:var(--f-code); font-weight:700; letter-spacing:.04em}
+.steps-rail span.goal{background:var(--gd-soft); border-color:var(--gd-line); color:var(--gd-deep)}
+
+/* ===== 手カード ===== */
+.step{background:var(--card); border:1px solid var(--line-2); border-radius:15px; padding:16px 18px 15px; margin:0 0 16px; box-shadow:0 3px 10px rgba(80,60,80,.06); position:relative; overflow:hidden; transition:box-shadow .18s ease, transform .18s ease}
+.step:hover{box-shadow:0 8px 22px rgba(80,60,80,.13); transform:translateY(-2px)}
+.step::before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:linear-gradient(180deg,var(--li-line),var(--li))}
+.step > .hd{display:flex; align-items:stretch; gap:13px; margin-bottom:8px}
+.step .num{flex:0 0 auto; min-width:68px; text-align:center; background:linear-gradient(150deg,#fff,var(--li-soft));
+  border:1px solid var(--li-line); border-radius:11px; padding:8px 6px; display:flex; flex-direction:column; justify-content:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 1px 3px rgba(80,60,80,.08)}
+.step .num .code{font-family:var(--f-code); font-weight:700; font-size:1.06rem; letter-spacing:.04em; color:var(--li-deep); line-height:1}
+.step .num .n{font-family:var(--f-body); font-size:.66rem; font-weight:700; color:var(--ink-soft); margin-top:3px}
+.step .ttl{font-family:var(--f-disp); font-weight:700; font-size:1.1rem; align-self:center; line-height:1.45; color:var(--a-head)}
+.step .do{color:var(--ink); font-size:.93rem; margin:4px 0 2px; text-indent:1em}
+.step .do small{color:var(--ink-soft); font-size:.84em}
+
+/* ▶ 能動想起 */
+details.peek{margin:13px 0 4px; border-radius:11px; background:#fffdf6; border:1.5px solid var(--gd-line); box-shadow:0 2px 7px rgba(200,160,40,.10)}
+details.peek > summary{cursor:pointer; list-style:none; padding:11px 15px; font-family:var(--f-soft); font-weight:800; font-size:.9rem; color:#5a4400; display:flex; align-items:center; gap:8px; background:linear-gradient(135deg,#f9ee80,#ecdf38); border-radius:10px}
+details.peek > summary::-webkit-details-marker{display:none}
+details.peek > summary::before{content:"▶"; font-size:.72rem}
+details.peek[open] > summary::before{content:"▼"}
+details.peek > summary .hint{margin-left:auto; font-weight:600; font-size:.72rem; color:#7a5810}
+details.peek[open] > summary .hint{display:none}
+details.peek .body{padding:2px 16px 13px}
+details.peek .body .pt{margin:.45em 0; padding-left:1.3em; position:relative; font-size:.92rem; text-indent:0}
+details.peek .body .pt::before{content:"▸"; position:absolute; left:.2em; color:var(--li); font-weight:700}
+details.peek .body small{color:var(--ink-soft); font-size:.85em}
+.tag-issue{display:inline-block; font-family:var(--f-body); background:var(--shu-soft); color:var(--shu-deep); border:1px solid var(--shu-line);
+  font-size:.74rem; font-weight:800; border-radius:7px; padding:1px 8px; margin:0 2px}
+
+/* ===== 周回ドリル ○×（自己完結の例題・arena＝復習プール対象） ===== */
+.self-check-quiz{background:linear-gradient(180deg,#fff,var(--paper)); border:1.5px solid var(--li-line); border-radius:13px; padding:16px 16px 14px; margin:15px 0; position:relative; box-shadow:0 2px 8px rgba(80,60,80,.06); transition:box-shadow .18s ease}
+.self-check-quiz:hover{box-shadow:0 5px 16px rgba(80,60,80,.11)}
+.self-check-quiz::before{content:"周回ドリル ○×"; position:absolute; top:-10px; left:14px; font-family:var(--f-soft);
+  background:linear-gradient(135deg,var(--li),var(--li-deep)); color:#fff; font-size:.66rem; font-weight:800; border-radius:7px; padding:2px 10px; letter-spacing:.03em}
+.self-check-quiz.ex::before{content:"周回ドリル ○×（例題）"}
+.quiz-question{font-family:var(--f-body); font-size:.95rem; font-weight:500; margin:6px 0 13px; text-indent:1em; color:#34303a}
+.quiz-btns{display:flex; gap:10px; justify-content:flex-start; align-items:center}
+.quiz-btn{flex:0 0 auto; width:48px; height:40px; font-family:var(--f-disp); font-size:1.12rem; font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; line-height:1;
+  border-radius:11px; border:1.5px solid var(--li-line); background:#fff; color:var(--li-deep);
+  box-shadow:0 1px 3px rgba(80,60,80,.09); transition:transform .1s ease, background .14s, box-shadow .14s, border-color .14s}
+.quiz-btn:hover:not(:disabled){background:var(--li-soft); border-color:var(--li); transform:translateY(-1px); box-shadow:0 4px 9px rgba(80,60,80,.15)}
+.quiz-btn:active:not(:disabled){transform:translateY(0); box-shadow:0 1px 3px rgba(80,60,80,.12)}
+.quiz-btn:disabled{cursor:default; box-shadow:none}
+.quiz-btn.correct-mark{background:var(--gr-soft); border-color:var(--gr); color:var(--gr-deep)}
+.quiz-btn.incorrect-mark{background:var(--shu-soft); border-color:var(--shu-line); color:var(--shu-deep)}
+.quiz-btn.user-picked{box-shadow:0 0 0 3px var(--li-deep)}
+.quiz-result{display:inline-flex; align-items:center; font-family:var(--f-body); font-weight:800; font-size:.82rem; margin:11px 0 0; padding:3px 11px; border-radius:999px}
+.quiz-result.quiz-result-correct{color:var(--gr-deep); background:var(--gr-soft)}
+.quiz-result.quiz-result-incorrect{color:var(--shu-deep); background:var(--shu-soft)}
+.quiz-answer{margin:9px 0 0; font-size:.89rem; line-height:1.84; padding:11px 14px 11px 15px; border-radius:11px; background:#f6f1ec; border-left:3px solid var(--li-line); text-indent:0}
+.quiz-answer.quiz-answer-correct{background:var(--gr-soft); border-left-color:var(--gr)}
+.quiz-answer.quiz-answer-incorrect{background:var(--shu-soft); border-left-color:var(--shu)}
+.quiz-answer b{color:var(--shu-deep)}
+.quiz-answer b:first-child{display:inline-flex; align-items:center; justify-content:center; width:1.5em; height:1.5em; margin-right:.45em; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(80,60,80,.12); font-family:var(--f-disp)}
+
+/* ===== 骨子（ゴール） ===== */
+.skeleton{background:linear-gradient(180deg,var(--gd-soft),#fff); border:1px solid var(--gd-line); border-top:5px solid var(--gd-line);
+  border-radius:15px; padding:16px 20px; box-shadow:0 4px 14px rgba(190,160,40,.12)}
+.bone{font-family:var(--f-mono); font-size:.86rem; line-height:2.05; white-space:pre-wrap;
+  background:var(--card); border:1px dashed var(--gd-line); border-radius:11px; padding:14px 16px; color:#3a3540; margin-top:10px}
+.bone .b1{font-family:var(--f-disp); color:var(--a-head); font-weight:700}
+.bone .iss{color:var(--shu-deep); font-weight:700}
+
+/* ===== 照合・自己採点 ===== */
+.collate{background:var(--card); border:1px solid var(--line-2); border-radius:15px; padding:16px 19px; box-shadow:0 3px 10px rgba(80,60,80,.06)}
+.rubric{list-style:none; padding:0; margin:11px 0 0}
+.rubric li{padding:8px 0 8px 30px; position:relative; border-bottom:1px dashed var(--line); font-size:.9rem; text-indent:0}
+.rubric li::before{content:"☐"; position:absolute; left:4px; top:5px; font-size:1.1rem; color:var(--li-deep)}
+.rubric li b{color:var(--shu-deep)}
+.rubric li .w{float:right; font-family:var(--f-code); font-size:.74rem; color:var(--shu-deep); letter-spacing:.03em}
+
+/* ===== 模範答案 reveal ===== */
+details.reveal-answer{margin:14px 0 0; border:1px solid var(--line-2); border-radius:15px; background:var(--card); overflow:hidden; box-shadow:0 3px 10px rgba(80,60,80,.06)}
+details.reveal-answer > summary{cursor:pointer; list-style:none; padding:14px 18px; font-family:var(--f-soft); font-weight:700; letter-spacing:.03em; background:linear-gradient(135deg,var(--a-head),var(--a-foot)); color:#fff; display:flex; align-items:center; gap:9px}
+details.reveal-answer > summary::-webkit-details-marker{display:none}
+details.reveal-answer > summary::before{content:"✋"}
+.model-answer{padding:8px 22px 18px; font-family:var(--f-disp); font-size:.96rem; line-height:2.1}
+.model-answer .ma-h{font-family:var(--f-disp); font-weight:800; color:#fff; margin:1.3em 0 .4em; padding:5px 13px; background:linear-gradient(135deg,var(--a-head),var(--a-foot)); border-radius:8px; text-indent:0; display:inline-block; letter-spacing:.04em}
+.model-answer p{text-indent:1em}
+.model-answer u{text-decoration-color:var(--shu-line); text-decoration-thickness:2px; text-underline-offset:3px}
+
+/* ===== 深掘り（deep） ===== */
+details#deep-dive{margin:28px 0 0; border:1px solid var(--line-2); border-radius:15px; background:#f4efe8}
+details#deep-dive > summary{cursor:pointer; list-style:none; padding:14px 18px; font-family:var(--f-soft); font-weight:700; letter-spacing:.02em; color:var(--a-head); display:flex; align-items:center; gap:9px; font-size:.96rem}
+details#deep-dive > summary::-webkit-details-marker{display:none}
+details#deep-dive > summary::before{content:"📚"}
+details#deep-dive > summary small{font-weight:500; font-size:.76rem; color:var(--ink-faint); margin-left:auto; text-align:right}
+.deep-body{padding:6px 18px 20px}
+.deep-body h4{font-family:var(--f-soft); color:var(--a-head); margin:22px 0 6px; font-size:.98rem; font-weight:700; display:flex; align-items:center; gap:8px}
+.cs{font-size:.88rem; color:var(--ink); margin:7px 0; padding-left:1.3em; position:relative; text-indent:0}
+.cs::before{content:"§"; position:absolute; left:0; color:var(--ai-deep); font-weight:700}
+.cs b{color:var(--shu-deep)}
+.deep-note{font-size:.83rem; color:var(--ink-soft); background:var(--card); border:1px dashed var(--line-2); border-radius:10px; padding:11px 14px; margin-top:16px; text-indent:1em}
+.xref{color:var(--a-head); font-weight:700}
+.foot{margin:34px -16px 0; padding:24px; background:linear-gradient(135deg,var(--a-foot),#2b1f30); color:rgba(255,255,255,.78); border-radius:18px 18px 0 0; text-align:center; font-size:.78rem; line-height:1.85}
+.foot .rb{height:4px; margin:-24px -24px 16px; border-radius:0; background:linear-gradient(90deg,var(--shu-line),var(--gd-line) 30%,var(--gr-line) 55%,var(--ai-line) 78%,var(--li-line))}
+.foot b{color:#fff; font-family:var(--f-code); letter-spacing:.06em}
+
+@media (max-width:520px){
+  body{font-size:15px}
+  .step .num{min-width:58px} .step > .hd{gap:10px}
+  .masthead h1{font-size:1.3rem}
+}
+@media print{ details{display:block !important} details>summary{display:none} .deep-body,.model-answer,details.peek .body{display:block !important} body{background:#fff} }
+
+/* ==== KP-PUZZLE-BACKFILL (css) ==== */
+.self-check-quiz.recall::before{content:"周回ドリル 想起（書けたら○）"; background:var(--ai); color:#fff}
+.recall-reveal{font-family:var(--f-soft); font-weight:700; font-size:.86rem; cursor:pointer; border:1.5px solid var(--ai-line); background:#fff; color:var(--ai-deep); border-radius:9px; padding:7px 15px; margin:2px 0 2px}
+.recall-reveal:hover{background:var(--ai-soft)}
+.recall .recall-grade{display:none; gap:8px; margin-top:11px}
+.recall.revealed .recall-grade{display:flex}
+.recall .quiz-btn{min-width:96px; font-size:.86rem; font-family:var(--f-soft); font-weight:700}
+/* ===== 試験会場での下書き（問題文＋整理メモ） ===== */
+.drafting{background:var(--card); border:1px solid var(--line-2); border-radius:15px; padding:16px 18px 17px; box-shadow:0 3px 10px rgba(80,60,80,.06); margin-bottom:14px}
+.drafting .dh{font-family:var(--f-soft); font-weight:700; font-size:.94rem; color:var(--a-head); display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:0}
+.drafting .dh small{font-family:var(--f-soft); font-weight:500; font-size:.74rem; color:var(--ink-soft); margin-left:auto}
+.draft-problem{font-family:var(--f-disp); font-size:.9rem; line-height:1.95; color:#3a3540; background:var(--sheet); border:1px dashed var(--line-2); border-radius:11px; padding:12px 15px; text-indent:1em; margin:10px 0 13px}
+.draft-problem b{color:var(--shu-deep)}
+.draft-grid{display:grid; grid-template-columns:1fr 1fr; gap:11px}
+@media (max-width:560px){ .draft-grid{grid-template-columns:1fr} }
+.draft-card{border:1px solid var(--li-line); border-radius:12px; padding:12px 14px; background:#fff}
+.draft-card.span2{grid-column:1 / -1}
+.draft-card .ct{font-family:var(--f-soft); font-weight:700; font-size:.82rem; color:var(--li-deep); margin:0 0 8px; display:flex; align-items:center; gap:6px}
+.rel-map{font-family:var(--f-mono); font-size:.82rem; line-height:1.95; white-space:pre-wrap; color:#3a3540; margin:0}
+.rel-map .p{font-weight:700; color:var(--a-head)}
+.rel-map .ob{font-weight:700; color:var(--shu-deep)}
+.rel-map .out{color:var(--ink-soft)}
+.timeline{list-style:none; margin:0; padding:0; counter-reset:tl}
+.timeline li{position:relative; padding:3px 0 3px 27px; font-size:.84rem; line-height:1.7; border-left:2px solid var(--gd-line); margin-left:9px}
+.timeline li:last-child{border-left-color:transparent}
+.timeline li::before{counter-increment:tl; content:counter(tl); position:absolute; left:-11px; top:2px; width:20px; height:20px; border-radius:50%; background:var(--a-head); color:#fff; font-family:var(--f-code); font-size:.7rem; display:flex; align-items:center; justify-content:center}
+.facts{list-style:none; margin:0; padding:0}
+.facts li{font-size:.84rem; line-height:1.7; padding:5px 0; border-bottom:1px dashed var(--line)}
+.facts li:last-child{border-bottom:none}
+.facts .ph{font-weight:700; color:var(--shu-deep)}
+.facts .cue{color:var(--ink-soft)}
+/* ===== 答案構成パズル（Tier1 チップ配置／Tier2 自由記述）試作 ===== */
+.kp-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px 11px; margin:4px 0 2px}
+.kp-toggle{font-family:var(--f-soft); font-weight:700; font-size:.85rem; cursor:pointer; border:1.5px solid var(--gd-line); background:#fff; color:var(--a-head); border-radius:9px; padding:7px 13px; letter-spacing:.02em; transition:background .15s,box-shadow .15s}
+.kp-toggle:hover{box-shadow:0 2px 8px rgba(190,160,40,.18)}
+.kp-toggle[aria-pressed="true"]{background:linear-gradient(135deg,var(--a-head),var(--a-foot)); color:#fff; border-color:transparent}
+.kp-hint{font-family:var(--f-soft); font-size:.76rem; color:var(--ink-soft)}
+.kp-fallback{font-family:var(--f-soft); font-size:.8rem; line-height:1.7; color:var(--shu-deep); background:var(--shu-soft); border:1px solid var(--shu-line); border-radius:10px; padding:9px 13px; margin:8px 0 2px}
+.kp-fallback b{color:var(--shu-deep)}
+.kp-modes{display:flex; gap:6px; margin:12px 0 6px}
+.kp-modes button{font-family:var(--f-soft); font-size:.79rem; font-weight:700; cursor:pointer; border:1px solid var(--li-line); background:#fff; color:var(--ink-soft); border-radius:20px; padding:5px 13px}
+.kp-modes button.on{background:var(--ai); color:#fff; border-color:transparent}
+.kp-levels{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 2px}
+.kp-levels button{font-family:var(--f-soft); font-size:.78rem; font-weight:700; cursor:pointer; border:1.5px solid var(--li-line); background:#fff; color:var(--ink-soft); border-radius:9px; padding:5px 11px}
+.kp-levels button.on{background:linear-gradient(135deg,var(--a-head),var(--a-foot)); color:#fff; border-color:transparent}
+.kp-lv-note{font-family:var(--f-soft); font-size:.74rem; color:var(--ink-soft); margin:5px 0 2px}
+.kslot{display:inline-block; min-width:7em; min-height:1.45em; padding:1px 9px; margin:0 1px; border-radius:7px; border:1.5px dashed var(--li-line); background:#fff; color:var(--ink-soft); font-family:var(--f-soft); font-weight:700; font-size:.92em; vertical-align:baseline; cursor:pointer; text-align:center; transition:border-color .12s,background .12s}
+.kslot[data-type="iss"]{border-color:var(--shu-line)}
+.kslot[data-type="krule"]{border-color:var(--ai-line)}
+.kslot[data-type="kfact"]{border-color:var(--gr-line)}
+.kslot[data-type="u"]{border-color:var(--gd-line)}
+.kslot[data-type="b1"]{border-color:var(--li-line); min-width:11em}
+/* 骨子内の規範・あてはめ（Lv1で見える素の表示） */
+.bone .krule, .kp-model .krule{color:var(--ai-deep); font-weight:600}
+.bone .kfact, .kp-model .kfact{color:#2e6b33; font-weight:600}
+.kslot.sel{border-style:solid; box-shadow:0 0 0 3px rgba(120,90,120,.16)}
+.kslot.filled{color:var(--ink); background:var(--gd-soft); border-style:solid; cursor:pointer}
+.kslot.ok{background:var(--gr-soft); border-color:var(--gr); color:#2e6b33}
+.kslot.ng{background:var(--shu-soft); border-color:var(--shu); color:var(--shu-deep)}
+.kslot .kx{margin-left:6px; font-weight:700; opacity:.5; font-size:.85em}
+.kslot-fix{display:block; font-size:.78em; font-weight:700; color:#2e6b33; margin:1px 0 2px; font-family:var(--f-soft)}
+.kp-tray{display:flex; flex-wrap:wrap; gap:7px; margin:6px 0 4px; padding:11px 12px; border:1px solid var(--line-2); border-radius:12px; background:var(--paper)}
+.kp-chip{font-family:var(--f-soft); font-weight:700; font-size:.86rem; cursor:pointer; border:1.5px solid var(--li-line); background:#fff; color:var(--ink); border-radius:9px; padding:6px 12px; box-shadow:0 1px 3px rgba(80,60,80,.08); transition:transform .1s,box-shadow .12s}
+.kp-chip:hover{box-shadow:0 3px 9px rgba(80,60,80,.16); transform:translateY(-1px)}
+.kp-chip.t-iss{border-color:var(--shu-line)}
+.kp-chip.t-krule{border-color:var(--ai-line)}
+.kp-chip.t-kfact{border-color:var(--gr-line)}
+.kp-chip.t-u{border-color:var(--gd-line)}
+.kp-chip.t-b1{border-color:var(--li-line)}
+.kp-chip.used{opacity:.3; pointer-events:none; text-decoration:line-through}
+.kp-actions{display:flex; flex-wrap:wrap; gap:8px; margin:11px 0 2px}
+.kp-actions button{font-family:var(--f-soft); font-weight:700; font-size:.85rem; cursor:pointer; border-radius:9px; padding:8px 17px; border:none}
+.kp-grade{background:linear-gradient(135deg,var(--gd-line),#c79a12); color:#fff}
+.kp-reset{background:#fff; color:var(--ink); border:1px solid var(--li-line)!important}
+.kp-score{font-family:var(--f-soft); margin:13px 0 0; padding:13px 16px; border-radius:13px; background:var(--card); border:1px solid var(--line-2)}
+.kp-score .pct{font-family:var(--f-disp); font-size:1.35rem; font-weight:800; color:var(--a-head)}
+.kp-meter{height:11px; border-radius:6px; background:#ece5dc; overflow:hidden; margin:9px 0 4px}
+.kp-meter-fill{height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,var(--shu),var(--gd-line) 55%,var(--gr)); transition:width .55s ease}
+.kp-msg{font-size:.86rem; margin-top:4px; color:var(--ink); line-height:1.7}
+.kp-free{width:100%; box-sizing:border-box; min-height:150px; font-family:var(--f-mono); font-size:.86rem; line-height:1.9; border:1px solid var(--li-line); border-radius:11px; padding:12px 14px; background:#fff; color:var(--ink); margin:8px 0}
+.kp-top{margin:11px 0 4px}
+.kp-reveal{background:#fff!important; color:var(--a-head)!important; border:1px solid var(--gd-line)!important}
+.kp-model{margin:12px 0 0; padding:13px 16px; border:1px dashed var(--gd-line); border-radius:12px; background:var(--gd-soft); font-family:var(--f-mono); font-size:.85rem; line-height:2.0; white-space:pre-wrap; color:#3a3540}
+.kp-model .b1{font-family:var(--f-disp); color:var(--a-head); font-weight:700}
+.kp-model .iss{color:var(--shu-deep); font-weight:700}
+.kp-model-h{font-family:var(--f-soft); font-weight:700; font-size:.8rem; color:var(--ink-soft); margin-bottom:6px; white-space:normal}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== マストヘッド（ATHENA プラム） ===== -->
+  <header class="masthead">
+    <div class="mast-row">
+      <div class="seal">解</div>
+      <div class="mast-txt">
+        <div class="kicker">司法試験・予備 ｜ 論文 解法ナビ</div>
+        <h1>委託物横領 ― 二項詐欺との関係・盗品の代金横領</h1>
+        <div class="mast-type">刑JX053 ｜ 回す型：<b>罪責検討の7手 SCAN → BUILD</b></div>
+      </div>
+    </div>
+    <div class="rainbow"></div>
+  </header>
+
+  <main class="sheet">
+
+  <!-- ===== 問題文 ===== -->
+  <div class="sec-h"><div class="kick">事案</div><div class="ttl"><span class="ico">📄</span>問題文を読む</div></div>
+  <div class="problem">
+    <div class="case-kick"><i>東京大学法科大学院 平成21年度（改題）</i></div>
+    <p class="pq">Fは、まとまった現金が必要となり、自分の持つ美術品を売却することとし、美術品に詳しい知人のXに売却を依頼した。手数料は売却額の<b>15パーセント</b>と定めた。美術品は①②③の3点で、③は実は<b>2年前にFが盗んだ物</b>だったが、その事情をXは知らなかった。Xは①②を愛好家Aに予想以上の高値（<b>合計1000万円</b>）で売却したが、借金に追われ現金が欲しくなり、Fには「<b>700万円で売れた</b>」と告げ、700万円から手数料105万円を引いた<b>595万円のみを渡し</b>、残りを自分の借金返済にあてた。③はBに<b>300万円</b>で売却して代金を受領したが、その後知人Cから「③はFが盗んだ物だ」と聞き、「Fの弱みを握った以上訴えられない」と考え、<b>売却代金をFに手渡さず</b>借金返済に使った。<br><b>Xの罪責について論じなさい。</b></p>
+    <div class="cast">
+      <span class="c">X｜受託者（被告人）＝2度着服</span>
+      <span class="c">F｜委託者・被害者（③は本権なし）</span>
+      <span class="c out">A｜①②の買主＝対象外</span>
+      <span class="c out">B｜③の買主＝対象外</span>
+      <span class="c out">C｜盗品と事後告知＝対象外</span>
+    </div>
+    <div class="pull">
+      <div class="pq-tag">🎓 はじめに</div>
+      <p>刑法の事例は「<span class="emb">罪責を論じなさい</span>」型が9割。一人の被告人でも<span class="emb c">独立した行為ごとに局面を分け</span>、毎回同じ7手を回すだけ。本問の軸は<b>委託物横領</b>一本。各局面に付く「二項詐欺との関係」「盗品の委託信任関係」という別個の難点を順に割っていきます。</p>
+    </div>
+  </div>
+
+  <!-- ===== 解法ナビ ===== -->
+  <div class="sec-h"><div class="kick">Solve Navigator</div><div class="ttl"><span class="ico">🧭</span>解法ナビ ― 白紙から骨子までの7手</div></div>
+  <p class="lead">上から順に「<b>自分で一手出す → ▶を開いて確認</b>」。各「周回ドリル ○×」は<span class="emb">本問の前提なしで解ける自己完結の例題</span>なので、Lexia の復習プールで単独表示されても解けます（別日2回正解で卒業）。</p>
+  <div class="steps-rail">
+    <span><b>1 SCAN</b>棚卸し</span><span><b>2 AIM</b>罪名アタリ</span><span><b>3 ORDER</b>攻める順</span><span><b>4 MARCH</b>体系を流す</span><span><b>5 BREAK</b>論点を割る</span><span><b>6 BRIDGE</b>横断</span><span class="goal">🏁 <b>7 BUILD</b>骨子＝GOAL</span>
+  </div>
+
+  <!-- 手1 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">SCAN</span><span class="n">手1</span></div><div class="ttl">行為者と「引っかかる行為」を棚卸し</div></div>
+    <p class="do">罪責を問われた者を確定し、その「犯罪になりそうな行為」を<span class="emb">時系列で全部</span>拾う。一人の被告人でも<b>独立した行為は分けて</b>並べる（局面分けの起点）。</p>
+    <details class="peek"><summary>自分で答えてから開く<span class="hint">まず一手</span></summary><div class="body">
+      <p class="pt">検討対象はX一人。Xの着服は<b>独立2回</b>：①②の<b>差額255万円</b>を着服／③（盗品）の<b>代金300万円</b>を全額着服。</p>
+      <p class="pt"><b>F＝委託者・被害者</b>、<b>A・B＝買主</b>、<b>C＝事後に告知しただけ</b>は対象外。預かった代金は何か（委託物か）も拾っておく。</p>
+    </div></details>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="×">
+      <p class="quiz-question">「Xの罪責を論じなさい」と単独主体で問われたら、取引相手や事情を告げただけの第三者も、念のため罪責の検討対象に含めるべきだ。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>×</b>検討するのは設問が名指した者の「犯罪になりうる行為」だけ。買主や善意の告知者は外す。まず対象外を切るのが第一歩。</div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">一人の被告人でも、時点や対象を異にする独立した複数の行為があれば、行為（局面）ごとに分けて犯罪の成否を検討するのがよい。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>行為ごとに犯罪が成立するのが原則。局面を分けて拾い出すことが、最後の罪数処理（併合罪か包括一罪か）にも効いてくる。</div>
+    </div>
+  </div>
+
+  <!-- 手2 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">AIM</span><span class="n">手2</span></div><div class="ttl">各行為に「何罪っぽい？」のアタリを付ける</div></div>
+    <p class="do">行為の<span class="emb">型</span>から罪名のアタリを付ける。条文番号は後でよい。<b>預かった物・金を自分のために使う＝横領系</b>がまず立つ。</p>
+    <div class="box box-tip"><span class="badge b-tip">💡 アタリの付け方</span><p>委託された売却代金の着服 → <b>委託物横領罪（252条1項）</b>が軸。①②の<b>嘘の代金報告</b> → <b>二項詐欺（246条2項）</b>を疑う。③の<b>盗品の売却</b> → <b>盗品等有償処分あっせん罪（256条2項）</b>を疑う。</p></div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">委託されて預かった物や金銭を、自分のために費消・着服した行為は、まず委託物横領罪（252条1項）の成否を疑うのが筋である。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>「自己の占有する他人の物」を委託の任務に背いて領得＝横領の典型。占有が委託に基づくか（252条）／基づかないか（占有離脱物横領・254条）で条文が分かれる。</div>
+    </div>
+    <div class="self-check-quiz ex" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">【例題】売却を頼まれた者が、実際は1000万円で売れたのに「700万円で売れた」と偽って差額を渡さず費消した。横領のほかに、嘘で差額の支払を免れた点が詐欺系の罪に触れないかも検討対象になる。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>嘘で財産上の利益（差額の請求免脱）を得た点は二項詐欺（246条2項）のアタリが立つ。成立するか別罪かは手5で割る（本問の最大の見せ場）。</div>
+    </div>
+  </div>
+
+  <!-- 手3 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">ORDER</span><span class="n">手3</span></div><div class="ttl">攻める順番を決める（時系列・行為の独立性）</div></div>
+    <p class="do">独立行為が複数なら<span class="emb">時系列・行為の独立性</span>に沿って局面を並べる。本問は ①②差額着服 → ③（盗品）全額着服 → 罪数。いずれも横領が軸。</p>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">独立した複数の行為の罪責は、時系列や行為の独立性に従って局面を分け、順に論じるのが明快である。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>局面ごとに成立罪を確定してから最後に罪数でまとめる。見せ場（本問なら二項詐欺との関係）に紙幅を厚く配分する。</div>
+    </div>
+  </div>
+
+  <!-- 手4 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">MARCH</span><span class="n">手4</span></div><div class="ttl">横領罪の型で流す ― 立ち止まる石＝論点</div></div>
+    <p class="do">横領罪を同じ順で流す：<b>①自己の占有 → ②他人の物 → ③委託信任関係 → ④「横領」（不法領得の意思の実現）</b>。違法性・責任は阻却事由なし＝一言。流していて<span class="emb c">素直に進めない所</span>が論点。</p>
+    <div class="box box-tip"><span class="badge b-tip">💡 素直に通す（各一文）</span><p>占有＝Xが売却代金を現実に保持＝○／委託信任関係（①②）＝Fの売却委託に基づく＝○／違法性・責任＝阻却事由なし＝一言で素通り。<b>要件は必ず順に通すが、争いが無ければ一言でよい。</b></p></div>
+    <details class="peek"><summary>①②局面で「立ち止まる石」を自分で挙げてから開く<span class="hint">3つ</span></summary><div class="body">
+      <p class="pt">石①：着服したのは「金銭」 → <span class="tag-issue">金銭の他人物性</span>。<small>（民法は「占有あるところに所有あり」。横領にそのまま持ち込むと“自己の物”になりかねない＝一行で肯定する論点）</small></p>
+      <p class="pt">石②：いつ「横領」したか → <span class="tag-issue">不法領得の意思の実現</span>。<small>（不法領得の意思＝権限なく所有者でなければできない処分をする意思。その定義を立てて認定する）</small></p>
+      <p class="pt">石③：嘘の代金報告 → <span class="tag-issue">二項詐欺との関係</span>。<small>（横領完遂の手段たる欺罔に別罪を立てるか＝本問の核心）</small></p>
+    </div></details>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">犯罪の成否は構成要件→違法性→責任の順に検討し、争いの生じない要件・段階は一言で通してよい。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>全要件を“必ず通す”が、阻却事由などが無ければ一言で素通り。論点がある要件にだけ紙幅を割く。</div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="×">
+      <p class="quiz-question">委託物横領罪の客体「他人の物」に、特定の目的で寄託・受託された金銭はおよそ含まれない。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>×</b>特定目的で寄託された金銭は、占有者が費消すれば横領罪の「他人の物」に当たる（判例）。民法の所有占有一致原則をそのまま横領に持ち込まないのがポイント。</div>
+    </div>
+    <div class="self-check-quiz recall" data-arena="1" data-recall="1" data-correct-value="○">
+      <p class="quiz-question">【想起】横領罪の「横領」＝不法領得の意思の実現というが、その<b>不法領得の意思の定義</b>を、何も見ずに書けますか。（書けたら○）</p>
+      <button class="recall-reveal" onclick="this.closest('.self-check-quiz').classList.add('revealed');this.nextElementSibling.hidden=false;this.style.display='none'">📝 答えを表示して照合</button>
+      <div class="quiz-answer" hidden><b>定義</b>他人の物の占有者が、委託の任務に背いて、その物につき<b>権限がないのに所有者でなければできないような処分をする意思</b>（最判昭24.3.8）。この定義を立ててから事実を当てる。</div>
+      <div class="recall-grade">
+        <button class="quiz-btn" data-value="○">書けた ○</button>
+        <button class="quiz-btn" data-value="×">書けなかった ×</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手5 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">BREAK</span><span class="n">手5</span></div><div class="ttl">止まった石を「4点セット」で割る（①②局面）</div></div>
+    <p class="do">各論点を <b>①問題の所在 → ②規範（名前でよい）→ ③あてはめ（効く事実）→ ④結論</b> で。規範の中身は深掘り層へ。<span class="emb g">効く事実</span>を掴むのが勝負。</p>
+    <div class="box box-fact"><span class="badge b-fact">✓ 本問で効く事実</span><p class="flush">他人物性 → <b>Fのために売却し引き渡す趣旨で受託した代金</b>＝一行で肯定／横領の実現 → <b>「700万円で売れた」と虚偽報告し差額255万を借金返済に費消</b>／横領額 → <b>本来引渡850万−交付595万＝255万</b>を正確に。</p></div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">民法上「金銭は占有あるところに所有あり」とされるが、この原則は取引安全のためのものであり、所有権保護を図る横領罪の解釈にそのまま持ち込むべきではない。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>民法原則の趣旨（取引安全）と横領罪の趣旨（所有権保護）は別。だから受託した代金は横領罪の「他人の物」に当たる。否定説は皆無なので一行で肯定し先へ進む。</div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="×">
+      <p class="quiz-question">横領行為を完遂するための手段としてなされた欺罔行為には、横領罪とは別に二項詐欺罪（246条2項）が成立する。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>×</b>横領に随伴し横領完遂の手段にすぎない欺罔は、横領行為の一部であって別途二項詐欺を構成しない（大判昭11.10.19）。別罪を立てると横領罪の法定刑を低くした趣旨を没却する＝<b>横領一罪</b>。</div>
+    </div>
+    <div class="self-check-quiz recall" data-arena="1" data-recall="1" data-correct-value="○">
+      <p class="quiz-question">【想起】横領に随伴する欺罔がなぜ別罪（二項詐欺）を構成しないのか、その<b>理由</b>を一言で書けますか。（書けたら○）</p>
+      <button class="recall-reveal" onclick="this.closest('.self-check-quiz').classList.add('revealed');this.nextElementSibling.hidden=false;this.style.display='none'">📝 答えを表示して照合</button>
+      <div class="quiz-answer" hidden><b>理由</b>横領罪は物が既に自己の占有下にある間接的侵害で誘惑的＝非難可能性が低く、詐欺・窃盗より<b>法定刑が低い</b>。横領完遂の手段たる欺罔に二項詐欺を立てると、この法定刑を低くした趣旨を没却するから別罪としない。</div>
+      <div class="recall-grade">
+        <button class="quiz-btn" data-value="○">書けた ○</button>
+        <button class="quiz-btn" data-value="×">書けなかった ×</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手5′ ③局面 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">BREAK</span><span class="n">手5′ ③局面</span></div><div class="ttl">盗品の代金着服を割る ― 石は2つ</div></div>
+    <p class="do">③も同じ横領の型で流す。石は <span class="tag-issue">あっせん罪の故意の基準時</span> と <span class="tag-issue">本権なきFとの委託信任関係の保護適格</span> の2つ。<small>（前者は売却・受領時に盗品性を知らなければ不成立。後者は「Fに所有権がないなら委託信任関係は保護されないのでは？」という問い）</small></p>
+    <div class="box box-norm"><span class="badge b-norm">§ 規範で一文</span><p>あっせん罪（256条2項）＝Xは<b>売却・受領の時点で盗品性の認識なし</b>（Cの告知は後）→ 故意を欠き不成立。委託信任関係＝<b>刑法の要保護性は民法と別／財産秩序の維持</b>から、本権なき者との委託信任関係も<b>ひとまず保護に値する</b> → 横領成立を妨げない。</p></div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">盗品の売却をあっせん・媒介しても、売却・代金受領の時点で目的物が盗品であることを知らなければ、盗品等有償処分あっせん罪（256条2項）は成立しない。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>故意（盗品性の認識）は行為時に必要。本問は売却・受領の後にCから知らされたので、あっせん行為時には故意がなく不成立。事後の認識で遡って成立はしない。</div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="×">
+      <p class="quiz-question">委託者が目的物について所有権（本権）を持たない場合、その委託信任関係はおよそ刑法上保護されず、受託者が代金を着服しても横領罪は成立しない。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>×</b>刑法上の要保護性は民法と別に考えられ、財産秩序の維持の観点から、所有権を有しない者との委託信任関係も<b>ひとまず保護に値する</b>（最判昭36.10.10等）。本権なしを理由に横領を否定しない。</div>
+    </div>
+    <div class="self-check-quiz recall" data-arena="1" data-recall="1" data-correct-value="○">
+      <p class="quiz-question">【想起】委託者が本権（所有権）を持たない場合でも委託信任関係が保護されるのは<b>なぜ</b>か、その理由を書けますか。（書けたら○）</p>
+      <button class="recall-reveal" onclick="this.closest('.self-check-quiz').classList.add('revealed');this.nextElementSibling.hidden=false;this.style.display='none'">📝 答えを表示して照合</button>
+      <div class="quiz-answer" hidden><b>理由</b>刑法の目的は個人の法益保護にとどまらず<b>財産秩序の維持</b>にあり、刑法上の要保護性は<b>民法とは別</b>に考えるべきだから。ゆえに所有権を有しない者との委託信任関係もひとまず保護に値する。</div>
+      <div class="recall-grade">
+        <button class="quiz-btn" data-value="○">書けた ○</button>
+        <button class="quiz-btn" data-value="×">書けなかった ×</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手6 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">BRIDGE</span><span class="n">手6</span></div><div class="ttl">複数の成立罪 → 罪数に一言だけ橋を架ける</div></div>
+    <p class="do">局面ごとに罪が立ったら最後に<span class="emb">罪数</span>を一言。本問は255万円の横領と300万円の横領が <span class="emb c">別個独立の行為</span> → <b>併合罪（45条前段）</b>。深入りせず一文で切る。</p>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">同一人による別個独立の2個の横領行為について各々横領罪が成立する場合、両罪は併合罪（45条前段）となる。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>時点も対象も異なる独立の横領行為は包括一罪ではなく併合罪。罪数は最後に一文で示せば足りる。</div>
+    </div>
+  </div>
+
+  <!-- 試験会場での下書き -->
+  <div class="drafting">
+    <p class="dh">📝 試験会場での下書き<small>骨子を組む前に、問題文から「生の事実」だけ抜き出す（論点名・規範はまだ書かない）</small></p>
+    <div class="draft-problem">Fが美術品①②③の売却をXに委託（手数料15%）。<b>③は2年前にFが盗んだ物（X不知）</b>。Xは①②をAに<b>計1000万円</b>で売却 → Fには「<b>700万円</b>」と偽り、手数料控除後<b>595万円のみ交付</b>・差額を借金返済に費消。Xは③をBに<b>300万円</b>で売却・受領 → <b>後にCから盗品と知り</b>、代金をFに渡さず借金返済に費消。<b>Xの罪責は？</b></div>
+    <div class="draft-grid">
+      <div class="draft-card">
+        <p class="ct">① 法律関係図</p>
+        <pre class="rel-map"><span class="p">F</span>（委託者・被害者／③は本権なし）
+ │ 売却委託①②③・手数料15%
+ ▼
+<span class="p">X</span>（受託者＝被告人・2度着服）
+ ├─①②→ <span class="out">A</span>（買主）1000万で売却
+ └─③ → <span class="out">B</span>（買主）300万で売却
+       <span class="out">C</span>…後で「③は盗品」と告知</pre>
+      </div>
+      <div class="draft-card">
+        <p class="ct">② 時系列</p>
+        <ul class="timeline">
+          <li>F→X 売却委託（手数料15%）。③は盗品だがX不知</li>
+          <li>X→A ①②を計1000万円で売却（本来Fへ850万円）</li>
+          <li>X「700万で売れた」と虚偽報告・595万のみ交付＝差額255万着服</li>
+          <li>X→B ③を300万円で売却・受領（この時点で盗品性不知）</li>
+          <li>Cが「③は盗品」と告知 → Xは300万全額をFに不交付・費消</li>
+        </ul>
+      </div>
+      <div class="draft-card span2">
+        <p class="ct">③ 拾う文言（条文・規範を呼ぶキー）</p>
+        <ul class="facts">
+          <li><span class="ph">「売却を依頼」「手数料15%」</span><span class="cue">＝委託に基づく占有（横領 252①／占有離脱物 254 との別れ目）</span></li>
+          <li><span class="ph">着服したのは「売却代金（金銭）」</span><span class="cue">＝客体が「他人の物」か（金銭の他人物性）</span></li>
+          <li><span class="ph">「700万円で売れた」と虚偽報告</span><span class="cue">＝二項詐欺との関係（横領一罪か別罪か）</span></li>
+          <li><span class="ph">③は「Fが盗んだ物」</span><span class="cue">＝Fに本権なし → 委託信任関係の保護適格</span></li>
+          <li><span class="ph">盗品と知ったのは「売却・受領の後」</span><span class="cue">＝あっせん罪(256②)の故意の基準時</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手7 BUILD：骨子 -->
+  <div class="sec-h"><div class="kick">Goal ｜ Build</div><div class="ttl"><span class="ico">🏁</span>手7 ― 答案構成（骨子）</div></div>
+  <p class="lead"><b>1周目は「局面・順序・論点」が言えればOK</b>。規範の中身（deep）は2周目から。下の骨を<span class="emb">白紙に再現できたら、その周はクリア</span>。</p>
+  <div class="skeleton">
+    <span class="badge b-goal">🏁 まずこの骨を自分で書けるように</span>
+    <div class="kp-bar">
+      <span class="kp-hint">穴（論点・規範・事実・結論）を埋めて答案構成を完成させよう ─ 移動中の能動周回・自動採点。答えは「📖 答えを見る」で確認。</span>
+    </div>
+    <div class="kp-fallback">⚠ 穴埋めパズルは <b>ブラウザ（Safari/Chrome）か Lexia</b> で開くと起動します。いまは JavaScript が動かない表示（ファイルのプレビュー等）なので、下に<b>完成形の骨子</b>を表示しています。</div>
+<div class="bone" data-kp-decoys="iss:背任罪(247条)の成否|iss:占有離脱物横領罪(254条)との区別|iss:不可罰的事後行為にあたるか|rule:窃盗罪の不法領得の意思（権利者排除＋利用処分）|rule:民法上は金銭は常に占有者の所有で他人の物にならない|fact:Cの告知で盗品性を認識したまま③を売却|fact:手数料15%の約定は公序良俗違反で無効|u:二項詐欺罪が別途成立し横領と併合罪|u:盗品等有償処分あっせん罪 成立|u:両横領は包括一罪"><span class="b1">第1　美術品①②の差額255万円の着服（横領罪・252条1項）</span>
+  1 受託した売却代金は「金銭」 → <span class="iss">【論点】金銭の他人物性</span>
+      └ <span class="krule">民法の所有占有一致は取引安全のため・所有権保護の横領罪に持ち込まない</span> → 「他人の物」○
+  2 占有離脱物横領との区別 → <span class="iss">【論点】委託信任関係の要否</span>（①②はFの売却委託に基づく＝保護に値する）
+  3 <span class="iss">【論点】「横領」＝不法領得の意思の実現</span>
+      └ <span class="krule">委託の任務に背き権限なく所有者でなければできない処分をする意思</span>
+      └ <span class="kfact">「700万で売れた」と虚偽報告し差額255万を借金返済に費消</span>＝実現
+  4 嘘の代金報告 → <span class="iss">【論点】二項詐欺(246②)との関係</span>
+      └ <span class="krule">横領完遂の手段たる欺罔に二項詐欺を立てると法定刑を低くした趣旨を没却</span> → <u>横領一罪</u>
+  → 結論：差額255万円（本来850万−交付595万）につき <u>横領罪 成立</u>
+
+<span class="b1">第2　美術品③（盗品）の代金300万円の着服（横領罪・252条1項）</span>
+  1 盗品の売却 → <span class="iss">【論点】あっせん罪(256②)の成否</span>
+      └ <span class="kfact">売却・受領時に盗品性の認識なし（Cの告知は後）</span> → <u>不成立</u>
+  2 代金300万も金銭＝他人の物（前述同旨）／③は盗品でXに所有権なし
+  3 <span class="iss">【論点】本権なきFとの委託信任関係は保護に値するか</span>
+      └ <span class="krule">刑法の要保護性は民法と別・財産秩序の維持</span> → ひとまず保護に値する○
+  4 <span class="kfact">300万をFに不交付・借金返済に費消</span> → 不法領得の意思の実現
+  → 結論：代金300万円につき <u>横領罪 成立</u>
+
+<span class="b1">第3　罪数</span>
+  255万円の横領 と 300万円の横領 ＝ 別個独立の行為 → <u>併合罪（45条前段）</u></div>
+  </div>
+
+  <!-- 照合・自己採点 -->
+  <div class="sec-h"><div class="kick">Self Check</div><div class="ttl"><span class="ico">📋</span>照合 ― 自分で採点する</div></div>
+  <p class="lead">骨子（できれば答案）を書き切ってから模範を開く。下は<span class="emb c">採点講評から作った減点ポイント</span>。☐を自分で確認するだけで弱点が分かる（AI採点なしで完結）。</p>
+  <div class="collate">
+    <span class="badge b-trap">⚠ 自己採点チェック</span>
+    <ul class="rubric">
+      <li><span class="w">−15〜20</span>嘘の代金報告を<b>二項詐欺で独立成立</b>させていないか（横領一罪で処理したか）</li>
+      <li><span class="w">−10〜15</span>③で<b>委託信任関係の保護適格</b>を問題提起したか（「盗品ゆえ本権なし」を素通りしていないか）</li>
+      <li><span class="w">−10〜15</span>盗品③の売却に<b>あっせん罪を成立</b>させていないか（故意は売却後＝不成立）</li>
+      <li><span class="w">−5〜10</span><b>不法領得の意思の定義</b>を書いて「横領」を認定したか（「着服」で済ませていないか）</li>
+      <li><span class="w">−3〜5</span>横領額を<b>255万円</b>（本来850万−交付595万）と正確に算定したか</li>
+      <li><span class="w">小幅＋時間ロス</span><b>金銭の他人物性</b>に深入りしすぎていないか（否定説皆無＝一行で肯定）</li>
+      <li><span class="w">−1〜2/箇所</span>条文（<b>252①・246②・256②・45前段</b>）を正確に引いたか</li>
+    </ul>
+  </div>
+
+  <details class="reveal-answer">
+    <summary>骨子（できれば答案）を書き切ってから開く ― 模範答案</summary>
+    <div class="model-answer">
+      <p class="ma-h">第1　美術品①②の差額着服について</p>
+      <p><b>1(1)</b>　①②の売却代金1000万円のうち、本来Fに返還すべき差額255万円をXが着服した行為につき、「自己の占有する他人の物を横領した」として横領罪（252条1項）の成否を検討する。</p>
+      <p>(2)　Xが着服した255万円は「金銭」である。民法上、金銭は所有と占有が一致するとされるが、これは取引の安全を保護するための原則であって、所有権の保護を図る横領罪の解釈にそのまま持ち込むのは妥当でない。よって金銭も「他人の物」たりうる。本件代金はFのために売却し引き渡す趣旨で委託されたものであるから、「他人の物」に当たる。</p>
+      <p>(3)　また、占有離脱物横領罪（254条）との区別から横領罪には委託信任関係が必要であるところ、①②はFの売却委託に基づく占有であり、保護に値する委託信任関係が認められる。</p>
+      <p>(4)　「横領」とは不法領得の意思を実現する一切の行為をいい、不法領得の意思とは、他人の物の占有者が委託の任務に背き、その物につき権限がないのに所有者でなければできないような処分をする意思をいう。Xが「700万円で売れた」と偽って差額を着服し、自己の借金返済に費消した時点で、その実現が認められ「横領した」といえる。</p>
+      <p>(5)　よって、差額255万円（本来引渡850万円−交付595万円）につきXに横領罪が成立する。</p>
+      <p><b>2(1)</b>　次に、Xが1000万円で売れたのに「700万円」と偽ってFから差額の請求を免れた点につき、二項詐欺罪（246条2項）の成否を検討する。</p>
+      <p>(2)　横領罪は物が自己の占有下にある間接的侵害で誘惑的であり非難可能性が低いため、詐欺罪より法定刑が低い。横領完遂の手段としての欺罔に二項詐欺罪を成立させると、この趣旨を没却するから妥当でない。よって横領完遂のための欺罔は横領行為の一部であり、別途二項詐欺罪は成立しない。</p>
+      <p>(3)　本問の虚偽報告も横領を完遂する手段にすぎないから二項詐欺罪は成立せず、上記行為は横領罪一罪となる。</p>
+      <p class="ma-h">第2　美術品③の代金着服について</p>
+      <p><b>1</b>　まず盗品である③をBに売却した行為につき、Xは売却・代金受領の時点で③が盗品であることの認識を欠くから、盗品等有償処分あっせん罪（256条2項）は成立しない。</p>
+      <p><b>2(1)</b>　次に、③の売却代金300万円を借金返済に充てた行為につき、横領罪（252条1項）の成否を検討する。</p>
+      <p>(2)　金銭が客体となりうるのは前述のとおりであり、③は盗品であってその代金の所有権はXに帰属しないから、「自己の占有する他人の物」に当たる。</p>
+      <p>(3)　もっとも、③は盗品であってFも所有権を有しないから、Fとの委託信任関係は保護に値しないのではないか。しかし、刑法の目的は財産秩序の維持にもあり、刑法上の要保護性は民法とは別に考えるべきであるから、所有権を有しない者との委託信任関係もひとまず保護に値する。よってFが本権を有しないことは横領罪の成立を妨げない。</p>
+      <p>(4)　当該300万円をFに手渡さず借金返済に充てた時点で不法領得の意思の実現が認められ、「横領した」といえる。</p>
+      <p>(5)　以上より、③の売却代金300万円につきXに横領罪が成立する。</p>
+      <p class="ma-h">第3　罪数</p>
+      <p>Xには255万円についての横領罪と300万円についての横領罪が成立する。両者は別個独立の横領行為であるから、両罪は<u>併合罪（45条前段）</u>となる。</p>
+      <p style="text-align:right;text-indent:0"><b>以上</b></p>
+    </div>
+  </details>
+
+  <!-- 深掘り -->
+  <details id="deep-dive">
+    <summary>📚 深掘り層 ― 規範の中身・判例・条文<small>1周目は開かない<br>2周目以降／直前期に</small></summary>
+    <div class="deep-body">
+      <h4><span class="badge b-norm">§ 規範</span>答案に書く中身</h4>
+      <div class="box box-norm"><span class="badge b-norm">① 金銭の他人物性</span><p class="flush">民法上、金銭は「占有あるところに所有あり」とされるが、これは取引の安全を保護するための原則であり、所有権の保護を図る横領罪の解釈にそのまま持ち込むのは妥当でない。よって、特定の目的のために寄託・受託された金銭は、占有者がこれを擅に費消すれば横領罪の「他人の物」に当たる。否定説は皆無なので一行で肯定し先へ進む。</p></div>
+      <div class="box box-norm"><span class="badge b-norm">② 「横領」＝不法領得の意思の実現</span><p class="flush">「横領」とは不法領得の意思を実現する一切の行為をいう。不法領得の意思とは、他人の物の占有者が委託の任務に背いて、その物につき権限がないのに所有者でなければできないような処分をする意思をいう。虚偽報告・差額の着服・借金返済への費消が、その外部的実現にあたる。</p></div>
+      <div class="box box-norm"><span class="badge b-norm">③ 二項詐欺との関係（横領一罪）</span><p class="flush">横領罪は物が自己の占有下にある間接的侵害で、行為者にとって誘惑的＝非難可能性が低く、詐欺罪・窃盗罪より法定刑が低い。横領完遂の手段としての欺罔に二項詐欺罪を成立させるとこの趣旨を没却するから、当該欺罔は横領行為の一部と解し、別途二項詐欺罪は成立しない（横領罪一罪）。</p></div>
+      <div class="box box-norm"><span class="badge b-norm">④ 本権なき委託者との委託信任関係</span><p class="flush">委託信任関係は占有離脱物横領罪（254条）との区別から要求される。委託者が目的物につき本権（所有権）を持たない場合でも、刑法の目的は財産秩序の維持にもあり、刑法上の要保護性は民法とは別に考えるべきであるから、所有権を有しない者との委託信任関係もひとまず保護に値する。あっせん罪（256条2項）は故意が行為時に必要で、盗品性を売却後に知った本問では不成立。</p></div>
+
+      <h4><span class="badge b-trap">判例</span>射程を意識する判例</h4>
+      <p class="cs"><b>最判昭和26年5月25日</b>（金銭の他人物性／百選Ⅱ64）：特定目的で寄託された金銭を擅に費消した場合に横領罪の成立を認めた。本問の売却代金もFのために売却し引き渡す趣旨の受託金銭であり、本判決の趣旨で「他人の物」性を肯定できる。</p>
+      <p class="cs"><b>最判昭和24年3月8日</b>（不法領得の意思／百選Ⅱ66）：不法領得の意思＝委託の任務に背き権限なく所有者でなければできない処分をする意思。「横領」認定の規範コア。</p>
+      <p class="cs"><b>大判昭和11年10月19日</b>（横領と詐欺の関係）：横領に随伴する欺罔は横領完遂の手段にすぎず別罪を構成しない。①②の二項詐欺否定の直接的根拠（本局面の核心判例）。</p>
+      <p class="cs"><b>最判昭和36年10月10日・最判昭和23年6月5日</b>（盗品・贓物の委託と横領）：本権を有しない者との委託信任関係も刑法上保護され、受託代金の着服に横領罪が成立する。③の委託信任関係肯定の根拠。</p>
+
+      <h4><span class="badge b-tip">条文</span>参照条文</h4>
+      <p class="cs">刑法 252条1項（委託物横領）・254条（占有離脱物横領）・246条1項2項（詐欺・二項詐欺）・256条2項（盗品等有償処分あっせん）・45条前段（併合罪）。</p>
+
+      <div class="deep-note">百科事典的なフル解説（条文集・判例集・学説一覧・論証集・答案表現集・体系図）は <span class="xref">ATHENA版 刑JX053.html</span>（現行JX正典 outputs/001_JX/001_刑法/刑JX053.html）にあります。ARIADNE は「次に何をするか」に絞った解法ナビ＝知識はここに薄く・ATHENA に厚く、と役割分担しています。</div>
+    </div>
+  </details>
+
+  </main>
+
+  <div class="foot">
+    <div class="rb"></div>
+    <b>ARIADNE v0.3</b> ｜ 解法ナビ＋周回（Lexia連携） ― 刑JX053　委託物横領（二項詐欺・盗品の横領）<br>
+    フレーム＝難易度 HARD（バイオレット）／内側＝ゼブラ マイルドライナー
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  function readCorrect(quiz){ return (quiz && quiz.dataset && (quiz.dataset.correctValue || quiz.dataset.correct)) || ''; }
+  function onQuizBtn(btn){
+    var quiz = btn.closest('.self-check-quiz');
+    if(!quiz || quiz.dataset.done === '1') return;
+    quiz.dataset.done = '1'; quiz.classList.add('answered');
+    var correct = readCorrect(quiz);
+    var userVal = btn.getAttribute('data-value') || (btn.textContent.indexOf('○')>=0?'○':btn.textContent.indexOf('×')>=0?'×':'');
+    var ok = (userVal === correct);
+    quiz.querySelectorAll('.quiz-btn').forEach(function(b){
+      b.disabled = true;
+      if(b.getAttribute('data-value') === correct) b.classList.add('correct-mark');
+      else b.classList.add('incorrect-mark');
+    });
+    btn.classList.add('user-picked');
+    var res = quiz.querySelector('.quiz-result');
+    var ans = quiz.querySelector('.quiz-answer');
+    if(ans) ans.hidden = false;
+    if(res){
+      res.hidden = false;
+      res.textContent = (ok ? '✓ 正解' : '✗ 不正解 ― 解説を読もう') + '（あなたの選択：' + (userVal || '?') + '）';
+      res.classList.add(ok ? 'quiz-result-correct' : 'quiz-result-incorrect');
+      if(ans) ans.classList.add(ok ? 'quiz-answer-correct' : 'quiz-answer-incorrect');
+    }
+  }
+  function openAncestors(el){ var d = el.closest && el.closest('details'); while(d){ d.open = true; d = d.parentElement && d.parentElement.closest('details'); } }
+  document.addEventListener('click', function(e){
+    var t = e.target; if(!t || !t.closest) return;
+    var qb = t.closest('.quiz-btn'); if(qb){ onQuizBtn(qb); return; }
+    var a = t.closest('a[href^="#"]');
+    if(a){ var id = decodeURIComponent((a.getAttribute('href')||'').slice(1)); if(id){ var tgt = document.getElementById(id); if(tgt) openAncestors(tgt); } }
+  });
+})();
+
+/* ==== KP-PUZZLE-BACKFILL (js) ==== */
+/* ===== 答案構成パズル v2（既定でパズル表示＝答えは隠す／自動採点） =====
+   静的HTMLは無改変。読込時に .bone の .iss(論点)/<u>(結論) を伏せ字スロットへ変換し、
+   穴埋め（Tier1チップ配置／Tier2自由記述）で完成度を機械採点する。クリックは
+   document 委譲（○×エンジンと同方式）＝Lexia の srcDoc iframe 内でも堅牢に動く。
+   JS が動かない環境では bone（=答え）がそのまま見える安全フォールバック。 */
+(function(){
+  function boot(){
+    var skeleton = document.querySelector('.skeleton');
+    var bone = skeleton && skeleton.querySelector('.bone');
+    if(!skeleton || !bone) return;
+
+    // JS が動いた＝フォールバック注記を隠す（プレビュー等では表示されたまま）
+    var fb = skeleton.querySelector('.kp-fallback'); if(fb) fb.style.display = 'none';
+
+    var originalHTML = bone.innerHTML;   // モデル（答え）を温存
+    var topbar = null, host = null, tray = null, scoreBox = null, modelEl = null;
+    var slots = [], selected = null, tier = 1, level = 1;
+    var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function(f){ return setTimeout(f, 16); };
+    var PH = { iss:'▢論点', krule:'▢規範', kfact:'▢事実', u:'▢結論', b1:'▢見出し' };
+    var LV_SEL  = { 1:'.iss', 2:'.iss, .krule, .kfact', 3:'.iss, .krule, .kfact, u, .b1' };
+    var LV_NOTE = { 1:'Lv1 易：論点だけを抽出（規範・結論は見えている）', 2:'Lv2 標準：論点＋規範＋あてはめキー事実を再現', 3:'Lv3 難：見出し・順序・結論まで全再現' };
+    var WEIGHT  = { iss:3, krule:2, kfact:2, u:1, b1:1 };
+
+    function each(list, fn){ Array.prototype.forEach.call(list, fn); }
+    function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+    function clearNode(n){ while(n.firstChild) n.removeChild(n.firstChild); }
+    function ph(type){ return PH[type] || '▢'; }
+    function slotType(el){
+      if(el.tagName.toLowerCase() === 'u') return 'u';
+      if(el.classList.contains('krule')) return 'krule';
+      if(el.classList.contains('kfact')) return 'kfact';
+      if(el.classList.contains('b1')) return 'b1';
+      return 'iss';
+    }
+    function activeTypes(){ var s = {}; slots.forEach(function(sl){ s[sl.dataset.type] = 1; }); return s; }
+
+    function buildSlots(){
+      bone.innerHTML = originalHTML;
+      slots = [];
+      each(bone.querySelectorAll(LV_SEL[level] || '.iss'), function(el){
+        var type = slotType(el);
+        var s = document.createElement('span');
+        s.className = 'kslot'; s.dataset.type = type; s.dataset.answer = el.textContent.trim();
+        s.textContent = ph(type);
+        el.parentNode.replaceChild(s, el);
+        slots.push(s);
+      });
+    }
+
+    function emptySlots(){ return slots.filter(function(s){ return !s.dataset.fill; }); }
+    function findUsedChip(txt){ if(!tray) return null; var cs = tray.querySelectorAll('.kp-chip.used'); for(var i=0;i<cs.length;i++){ if(cs[i].dataset.text === txt) return cs[i]; } return null; }
+
+    function fillSlot(s, text){
+      s.dataset.fill = text; s.classList.add('filled'); s.classList.remove('ok','ng');
+      clearNode(s); s.appendChild(document.createTextNode(text));
+      var x = document.createElement('span'); x.className = 'kx'; x.textContent = '✕'; s.appendChild(x);
+    }
+    function onSlot(s){
+      if(s.dataset.fill){                       // 入っていれば外す（チップを戻す）
+        var chip = findUsedChip(s.dataset.fill); if(chip) chip.classList.remove('used');
+        delete s.dataset.fill; s.classList.remove('filled','ok','ng'); s.textContent = ph(s.dataset.type); return;
+      }
+      if(selected) selected.classList.remove('sel');
+      selected = s; s.classList.add('sel');
+    }
+    function onChip(c){
+      if(c.classList.contains('used')) return;
+      var target = selected || emptySlots()[0]; if(!target) return;
+      fillSlot(target, c.dataset.text); c.classList.add('used');
+      if(selected){ selected.classList.remove('sel'); selected = null; }
+    }
+
+    function buildTray(){
+      var pool = slots.map(function(s){ return { text:s.dataset.answer, type:s.dataset.type }; });
+      var active = activeTypes();
+      var TMAP = { iss:'iss', u:'u', rule:'krule', fact:'kfact', b1:'b1' };
+      var decoys = [];
+      (bone.dataset.kpDecoys || '').split('|').forEach(function(d){
+        d = d.trim(); if(!d) return;
+        var parts = d.split(':'), type, text;
+        if(parts.length >= 2 && TMAP[parts[0]]){ type = TMAP[parts.shift()]; text = parts.join(':').trim(); }
+        else { text = d; type = /(成立|不成立|不可罰|単独犯)\s*$/.test(d) ? 'u' : 'iss'; }
+        if(active[type]) decoys.push({ text:text, type:type });   // 現レベルに出る型のおとりだけ
+      });
+      shuffle(decoys); decoys = decoys.slice(0, 6);                // おとりは最大6枚
+      pool = shuffle(pool.concat(decoys));
+      tray = document.createElement('div'); tray.className = 'kp-tray';
+      pool.forEach(function(p){
+        var c = document.createElement('button'); c.type = 'button';
+        c.className = 'kp-chip t-' + p.type; c.textContent = p.text; c.dataset.text = p.text;
+        tray.appendChild(c);
+      });
+      return tray;
+    }
+
+    function doGrade(){
+      if(!scoreBox) return;
+      each(bone.querySelectorAll('.kslot-fix'), function(n){ n.parentNode.removeChild(n); });
+      var totW = 0, gotW = 0, ok = 0, missIss = 0;
+      slots.forEach(function(s){
+        var w = WEIGHT[s.dataset.type] || 1; totW += w;   // 論点3/規範2/事実2/結論1/見出し1
+        s.classList.remove('ok','ng');
+        if((s.dataset.fill || '') === s.dataset.answer){ s.classList.add('ok'); gotW += w; ok++; }
+        else {
+          s.classList.add('ng'); if(s.dataset.type === 'iss') missIss++;
+          var fx = document.createElement('span'); fx.className = 'kslot-fix'; fx.textContent = '正: ' + s.dataset.answer;
+          s.insertAdjacentElement('afterend', fx);
+        }
+      });
+      var pct = totW ? Math.round(gotW / totW * 100) : 0;
+      var msg = pct >= 90 ? 'ほぼ完成。あとは表現を磨くだけ。'
+              : pct >= 70 ? '骨格はOK。赤の箇所（特に論点）を周回で詰めよう。'
+              : pct >= 40 ? '論点抽出に穴あり。落とした論点を最優先で復習。'
+              : 'まず7手ナビへ戻り、論点の拾い方から立て直そう。';
+      if(missIss) msg += '（落とした論点 ' + missIss + ' 件＝答案では致命傷になりやすい）';
+      clearNode(scoreBox); scoreBox.style.display = 'block';
+      var head = document.createElement('div'); head.innerHTML = '構成完成度 <span class="pct">' + pct + '%</span>　（' + ok + '/' + slots.length + ' 箇所）';
+      var meter = document.createElement('div'); meter.className = 'kp-meter';
+      var fill = document.createElement('div'); fill.className = 'kp-meter-fill'; meter.appendChild(fill);
+      var m = document.createElement('div'); m.className = 'kp-msg'; m.textContent = msg;
+      scoreBox.appendChild(head); scoreBox.appendChild(meter); scoreBox.appendChild(m);
+      raf(function(){ fill.style.width = pct + '%'; });
+    }
+
+    function buildModel(){
+      modelEl = document.createElement('div'); modelEl.className = 'kp-model'; modelEl.style.display = 'none';
+      var h = document.createElement('div'); h.className = 'kp-model-h'; h.textContent = '◆ 完成した骨子（モデル）';
+      var body = document.createElement('div'); body.innerHTML = originalHTML;
+      modelEl.appendChild(h); modelEl.appendChild(body);
+      return modelEl;
+    }
+    function toggleModel(btn){
+      if(!modelEl) return;
+      var show = modelEl.style.display === 'none';
+      modelEl.style.display = show ? 'block' : 'none';
+      btn.textContent = show ? '🙈 答えを隠す' : '📖 答えを見る';
+    }
+
+    function btn(cls, kp, label){
+      var b = document.createElement('button'); b.type = 'button'; b.className = cls; b.setAttribute('data-kp', kp); b.textContent = label; return b;
+    }
+
+    function renderModes(){
+      var levels = document.createElement('div'); levels.className = 'kp-levels';
+      levels.appendChild(btn(level === 1 ? 'on' : '', 'lv1', 'Lv1 易'));
+      levels.appendChild(btn(level === 2 ? 'on' : '', 'lv2', 'Lv2 標準'));
+      levels.appendChild(btn(level === 3 ? 'on' : '', 'lv3', 'Lv3 難'));
+      topbar.appendChild(levels);
+      var lvnote = document.createElement('div'); lvnote.className = 'kp-lv-note'; lvnote.textContent = LV_NOTE[level] || '';
+      topbar.appendChild(lvnote);
+      var modes = document.createElement('div'); modes.className = 'kp-modes';
+      modes.appendChild(btn(tier === 1 ? 'on' : '', 'm1', '① チップ配置'));
+      modes.appendChild(btn(tier === 2 ? 'on' : '', 'm2', '② 自由記述'));
+      topbar.appendChild(modes);
+    }
+
+    function render(){
+      clearNode(topbar); clearNode(host); renderModes();
+      if(tier === 1){
+        buildSlots();
+        host.appendChild(buildTray());
+        var actions = document.createElement('div'); actions.className = 'kp-actions';
+        actions.appendChild(btn('kp-grade', 'grade', '答え合わせ'));
+        actions.appendChild(btn('kp-reset', 'reset', 'やり直す'));
+        actions.appendChild(btn('kp-reset kp-reveal', 'reveal', '📖 答えを見る'));
+        host.appendChild(actions);
+        scoreBox = document.createElement('div'); scoreBox.className = 'kp-score'; scoreBox.style.display = 'none'; host.appendChild(scoreBox);
+        host.appendChild(buildModel());
+      } else {
+        buildSlots();   // 足場（第1/第2…）を見せ、論点・結論は伏せたまま
+        var ta = document.createElement('textarea'); ta.className = 'kp-free';
+        ta.placeholder = '上の足場（第1／第2…）を見ながら、各論点名・規範・結論を自分の言葉で書き出す。書き切ってから答え合わせ。';
+        host.appendChild(ta);
+        var actions2 = document.createElement('div'); actions2.className = 'kp-actions';
+        actions2.appendChild(btn('kp-reset kp-reveal', 'reveal', '📖 答えを見る'));
+        actions2.appendChild(btn('kp-grade', 'collate', '減点ポイントで照合'));
+        host.appendChild(actions2);
+        var note = document.createElement('div'); note.className = 'kp-msg'; note.style.marginTop = '8px';
+        note.textContent = '自由記述は下の「採点チェック」（減点ポイント）で自己採点する。AI採点なしで完結。';
+        host.appendChild(note);
+        host.appendChild(buildModel());
+      }
+    }
+
+    // クリックは document 委譲（iframe 内でも堅牢）
+    document.addEventListener('click', function(e){
+      var t = e.target; if(!t || !t.closest) return;
+      var chip = t.closest('.kp-chip'); if(chip && host && host.contains(chip)){ onChip(chip); return; }
+      var slot = t.closest('.kslot'); if(slot && bone.contains(slot)){ onSlot(slot); return; }
+      var b = t.closest('[data-kp]'); if(!b || !((host && host.contains(b)) || (topbar && topbar.contains(b)))) return;
+      var act = b.getAttribute('data-kp');
+      if(act === 'm1'){ tier = 1; render(); }
+      else if(act === 'm2'){ tier = 2; render(); }
+      else if(act === 'lv1'){ level = 1; render(); }
+      else if(act === 'lv2'){ level = 2; render(); }
+      else if(act === 'lv3'){ level = 3; render(); }
+      else if(act === 'grade'){ doGrade(); }
+      else if(act === 'reset'){ render(); }
+      else if(act === 'reveal'){ toggleModel(b); }
+      else if(act === 'collate'){ if(modelEl){ modelEl.style.display = 'block'; } var c = document.querySelector('.collate'); if(c && c.scrollIntoView) c.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    });
+
+    // 既定でパズルを起動（答えは隠す）
+    topbar = document.createElement('div'); topbar.className = 'kp-top'; bone.parentNode.insertBefore(topbar, bone);
+    host = document.createElement('div'); host.className = 'kp-host'; bone.parentNode.insertBefore(host, bone.nextSibling);
+    render();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+/* ==== KP-PEEK-MOVE ==== peek を末尾へ（想起型「自分で答え/挙げ・立ち止まる石」のみ。前提・理由「なぜ〜」型は元位置=冒頭のまま） */
+(function(){var RE=/自分で(答え|挙げ)|立ち止まる石/;function mv(){var s=document.querySelectorAll(".step");for(var i=0;i<s.length;i++){var p=s[i].querySelectorAll(":scope > details.peek");for(var j=0;j<p.length;j++){var sm=p[j].querySelector("summary");if(sm&&RE.test(sm.textContent||""))s[i].appendChild(p[j]);}}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mv);else mv();})();
+</script>
+</body>
+</html>

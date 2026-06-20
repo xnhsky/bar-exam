@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>横領後の横領 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.topbar-vol { font-family: var(--f-disp); font-style: italic; font-size: 13px; color: var(--oxblood); font-variant: small-caps; letter-spacing: 0.12em; }
+.topbar-vol em { color: var(--ink-faint); font-style: italic; margin: 0 0.5em; }
+.topbar-title { font-family: var(--f-jp); font-weight: 700; font-size: 18px; letter-spacing: 0.1em; color: var(--ink); }
+.topbar-title em { font-family: var(--f-it); font-style: italic; font-weight: 400; font-size: 14px; color: var(--oxblood); letter-spacing: 0.05em; margin-left: 0.5em; }
+.topbar-stats { margin-left: auto; font-family: var(--f-it); font-style: italic; font-size: 13px; color: var(--ink-soft); letter-spacing: 0.04em; }
+.topbar-stats .num { color: var(--oxblood); font-weight: 600; }
+
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+.legend-title { font-variant: small-caps; letter-spacing: 0.2em; font-style: normal; color: var(--oxblood); font-weight: 500; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.legend-swatch { width: 18px; height: 10px; border-radius: 2px; display: inline-block; }
+
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+.mm-root-eyebrow { font-family: var(--f-it); font-style: italic; font-size: 11px; letter-spacing: 0.2em; color: var(--root-text); opacity: 0.65; margin-bottom: 8px; font-variant: small-caps; }
+.mm-root-title { font-family: var(--f-jp); font-weight: 700; font-size: 30px; line-height: 1.15; letter-spacing: 0.08em; margin: 0; color: var(--root-text); }
+.mm-root-en { font-family: var(--f-it); font-style: italic; font-weight: 400; font-size: 15px; letter-spacing: 0.05em; margin-top: 10px; color: var(--root-text); opacity: 0.85; }
+.mm-root-divider { width: 28px; height: 1px; background: var(--root-text); opacity: 0.4; margin: 16px 0 14px; }
+.mm-root-meta { font-family: var(--f-it); font-style: italic; font-size: 12px; letter-spacing: 0.04em; color: var(--root-text); opacity: 0.75; line-height: 1.6; }
+.mm-root-meta em { font-style: normal; font-variant: small-caps; letter-spacing: 0.15em; font-size: 10px; opacity: 0.7; margin-right: 0.5em; }
+
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.mm-trunk-node:hover { transform: translateY(-1px); box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18); }
+.mm-trunk-node .mm-num { font-family: var(--f-it); font-style: italic; font-weight: 400; font-size: 22px; line-height: 1; opacity: 0.7; flex-shrink: 0; }
+.mm-trunk-node .mm-name { font-family: var(--f-jp); font-weight: 700; font-size: 14.5px; letter-spacing: 0.08em; flex: 1; line-height: 1.35; }
+.mm-trunk-node .mm-name-en { display: block; font-family: var(--f-it); font-style: italic; font-weight: 400; font-size: 10.5px; opacity: 0.65; margin-top: 1px; font-variant: small-caps; letter-spacing: 0.12em; }
+.mm-trunk-node.is-special { border: 0.5px solid currentColor; font-weight: 800; }
+.mm-trunk-node.is-special::after { content: '§'; font-family: var(--f-it); font-style: italic; font-size: 16px; font-weight: 500; opacity: 0.6; margin-left: auto; flex-shrink: 0; }
+
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+.mm-twigs::before { content: ''; position: absolute; left: 0; top: 18px; bottom: 18px; width: 1px; background: var(--connector); opacity: 0.7; }
+
+.mm-leaf { position: relative; }
+.mm-leaf::before { content: ''; position: absolute; left: -32px; top: 18px; width: 32px; height: 1px; background: var(--connector); opacity: 0.7; }
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+.mm-leaf > summary:hover { border-color: rgba(31, 27, 22, 0.18); }
+.mm-leaf[open] > summary { background: rgba(244, 237, 216, 0.85); border-color: var(--node-text, var(--ink-soft)); box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06); }
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+.mm-leaf-sub em { font-style: italic; }
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+.mm-leaf-body strong { color: var(--node-text, var(--oxblood)); font-weight: 700; }
+.mm-leaf-body em { font-family: var(--f-it); font-style: italic; }
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+.mm-leaf-body .norm-cite { display: block; margin-top: 6px; font-family: var(--f-it); font-style: italic; font-size: 11.5px; letter-spacing: 0.04em; color: var(--gold); font-weight: 500; }
+.mm-leaf-body .case-name { font-family: var(--f-it); font-style: italic; font-weight: 500; color: var(--node-text, var(--ink)); }
+.mm-leaf-body .label-row { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 6px 0; font-family: var(--f-body); font-size: 12.5px; }
+.mm-leaf-body .label-row em { font-family: var(--f-it); font-style: italic; font-size: 11px; letter-spacing: 0.1em; color: var(--node-text, var(--oxblood)); font-variant: small-caps; margin-right: 0.3em; }
+
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); } .mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); } .mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); } .mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); } .mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); } .mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); } .mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); } .mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); } .mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); } .mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); } .mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); } .mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); } .mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); } .mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); } .mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); } .mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); } .mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); } .mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); } .mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); } .mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); } .mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); } .mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); } .mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); } .mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); } .mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); } .mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); } .mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); } .mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); } .mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); } .mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); } .mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); } .mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); } .mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); } .mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); } .mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); } .mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); } .mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); } .mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); } .mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); } .mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+.mm-recall-group { display: flex; flex-direction: column; gap: 6px; }
+.mm-q { position: relative; }
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary { background: rgba(244, 237, 216, 0.8); border-color: var(--lv-color, var(--ink-soft)); }
+.mm-q-num { font-family: var(--f-it); font-style: italic; font-size: 12px; color: var(--lv-color, var(--oxblood)); font-weight: 600; flex-shrink: 0; letter-spacing: 0.03em; padding-top: 0.05em; }
+.mm-q-text { font-family: var(--f-jp); font-size: 13px; font-weight: 600; flex: 1; color: var(--ink); }
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+.mm-q-answer .kw { color: var(--lv-color, var(--oxblood)); font-weight: 700; }
+.mm-q-answer .verb { font-family: var(--f-jp); background: rgba(122, 95, 42, 0.1); padding: 0 0.3em; }
+
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+.lv1 .mm-lv-header, .lv2 .mm-lv-header, .lv3 .mm-lv-header, .lv4 .mm-lv-header, .lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+.mm-lv-roman { font-family: var(--f-it); font-style: italic; font-size: 18px; font-weight: 400; }
+.mm-lv-name { font-family: var(--f-jp); font-weight: 700; font-size: 12.5px; letter-spacing: 0.12em; }
+.mm-lv-count { margin-left: auto; font-family: var(--f-it); font-style: italic; font-size: 11px; letter-spacing: 0.05em; opacity: 0.75; }
+
+.foot { max-width: 760px; margin: 60px auto 80px; padding: 24px 0 0; border-top: 0.5px solid var(--rule); text-align: center; }
+.foot-fin { font-family: var(--f-it); font-style: italic; font-size: 14px; letter-spacing: 0.4em; color: var(--ink-faint); margin-bottom: 10px; }
+.foot-meta { font-family: var(--f-it); font-style: italic; font-size: 11px; letter-spacing: 0.06em; color: var(--ink-faint); }
+
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  details { open: open; }
+}
+
+summary:focus-visible, a:focus-visible { outline: 2px solid var(--oxblood); outline-offset: 3px; border-radius: var(--r-sm); }
+::selection { background: var(--oxblood-light); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <span class="topbar-vol">Vol. LV <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">横領後の横領 <em>— Re-embezzlement of Real Property</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">9</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">横領後の横領</h2>
+      <div class="mm-root-en">Re-embezzlement of Real Property</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑法（財産犯・横領罪）<br>
+        <em>Origin</em>旧司法試験 平成16年度 第2問<br>
+        <em>Form</em>複合事案処理型（規範定立＋あてはめ精度）
+      </div>
+    </div>
+
+    <div class="mm-trunk">
+      <!-- Branch 1: 出題位置 -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系内位置</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑法各論・<strong>財産犯</strong>のうち委託物横領罪（252条1項）を幹とし、背任罪（247条）・詐欺罪（246条）・共犯（60条・65条）が交錯する複合問題。「三段階体系」ではなく<strong>罪責の競合・罪数処理</strong>に主眼がある。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row"><span><em>頻度</em>横領・既遂時期は司法・予備で頻出</span></div>
+              <div class="label-row"><span><em>重要度</em>★★★★★（横領後の横領＝本丸）</span></div>
+              <p>前年の<strong>最大判平15.4.23</strong>を承けた出題で、横領の既遂時期論と横領後の横領論を一事案で総合的に試す好個の素材。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">出題趣旨</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>連続する処分行為（二重売買・抵当権設定・更なる売却）を素材に、<strong>横領罪・詐欺罪等の成立要件の理解</strong>と、<strong>横領後の横領に関する的確な考察</strong>を問う（法務省発表）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>横領と背任の区別／二重抵当（背任）／不可罰的事後行為／三角詐欺／単純悪意者と共犯／不動産物権変動（民177）。詳細は Branch 9 を参照。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 2: 事案構造 -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Facts</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲は自己所有・<strong>自己名義</strong>の土地を A に売却（代金完済・登記未了）。その後 B に二重売買（B は解除・代金返還）、<strong>C 銀行に抵当権設定（登記済）</strong>、さらに事情を知る<strong>乙へ売却（登記済）</strong>。登記名義を握ったまま同一物を次々処分した点が核。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲＝売主・登記名義人（行為者）／A＝第一買主・代金完済（被害者）／B＝第二買主→解除／C 銀行＝抵当権者・登記済／乙＝最終買主・<strong>単純悪意者</strong>・登記済。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>(i) 各処分で横領はいつ成立するか（既遂時期）。(ii) 抵当権設定後の売却に重ねて横領が成立するか（横領後の横領）と罪数。(iii) B・C への詐欺の成否。(iv) 乙の共犯の成否。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 3: 処理手順 (is-special) -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 — 占有の確認</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲は<strong>登記名義を保有</strong>＝法律的支配＝「自己の占有する」（大判昭4.4.9）。A は代金完済で所有権取得＝「他人の物」。委託信任関係も売買契約上の登記協力義務から肯定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 — 既遂時期で各処分を仕分け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>不動産横領の既遂＝<strong>移転登記完了時</strong>。横領に未遂処罰規定なし。A・B 売買（登記未了）→不成立／抵当権設定・乙売却（登記済）→成立。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 — 横領後の横領</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権設定＝第1横領を確定 → 乙への売却＝第2横領。先行横領があっても<strong>不可罰的事後行為説を否定</strong>し別罪成立（最大判平15.4.23）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 — 罪数・詐欺・共犯</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>第1・第2横領＝同一物の所有権侵害で<strong>包括一罪</strong>（背任未遂も包括評価）。B 詐欺は原則不成立・例外成立。C 詐欺・三角詐欺は不成立。乙は単純悪意者で共犯不成立。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 4: 論点① 横領の成立時期 -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点① 横領の成立<span class="mm-name-en">Issue I · Embezzlement</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">「占有」＝法律的支配</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>横領罪の「占有」は事実的支配のみならず<strong>法律的支配を含む</strong>（大判昭4.4.9）。不動産では<strong>登記名義の保有</strong>が法律的支配の典型。甲は終始登記名義を保有 → 占有肯定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">「横領」の意義</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>「横領」＝委託の任務に背き、権限がないのに<strong>所有者でなければできない処分</strong>をする不法領得の意思の発現行為。</p>
+              <div class="norm">他人の物の占有者が委託の任務に背いて、その物につき権限がないのに所有者でなければできないような処分をする意思の発現。<span class="norm-cite">— 最判昭24.3.8（横領の意義・百選II66）</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">既遂時期＝移転登記時</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p><strong>本論点の幹。</strong>登記が対抗要件たる不動産では、既遂は<strong>登記手続完了時</strong>（最判昭30.12.26参照）。横領に未遂処罰規定がない以上、<strong>登記未了では横領は不成立</strong>。</p>
+              <p>→ A・B 売買は登記未了で不成立、抵当権設定・乙売却（登記済）で成立、という骨格を導く。</p>
+            </div>
+          </details>
+        </div>
+      </div>
+      <!-- Branch 5: 論点② 横領後の横領・詐欺 -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点② 後の横領・詐欺<span class="mm-name-en">Issue II · Re-embezzlement / Fraud</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">横領後の横領（別罪成立）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>抵当権設定（登記済）で既に横領が成立した物を更に売却（登記済）した場合、後行行為は不可罰的事後行為にとどまるか。<strong>最大判平15.4.23は別罪成立を肯定</strong>し不可罰的事後行為説を否定。</p>
+              <p>理由＝抵当権設定後も不動産はなお他人の物で受託占有が継続し、<strong>担保設定と所有権移転は権利侵害の質が異なる</strong>。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">二重譲渡と詐欺（原則・例外）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>二重譲渡では第二譲受人は<strong>登記を備えれば対抗可</strong>（民177）→ 原則として財産上の損害なく詐欺不成立。もっとも、買主が<strong>登記を得ても取引目的を達し得ない事情</strong>（B の解除）があれば例外的に損害を肯定し得る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">三角詐欺の処分権限</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>C 銀行を被欺罔者・A を被害者とする三角詐欺は、<strong>被欺罔者が被害者の財産を処分し得る権限・地位</strong>を要する（最判昭45.3.26）。C 銀行に A の土地の処分権限なし → 不成立。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 6: 論証文言 (gold) -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Norms</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 — 横領の意義・既遂時期</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">「占有」は事実的支配のみならず法律的支配を含み、登記名義人は「占有」を有する。「横領」とは権限がないのに所有者でなければできない処分をする不法領得の意思の発現行為をいう。不動産二重譲渡では既遂時期は移転登記の完了時であり、未遂処罰規定がない以上、登記未了では横領は成立しない。<span class="norm-cite">— 最判昭24.3.8／最判昭30.12.26</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">例外イ — 横領後の横領</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">抵当権設定後も不動産はなお他人の物であり受託者の占有は継続する。担保権の設定と所有権の移転とでは権利侵害の質が異なる以上、先行する抵当権設定の存在は後行の売却につき横領罪の成立を妨げない。よって後行行為にも別個に横領罪が成立する。<span class="norm-cite">— 最大判平15.4.23（百選II69）</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">例外ウ — 三角詐欺の処分権限</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">被欺罔者と財産上の被害者とが異なる詐欺が成立するためには、被欺罔者が被害者の財産を処分し得る権限又は地位を有することを要する。<span class="norm-cite">— 最判昭45.3.26（百選II56）</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">補助規範 — 罪数（包括一罪）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">第1横領と第2横領とで侵害されるのはいずれも同一物の所有権であり、法益侵害の単一性が認められるから、両者は包括一罪として処断する（背任未遂も包括評価）。<span class="norm-cite">— 大阪地判平20.3.14 参照</span></div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 7: あてはめ事実 (gold) -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Application</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">A・B 売買 — 登記未了で不成立</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>A・B への<strong>移転登記が未了</strong>＝対抗要件未具備＝権利侵害が未確定 → 既遂時期未到来で横領不成立。B 売買については財産上の損害が未発生で<strong>背任未遂</strong>（247条・250条）にとどまる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">C 銀行抵当権設定 — 第1横領</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権設定<strong>登記を完了</strong>＝所有者でなければできない処分の完成 → <strong>第1横領の既遂</strong>。C 銀行への詐欺は損害なく不成立、三角詐欺も処分権限なく不成立。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">乙への売却 — 第2横領</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙への<strong>移転登記を完了</strong>＝担保設定と質を異にする所有権移転 → <strong>第2横領の既遂（横領後の横領）</strong>。乙は悪意で錯誤なく詐欺は成立しない。侵害対象は同一の本件土地 → 包括一罪。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 8: 直前期コア (is-special) -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Core §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>(i) 占有＝法律的支配（登記名義）を含む。(ii) 不動産横領の既遂＝<strong>移転登記完了時</strong>（未遂処罰規定なし）。(iii) 横領後の横領も<strong>別罪成立</strong>（担保設定と所有権移転は権利侵害の質が異なる）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>最判昭30.12.26（既遂時期＝登記時）／最大判平15.4.23（横領後の横領＝別罪）／最判昭45.3.26（三角詐欺の処分権限）。この 3 つで本問の幹が立つ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>252条1項（横領）・247条／250条（背任・未遂）・246条1項（詐欺）・60条／65条1項（共犯）・民177（対抗要件）。土地 1000万・B 1100万・抵当 200万・乙 800万。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「登記を制する者が既遂を制す」「<strong>質が違う</strong>＝別罪成立」「原則不成立・例外成立（詐欺）」「単純悪意者は自由競争＝共犯にならない」。罪数は判例ブランクと一言。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- Branch 9: 関連論点 -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">横領と背任の区別</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>横領＝<strong>権限の逸脱</strong>（所有者でなければできない処分・個別財産・未遂なし）／背任＝<strong>権限の濫用</strong>（権限内での背任・全体財産・未遂あり250条）。両罪は法条競合（特別関係）で、横領が成立すれば横領のみ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">二重抵当（背任）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>二重抵当の事案では第一抵当権者への登記協力義務を「他人の事務」と捉え<strong>背任罪</strong>を認める（最判昭31.12.7）。本問は登記名義人自身の処分なので登記を経た処分は<strong>横領</strong>で捕捉される点が異なる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">単純悪意者と共犯</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>横領罪は真正身分犯。非身分者が加担した場合、<strong>単純悪意者は共犯とならず、背信的悪意者なら共犯</strong>（福岡高判昭47.11.22）。乙は単純悪意者＝自由競争の範囲内で共犯不成立。背信的悪意者なら65条1項。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">不可罰的事後行為</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>窃盗犯人による盗品損壊等が典型。状態犯成立後の処分を不可罰とする法理。横領後の横領は<strong>この法理が否定された場面</strong>（最大判平15.4.23）として位置づけられる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 10: 失点パターン -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点1 — A・B 売買で横領成立とする</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>既遂時期＝登記時を押さえず、登記未了の A・B 売買でも横領を成立させてしまう。<strong>横領に未遂はない</strong>ので登記未了は端的に不成立。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点2 — 乙売却を不可罰的事後行為に</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>第1横領があるからと乙への売却を不可罰的事後行為で済ます。<strong>最大判平15.4.23</strong>により別罪成立（権利侵害の質が異なる理由を明示）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点3 — 罪数を論じない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>第1・第2横領の罪数（包括一罪／併合罪）を処理しない。判例は罪数に触れていない（射程外）点も一言添えると上位。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点4 — 二重譲渡で機械的に詐欺肯定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民177で原則損害なしを踏まえず詐欺を安易に肯定。原則不成立 → B の解除で例外成立、の<strong>原則・例外の型</strong>で書く。三角詐欺の処分権限も落とさない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点5 — C 銀行の深読み／返還で詐欺否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「金融機関だから担保価値に注意」と<strong>問題文に根拠のない深読み</strong>をする。また 1100万円返還は<strong>詐欺成立後の事情</strong>で成否に無影響なのに否定根拠にしてしまう。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 11: フェーズ別 -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 — 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>13 分枝を眺め、横領（既遂時期）を幹、詐欺・背任・共犯を枝、と全体像をつかむ。図を書いて事案を整理する習慣を作る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 — 基礎再生（LV I）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>占有・横領の意義・既遂時期・条文番号を暗記。目標 7 割。Branch 13 の LV I を回す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 — 応用展開（LV II）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「もし登記済だったら」「背信的悪意者なら」と反実仮想で射程を確認。横領と背任、二重抵当との対比を整理。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 — 答案直結（LV IV）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>処理順序（時系列：B→C 銀行→乙→乙の罪責）と配点・分量配分を確認。横領を厚く、詐欺・共犯は端的に。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 — 規範完全再生（LV III）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>既遂時期・横領後の横領・三角詐欺の規範を一句一文で再生。Branch 6 の論証文言をそのまま書けるか。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 — 速記フラッシュ（LV V）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>30 字以内の即答で核を固める。「登記未了→？」「横領後の横領→？」を瞬時に。口頭で 3〜5 分構成を回す。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- Branch 12: 参照判例 (sepia) -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases &amp; Statutes</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">不法領得の意思事件</span><span class="mm-leaf-sub"><em>Intent of Unlawful Appropriation</em> · 最判昭24.3.8</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>横領＝委託の任務に背き権限なく所有者でなければできない処分をする不法領得の意思の発現行為、と定義（百選II66）。</p>
+              <p><em>射程</em> — 甲の各処分の横領行為性を基礎づける。残る問題は既遂時期。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">不動産横領既遂時期判例</span><span class="mm-leaf-sub"><em>Time of Consummation</em> · 最判昭30.12.26</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>登記が対抗要件の不動産では既遂は登記手続完了時。未遂処罰規定がないため登記未了は不成立。</p>
+              <p><em>射程</em> — 本問の幹。A・B 不成立／抵当権設定・乙売却で成立の骨格を導く。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">横領後の横領事件</span><span class="mm-leaf-sub"><em>Re-embezzlement</em> · 最大判平15.4.23</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>抵当権設定（横領）後の所有権移転にも別個に横領罪が成立。不可罰的事後行為説を否定（百選II69）。</p>
+              <p><em>射程</em> — 強。ただし<strong>第2行為のみ起訴の事案</strong>で罪数関係は射程外。本問は実体法上の罪数を自分で処理。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">三角詐欺・処分権限判例</span><span class="mm-leaf-sub"><em>Triangular Fraud</em> · 最判昭45.3.26</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>被欺罔者と被害者が異なる三角詐欺は、被欺罔者が被害者の財産を処分し得る権限・地位を要する（百選II56）。</p>
+              <p><em>射程</em> — C 銀行に A の財産処分権限なし → 三角詐欺不成立。窃盗との区別とも連動。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">占有＝法律的支配判例</span><span class="mm-leaf-sub"><em>Juridical Control</em> · 大判昭4.4.9</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>横領罪の「占有」に法律的支配（登記名義）を含めた古典判例。</p>
+              <p><em>射程</em> — 登記名義を保有する甲の「占有」を肯定する根拠。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">二重抵当事件</span><span class="mm-leaf-sub"><em>Double Mortgage · Breach of Trust</em> · 最判昭31.12.7</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>第一抵当権者への登記協力義務を「他人の事務」とし背任罪を肯定。</p>
+              <p><em>射程</em> — 本問の登記名義人による処分（横領）との対比。横領／背任の限界づけ。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">横領後の横領・罪数下級審</span><span class="mm-leaf-sub"><em>Comprehensive Single Crime</em> · 大阪地判平20.3.14</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>横領後の横領を同一物の所有権侵害として包括一罪と処理した一例。</p>
+              <p><em>射程</em> — 判例ブランクである罪数につき、本問の包括一罪処理を支える参考。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">単純悪意者と共犯</span><span class="mm-leaf-sub"><em>Mere Bad Faith &amp; Complicity</em> · 福岡高判昭47.11.22</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>単純悪意者は横領罪の共犯とならず、背信的悪意者であれば共犯となる旨を示す。</p>
+              <p><em>射程</em> — 乙は単純悪意者 → 共犯不成立の決め手（最判昭31.6.26 も参照）。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">関連条文</span><span class="mm-leaf-sub"><em>Statutes</em> · 刑252・247・250・246・60・65／民177</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <p>刑法252条1項（横領）／247条・250条（背任・未遂）／246条1項（詐欺）／60条（共同正犯）・65条1項（身分犯の共犯）。</p>
+              <p><em>射程</em> — 民法177条（対抗要件）は既遂時期と二重譲渡詐欺の双方に効く横断条文。</p>
+            </div>
+          </details>
+        </div>
+      </div>
+      <!-- Branch 13: アクティブリコール (is-special) -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Active Recall §</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 520px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">横領罪の「占有」に含まれるものは？</span></summary>
+                  <div class="mm-q-answer">事実的支配のみならず<span class="kw">法律的支配</span>を含む。不動産では<span class="kw">登記名義の保有</span>が典型（大判昭4.4.9）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">不動産横領の既遂時期は？</span></summary>
+                  <div class="mm-q-answer">対抗要件たる<span class="kw">移転登記が完了した時点</span>（最判昭30.12.26）。横領に未遂処罰規定がないため<span class="kw">登記未了では不成立</span>。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">「横領」の意義は？</span></summary>
+                  <div class="mm-q-answer">委託の任務に背き、権限がないのに<span class="kw">所有者でなければできない処分</span>をする不法領得の意思の発現行為（最判昭24.3.8）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">三角詐欺の成立に必要な要件は？</span></summary>
+                  <div class="mm-q-answer">被欺罔者が被害者の財産を<span class="kw">処分し得る権限又は地位</span>を有すること（最判昭45.3.26）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 520px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 射程比較</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">もし甲が登記名義人でなく、A への登記移転義務だけを負う者なら罪責はどう変わるか？</span></summary>
+                  <div class="mm-q-answer">占有（登記名義）がないため横領は成立し得ず、<span class="kw">登記協力義務違反＝背任罪</span>（最判昭31.12.7・二重抵当型）の問題になる。横領と背任は権限の<span class="kw">逸脱か濫用か</span>で分かれる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">乙が「嫌がらせ目的」で買い受けていたら結論はどう動くか？</span></summary>
+                  <div class="mm-q-answer">単純悪意者でなく<span class="kw">背信的悪意者</span>となり、自由競争の範囲を超えるため横領罪の共同正犯が成立し得る。非身分者の乙には<span class="kw">65条1項</span>が適用される。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">最大判平15.4.23を本問にそのまま援用できない点は？</span></summary>
+                  <div class="mm-q-answer">同判決は<span class="kw">第2行為のみ起訴の事案</span>で、第1横領と第2横領の<span class="kw">罪数関係には判断を示していない</span>。本問は実体法上の罪数を自分で処理する必要がある。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 520px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 一句一文</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">不動産横領の既遂時期の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">不動産の二重譲渡では、第二譲受人が登記を備えて初めて第一譲受人の権利侵害が確定的に現実化するから、横領罪の既遂時期は移転登記が完了した時点と解する。未遂処罰規定がない以上、登記未了では横領罪は成立しない。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">横領後の横領（別罪成立）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">抵当権設定後も不動産はなお他人の物であり受託者の占有は継続する。担保権の設定と所有権の移転とでは権利侵害の質が異なる以上、先行する抵当権設定の存在は後行の売却につき横領罪の成立を妨げず、後行行為にも別個に横領罪が成立する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">二重譲渡における詐欺罪の原則・例外の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">二重譲渡では第二譲受人は移転登記を備えれば対抗し得る（民177）から、原則として財産上の損害はなく詐欺罪は成立しない。もっとも、買主が登記を得てもなお取引目的を達し得ない特段の事情があれば、例外的に財産上の損害を認め詐欺罪が成立し得る。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 520px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点・順序</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">成立しうる犯罪が多い本問を、どの順序・分量で論ずるか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">時系列（甲：B→C 銀行→乙）→ 乙の罪責</span>の順。横領（既遂時期・横領後の横領）を幹として厚く、A・B 横領不成立や詐欺・背任未遂は端的に。全体を<span class="kw">答案用紙4枚</span>に収める感覚。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">横領罪と詐欺罪・背任未遂の罪数関係は？</span></summary>
+                  <div class="mm-q-answer">第1・第2横領は同一物の所有権侵害で<span class="kw">包括一罪</span>（背任未遂も包括評価）。B に対する詐欺罪は被害者・法益を異にし、横領罪とは<span class="kw">併合罪</span>。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 520px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30 字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">登記未了の処分 → ？</span></summary>
+                  <div class="mm-q-answer">横領不成立（未遂処罰規定なし）。<span class="kw">背任未遂</span>を検討。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">横領後の横領 → ？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">質が違う＝別罪成立</span>（最大判平15.4.23）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">単純悪意者の乙 → ？</span></summary>
+                  <div class="mm-q-answer">自由競争の範囲内＝<span class="kw">横領罪の共犯不成立</span>。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Horizontal Mindmap · 13 chapters · 9 cases · 15 qq.</div>
+</footer>
+
+</body>
+</html>
