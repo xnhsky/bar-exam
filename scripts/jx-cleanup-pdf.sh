@@ -28,16 +28,12 @@ cd "$ROOT"
 # 科目接頭辞 → 出力サブフォルダ
 declare -A PREFIX=( [刑]=刑JX [憲]=憲JX [民]=民JX [商]=商JX [民訴]=民訴JX [刑訴]=刑訴JX [行政]=行政JX )
 declare -A SUBJDIR=( [刑]=001_刑法 [刑訴]=002_刑事訴訟法 [民]=003_民法 [商]=004_商法 [民訴]=005_民事訴訟法 [行政]=006_行政法 [憲]=007_憲法 )
-declare -A PDFDIR=(
-  [刑]="inputs/jx/刑/重問PDF"   [憲]="inputs/jx/憲/重問PDF"   [民]="inputs/jx/民/重問PDF"
-  [商]="inputs/jx/商/重問PDF"   [民訴]="inputs/jx/民訴/重問PDF" [刑訴]="inputs/jx/刑訴/重問PDF"
-  [行政]="inputs/jx/行政/重問PDF"
-)
-declare -A TRANSDIR=(
-  [刑]="inputs/jx/刑/講義逐語"   [憲]="inputs/jx/憲/講義逐語"   [民]="inputs/jx/民/講義逐語"
-  [商]="inputs/jx/商/講義逐語"   [民訴]="inputs/jx/民訴/講義逐語" [刑訴]="inputs/jx/刑訴/講義逐語"
-  [行政]="inputs/jx/行政/講義逐語"
-)
+# 入力フォルダも 00N_科目 形式（2026-06-20 統一）。SUBJDIR から導出して二重管理を避ける。
+declare -A PDFDIR TRANSDIR
+for _s in "${!SUBJDIR[@]}"; do
+  PDFDIR[$_s]="inputs/jx/${SUBJDIR[$_s]}/重問PDF"
+  TRANSDIR[$_s]="inputs/jx/${SUBJDIR[$_s]}/講義逐語"
+done
 # 科目 → Drive バックアップ科目フォルダ名（重問PDF / 講義逐語 はこの直下）
 declare -A DRIVE_HTML=(
   [刑]=001_刑法 [刑訴]=002_刑事訴訟法 [民]=003_民法 [商]=004_商法

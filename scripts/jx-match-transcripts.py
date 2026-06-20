@@ -29,6 +29,9 @@ jx-match-transcripts.py  ── 講義逐語 ↔ 重問PDF 内容照合の自動
 import re, os, sys, io, argparse, unicodedata, subprocess
 
 SUBJ_DIRS = ["刑", "憲", "民", "商", "民訴", "刑訴", "行政"]
+# 科目フォルダは 00N_科目 形式（2026-06-20 統一・outputs と対称）。--subject は短縮名を維持。
+SUBJ_DIR_MAP = {"刑": "001_刑法", "刑訴": "002_刑事訴訟法", "民": "003_民法",
+                "商": "004_商法", "民訴": "005_民事訴訟法", "行政": "006_行政法", "憲": "007_憲法"}
 
 def clean(s: str) -> str:
     """照合用に正規化：ひらがな除去＋漢字/カタカナ/英数字のみ残す。"""
@@ -121,7 +124,7 @@ def main():
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
 
-    base = os.path.join(args.root, args.subject)
+    base = os.path.join(args.root, SUBJ_DIR_MAP.get(args.subject, args.subject))
     pdf_dir = os.path.join(base, "重問PDF")
     tx_dirs = [os.path.join(base, "講義逐語"), base]   # サブフォルダ＋フラット
     cache_dir = os.path.join(base, "_ocr_cache")

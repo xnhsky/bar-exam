@@ -14,9 +14,9 @@
 #   ⑤ tts/run-tts.ps1 (generate_tts.py)        集約済み台本 → wav（バッチ末尾で一括・全自動）
 # 逐語が無い PDF は処理対象外（SKIP_NO_TRANSCRIPT）。②が PASS でなければ③以降をスキップ。
 #
-# 入力配置（科目フォルダに同居・同番号）:
-#   inputs/jx/{科目}/032.pdf  ＋  inputs/jx/{科目}/032.txt（または 032.md）
-#   例: inputs/jx/刑/1.pdf ＋ inputs/jx/刑/1.txt
+# 入力配置（科目フォルダ 00N_科目 配下・同番号。2026-06-20 統一）:
+#   inputs/jx/{00N_科目}/重問PDF/NN.pdf  ＋  inputs/jx/{00N_科目}/講義逐語/{科目名}_重問逐語NN.txt（または .md）
+#   例: inputs/jx/001_刑法/重問PDF/1.pdf ＋ inputs/jx/001_刑法/講義逐語/刑法_重問逐語01.txt（-Subject は短縮名 刑 を維持）
 # 生成動線: 各問は canonical/ATHENA.html を clone → 本文空文字列化 → 部ごと差替（TX の GENESIS 同様）
 #
 # 実行例:
@@ -54,8 +54,10 @@ param(
 # === パス定義 ===
 # スクリプト自身の位置 (= scripts\) の親をプロジェクトルートとする
 $ProjectRoot   = Split-Path -Parent $PSScriptRoot
-# 入力は科目フォルダに PDF＋同番号逐語を同居：inputs\jx\{科目}\NN.pdf ＋ NN.txt（2026-06-06 確定）
-$PdfDir        = Join-Path $ProjectRoot "inputs\jx\$Subject"
+# 科目 → 00N_科目 サブフォルダ（全シリーズ共通・入出力とも・2026-06-20 inputs も統一）
+$SubjectDir    = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
+# 入力は科目フォルダ(00N_科目)に 重問PDF\＋講義逐語\ を内包：inputs\jx\00N_科目\重問PDF\NN.pdf
+$PdfDir        = Join-Path $ProjectRoot "inputs\jx\$SubjectDir"
 $JxOutputBase  = Join-Path $ProjectRoot "outputs\001_JX"
 $TtsOutputBase = Join-Path $ProjectRoot "outputs\002_TTS"
 $LogsDir       = Join-Path $ProjectRoot "logs"
@@ -92,8 +94,6 @@ $StagedAny     = $false   # この起動で input_texts へ何か集約したか
 $CostCsv       = Join-Path $LogsDir "jx-cost-summary.csv"
 $RunLog        = Join-Path $LogsDir "jx-batch-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 
-# 科目 → 00N_科目 サブフォルダ（全シリーズ共通）
-$SubjectDir    = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
 $JxOutputDir   = Join-Path $JxOutputBase $SubjectDir
 $RxOutputDir   = Join-Path $RxOutputBase  $SubjectDir
 $ArbOutputDir  = Join-Path $ArbOutputBase $SubjectDir
@@ -225,7 +225,7 @@ $TranscriptCands = @($TransSearchDirs | ForEach-Object {
 
 # 逐語ファイル名から問題番号を抽出
 #   '重問逐語NN'（2026-06-07 内容照合後の新命名）と '重問NN'（旧命名）の両方に対応。
-#   ※ 逐語は PDF と「同番号」になるよう内容照合で改名済み（正典: inputs/jx/刑/逐語-PDF対応表.md）。
+#   ※ 逐語は PDF と「同番号」になるよう内容照合で改名済み（正典: inputs/jx/001_刑法/逐語-PDF対応表.md）。
 #      旧フォールバック '^0*(\d+)' は '刑法_重問逐語NN' のように科目接頭辞付きステムでは
 #      先頭が数字でないため発火せず番号を取れなかった。'重問(?:逐語)?' で確実に拾う。
 function Get-TranscriptNumber {

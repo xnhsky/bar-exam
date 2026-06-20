@@ -34,7 +34,7 @@ python scripts/check-jx-alignment.py 刑 28
 
 # ランナー用：解決した逐語パスだけを標準出力
 python scripts/check-jx-alignment.py 刑 28 --quiet
-#   → inputs/jx/刑/講義逐語/刑法_重問21.txt
+#   → inputs/jx/001_刑法/講義逐語/刑法_重問21.txt
 
 # 科目一括スキャン（PDF があるのに逐語が無い／ズレ疑いを洗い出す）
 python scripts/check-jx-alignment.py 刑 --all
