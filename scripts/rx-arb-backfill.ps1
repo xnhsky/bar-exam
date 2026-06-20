@@ -1,25 +1,31 @@
 # rx-arb-backfill.ps1
 #
 # 既存の JX HTML（outputs/001_JX/{科目}JX/*.html）から、Lexia 用の副産物
-#   RX  = 論証カード（1論点1HTML / outputs/004_JX_EX/RX/{科目}RX/{科目}RX{NNN}_{n}.html）
-#   TREE = ARBOR 樹形図（1問1枚 / outputs/004_JX_EX/TREE/{科目}TREE/{科目}JX{NNN}_TREE.html）
+#   RX      = 論証カード（1論点1HTML / outputs/004_JX_EX/RX/{00N_科目}/{科目}RX{NNN}_{n}.html）
+#   TREE    = ARBOR 樹形図（1問1枚 / outputs/004_JX_EX/TREE/{00N_科目}/{科目}JX{NNN}_TREE.html）
+#   ARIADNE = 解法ナビ＋周回（1問1枚 / outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html）
 # が**未生成のものだけ**を後追い生成するバックフィルランナー。
-# 新規 JX は jx-batch-runner.ps1 の ②-rx / ②-arb 段が自動で副産物を作るので、
+# 新規 JX は jx-batch-runner.ps1 の ②-rx / ②-arb / ②-ariadne 段が自動で副産物を作るので、
 # 本スクリプトは「ランナー導入以前に生成済みの JX 資産」を埋めるために使う。
+#
+# TREE は外部 arbor リポジトリ不在時、canonical/ARBOR.html + validate-tree.py の
+# vendored モードへ自動フォールバックする（arbor を持たない PC でも TREE を埋められる）。
 #
 # 実行例:
 #   pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -DryRun
 #   pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -MaxProblems 3
-#   pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 民訴 -SkipArb   # RX だけ埋める
+#   pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 民訴 -SkipArb -SkipAriadne   # RX だけ埋める
+#   pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -SkipRx -SkipArb          # ARIADNE だけ埋める
 
 param(
     [ValidateSet('刑','刑訴','民','商','民訴','憲','行政')]
     [string]$Subject = '刑',
-    [int]$MaxProblems = 5,              # 1 起動あたり最大処理 JX 数（RX/TREE 合計ではなく問題数）
+    [int]$MaxProblems = 5,              # 1 起動あたり最大処理 JX 数（副産物合計ではなく問題数）
     [int]$FromNumber = 0,
     [int]$ToNumber = 0,
     [switch]$SkipRx,
     [switch]$SkipArb,
+    [switch]$SkipAriadne,
     [string]$ArborRoot = 'C:\Users\xnrg2.DESKTOP-5664QR6\arbor',
     [switch]$DryRun
 )
@@ -30,13 +36,20 @@ $SubjDir = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法
 $JxOutputDir   = Join-Path $ProjectRoot "outputs\001_JX\$SubjDir"
 $RxOutputDir   = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\$SubjDir"
 $ArbOutputDir  = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE\$SubjDir"
+$AriadneOutputDir = Join-Path $ProjectRoot "outputs\004_JX_EX\ARIADNE\$SubjDir"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"
+$AriadnePromptSrc = Join-Path $ProjectRoot "prompts\new-ariadne-headless.md"
 $ValidateRx    = Join-Path $ProjectRoot "scripts\validate-rx.py"
+$ValidateAriadne = Join-Path $ProjectRoot "scripts\validate-ariadne.py"
+$CanonicalAriadne = Join-Path $ProjectRoot "canonical\ARIADNE.html"
 $ArborMaster   = Join-Path $ArborRoot "ARBOR_v5.0_master_prompt.md"
 $ArborRef      = Join-Path $ArborRoot "Reference\ARBOR_002_shucho_tekikaku.html"
 $ArborVerify   = Join-Path $ArborRoot "scripts\verify.py"
+# 外部 arbor 不在時の vendored フォールバック資産（repo 内）
+$CanonicalArbor = Join-Path $ProjectRoot "canonical\ARBOR.html"
+$ValidateTree   = Join-Path $ProjectRoot "scripts\validate-tree.py"
 $RxArbCsv      = Join-Path $LogsDir "rx-arb-summary.csv"
 $RunLog        = Join-Path $LogsDir "rx-arb-backfill-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 
@@ -59,9 +72,21 @@ if ($RxEnabled -and -not (Test-Path $RxPromptSrc)) { Write-Host "[NOTE] RX promp
 if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate-rx.py 不在 → RX スキップ" -ForegroundColor Yellow; $RxEnabled = $false }
 $ArbEnabled = (-not $SkipArb)
 if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] TREE prompt 不在 → TREE スキップ" -ForegroundColor Yellow; $ArbEnabled = $false }
-if ($ArbEnabled -and -not (Test-Path $ArborMaster))  { Write-Host "[NOTE] ARBOR 正典不在 → TREE スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false }
-if (-not ($RxEnabled -or $ArbEnabled)) {
-    Write-Host "[ABORT] RX/TREE とも無効。やることがありません。" -ForegroundColor Red
+# 外部 arbor 不在時は vendored モード（canonical/ARBOR.html + validate-tree.py）へフォールバック
+if ($ArbEnabled -and -not (Test-Path $ArborMaster)) {
+    if ((Test-Path $CanonicalArbor) -and (Test-Path $ValidateTree)) {
+        Write-Host "[NOTE] ARBOR 正典不在 → vendored モード（canonical/ARBOR.html + validate-tree.py）で TREE 生成" -ForegroundColor Yellow
+        $ArborMaster = $CanonicalArbor; $ArborRef = $CanonicalArbor; $ArborVerify = $ValidateTree
+    } else {
+        Write-Host "[NOTE] ARBOR 正典不在 かつ vendored 資産も無し → TREE スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false
+    }
+}
+$AriadneEnabled = (-not $SkipAriadne)
+if ($AriadneEnabled -and -not (Test-Path $AriadnePromptSrc)) { Write-Host "[NOTE] ARIADNE prompt 不在 → ARIADNE スキップ" -ForegroundColor Yellow; $AriadneEnabled = $false }
+if ($AriadneEnabled -and -not (Test-Path $ValidateAriadne))  { Write-Host "[NOTE] validate-ariadne.py 不在 → ARIADNE スキップ" -ForegroundColor Yellow; $AriadneEnabled = $false }
+if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE] canonical ARIADNE 不在 → ARIADNE スキップ: $CanonicalAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
+if (-not ($RxEnabled -or $ArbEnabled -or $AriadneEnabled)) {
+    Write-Host "[ABORT] RX/TREE/ARIADNE とも無効。やることがありません。" -ForegroundColor Red
     Stop-Transcript | Out-Null; exit 1
 }
 
@@ -126,19 +151,23 @@ foreach ($jx in @(Get-ChildItem -Path $JxOutputDir -Filter "*.html" -File | Sort
     $hasRx   = @(Get-ChildItem -Path $RxOutputDir -Filter "${rxBase}_*.html" -File -ErrorAction SilentlyContinue).Count -gt 0
     $arbPath = Join-Path $ArbOutputDir "${problemId}_TREE.html"
     $hasArb  = Test-Path $arbPath
+    $ariaPath = Join-Path $AriadneOutputDir "${problemId}_ARIADNE.html"
+    $hasAria  = Test-Path $ariaPath
     $needRx  = $RxEnabled -and (-not $hasRx)
     $needArb = $ArbEnabled -and (-not $hasArb)
-    if (-not ($needRx -or $needArb)) { continue }
+    $needAria = $AriadneEnabled -and (-not $hasAria)
+    if (-not ($needRx -or $needArb -or $needAria)) { continue }
     $Catalog += [PSCustomObject]@{
         ProblemId = $problemId; Number = $num; JxPath = $jx.FullName
         RxBase = $rxBase; NeedRx = $needRx; ArbPath = $arbPath; NeedArb = $needArb
+        AriaPath = $ariaPath; NeedAria = $needAria
     }
 }
 $Targets = @($Catalog | Sort-Object { [int]$_.Number } | Select-Object -First $MaxProblems)
 
 Write-Host "`n--- 副産物が欠けている JX: $($Catalog.Count) 件 / 本起動の処理対象: $($Targets.Count) 件 ---" -ForegroundColor Yellow
 foreach ($t in $Targets) {
-    $needs = @(); if ($t.NeedRx) { $needs += 'RX' }; if ($t.NeedArb) { $needs += 'TREE' }
+    $needs = @(); if ($t.NeedRx) { $needs += 'RX' }; if ($t.NeedArb) { $needs += 'TREE' }; if ($t.NeedAria) { $needs += 'ARIADNE' }
     Write-Host ("  ● {0}  欠落: {1}" -f $t.ProblemId, ($needs -join '+')) -ForegroundColor Cyan
 }
 if ($Targets.Count -eq 0) {
@@ -208,6 +237,34 @@ foreach ($t in $Targets) {
         Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
             (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'TREE',
             $arbElapsed, $arbBytes, $arbSent, $arbRes.ExitCode, $arbValidate) -join ',')
+    }
+
+    if ($t.NeedAria) {
+        Write-Host "--- ARIADNE 生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
+        $ariaStart = Get-Date
+        if (-not (Test-Path $AriadneOutputDir)) { New-Item -Path $AriadneOutputDir -ItemType Directory -Force | Out-Null }
+        $ariaTemplate = Get-Content $AriadnePromptSrc -Raw -Encoding utf8
+        $ariaPrompt = $ariaTemplate `
+            -replace '\{JX_HTML\}',    $t.JxPath `
+            -replace '\{SKELETON\}',   $CanonicalAriadne `
+            -replace '\{OUT\}',        $t.AriaPath `
+            -replace '\{PROBLEM_ID\}', $t.ProblemId `
+            -replace '\{SUBJECT\}',    $Subject `
+            -replace '\{NNN\}',        $t.Number
+        $ariaRes = Invoke-ClaudeHeadless -Prompt $ariaPrompt -JsonOutPath (Join-Path $LogsDir "ariadne-$($t.ProblemId).json")
+        $ariaSent = Get-Sentinel -Text $ariaRes.Output -ProblemId "$($t.ProblemId)-ARIADNE"
+        $ariaBytes = if (Test-Path $t.AriaPath) { (Get-Item $t.AriaPath).Length } else { 0 }
+        $ariaValidate = "no_html"
+        if ($ariaBytes -gt 0) {
+            $avOut = & python $ValidateAriadne $t.AriaPath 2>&1
+            $ariaValidate = if ($LASTEXITCODE -eq 0) { "PASS" } else { "ERROR(exit=$LASTEXITCODE)" }
+            ($avOut -join "`n") | Out-File -FilePath (Join-Path $LogsDir "ariadne-validate-$($t.ProblemId).txt") -Encoding utf8
+        }
+        $ariaElapsed = [int]((Get-Date) - $ariaStart).TotalSeconds
+        Write-Host "[ARIADNE DONE] bytes=$ariaBytes, sentinel=$ariaSent, validate=$ariaValidate" -ForegroundColor $(if ($ariaValidate -eq 'PASS') { 'Green' } else { 'Yellow' })
+        Add-Content -Path $RxArbCsv -Encoding utf8 -Value (@(
+            (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Subject, $t.ProblemId, 'ARIADNE',
+            $ariaElapsed, $ariaBytes, $ariaSent, $ariaRes.ExitCode, $ariaValidate) -join ',')
     }
 }
 

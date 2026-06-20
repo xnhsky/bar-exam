@@ -357,12 +357,21 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   （科目フォルダは 2026-06-20 に 00N_科目 へ統一。CLAUDE.md 旧記載の「同フォルダ同居・NN.txt」は実態と異なる。マニフェストが正典）。
 - **既知のズレ**：刑 28/29/30 は重問PDFと講義逐語が **−7 ズレ**（内容照合で 21/22/23 が一致）。
 
-### §4-6. RX/TREE 副産物（2026-06-11 導入）
+### §4-6. RX/TREE/ARIADNE 副産物（2026-06-11 導入・2026-06-20 リモート対応）
 
-検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/004_JX_EX/RX/`・1論点1HTML）と
-**TREE 樹形図**（`outputs/004_JX_EX/TREE/`・ARBOR 正典仕様）をバッチランナーの ②-rx / ②-arb 段で
-自動生成する（既定 ON・非致命・`-SkipRx` / `-SkipArb` で抑止）。
-既存 JX への後追いは `scripts/rx-arb-backfill.ps1`。**詳細は `docs/rx-arb-byproducts.md` が正典**。
+検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/004_JX_EX/RX/`・1論点1HTML）・
+**TREE 樹形図**（`outputs/004_JX_EX/TREE/`・ARBOR 仕様）・**ARIADNE 解法ナビ**
+（`outputs/004_JX_EX/ARIADNE/`）を自動生成する（既定 ON・非致命）。
+
+- **ローカル**：`jx-batch-runner.ps1` の ②-rx / ②-arb / ②-ariadne 段（`-SkipRx`/`-SkipArb`/`-SkipAriadne` で抑止）。
+  既存 JX への後追いは `scripts/rx-arb-backfill.ps1`。
+- **リモート（Claude Code on the web）**：`/new-jx` の **Phase 9** が `Agent` サブエージェントを
+  RX → TREE → ARIADNE の順に起動して同じ副産物を生成する（バッチランナーの別 `claude -p` 相当）。
+  **TREE は外部 arbor リポジトリ非依存の vendored モード**＝`canonical/ARBOR.html`（gold TREE 複製）を
+  唯一の構造参照にし、`scripts/validate-tree.py`（T1〜T9）で検証する。永続化は `jx-push.sh` が
+  `outputs/004_JX_EX` も既定 stage。
+
+**詳細は `docs/rx-arb-byproducts.md` が正典**。
 
 ---
 

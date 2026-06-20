@@ -33,12 +33,51 @@ pwsh -NoProfile -File scripts/jx-batch-runner.ps1 -Subject 刑 -MaxProblems 3
 pwsh -NoProfile -File scripts/jx-batch-runner.ps1 -Subject 刑 -SkipRx -SkipArb
 ```
 
-## 既存 JX のバックフィル
+## リモート生成（Claude Code on the web）での副産物（2026-06-20 導入）
+
+PowerShell バッチが使えないリモート環境では、`/new-jx`（`.claude/commands/new-jx.md`）の
+**Phase 9** が副産物を生成する。バッチランナーが別 `claude -p` セッションを立てるのと同様に、
+**`Agent` サブエージェントを RX → TREE → ARIADNE の順に 1 つずつ起動**し、それぞれに対応する
+`prompts/new-*-headless.md` 全文と repo 相対パス（置換済み）を渡す。非致命（失敗しても JX 本体の
+完了・push は妨げない）。永続化は `scripts/jx-push.sh` が既定で `outputs/004_JX_EX` も stage する。
+
+| 副産物 | リモートでの依存 | 可否 |
+|---|---|---|
+| **RX** | 素材 JX＋`scripts/validate-rx.py`（repo 内で完結） | ✅ |
+| **ARIADNE** | 素材 JX＋`canonical/ARIADNE.html`＋`scripts/validate-ariadne.py`（repo 内で完結） | ✅ |
+| **TREE** | 外部 arbor リポジトリに依存していたが、**`canonical/ARBOR.html`（gold TREE の正典複製）＋`scripts/validate-tree.py`（T1〜T9 軽量ゲート）で vendored 化** | ✅ |
+
+**TREE の vendored モード**：外部 `arbor` リポジトリ（`ARBOR_v5.0_master_prompt.md`／verify.py）は
+リモートに存在しない。そこで gold TREE 出力を **`canonical/ARBOR.html`** として repo に vendor し、
+`prompts/new-arb-headless.md` に「`{ARBOR_MASTER}` を Read できなければ canonical/ARBOR.html を
+唯一の構造参照にし、`scripts/validate-tree.py` で検証する」リモートモードを追記した。
+フル S1〜S20 verify はローカル専用のまま。リモートは canonical と同じ密度（**13 分枝・葉 57・
+問題 15・約 68KB**）に揃えることで品質を担保する。canonical/ARBOR.html の本文・論点はコピーせず
+**構造シェルのみ参照**（content independence）。
+
+```bash
+# TREE 軽量検証（リモート・vendored モード）
+python scripts/validate-tree.py outputs/004_JX_EX/TREE/001_刑法/刑JX042_TREE.html
+```
+
+## 既存 JX のバックフィル（ローカル・3種すべて対応）
+
+`rx-arb-backfill.ps1` は **RX / TREE / ARIADNE の3種すべて**の欠落を後追い生成する
+（2026-06-20 に ARIADNE 段と vendored TREE フォールバックを追加）。各 JX について未生成の
+副産物だけを生成するので、何度流しても重複生成しない（冪等）。
 
 ```powershell
-pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -DryRun   # 欠落の確認のみ
-pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -MaxProblems 3
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -DryRun        # 欠落の確認のみ（生成なし）
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -MaxProblems 3 # 若番から3問ぶんの欠落を埋める
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -FromNumber 30 -ToNumber 40  # 番号範囲指定
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -SkipRx -SkipArb            # ARIADNE だけ埋める
 ```
+
+- **TREE は外部 arbor 不在なら vendored モード**（`canonical/ARBOR.html` + `validate-tree.py`）へ
+  自動フォールバックするので、arbor を持たない PC でも TREE を埋められる。
+- 抑止スイッチ：`-SkipRx` / `-SkipArb` / `-SkipAriadne`。
+- 生成後の永続化は通常の git commit か `jx-finalize.ps1 -Subject 刑 -Ids ... -NoCleanup`。
+  バックフィルは入力 PDF を消さない（cleanup は新規生成パイプライン側の責務）。
 
 ## sentinel（jx-batch-runner の Get-Sentinel と互換）
 
