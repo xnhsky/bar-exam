@@ -147,9 +147,9 @@ if ($ProblemId) { $Ids = @($ProblemId) }
 else { $Ids = @(Get-ChildItem -Path $JxOutDir -Filter "*.html" -File -ErrorAction SilentlyContinue | ForEach-Object { $_.BaseName }) }
 
 # 副産物（RX/TREE/ARIADNE）の生成元
-$RxOutDir   = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\$($info.html)"
-$ArbOutDir  = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE\$($info.html)"
-$AriaOutDir = Join-Path $ProjectRoot "outputs\004_JX_EX\ARIADNE\$($info.html)"
+$RxOutDir   = Join-Path $ProjectRoot "outputs\ux\001_RX\$($info.html)"
+$ArbOutDir  = Join-Path $ProjectRoot "outputs\ux\002_TREE\$($info.html)"
+$AriaOutDir = Join-Path $ProjectRoot "outputs\ux\000_ARIADNE\$($info.html)"
 
 if ($Ids.Count -eq 0) { Write-Host "[NOTE] 配置対象 ID なし（$JxOutDir に HTML が無い）。" -ForegroundColor Yellow; exit 0 }
 
@@ -165,7 +165,7 @@ foreach ($t in $Targets) {
             if ($DryRun) { Write-Host "  [DRYRUN] HTML $id.html -> $($t.Label):$($info.html)" }
             else { Copy-Item -LiteralPath $html -Destination $d.Html -Force; $sumHtml++ }
         }
-        # RX 論証カード（outputs/004_JX_EX/RX/00N_科目/{ID}/{科目}RX{NNN}_*.html）→ B_RX\00N_科目\{ID}\
+        # RX 論証カード（outputs/ux/001_RX/00N_科目/{ID}/{科目}RX{NNN}_*.html）→ B_RX\00N_科目\{ID}\
         #   2026-06-20: RX を問題ごとにサブフォルダ（{科目}JX{NNN}/）へ折る。Drive も同構造でミラー。
         $idNum = Get-IdNumber $id
         if ($null -ne $idNum) {
@@ -181,14 +181,14 @@ foreach ($t in $Targets) {
                 }
             }
         }
-        # TREE 樹形図（outputs/004_JX_EX/TREE/00N_科目/{ID}_TREE.html）→ C_TREE\00N_科目\
+        # TREE 樹形図（outputs/ux/002_TREE/00N_科目/{ID}_TREE.html）→ C_TREE\00N_科目\
         $arbSrc = Join-Path $ArbOutDir "${id}_TREE.html"
         if (Test-Path -LiteralPath $arbSrc) {
             Ensure-Dir $d.Arb
             if ($DryRun) { Write-Host "  [DRYRUN] TREE  ${id}_TREE.html -> $($t.Label):$ArbRoot\$($info.html)" }
             else { Copy-Item -LiteralPath $arbSrc -Destination $d.Arb -Force; $sumArb++ }
         }
-        # ARIADNE 解法ナビ（outputs/004_JX_EX/ARIADNE/00N_科目/{ID}_ARIADNE.html）→ D_ARIADNE\00N_科目\
+        # ARIADNE 解法ナビ（outputs/ux/000_ARIADNE/00N_科目/{ID}_ARIADNE.html）→ D_ARIADNE\00N_科目\
         $ariaSrc = Join-Path $AriaOutDir "${id}_ARIADNE.html"
         if (Test-Path -LiteralPath $ariaSrc) {
             Ensure-Dir $d.Aria

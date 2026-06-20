@@ -15,7 +15,7 @@ import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CANON = ROOT / "canonical/ARIADNE.html"
-ARIADNE_DIR = ROOT / "outputs/004_JX_EX/ARIADNE"
+ARIADNE_DIR = ROOT / "outputs/ux/000_ARIADNE"
 MARKER = "KP-PEEK-MOVE"
 
 # ② 目立つ配色（ゴールド＝spec §5 ヒント・ゴール）。難易度別ベース（ローズ/ブルー/バイオレット）に

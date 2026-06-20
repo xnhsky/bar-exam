@@ -1,9 +1,9 @@
 # rx-arb-backfill.ps1
 #
 # 既存の JX HTML（outputs/001_JX/{科目}JX/*.html）から、Lexia 用の副産物
-#   RX      = 論証カード（1論点1HTML / outputs/004_JX_EX/RX/{00N_科目}/{科目}RX{NNN}_{n}.html）
-#   TREE    = ARBOR 樹形図（1問1枚 / outputs/004_JX_EX/TREE/{00N_科目}/{科目}JX{NNN}_TREE.html）
-#   ARIADNE = 解法ナビ＋周回（1問1枚 / outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html）
+#   RX      = 論証カード（1論点1HTML / outputs/ux/001_RX/{00N_科目}/{科目}RX{NNN}_{n}.html）
+#   TREE    = ARBOR 樹形図（1問1枚 / outputs/ux/002_TREE/{00N_科目}/{科目}JX{NNN}_TREE.html）
+#   ARIADNE = 解法ナビ＋周回（1問1枚 / outputs/ux/000_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html）
 # が**未生成のものだけ**を後追い生成するバックフィルランナー。
 # 新規 JX は jx-batch-runner.ps1 の ②-rx / ②-arb / ②-ariadne 段が自動で副産物を作るので、
 # 本スクリプトは「ランナー導入以前に生成済みの JX 資産」を埋めるために使う。
@@ -34,9 +34,9 @@ $ProjectRoot   = Split-Path -Parent $PSScriptRoot
 # 科目 → 00N_科目 サブフォルダ
 $SubjDir = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
 $JxOutputDir   = Join-Path $ProjectRoot "outputs\001_JX\$SubjDir"
-$RxOutputDir   = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\$SubjDir"
-$ArbOutputDir  = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE\$SubjDir"
-$AriadneOutputDir = Join-Path $ProjectRoot "outputs\004_JX_EX\ARIADNE\$SubjDir"
+$RxOutputDir   = Join-Path $ProjectRoot "outputs\ux\001_RX\$SubjDir"
+$ArbOutputDir  = Join-Path $ProjectRoot "outputs\ux\002_TREE\$SubjDir"
+$AriadneOutputDir = Join-Path $ProjectRoot "outputs\ux\000_ARIADNE\$SubjDir"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"

@@ -20,7 +20,7 @@
 ## 1. 配置・命名（2026-06-18 確定）
 
 ```
-outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
+outputs/ux/000_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 ```
 - 科目フォルダは jx-deploy の `$Map` と同名：`001_刑法 / 002_刑事訴訟法 / 003_民法 / 004_商法 / 005_民事訴訟法 / 006_行政法 / 007_憲法`。
 - 命名は TREE（`{科目}JX{NNN}_TREE.html`）に倣い **`{元問題ID}_ARIADNE`**＝例 `刑JX001_ARIADNE.html`。
@@ -76,7 +76,7 @@ outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 
 > **【最重要・恒久】配色とフォントは TX v11 GENESIS（V3 Twilight Violet・刑TX327）を見本に統一**した
 > （旧 ATHENA プラム＋マイルドライナー固定配色は廃止）。`canonical/ARIADNE.html` に実装済みで、
-> 複製（§6）すれば自動継承する。設計の元ファイル＝`outputs/004_JX_EX/ARIADNE/001_刑法/刑JX001_ARIADNE.html`。
+> 複製（§6）すれば自動継承する。設計の元ファイル＝`outputs/ux/000_ARIADNE/001_刑法/刑JX001_ARIADNE.html`。
 > 既存生成物への一括反映は `scripts/ariadne-restyle-backfill.py`（冪等）。
 
 - **フォント＝TX 12 役割と同ファミリー**（`canonical/GENESIS-CORE.html` と同系）：
@@ -109,7 +109,7 @@ outputs/004_JX_EX/ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 2. **複製＋空化**：`canonical/ARIADNE.html` を出力先へ複製→本文を空化→各部を JX 内容から鋳造（content independence・ATHENA 本文の逐語転載はしない）。
 3. **7手・骨子・15例題**を JX の論点構造から起こす。○×は**自己完結の一般原則／例題**に変換（§4）。
 4. **検証**：`python scripts/validate-ariadne.py <出力>` で **A1〜A21 ERROR 0**。
-5. **配置・同期**：`outputs/004_JX_EX/ARIADNE/{00N_科目}/` に置き、**master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
+5. **配置・同期**：`outputs/ux/000_ARIADNE/{00N_科目}/` に置き、**master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 
 ---
 

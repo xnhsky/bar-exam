@@ -12,7 +12,7 @@
 - `{PROBLEM_ID}`：問題ID（例 `刑JX029`）＝ sentinel に使う
 - `{JX_HTML}`：検証済み JX（ATHENA）HTML の実パス（ランナー注入・一次情報源）
 - `{SKELETON}`：`canonical/ARIADNE.html`（複製起点・v0.3 誌面風）
-- `{OUT}`：`outputs/004_JX_EX/ARIADNE/{00N_科目}/{PROBLEM_ID}_ARIADNE.html`
+- `{OUT}`：`outputs/ux/000_ARIADNE/{00N_科目}/{PROBLEM_ID}_ARIADNE.html`
   （科目→フォルダは 001_刑法/002_刑事訴訟法/003_民法/004_商法/005_民事訴訟法/006_行政法/007_憲法）
 
 ## 手順

@@ -31,7 +31,7 @@
 | `{PROBLEM_NUMBER}` | `032` | 元 JX の 3 桁番号 |
 | `{SUBJECT_PREFIX}` | `刑` | 科目接頭辞 |
 | `{RX_BASENAME}` | `刑RX032` | RX ファイル名の共通幹（科目接頭 + RX + 元 JX 番号） |
-| `{OUTPUT_DIR}` | `C:\...\outputs\004_JX_EX\RX\001_刑法\刑JX032` | 出力ディレクトリの絶対パス（問題ごとに `{科目}JX{NNN}/` サブフォルダ・2026-06-20 恒久化） |
+| `{OUTPUT_DIR}` | `C:\...\outputs\ux\001_RX\001_刑法\刑JX032` | 出力ディレクトリの絶対パス（問題ごとに `{科目}JX{NNN}/` サブフォルダ・2026-06-20 恒久化） |
 | `{VALIDATE_RX}` | `C:\...\scripts\validate-rx.py` | 検証スクリプトの絶対パス |
 
 ---

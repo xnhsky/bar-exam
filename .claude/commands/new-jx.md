@@ -135,9 +135,9 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
     | 副産物 | 起動プロンプト | 出力先 | 検証 |
     |---|---|---|---|
-    | **RX** | `prompts/new-rx-headless.md` 全文 | `outputs/004_JX_EX/RX/{00N_科目}/`（基幹 `{科目接頭}RX{NNN}`） | `python scripts/validate-rx.py <出力DIR> {科目接頭}RX{NNN}` |
-    | **TREE** | `prompts/new-arb-headless.md` 全文（**vendored モード**） | `outputs/004_JX_EX/TREE/{00N_科目}/{ID}_TREE.html` | `python scripts/validate-tree.py <出力ファイル>` |
-    | **ARIADNE** | `prompts/new-ariadne-headless.md` 全文 | `outputs/004_JX_EX/ARIADNE/{00N_科目}/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <出力ファイル>` |
+    | **RX** | `prompts/new-rx-headless.md` 全文 | `outputs/ux/001_RX/{00N_科目}/`（基幹 `{科目接頭}RX{NNN}`） | `python scripts/validate-rx.py <出力DIR> {科目接頭}RX{NNN}` |
+    | **TREE** | `prompts/new-arb-headless.md` 全文（**vendored モード**） | `outputs/ux/002_TREE/{00N_科目}/{ID}_TREE.html` | `python scripts/validate-tree.py <出力ファイル>` |
+    | **ARIADNE** | `prompts/new-ariadne-headless.md` 全文 | `outputs/ux/000_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <出力ファイル>` |
 
     - **共通の素材**：いま生成・検証 PASS した JX HTML（`outputs/001_JX/{00N_科目}/{ID}.html`）が一次情報源。
       同一問題由来の再構成なので流用は正当（**他 JX からの流用は禁止**）。
@@ -154,7 +154,7 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
 36. **回収＝git push**：`scripts/jx-push.sh "feat(jx): {ID} を生成保存（J1〜J21 PASS＋副産物 RX/TREE/ARIADNE）"`
     （add→commit→push、ネットワークエラー時は指数バックオフ再試行。リモートはコンテナ回収前に必ず push）。
-    **jx-push.sh は既定で `outputs/001_JX` ＋ `outputs/004_JX_EX` を stage する**ので、本体 JX と副産物が同じ push で永続化される。
+    **jx-push.sh は既定で `outputs/001_JX` ＋ `outputs/ux` を stage する**ので、本体 JX と副産物が同じ push で永続化される。
 37. **処理済 PDF 削除**：`scripts/jx-cleanup-pdf.sh {科目} {番号} --commit` →
     `scripts/jx-push.sh "chore(jx): remove processed input PDFs"`（HTML が commit 済のときのみ削除＝安全ガード）。
 38. **ERROR があれば**：該当箇所を修正し、再検証 → 通過するまで繰り返し

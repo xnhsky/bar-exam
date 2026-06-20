@@ -359,9 +359,9 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
 
 ### §4-6. RX/TREE/ARIADNE 副産物（2026-06-11 導入・2026-06-20 リモート対応）
 
-検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/004_JX_EX/RX/`・1論点1HTML）・
-**TREE 樹形図**（`outputs/004_JX_EX/TREE/`・ARBOR 仕様）・**ARIADNE 解法ナビ**
-（`outputs/004_JX_EX/ARIADNE/`）を自動生成する（既定 ON・非致命）。
+検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/ux/001_RX/`・1論点1HTML）・
+**TREE 樹形図**（`outputs/ux/002_TREE/`・ARBOR 仕様）・**ARIADNE 解法ナビ**
+（`outputs/ux/000_ARIADNE/`）を自動生成する（既定 ON・非致命）。
 
 - **ローカル**：`jx-batch-runner.ps1` の ②-rx / ②-arb / ②-ariadne 段（`-SkipRx`/`-SkipArb`/`-SkipAriadne` で抑止）。
   既存 JX への後追いは `scripts/rx-arb-backfill.ps1`。
@@ -369,7 +369,7 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   RX → TREE → ARIADNE の順に起動して同じ副産物を生成する（バッチランナーの別 `claude -p` 相当）。
   **TREE は外部 arbor リポジトリ非依存の vendored モード**＝`canonical/ARBOR.html`（gold TREE 複製）を
   唯一の構造参照にし、`scripts/validate-tree.py`（T1〜T9）で検証する。永続化は `jx-push.sh` が
-  `outputs/004_JX_EX` も既定 stage。
+  `outputs/ux` も既定 stage。
 
 **詳細は `docs/rx-arb-byproducts.md` が正典**。
 

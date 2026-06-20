@@ -4,8 +4,8 @@
 
 | 副産物 | 内容 | 出力先 | Lexia での扱い |
 |---|---|---|---|
-| **RX** | 論証カード（1論点1HTML・規範トグル＋○×クイズ付き） | `outputs/004_JX_EX/RX/{00N_科目}/{科目}JX{NNN}/{科目}RX{NNN}_{n}.html`（問題ごとサブフォルダ・2026-06-20 恒久化） | TX/JX と同格の SRS カード（今日のキュー・逆算・弱点注入の対象） |
-| **TREE** | ARBOR 横向き樹形図（1問1枚） | `outputs/004_JX_EX/TREE/{科目}TREE/{科目}JX{NNN}_TREE.html` | 参考教材（TREE カテゴリ・SRS 対象外） |
+| **RX** | 論証カード（1論点1HTML・規範トグル＋○×クイズ付き） | `outputs/ux/001_RX/{00N_科目}/{科目}JX{NNN}/{科目}RX{NNN}_{n}.html`（問題ごとサブフォルダ・2026-06-20 恒久化） | TX/JX と同格の SRS カード（今日のキュー・逆算・弱点注入の対象） |
+| **TREE** | ARBOR 横向き樹形図（1問1枚） | `outputs/ux/002_TREE/{科目}TREE/{科目}JX{NNN}_TREE.html` | 参考教材（TREE カテゴリ・SRS 対象外） |
 
 ## 関連ファイル
 
@@ -39,7 +39,7 @@ PowerShell バッチが使えないリモート環境では、`/new-jx`（`.clau
 **Phase 9** が副産物を生成する。バッチランナーが別 `claude -p` セッションを立てるのと同様に、
 **`Agent` サブエージェントを RX → TREE → ARIADNE の順に 1 つずつ起動**し、それぞれに対応する
 `prompts/new-*-headless.md` 全文と repo 相対パス（置換済み）を渡す。非致命（失敗しても JX 本体の
-完了・push は妨げない）。永続化は `scripts/jx-push.sh` が既定で `outputs/004_JX_EX` も stage する。
+完了・push は妨げない）。永続化は `scripts/jx-push.sh` が既定で `outputs/ux` も stage する。
 
 | 副産物 | リモートでの依存 | 可否 |
 |---|---|---|
@@ -57,7 +57,7 @@ PowerShell バッチが使えないリモート環境では、`/new-jx`（`.clau
 
 ```bash
 # TREE 軽量検証（リモート・vendored モード）
-python scripts/validate-tree.py outputs/004_JX_EX/TREE/001_刑法/刑JX042_TREE.html
+python scripts/validate-tree.py outputs/ux/002_TREE/001_刑法/刑JX042_TREE.html
 ```
 
 ## 既存 JX のバックフィル（ローカル・3種すべて対応）
@@ -90,7 +90,7 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
 
 ## Lexia への取込
 
-`outputs/004_JX_EX/RX/` と `outputs/004_JX_EX/TREE/` の HTML をそのまま Lexia の一括取込（ZIP/ドラッグドロップ）へ。
+`outputs/ux/001_RX/` と `outputs/ux/002_TREE/` の HTML をそのまま Lexia の一括取込（ZIP/ドラッグドロップ）へ。
 ファイル名だけで科目・カテゴリが自動判定される（刑RX032_1 → 刑法/RX、刑JX032_TREE → 刑法/TREE）。
 
 ## 注意
@@ -99,7 +99,7 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
   夜間バッチの所要時間・コスト見積りに織り込むこと。
 - `<script>` 内 `</body>` リテラル禁止は RX/TREE にも適用（validate-rx R8 で機械検証）。
 - ⑦永続化（jx-finalize）は **RX/TREE も同じコミットで GitHub バックアップする**
-  （2026-06-11 対応済み。①バックアップの add 対象に outputs/004_JX_EX/RX・outputs/004_JX_EX/TREE の該当ファイルを含む）。
+  （2026-06-11 対応済み。①バックアップの add 対象に outputs/ux/001_RX・outputs/ux/002_TREE の該当ファイルを含む）。
   バックフィルで後追い生成した分は `jx-finalize.ps1 -Subject 刑 -Ids 刑JX001,... -NoCleanup`
   か、通常の git commit で永続化できる。
 
