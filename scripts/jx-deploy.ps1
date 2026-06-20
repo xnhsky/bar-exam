@@ -129,8 +129,8 @@ $JxOutDir = Join-Path $ProjectRoot "outputs\001_JX\$($info.html)"
 $TtsBase  = Join-Path $ProjectRoot "outputs\002_TTS\$($info.html)"
 $WavDir   = Join-Path $ProjectRoot "tts\output_audio"
 # 入力 PDF / 逐語（原本バックアップ元）
-$PdfInDir   = Join-Path $ProjectRoot "inputs\jx\$Subject\重問PDF"
-$TransInDir = Join-Path $ProjectRoot "inputs\jx\$Subject\講義逐語"
+$PdfInDir   = Join-Path $ProjectRoot "inputs\001_JX\$Subject\重問PDF"
+$TransInDir = Join-Path $ProjectRoot "inputs\001_JX\$Subject\講義逐語"
 
 # 問題番号に一致する逐語（.txt 優先）を探す。命名: {科目}_重問逐語NN / 旧 重問NN。
 function Find-TranscriptFile([int]$num) {

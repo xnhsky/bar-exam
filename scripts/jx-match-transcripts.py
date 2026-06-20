@@ -105,7 +105,7 @@ def load_transcripts(tx_dirs):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--subject", required=True, choices=SUBJ_DIRS)
-    ap.add_argument("--root", default="inputs/jx")
+    ap.add_argument("--root", default="inputs/001_JX")
     ap.add_argument("--pages", type=int, default=2, help="OCRするPDF先頭ページ数")
     ap.add_argument("--ngram", default="2,3", help="文字n-gram範囲 (例 3,3)")
     ap.add_argument("--margin", type=float, default=0.15,

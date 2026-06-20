@@ -19,7 +19,7 @@ pip install beautifulsoup4
 
 ```
 inputs/
-├── tx-pdfs/         # 短答式 PDF をここに置く
+├── 000_TX/001_刑法/         # 短答式 PDF をここに置く
 └── jx-pdfs/         # 論文・事例式 PDF をここに置く
 ```
 
@@ -30,7 +30,7 @@ PDF のファイル名は数字を含むこと（例：`299.pdf`、`K310-problem
 Claude Code で：
 
 ```
-/new-tx inputs/tx-pdfs/299.pdf
+/new-tx inputs/000_TX/001_刑法/299.pdf
 /new-jx inputs/jx-pdfs/15.pdf
 ```
 
@@ -62,7 +62,7 @@ bar-exam/
 ├── canonical/
 │   └── KTX301.html               # 構造参考（本文複製禁止）
 ├── inputs/
-│   ├── tx-pdfs/                  # TX 入力 PDF
+│   ├── 000_TX/001_刑法/                  # TX 入力 PDF
 │   ├── tx-legacy/                # 既存 TX HTML（アップグレード用）
 │   ├── jx-pdfs/                  # JX 入力 PDF
 │   └── jx-legacy/                # 既存 JX HTML（アップグレード用）

@@ -1,7 +1,7 @@
 # 引継ぎ：刑法 逐語↔PDF 内容照合・改名作業（2026-06-07）
 
 ## 0. このファイルの目的
-OWNER PC で着手した「`inputs/jx/001_刑法`（旧 `inputs/jx/刑`）の講義逐語を PDF 番号に合わせて改名する作業」を、
+OWNER PC で着手した「`inputs/001_JX/001_刑法`（旧 `inputs/001_JX/刑`）の講義逐語を PDF 番号に合わせて改名する作業」を、
 別セッション／別PC（リモート）で続行するための引継ぎ。**この作業はコミット済み・push 済み**
 なので、リモートでは最初に `git fetch && git pull origin <このブランチ>` で取得すること。
 ブランチ：`claude/practical-archimedes-WfOOi`
@@ -21,7 +21,7 @@ OWNER PC で着手した「`inputs/jx/001_刑法`（旧 `inputs/jx/刑`）の講
 - **PDF 全75問を画像化して内容読解**し、逐語78本と内容照合。
 - **高信頼69件を改名済み**：`刑法_重問NN.txt` → `刑法_重問逐語{PDF番号2桁}.txt`
   - 例：旧 `刑法_重問21.txt`（責任能力）→ `刑法_重問逐語28.txt`（=28.pdf と一致）
-- **全対応表を記録**：`inputs/jx/001_刑法/逐語-PDF対応表.md`（確定69＋要確認6＋余り4）
+- **全対応表を記録**：`inputs/001_JX/001_刑法/逐語-PDF対応表.md`（確定69＋要確認6＋余り4）
 - ※改名前のファイル一覧・対応は対応表と git 履歴（このコミット）で復元可能。
 
 ## 3. 残作業（TODO）
@@ -42,7 +42,7 @@ OK なら `刑法_重問{旧番号}.txt` → `刑法_重問逐語{PDF番号}.txt
 **確認手順（リモートで）**：
 ```powershell
 # PDF をページ画像化して読む（pymupdf 使用。無ければ pip install pymupdf）
-python -c "import fitz,os; n=8; d=fitz.open(rf'inputs\jx\001_刑法\重問PDF\{n}.pdf'); d[0].get_pixmap(dpi=200).save(rf'_chk{n}.png')"
+python -c "import fitz,os; n=8; d=fitz.open(rf'inputs\001_JX\001_刑法\重問PDF\{n}.pdf'); d[0].get_pixmap(dpi=200).save(rf'_chk{n}.png')"
 # → Read ツールで _chk8.png を開き、候補逐語ファイルの中身と突き合わせる
 ```
 確定したら下記 3-3 の改名スクリプトに追記して実行。
@@ -55,7 +55,7 @@ python -c "import fitz,os; n=8; d=fitz.open(rf'inputs\jx\001_刑法\重問PDF\{n
 
 ### 3-3. 改名コマンド雛形（確定分を追記して実行）
 ```powershell
-$dir="C:\Users\OWNER\bar-exam\inputs\jx\001_刑法\講義逐語"
+$dir="C:\Users\OWNER\bar-exam\inputs\001_JX\001_刑法\講義逐語"
 # 例：PDF08 ← 旧逐語68 が確定した場合
 Rename-Item "$dir\刑法_重問68.txt" "刑法_重問逐語08.txt"
 ```
@@ -70,9 +70,9 @@ Rename-Item "$dir\刑法_重問68.txt" "刑法_重問逐語08.txt"
    不一致なら使わず中断・報告」のガードを入れる（将来の番号ミス検知）。
 
 ## 4. 重要ファイル
-- 対応表（正典）：`inputs/jx/001_刑法/逐語-PDF対応表.md`
-- 逐語フォルダ：`inputs/jx/001_刑法/講義逐語/`（69件は新名`刑法_重問逐語NN.txt`、9件は旧名`刑法_重問NN.txt`）
-- PDF：`inputs/jx/001_刑法/重問PDF/NN.pdf`（画像PDF・pdftotext不可・pymupdfで画像化して読む）
+- 対応表（正典）：`inputs/001_JX/001_刑法/逐語-PDF対応表.md`
+- 逐語フォルダ：`inputs/001_JX/001_刑法/講義逐語/`（69件は新名`刑法_重問逐語NN.txt`、9件は旧名`刑法_重問NN.txt`）
+- PDF：`inputs/001_JX/001_刑法/重問PDF/NN.pdf`（画像PDF・pdftotext不可・pymupdfで画像化して読む）
 - ランナー：`scripts/jx-batch-runner.ps1`
 
 ## 5. 注意

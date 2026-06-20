@@ -4,7 +4,7 @@ description: 新規 TX ファイルを問題 PDF から生成
 
 新規 TX ファイル（HTML カード）を生成する。
 
-引数：問題 PDF のパス（例：`inputs/tx-pdfs/K302-problem.pdf`）
+引数：問題 PDF のパス（例：`inputs/000_TX/001_刑法/K302-problem.pdf`）
 
 ## 必須手順
 

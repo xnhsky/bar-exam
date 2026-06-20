@@ -6,7 +6,7 @@ description: 5 問バッチで TX を連続生成（v11.0.0 LOOP-CORE：GENESIS 
 
 ## 概要
 
-`inputs/tx-pdfs/` 配下の PDF を 5 問単位で連続生成する。
+`inputs/000_TX/001_刑法/` 配下の PDF を 5 問単位で連続生成する。
 `.claude/commands/new-tx.md` の全規律（v11.0.0 LOOP-CORE：
 canonical/GENESIS-CORE.html からのスケルトン clone +
 配色 V3 (11 名前付きパレット・5 役割定義) + SVG 重なり機械検査）をそのまま継承し、
@@ -15,7 +15,7 @@ canonical/GENESIS-CORE.html からのスケルトン clone +
 ## 引数
 
 `$ARGUMENTS`：開始 PDF 番号（例：`312`）または PDF ファイルパス
-（例：`inputs/tx-pdfs/312.pdf`）。
+（例：`inputs/000_TX/001_刑法/312.pdf`）。
 未指定の場合は対象 PDF を user 確認。
 
 ---
@@ -160,7 +160,7 @@ PARTIAL: N 問（番号リスト・原因併記）
 - SVG box overlap: 検出件数
 
 【次のステップ】
-失敗問の再生成方法： /new-tx inputs/tx-pdfs/{番号}.pdf
+失敗問の再生成方法： /new-tx inputs/000_TX/001_刑法/{番号}.pdf
 視覚確認推奨：ブラウザで開いて gold quality 到達を最終判定
 ```
 

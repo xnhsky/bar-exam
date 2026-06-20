@@ -58,7 +58,7 @@ $ValidatePassRegex = switch ($SpecVersion) {
 # スクリプト自身の位置 (= scripts\) の親をプロジェクトルートとする
 # これで OWNER PC / xnrg2 PC など複数環境で同じスクリプトが動作する
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$PdfDir      = Join-Path $ProjectRoot "inputs\tx-pdfs"
+$PdfDir      = Join-Path $ProjectRoot "inputs\000_TX\001_刑法"
 $OutputBase  = Join-Path $ProjectRoot "outputs\000_TX"
 $LogsDir     = Join-Path $ProjectRoot "logs"
 $PromptSource= Join-Path $ProjectRoot ($PromptFile -replace '/', '\')
@@ -94,7 +94,7 @@ Write-Host "SpecVersion: $SpecVersion / SpecFile: $SpecFile"
 Write-Host "NumberRange: From=$FromNumber To=$ToNumber (0 = 無制限)"
 
 # === 科目接頭辞マップ ===
-# PDF は inputs/tx-pdfs/{NNN}.pdf 形式だが、生成出力は {科目接頭辞}TX{NNN}.html。
+# PDF は inputs/000_TX/001_刑法/{NNN}.pdf 形式だが、生成出力は {科目接頭辞}TX{NNN}.html。
 # 現状は刑のみ運用想定（306-315 は全て刑法 PDF）。将来拡張時に番号レンジ判定を追加予定。
 $SubjectPrefix = "刑"
 # 2026-05-25: local-first write flow に復帰（validate-tx S81 規律維持のため）

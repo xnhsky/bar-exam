@@ -4,14 +4,14 @@
 JX 入力アラインメント・チェッカー（PDF ↔ 講義逐語のズレを事前検出）
 
 背景：
-  inputs/jx/{科目}/重問PDF/{n}.pdf と inputs/jx/{科目}/講義逐語/{科目名}_重問{nn}.txt は
+  inputs/001_JX/{科目}/重問PDF/{n}.pdf と inputs/001_JX/{科目}/講義逐語/{科目名}_重問{nn}.txt は
   本来『同番号』で対応するはずだが、実際には番号がズレている系列がある
   （刑28/29/30 は重問PDFと逐語が -7 ズレ。内容照合で 21/22/23 が一致）。
   逐語は JX 生成の第一次情報源であるため、ズレたまま生成すると講師アドバイスが
   別問題のものになる事故が起きる。本スクリプトはこれを『事前に』検出・修正する。
 
 仕組み：
-  1) inputs/jx/transcript-map.json（マニフェスト）を読む。
+  1) inputs/001_JX/transcript-map.json（マニフェスト）を読む。
   2) 対象 (科目, 番号) について、overrides があればそれを採用、無ければ『同番号』既定で解決。
   3) 解決した逐語ファイルの存在を確認。
   4) overrides に keywords があれば、逐語本文を走査し全 keyword の出現を確認
@@ -38,7 +38,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = ROOT / "inputs" / "jx" / "transcript-map.json"
+MANIFEST = ROOT / "inputs" / "001_JX" / "transcript-map.json"
 
 GREEN = "\033[32m"; YELLOW = "\033[33m"; RED = "\033[31m"; DIM = "\033[2m"; RST = "\033[0m"
 

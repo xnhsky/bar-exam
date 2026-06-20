@@ -16,7 +16,7 @@ description: 新規 TX コア（メイン）を問題 PDF から生成（v11.1.0
 > - 唯一の起点は `canonical/GENESIS-CORE.html`（v11.1.0）。validate は `scripts/validate-tx-core.py`（G1〜G27）。
 > - 旧 v10 GOLD-SKELETON（GENESIS.html・PART C/D・validate-tx-gold.py）は既存197問の保守に限定。
 
-引数：問題 PDF のパス（例：`inputs/tx-pdfs/312.pdf`）
+引数：問題 PDF のパス（例：`inputs/000_TX/001_刑法/312.pdf`）
 
 ---
 

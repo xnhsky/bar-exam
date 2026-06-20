@@ -5,7 +5,7 @@
 #                          ＋ 副産物 outputs/004_JX_EX/RX/{00N_科目}/{Subject}RX{NNN}_*.html
 #                          ＋ outputs/004_JX_EX/TREE/{00N_科目}/{ID}_TREE.html
 #                          ＋ outputs/004_JX_EX/ARIADNE/{00N_科目}/{ID}_ARIADNE.html を git add → commit
-#   ② 入力クリーンアップ  : 入力 PDF（inputs/jx/{科目}/重問PDF/{n}.pdf）＋ 逐語 を git rm → commit
+#   ② 入力クリーンアップ  : 入力 PDF（inputs/001_JX/{科目}/重問PDF/{n}.pdf）＋ 逐語 を git rm → commit
 #       └ 削除の多重ガード（1 つでも欠ければ削除しない）:
 #            (a) HTML が git にコミット済み（①で担保）
 #            (b) その PDF・逐語が Drive バックアップに存在（jx-deploy.ps1 が配置時にコピー済）
@@ -49,8 +49,8 @@ if (Test-Path -LiteralPath $cand) {
     if ($jxDir) { $DriveRoot = $jxDir.FullName }
 }
 
-$PdfInDir   = Join-Path $ProjectRoot "inputs\jx\$Subject\重問PDF"
-$TransInDir = Join-Path $ProjectRoot "inputs\jx\$Subject\講義逐語"
+$PdfInDir   = Join-Path $ProjectRoot "inputs\001_JX\$Subject\重問PDF"
+$TransInDir = Join-Path $ProjectRoot "inputs\001_JX\$Subject\講義逐語"
 $JxOutDir   = Join-Path $ProjectRoot "outputs\001_JX\$($DriveHtml[$Subject])"
 $TtsBase    = Join-Path $ProjectRoot "outputs\002_TTS\$($DriveHtml[$Subject])"
 
@@ -172,8 +172,8 @@ foreach ($id in $Ids) {
     }
     if (-not $driveOk) { $cleanupHold=$true; continue }
 
-    if (Test-Path -LiteralPath $pdfAbs) { $rmRel += "inputs/jx/$Subject/重問PDF/$num.pdf" }
-    if ($trFile) { $rmRel += "inputs/jx/$Subject/講義逐語/$($trFile.Name)" }
+    if (Test-Path -LiteralPath $pdfAbs) { $rmRel += "inputs/001_JX/$Subject/重問PDF/$num.pdf" }
+    if ($trFile) { $rmRel += "inputs/001_JX/$Subject/講義逐語/$($trFile.Name)" }
     if ($rmRel.Count -eq 0) { Write-Host "  [② cleanup] 削除対象なし（既に削除済み）" -ForegroundColor DarkGray; continue }
 
     if ($DryRun) {

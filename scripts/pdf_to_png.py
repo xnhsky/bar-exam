@@ -6,7 +6,7 @@ Usage:
     python scripts/pdf_to_png.py <pdf_path> <out_dir> [--zoom 2.0]
 
 例:
-    python scripts/pdf_to_png.py inputs/tx-pdfs/KEN.pdf _tmp_pdf_pages/KEN
+    python scripts/pdf_to_png.py inputs/000_TX/001_刑法/KEN.pdf _tmp_pdf_pages/KEN
 
 各ページは {out_dir}/page-{NN}.png に保存される（1-origin、2 桁ゼロ埋め）。
 画像ベース PDF (Wondershare PDFelement 等) を Claude の image understanding に

@@ -7,9 +7,9 @@
 
 | パターン名 | 系統 | エンジン | 何をするか | 鍵 / 音声 |
 |---|---|---|---|---|
-| **TX-MARCH** | TX① 連番NBR | GENESIS | tx-pdfs 最若番から N 問（既定5）生成→検証→各問 commit/push | — |
+| **TX-MARCH** | TX① 連番NBR | GENESIS | inputs/000_TX/001_刑法 最若番から N 問（既定5）生成→検証→各問 commit/push | — |
 | **TX-PICK** | TX② 任意NBR | GENESIS | 指定番号 / 範囲の TX を生成 | — |
-| **JX** | JX 生成 | ATHENA | inputs/jx 最若番から N 問（既定3）JX→validate→台本→validate→配置まで（**音声は含まない**） | — |
+| **JX** | JX 生成 | ATHENA | inputs/001_JX 最若番から N 問（既定3）JX→validate→台本→validate→配置まで（**音声は含まない**） | — |
 
 > **2026-06-06 方針変更：** JX は **TTS 台本生成まで**で止める。**音声（wav）は自動化せず、
 > 台本（`outputs/002_TTS/{問題ID}/` ＝ 配置先 `TTSファイル原本\`）から AI Studio で手動生成**する。
@@ -59,10 +59,10 @@ pwsh -NoProfile -File scripts/patterns/JX.ps1 -Number 25     # 25 を1問だけ
 ## 入力レイアウト（JX）
 
 ```
-inputs/jx/{科目}/重問PDF/NN.pdf
-inputs/jx/{科目}/講義逐語/{科目}_重問NN[_文字起こし].txt
+inputs/001_JX/{科目}/重問PDF/NN.pdf
+inputs/001_JX/{科目}/講義逐語/{科目}_重問NN[_文字起こし].txt
 ```
-（旧フラット `inputs/jx/{科目}/NN.pdf ＋ NN.txt` も後方互換で拾う）
+（旧フラット `inputs/001_JX/{科目}/NN.pdf ＋ NN.txt` も後方互換で拾う）
 
 ## 成果物の配置（⑥ deploy・Drive＋repo ミラー）
 

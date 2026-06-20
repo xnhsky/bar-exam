@@ -13,7 +13,7 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 0. **逐語の解決とズレ検出**：`python scripts/check-jx-alignment.py {科目} {番号}` を実行。
    - `[OK]` → 表示された逐語ファイルを第一次情報源として使う。
    - `[ERROR]`（逐語欠落・keyword 不一致＝ズレ疑い）→ **生成を中断**し、内容照合で正しい逐語を特定して
-     `inputs/jx/transcript-map.json` の `overrides` に追記してから再実行（無断推定禁止）。
+     `inputs/001_JX/transcript-map.json` の `overrides` に追記してから再実行（無断推定禁止）。
    - **重問PDFと講義逐語は番号がズレる系列がある**（刑28/29/30 は −7 ズレ）。同番号を無断前提にしない。
    - 詳細：`docs/jx-pipeline.md` ①。
 

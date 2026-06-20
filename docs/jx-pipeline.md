@@ -8,7 +8,7 @@
 ## ① 入力アラインメント・チェック（PDF ↔ 講義逐語のズレ検出）
 
 ### なぜ必要か
-`inputs/jx/{科目}/重問PDF/{n}.pdf` と `inputs/jx/{科目}/講義逐語/{科目名}_重問{nn}.txt` は
+`inputs/001_JX/{科目}/重問PDF/{n}.pdf` と `inputs/001_JX/{科目}/講義逐語/{科目名}_重問{nn}.txt` は
 **本来同番号で対応するはずだが、実際にはズレている系列がある**。
 **刑 28/29/30 は重問PDFと講義逐語が −7 ズレ**（内容照合で 21/22/23 が一致）。
 逐語は JX 生成の第一次情報源（CLAUDE.md §4-3）なので、ズレたまま生成すると
@@ -20,7 +20,7 @@
 目視で素早く確認できる。明らかにズレていたら overrides を直す、という運用。
 
 ### 仕組み
-- 正典マニフェスト：**`inputs/jx/transcript-map.json`**
+- 正典マニフェスト：**`inputs/001_JX/transcript-map.json`**
   - 既定（default）は「同番号」対応。
   - ズレが判明した問題のみ `overrides` に逐語ファイル名を明示。
   - `keywords` ＝「その逐語に必ず出現するはずの論点語」（任意・確定済み問題のみ）。本文走査で欠落＝ズレ疑い。
@@ -34,7 +34,7 @@ python scripts/check-jx-alignment.py 刑 28
 
 # ランナー用：解決した逐語パスだけを標準出力
 python scripts/check-jx-alignment.py 刑 28 --quiet
-#   → inputs/jx/001_刑法/講義逐語/刑法_重問21.txt
+#   → inputs/001_JX/001_刑法/講義逐語/刑法_重問21.txt
 
 # 科目一括スキャン（PDF があるのに逐語が無い／ズレ疑いを洗い出す）
 python scripts/check-jx-alignment.py 刑 --all

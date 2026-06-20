@@ -31,8 +31,8 @@ declare -A SUBJDIR=( [刑]=001_刑法 [刑訴]=002_刑事訴訟法 [民]=003_民
 # 入力フォルダも 00N_科目 形式（2026-06-20 統一）。SUBJDIR から導出して二重管理を避ける。
 declare -A PDFDIR TRANSDIR
 for _s in "${!SUBJDIR[@]}"; do
-  PDFDIR[$_s]="inputs/jx/${SUBJDIR[$_s]}/重問PDF"
-  TRANSDIR[$_s]="inputs/jx/${SUBJDIR[$_s]}/講義逐語"
+  PDFDIR[$_s]="inputs/001_JX/${SUBJDIR[$_s]}/重問PDF"
+  TRANSDIR[$_s]="inputs/001_JX/${SUBJDIR[$_s]}/講義逐語"
 done
 # 科目 → Drive バックアップ科目フォルダ名（重問PDF / 講義逐語 はこの直下）
 declare -A DRIVE_HTML=(

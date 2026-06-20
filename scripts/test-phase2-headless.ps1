@@ -20,7 +20,7 @@ $PromptOut    = Join-Path $LogsDir    "test-phase2-prompt.txt"
 
 # 変数置換（テスト用に事前固定）
 $Vars = @{
-    'TARGET_PDF'     = 'C:\Users\OWNER\bar-exam\inputs\tx-pdfs\306.pdf'
+    'TARGET_PDF'     = 'C:\Users\OWNER\bar-exam\inputs\000_TX\001_刑法\306.pdf'
     'PROBLEM_NUMBER' = '306'
     'PROBLEM_ID'     = '刑TX306'
     'OUTPUT_PATH'    = 'C:\Users\OWNER\bar-exam\outputs\000_TX\001_刑法\刑TX306.html'

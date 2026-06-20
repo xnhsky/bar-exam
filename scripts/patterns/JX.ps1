@@ -1,6 +1,6 @@
 # JX — JX 一気通貫パターン（JX HTML → TTS 台本 まで・既定 3 問ずつ）
 #
-# 何をするか: inputs/jx/{科目} の最若番から MaxProblems 問を
+# 何をするか: inputs/001_JX/{科目} の最若番から MaxProblems 問を
 #   ① JX HTML 生成 → ② validate-jx → ③ TTS 台本 → ④ validate-tts → ⑥ 配置（Drive＋repoミラー）
 # まで通す。
 #
