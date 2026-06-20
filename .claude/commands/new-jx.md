@@ -119,10 +119,42 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 33. **J1〜J20 ERROR 0 件確認**
 34. **ERROR 0 件確認後**：`present_files` で完了報告
 
-### Phase 9: 回収（永続化）と後始末（docs/jx-pipeline.md ②③）
+### Phase 9: 副産物生成（RX / TREE / ARIADNE）— リモートでも必須（docs/rx-arb-byproducts.md）
 
-36. **回収＝git push**：`scripts/jx-push.sh "feat(jx): {ID} を生成保存（J1〜J21 PASS）"`
+> **背景**：副産物（Lexia 取込用の RX 論証カード・TREE 樹形図・ARIADNE 解法ナビ）は従来
+> `jx-batch-runner.ps1`（PowerShell・ローカル専用）の ②-rx/②-arb/②-ariadne 段でしか作られず、
+> **リモート（Claude Code on the web）で `/new-jx` 単発生成すると副産物が欠落**していた。
+> 本 Phase で**リモート生成でも 3 種すべてを生成**する（バッチランナーと同じ成果物を揃える）。
+
+35. **JX が J1〜J20 PASS したら、副産物 3 種を生成する**（**非致命**：副産物が失敗しても JX 本体の
+    完了報告・push は妨げない）。各副産物は **`Agent`（general-purpose サブエージェント）を 1 つずつ起動**して
+    生成させる（バッチランナーの「別 `claude -p` セッション」のリモート相当。メイン文脈を保護）。
+    起動順は **RX → TREE → ARIADNE**。各サブエージェントには対応プロンプトの全文と、下表の
+    repo 相対パス（プレースホルダ置換済み）を渡す。`{NNN}`＝3桁番号、`{ID}`＝`{科目接頭}JX{NNN}`、
+    `{00N_科目}`＝出力先サブフォルダ（001_刑法/002_刑事訴訟法/003_民法/004_商法/005_民事訴訟法/006_行政法/007_憲法）。
+
+    | 副産物 | 起動プロンプト | 出力先 | 検証 |
+    |---|---|---|---|
+    | **RX** | `prompts/new-rx-headless.md` 全文 | `outputs/004_JX_EX/RX/{00N_科目}/`（基幹 `{科目接頭}RX{NNN}`） | `python scripts/validate-rx.py <出力DIR> {科目接頭}RX{NNN}` |
+    | **TREE** | `prompts/new-arb-headless.md` 全文（**vendored モード**） | `outputs/004_JX_EX/TREE/{00N_科目}/{ID}_TREE.html` | `python scripts/validate-tree.py <出力ファイル>` |
+    | **ARIADNE** | `prompts/new-ariadne-headless.md` 全文 | `outputs/004_JX_EX/ARIADNE/{00N_科目}/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <出力ファイル>` |
+
+    - **共通の素材**：いま生成・検証 PASS した JX HTML（`outputs/001_JX/{00N_科目}/{ID}.html`）が一次情報源。
+      同一問題由来の再構成なので流用は正当（**他 JX からの流用は禁止**）。
+    - **TREE は vendored モードで起動**：外部 arbor リポジトリはリモートに無いので、
+      **`canonical/ARBOR.html`（gold TREE の正典複製）を構造・配色・密度の唯一の参照**にし、
+      検証は `scripts/validate-tree.py`（T1〜T9）で行う。canonical/ARBOR.html の本文・論点は
+      コピーせず**構造シェルのみ参照**（content independence）。密度は 13 分枝・葉 57・問題 15・約 68KB に揃える。
+    - **ARIADNE は `canonical/ARIADNE.html` を複製起点**にする（プロンプト記載どおり）。
+    - 各サブエージェントは末尾で sentinel（`BATCH_ITEM_COMPLETED:{ID}-RX` 等）を echo して終了する。
+      検証 ERROR が残ったら最大 3 周修正。**3 種いずれかが失敗してもメインは続行**し、完了報告に成否を併記する。
+    - **`<script>...</script>` 内 `</body>` リテラル禁止**は副産物にも適用（各 validate が機械検出）。
+
+### Phase 10: 回収（永続化）と後始末（docs/jx-pipeline.md ②③）
+
+36. **回収＝git push**：`scripts/jx-push.sh "feat(jx): {ID} を生成保存（J1〜J21 PASS＋副産物 RX/TREE/ARIADNE）"`
     （add→commit→push、ネットワークエラー時は指数バックオフ再試行。リモートはコンテナ回収前に必ず push）。
+    **jx-push.sh は既定で `outputs/001_JX` ＋ `outputs/004_JX_EX` を stage する**ので、本体 JX と副産物が同じ push で永続化される。
 37. **処理済 PDF 削除**：`scripts/jx-cleanup-pdf.sh {科目} {番号} --commit` →
     `scripts/jx-push.sh "chore(jx): remove processed input PDFs"`（HTML が commit 済のときのみ削除＝安全ガード）。
 38. **ERROR があれば**：該当箇所を修正し、再検証 → 通過するまで繰り返し

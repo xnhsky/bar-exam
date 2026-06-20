@@ -187,7 +187,18 @@ if ($RxEnabled -and -not (Test-Path $RxPromptSrc)) { Write-Host "[NOTE] RX promp
 if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate-rx.py 不在 → ②-rx 自動スキップ: $ValidateRx" -ForegroundColor Yellow; $RxEnabled = $false }
 $ArbEnabled = (-not $SkipArb)
 if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] TREE prompt 不在 → ②-arb 自動スキップ: $ArbPromptSrc" -ForegroundColor Yellow; $ArbEnabled = $false }
-if ($ArbEnabled -and -not (Test-Path $ArborMaster))  { Write-Host "[NOTE] ARBOR 正典不在 → ②-arb 自動スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false }
+# 外部 arbor リポジトリ不在時は vendored モード（canonical/ARBOR.html + validate-tree.py）へフォールバック。
+# これにより arbor を持たない PC でも TREE を生成でき、リモート（new-jx Phase 9）と同一出力になる。
+$CanonicalArbor = Join-Path $ProjectRoot "canonical\ARBOR.html"
+$ValidateTree   = Join-Path $ProjectRoot "scripts\validate-tree.py"
+if ($ArbEnabled -and -not (Test-Path $ArborMaster)) {
+    if ((Test-Path $CanonicalArbor) -and (Test-Path $ValidateTree)) {
+        Write-Host "[NOTE] ARBOR 正典不在 → vendored モード（canonical/ARBOR.html + validate-tree.py）で TREE 生成" -ForegroundColor Yellow
+        $ArborMaster = $CanonicalArbor; $ArborRef = $CanonicalArbor; $ArborVerify = $ValidateTree
+    } else {
+        Write-Host "[NOTE] ARBOR 正典不在 かつ vendored 資産も無し → ②-arb 自動スキップ: $ArborMaster" -ForegroundColor Yellow; $ArbEnabled = $false
+    }
+}
 $AriadneEnabled = (-not $SkipAriadne)
 if ($AriadneEnabled -and -not (Test-Path $AriadnePromptSrc)) { Write-Host "[NOTE] ARIADNE prompt 不在 → ②-ariadne 自動スキップ: $AriadnePromptSrc" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $ValidateAriadne))  { Write-Host "[NOTE] validate-ariadne.py 不在 → ②-ariadne 自動スキップ: $ValidateAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }

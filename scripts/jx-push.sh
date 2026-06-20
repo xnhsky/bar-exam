@@ -7,7 +7,8 @@
 #   本スクリプトは「ファイルを回収して push する」一連の動線を1コマンドにまとめる。
 #
 # 動作：
-#   1) 対象（既定 outputs/001_JX 配下の追加/変更/未追跡 HTML）を git add
+#   1) 対象（既定 outputs/001_JX ＋ outputs/004_JX_EX 配下の追加/変更/未追跡 HTML）を git add
+#      （004_JX_EX = リモート生成の副産物 RX/TREE/ARIADNE。本体 JX と一緒に永続化する）
 #   2) 差分が無ければ何もしない
 #   3) commit（メッセージは引数 or 既定）
 #   4) git push -u origin <現ブランチ> をネットワークエラー時に指数バックオフ再試行
@@ -31,7 +32,9 @@ MSG="${1:-chore(jx): persist generated outputs}"
 shift || true
 TARGETS=("$@")
 if [ "${#TARGETS[@]}" -eq 0 ]; then
-  TARGETS=("outputs/001_JX")
+  # JX 本体に加え、リモート生成の副産物（RX/TREE/ARIADNE）も既定で回収する
+  # （outputs/004_JX_EX 配下。新規が無ければ git add は無害）
+  TARGETS=("outputs/001_JX" "outputs/004_JX_EX")
 fi
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"

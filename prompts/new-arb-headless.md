@@ -10,6 +10,16 @@
 > 構造・配色・検証はすべて正典仕様に従う。
 > 生成完了後に必ず sentinel 1 つを標準出力に echo して終了する。
 
+> **【リモート / vendored モード】** 外部 arbor リポジトリが無い環境（Claude Code on the web 等）
+> では `{ARBOR_MASTER}` / `{ARBOR_REFERENCE}` / `{ARBOR_VERIFY}` が解決できない。その場合は
+> bar-exam repo に vendored 済みの **`canonical/ARBOR.html`（gold TREE の正典複製）** を
+> **構造・配色・タイポ・密度の唯一の視覚＋コード参照**として使い、検証は
+> **`python scripts/validate-tree.py {OUTPUT_PATH}`（T1〜T9 軽量ゲート）** で代替する。
+> フル S1〜S20 verify はローカル専用なので、リモートでは canonical/ARBOR.html と同じ
+> **13 分枝・葉 57・問題 15・約 68KB** の密度に揃えることで品質を担保する。
+> 判定：`{ARBOR_MASTER}` を Read できなければ vendored モード、できれば従来の正典モード
+> （`canonical/ARBOR.html` の本文・論点はコピーせず構造シェルのみ参照＝content independence）。
+
 ---
 
 ## Section 1: 役割定義
