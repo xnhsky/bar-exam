@@ -17,7 +17,7 @@ JX v3.2 軽量検証スクリプト
   J11  .para-num クラス
   J12  .model-answer ::before に MODEL ANSWER
   J13  .grading ::before に GRADING
-  J14  .container max-width: 1080px
+  J14  .container max-width: 1320px
   J15  .doc-header に position:absolute
   J16  旧 <strong>第N項</strong> 表記の不在
   J17  配色パターン名（V3 11 パレット名・役割割合）の <body> 内不在
@@ -288,9 +288,9 @@ def check_J14_container_maxwidth(style_text, results):
     m = re.search(r'max-width\s*:\s*(\d+)px', block)
     if not m:
         results.append(('J14', 'ERROR', '.container max-width が未指定'))
-    elif int(m.group(1)) != 1080:
+    elif int(m.group(1)) != 1320:
         results.append(('J14', 'ERROR',
-                        f'.container max-width は 1080px 必須: '
+                        f'.container max-width は 1320px 必須: '
                         f'実際 {m.group(1)}px'))
 
 
