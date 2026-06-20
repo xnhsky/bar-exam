@@ -49,6 +49,9 @@ REPLACEMENTS: list[tuple[str, str]] = [
     ("padding:12px 18px 26px;", "padding:12px 14px 26px;"),
     # --- RX 論証カード ---
     ("max-width:680px", "max-width:920px"),
+    # 一部の RX は .wrap{max-width:720px} 構造（刑RX047 系）で生成された。720px は現状
+    # この RX のみに出現するため全体置換で安全に 920 へ揃える（他テンプレに 720 は無い）。
+    ("max-width:720px", "max-width:920px"),
 ]
 
 

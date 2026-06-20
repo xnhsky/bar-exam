@@ -107,7 +107,16 @@
 
 - スマホ縦画面で読みやすいこと（フォント 16px 以上・余白十分）
 - カード幅は `.card{max-width:920px; margin:0 auto}` 目安（スマホは全幅／タブレット・PC で左右の背景余白が過多にならない幅。2026-06-20 Lexia ワイド化で 680→920）
-- **インライン CSS のみ**（外部依存・CDN 不可。完全オフライン動作）
+- **CSS はインライン**で書く（外部 CSS・CDN の CSS は不可）。**ただしフォントだけは TX(GENESIS)/JX(ATHENA)
+  と完全同一の Google Fonts `<link>` を `<head>` に入れて読み込む**（作り込みフォント Shippori Mincho B1 等を
+  効かせ TX/JX と同じ見栄えにする・URL 同一でブラウザのフォントキャッシュも共有）。`<head>` 直後に下記 3 行を置く：
+  ```html
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700;800&family=Shippori+Antique&family=Zen+Old+Mincho:wght@400;500;700;900&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Kaisei+Decol:wght@400;500;700&family=Kosugi+Maru&family=Source+Code+Pro:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@500;700;800&family=M+PLUS+1p:wght@500;700;800;900&display=swap" rel="stylesheet">
+  ```
+  フォント未読込（完全オフライン）時もシステムフォント（Hiragino Sans／serif）へフォールバックして閲覧は可能。
+  既存 RX への後追い注入は冪等スクリプト `python scripts/rx-font-link.py`。
 - **規範ブロックはレモンイエローで強調**（`.norm-box{background:#fff7a8;border:2px solid #e8c400;color:#5a4012}`）。
   さらに `.norm-box{position:relative}` ＋ `.norm-box::before{content:"🔑 規範";position:absolute;top:-13px;left:14px;background:#ffe24d;color:#5a4012;padding:2px 12px;border-radius:999px;font-weight:700;font-size:.78em;border:1.5px solid #e8c400}` で左上に「🔑 規範」バッジを付ける（2026-06-20 統一・薄い琥珀系は廃止）
 - 配色は元 JX のパレットと調和させてよい（科目の雰囲気を引き継ぐ）
@@ -142,7 +151,9 @@
 - [ ] 規範ブロックが初期非表示＋トグルボタンで開閉
 - [ ] ○×クイズが各カード 2〜4 問、`data-correct-value` / `data-explanation` あり
 - [ ] `<script>` 内に `</body>` リテラルなし
-- [ ] CDN・外部リソース参照なし
+- [ ] `<head>` に TX/JX と同一の Google Fonts `<link>`（preconnect ×2＋stylesheet）がある
+- [ ] フォント以外に CDN・外部リソース参照なし（CSS・JS はインライン）
+- [ ] カード幅 `.card{max-width:920px}` ／ 規範ボックスはレモンイエロー＋🔑バッジ
 
 ---
 
