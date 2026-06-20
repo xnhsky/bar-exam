@@ -60,12 +60,24 @@ PowerShell バッチが使えないリモート環境では、`/new-jx`（`.clau
 python scripts/validate-tree.py outputs/004_JX_EX/TREE/001_刑法/刑JX042_TREE.html
 ```
 
-## 既存 JX のバックフィル
+## 既存 JX のバックフィル（ローカル・3種すべて対応）
+
+`rx-arb-backfill.ps1` は **RX / TREE / ARIADNE の3種すべて**の欠落を後追い生成する
+（2026-06-20 に ARIADNE 段と vendored TREE フォールバックを追加）。各 JX について未生成の
+副産物だけを生成するので、何度流しても重複生成しない（冪等）。
 
 ```powershell
-pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -DryRun   # 欠落の確認のみ
-pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -MaxProblems 3
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -DryRun        # 欠落の確認のみ（生成なし）
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -MaxProblems 3 # 若番から3問ぶんの欠落を埋める
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -FromNumber 30 -ToNumber 40  # 番号範囲指定
+pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -SkipRx -SkipArb            # ARIADNE だけ埋める
 ```
+
+- **TREE は外部 arbor 不在なら vendored モード**（`canonical/ARBOR.html` + `validate-tree.py`）へ
+  自動フォールバックするので、arbor を持たない PC でも TREE を埋められる。
+- 抑止スイッチ：`-SkipRx` / `-SkipArb` / `-SkipAriadne`。
+- 生成後の永続化は通常の git commit か `jx-finalize.ps1 -Subject 刑 -Ids ... -NoCleanup`。
+  バックフィルは入力 PDF を消さない（cleanup は新規生成パイプライン側の責務）。
 
 ## sentinel（jx-batch-runner の Get-Sentinel と互換）
 
