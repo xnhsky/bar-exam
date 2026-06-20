@@ -15,10 +15,12 @@ from __future__ import annotations
 import subprocess
 import pathlib
 import sys
+import datetime
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 MARK = "作成日".encode("utf-8")
 BODY = b"</body>"
+TODAY = datetime.date.today().isoformat()  # 未コミット新規ファイル用フォールバック
 
 
 def git_created(rel: str) -> str | None:
@@ -44,11 +46,12 @@ def main() -> int:
         if MARK in data:
             skipped += 1
             continue
-        date = git_created(str(f.relative_to(REPO)))
         idx = data.rfind(BODY)
-        if not date or idx < 0:
+        if idx < 0:
             nodate += 1
             continue
+        # git 初回コミット日。未コミットの新規（生成直後）は取得不可なので今日の日付で代用。
+        date = git_created(str(f.relative_to(REPO))) or TODAY
         eol = b"\r\n" if b"\r\n" in data else b"\n"
         marker = ("<!-- 作成日：" + date + " -->").encode("utf-8") + eol
         data = data[:idx] + marker + data[idx:]

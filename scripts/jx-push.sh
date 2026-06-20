@@ -40,6 +40,12 @@ fi
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 echo "=== JX push 動線（branch=$BRANCH）==="
 
+# 0) 作成日スタンプ（作成日が無い JX/副産物に作成日を埋め込み・冪等）
+#    新規生成分は未コミットなので stamp 側が今日の日付を採用する。
+if [ "$DRY" -eq 0 ]; then
+  python3 scripts/stamp-created-date.py 2>/dev/null || true
+fi
+
 # 1) stage
 echo "--- stage: ${TARGETS[*]} ---"
 if [ "$DRY" -eq 0 ]; then
