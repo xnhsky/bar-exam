@@ -111,10 +111,11 @@ foreach ($id in $Ids) {
     if (Test-Path -LiteralPath $ttsDir) { $addPaths += "outputs/002_TTS/$($DriveHtml[$Subject])/$id" }
     # 副産物（RX 論証カード / ARBOR 樹形図）も同じコミットで永続化（存在するものだけ）
     if ($null -ne $num) {
-        $rxDirAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\$($DriveHtml[$Subject])"
+        # RX は問題ごとにサブフォルダ（{科目}JX{NNN}/）へ折る（2026-06-20 恒久化）
+        $rxDirAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\RX\$($DriveHtml[$Subject])\$id"
         $rxFilter = "${Subject}RX" + $num.ToString('000') + "_*.html"
         foreach ($r in @(Get-ChildItem -Path $rxDirAbs -Filter $rxFilter -File -ErrorAction SilentlyContinue)) {
-            $addPaths += "outputs/004_JX_EX/RX/$($DriveHtml[$Subject])/$($r.Name)"
+            $addPaths += "outputs/004_JX_EX/RX/$($DriveHtml[$Subject])/$id/$($r.Name)"
         }
     }
     $arbAbs = Join-Path $ProjectRoot "outputs\004_JX_EX\TREE\$($DriveHtml[$Subject])\${id}_TREE.html"

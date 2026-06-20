@@ -148,7 +148,9 @@ foreach ($jx in @(Get-ChildItem -Path $JxOutputDir -Filter "*.html" -File | Sort
     if (($FromNumber -gt 0 -and $numInt -lt $FromNumber) -or ($ToNumber -gt 0 -and $numInt -gt $ToNumber)) { continue }
     $problemId = "${Subject}JX${num}"
     $rxBase  = "${Subject}RX${num}"
-    $hasRx   = @(Get-ChildItem -Path $RxOutputDir -Filter "${rxBase}_*.html" -File -ErrorAction SilentlyContinue).Count -gt 0
+    # RX は問題ごとにサブフォルダ（{科目}JX{NNN}/）へ折る（2026-06-20 恒久化）
+    $rxDir   = Join-Path $RxOutputDir $problemId
+    $hasRx   = @(Get-ChildItem -Path $rxDir -Filter "${rxBase}_*.html" -File -ErrorAction SilentlyContinue).Count -gt 0
     $arbPath = Join-Path $ArbOutputDir "${problemId}_TREE.html"
     $hasArb  = Test-Path $arbPath
     $ariaPath = Join-Path $AriadneOutputDir "${problemId}_ARIADNE.html"
@@ -159,7 +161,7 @@ foreach ($jx in @(Get-ChildItem -Path $JxOutputDir -Filter "*.html" -File | Sort
     if (-not ($needRx -or $needArb -or $needAria)) { continue }
     $Catalog += [PSCustomObject]@{
         ProblemId = $problemId; Number = $num; JxPath = $jx.FullName
-        RxBase = $rxBase; NeedRx = $needRx; ArbPath = $arbPath; NeedArb = $needArb
+        RxBase = $rxBase; RxDir = $rxDir; NeedRx = $needRx; ArbPath = $arbPath; NeedArb = $needArb
         AriaPath = $ariaPath; NeedAria = $needAria
     }
 }
@@ -186,7 +188,7 @@ foreach ($t in $Targets) {
     if ($t.NeedRx) {
         Write-Host "--- RX 生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
         $rxStart = Get-Date
-        if (-not (Test-Path $RxOutputDir)) { New-Item -Path $RxOutputDir -ItemType Directory -Force | Out-Null }
+        if (-not (Test-Path $t.RxDir)) { New-Item -Path $t.RxDir -ItemType Directory -Force | Out-Null }
         $rxTemplate = Get-Content $RxPromptSrc -Raw -Encoding utf8
         $rxPrompt = $rxTemplate `
             -replace '\{SOURCE_HTML_PATH\}', $t.JxPath `
@@ -194,14 +196,14 @@ foreach ($t in $Targets) {
             -replace '\{PROBLEM_NUMBER\}',   $t.Number `
             -replace '\{SUBJECT_PREFIX\}',   $Subject `
             -replace '\{RX_BASENAME\}',      $t.RxBase `
-            -replace '\{OUTPUT_DIR\}',       $RxOutputDir `
+            -replace '\{OUTPUT_DIR\}',       $t.RxDir `
             -replace '\{VALIDATE_RX\}',      $ValidateRx
         $rxRes = Invoke-ClaudeHeadless -Prompt $rxPrompt -JsonOutPath (Join-Path $LogsDir "rx-$($t.ProblemId).json")
         $rxSent = Get-Sentinel -Text $rxRes.Output -ProblemId "$($t.ProblemId)-RX"
-        $rxFiles = @(Get-ChildItem -Path $RxOutputDir -Filter "$($t.RxBase)_*.html" -File -ErrorAction SilentlyContinue).Count
+        $rxFiles = @(Get-ChildItem -Path $t.RxDir -Filter "$($t.RxBase)_*.html" -File -ErrorAction SilentlyContinue).Count
         $rxValidate = "skipped_no_files"
         if ($rxFiles -gt 0) {
-            $rvOut = & python $ValidateRx $RxOutputDir $t.RxBase 2>&1
+            $rvOut = & python $ValidateRx $t.RxDir $t.RxBase 2>&1
             $rxValidate = if ($LASTEXITCODE -eq 0) { "PASS" } else { "ERROR(exit=$LASTEXITCODE)" }
             ($rvOut -join "`n") | Out-File -FilePath (Join-Path $LogsDir "rx-validate-$($t.ProblemId).txt") -Encoding utf8
         }

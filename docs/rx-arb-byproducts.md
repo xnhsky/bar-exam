@@ -4,7 +4,7 @@
 
 | 副産物 | 内容 | 出力先 | Lexia での扱い |
 |---|---|---|---|
-| **RX** | 論証カード（1論点1HTML・規範トグル＋○×クイズ付き） | `outputs/004_JX_EX/RX/{科目}RX/{科目}RX{NNN}_{n}.html` | TX/JX と同格の SRS カード（今日のキュー・逆算・弱点注入の対象） |
+| **RX** | 論証カード（1論点1HTML・規範トグル＋○×クイズ付き） | `outputs/004_JX_EX/RX/{00N_科目}/{科目}JX{NNN}/{科目}RX{NNN}_{n}.html`（問題ごとサブフォルダ・2026-06-20 恒久化） | TX/JX と同格の SRS カード（今日のキュー・逆算・弱点注入の対象） |
 | **TREE** | ARBOR 横向き樹形図（1問1枚） | `outputs/004_JX_EX/TREE/{科目}TREE/{科目}JX{NNN}_TREE.html` | 参考教材（TREE カテゴリ・SRS 対象外） |
 
 ## 関連ファイル
@@ -108,7 +108,7 @@ BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
 `jx-deploy.ps1` が RX/TREE も repo ミラー＋Drive の両方へ配置する：
 
 ```
-{2 JX_論 文}\B_RX\00N_科目\{科目}RX{NNN}_{n}.html      ← RX 論証カード
+{2 JX_論 文}\B_RX\00N_科目\{科目}JX{NNN}\{科目}RX{NNN}_{n}.html  ← RX 論証カード（問題ごとサブフォルダ・2026-06-20）
 {2 JX_論 文}\C_TREE\00N_科目\{科目}JX{NNN}_TREE.html    ← TREE 樹形図（旧 C_ARBOR・2026-06-18 改名）
 {2 JX_論 文}\D_ARIADNE\00N_科目\{科目}JX{NNN}_ARIADNE.html ← ARIADNE 解法ナビ＋周回
 ```

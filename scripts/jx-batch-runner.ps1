@@ -539,7 +539,9 @@ foreach ($t in $Targets) {
     if ($jxPass -and $RxEnabled) {
         Write-Host "`n--- ②-rx RX 論証カード生成 $(Get-Date -Format 'HH:mm:ss') ---" -ForegroundColor Cyan
         $rxStart = Get-Date
-        if (-not (Test-Path $RxOutputDir)) { New-Item -Path $RxOutputDir -ItemType Directory -Force | Out-Null }
+        # RX は問題ごとにサブフォルダ（{科目}JX{NNN}/）へ折る（2026-06-20 恒久化）
+        $rxDir = Join-Path $RxOutputDir $t.ProblemId
+        if (-not (Test-Path $rxDir)) { New-Item -Path $rxDir -ItemType Directory -Force | Out-Null }
         $rxBase = "${Subject}RX$($t.Number)"
         $rxTemplate = Get-Content $RxPromptSrc -Raw -Encoding utf8
         $rxPrompt = $rxTemplate `
@@ -548,16 +550,16 @@ foreach ($t in $Targets) {
             -replace '\{PROBLEM_NUMBER\}',   $t.Number `
             -replace '\{SUBJECT_PREFIX\}',   $Subject `
             -replace '\{RX_BASENAME\}',      $rxBase `
-            -replace '\{OUTPUT_DIR\}',       $RxOutputDir `
+            -replace '\{OUTPUT_DIR\}',       $rxDir `
             -replace '\{VALIDATE_RX\}',      $ValidateRx
         ($rxPrompt) | Out-File -FilePath (Join-Path $LogsDir "rx-prompt-$($t.ProblemId).txt") -Encoding utf8
 
         $rxRes = Invoke-ClaudeHeadless -Prompt $rxPrompt -JsonOutPath (Join-Path $LogsDir "rx-$($t.ProblemId).json")
         $rxSent = Get-Sentinel -Text $rxRes.Output -ProblemId "$($t.ProblemId)-RX"
-        $rxFiles = @(Get-ChildItem -Path $RxOutputDir -Filter "${rxBase}_*.html" -File -ErrorAction SilentlyContinue).Count
+        $rxFiles = @(Get-ChildItem -Path $rxDir -Filter "${rxBase}_*.html" -File -ErrorAction SilentlyContinue).Count
         $rxValidate = "skipped_no_files"
         if ($rxFiles -gt 0) {
-            $rvOut = & python $ValidateRx $RxOutputDir $rxBase 2>&1
+            $rvOut = & python $ValidateRx $rxDir $rxBase 2>&1
             $rxValidate = if ($LASTEXITCODE -eq 0) { "PASS" } else { "ERROR(exit=$LASTEXITCODE)" }
             ($rvOut -join "`n") | Out-File -FilePath (Join-Path $LogsDir "rx-validate-$($t.ProblemId).txt") -Encoding utf8
         }

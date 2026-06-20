@@ -165,16 +165,19 @@ foreach ($t in $Targets) {
             if ($DryRun) { Write-Host "  [DRYRUN] HTML $id.html -> $($t.Label):$($info.html)" }
             else { Copy-Item -LiteralPath $html -Destination $d.Html -Force; $sumHtml++ }
         }
-        # RX 論証カード（outputs/004_JX_EX/RX/{科目}RX/{科目}RX{NNN}_*.html）→ B_RX\00N_科目\
+        # RX 論証カード（outputs/004_JX_EX/RX/00N_科目/{ID}/{科目}RX{NNN}_*.html）→ B_RX\00N_科目\{ID}\
+        #   2026-06-20: RX を問題ごとにサブフォルダ（{科目}JX{NNN}/）へ折る。Drive も同構造でミラー。
         $idNum = Get-IdNumber $id
         if ($null -ne $idNum) {
             $rxPat = "${Subject}RX$($idNum.ToString('000'))_*.html"
-            $rxFiles = @(Get-ChildItem -Path $RxOutDir -Filter $rxPat -File -ErrorAction SilentlyContinue)
+            $rxSrcDir = Join-Path $RxOutDir $id
+            $rxFiles = @(Get-ChildItem -Path $rxSrcDir -Filter $rxPat -File -ErrorAction SilentlyContinue)
             if ($rxFiles.Count -gt 0) {
-                Ensure-Dir $d.Rx
+                $rxDest = Join-Path $d.Rx $id
+                Ensure-Dir $rxDest
                 foreach ($r in $rxFiles) {
-                    if ($DryRun) { Write-Host "  [DRYRUN] RX   $($r.Name) -> $($t.Label):$RxRoot\$($info.html)" }
-                    else { Copy-Item -LiteralPath $r.FullName -Destination $d.Rx -Force; $sumRx++ }
+                    if ($DryRun) { Write-Host "  [DRYRUN] RX   $id\$($r.Name) -> $($t.Label):$RxRoot\$($info.html)\$id" }
+                    else { Copy-Item -LiteralPath $r.FullName -Destination $rxDest -Force; $sumRx++ }
                 }
             }
         }
