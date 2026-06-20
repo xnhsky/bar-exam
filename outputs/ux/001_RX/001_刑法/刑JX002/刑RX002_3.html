@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>同一の死の結果の二重評価の回避（一元的評価）</title>
+<style>
+:root{
+  --accent:#5c4566; --mid:#9d7ba6; --base:#f8f2f2; --soft:#f7ebd6;
+  --light:#e8d4d4; --paper:#fffdfb; --text:#2b2630; --bg-dark:#4a3556;
+  --amber-bg:#fff5e0; --amber-bd:#e6b566; --border-soft:#d8c2d4;
+}
+*{box-sizing:border-box}
+body{
+  font-family:"Hiragino Sans","Yu Gothic Medium","Noto Sans JP",sans-serif;
+  background:var(--base); color:var(--text);
+  line-height:1.95; font-size:17px; margin:0; padding:18px 14px 60px;
+  -webkit-font-smoothing:antialiased; letter-spacing:.02em;
+}
+.card{max-width:680px; margin:0 auto;}
+h1{
+  font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  font-size:1.42em; line-height:1.4; color:var(--accent);
+  border-bottom:3px solid var(--accent); padding-bottom:12px; margin:.2em 0 .3em;
+}
+.src{font-size:.8em; color:var(--mid); font-weight:700; letter-spacing:.06em; margin-bottom:22px;}
+h2{
+  font-size:1.05em; color:#fff; background:linear-gradient(135deg,var(--accent),var(--mid));
+  padding:7px 14px; border-radius:7px; margin:30px 0 12px; letter-spacing:.04em;
+}
+p{margin:.5em 0;}
+.issue{background:var(--paper); border:1px solid var(--border-soft); border-radius:9px; padding:14px 18px;}
+.reason{background:var(--light); border-left:5px solid var(--mid); border-radius:6px; padding:12px 16px;}
+ul,ol{padding-left:1.3em; margin:.5em 0;}
+li{margin:.32em 0;}
+.norm-toggle{
+  display:inline-block; background:var(--accent); color:#fff; border:none;
+  font-family:inherit; font-size:1em; font-weight:700; letter-spacing:.05em;
+  padding:11px 22px; border-radius:8px; cursor:pointer; margin:6px 0;
+  box-shadow:0 3px 8px rgba(92,69,102,.3);
+}
+.norm-toggle:active{transform:translateY(1px);}
+.norm-box{
+  display:none; margin:12px 0 4px;
+  background:var(--amber-bg); border:2px solid var(--amber-bd); border-radius:9px;
+  padding:18px 20px; line-height:2.0;
+  font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+}
+.norm-box.open{display:block;}
+.norm-box .lead{font-weight:700; color:#9a5b00; display:block; margin-bottom:6px;}
+.norm-box strong{color:#8a3b00;}
+.cite{font-size:.92em; color:var(--bg-dark);}
+.statute{font-family:"Yu Mincho",serif; background:#f3f4f6; border-left:4px solid #6b7280;
+  border-radius:5px; padding:9px 14px; margin:8px 0; font-size:.94em;}
+.self-check-quiz{
+  background:var(--paper); border:1.5px solid var(--mid); border-radius:10px;
+  padding:16px 18px; margin:16px 0;
+}
+.quiz-question{font-weight:600; margin-bottom:12px; line-height:1.85;}
+.quiz-buttons{display:flex; gap:12px;}
+.quiz-btn{
+  flex:1; font-family:inherit; font-size:1.3em; font-weight:700;
+  padding:10px 0; border-radius:8px; border:2px solid var(--mid);
+  background:#fff; color:var(--accent); cursor:pointer;
+}
+.quiz-btn:active{transform:translateY(1px);}
+.quiz-btn.picked-correct{background:#e8f5e9; border-color:#2e7d32; color:#1b5e20;}
+.quiz-btn.picked-wrong{background:#ffeef0; border-color:#c62828; color:#8a1818;}
+.quiz-result{margin-top:12px; padding:11px 14px; border-radius:7px; line-height:1.8; font-size:.95em;}
+.quiz-result.ok{background:#e8f5e9; border:1px solid #2e7d32;}
+.quiz-result.ng{background:#ffeef0; border:1px solid #c62828;}
+.quiz-result .verdict{font-weight:700; display:block; margin-bottom:3px;}
+.foot{margin-top:34px; font-size:.8em; color:var(--mid); text-align:center; letter-spacing:.05em;}
+</style>
+</head>
+<body>
+<div class="card">
+
+<h1>同一の死の結果の二重評価の回避<br>（一元的評価）</h1>
+<div class="src">出典: 刑JX002（過失運転致死罪と因果関係）／論点3</div>
+
+<h2>問題の所在</h2>
+<div class="issue">
+<p>前半の過失運転致死と後半の殺人は、いずれも<strong>同一被害者の一個の「死」</strong>に向かう。仮に両罪を併存させると、一個の死の結果を二重に評価することにならないか。<span class="cite">（本問は前半が結果回避可能性を欠き不成立なので顕在化しないが、伏線として一言触れる価値がある。）</span></p>
+</div>
+
+<h2>規範（暗記対象）</h2>
+<button class="norm-toggle" onclick="toggleNorm(this)">▶ 規範を表示</button>
+<div class="norm-box">
+<span class="lead">死の結果の一元的評価（二重評価の禁止）</span>
+<p>一個の結果を複数の罪で重複して評価することは<strong>二重評価の禁止</strong>に反する。そこで、<strong>死の結果は重い殺人罪で一元的に評価し</strong>、過失の側は<strong>過失運転致傷の限度にとどめる</strong>のが相当である。</p>
+<p class="cite">※ これは因果関係の問題というより、罪数論的な調整（熊撃ち事件で知られる発想）として整理される。</p>
+</div>
+
+<h2>理由づけ</h2>
+<div class="reason">
+<p>同一の法益侵害（一個の死）を二度評価して刑を加重するのは、責任に見合わない過剰処罰となり妥当でない。重い罪（殺人）で死を捕捉すれば足り、軽い過失犯の側で死を重ねて評価する必要はない。</p>
+</div>
+
+<h2>あてはめの型</h2>
+<ol>
+<li><strong>本問の帰結</strong>：前半の過失運転致死は結果回避可能性を欠き不成立 → 死は殺人既遂罪のみで評価され、二重評価は顕在化しない → 甲には殺人既遂罪の一罪が成立</li>
+<li><strong>仮定的検討</strong>：仮に過失運転致死が成立する場合 → 死は殺人罪で一元評価し、過失の側は致傷の限度にとどめる</li>
+</ol>
+<p class="cite">※ 罪数論に深入りせず一文で足りる。本問では不成立により表に出ない点を明示する。</p>
+
+<h2>関連判例・条文</h2>
+<div class="statute">刑法199条（殺人罪）／刑法54条（科刑上一罪）／自動車運転死傷処罰法5条（過失運転致死傷罪）</div>
+<ul>
+<li>大判昭和8年（熊撃ち事件・同一結果の二重評価回避の発想として参照される）</li>
+</ul>
+
+<h2>規範チェック（○×）</h2>
+
+<div class="self-check-quiz" data-correct-value="○"
+     data-explanation="正しい。前半の過失運転致死罪は結果回避可能性を欠き不成立であるから、Aの死は殺人既遂罪のみで評価され、二重評価の問題は顕在化しない。甲には殺人既遂罪の一罪が成立する。">
+  <div class="quiz-question">本問では前半の過失運転致死罪が不成立であるため、死の結果は殺人既遂罪のみで評価され、二重評価の問題は顕在化しない。</div>
+  <div class="quiz-buttons">
+    <button class="quiz-btn" data-value="○" onclick="lexiaAnswer(this,'○')">○</button>
+    <button class="quiz-btn" data-value="×" onclick="lexiaAnswer(this,'×')">×</button>
+  </div>
+  <div class="quiz-result" style="display:none"></div>
+</div>
+
+<div class="self-check-quiz" data-correct-value="×"
+     data-explanation="誤り。一個の死の結果を過失運転致死罪と殺人罪で重ねて評価するのは二重評価の禁止に反する。死は重い殺人罪で一元的に評価し、過失の側は過失運転致傷の限度にとどめるのが相当。">
+  <div class="quiz-question">仮に過失運転致死罪と殺人罪がともに成立する場合、一個の死の結果を両罪で重ねて評価してよい。</div>
+  <div class="quiz-buttons">
+    <button class="quiz-btn" data-value="○" onclick="lexiaAnswer(this,'○')">○</button>
+    <button class="quiz-btn" data-value="×" onclick="lexiaAnswer(this,'×')">×</button>
+  </div>
+  <div class="quiz-result" style="display:none"></div>
+</div>
+
+<div class="self-check-quiz" data-correct-value="○"
+     data-explanation="正しい。死の二重評価を避ける調整は、因果関係の存否の問題ではなく、成立した複数罪をどう評価するかという罪数論的な処理として整理される。">
+  <div class="quiz-question">死の結果を重い殺人罪で一元評価し過失の側を致傷にとどめる処理は、因果関係の問題ではなく罪数論的な調整である。</div>
+  <div class="quiz-buttons">
+    <button class="quiz-btn" data-value="○" onclick="lexiaAnswer(this,'○')">○</button>
+    <button class="quiz-btn" data-value="×" onclick="lexiaAnswer(this,'×')">×</button>
+  </div>
+  <div class="quiz-result" style="display:none"></div>
+</div>
+
+<div class="foot">刑RX002_3 ／ Lexia 論証カード</div>
+
+</div>
+
+<script>
+function toggleNorm(btn){
+  var box = btn.nextElementSibling;
+  var open = box.classList.toggle('open');
+  btn.textContent = open ? '▼ 規範を隠す' : '▶ 規範を表示';
+}
+function lexiaAnswer(btn, val){
+  var quiz = btn.closest('.self-check-quiz');
+  if(quiz.dataset.answered === '1') return;
+  quiz.dataset.answered = '1';
+  var correct = quiz.getAttribute('data-correct-value');
+  var expl = quiz.getAttribute('data-explanation') || '';
+  var ok = (val === correct);
+  btn.classList.add(ok ? 'picked-correct' : 'picked-wrong');
+  var res = quiz.querySelector('.quiz-result');
+  res.style.display = 'block';
+  res.classList.add(ok ? 'ok' : 'ng');
+  res.innerHTML = '<span class="verdict">' + (ok ? '正解 ◎' : '不正解 ×（正解は ' + correct + '）') + '</span>' + expl;
+}
+</script>
+</body>
+</html>
