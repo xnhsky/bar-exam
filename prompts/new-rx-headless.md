@@ -108,7 +108,8 @@
 - スマホ縦画面で読みやすいこと（フォント 16px 以上・余白十分）
 - カード幅は `.card{max-width:920px; margin:0 auto}` 目安（スマホは全幅／タブレット・PC で左右の背景余白が過多にならない幅。2026-06-20 Lexia ワイド化で 680→920）
 - **インライン CSS のみ**（外部依存・CDN 不可。完全オフライン動作）
-- 規範ブロックは背景色付きで強調（薄い琥珀系を推奨）
+- **規範ブロックはレモンイエローで強調**（`.norm-box{background:#fff7a8;border:2px solid #e8c400;color:#5a4012}`）。
+  さらに `.norm-box{position:relative}` ＋ `.norm-box::before{content:"🔑 規範";position:absolute;top:-13px;left:14px;background:#ffe24d;color:#5a4012;padding:2px 12px;border-radius:999px;font-weight:700;font-size:.78em;border:1.5px solid #e8c400}` で左上に「🔑 規範」バッジを付ける（2026-06-20 統一・薄い琥珀系は廃止）
 - 配色は元 JX のパレットと調和させてよい（科目の雰囲気を引き継ぐ）
 - 1 ファイル 8〜40KB 目安（JX のような重厚装飾は不要。カードは軽く）
 - **【絶対禁止】`<script>...</script>` 内に `</body>` リテラル文字列を書くこと**
