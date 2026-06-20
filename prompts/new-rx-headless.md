@@ -1,8 +1,11 @@
 # new-rx-headless.md
 
-`claude -p` headless 実行用 **RX 論証カード生成プロンプト**（v1.0）。
+`claude -p` headless 実行用 **RX 論証カード生成プロンプト**（v1.1）。
 検証 PASS 済みの JX HTML を素材に、Lexia アプリ用の論証カード
 （**1 ファイル = 1 論点**の自己完結 HTML）を抽出・鋳造する。
+**TX/JX/ARIADNE と同じく、誌面デザインは正典スケルトン `{RX_SKELETON}`
+（canonical/RX.html）を複製して継承する**（v1.1・2026-06-20。TX 級のボックス／
+バッジ／フォント／配色を作り込み済み）。
 `jx-batch-runner.ps1` の ②-rx 段、または `rx-arb-backfill.ps1` から呼び出される。
 
 > RX は Lexia 側で **TX/JX と同格の SRS カード**として間隔反復される。
@@ -32,6 +35,7 @@
 | `{SUBJECT_PREFIX}` | `刑` | 科目接頭辞 |
 | `{RX_BASENAME}` | `刑RX032` | RX ファイル名の共通幹（科目接頭 + RX + 元 JX 番号） |
 | `{OUTPUT_DIR}` | `C:\...\outputs\ux\001_RX\001_刑法\刑JX032` | 出力ディレクトリの絶対パス（問題ごとに `{科目}JX{NNN}/` サブフォルダ・2026-06-20 恒久化） |
+| `{RX_SKELETON}` | `C:\...\canonical\RX.html`（リモートは `canonical/RX.html`） | **複製起点**＝gold RX スケルトン（TX 級の誌面デザイン正典） |
 | `{VALIDATE_RX}` | `C:\...\scripts\validate-rx.py` | 検証スクリプトの絶対パス |
 
 ---
@@ -103,16 +107,25 @@
 - ひっかけの作り方: 主体の入替え / 要件の脱落 / 「直ちに」「特段の事情」等の限定句の有無 /
   判例と学説の入替え
 
-### 4-4. デザイン・技術制約
+### 4-4. デザイン・技術制約（**スケルトン複製で自動充足**）
 
-- スマホ縦画面で読みやすいこと（フォント 16px 以上・余白十分）
-- カード幅は `.card{max-width:920px; margin:0 auto}` 目安（スマホは全幅／タブレット・PC で左右の背景余白が過多にならない幅。2026-06-20 Lexia ワイド化で 680→920）
-- **インライン CSS のみ**（外部依存・CDN 不可。完全オフライン動作）
-- 規範ブロックは背景色付きで強調（薄い琥珀系を推奨）
-- 配色は元 JX のパレットと調和させてよい（科目の雰囲気を引き継ぐ）
-- 1 ファイル 8〜40KB 目安（JX のような重厚装飾は不要。カードは軽く）
+**デザインは `{RX_SKELETON}`（canonical/RX.html）を複製して継承する**（Section 5）。
+TX v11 GENESIS を見本にした誌面（12 役割フォント・V3 配色・ボックス／バッジの作り込み・
+背景テクスチャ）が clone で必ず正典品質で揃う＝二台運用でも同一出力。以下は継承で満たされる：
+
+- スマホ縦画面で読みやすい（本文 16px・行間広め・余白十分）
+- カード幅 `.card{max-width:920px;margin:0 auto}`（2026-06-20 Lexia ワイド化で 680→920）
+- **フォントは TX と同ファミリー**（Shippori Mincho B1／Zen Kaku Gothic Antique／Zen Maru Gothic／
+  Source Code Pro／M PLUS 1p）を Google Fonts で読み込む。**システムフォント fallback を厚く持つ**ので
+  オフラインでも明朝＋ゴシックで成立する（TX／ARIADNE と同方針。validate-rx R9 は CDN を WARNING のみ）
+- 規範ボックス（`.norm-box`）＝TX `key-phrase-box` 相当の琥珀＋🔑バッジ。問題の所在（`.lead`）・
+  関連判例条文（`.refs`）・○×クイズ（`.self-check-quiz`）も TX 流の `::before` バッジ付きボックス
+- **配色は元 JX の雰囲気・論点の難度で `:root` の「▼ ACTIVE」プリセットを選ぶ**
+  （EASY ローズ=P1／STD ブルー=P2／HARD バイオレット=P3。3 案 hex は `:root` コメントにカタログ常時記載）。
+  **1 問の RX カード群は同一プリセットで揃える**（束として配色統一）。科目が `刑` で既定（HARD）のままでも可
+- 1 ファイル 12〜40KB 目安（誌面装飾込みでも軽量。1 論点 1 ファイルは厳守）
 - **【絶対禁止】`<script>...</script>` 内に `</body>` リテラル文字列を書くこと**
-  （Lexia アプリの正規表現マッチで全機能死亡）
+  （Lexia アプリの正規表現マッチで全機能死亡。スケルトンの script はこれを回避済み＝**逐語コピー**する）
 
 ### 4-5. 内容の正確性
 
@@ -122,26 +135,39 @@
 
 ---
 
-## Section 5: 実行手順
+## Section 5: 実行手順（スケルトン複製 → 鋳造）
 
-1. `{SOURCE_HTML_PATH}` を読み、第2部の論点構成を箇条書きで整理（カード化対象を確定）
-2. `{OUTPUT_DIR}` が無ければ作成。既存の `{RX_BASENAME}_*.html` があれば**上書きせず**、
-   全カードを最初から書き直す前提で一旦削除してよい（この problem の RX のみ）
-3. 各論点につき 1 ファイルを Write（1 メッセージ 50KB 超の Write は禁止・カード単位なら自然に収まる）
-4. 検証: `python {VALIDATE_RX} {OUTPUT_DIR} {RX_BASENAME}` を実行
-5. ERROR があれば修正 → 再検証（最大 3 周）
-6. sentinel を echo して終了
+1. `{SOURCE_HTML_PATH}` を読み、第2部の論点構成を箇条書きで整理（カード化対象を確定）。
+   **冒頭で逐語コピー対象と新規執筆対象を区別**（4-4 と同じ content independence の考え方）。
+2. **`{RX_SKELETON}`（canonical/RX.html）を Read** し、構造シェル（`<head>`／`<style>`／`<script>`／
+   `<body>` の骨格）を把握する。
+3. `{OUTPUT_DIR}` が無ければ作成。既存の `{RX_BASENAME}_*.html` があれば一旦削除してよい
+   （この problem の RX のみ・全カードを書き直す前提）。
+4. **論点ごとに 1 ファイルを生成**（n=1 からの連番）。各ファイルは **`{RX_SKELETON}` を複製**して作る：
+   - **逐語コピー（structural shell）**：`<head>` のフォントリンク・`<style>` 全体・`<script>` 全体・
+     各コンポーネントの class／タグ構造。**書き換えない**（TX 級デザインと Lexia 契約・`</body>` 回避が崩れる）。
+   - **問題固有で執筆（差し替える中身だけ）**：`<title>`＝論点名／`.masthead` の論点名・`出典`／
+     `.lead`（問題の所在）／`.norm-box`（規範＋`.cite`）／理由づけの `<p>`／`.card ol`（あてはめの型）／
+     `.refs`（条文・判例）／`.self-check-quiz` 各問の `data-correct-value`・`data-explanation`・`.quiz-question`。
+   - **配色**：`:root` の「▼ ACTIVE」プリセットを、元 JX の雰囲気・論点難度で EASY/STD/HARD から選定
+     （1 問の全カードで同一プリセットに揃える）。
+   - 1 メッセージ 50KB 超の Write は禁止（カード単位なら自然に収まる）。
+5. 検証: `python {VALIDATE_RX} {OUTPUT_DIR} {RX_BASENAME}` を実行
+6. ERROR があれば修正 → 再検証（最大 3 周）
+7. sentinel を echo して終了
 
 ---
 
 ## Section 6: 自己検証チェックリスト（Write 後・validate 前に目視確認）
 
 - [ ] ファイル名が `{RX_BASENAME}_{n}.html` 形式（n は 1 始まり連番・欠番なし）
-- [ ] 各ファイルの `<title>` が論点名
-- [ ] 規範ブロックが初期非表示＋トグルボタンで開閉
-- [ ] ○×クイズが各カード 2〜4 問、`data-correct-value` / `data-explanation` あり
-- [ ] `<script>` 内に `</body>` リテラルなし
-- [ ] CDN・外部リソース参照なし
+- [ ] **`{RX_SKELETON}` の `<style>`／`<script>` を逐語コピーしている**（独自 CSS を書き起こしていない）
+- [ ] **`:root` の「▼ ACTIVE」プリセットを 1 つ選定**（1 問の全カードで同一）
+- [ ] 各ファイルの `<title>` が論点名／`.masthead` の論点名・出典が問題固有
+- [ ] 規範ブロック（`.norm-box`）が初期非表示＋`.norm-toggle` で開閉
+- [ ] ○×クイズが各カード 2〜4 問、`data-correct-value`（全角○×）/ `data-explanation` あり
+- [ ] `<script>` 内に `</body>` リテラルなし（スケルトンのまま）
+- [ ] スケルトンの本文プレースホルダ（`〔…〕`）が 1 つも残っていない
 
 ---
 

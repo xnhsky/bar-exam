@@ -135,7 +135,7 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
     | 副産物 | 起動プロンプト | 出力先 | 検証 |
     |---|---|---|---|
-    | **RX** | `prompts/new-rx-headless.md` 全文 | `outputs/ux/001_RX/{00N_科目}/`（基幹 `{科目接頭}RX{NNN}`） | `python scripts/validate-rx.py <出力DIR> {科目接頭}RX{NNN}` |
+    | **RX** | `prompts/new-rx-headless.md` 全文（`{RX_SKELETON}`=`canonical/RX.html`） | `outputs/ux/001_RX/{00N_科目}/`（基幹 `{科目接頭}RX{NNN}`） | `python scripts/validate-rx.py <出力DIR> {科目接頭}RX{NNN}` |
     | **TREE** | `prompts/new-arb-headless.md` 全文（**vendored モード**） | `outputs/ux/002_TREE/{00N_科目}/{ID}_TREE.html` | `python scripts/validate-tree.py <出力ファイル>` |
     | **ARIADNE** | `prompts/new-ariadne-headless.md` 全文 | `outputs/ux/000_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <出力ファイル>` |
 
@@ -145,6 +145,8 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
       **`canonical/ARBOR.html`（gold TREE の正典複製）を構造・配色・密度の唯一の参照**にし、
       検証は `scripts/validate-tree.py`（T1〜T9）で行う。canonical/ARBOR.html の本文・論点は
       コピーせず**構造シェルのみ参照**（content independence）。密度は 13 分枝・葉 57・問題 15・約 68KB に揃える。
+    - **RX は `canonical/RX.html` を複製起点**にする（プロンプトの `{RX_SKELETON}` を `canonical/RX.html` に置換して渡す。
+      TX 級のボックス／バッジ／フォント／配色を作り込んだ gold RX スケルトン。1 論点 1 ファイルを複製→中身だけ鋳造）。
     - **ARIADNE は `canonical/ARIADNE.html` を複製起点**にする（プロンプト記載どおり）。
     - 各サブエージェントは末尾で sentinel（`BATCH_ITEM_COMPLETED:{ID}-RX` 等）を echo して終了する。
       検証 ERROR が残ったら最大 3 周修正。**3 種いずれかが失敗してもメインは続行**し、完了報告に成否を併記する。

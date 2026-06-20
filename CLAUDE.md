@@ -370,6 +370,10 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   **TREE は外部 arbor リポジトリ非依存の vendored モード**＝`canonical/ARBOR.html`（gold TREE 複製）を
   唯一の構造参照にし、`scripts/validate-tree.py`（T1〜T9）で検証する。永続化は `jx-push.sh` が
   `outputs/ux` も既定 stage。
+- **3 種とも canonical スケルトンを複製**して鋳造する（TX/JX と同方針＝二台運用でも同一品質）：
+  RX=`canonical/RX.html`／TREE=`canonical/ARBOR.html`／ARIADNE=`canonical/ARIADNE.html`。
+  いずれも **TX v11 GENESIS を見本にした誌面**（ボックス・バッジ・12 役割フォント・V3 配色）。
+  既存 RX の誌面アップグレードは `scripts/rx-restyle-backfill.py`（head デザインのみ差し替え・冪等）。
 
 **詳細は `docs/rx-arb-byproducts.md` が正典**。
 

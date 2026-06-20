@@ -39,6 +39,7 @@ $ArbOutputDir  = Join-Path $ProjectRoot "outputs\ux\002_TREE\$SubjDir"
 $AriadneOutputDir = Join-Path $ProjectRoot "outputs\ux\000_ARIADNE\$SubjDir"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
+$CanonicalRx   = Join-Path $ProjectRoot "canonical\RX.html"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"
 $AriadnePromptSrc = Join-Path $ProjectRoot "prompts\new-ariadne-headless.md"
 $ValidateRx    = Join-Path $ProjectRoot "scripts\validate-rx.py"
@@ -70,6 +71,7 @@ if (-not (Test-Path $JxOutputDir)) {
 $RxEnabled = (-not $SkipRx)
 if ($RxEnabled -and -not (Test-Path $RxPromptSrc)) { Write-Host "[NOTE] RX prompt 不在 → RX スキップ" -ForegroundColor Yellow; $RxEnabled = $false }
 if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate-rx.py 不在 → RX スキップ" -ForegroundColor Yellow; $RxEnabled = $false }
+if ($RxEnabled -and -not (Test-Path $CanonicalRx)) { Write-Host "[NOTE] canonical RX 不在 → RX スキップ: $CanonicalRx" -ForegroundColor Yellow; $RxEnabled = $false }
 $ArbEnabled = (-not $SkipArb)
 if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] TREE prompt 不在 → TREE スキップ" -ForegroundColor Yellow; $ArbEnabled = $false }
 # 外部 arbor 不在時は vendored モード（canonical/ARBOR.html + validate-tree.py）へフォールバック
@@ -197,6 +199,7 @@ foreach ($t in $Targets) {
             -replace '\{SUBJECT_PREFIX\}',   $Subject `
             -replace '\{RX_BASENAME\}',      $t.RxBase `
             -replace '\{OUTPUT_DIR\}',       $t.RxDir `
+            -replace '\{RX_SKELETON\}',      $CanonicalRx `
             -replace '\{VALIDATE_RX\}',      $ValidateRx
         $rxRes = Invoke-ClaudeHeadless -Prompt $rxPrompt -JsonOutPath (Join-Path $LogsDir "rx-$($t.ProblemId).json")
         $rxSent = Get-Sentinel -Text $rxRes.Output -ProblemId "$($t.ProblemId)-RX"

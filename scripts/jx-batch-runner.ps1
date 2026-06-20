@@ -71,6 +71,7 @@ $ValidateTts   = Join-Path $ProjectRoot "scripts\validate-tts.py"
 
 # 副産物（②-rx RX 論証カード / ②-arb ARBOR 樹形図 — Lexia 取込用）
 $RxPromptSrc   = Join-Path $ProjectRoot "prompts\new-rx-headless.md"
+$CanonicalRx   = Join-Path $ProjectRoot "canonical\RX.html"
 $ArbPromptSrc  = Join-Path $ProjectRoot "prompts\new-arb-headless.md"
 $ValidateRx    = Join-Path $ProjectRoot "scripts\validate-rx.py"
 $RxOutputBase  = Join-Path $ProjectRoot "outputs\ux\001_RX"
@@ -185,6 +186,7 @@ if (-not (Test-Path $JxOutputDir)) { New-Item -Path $JxOutputDir -ItemType Direc
 $RxEnabled = (-not $SkipRx)
 if ($RxEnabled -and -not (Test-Path $RxPromptSrc)) { Write-Host "[NOTE] RX prompt 不在 → ②-rx 自動スキップ: $RxPromptSrc" -ForegroundColor Yellow; $RxEnabled = $false }
 if ($RxEnabled -and -not (Test-Path $ValidateRx))  { Write-Host "[NOTE] validate-rx.py 不在 → ②-rx 自動スキップ: $ValidateRx" -ForegroundColor Yellow; $RxEnabled = $false }
+if ($RxEnabled -and -not (Test-Path $CanonicalRx)) { Write-Host "[NOTE] canonical RX 不在 → ②-rx 自動スキップ: $CanonicalRx" -ForegroundColor Yellow; $RxEnabled = $false }
 $ArbEnabled = (-not $SkipArb)
 if ($ArbEnabled -and -not (Test-Path $ArbPromptSrc)) { Write-Host "[NOTE] TREE prompt 不在 → ②-arb 自動スキップ: $ArbPromptSrc" -ForegroundColor Yellow; $ArbEnabled = $false }
 # 外部 arbor リポジトリ不在時は vendored モード（canonical/ARBOR.html + validate-tree.py）へフォールバック。
@@ -551,6 +553,7 @@ foreach ($t in $Targets) {
             -replace '\{SUBJECT_PREFIX\}',   $Subject `
             -replace '\{RX_BASENAME\}',      $rxBase `
             -replace '\{OUTPUT_DIR\}',       $rxDir `
+            -replace '\{RX_SKELETON\}',      $CanonicalRx `
             -replace '\{VALIDATE_RX\}',      $ValidateRx
         ($rxPrompt) | Out-File -FilePath (Join-Path $LogsDir "rx-prompt-$($t.ProblemId).txt") -Encoding utf8
 

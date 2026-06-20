@@ -11,9 +11,11 @@
 
 | ファイル | 役割 |
 |---|---|
-| `prompts/new-rx-headless.md` | RX 生成プロンプト（Lexia 取込仕様を内包） |
+| `canonical/RX.html` | **RX 正典スケルトン**（gold RX skeleton・複製起点）。TX v11 GENESIS を見本に **ボックス／バッジ／12 役割フォント／V3 難易度別配色**を作り込み済み（2026-06-20）。TX=`GENESIS-CORE`／JX=`ATHENA`／TREE=`ARBOR`／ARIADNE=`ARIADNE` に対応する RX の正典 |
+| `prompts/new-rx-headless.md` | RX 生成プロンプト（v1.1：`{RX_SKELETON}`=canonical/RX.html を**複製**→中身だけ鋳造。Lexia 取込仕様を内包） |
 | `prompts/new-arb-headless.md` | TREE 生成プロンプト（ARBOR 正典 `C:\...\arbor\ARBOR_v5.0_master_prompt.md` を参照） |
 | `scripts/validate-rx.py` | RX 検証（R1〜R9・exit 0 = PASS） |
+| `scripts/rx-restyle-backfill.py` | **既存 RX** の誌面デザインを canonical/RX.html へ一括反映（head デザインブロックのみ差し替え・body/script/Lexia 契約は不変・冪等） |
 | `scripts/rx-arb-backfill.ps1` | **既存 JX** の欠落副産物を後追い生成 |
 | `logs/rx-arb-summary.csv` | 副産物のコスト・結果ログ（jx-cost-summary.csv とは別管理） |
 
@@ -43,7 +45,7 @@ PowerShell バッチが使えないリモート環境では、`/new-jx`（`.clau
 
 | 副産物 | リモートでの依存 | 可否 |
 |---|---|---|
-| **RX** | 素材 JX＋`scripts/validate-rx.py`（repo 内で完結） | ✅ |
+| **RX** | 素材 JX＋`canonical/RX.html`（複製起点）＋`scripts/validate-rx.py`（repo 内で完結） | ✅ |
 | **ARIADNE** | 素材 JX＋`canonical/ARIADNE.html`＋`scripts/validate-ariadne.py`（repo 内で完結） | ✅ |
 | **TREE** | 外部 arbor リポジトリに依存していたが、**`canonical/ARBOR.html`（gold TREE の正典複製）＋`scripts/validate-tree.py`（T1〜T9 軽量ゲート）で vendored 化** | ✅ |
 
@@ -87,6 +89,29 @@ BATCH_ITEM_COMPLETED_WITH_ISSUES:{PROBLEM_ID}-RX:errors=N:warnings=M
 BATCH_ITEM_FAILED:{PROBLEM_ID}-RX:reason=...
 （TREE は -TREE サフィックス）
 ```
+
+## RX 誌面デザイン（TX 級・2026-06-20）
+
+RX は当初インライン CSS を都度書き起こす設計だったため、TX のような作り込み（ボックス・背景・
+バッジ・フォント・配色）に欠けていた。そこで TX/JX/ARIADNE と同じ **canonical 複製方式**へ統一した：
+
+- **新規生成**：`prompts/new-rx-headless.md`（v1.1）が **`canonical/RX.html` を複製**し、
+  `<style>`／`<script>` は逐語コピー、`<title>` と body の中身（論点名・規範・あてはめ等）だけを鋳造する。
+  → TX 級の誌面（🔑 規範ボックス／📚 BASIS／❓ QUIZ バッジ・12 役割フォント・V3 難易度別配色・
+  背景テクスチャ）が必ず正典品質で揃う。配色は元 JX の雰囲気で `:root` の「▼ ACTIVE」を EASY/STD/HARD から選定。
+- **既存 RX の一括反映**：`scripts/rx-restyle-backfill.py` が各既存 RX の **head デザインブロック
+  （フォントリンク＋`<style>`）のみ**を canonical/RX.html へ差し替える。**body・`<script>`・Lexia 契約は不変**
+  （既存クラス名 `.card`/`h1`/`.src`/`.lead`/`.norm-*`/`.refs`/`.self-check-quiz`/`.quiz-*` を skeleton CSS が
+  踏襲するので、masthead 無しの素の body でも見出し・ボックス・バッジが化粧される）。冪等。
+
+```bash
+python scripts/rx-restyle-backfill.py            # outputs/ux/001_RX 配下の全 RX に反映
+python scripts/rx-restyle-backfill.py --dry-run  # 対象確認のみ
+python scripts/rx-restyle-backfill.py outputs/ux/001_RX/001_刑法/刑JX042  # 範囲限定
+```
+
+> webfont は CDN だがシステムフォント fallback を厚く持つ（オフラインでも明朝＋ゴシックで成立）。
+> validate-rx R9 は外部参照を WARNING 扱い（PASS を妨げない）。TX／ARIADNE と同方針。
 
 ## Lexia への取込
 
