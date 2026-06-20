@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>刑JX007 解法ナビ｜過失運転致死罪・段階的過失と因果関係（危険の現実化）— ARIADNE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;600;700;800&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Noto+Serif+JP:wght@400;500;700&family=Source+Code+Pro:wght@500;600;700&family=M+PLUS+1p:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* ARIADNE v0.3 ― JX 解法ナビ＋周回 正典（試作：刑JX001）｜誌面風
+   フレーム＋機能色＝TX v11 GENESIS（V3 Twilight Violet・刑TX327）を見本に統一
+   バイオレット #8E6E9A ＋ ダスティティール #79A6A6 ＋ 暖クリーム ＋ 緑（recall）
+   フォントは TX 12 役割と同ファミリー（Shippori Mincho B1 / Zen Kaku Gothic Antique 等） */
+:root{
+  /* ── 共通フレーム（難易度で変えない部分） ── */
+  --a-mid:#79a6a6;      /* ダスティティール（TX --mid・副アクセント／罫） */
+  --paper:#ffffff; --card:#ffffff;   /* 誌面カード＝純白（TX section paper） */
+  --sheet:#fbf7f0;                    /* 誌面シート＝暖オフホワイト（大背景と区分け） */
+  --ink:#2b2330; --ink-soft:#6e6370; --ink-faint:#a99da8;
+  --line:rgba(70,58,80,.12); --line-2:rgba(70,58,80,.18);
+  /* ── 機能色（意味で固定・難易度で変えない｜soft=塗り / line=罫・蛍光 / deep=文字） ── */
+  --shu:#c5543c;  --shu-soft:#fbeae4; --shu-line:#f0b3a2; --shu-deep:#a8412b;  /* 罠・注意（コーラル） */
+  --ai:#5e8e91;   --ai-soft:#e7f0ef;  --ai-line:#bcd8d6;  --ai-deep:#3e6363;   /* 規範（ティール＝TX --mid 系） */
+  --gr:#5fa565;   --gr-soft:#eef5e8;  --gr-line:#c8ddb4;  --gr-deep:#4f7d2a;   /* 効く事実・OK（グリーン＝TX recall-correct） */
+  --gd:#a17a1c;   --gd-soft:#fbf3df;  --gd-line:#ecd99a;  --gd-deep:#856212;   /* ヒント・ゴール（ゴールド） */
+  --hl-gold:#f7ebbe; --hl-coral:#f2cfc8; --hl-green:#d6e8bf; --hl-blue:#bfe0e0; /* 蛍光ペン下線（淡） */
+  /* ── 役割別フォント（TX 327 と同ファミリー・難易度で変えない） ── */
+  --f-disp:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; /* 大見出し・問題文・模範・規範＝法律文 */
+  --f-body:"Zen Kaku Gothic Antique","Hiragino Sans","Yu Gothic Medium","Noto Sans JP",sans-serif; /* 本文・解説・UI */
+  --f-soft:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; /* ナビ・ラベル・小見出し */
+  --f-code:"Source Code Pro","Consolas","Menlo",monospace; /* 英語コードネーム・キッカー */
+  --f-mono:"Source Code Pro","Consolas",monospace;         /* 骨子の構造 */
+  --maxw:780px;
+
+  /* ============================================================
+     ★ ベースカラー＝難易度別に染色選定（TX V3 P1/P2/P3 と同方針）
+        フレーム（--a-base/head/head-lt/foot）＋ナビ・解法 chrome（--li 系）が難易度で連動。
+        切替は「▼ ACTIVE」直下の2行（＋ラベル）を下のカタログから差し替えるだけ。
+        ── カタログ（3案・常時コメント） ─────────────────────
+        EASY 易  基礎・典型（1周で取りたい）   ローズ系（TX P1 Sweet Berry/Rose）:
+          --a-base:#fbf0f1; --a-head:#c06a86; --a-head-lt:#d690a6; --a-foot:#7e3f57;
+          --li:#c06a86; --li-soft:#f4dde4; --li-line:#e6b3c4; --li-deep:#8a4a62;
+        STD  標準 中堅・応用                  クリスタルブルー系（TX P2 Crystal Blue）:
+          --a-base:#edf3f6; --a-head:#4d83a3; --a-head-lt:#6ba0bf; --a-foot:#2e5266;
+          --li:#4d83a3; --li-soft:#dde9f1; --li-line:#aecadd; --li-deep:#335066;
+        HARD 難  重論点・罠多・直前期向け       バイオレット系（TX P3 Twilight Violet）:
+          --a-base:#f7f1e9; --a-head:#8e6e9a; --a-head-lt:#a78ab0; --a-foot:#463a50;
+          --li:#8e6e9a; --li-soft:#e6dae8; --li-line:#c7aed1; --li-deep:#534260;
+     ============================================================ */
+  /* ▼ ACTIVE = HARD（テンプレ既定。問題の難易度で EASY/STD/HARD を選定する） */
+  --a-base:#f7f1e9; --a-head:#8e6e9a; --a-head-lt:#a78ab0; --a-foot:#463a50;
+  --li:#8e6e9a; --li-soft:#e6dae8; --li-line:#c7aed1; --li-deep:#534260;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%; scroll-behavior:smooth}
+body{margin:0; background:var(--a-base); color:var(--ink); font-family:var(--f-body); font-weight:500;
+  font-size:16px; line-height:1.9; letter-spacing:.04em; font-feature-settings:"palt" 1; overflow-wrap:anywhere;
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; text-rendering:optimizeLegibility;
+  background-image:radial-gradient(rgba(142,110,154,.05) 1px,transparent 1px); background-size:22px 22px;}
+.wrap{max-width:var(--maxw); margin:0 auto; padding:0 16px 96px}
+.sheet{background:var(--sheet); border:1px solid var(--line-2); border-radius:20px; padding:12px 18px 26px; margin-bottom:6px; box-shadow:0 5px 18px rgba(74,53,86,.10)}
+.sheet > .sec-h:first-child{margin-top:12px}
+p{margin:.55em 0}
+
+/* 蛍光ペン下線（マイルドライナーの“引く”質感） */
+.emb{font-weight:700; padding:0 .1em; background:linear-gradient(transparent 56%,var(--hl-gold) 56%,var(--hl-gold) 94%,transparent 94%)}
+.emb.c{background:linear-gradient(transparent 56%,var(--hl-coral) 56%,var(--hl-coral) 94%,transparent 94%)}
+.emb.g{background:linear-gradient(transparent 56%,var(--hl-green) 56%,var(--hl-green) 94%,transparent 94%)}
+.emb.b{background:linear-gradient(transparent 56%,var(--hl-blue) 56%,var(--hl-blue) 94%,transparent 94%)}
+
+/* ===== マストヘッド（ATHENA プラム） ===== */
+.masthead{background:linear-gradient(135deg,var(--a-head-lt) 0%,var(--a-head) 42%,var(--a-foot) 100%); color:#fff;
+  border-radius:0 0 18px 18px; padding:22px 24px 0; margin:0 -16px 24px; box-shadow:0 6px 20px rgba(70,58,80,.28)}
+.mast-row{display:flex; align-items:center; gap:16px; padding-bottom:18px}
+.seal{width:60px;height:60px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-disp); font-weight:800; font-size:30px; color:#fff;
+  background:linear-gradient(150deg,var(--a-head-lt),var(--a-head)); box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 3px 8px rgba(0,0,0,.2)}
+.mast-txt{flex:1}
+.kicker{font-family:var(--f-code); font-size:.72rem; letter-spacing:.22em; color:rgba(255,255,255,.8); text-transform:uppercase}
+.masthead h1{font-family:var(--f-disp); font-weight:800; font-size:1.5rem; line-height:1.38; margin:3px 0 5px; color:#fff; letter-spacing:.04em; text-shadow:0 2px 4px rgba(0,0,0,.18)}
+.mast-type{font-size:.82rem; color:rgba(255,255,255,.86)}
+.mast-type b{font-family:var(--f-code); letter-spacing:.06em; background:rgba(255,255,255,.16); padding:1px 9px; border-radius:7px}
+.rainbow{height:5px; margin:0 -24px; border-radius:0; background:linear-gradient(90deg,var(--shu-line),var(--gd-line) 30%,var(--gr-line) 55%,var(--ai-line) 78%,var(--li-line))}
+
+/* ===== 誌面 共通：バッジ／タグ ===== */
+.badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--f-soft); font-weight:700; letter-spacing:.04em; font-size:.7rem;
+  color:#fff; border-radius:999px; padding:3px 12px; letter-spacing:.03em; line-height:1.6}
+.badge.b-norm{background:linear-gradient(135deg,var(--ai),var(--ai-deep))}
+.badge.b-fact{background:linear-gradient(135deg,var(--gr),var(--gr-deep))}
+.badge.b-trap{background:linear-gradient(135deg,var(--shu),var(--shu-deep))}
+.badge.b-tip,.badge.b-goal{background:linear-gradient(135deg,var(--gd),var(--gd-deep))}
+.badge.b-nav{background:linear-gradient(135deg,var(--li),var(--li-deep))}
+
+/* ===== 色分けボックス（重要ポイント・誌面） ===== */
+.box{border-radius:14px; padding:14px 17px; margin:14px 0; border:1px solid; box-shadow:0 2px 8px rgba(80,60,80,.05)}
+.box > .badge{margin-bottom:8px}
+.box p{margin:.3em 0; text-indent:1em} .box p.flush{text-indent:0}
+.box-norm{background:var(--ai-soft); border-color:var(--ai-line)} .box-norm p{font-family:var(--f-disp)}
+.box-fact{background:var(--gr-soft); border-color:var(--gr-line)}
+.box-trap{background:var(--shu-soft); border-color:var(--shu-line)}
+.box-tip{background:var(--gd-soft); border-color:var(--gd-line)}
+
+/* ===== セクション見出し（誌面キッカー） ===== */
+.sec-h{margin:38px 0 14px}
+.sec-h .kick{font-family:var(--f-code); font-size:.72rem; letter-spacing:.16em; color:var(--li-deep); display:flex; align-items:center; gap:8px; text-transform:uppercase}
+.sec-h .kick::before{content:""; width:22px; height:3px; border-radius:3px; background:var(--li-line)}
+.sec-h .ttl{font-family:var(--f-disp); font-weight:800; font-size:1.34rem; color:var(--a-head); margin:5px 0 0; display:flex; align-items:center; gap:11px}
+.sec-h .ttl .ico{font-size:1.1rem; flex:none; width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center;
+  background:linear-gradient(150deg,#fff,var(--li-soft)); border:1px solid var(--li-line); border-radius:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 1px 3px rgba(80,60,80,.08)}
+.lead{color:var(--ink-soft); font-size:.92rem; margin:0 0 16px; text-indent:1em}
+.lead b{color:var(--ink)}
+
+/* ===== 問題文 ===== */
+.problem{background:var(--card); border:1px solid var(--line-2); border-radius:16px; padding:8px 22px 18px; box-shadow:0 3px 12px rgba(80,60,80,.07); position:relative; overflow:hidden}
+.problem::before{content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:linear-gradient(180deg,var(--shu-line),var(--a-mid))}
+.case-kick{font-family:var(--f-code); font-size:.72rem; letter-spacing:.16em; color:var(--shu-deep); margin:14px 0 6px; display:flex; align-items:center; gap:8px}
+.case-kick::before{content:"CASE"; font-weight:700}
+.case-kick i{font-style:normal; color:var(--ink-faint)}
+.problem .pq{font-family:var(--f-disp); font-size:1.02rem; line-height:2.1; margin:0; text-indent:1em; color:#322b34}
+.problem .pq b{font-family:var(--f-disp)}
+.problem .src{text-align:right; color:var(--ink-faint); font-size:.8rem; margin-top:8px; text-indent:0}
+.cast{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 0}
+.cast .c{font-size:.8rem; background:var(--li-soft); border:1px solid var(--li-line); border-radius:20px; padding:4px 13px; color:var(--li-deep); font-weight:700}
+.cast .c.out{background:#f0ecec; border-color:var(--line-2); color:#8a8086; text-decoration:line-through}
+
+/* ===== 講師のひとこと（誌面プルクオート） ===== */
+.pull{background:var(--li-soft); border-left:5px solid var(--li-line); border-radius:14px; padding:16px 20px 16px 22px; margin:16px 0 0; position:relative; overflow:hidden}
+.pull::before{content:"\201C"; position:absolute; right:14px; top:-12px; font-family:var(--f-disp); font-weight:800; font-size:96px; color:var(--li-line); opacity:.4; line-height:1}
+.pull .pq-tag{display:inline-flex; align-items:center; gap:6px; font-family:var(--f-body); font-weight:800; font-size:.72rem; color:var(--li-deep); margin-bottom:6px}
+.pull p{margin:.2em 0; font-size:.93rem; position:relative; z-index:1}
+
+/* ===== 解法ナビ：ステッパー ===== */
+.steps-rail{display:flex; flex-wrap:wrap; gap:7px; margin:0 0 18px}
+.steps-rail span{font-family:var(--f-soft); font-size:.76rem; background:var(--card); border:1px solid var(--li-line);
+  color:var(--li-deep); border-radius:9px; padding:4px 10px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(80,60,80,.06)}
+.steps-rail span b{font-family:var(--f-code); font-weight:700; letter-spacing:.04em}
+.steps-rail span.goal{background:var(--gd-soft); border-color:var(--gd-line); color:var(--gd-deep)}
+
+/* ===== 手カード ===== */
+.step{background:var(--card); border:1px solid var(--line-2); border-radius:15px; padding:16px 18px 15px; margin:0 0 16px; box-shadow:0 3px 10px rgba(80,60,80,.06); position:relative; overflow:hidden; transition:box-shadow .18s ease, transform .18s ease}
+.step:hover{box-shadow:0 8px 22px rgba(80,60,80,.13); transform:translateY(-2px)}
+.step::before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:linear-gradient(180deg,var(--li-line),var(--li))}
+.step > .hd{display:flex; align-items:stretch; gap:13px; margin-bottom:8px}
+.step .num{flex:0 0 auto; min-width:68px; text-align:center; background:linear-gradient(150deg,#fff,var(--li-soft));
+  border:1px solid var(--li-line); border-radius:11px; padding:8px 6px; display:flex; flex-direction:column; justify-content:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6), 0 1px 3px rgba(80,60,80,.08)}
+.step .num .code{font-family:var(--f-code); font-weight:700; font-size:1.06rem; letter-spacing:.04em; color:var(--li-deep); line-height:1}
+.step .num .n{font-family:var(--f-body); font-size:.66rem; font-weight:700; color:var(--ink-soft); margin-top:3px}
+.step .ttl{font-family:var(--f-disp); font-weight:700; font-size:1.1rem; align-self:center; line-height:1.45; color:var(--a-head)}
+.step .do{color:var(--ink); font-size:.93rem; margin:4px 0 2px; text-indent:1em}
+.step .do small{color:var(--ink-soft); font-size:.84em}
+
+/* ▶ 能動想起 */
+details.peek{margin:13px 0 4px; border-radius:11px; background:#fffdf6; border:1.5px solid var(--gd-line); box-shadow:0 2px 7px rgba(200,160,40,.10)}
+details.peek > summary{cursor:pointer; list-style:none; padding:11px 15px; font-family:var(--f-soft); font-weight:800; font-size:.9rem; color:#5a4400; display:flex; align-items:center; gap:8px; background:linear-gradient(135deg,#f9ee80,#ecdf38); border-radius:10px}
+details.peek > summary::-webkit-details-marker{display:none}
+details.peek > summary::before{content:"▶"; font-size:.72rem}
+details.peek[open] > summary::before{content:"▼"}
+details.peek > summary .hint{margin-left:auto; font-weight:600; font-size:.72rem; color:#7a5810}
+details.peek[open] > summary .hint{display:none}
+details.peek .body{padding:2px 16px 13px}
+details.peek .body .pt{margin:.45em 0; padding-left:1.3em; position:relative; font-size:.92rem; text-indent:0}
+details.peek .body .pt::before{content:"▸"; position:absolute; left:.2em; color:var(--li); font-weight:700}
+details.peek .body small{color:var(--ink-soft); font-size:.85em}
+.tag-issue{display:inline-block; font-family:var(--f-body); background:var(--shu-soft); color:var(--shu-deep); border:1px solid var(--shu-line);
+  font-size:.74rem; font-weight:800; border-radius:7px; padding:1px 8px; margin:0 2px}
+
+/* ===== 周回ドリル ○×（自己完結の例題・arena＝復習プール対象） ===== */
+.self-check-quiz{background:linear-gradient(180deg,#fff,var(--paper)); border:1.5px solid var(--li-line); border-radius:13px; padding:16px 16px 14px; margin:15px 0; position:relative; box-shadow:0 2px 8px rgba(80,60,80,.06); transition:box-shadow .18s ease}
+.self-check-quiz:hover{box-shadow:0 5px 16px rgba(80,60,80,.11)}
+.self-check-quiz::before{content:"周回ドリル ○×"; position:absolute; top:-10px; left:14px; font-family:var(--f-soft);
+  background:linear-gradient(135deg,var(--li),var(--li-deep)); color:#fff; font-size:.66rem; font-weight:800; border-radius:7px; padding:2px 10px; letter-spacing:.03em}
+.self-check-quiz.ex::before{content:"周回ドリル ○×（例題）"}
+.quiz-question{font-family:var(--f-body); font-size:.95rem; font-weight:500; margin:6px 0 13px; text-indent:1em; color:#34303a}
+.quiz-btns{display:flex; gap:10px; justify-content:flex-start; align-items:center}
+.quiz-btn{flex:0 0 auto; width:48px; height:40px; font-family:var(--f-disp); font-size:1.12rem; font-weight:700; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; line-height:1;
+  border-radius:11px; border:1.5px solid var(--li-line); background:#fff; color:var(--li-deep);
+  box-shadow:0 1px 3px rgba(80,60,80,.09); transition:transform .1s ease, background .14s, box-shadow .14s, border-color .14s}
+.quiz-btn:hover:not(:disabled){background:var(--li-soft); border-color:var(--li); transform:translateY(-1px); box-shadow:0 4px 9px rgba(80,60,80,.15)}
+.quiz-btn:active:not(:disabled){transform:translateY(0); box-shadow:0 1px 3px rgba(80,60,80,.12)}
+.quiz-btn:disabled{cursor:default; box-shadow:none}
+.quiz-btn.correct-mark{background:var(--gr-soft); border-color:var(--gr); color:var(--gr-deep)}
+.quiz-btn.incorrect-mark{background:var(--shu-soft); border-color:var(--shu-line); color:var(--shu-deep)}
+.quiz-btn.user-picked{box-shadow:0 0 0 3px var(--li-deep)}
+.quiz-result{display:inline-flex; align-items:center; font-family:var(--f-body); font-weight:800; font-size:.82rem; margin:11px 0 0; padding:3px 11px; border-radius:999px}
+.quiz-result.quiz-result-correct{color:var(--gr-deep); background:var(--gr-soft)}
+.quiz-result.quiz-result-incorrect{color:var(--shu-deep); background:var(--shu-soft)}
+.quiz-answer{margin:9px 0 0; font-size:.89rem; line-height:1.84; padding:11px 14px 11px 15px; border-radius:11px; background:#f6f1ec; border-left:3px solid var(--li-line); text-indent:0}
+.quiz-answer.quiz-answer-correct{background:var(--gr-soft); border-left-color:var(--gr)}
+.quiz-answer.quiz-answer-incorrect{background:var(--shu-soft); border-left-color:var(--shu)}
+.quiz-answer b{color:var(--shu-deep)}
+.quiz-answer b:first-child{display:inline-flex; align-items:center; justify-content:center; width:1.5em; height:1.5em; margin-right:.45em; border-radius:50%; background:#fff; box-shadow:0 1px 2px rgba(80,60,80,.12); font-family:var(--f-disp)}
+
+/* ===== 骨子（ゴール） ===== */
+.skeleton{background:linear-gradient(180deg,var(--gd-soft),#fff); border:1px solid var(--gd-line); border-top:5px solid var(--gd-line);
+  border-radius:15px; padding:16px 20px; box-shadow:0 4px 14px rgba(190,160,40,.12)}
+.bone{font-family:var(--f-mono); font-size:.86rem; line-height:2.05; white-space:pre-wrap;
+  background:var(--card); border:1px dashed var(--gd-line); border-radius:11px; padding:14px 16px; color:#3a3540; margin-top:10px}
+.bone .b1{font-family:var(--f-disp); color:var(--a-head); font-weight:700}
+.bone .iss{color:var(--shu-deep); font-weight:700}
+
+/* ===== 照合・自己採点 ===== */
+.collate{background:var(--card); border:1px solid var(--line-2); border-radius:15px; padding:16px 19px; box-shadow:0 3px 10px rgba(80,60,80,.06)}
+.rubric{list-style:none; padding:0; margin:11px 0 0}
+.rubric li{padding:8px 0 8px 30px; position:relative; border-bottom:1px dashed var(--line); font-size:.9rem; text-indent:0}
+.rubric li::before{content:"☐"; position:absolute; left:4px; top:5px; font-size:1.1rem; color:var(--li-deep)}
+.rubric li b{color:var(--shu-deep)}
+.rubric li .w{float:right; font-family:var(--f-code); font-size:.74rem; color:var(--shu-deep); letter-spacing:.03em}
+
+/* ===== 模範答案 reveal ===== */
+details.reveal-answer{margin:14px 0 0; border:1px solid var(--line-2); border-radius:15px; background:var(--card); overflow:hidden; box-shadow:0 3px 10px rgba(80,60,80,.06)}
+details.reveal-answer > summary{cursor:pointer; list-style:none; padding:14px 18px; font-family:var(--f-soft); font-weight:700; letter-spacing:.03em; background:linear-gradient(135deg,var(--a-head),var(--a-foot)); color:#fff; display:flex; align-items:center; gap:9px}
+details.reveal-answer > summary::-webkit-details-marker{display:none}
+details.reveal-answer > summary::before{content:"✋"}
+.model-answer{padding:8px 22px 18px; font-family:var(--f-disp); font-size:.96rem; line-height:2.1}
+.model-answer .ma-h{font-family:var(--f-disp); font-weight:800; color:#fff; margin:1.3em 0 .4em; padding:5px 13px; background:linear-gradient(135deg,var(--a-head),var(--a-foot)); border-radius:8px; text-indent:0; display:inline-block; letter-spacing:.04em}
+.model-answer p{text-indent:1em}
+.model-answer u{text-decoration-color:var(--shu-line); text-decoration-thickness:2px; text-underline-offset:3px}
+
+/* ===== 深掘り（deep） ===== */
+details#deep-dive{margin:28px 0 0; border:1px solid var(--line-2); border-radius:15px; background:#f4efe8}
+details#deep-dive > summary{cursor:pointer; list-style:none; padding:14px 18px; font-family:var(--f-soft); font-weight:700; letter-spacing:.02em; color:var(--a-head); display:flex; align-items:center; gap:9px; font-size:.96rem}
+details#deep-dive > summary::-webkit-details-marker{display:none}
+details#deep-dive > summary::before{content:"📚"}
+details#deep-dive > summary small{font-weight:500; font-size:.76rem; color:var(--ink-faint); margin-left:auto; text-align:right}
+.deep-body{padding:6px 18px 20px}
+.deep-body h4{font-family:var(--f-soft); color:var(--a-head); margin:22px 0 6px; font-size:.98rem; font-weight:700; display:flex; align-items:center; gap:8px}
+.cs{font-size:.88rem; color:var(--ink); margin:7px 0; padding-left:1.3em; position:relative; text-indent:0}
+.cs::before{content:"§"; position:absolute; left:0; color:var(--ai-deep); font-weight:700}
+.cs b{color:var(--shu-deep)}
+.deep-note{font-size:.83rem; color:var(--ink-soft); background:var(--card); border:1px dashed var(--line-2); border-radius:10px; padding:11px 14px; margin-top:16px; text-indent:1em}
+.xref{color:var(--a-head); font-weight:700}
+.foot{margin:34px -16px 0; padding:24px; background:linear-gradient(135deg,var(--a-foot),#2b1f30); color:rgba(255,255,255,.78); border-radius:18px 18px 0 0; text-align:center; font-size:.78rem; line-height:1.85}
+.foot .rb{height:4px; margin:-24px -24px 16px; border-radius:0; background:linear-gradient(90deg,var(--shu-line),var(--gd-line) 30%,var(--gr-line) 55%,var(--ai-line) 78%,var(--li-line))}
+.foot b{color:#fff; font-family:var(--f-code); letter-spacing:.06em}
+
+@media (max-width:520px){
+  body{font-size:15px}
+  .step .num{min-width:58px} .step > .hd{gap:10px}
+  .masthead h1{font-size:1.3rem}
+}
+@media print{ details{display:block !important} details>summary{display:none} .deep-body,.model-answer,details.peek .body{display:block !important} body{background:#fff} }
+
+/* ==== KP-PUZZLE-BACKFILL (css) ==== */
+.self-check-quiz.recall::before{content:"周回ドリル 想起（書けたら○）"; background:var(--ai); color:#fff}
+.recall-reveal{font-family:var(--f-soft); font-weight:700; font-size:.86rem; cursor:pointer; border:1.5px solid var(--ai-line); background:#fff; color:var(--ai-deep); border-radius:9px; padding:7px 15px; margin:2px 0 2px}
+.recall-reveal:hover{background:var(--ai-soft)}
+.recall .recall-grade{display:none; gap:8px; margin-top:11px}
+.recall.revealed .recall-grade{display:flex}
+.recall .quiz-btn{min-width:96px; font-size:.86rem; font-family:var(--f-soft); font-weight:700}
+/* ===== 試験会場での下書き（問題文＋整理メモ） ===== */
+.drafting{background:var(--card); border:1px solid var(--line-2); border-radius:15px; padding:16px 18px 17px; box-shadow:0 3px 10px rgba(80,60,80,.06); margin-bottom:14px}
+.drafting .dh{font-family:var(--f-soft); font-weight:700; font-size:.94rem; color:var(--a-head); display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:0}
+.drafting .dh small{font-family:var(--f-soft); font-weight:500; font-size:.74rem; color:var(--ink-soft); margin-left:auto}
+.draft-problem{font-family:var(--f-disp); font-size:.9rem; line-height:1.95; color:#3a3540; background:var(--sheet); border:1px dashed var(--line-2); border-radius:11px; padding:12px 15px; text-indent:1em; margin:10px 0 13px}
+.draft-problem b{color:var(--shu-deep)}
+.draft-grid{display:grid; grid-template-columns:1fr 1fr; gap:11px}
+@media (max-width:560px){ .draft-grid{grid-template-columns:1fr} }
+.draft-card{border:1px solid var(--li-line); border-radius:12px; padding:12px 14px; background:#fff}
+.draft-card.span2{grid-column:1 / -1}
+.draft-card .ct{font-family:var(--f-soft); font-weight:700; font-size:.82rem; color:var(--li-deep); margin:0 0 8px; display:flex; align-items:center; gap:6px}
+.rel-map{font-family:var(--f-mono); font-size:.82rem; line-height:1.95; white-space:pre-wrap; color:#3a3540; margin:0}
+.rel-map .p{font-weight:700; color:var(--a-head)}
+.rel-map .ob{font-weight:700; color:var(--shu-deep)}
+.rel-map .out{color:var(--ink-soft)}
+.timeline{list-style:none; margin:0; padding:0; counter-reset:tl}
+.timeline li{position:relative; padding:3px 0 3px 27px; font-size:.84rem; line-height:1.7; border-left:2px solid var(--gd-line); margin-left:9px}
+.timeline li:last-child{border-left-color:transparent}
+.timeline li::before{counter-increment:tl; content:counter(tl); position:absolute; left:-11px; top:2px; width:20px; height:20px; border-radius:50%; background:var(--a-head); color:#fff; font-family:var(--f-code); font-size:.7rem; display:flex; align-items:center; justify-content:center}
+.facts{list-style:none; margin:0; padding:0}
+.facts li{font-size:.84rem; line-height:1.7; padding:5px 0; border-bottom:1px dashed var(--line)}
+.facts li:last-child{border-bottom:none}
+.facts .ph{font-weight:700; color:var(--shu-deep)}
+.facts .cue{color:var(--ink-soft)}
+/* ===== 答案構成パズル（Tier1 チップ配置／Tier2 自由記述）試作 ===== */
+.kp-bar{display:flex; flex-wrap:wrap; align-items:center; gap:8px 11px; margin:4px 0 2px}
+.kp-toggle{font-family:var(--f-soft); font-weight:700; font-size:.85rem; cursor:pointer; border:1.5px solid var(--gd-line); background:#fff; color:var(--a-head); border-radius:9px; padding:7px 13px; letter-spacing:.02em; transition:background .15s,box-shadow .15s}
+.kp-toggle:hover{box-shadow:0 2px 8px rgba(190,160,40,.18)}
+.kp-toggle[aria-pressed="true"]{background:linear-gradient(135deg,var(--a-head),var(--a-foot)); color:#fff; border-color:transparent}
+.kp-hint{font-family:var(--f-soft); font-size:.76rem; color:var(--ink-soft)}
+.kp-fallback{font-family:var(--f-soft); font-size:.8rem; line-height:1.7; color:var(--shu-deep); background:var(--shu-soft); border:1px solid var(--shu-line); border-radius:10px; padding:9px 13px; margin:8px 0 2px}
+.kp-fallback b{color:var(--shu-deep)}
+.kp-modes{display:flex; gap:6px; margin:12px 0 6px}
+.kp-modes button{font-family:var(--f-soft); font-size:.79rem; font-weight:700; cursor:pointer; border:1px solid var(--li-line); background:#fff; color:var(--ink-soft); border-radius:20px; padding:5px 13px}
+.kp-modes button.on{background:var(--ai); color:#fff; border-color:transparent}
+.kp-levels{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0 2px}
+.kp-levels button{font-family:var(--f-soft); font-size:.78rem; font-weight:700; cursor:pointer; border:1.5px solid var(--li-line); background:#fff; color:var(--ink-soft); border-radius:9px; padding:5px 11px}
+.kp-levels button.on{background:linear-gradient(135deg,var(--a-head),var(--a-foot)); color:#fff; border-color:transparent}
+.kp-lv-note{font-family:var(--f-soft); font-size:.74rem; color:var(--ink-soft); margin:5px 0 2px}
+.kslot{display:inline-block; min-width:7em; min-height:1.45em; padding:1px 9px; margin:0 1px; border-radius:7px; border:1.5px dashed var(--li-line); background:#fff; color:var(--ink-soft); font-family:var(--f-soft); font-weight:700; font-size:.92em; vertical-align:baseline; cursor:pointer; text-align:center; transition:border-color .12s,background .12s}
+.kslot[data-type="iss"]{border-color:var(--shu-line)}
+.kslot[data-type="krule"]{border-color:var(--ai-line)}
+.kslot[data-type="kfact"]{border-color:var(--gr-line)}
+.kslot[data-type="u"]{border-color:var(--gd-line)}
+.kslot[data-type="b1"]{border-color:var(--li-line); min-width:11em}
+/* 骨子内の規範・あてはめ（Lv1で見える素の表示） */
+.bone .krule, .kp-model .krule{color:var(--ai-deep); font-weight:600}
+.bone .kfact, .kp-model .kfact{color:#2e6b33; font-weight:600}
+.kslot.sel{border-style:solid; box-shadow:0 0 0 3px rgba(120,90,120,.16)}
+.kslot.filled{color:var(--ink); background:var(--gd-soft); border-style:solid; cursor:pointer}
+.kslot.ok{background:var(--gr-soft); border-color:var(--gr); color:#2e6b33}
+.kslot.ng{background:var(--shu-soft); border-color:var(--shu); color:var(--shu-deep)}
+.kslot .kx{margin-left:6px; font-weight:700; opacity:.5; font-size:.85em}
+.kslot-fix{display:block; font-size:.78em; font-weight:700; color:#2e6b33; margin:1px 0 2px; font-family:var(--f-soft)}
+.kp-tray{display:flex; flex-wrap:wrap; gap:7px; margin:6px 0 4px; padding:11px 12px; border:1px solid var(--line-2); border-radius:12px; background:var(--paper)}
+.kp-chip{font-family:var(--f-soft); font-weight:700; font-size:.86rem; cursor:pointer; border:1.5px solid var(--li-line); background:#fff; color:var(--ink); border-radius:9px; padding:6px 12px; box-shadow:0 1px 3px rgba(80,60,80,.08); transition:transform .1s,box-shadow .12s}
+.kp-chip:hover{box-shadow:0 3px 9px rgba(80,60,80,.16); transform:translateY(-1px)}
+.kp-chip.t-iss{border-color:var(--shu-line)}
+.kp-chip.t-krule{border-color:var(--ai-line)}
+.kp-chip.t-kfact{border-color:var(--gr-line)}
+.kp-chip.t-u{border-color:var(--gd-line)}
+.kp-chip.t-b1{border-color:var(--li-line)}
+.kp-chip.used{opacity:.3; pointer-events:none; text-decoration:line-through}
+.kp-actions{display:flex; flex-wrap:wrap; gap:8px; margin:11px 0 2px}
+.kp-actions button{font-family:var(--f-soft); font-weight:700; font-size:.85rem; cursor:pointer; border-radius:9px; padding:8px 17px; border:none}
+.kp-grade{background:linear-gradient(135deg,var(--gd-line),#c79a12); color:#fff}
+.kp-reset{background:#fff; color:var(--ink); border:1px solid var(--li-line)!important}
+.kp-score{font-family:var(--f-soft); margin:13px 0 0; padding:13px 16px; border-radius:13px; background:var(--card); border:1px solid var(--line-2)}
+.kp-score .pct{font-family:var(--f-disp); font-size:1.35rem; font-weight:800; color:var(--a-head)}
+.kp-meter{height:11px; border-radius:6px; background:#ece5dc; overflow:hidden; margin:9px 0 4px}
+.kp-meter-fill{height:100%; width:0; border-radius:6px; background:linear-gradient(90deg,var(--shu),var(--gd-line) 55%,var(--gr)); transition:width .55s ease}
+.kp-msg{font-size:.86rem; margin-top:4px; color:var(--ink); line-height:1.7}
+.kp-free{width:100%; box-sizing:border-box; min-height:150px; font-family:var(--f-mono); font-size:.86rem; line-height:1.9; border:1px solid var(--li-line); border-radius:11px; padding:12px 14px; background:#fff; color:var(--ink); margin:8px 0}
+.kp-top{margin:11px 0 4px}
+.kp-reveal{background:#fff!important; color:var(--a-head)!important; border:1px solid var(--gd-line)!important}
+.kp-model{margin:12px 0 0; padding:13px 16px; border:1px dashed var(--gd-line); border-radius:12px; background:var(--gd-soft); font-family:var(--f-mono); font-size:.85rem; line-height:2.0; white-space:pre-wrap; color:#3a3540}
+.kp-model .b1{font-family:var(--f-disp); color:var(--a-head); font-weight:700}
+.kp-model .iss{color:var(--shu-deep); font-weight:700}
+.kp-model-h{font-family:var(--f-soft); font-weight:700; font-size:.8rem; color:var(--ink-soft); margin-bottom:6px; white-space:normal}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== マストヘッド（ATHENA プラム） ===== -->
+  <header class="masthead">
+    <div class="mast-row">
+      <div class="seal">解</div>
+      <div class="mast-txt">
+        <div class="kicker">司法試験・予備 ｜ 論文 解法ナビ</div>
+        <h1>過失運転致死罪 ― 段階的過失と因果関係（危険の現実化）</h1>
+        <div class="mast-type">刑JX007 ｜ 回す型：<b>罪責検討の7手 SCAN → BUILD</b></div>
+      </div>
+    </div>
+    <div class="rainbow"></div>
+  </header>
+
+  <main class="sheet">
+
+  <!-- ===== 問題文 ===== -->
+  <div class="sec-h"><div class="kick">事案</div><div class="ttl"><span class="ico">📄</span>問題文を読む</div></div>
+  <div class="problem">
+    <div class="case-kick"><i>北海道大学法科大学院 平成18年度 改題</i></div>
+    <p class="pq">長距離トラック運転手Xは、午前5時20分頃、大型貨物自動車（トラック）を運転し、T高速道路上り方向の制限速度時速80kmの左側走行車線を<b>時速約110km</b>で走行中、長距離運転の疲労で眠気を催し、瞼が開かない状態になりながらも休憩せず走行を続け、ついに<b>仮睡状態</b>に陥った。約1.2km進行した地点でハッと目覚めると、前方約45mに渋滞で減速したA運転の軽四輪を発見。衝突を避けるため<b>あわてて急ブレーキをかけハンドルを右に切ったところ、トラックは走行車線と追越車線を塞ぐ形で横転</b>した。Xは爆発炎上の危険を感じて運転席から脱出し、発炎筒を振りながら後方へ走り始めたところ、<b>時速約150km</b>の猛スピードで走行してきたB運転のスポーツカーが横転トラックを避け切れず衝突大破し、<b>Bと助手席のCが死亡</b>した。なお、後続車は約200m後方から異常を視認でき、B車以外の後続車は急制動で衝突を回避できた。<br><b>Xの罪責を論じなさい（自動車運転死傷処罰法を除く特別法違反には触れなくてよい）。</b></p>
+    <div class="cast">
+      <span class="c">X｜トラック運転手（→居眠り→横転惹起）＝検討対象</span>
+      <span class="c out">B｜後続スポーツカー150km/h・死亡＝被害者・対象外</span>
+      <span class="c out">C｜B車同乗・死亡＝被害者・対象外</span>
+      <span class="c out">A｜前方軽四輪・衝突回避＝対象外</span>
+    </div>
+    <div class="pull">
+      <div class="pq-tag">🎓 はじめに</div>
+      <p>本問の罪名は<span class="emb">過失運転致死罪ただ一つ</span>。でも油断は禁物 ― その一罪の中に<span class="emb c">独立した山が二つ</span>（①過失行為の特定＝段階的過失／②因果関係＝危険の現実化）あります。罪名の数と論点の数は別物。<b>7手を回して、二つの山を順に越える</b>のが本問の型です。</p>
+    </div>
+  </div>
+
+  <!-- ===== 解法ナビ ===== -->
+  <div class="sec-h"><div class="kick">Solve Navigator</div><div class="ttl"><span class="ico">🧭</span>解法ナビ ― 白紙から骨子までの7手</div></div>
+  <p class="lead">上から順に「<b>自分で一手出す → ▶を開いて確認</b>」。各「周回ドリル ○×」は<span class="emb">本問の前提なしで解ける自己完結の例題</span>なので、Lexia の復習プールで単独表示されても解けます（別日2回正解で卒業）。</p>
+  <div class="steps-rail">
+    <span><b>1 SCAN</b>棚卸し</span><span><b>2 AIM</b>罪名アタリ</span><span><b>3 ORDER</b>攻める順</span><span><b>4 MARCH</b>体系を流す</span><span><b>5 BREAK</b>論点を割る</span><span><b>6 BRIDGE</b>横断</span><span class="goal">🏁 <b>7 BUILD</b>骨子＝GOAL</span>
+  </div>
+
+  <!-- 手1 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">SCAN</span><span class="n">手1</span></div><div class="ttl">登場人物と「引っかかる行為」を棚卸し</div></div>
+    <p class="do">人物を<span class="emb">全員</span>書き出し、各人の「犯罪になりそうな行為」を時系列で拾う。死んだ人・回避した人＝対象外をまず切る。</p>
+    <details class="peek"><summary>自分で答えてから開く<span class="hint">まず一手</span></summary><div class="body">
+      <p class="pt">罪責を検討するのは「<b>犯罪になりうる行為をした人</b>」だけ。本問はX（居眠り→横転惹起）一人。</p>
+      <p class="pt"><b>B・C＝死亡した被害者</b>・<b>A＝衝突を回避した前方車</b>は対象外。設問も「Xの罪責を論じなさい」と単独主体に絞っている。</p>
+    </div></details>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">「Xの罪責を論じなさい」と単独主体で問われたとき、検討対象はXに絞られ、死亡した被害者や事故を回避した第三者は罪責の検討対象から外してよい。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>検討するのは犯罪になりうる行為をした者だけ。被害者・善意の回避者は外す。まず全員出して対象外を切るのが第一歩。</div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">検討すべき罪名が一つでも、その構成要件の中に独立した論点が複数立つことがあり、罪名の数と論点の数は必ずしも一致しない。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>罪名一個でも、構成要件要素（行為・結果・因果関係等）ごとに独立した山が立つ。「罪名一つ＝薄い答案」ではない。</div>
+    </div>
+  </div>
+
+  <!-- 手2 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">AIM</span><span class="n">手2</span></div><div class="ttl">行為に「何罪っぽい？」のアタリを付ける</div></div>
+    <p class="do">手がかりは2つ。①<b>結果</b>（人が死んだ＝生命の罪）／②<span class="emb">どんな行為で</span>（自動車の運転中の不注意）。条文番号は後でよい、まず当たりを付ける。</p>
+    <div class="box box-tip"><span class="badge b-tip">💡 アタリの付け方</span><p>X：殺意なし＋自動車の運転上の不注意で人が死亡 → <b>過失運転致死罪</b>系。自動車運転の過失は刑法211条（業務上過失致死）<span class="emb c">ではなく特別法が優先</span> → <b>自動車運転死傷処罰法5条</b>。</p></div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">自動車の運転上の過失によって人を死亡させた場合、業務上過失致死罪（刑法211条）ではなく、特別法である自動車運転死傷処罰法5条（過失運転致死罪）が優先適用される。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>かつては旧211条2項で処理されたが、現在は特別法（自動車運転死傷処罰法5条）が優先。本問も問題文の指定どおり同法で処理する。</div>
+    </div>
+    <div class="self-check-quiz recall" data-arena="1" data-correct-value="○" data-recall="1">
+      <p class="quiz-question">【想起】自動車の運転上の過失で人を死亡させた場合に成立する罪の<b>名称と根拠条文</b>を、何も見ずに書けるか。</p>
+      <button class="recall-reveal" onclick="var q=this.closest('.self-check-quiz');q.classList.add('revealed');var a=q.querySelector('.quiz-answer');if(a)a.hidden=false;">答えを表示して自己採点</button>
+      <div class="quiz-answer" hidden><b>○</b>過失運転致死罪（<b>自動車運転死傷処罰法5条</b>）。「自動車の運転上必要な注意を怠り、よって人を死傷させた」が条文の構成。</div>
+      <div class="recall-grade"><button class="quiz-btn" data-value="○">書けた○</button><button class="quiz-btn" data-value="×">書けなかった×</button></div>
+    </div>
+  </div>
+
+  <!-- 手3 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">ORDER</span><span class="n">手3</span></div><div class="ttl">攻める順番を決める（構成要件の流れ順）</div></div>
+    <p class="do">罪名が一つなら、その<span class="emb">構成要件を上から順に</span>流す。本問は 過失行為の特定（論点1）→ 死の結果 → 因果関係（論点2）→ 罪数・信頼の原則（論点3）。</p>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">単一の犯罪の成否を検討するときは、構成要件要素（行為→結果→因果関係…）を上から順に追い、引っかかる箇所を論点として厚く処理するのがよい。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>構成要件の流れに沿って検討し、素直に通る所は一言、引っかかる所（本問なら過失行為の特定と因果関係）を厚く書く。</div>
+    </div>
+  </div>
+
+  <!-- 手4 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">MARCH</span><span class="n">手4</span></div><div class="ttl">構成要件の型で流す ― 立ち止まる石＝論点</div></div>
+    <p class="do">過失運転致死罪を同じ順で流す：<b>過失行為（必要な注意を怠り）→ 結果（死）→ 因果関係 → 故意（過失）</b>→ <b>違法性・責任</b>→ 末尾で<b>罪数</b>。流していて<span class="emb c">素直に進めない所</span>が論点。</p>
+    <div class="box box-tip"><span class="badge b-tip">💡 素直に通す（各一文）</span><p>注意義務違反＝居眠り運転等で明らか（短く）／結果＝B・C死亡＝あり／違法性・責任＝阻却事由なし＝一言で素通り。<b>厚く書くのは「過失行為の特定」と「因果関係」の二つだけ。</b></p></div>
+    <details class="peek"><summary>「立ち止まる石」を自分で挙げてから開く<span class="hint">3つ</span></summary><div class="body">
+      <p class="pt">石①：不注意が①速度超過②居眠り③発見遅滞④横転と段階的に並ぶ → <span class="tag-issue">段階的過失（過失行為の特定）</span>。<small>（＝複数の不注意のうちどれを「罪となるべき」過失行為と切り取るか）</small></p>
+      <p class="pt">石②：横転の後にBの150km/hが割り込んで死亡 → <span class="tag-issue">行為後の介在事情・因果関係</span>。<small>（＝行為が作った危険が結果に現実化したか＝危険の現実化）</small></p>
+      <p class="pt">石③：信頼の原則の余地と、B・C二名死亡の <span class="tag-issue">罪数</span>。<small>（一個の行為で二結果＝観念的競合）</small></p>
+    </div></details>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">犯罪の成否は構成要件該当性→違法性→責任の順に検討し、阻却事由などの問題が生じない段階は一言で通してよい。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>3段階は“必ず通す”が、問題が無ければ一言で素通り。紙幅は引っかかる論点（本問は過失行為の特定と因果関係）に回す。</div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">過失犯においても、過失行為・結果・両者の因果関係はいずれも構成要件要素であり、因果関係が問題となる事案では独立に検討する必要がある。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>過失犯でも因果関係は構成要件要素。過失行為を特定したら、それと結果との因果関係を別個に論じる。</div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">過失運転致死罪の「必要な注意を怠り」とは、新過失論によれば客観的注意義務（結果回避義務）の違反をいい、その存在が明らかな事案では端的に認定すればよい。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>新旧過失論の対立を長々書くと失速する。注意義務違反が明白なら短く認定し、段階的過失と因果関係に紙幅を回す。</div>
+    </div>
+    <div class="self-check-quiz ex" data-arena="1" data-correct-value="×">
+      <p class="quiz-question">【例題】不注意な行為が時間的・段階的に複数連続するときは、そのすべてを当然に一個の過失行為としてまとめて処理しなければならない。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>×</b>原則は結果に直近する過失で特定（直近過失）。不可分密接な場合に限り全体を一個の過失行為と捉える。最初から全部まとめるのではない。</div>
+    </div>
+  </div>
+
+  <!-- 手5 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">BREAK</span><span class="n">手5</span></div><div class="ttl">論点1を「4点セット」で割る ― 過失行為の特定（段階的過失）</div></div>
+    <p class="do">各論点を <b>①問題の所在 → ②規範（名前でよい）→ ③あてはめ（効く事実）→ ④結論</b> で。規範の中身は深掘り層へ。<span class="emb g">効く事実</span>を掴むのが勝負。</p>
+    <div class="box box-norm"><span class="badge b-norm">§ 規範（段階的過失）</span><p>注意義務違反の中核は「結果発生の現実的危険があるのに回避措置を講じなかった点」にある。そこで過失行為は<b>原則として結果に直近する過失で特定</b>し、各過失行為が不可分密接なら全体を一個の過失行為と捉える。</p></div>
+    <div class="box box-fact"><span class="badge b-fact">✓ 本問で効く事実</span><p class="flush">①速度超過②居眠り③発見遅滞は背景事情／<b>④急ブレーキ＋ハンドル右転把でトラックを両車線を塞ぐ形で横転させた</b>行為が結果に最も近く、切り離して特定可能 → <b>④を過失行為と特定</b>。事実は必ず<b>評価語</b>と結合させる。</p></div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">論点は「①問題の所在 → ②規範 → ③あてはめ → ④結論」の4点セットで処理するのが基本形である。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>どの論点もこの4点で回す。規範を立てずにいきなり当てはめると大きく減点。</div>
+    </div>
+    <div class="self-check-quiz recall" data-arena="1" data-correct-value="○" data-recall="1">
+      <p class="quiz-question">【想起】複数の注意義務違反が段階的に連続する場合に、どの行為を過失行為と特定するかの<b>規範</b>を、何も見ずに書けるか。</p>
+      <button class="recall-reveal" onclick="var q=this.closest('.self-check-quiz');q.classList.add('revealed');var a=q.querySelector('.quiz-answer');if(a)a.hidden=false;">答えを表示して自己採点</button>
+      <div class="quiz-answer" hidden><b>○</b>過失行為は原則として<b>結果に直近する過失</b>をもって特定する。ただし各過失行為が不可分密接に関連し独立して捉えられない場合は全体を一個の過失行為とする。</div>
+      <div class="recall-grade"><button class="quiz-btn" data-value="○">書けた○</button><button class="quiz-btn" data-value="×">書けなかった×</button></div>
+    </div>
+    <div class="self-check-quiz ex" data-arena="1" data-correct-value="×">
+      <p class="quiz-question">【例題】あてはめは、事実をそのまま引き写すだけで足り、なぜその事実が危険といえるかの評価語を添える必要はない。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>×</b>事実は<b>評価語</b>（例：両車線を塞ぐ＝交通事故を誘発する／高速道路上で高度に危険）と結合させて初めて点になる。</div>
+    </div>
+  </div>
+
+  <!-- 手5′ 因果関係 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">BREAK</span><span class="n">手5′</span></div><div class="ttl">論点2を「4点セット」で割る ― 因果関係（危険の現実化）＝本問の主戦場</div></div>
+    <p class="do">条件関係は当然あり（横転なければ衝突なし）。問題は<span class="tag-issue">行為後の介在事情</span>（Bの150km/h）。<small>（＝行為が作った危険が結果に現実化したか＝危険の現実化）</small> <span class="emb c">否定方向の事情</span>を正面から拾って評価し返すのが勝負。</p>
+    <div class="box box-norm"><span class="badge b-norm">§ 規範（危険の現実化）</span><p>因果関係の存否は、当該行為が内包する<b>危険が結果として現実化したか</b>で決する。具体的には行為の危険性と介在事情の結果への寄与度を中心に諸事情を総合判断する（条件関係だけでは足りない）。</p></div>
+    <div class="box box-fact"><span class="badge b-fact">✓ 効く事実（拾って評価し返す）</span><p class="flush">行為の危険性＝<b>両車線を塞ぐ横転＝交通事故を誘発する危険状態の設定</b>（最決平18.3.27＝トランク監禁と類似）／否定方向の事情＝Bの150km/h・他車は回避 ⇔ <b>速度超過車は高速道路上想定内・他車も急制動で紙一重だった</b> → 危険の一部 → 危険の現実化＝因果関係肯定。</p></div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="×">
+      <p class="quiz-question">行為後に介在事情があるときの因果関係は、「あれなければこれなし」の条件関係さえ認められれば当然に肯定してよい。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>×</b>条件関係だけで肯定すると処罰範囲が広すぎる。行為の危険が結果に現実化したか（危険の現実化）を規範的に判断する。</div>
+    </div>
+    <div class="self-check-quiz recall" data-arena="1" data-correct-value="○" data-recall="1">
+      <p class="quiz-question">【想起】行為後に第三者の著しい過失が介在する場合の<b>因果関係の判断基準（規範）</b>を、何も見ずに書けるか。</p>
+      <button class="recall-reveal" onclick="var q=this.closest('.self-check-quiz');q.classList.add('revealed');var a=q.querySelector('.quiz-answer');if(a)a.hidden=false;">答えを表示して自己採点</button>
+      <div class="quiz-answer" hidden><b>○</b>当該行為が内包する<b>危険が結果として現実化したか</b>で判断する（行為の危険性＋介在事情の結果への寄与度を総合）。介在事情の異常性が大きくても、行為が設定した危険が現実化したと評価できれば因果関係を肯定する。</div>
+      <div class="recall-grade"><button class="quiz-btn" data-value="○">書けた○</button><button class="quiz-btn" data-value="×">書けなかった×</button></div>
+    </div>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">危険の現実化を判断するときは、因果関係を否定する方向の事情（介在者の異常な落ち度など）を無視せず、正面から拾って評価し返す必要がある。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>本問最大の評価ポイント。Bの150km/hや他車回避という否定方向の事情を黙殺せず、「速度超過車は高速道路上想定内」等と評価し返してこそ点になる。</div>
+    </div>
+    <div class="self-check-quiz ex" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">【例題】道路上で停車中の車のトランクに被害者を監禁中、後続車が追突して被害者が死亡した場合、追突した第三者に甚だしい過失があっても、監禁行為と死亡との因果関係を肯定しうる。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>最決平18.3.27（トランク監禁事件）。被害者を交通事故の危険にさらす<b>危険状態を設定した</b>以上、第三者の過失が介在してもその危険が現実化したと評価できる＝危険状態の設定型。本問の中核判例。</div>
+    </div>
+  </div>
+
+  <!-- 手6 -->
+  <div class="step">
+    <div class="hd"><div class="num"><span class="code">BRIDGE</span><span class="n">手6</span></div><div class="ttl">末尾処理 ― 信頼の原則を一言＋罪数に橋を架ける</div></div>
+    <p class="do">一個の行為で<span class="emb">二名死亡</span>したら罪数を一言。本問は <span class="emb c">一個の横転行為でB・C二名死亡・生命は一身専属</span> → <b>観念的競合（54条1項前段）</b>。信頼の原則は「余地はあるが行為後の介在事案だから適用せず」と穏当に。</p>
+    <div class="self-check-quiz" data-arena="1" data-correct-value="○">
+      <p class="quiz-question">一個の行為で二人を死亡させた場合、生命は一身専属的法益だから二個の罪が成立し、両者は観念的競合（刑法54条1項前段）となる。</p>
+      <div class="quiz-btns"><button class="quiz-btn" data-value="○">○</button><button class="quiz-btn" data-value="×">×</button></div>
+      <span class="quiz-result" hidden></span>
+      <div class="quiz-answer" hidden><b>○</b>一個の行為＝観念的競合（54条1項前段）。これを併合罪としてしまうと減点。生命は一身専属なので結果の数だけ罪が立つ。</div>
+    </div>
+  </div>
+
+  <!-- 手7 BUILD：骨子 -->
+  <div class="sec-h"><div class="kick">Goal ｜ Build</div><div class="ttl"><span class="ico">🏁</span>手7 ― 答案構成（骨子）</div></div>
+  <p class="lead"><b>1周目は「対象・順序・論点」が言えればOK</b>。規範の中身（deep）は2周目から。まず下の<b>下書き（生の事実）</b>を作り、それを見ながら骨子の穴を埋める。骨を<span class="emb">白紙に再現できたら、その周はクリア</span>。</p>
+
+  <!-- 試験会場での下書き（生の事実抽出まで・論点名/規範は書かない＝想起対象） -->
+  <div class="drafting">
+    <p class="dh">✍ 試験会場での下書き ― まず生の事実だけ整理<small>論点名・規範はまだ書かない＝想起の対象</small></p>
+    <div class="draft-problem">トラック運転手Xが高速道路を<b>制限80→約110km/h</b>で走行中、疲労で<b>居眠り（仮睡）</b>→約1.2km進行→目覚めて前方45mにA車（渋滞減速）→<b>急ブレーキ＋ハンドル右</b>で<b>両車線を塞ぐ形で横転</b>→Xは脱出し発炎筒→<b>B車（約150km/h）</b>が避け切れず衝突大破→<b>B・C死亡</b>。後続の他車は約200m後方から視認し急制動で回避。</div>
+    <div class="draft-grid">
+      <div class="draft-card"><div class="ct">👥 人物関係図</div><pre class="rel-map"><span class="p">X</span>＝トラック運転手（横転を惹起）
+   │ 両車線を塞ぐ横転＝危険状態
+   ▼
+<span class="ob">B</span>＝後続スポーツカー 約150km/h（同乗<span class="ob">C</span>）
+   └→ 避け切れず衝突大破 → <span class="ob">B・C 死亡</span>
+<span class="out">A</span>＝前方の軽四輪（渋滞減速・衝突なし）
+<span class="out">他の後続車</span>＝約200m後方で視認・急制動で回避</pre></div>
+      <div class="draft-card"><div class="ct">⏱ 時系列</div><ol class="timeline">
+        <li>制限80km/hを約110km/hで走行・疲労で眠気</li>
+        <li>休憩せず仮睡状態に陥り約1.2km進行</li>
+        <li>目覚め前方45mにA車・急ブレーキ＋ハンドル右で横転（両車線封鎖）</li>
+        <li>Xは脱出・発炎筒を振り後方へ</li>
+        <li>B車約150km/hが衝突大破・B・C死亡（他車は回避）</li>
+      </ol></div>
+      <div class="draft-card span2"><div class="ct">🔖 拾う文言（事実そのまま）</div><ul class="facts">
+        <li><span class="ph">「時速約110キロメートル」</span><span class="cue">制限80km/h超過</span></li>
+        <li><span class="ph">「瞼が開かない状態…仮睡状態に陥り」</span><span class="cue">居眠り運転</span></li>
+        <li><span class="ph">「走行車線と追越車線を塞ぐかたちで横転」</span><span class="cue">両車線封鎖の態様</span></li>
+        <li><span class="ph">「時速約150キロメートルの猛スピード」</span><span class="cue">B車の著しい速度超過＝介在事情</span></li>
+        <li><span class="ph">「B車両以外の後続車両は…衝突を避けることができた」</span><span class="cue">肯定・否定 両面に効く事実</span></li>
+      </ul></div>
+    </div>
+  </div>
+
+  <div class="skeleton">
+    <span class="badge b-goal">🏁 まずこの骨を自分で書けるように</span>
+    <div class="kp-bar">
+      <span class="kp-hint">穴（論点・規範・あてはめ・結論）を埋めて答案構成を完成させよう ─ 移動中の能動周回・自動採点。答えは「📖 答えを見る」で確認。</span>
+    </div>
+    <div class="kp-fallback">⚠ 穴埋めパズルは <b>ブラウザ（Safari/Chrome）か Lexia</b> で開くと起動します。いまは JavaScript が動かない表示（ファイルのプレビュー等）なので、下に<b>完成形の骨子</b>を表示しています。</div>
+<div class="bone" data-kp-decoys="iss:正当防衛の成否|iss:実行の着手時期|rule:条件説（あれなければこれなし）|rule:相当因果関係説（折衷説）|fact:被害者Bの特異体質|fact:A車との衝突|u:業務上過失致死罪 成立|u:因果関係否定|u:併合罪"><span class="b1">第1　過失運転致死罪（自動車運転死傷処罰法5条）の成否</span>
+  1 「必要な注意を怠り」＝<span class="krule">客観的注意義務（結果回避義務）違反</span> → 居眠り運転等で明らか（短く）
+  2 <span class="iss">【論点①】複数の不注意のいずれが過失行為か（段階的過失）</span>
+      規範：<span class="krule">原則 結果に直近する過失で特定／不可分なら全体</span>
+      → あてはめ：<span class="kfact">④横転惹起（両車線を塞ぐ）</span>を過失行為と特定／①〜③は背景事情
+  3 結果＝B・C死亡（「人を死傷させた」）○
+  4 <span class="iss">【論点②】Bの150km/h介在 → 因果関係（行為後の介在事情）</span>
+      規範：<span class="krule">行為の危険が結果に現実化したか（危険性＋介在事情の寄与度を総合）</span>
+      → あてはめ：<span class="kfact">横転＝交通事故を誘発する危険状態の設定</span>／速度超過車は高速道路上想定内・他車も紙一重
+      → 危険の現実化 ＝ <u>因果関係肯定</u>
+  5 <span class="iss">【論点③】信頼の原則</span> → 行為後の介在事案＝適用せず（一言）
+  （違法性・責任＝阻却事由なし・一言で通過）
+  → 結論：<u>過失運転致死罪 成立</u>
+
+<span class="b1">第2　罪数</span>
+  一個の横転行為でB・C二名死亡・生命は一身専属 → <u>観念的競合（54条1項前段）</u></div>
+  </div>
+
+  <!-- 照合・自己採点 -->
+  <div class="sec-h"><div class="kick">Self Check</div><div class="ttl"><span class="ico">📋</span>照合 ― 自分で採点する</div></div>
+  <p class="lead">骨子（できれば答案）を書き切ってから模範を開く。下は<span class="emb c">採点講評から作った減点ポイント</span>。☐を自分で確認するだけで弱点が分かる（AI採点なしで完結）。</p>
+  <div class="collate">
+    <span class="badge b-trap">⚠ 自己採点チェック</span>
+    <ul class="rubric">
+      <li><span class="w">−10〜15</span>過失行為を特定したか（「不注意だった」で済ませず<b>段階的過失の規範</b>を立て④横転惹起を特定したか）</li>
+      <li><span class="w">−15〜20</span>因果関係を条件関係だけで肯定せず<b>危険の現実化の規範</b>を立てたか</li>
+      <li><span class="w">−10〜15</span>否定方向の事情（<b>Bの150km/h・他車回避</b>）を黙殺せず正面から拾って評価し返したか</li>
+      <li><span class="w">時間ロス</span>新旧過失論を長々展開せず注意義務違反を<b>端的に</b>認定したか</li>
+      <li><span class="w">−5前後</span>信頼の原則を断定せず「余地はあるが適用しない」と<b>穏当に</b>処理したか</li>
+      <li><span class="w">−5〜8</span>罪数を併合罪にせず、一個の行為＝<b>観念的競合（54条1項前段）</b>としたか</li>
+      <li><span class="w">−3〜5</span>業務上過失致死（211条）でなく<b>特別法（5条）</b>で処理したか</li>
+    </ul>
+  </div>
+
+  <details class="reveal-answer">
+    <summary>骨子（できれば答案）を書き切ってから開く ― 模範答案</summary>
+    <div class="model-answer">
+      <p class="ma-h">第1　過失運転致死罪の成否</p>
+      <p><b>1</b>　Xがトラックを横転させ、これに衝突したB運転車によりB・Cが死亡した行為につき、過失運転致死罪（自動車運転死傷処罰法5条）の成否を検討する。なお問題文の指定により、業務上過失致死罪（刑法211条）ではなく同法により処理する。</p>
+      <p><b>2(1)</b>　「自動車の運転上必要な注意を怠り」とは、客観的注意義務（結果回避義務）に違反することをいう。Xは眠気を催し瞼が開かない状態になりながら休憩せず走行を続けて仮睡状態に陥っており、注意義務違反は明らかである。</p>
+      <p>(2)　もっとも、①速度約110kmの走行、②仮睡に至る運転継続、③A車発見の遅滞、④急ブレーキ・ハンドル操作による横転惹起と、数個の注意義務違反行為が段階的に並存する。いかなる行為を過失行為と解すべきか。注意義務違反として評価されるのは結果発生の現実的危険があるのに回避措置を講じなかった点であるから、<b>過失行為は原則として結果に直近する過失で特定</b>し、不可分密接な場合に限り全体を捉える。</p>
+      <p>(3)　本件では、④横転惹起が事故を引き起こした決定的原因であり、①〜③はその背景事情にすぎず、④は結果に直近し独立に捉えうる。よって<u>④のみが「必要な注意を怠った」過失行為</u>に当たる。そしてB・Cが死亡しており「人を死傷させた」結果も生じている。</p>
+      <p><b>3</b>　もっとも、B・Cの死亡は時速約150kmで走行したB車が横転トラックを避け切れず衝突したためである。横転がなければ衝突もないから条件関係はあるが、Bの著しい速度超過という<b>行為後の介在事情</b>があり、なお因果関係を肯定できるか。</p>
+      <p>(1)　因果関係の存否は、<b>当該行為が内包する危険が結果として現実化したか</b>という観点から、行為の危険性と介在事情の結果への寄与度を中心に総合的に判断する。</p>
+      <p>(2)　Xの過失行為は、トラックを走行車線と追越車線を塞ぐ形で横転させるもので、高速道路上で死亡事故等を引き起こす高度の危険を有する。確かにBは法定速度を大幅に上回る約150kmで走行し、後続車は約200m後方から異常を視認でき、B車以外は衝突を回避できた。<b>しかし、他の後続車も急制動でスピードを最大限落としてかろうじて衝突を避けたのであり、速度超過車の存在は高速道路上想定し得るから、B車のような車両との衝突もXの行為に内包された危険の一部</b>といえる。よってB・Cの死は<u>Xの過失行為の危険が現実化したもの</u>であり、因果関係が認められる。</p>
+      <p>(3)　なお、Bが法定速度を守ると信頼してよかったとして信頼の原則により過失を否定する余地も一応あるが、同原則は同時的な交通事故の場面が典型であり、行為後の介在事案たる本件は類型を異にし、危険の現実化として因果関係を肯定する以上、適用は排除される。</p>
+      <p><b>4</b>　以上より、Xは<u>B・C各々に対する過失運転致死罪（自動車運転死傷処罰法5条）</u>の罪責を負う。</p>
+      <p class="ma-h">第2　罪数</p>
+      <p>上記2罪はXがトラックを横転させた一個の行為によるものであり、生命は一身専属的法益であるから、両罪は<u>観念的競合（刑法54条1項前段）</u>となる。</p>
+      <p style="text-align:right;text-indent:0"><b>以上</b></p>
+    </div>
+  </details>
+
+  <!-- 深掘り -->
+  <details id="deep-dive">
+    <summary>📚 深掘り層 ― 規範の中身・判例・条文<small>1周目は開かない<br>2周目以降／直前期に</small></summary>
+    <div class="deep-body">
+      <h4><span class="badge b-norm">§ 規範</span>答案に書く中身</h4>
+      <div class="box box-norm"><span class="badge b-norm">① 過失行為（新過失論）</span><p class="flush">「自動車の運転上必要な注意を怠り」＝客観的注意義務（結果回避義務）の違反。注意義務違反が明白な事案では予見可能性・結果回避義務を4分割せず端的に認定する。</p></div>
+      <div class="box box-norm"><span class="badge b-norm">② 段階的過失（過失行為の特定）</span><p class="flush">注意義務違反の中核は、結果発生の現実的危険があるのに回避措置を講じなかった点にある。よって過失行為は原則として結果に直近する過失（直近過失）で特定し、各過失行為が不可分密接に関連し独立に捉えられない場合に限り全体を一個の過失行為とする。過失行為の特定は刑訴法上の「罪となるべき事実」（訴因）の特定とも表裏。</p></div>
+      <div class="box box-norm"><span class="badge b-norm">③ 因果関係（危険の現実化）</span><p class="flush">因果関係は法的評価の問題であり、当該行為が内包する危険が結果として現実化したかで決する。具体的には行為の危険性と介在事情の結果への寄与度を中心に諸事情を総合判断する（判例は大阪南港事件＝最決平2.11.20以降「危険の現実化」の表現を用い、相当因果関係説の相当性判断から離れた）。</p></div>
+      <div class="box box-norm"><span class="badge b-norm">④ 信頼の原則・罪数</span><p class="flush">信頼の原則は同時的な交通事故場面が典型で、行為後の介在事案には及びにくい。一個の行為で数名を死亡させた場合、生命は一身専属的法益だから結果の数だけ罪が成立し、観念的競合（54条1項前段）となる。</p></div>
+
+      <h4><span class="badge b-trap">判例</span>射程を意識する判例</h4>
+      <p class="cs"><b>最決平成18年3月27日（トランク監禁事件・百選I11）</b>：道路上停車中の車のトランクに被害者を監禁中、後続車の追突で死亡。<b>第三者の甚だしい過失が介在しても、交通事故の危険にさらす危険状態を設定した監禁行為の危険が現実化した</b>として因果関係肯定＝<b>危険状態の設定型</b>。本問の中核（横転で両車線を塞ぐ＝危険状態の設定）に最も近い。</p>
+      <p class="cs"><b>最決平成4年12月17日（夜間潜水事件・百選I12）</b>：先行行為の後、介在事情が被告人の行為から<b>密接に誘発</b>されたとして因果関係肯定＝<b>誘発類型</b>。本問はB車の暴走がXの行為と直接結びつくとまではいえず（他車は回避）、誘発類型には寄せにくい。<b>区別の素材</b>として用いる。</p>
+      <p class="cs"><b>最決平成16年10月19日（高速道路あおり運転事件）</b>：あおり・停車強要後、約3.8km進行地点で追突死傷＝誘発類型。介在事情との密接性で本問とは異なる。本問は危険状態の設定型で処理するのが穏当。</p>
+
+      <h4><span class="badge b-tip">条文</span>参照条文</h4>
+      <p class="cs">自動車運転死傷処罰法 5条（過失運転致死傷罪）／刑法 38条1項但書（過失犯）・54条1項前段（観念的競合）。なお本問は問題文の指定により業務上過失致死（刑法211条）・道路交通法違反等の特別法違反には触れない。</p>
+
+      <div class="deep-note">百科事典的なフル解説（条文集・判例集・学説一覧・論証集・答案表現集・体系図）は <span class="xref">ATHENA版 刑JX007.html</span>（現行JX正典 outputs/001_JX/001_刑法/刑JX007.html）にあります。ARIADNE は「次に何をするか」に絞った解法ナビ＝知識はここに薄く・ATHENA に厚く、と役割分担しています。</div>
+    </div>
+  </details>
+
+  </main>
+
+  <div class="foot">
+    <div class="rb"></div>
+    <b>ARIADNE v0.3</b> ｜ 解法ナビ＋周回（Lexia連携）― 刑JX007<br>
+    過失運転致死罪・段階的過失と因果関係（危険の現実化）／難易度 HARD＝バイオレット基調
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  function readCorrect(quiz){ return (quiz && quiz.dataset && (quiz.dataset.correctValue || quiz.dataset.correct)) || ''; }
+  function onQuizBtn(btn){
+    var quiz = btn.closest('.self-check-quiz');
+    if(!quiz || quiz.dataset.done === '1') return;
+    quiz.dataset.done = '1'; quiz.classList.add('answered');
+    var correct = readCorrect(quiz);
+    var userVal = btn.getAttribute('data-value') || (btn.textContent.indexOf('○')>=0?'○':btn.textContent.indexOf('×')>=0?'×':'');
+    var ok = (userVal === correct);
+    quiz.querySelectorAll('.quiz-btn').forEach(function(b){
+      b.disabled = true;
+      if(b.getAttribute('data-value') === correct) b.classList.add('correct-mark');
+      else b.classList.add('incorrect-mark');
+    });
+    btn.classList.add('user-picked');
+    var res = quiz.querySelector('.quiz-result');
+    var ans = quiz.querySelector('.quiz-answer');
+    if(ans) ans.hidden = false;
+    if(res){
+      res.hidden = false;
+      res.textContent = (ok ? '✓ 正解' : '✗ 不正解 ― 解説を読もう') + '（あなたの選択：' + (userVal || '?') + '）';
+      res.classList.add(ok ? 'quiz-result-correct' : 'quiz-result-incorrect');
+      if(ans) ans.classList.add(ok ? 'quiz-answer-correct' : 'quiz-answer-incorrect');
+    }
+  }
+  function openAncestors(el){ var d = el.closest && el.closest('details'); while(d){ d.open = true; d = d.parentElement && d.parentElement.closest('details'); } }
+  document.addEventListener('click', function(e){
+    var t = e.target; if(!t || !t.closest) return;
+    var qb = t.closest('.quiz-btn'); if(qb){ onQuizBtn(qb); return; }
+    var a = t.closest('a[href^="#"]');
+    if(a){ var id = decodeURIComponent((a.getAttribute('href')||'').slice(1)); if(id){ var tgt = document.getElementById(id); if(tgt) openAncestors(tgt); } }
+  });
+})();
+
+/* ==== KP-PUZZLE-BACKFILL (js) ==== */
+/* ===== 答案構成パズル v2（既定でパズル表示＝答えは隠す／自動採点） =====
+   静的HTMLは無改変。読込時に .bone の .iss(論点)/<u>(結論) を伏せ字スロットへ変換し、
+   穴埋め（Tier1チップ配置／Tier2自由記述）で完成度を機械採点する。クリックは
+   document 委譲（○×エンジンと同方式）＝Lexia の srcDoc iframe 内でも堅牢に動く。
+   JS が動かない環境では bone（=答え）がそのまま見える安全フォールバック。 */
+(function(){
+  function boot(){
+    var skeleton = document.querySelector('.skeleton');
+    var bone = skeleton && skeleton.querySelector('.bone');
+    if(!skeleton || !bone) return;
+
+    // JS が動いた＝フォールバック注記を隠す（プレビュー等では表示されたまま）
+    var fb = skeleton.querySelector('.kp-fallback'); if(fb) fb.style.display = 'none';
+
+    var originalHTML = bone.innerHTML;   // モデル（答え）を温存
+    var topbar = null, host = null, tray = null, scoreBox = null, modelEl = null;
+    var slots = [], selected = null, tier = 1, level = 1;
+    var raf = window.requestAnimationFrame ? window.requestAnimationFrame.bind(window) : function(f){ return setTimeout(f, 16); };
+    var PH = { iss:'▢論点', krule:'▢規範', kfact:'▢事実', u:'▢結論', b1:'▢見出し' };
+    var LV_SEL  = { 1:'.iss', 2:'.iss, .krule, .kfact', 3:'.iss, .krule, .kfact, u, .b1' };
+    var LV_NOTE = { 1:'Lv1 易：論点だけを抽出（規範・結論は見えている）', 2:'Lv2 標準：論点＋規範＋あてはめキー事実を再現', 3:'Lv3 難：見出し・順序・結論まで全再現' };
+    var WEIGHT  = { iss:3, krule:2, kfact:2, u:1, b1:1 };
+
+    function each(list, fn){ Array.prototype.forEach.call(list, fn); }
+    function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+    function clearNode(n){ while(n.firstChild) n.removeChild(n.firstChild); }
+    function ph(type){ return PH[type] || '▢'; }
+    function slotType(el){
+      if(el.tagName.toLowerCase() === 'u') return 'u';
+      if(el.classList.contains('krule')) return 'krule';
+      if(el.classList.contains('kfact')) return 'kfact';
+      if(el.classList.contains('b1')) return 'b1';
+      return 'iss';
+    }
+    function activeTypes(){ var s = {}; slots.forEach(function(sl){ s[sl.dataset.type] = 1; }); return s; }
+
+    function buildSlots(){
+      bone.innerHTML = originalHTML;
+      slots = [];
+      each(bone.querySelectorAll(LV_SEL[level] || '.iss'), function(el){
+        var type = slotType(el);
+        var s = document.createElement('span');
+        s.className = 'kslot'; s.dataset.type = type; s.dataset.answer = el.textContent.trim();
+        s.textContent = ph(type);
+        el.parentNode.replaceChild(s, el);
+        slots.push(s);
+      });
+    }
+
+    function emptySlots(){ return slots.filter(function(s){ return !s.dataset.fill; }); }
+    function findUsedChip(txt){ if(!tray) return null; var cs = tray.querySelectorAll('.kp-chip.used'); for(var i=0;i<cs.length;i++){ if(cs[i].dataset.text === txt) return cs[i]; } return null; }
+
+    function fillSlot(s, text){
+      s.dataset.fill = text; s.classList.add('filled'); s.classList.remove('ok','ng');
+      clearNode(s); s.appendChild(document.createTextNode(text));
+      var x = document.createElement('span'); x.className = 'kx'; x.textContent = '✕'; s.appendChild(x);
+    }
+    function onSlot(s){
+      if(s.dataset.fill){                       // 入っていれば外す（チップを戻す）
+        var chip = findUsedChip(s.dataset.fill); if(chip) chip.classList.remove('used');
+        delete s.dataset.fill; s.classList.remove('filled','ok','ng'); s.textContent = ph(s.dataset.type); return;
+      }
+      if(selected) selected.classList.remove('sel');
+      selected = s; s.classList.add('sel');
+    }
+    function onChip(c){
+      if(c.classList.contains('used')) return;
+      var target = selected || emptySlots()[0]; if(!target) return;
+      fillSlot(target, c.dataset.text); c.classList.add('used');
+      if(selected){ selected.classList.remove('sel'); selected = null; }
+    }
+
+    function buildTray(){
+      var pool = slots.map(function(s){ return { text:s.dataset.answer, type:s.dataset.type }; });
+      var active = activeTypes();
+      var TMAP = { iss:'iss', u:'u', rule:'krule', fact:'kfact', b1:'b1' };
+      var decoys = [];
+      (bone.dataset.kpDecoys || '').split('|').forEach(function(d){
+        d = d.trim(); if(!d) return;
+        var parts = d.split(':'), type, text;
+        if(parts.length >= 2 && TMAP[parts[0]]){ type = TMAP[parts.shift()]; text = parts.join(':').trim(); }
+        else { text = d; type = /(成立|不成立|不可罰|単独犯)\s*$/.test(d) ? 'u' : 'iss'; }
+        if(active[type]) decoys.push({ text:text, type:type });   // 現レベルに出る型のおとりだけ
+      });
+      shuffle(decoys); decoys = decoys.slice(0, 6);                // おとりは最大6枚
+      pool = shuffle(pool.concat(decoys));
+      tray = document.createElement('div'); tray.className = 'kp-tray';
+      pool.forEach(function(p){
+        var c = document.createElement('button'); c.type = 'button';
+        c.className = 'kp-chip t-' + p.type; c.textContent = p.text; c.dataset.text = p.text;
+        tray.appendChild(c);
+      });
+      return tray;
+    }
+
+    function doGrade(){
+      if(!scoreBox) return;
+      each(bone.querySelectorAll('.kslot-fix'), function(n){ n.parentNode.removeChild(n); });
+      var totW = 0, gotW = 0, ok = 0, missIss = 0;
+      slots.forEach(function(s){
+        var w = WEIGHT[s.dataset.type] || 1; totW += w;   // 論点3/規範2/事実2/結論1/見出し1
+        s.classList.remove('ok','ng');
+        if((s.dataset.fill || '') === s.dataset.answer){ s.classList.add('ok'); gotW += w; ok++; }
+        else {
+          s.classList.add('ng'); if(s.dataset.type === 'iss') missIss++;
+          var fx = document.createElement('span'); fx.className = 'kslot-fix'; fx.textContent = '正: ' + s.dataset.answer;
+          s.insertAdjacentElement('afterend', fx);
+        }
+      });
+      var pct = totW ? Math.round(gotW / totW * 100) : 0;
+      var msg = pct >= 90 ? 'ほぼ完成。あとは表現を磨くだけ。'
+              : pct >= 70 ? '骨格はOK。赤の箇所（特に論点）を周回で詰めよう。'
+              : pct >= 40 ? '論点抽出に穴あり。落とした論点を最優先で復習。'
+              : 'まず7手ナビへ戻り、論点の拾い方から立て直そう。';
+      if(missIss) msg += '（落とした論点 ' + missIss + ' 件＝答案では致命傷になりやすい）';
+      clearNode(scoreBox); scoreBox.style.display = 'block';
+      var head = document.createElement('div'); head.innerHTML = '構成完成度 <span class="pct">' + pct + '%</span>　（' + ok + '/' + slots.length + ' 箇所）';
+      var meter = document.createElement('div'); meter.className = 'kp-meter';
+      var fill = document.createElement('div'); fill.className = 'kp-meter-fill'; meter.appendChild(fill);
+      var m = document.createElement('div'); m.className = 'kp-msg'; m.textContent = msg;
+      scoreBox.appendChild(head); scoreBox.appendChild(meter); scoreBox.appendChild(m);
+      raf(function(){ fill.style.width = pct + '%'; });
+    }
+
+    function buildModel(){
+      modelEl = document.createElement('div'); modelEl.className = 'kp-model'; modelEl.style.display = 'none';
+      var h = document.createElement('div'); h.className = 'kp-model-h'; h.textContent = '◆ 完成した骨子（モデル）';
+      var body = document.createElement('div'); body.innerHTML = originalHTML;
+      modelEl.appendChild(h); modelEl.appendChild(body);
+      return modelEl;
+    }
+    function toggleModel(btn){
+      if(!modelEl) return;
+      var show = modelEl.style.display === 'none';
+      modelEl.style.display = show ? 'block' : 'none';
+      btn.textContent = show ? '🙈 答えを隠す' : '📖 答えを見る';
+    }
+
+    function btn(cls, kp, label){
+      var b = document.createElement('button'); b.type = 'button'; b.className = cls; b.setAttribute('data-kp', kp); b.textContent = label; return b;
+    }
+
+    function renderModes(){
+      var levels = document.createElement('div'); levels.className = 'kp-levels';
+      levels.appendChild(btn(level === 1 ? 'on' : '', 'lv1', 'Lv1 易'));
+      levels.appendChild(btn(level === 2 ? 'on' : '', 'lv2', 'Lv2 標準'));
+      levels.appendChild(btn(level === 3 ? 'on' : '', 'lv3', 'Lv3 難'));
+      topbar.appendChild(levels);
+      var lvnote = document.createElement('div'); lvnote.className = 'kp-lv-note'; lvnote.textContent = LV_NOTE[level] || '';
+      topbar.appendChild(lvnote);
+      var modes = document.createElement('div'); modes.className = 'kp-modes';
+      modes.appendChild(btn(tier === 1 ? 'on' : '', 'm1', '① チップ配置'));
+      modes.appendChild(btn(tier === 2 ? 'on' : '', 'm2', '② 自由記述'));
+      topbar.appendChild(modes);
+    }
+
+    function render(){
+      clearNode(topbar); clearNode(host); renderModes();
+      if(tier === 1){
+        buildSlots();
+        host.appendChild(buildTray());
+        var actions = document.createElement('div'); actions.className = 'kp-actions';
+        actions.appendChild(btn('kp-grade', 'grade', '答え合わせ'));
+        actions.appendChild(btn('kp-reset', 'reset', 'やり直す'));
+        actions.appendChild(btn('kp-reset kp-reveal', 'reveal', '📖 答えを見る'));
+        host.appendChild(actions);
+        scoreBox = document.createElement('div'); scoreBox.className = 'kp-score'; scoreBox.style.display = 'none'; host.appendChild(scoreBox);
+        host.appendChild(buildModel());
+      } else {
+        buildSlots();   // 足場（第1/第2…）を見せ、論点・結論は伏せたまま
+        var ta = document.createElement('textarea'); ta.className = 'kp-free';
+        ta.placeholder = '上の足場（第1／第2…）を見ながら、各論点名・規範・結論を自分の言葉で書き出す。書き切ってから答え合わせ。';
+        host.appendChild(ta);
+        var actions2 = document.createElement('div'); actions2.className = 'kp-actions';
+        actions2.appendChild(btn('kp-reset kp-reveal', 'reveal', '📖 答えを見る'));
+        actions2.appendChild(btn('kp-grade', 'collate', '減点ポイントで照合'));
+        host.appendChild(actions2);
+        var note = document.createElement('div'); note.className = 'kp-msg'; note.style.marginTop = '8px';
+        note.textContent = '自由記述は下の「採点チェック」（減点ポイント）で自己採点する。AI採点なしで完結。';
+        host.appendChild(note);
+        host.appendChild(buildModel());
+      }
+    }
+
+    // クリックは document 委譲（iframe 内でも堅牢）
+    document.addEventListener('click', function(e){
+      var t = e.target; if(!t || !t.closest) return;
+      var chip = t.closest('.kp-chip'); if(chip && host && host.contains(chip)){ onChip(chip); return; }
+      var slot = t.closest('.kslot'); if(slot && bone.contains(slot)){ onSlot(slot); return; }
+      var b = t.closest('[data-kp]'); if(!b || !((host && host.contains(b)) || (topbar && topbar.contains(b)))) return;
+      var act = b.getAttribute('data-kp');
+      if(act === 'm1'){ tier = 1; render(); }
+      else if(act === 'm2'){ tier = 2; render(); }
+      else if(act === 'lv1'){ level = 1; render(); }
+      else if(act === 'lv2'){ level = 2; render(); }
+      else if(act === 'lv3'){ level = 3; render(); }
+      else if(act === 'grade'){ doGrade(); }
+      else if(act === 'reset'){ render(); }
+      else if(act === 'reveal'){ toggleModel(b); }
+      else if(act === 'collate'){ if(modelEl){ modelEl.style.display = 'block'; } var c = document.querySelector('.collate'); if(c && c.scrollIntoView) c.scrollIntoView({ behavior:'smooth', block:'start' }); }
+    });
+
+    // 既定でパズルを起動（答えは隠す）
+    topbar = document.createElement('div'); topbar.className = 'kp-top'; bone.parentNode.insertBefore(topbar, bone);
+    host = document.createElement('div'); host.className = 'kp-host'; bone.parentNode.insertBefore(host, bone.nextSibling);
+    render();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+})();
+
+/* ==== KP-PEEK-MOVE ==== peek を末尾へ（想起型「自分で答え/挙げ・立ち止まる石」のみ。前提・理由「なぜ〜」型は元位置=冒頭のまま） */
+(function(){var RE=/自分で(答え|挙げ)|立ち止まる石/;function mv(){var s=document.querySelectorAll(".step");for(var i=0;i<s.length;i++){var p=s[i].querySelectorAll(":scope > details.peek");for(var j=0;j<p.length;j++){var sm=p[j].querySelector("summary");if(sm&&RE.test(sm.textContent||""))s[i].appendChild(p[j]);}}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mv);else mv();})();
+</script>
+</body>
+</html>
