@@ -139,6 +139,11 @@ def main():
             warn(f"R10: カード幅 920px でない (AXIOM 正典と不一致): {tag}")
         if "#fff7a8" not in html.lower():
             warn(f"R10: 規範ボックスがレモンイエロー(#fff7a8)でない: {tag}")
+        # TX デザインシステム整合：役割別フォント変数（--font-display 等）と配色 --accent
+        if "--font-display" not in html or "--font-body" not in html:
+            warn(f"R10: 役割別フォント変数 (--font-body/--font-display 等) が無い (TX 体系と不一致): {tag}")
+        if "var(--font-" not in html:
+            warn(f"R10: 役割別フォントが要素へ適用されていない (var(--font-*) 不使用): {tag}")
 
     print(f"\n=== validate-rx: {basename} — files={len(files)}, "
           f"ERROR={len(errors)}, WARNING={len(warnings)} ===")
