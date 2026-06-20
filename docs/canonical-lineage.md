@@ -58,6 +58,24 @@
 
 ---
 
+## UX 副産物（RX / TREE / ARIADNE）の正典
+
+検証 PASS 済み JX から生成する Lexia 用副産物も、TX/JX と同じく **canonical 物理複製方式**で正典化済み。
+
+| 副産物 | 正典スケルトン（複製起点） | 生成プロンプト | 検証 |
+|---|---|---|---|
+| **RX**（論証カード・1論点1HTML） | **`canonical/AXIOM.html`**（v1.0・2026-06-20 新設） | `prompts/new-rx-headless.md`（複製方式） | `scripts/validate-rx.py`（R1〜R10） |
+| **TREE**（樹形図・ARBOR 仕様） | `canonical/ARBOR.html`（gold TREE 複製） | `prompts/new-arb-headless.md` | `scripts/validate-tree.py`（T1〜T9） |
+| **ARIADNE**（解法ナビ） | `canonical/ARIADNE.html` | `/new-ariadne` | `scripts/validate-ariadne.py` |
+
+- **AXIOM（RX 正典・2026-06-20）**：従来 RX は正典を持たず自由生成で CSS が 58 種に割れていた。
+  gold 刑RX001_1 を基に AXIOM を新設し、**作り込みフォント（TX/JX と同一 Google Fonts）・規範レモン
+  (#fff7a8)＋🔑バッジ・カード幅 920px・toggleNorm/lexiaAnswer JS** を正典品質で固定。
+  既存 127 枚は `scripts/rx-recanon.py`（内容保持・クイズ逐語・配色継承・フェイルセーフ）で一括移行済み。
+- 詳細は **`docs/rx-arb-byproducts.md`**（副産物の正典）。
+
+---
+
 ## 検証スクリプト早見
 
 | script | 対象 | チェック |

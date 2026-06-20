@@ -32,6 +32,7 @@
 | `{SUBJECT_PREFIX}` | `刑` | 科目接頭辞 |
 | `{RX_BASENAME}` | `刑RX032` | RX ファイル名の共通幹（科目接頭 + RX + 元 JX 番号） |
 | `{OUTPUT_DIR}` | `C:\...\outputs\ux\001_RX\001_刑法\刑JX032` | 出力ディレクトリの絶対パス（問題ごとに `{科目}JX{NNN}/` サブフォルダ・2026-06-20 恒久化） |
+| `{CANONICAL_PATH}` | `C:\...\canonical\AXIOM.html` | **RX 正典スケルトン**（複製起点・TX:GENESIS / JX:ATHENA と同格・2026-06-20 新設） |
 | `{VALIDATE_RX}` | `C:\...\scripts\validate-rx.py` | 検証スクリプトの絶対パス |
 
 ---
@@ -132,15 +133,28 @@
 
 ---
 
-## Section 5: 実行手順
+## Section 5: 実行手順（**正典 AXIOM 複製方式**・TX:GENESIS / JX:ATHENA と同格）
+
+> **正典化（2026-06-20 確定）：** RX も TX/JX と同じく **`{CANONICAL_PATH}`（canonical/AXIOM.html）を
+> 物理複製 → 本文を空文字列化 → 問題固有内容を鋳造** する。これにより構造シェル・CSS 全規則・
+> JS（toggleNorm/lexiaAnswer）・作り込みフォント link・規範レモン・カード幅 920px が必ず正典品質で
+> 揃う（自由生成で 58 種に割れていた CSS を 1 つに統一）。**他の RX ファイルを起点にするのは禁止。**
 
 1. `{SOURCE_HTML_PATH}` を読み、第2部の論点構成を箇条書きで整理（カード化対象を確定）
-2. `{OUTPUT_DIR}` が無ければ作成。既存の `{RX_BASENAME}_*.html` があれば**上書きせず**、
-   全カードを最初から書き直す前提で一旦削除してよい（この problem の RX のみ）
-3. 各論点につき 1 ファイルを Write（1 メッセージ 50KB 超の Write は禁止・カード単位なら自然に収まる）
+2. `{OUTPUT_DIR}` が無ければ作成。既存の `{RX_BASENAME}_*.html` は一旦削除してよい（この problem の RX のみ）
+3. 各論点につき：
+   a. **`cp {CANONICAL_PATH} {OUTPUT_DIR}/{RX_BASENAME}_{n}.html`** で正典を物理複製
+   b. 複製直後に **本文（`<h1>`〜各 `<h2>` セクション・規範ボックス・クイズ）を空文字列化**
+      （content independence・§4-4 と同型）。**構造シェル・CSS・JS・フォント link・`<style>` は触らない**
+   c. `{SOURCE_HTML_PATH}` を見て **問題固有内容を Edit で鋳造**（論点名→`<title>`/`<h1>`、問題の所在、
+      規範＝判例文言に忠実、理由、あてはめの型、関連判例・条文、○×クイズ 2〜4 問）。
+      `:root` パレットは元 JX の雰囲気に合わせて調整可（科目の配色を継承・科目固定色なし）
 4. 検証: `python {VALIDATE_RX} {OUTPUT_DIR} {RX_BASENAME}` を実行
-5. ERROR があれば修正 → 再検証（最大 3 周）
+5. ERROR があれば修正 → 再検証（最大 3 周）。WARNING（R10 正典整合）も極力 0 にする
 6. sentinel を echo して終了
+
+> **既存 RX の正典移行：** 自由生成された旧 RX を AXIOM 構造へ一括移行する冪等スクリプト
+> `python scripts/rx-recanon.py`（内容保持・クイズ逐語・配色継承・フェイルセーフ付き）がある。
 
 ---
 

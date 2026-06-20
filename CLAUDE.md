@@ -370,6 +370,11 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   **TREE は外部 arbor リポジトリ非依存の vendored モード**＝`canonical/ARBOR.html`（gold TREE 複製）を
   唯一の構造参照にし、`scripts/validate-tree.py`（T1〜T9）で検証する。永続化は `jx-push.sh` が
   `outputs/ux` も既定 stage。
+- **RX 正典化（2026-06-20）**：RX も TX(GENESIS)/JX(ATHENA) と同格の **`canonical/AXIOM.html`** を
+  物理複製→空化→鋳造する方式に統一（`prompts/new-rx-headless.md`）。AXIOM は **作り込みフォント
+  （TX/JX と同一 Google Fonts）・規範レモン #fff7a8＋🔑バッジ・カード幅 920px** を正典品質で固定。
+  検証は `scripts/validate-rx.py`（R1〜R10・R10 が正典整合）。自由生成で CSS が 58 種に割れていた
+  既存 127 枚は `scripts/rx-recanon.py`（内容保持・クイズ逐語・配色継承・フェイルセーフ）で一括移行済み。
 
 **詳細は `docs/rx-arb-byproducts.md` が正典**。
 
