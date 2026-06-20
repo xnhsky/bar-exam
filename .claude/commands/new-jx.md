@@ -102,7 +102,7 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
 ### Phase 7: レイアウト・印刷・JS
 
-25. **container**：`max-width:1080px`／padding 第 8 項通り
+25. **container**：`max-width:1320px`／padding 第 8 項通り
 26. **doc-header**：`position:absolute` で右上配置（第 7-1 項）
 27. **本文インデント**：本文段落のみ `padding-left:1.4em`（第 23 項・specificity 防御で `.key-box` 等は除外）
 28. **第 18 項レスポンシブ**＋**第 17 項印刷最適化**

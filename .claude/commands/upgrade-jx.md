@@ -51,8 +51,8 @@ description: 既存 JX HTML を v3.2 にアップグレード
 6. **base CSS 更新**（第 6-5 項）：
    - `body { line-height:2.0; letter-spacing:.04em; font-weight:500; }`
 7. **container 寸法調整**（第 8 項）：
-   - `max-width:1080px`
-   - モバイル padding: `0 20px 32px 20px`
+   - `max-width:1320px`
+   - 基本 padding: `0 16px 32px 16px`
    - デスクトップ padding: `0 40px 48px 40px`
 8. **doc-header**（第 7-1 項）：`position:absolute` で右上配置
 

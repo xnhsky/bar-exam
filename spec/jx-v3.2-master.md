@@ -16,7 +16,7 @@
 > 5. **注釈ラベル付きカード型**：`.note-box`／`.warn-box`／`.success-box`／`.danger-box` を全て `::before` 疑似要素のラベル付き（💡 NOTE／⚠ WARN／✓ TIP／✗ NG）カード型へ刷新。border-left 廃止、全周 border 1px ＋ 微外側 shadow ＋ 内側白ライン。
 > 6. **本文インデント設計**：本文段落のみ `padding-left:1.4em` で見出しの『文字』開始位置と縦ライン整合（第23項新設）。`.key-box` 等は specificity 防御で除外。
 > 7. **`body` 基本値の見直し**：`line-height:2.0`／`letter-spacing:.04em`／`font-weight:500`（KTX v6.19 と同期）。可読性・落ち着き優先。
-> 8. **コンテナ寸法**：`max-width:1080px`／`padding:0 20px 32px 20px`（モバイル）／`0 40px 48px 40px`（デスクトップ）へ調整。
+> 8. **コンテナ寸法**：`max-width:1320px`／`padding:0 16px 32px 16px`（基本）／`0 24px 48px 24px`（デスクトップ）へ調整（2026-06-20 Lexia ワイド化で 1080→1320）。
 > 9. **ハイライト・タンの潰れ防止**：`.tan`／`.hl-*`／`.exam-mark` 系の `letter-spacing` を `.06em–.09em` に強化。マーカー透明度 `.42`。
 > 10. **`.statute-emphasis`／`.case-emphasis` の `border-bottom` 廃止**：太字＋字間で表現。
 
@@ -455,7 +455,7 @@ header.cover .subject-tag{
 
 ```css
 .container{
-  max-width:1080px;                            /* v3.2: 1100→1080 */
+  max-width:1320px;                            /* 1100→1080(v3.2)→1320(2026-06-20 Lexia ワイド化) */
   margin:0 auto;
   padding:0 20px 32px 20px;                    /* モバイル：v3.2 */
   background:transparent;
@@ -1344,7 +1344,7 @@ document.addEventListener('DOMContentLoaded',function(){
 - [ ] `<title>` にファイル ID とサブタイトル
 - [ ] `.doc-header` 単独・`position:absolute`
 - [ ] カバーに `.subject-tag` で科目名表示
-- [ ] `.container` max-width 1080px
+- [ ] `.container` max-width 1320px
 - [ ] `.container > section` カード化／入れ子 section リセット
 - [ ] フッターに励ましの言葉
 - [ ] スムーズスクロール JS
