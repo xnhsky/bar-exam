@@ -62,8 +62,10 @@ BASELINE_CORE = REPO_ROOT / "canonical" / "GENESIS-CORE.html"
 BASELINE_301 = REPO_ROOT / "canonical" / "KTX301.html"
 
 JP_PREFIX_TO_DIR = {
-    "刑TX": "刑TX", "憲TX": "憲TX", "民TX": "民TX", "商TX": "商TX",
-    "民訴TX": "民訴TX", "刑訴TX": "刑訴TX", "行政TX": "行政TX",
+    # 2026-06-20: 出力フォルダ 00N_科目 統一（commit 368759b refactor）に追従。
+    # 旧マッピング（刑TX→"刑TX" 等）は stale で正しく配置した全ファイルが G14 で誤 ERROR になっていた。
+    "刑TX": "001_刑法", "憲TX": "007_憲法", "民TX": "003_民法", "商TX": "004_商法",
+    "民訴TX": "005_民事訴訟法", "刑訴TX": "002_刑事訴訟法", "行政TX": "006_行政法",
 }
 
 REQUIRED_CSS_VARS_MAIN = ["--accent", "--mid", "--light", "--base", "--soft", "--bg-dark"]
