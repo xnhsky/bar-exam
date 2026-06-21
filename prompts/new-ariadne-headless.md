@@ -31,7 +31,7 @@
 3-bis. **答案構成パズル（spec §9・周回の主役）** ─ エンジン（CSS/JS/ヒント・フォールバック）は {SKELETON} 継承で自動。生成時に**問題固有の下記**を付与する：
    - **骨子タグ**：`.bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。
    - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。
-   - **試験下書き `.drafting`**（骨子の直前）：問題文再掲＋①人物関係図 `.rel-map`②時系列 `.timeline`③拾う文言 `.facts`。**生の事実抽出まで**（論点名・規範は書かない＝パズルの想起対象）。
+   - **試験下書き `.drafting`**（骨子の直前）：先頭に **`.draft-problem`＝問題文原文の再掲（上部 `.problem .pq` を逐語コピー＝答案構成で上へ遡らず済む）**、その直下に **`.draft-digest`＝骨子用に一行へ圧縮したメモ**（`<span class="ddl">骨子用に一行圧縮</span>` ラベル付き）を置く。続けて①人物関係図 `.rel-map`②時系列 `.timeline`③拾う文言 `.facts`。**いずれも生の事実抽出まで**（論点名・規範は書かない＝パズルの想起対象）。
    - **想起カード**：○×のうち**規範名・要件・定義を問える3枚前後**を `class="self-check-quiz recall" data-recall="1" data-correct-value="○"`＋`.recall-reveal`（onclick で `.quiz-answer` 開示）＋`.recall-grade` に「書けた○/書けなかった×」へ格上げ。
 4. **周回○×（10枚前後・最重要・spec §4／§9-5）**：
    - 各 `.self-check-quiz` に **`data-arena="1"`** と **`data-correct-value="○/×"`**、`.quiz-question`、`.quiz-btn[data-value]`×2、`.quiz-answer`。
