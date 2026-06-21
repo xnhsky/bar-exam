@@ -155,6 +155,10 @@
 
 > **既存 RX の正典移行：** 自由生成された旧 RX を AXIOM 構造へ一括移行する冪等スクリプト
 > `python scripts/rx-recanon.py`（内容保持・クイズ逐語・配色継承・フェイルセーフ付き）がある。
+> **AXIOM の意匠を更新したとき（例：v2.8 マイルドライナー作り込み）は、本文を触らずに
+> 全 RX へ反映する 2 本を併用する：`python scripts/rx-restyle.py`（`<head>`=`<style>` を最新 AXIOM へ
+> 差し替え・冪等）＋`python scripts/rx-bodyfix.py --apply`（body の構造シェルだけ揃える＝規範を
+> norm-group に収め、関連判例・条文の「条文/判例」ラベル行を flex 2カラム化。法的内容は不変）。**
 
 ---
 

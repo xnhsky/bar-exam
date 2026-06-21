@@ -375,6 +375,15 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   （TX/JX と同一 Google Fonts）・規範レモン #fff7a8＋🔑バッジ・カード幅 920px** を正典品質で固定。
   検証は `scripts/validate-rx.py`（R1〜R10・R10 が正典整合）。自由生成で CSS が 58 種に割れていた
   既存 127 枚は `scripts/rx-recanon.py`（内容保持・クイズ逐語・配色継承・フェイルセーフ）で一括移行済み。
+- **AXIOM v2.8（2026-06-21・誌面作り込みリスキン）**：TX PART B の質感を移植。節別マイルドライナー
+  5 系統配色（問題の所在=Blue/規範=Yellow/理由づけ=Green/あてはめ=Violet/関連判例条文=Orange/
+  規範チェック=Pink）・艶ありモノラベルチップ・塗り潰し立体グラデ連番・節別マーカー（`--mk`）・
+  規範は `norm-group` コンテナ・関連判例条文は `条文`/`判例` ラベル＋本文を flex 2カラム
+  （`.refs p:has(> span)`・折返しがラベル下に回り込まない）。意匠更新の既存反映は**本文不変の 2 本**：
+  `scripts/rx-restyle.py`（`<head>`/`<style>` 差替）＋`scripts/rx-bodyfix.py --apply`（body 構造シェル
+  ＝norm-group ラップ・refs ラベル行の 2カラム化）。旧式 refs（判例名バッジ式・`<b>`なし）は意味的な
+  条文/判例 振り分け＝内容改変になるため触らず新 CSS で流す。検証器 R10 マーカー（920px/#fff7a8/
+  役割フォント）は保持＝`validate-rx.py` 無改修 PASS。
 
 **詳細は `docs/rx-arb-byproducts.md` が正典**。
 
