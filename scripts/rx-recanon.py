@@ -176,8 +176,11 @@ def build_body(title, src_text, ordered, norm_inner, norm_cite, quizzes):
         parts.append(norm_block())
 
     parts.append("\n<h2>規範チェック</h2>\n")
+    # クイズ群を大きなボックス（.quiz-group）で内包し、食み出しラベルを付けられるようにする
+    parts.append('<div class="quiz-group">')
     for q in quizzes:
         parts.append(q)
+    parts.append("</div>")
     parts.append("\n</div>")
     return "\n".join(parts)
 
