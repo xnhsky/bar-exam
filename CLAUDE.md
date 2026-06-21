@@ -378,6 +378,14 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   RX/TREE/ARIADNE の出力存在を Glob で検査→欠落系統の Agent を最大2回再起動→残欠落はコミットメッセージに
   「副産物欠落: …」明示。これでリモート単発でも「HTML＋TTS だけ」push を防ぐ（ローカル＝バッチランナーの
   ②-verify ゲートと対）。
+- **秘密裏・強制補完の常駐スイープ（2026-06-22・最終防衛線）：** 操作者が副産物の存在を知らず JX＋TTS だけ
+  生成・push しても（対話/リモート/別PC・**今後はこの経路が主**）、ゲートは指示や経路に依存するため漏れうる。
+  そこで生成方法に一切依存しない後段の網として **`scripts/rx-arb-autofill.ps1`** を定期実行する：
+  `git pull → 全7科目で「JX HTML はあるが副産物が欠ける」問題を検知 → rx-arb-backfill で生成 → outputs/ux
+  だけ commit/push`。多重起動ロック＋稼働中バッチ回避（jx-batch ログが直近 20 分更新なら ②-verify に委譲）付き。
+  登録は `scripts/register-rx-arb-autofill-task.ps1`（schtasks・既定 2 時間ごと・タスク名 `bar-exam-rx-arb-autofill`）。
+  **このタスクを動かす PC が pull 後に欠落を埋めるので 1 台で全体を守れる**（両 PC で動かせばより堅牢）。手動は
+  `pwsh -NoProfile -File scripts/rx-arb-autofill.ps1 [-DryRun|-NoPush]`。
 - **RX 正典化（2026-06-20）**：RX も TX(GENESIS)/JX(ATHENA) と同格の **`canonical/AXIOM.html`** を
   物理複製→空化→鋳造する方式に統一（`prompts/new-rx-headless.md`）。AXIOM は **作り込みフォント
   （TX/JX と同一 Google Fonts）・規範レモン #fff7a8＋🔑バッジ・カード幅 920px** を正典品質で固定。
