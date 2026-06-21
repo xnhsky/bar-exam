@@ -160,8 +160,10 @@ def build_body(title, src_text, ordered, norm_inner, norm_cite, quizzes):
         cite_html = f'<span class="cite">{norm_cite}</span>' if norm_cite else ""
         return (
             '\n<h2>規範（暗記対象）</h2>\n'
+            '<div class="norm-group">\n'
             '<button class="norm-toggle" onclick="toggleNorm(this)">規範を表示</button>\n'
             f'<div class="norm-box">{norm_inner}{cite_html}</div>\n'
+            '</div>\n'
         )
 
     norm_done = False
