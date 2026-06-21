@@ -42,7 +42,10 @@ $JxBase   = Join-Path $ProjectRoot 'outputs\001_JX'
 $Subjects = @('刑','刑訴','民','商','民訴','行政','憲')
 $SubjMap  = @{ '刑'='001_刑法';'刑訴'='002_刑事訴訟法';'民'='003_民法';'商'='004_商法';'民訴'='005_民事訴訟法';'行政'='006_行政法';'憲'='007_憲法' }
 $stamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
-function Log($m,$c='Gray'){ Write-Host "[autofill $stamp] $m" -ForegroundColor $c }
+$RunLog = Join-Path $LogsDir "autofill-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
+$Report = Join-Path $LogsDir 'autofill-report.md'   # ← xnrg2（副産物を知る側）が見る結果サマリ（追記式・最新が下）
+function Log($m,$c='Gray'){ $line="[autofill $stamp] $m"; Write-Host $line -ForegroundColor $c; Add-Content -Path $RunLog -Value $line -Encoding utf8 }
+function Report($m){ Add-Content -Path $Report -Value "- $stamp $m" -Encoding utf8 }
 
 # --- 1. 自己ロック（多重起動防止・2h で stale 解除） ---
 $lock = Join-Path $LogsDir 'rx-arb-autofill.lock'
@@ -103,12 +106,19 @@ try {
   # --- 6. outputs/ux だけ commit→push（JX HTML には触れない）---
   & git add -- outputs/ux 2>&1 | Out-Null
   & git diff --cached --quiet -- outputs/ux
-  if ($LASTEXITCODE -eq 0) { Log "outputs/ux に新規差分なし（生成失敗 or 既存）→ commit せず" 'Yellow'; exit 0 }
+  if ($LASTEXITCODE -eq 0) {
+    $tried = ($totalMissing | ForEach-Object { "$($_.Subject)[$($_.Ids -join ',')]" }) -join ' '
+    Log "outputs/ux に新規差分なし（生成失敗 or 既存）→ commit せず" 'Yellow'
+    Report "⚠️ 補完試行したが副産物が生成されず（要確認・次回再試行）: $tried"
+    exit 0
+  }
 
+  $filledDesc = ($totalMissing | ForEach-Object { "$($_.Subject)[$($_.Ids -join ',')]" }) -join ' '
   $msg = "chore(jx): 副産物 自動補完（autofill・$($totalMissing.Subject -join '/'))"
   & git commit -q -m $msg
-  Log "commit 作成: $(git rev-parse --short HEAD)" 'Green'
-  if ($NoPush) { Log "-NoPush 指定 → push 省略" 'Yellow'; exit 0 }
+  $sha = git rev-parse --short HEAD
+  Log "commit 作成: $sha" 'Green'
+  if ($NoPush) { Log "-NoPush 指定 → push 省略" 'Yellow'; Report "✅ 補完 commit（push省略 -NoPush）: $filledDesc  [$sha]"; exit 0 }
 
   & git push origin master 2>&1 | Out-Null
   if ($LASTEXITCODE -ne 0) {
@@ -116,8 +126,8 @@ try {
     & git pull --rebase origin master 2>&1 | Out-Null
     & git push origin master 2>&1 | Out-Null
   }
-  if ($LASTEXITCODE -eq 0) { Log "push 完了（副産物を GitHub 永続化）✅" 'Green' }
-  else { Log "push 再試行も失敗（次回スイープで再送）" 'Red' }
+  if ($LASTEXITCODE -eq 0) { Log "push 完了（副産物を GitHub 永続化）✅" 'Green'; Report "✅ 副産物を自動補完して push: $filledDesc  [$sha]" }
+  else { Log "push 再試行も失敗（次回スイープで再送）" 'Red'; Report "⚠️ 補完 commit したが push 失敗（次回再送）: $filledDesc  [$sha]" }
 }
 finally {
   Remove-Item -Path $lock -Force -ErrorAction SilentlyContinue
