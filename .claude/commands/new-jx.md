@@ -150,10 +150,30 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
       検証 ERROR が残ったら最大 3 周修正。**3 種いずれかが失敗してもメインは続行**し、完了報告に成否を併記する。
     - **`<script>...</script>` 内 `</body>` リテラル禁止**は副産物にも適用（各 validate が機械検出）。
 
+35-bis. **【push 前ゲート・必須】副産物そろい検査**（2026-06-22 追加・「HTML＋TTS だけ」push の
+    再発防止＝別PC生成の 刑JX056〜063 が副産物ゼロで push された実害への恒久対策）。
+    Phase 10 の push に進む**前に**、3 種の出力が実在するかを **Glob/ls で機械的に確認**する：
+
+    | 系統 | 存在条件 |
+    |---|---|
+    | **RX** | `outputs/ux/001_RX/{00N_科目}/{ID}/` に `{科目接頭}RX{NNN}_*.html` が **1 枚以上** |
+    | **TREE** | `outputs/ux/002_TREE/{00N_科目}/{ID}_TREE.html` が存在 |
+    | **ARIADNE** | `outputs/ux/000_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` が存在 |
+
+    - 各系統の **validate（validate-rx / validate-tree / validate-ariadne）が PASS** であることも併せて確認。
+    - **欠落・未検証があれば、その系統の `Agent` を最大 2 回まで再起動**して埋める（RX→TREE→ARIADNE のうち
+      欠けている分のみ・非致命の「黙って継続」を打ち切るための強制リトライ）。
+    - 再試行後も揃わない系統が残る場合に限り push に進んでよいが、**完了報告とコミットメッセージの双方に
+      「副産物欠落: {欠落系統}」を明示**する（黙って成功扱いにしない）。3 種すべて揃えば通常どおり Phase 10 へ。
+    - **このゲートを通すまで Phase 10 の push をしてはならない**（揃っていれば即進む）。ローカルなら
+      代替として `pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject {科目} -Number {NNN}` でも補完可。
+
 ### Phase 10: 回収（永続化）と後始末（docs/jx-pipeline.md ②③）
 
 36. **回収＝git push**：`scripts/jx-push.sh "feat(jx): {ID} を生成保存（J1〜J21 PASS＋副産物 RX/TREE/ARIADNE）"`
     （add→commit→push、ネットワークエラー時は指数バックオフ再試行。リモートはコンテナ回収前に必ず push）。
+    **コミットメッセージは 35-bis ゲートの結果を反映する**：3 種揃っていれば上記どおり、欠落が残った場合は
+    末尾に「／副産物欠落: {欠落系統}」を付す（後で backfill 対象と分かるように）。
     **jx-push.sh は既定で `outputs/001_JX` ＋ `outputs/ux` を stage する**ので、本体 JX と副産物が同じ push で永続化される。
 37. **処理済 PDF 削除**：`scripts/jx-cleanup-pdf.sh {科目} {番号} --commit` →
     `scripts/jx-push.sh "chore(jx): remove processed input PDFs"`（HTML が commit 済のときのみ削除＝安全ガード）。

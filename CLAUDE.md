@@ -373,7 +373,11 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   RX → TREE → ARIADNE の順に起動して同じ副産物を生成する（バッチランナーの別 `claude -p` 相当）。
   **TREE は外部 arbor リポジトリ非依存の vendored モード**＝`canonical/ARBOR.html`（gold TREE 複製）を
   唯一の構造参照にし、`scripts/validate-tree.py`（T1〜T9）で検証する。永続化は `jx-push.sh` が
-  `outputs/ux` も既定 stage。
+  `outputs/ux` も既定 stage。**push 前そろい検査ゲート（new-jx.md 35-bis・2026-06-22）：** Phase 9 は
+  非致命のため黙って欠落しうる（別PCの 刑JX056〜063 が副産物ゼロで push された実害）。Phase 10 の push 前に
+  RX/TREE/ARIADNE の出力存在を Glob で検査→欠落系統の Agent を最大2回再起動→残欠落はコミットメッセージに
+  「副産物欠落: …」明示。これでリモート単発でも「HTML＋TTS だけ」push を防ぐ（ローカル＝バッチランナーの
+  ②-verify ゲートと対）。
 - **RX 正典化（2026-06-20）**：RX も TX(GENESIS)/JX(ATHENA) と同格の **`canonical/AXIOM.html`** を
   物理複製→空化→鋳造する方式に統一（`prompts/new-rx-headless.md`）。AXIOM は **作り込みフォント
   （TX/JX と同一 Google Fonts）・規範レモン #fff7a8＋🔑バッジ・カード幅 920px** を正典品質で固定。
