@@ -365,6 +365,10 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
 
 - **ローカル**：`jx-batch-runner.ps1` の ②-rx / ②-arb / ②-ariadne 段（`-SkipRx`/`-SkipArb`/`-SkipAriadne` で抑止）。
   既存 JX への後追いは `scripts/rx-arb-backfill.ps1`。
+  **取りこぼし防止（2026-06-22 恒久対策）：** 副産物段は非致命で黙って欠落しうる（他PCの 刑JX056〜063 で
+  全欠落の実害）。そこでバッチ末尾（⑤の直前）に **②-verify ゲート**を内蔵し、jxPass 各問の副産物を検査→
+  欠落があれば `rx-arb-backfill.ps1` を自動起動して必ず埋める（生成のみ＝直後の⑥配置・⑦commit に乗る・
+  `-Skip` 指定系統は要求から除外）。これにより「HTML＋TTS だけで副産物ゼロ」の commit が出ない。
 - **リモート（Claude Code on the web）**：`/new-jx` の **Phase 9** が `Agent` サブエージェントを
   RX → TREE → ARIADNE の順に起動して同じ副産物を生成する（バッチランナーの別 `claude -p` 相当）。
   **TREE は外部 arbor リポジトリ非依存の vendored モード**＝`canonical/ARBOR.html`（gold TREE 複製）を

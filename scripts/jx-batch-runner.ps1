@@ -747,6 +747,46 @@ foreach ($t in $Targets) {
 }
 
 # =========================================================
+# ②-verify 副産物そろい検査＋自動 backfill（恒久対策・2026-06-22）
+#   ②-rx/②-arb/②-ariadne は「非致命」設計のため、失敗・未生成でも黙って欠落しうる
+#   （他PCの 刑JX056〜063 で全欠落の実害）。ここで jxPass 各問の副産物を必ず検査し、
+#   欠落があれば rx-arb-backfill.ps1 で埋める（backfill は生成のみ＝この後の⑥配置・
+#   ⑦commit に自然に乗る／既存はスキップ）。-Skip 指定の系統は要求から除外する。
+# =========================================================
+function Test-Byproducts([string]$id) {
+    $okRx   = (-not $RxEnabled)      -or (@(Get-ChildItem -Path (Join-Path $RxOutputDir $id) -Filter '*.html' -File -ErrorAction SilentlyContinue).Count -gt 0)
+    $okArb  = (-not $ArbEnabled)     -or (Test-Path (Join-Path $ArbOutputDir "${id}_TREE.html"))
+    $okAria = (-not $AriadneEnabled) -or (Test-Path (Join-Path $AriadneOutputDir "${id}_ARIADNE.html"))
+    return ($okRx -and $okArb -and $okAria)
+}
+if ($DeployIds.Count -gt 0 -and -not $DryRun) {
+    Write-Host "`n--- ②-verify 副産物そろい検査 ---" -ForegroundColor Cyan
+    $missing = @($DeployIds | Where-Object { -not (Test-Byproducts $_) })
+    if ($missing.Count -eq 0) {
+        Write-Host "[②-verify] 全 $($DeployIds.Count) 問の副産物そろい確認 ✅" -ForegroundColor Green
+    } else {
+        Write-Host "[②-verify] 副産物欠落 $($missing.Count) 問: $($missing -join ', ') → 自動 backfill 起動" -ForegroundColor Yellow
+        $nums = @($missing | ForEach-Object { if ($_ -match '(\d+)\s*$') { [int]$Matches[1] } } | Sort-Object)
+        $bf = Join-Path $ProjectRoot 'scripts\rx-arb-backfill.ps1'
+        if (Test-Path $bf) {
+            $bfArgs = @('-NoProfile','-File',$bf,'-Subject',$Subject,'-FromNumber',$nums[0],'-ToNumber',$nums[-1])
+            if (-not $RxEnabled)      { $bfArgs += '-SkipRx' }
+            if (-not $ArbEnabled)     { $bfArgs += '-SkipArb' }
+            if (-not $AriadneEnabled) { $bfArgs += '-SkipAriadne' }
+            & pwsh @bfArgs
+            $still = @($missing | Where-Object { -not (Test-Byproducts $_) })
+            if ($still.Count -eq 0) {
+                Write-Host "[②-verify] backfill 後そろい確認 ✅" -ForegroundColor Green
+            } else {
+                Write-Host "[②-verify][要対応] backfill 後も欠落: $($still -join ', ')（手動で rx-arb-backfill 再実行）" -ForegroundColor Red
+            }
+        } else {
+            Write-Host "[②-verify] rx-arb-backfill.ps1 不在: $bf（手動補完が必要）" -ForegroundColor Red
+        }
+    }
+}
+
+# =========================================================
 # ⑤ 音声生成（バッチ末尾で一括・全自動・課金）
 #   - input_texts へ何か集約された場合のみ run-tts.ps1 を 1 回起動
 #   - generate_tts.py 側で既 wav はスキップ・DAILY_LIMIT/リトライを内蔵
