@@ -9,9 +9,11 @@
 #   - TTS 台本 → 「{2 JX_論 文}\A_重問耳トレ\N 科目\TTSファイル原本\{問題ID}\」（問題IDサブフォルダ内）
 #   - 音声 wav → 「{2 JX_論 文}\A_重問耳トレ\N 科目\{問題ID}\」（問題IDサブフォルダ内）
 #     ※ 台本/wav は問題ごとにフォルダを作ってその中へ格納（ユーザー指示 2026-06-06）。HTML は従来どおりフラット。
-#   - RX カード → 「{2 JX_論 文}\B_RX\00N_科目\」（フラット・ユーザー指示 2026-06-11）
-#   - TREE     → 「{2 JX_論 文}\C_TREE\00N_科目\」（フラット・旧 C_ARBOR を改名・2026-06-18）
-#   - ARIADNE  → 「{2 JX_論 文}\D_ARIADNE\00N_科目\」（フラット・解法ナビ＋周回・2026-06-18）
+#   - 副産物（RX/TREE/ARIADNE）→ 「{2 JX_論 文}\ux\…」（repo outputs\ux\ をそのままミラー・2026-06-22）
+#       RX     → 「{2 JX_論 文}\ux\001_RX\00N_科目\{問題ID}\」（問題IDサブフォルダ内）
+#       TREE   → 「{2 JX_論 文}\ux\002_TREE\00N_科目\」
+#       ARIADNE→ 「{2 JX_論 文}\ux\000_ARIADNE\00N_科目\」
+#     ※ 旧 B_RX / C_TREE / D_ARIADNE 系統は ux\ へ集約して廃止（2026-06-22・ユーザー指示）。
 #
 # 使い方:
 #   pwsh -NoProfile -File scripts/jx-deploy.ps1 -InitAll                 # 全7科目のフォルダを両方に作成
@@ -43,9 +45,11 @@ $Map = [ordered]@{
 $JxRootName  = '2 JX_論 文'      # H: と同名（論と文の間は全角空白）
 $MimiRoot    = 'A_重問耳トレ'
 $TtsOrigName = 'TTSファイル原本'
-$RxRoot      = 'B_RX'            # RX 論証カードの系統フォルダ（2 JX_論 文 直下）
-$ArbRoot     = 'C_TREE'          # TREE 樹形図の系統フォルダ（旧 C_ARBOR・2026-06-18 改名）
-$AriaRoot    = 'D_ARIADNE'       # ARIADNE 解法ナビ＋周回の系統フォルダ（同上）
+# 副産物は repo の outputs\ux\ をそのままミラーする（系統フォルダを ux\ 配下に集約・2026-06-22）。
+# 旧 B_RX / C_TREE / D_ARIADNE は廃止。Join-Path で {base}\ux\001_RX\… に解決される。
+$RxRoot      = 'ux\001_RX'       # RX 論証カード（repo outputs\ux\001_RX に対応）
+$ArbRoot     = 'ux\002_TREE'     # TREE 樹形図（repo outputs\ux\002_TREE に対応）
+$AriaRoot    = 'ux\000_ARIADNE'  # ARIADNE 解法ナビ＋周回（repo outputs\ux\000_ARIADNE に対応）
 
 # === 配置先ベースの解決 ===
 # ① repo ミラー（常時）

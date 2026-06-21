@@ -95,6 +95,9 @@ $CostCsv       = Join-Path $LogsDir "jx-cost-summary.csv"
 $RunLog        = Join-Path $LogsDir "jx-batch-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 
 $JxOutputDir   = Join-Path $JxOutputBase $SubjectDir
+# TTS 台本も他成果物と同じく 00N_科目 サブフォルダ配下に出す（jx-deploy.ps1 が
+# outputs\002_TTS\00N_科目\{ID}\ を読むのに合わせる。フラット出力は配置で拾えず散らかる）
+$TtsOutputDir  = Join-Path $TtsOutputBase $SubjectDir
 $RxOutputDir   = Join-Path $RxOutputBase  $SubjectDir
 $ArbOutputDir  = Join-Path $ArbOutputBase $SubjectDir
 $AriadneOutputDir = Join-Path $AriadneOutputBase $SubjectDir
@@ -147,7 +150,7 @@ Write-Host "=== jx-batch-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
 Write-Host "Subject: $Subject (接頭=$SubjectDir) / MaxProblems: $MaxProblems / NumberRange: From=$FromNumber To=$ToNumber (0=無制限) / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun / SkipAudio: $SkipAudio"
 Write-Host "PDF dir   : $PdfDir  (PDF＋同番号逐語 .txt/.md)"
 Write-Host "JX  output: $JxOutputDir"
-Write-Host "TTS output: $TtsOutputBase\{PROBLEM_ID}\"
+Write-Host "TTS output: $TtsOutputDir\{PROBLEM_ID}\"
 Write-Host "音声(⑤)   : $TtsInputDir → $TtsAudioDir  (run-tts.ps1)"
 # 鍵ソース表示（値は出さない・先頭4文字のみ）
 $keyHint = if ($env:GEMINI_API_KEY) { $env:GEMINI_API_KEY.Substring(0,[Math]::Min(4,$env:GEMINI_API_KEY.Length)) + '…' } else { '(なし)' }
@@ -274,7 +277,7 @@ foreach ($pdf in $AllPdfs) {
     }
     $problemId    = "${Subject}JX${num}"
     $jxOutputPath = Join-Path $JxOutputDir "${problemId}.html"
-    $ttsOutputDir = Join-Path $TtsOutputBase $problemId
+    $ttsOutputDir = Join-Path $TtsOutputDir $problemId
     $transcript   = Find-Transcript -NumInt $numInt   # 同番号逐語（必須）
     # 判定優先順位：既存 HTML > 逐語欠如 > 処理対象
     $status = if (Test-Path $jxOutputPath) { "SKIP_EXISTS" }
