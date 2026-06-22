@@ -35,74 +35,70 @@ XREF_ANCHOR = ".xref{color:var(--a-head); font-weight:700}"
 GRAFT_MARK = "ATHENA-GRAFT"
 
 GRAFT_CSS = """
-/* ==== ATHENA-GRAFT : 刑TX328 をテンプレに「見た目そのまま」移植（フォント・文字色・構築すべて TX328 同値・scoped） ====
-   本文=明朝 Yu Mincho／見出し=Shippori／判旨=Zen Old Mincho／条文=Noto Serif／ラベル=Zen Kaku／表頭バッジ=Zen Maru／
-   文字色=#2E4953／accent=#4E8597／mid(判旨)=#D78A8A／条文カード=teal #eef6f6／判例カード=pink #fdf1f1。 */
+/* ==== ATHENA-GRAFT : 刑TX328 の本物の型（basis-card）に条文判例学説用語を流し込む（見た目そのまま・scoped） ====
+   ＝画像模倣ではなく TX328 の HTML 型（.basis-card / -header / -body）を直接使い、テキストを流し込む。
+   フォント＝TX328 同一（本文 Yu Mincho 明朝・見出し Shippori・判旨 Zen Old Mincho・条文 Noto Serif・
+   ラベル Zen Kaku・表頭/バッジ Zen Maru）。文字色 #2E4953／accent #4E8597／判旨 #D78A8A。 */
 .athena-graft{margin:10px 0 2px; color:#2E4953}
 
 /* セクション章扉 */
 .athena-graft .graft-h{font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; font-weight:800; font-size:.96rem; letter-spacing:.04em; color:#4E8597; background:linear-gradient(90deg,rgba(78,133,151,.10),transparent); border-left:4px solid #4E8597; border-radius:4px; padding:7px 0 7px 12px; margin:26px 0 0; display:flex; align-items:center; gap:9px}
 .athena-graft .graft-note{font-family:"Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif; font-size:.75rem; color:#5b6f78; margin:3px 0 12px 16px; line-height:1.7}
 
-/* プロファイルカード ＝ TX328 .basis-card（角6px）｜本文=明朝 Yu Mincho・文字色 #2E4953 */
-.athena-graft .card,.athena-graft .ref-entry{background:#fff; border:1px solid #D6C9DC; border-radius:6px; padding:0 22px 16px; margin:14px 0; overflow:hidden; box-shadow:0 2px 8px rgba(46,73,83,.07); font-family:"Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif; font-weight:600; font-size:.92rem; line-height:1.95; color:#2E4953}
-
-/* カードヘッダ ＝ TX328 .basis-card-header（Shippori 明朝・淡色帯 #F5EFF6・文字 #4A3D54） */
-.athena-graft .ref-entry > h4{font-family:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; font-weight:700; font-size:1.08em; color:#4A3D54; letter-spacing:.04em; margin:0 -22px 14px; padding:12px 22px; background:#F5EFF6; border-bottom:1px solid #D6C9DC; display:flex; align-items:center; gap:9px; flex-wrap:wrap}
+/* ===== TX328 .basis-card 本物の型 ===== */
+.athena-graft .basis-card{background:#fff; border:1px solid #D6C9DC; border-radius:6px; padding:0; margin:14px 0; overflow:hidden; box-shadow:0 2px 8px rgba(46,73,83,.07)}
+.athena-graft .basis-card.statute-card{background:#eef6f6; border-left:5px solid #7fb1ad}
+.athena-graft .basis-card.case-card{background:#fdf1f1; border-left:5px solid #ee9a9a}
+.athena-graft .basis-card.doctrine-card{border-left:5px solid #D6C9DC}
+.athena-graft .basis-card.term-card{border-left:5px solid #D6C9DC}
+.athena-graft .basis-card-header{background:#F5EFF6; padding:12px 22px; font-family:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; font-weight:700; font-size:1.08em; color:#4A3D54; border-bottom:1px solid #D6C9DC; letter-spacing:.04em; display:flex; align-items:center; gap:9px; flex-wrap:wrap}
+.athena-graft .basis-card.case-card .basis-card-header{background:#fdc9c9; color:#7a2e2e; border-bottom-color:#f3b3b3}
+.athena-graft .basis-card-body{padding:18px 22px 16px; font-family:"Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif; font-weight:600; font-size:.92rem; line-height:1.95; color:#2E4953}
+.athena-graft .basis-card-body p{margin:0 0 .8em; text-indent:1em}
+.athena-graft .basis-card-body p:last-child{margin-bottom:0}
+.athena-graft .freq-badge{display:inline-block; margin-left:auto; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; font-size:.72rem; padding:2px 9px; border-radius:4px; color:#fff; font-weight:700; letter-spacing:.06em; white-space:nowrap}
+.athena-graft .freq-badge.freq-high{background:#4E8597; border:2px solid #14252C}
+.athena-graft .freq-badge.freq-mid{background:#88AEBA; color:#2E4953}
+.athena-graft .freq-badge.freq-low{background:#DCE8E8; color:#2E4953}
 
 /* 論点カード（issue） */
-.athena-graft .card{padding:14px 20px 16px}
-.athena-graft .card h3{font-family:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN",serif; font-size:1.12rem; color:#2E4953; margin:0 0 10px; padding-bottom:7px; border-bottom:1.5px solid #D6C9DC; letter-spacing:.03em}
-.athena-graft .card > h4{font-family:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN",serif; font-size:1.02rem; color:#4E8597; margin:14px 0 7px; padding-left:11px; border-left:4px solid #4E8597}
+.athena-graft .card{background:#fff; border:1px solid #D6C9DC; border-left:5px solid #4E8597; border-radius:6px; padding:14px 20px 16px; margin:14px 0; box-shadow:0 2px 8px rgba(46,73,83,.07); font-family:"Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif; font-weight:600; font-size:.92rem; line-height:1.95; color:#2E4953}
+.athena-graft .card h3{font-family:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; font-size:1.12rem; color:#2E4953; margin:0 0 10px; padding-bottom:7px; border-bottom:1.5px solid #D6C9DC; letter-spacing:.03em}
+.athena-graft .card > h4{font-family:"Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; font-size:1.02rem; color:#4E8597; margin:14px 0 7px; padding-left:11px; border-left:4px solid #4E8597}
 
 /* 小見出し h5 ＝ TX328 .kd-label（Zen Kaku・役割色） */
-.athena-graft h5{display:inline-block; font-family:"Zen Kaku Gothic Antique","Hiragino Sans","Yu Gothic",sans-serif; font-size:.84em; font-weight:700; letter-spacing:.06em; margin:14px 0 6px; padding:1px 10px; border:1px solid #D6C9DC; border-left:3px solid #4E8597; border-radius:3px; background:#EDE2EF; color:#4A3D54}
+.athena-graft h5{display:inline-block; font-family:"Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif; font-size:.84em; font-weight:700; letter-spacing:.06em; margin:14px 0 6px; padding:1px 10px; border:1px solid #D6C9DC; border-left:3px solid #4E8597; border-radius:3px; background:#EDE2EF; color:#4A3D54}
 .athena-graft h5.r-hogo{background:rgba(94,140,140,.14); border-left-color:#5E8C8C; color:#37625f}
 .athena-graft h5.r-shushi{background:rgba(142,110,154,.16); border-left-color:#8E6E9A; color:#5f4a69}
 .athena-graft h5.r-shatei{background:rgba(79,138,91,.15); border-left-color:#4F8A5B; color:#2f6b3c}
 .athena-graft h5.r-youken{background:#EDE2EF; border-left-color:#4A3D54; color:#4A3D54}
 .athena-graft h5.r-ate{background:rgba(194,152,47,.16); border-left-color:#c2982f; color:#856219}
 .athena-graft h5.r-chui{background:rgba(160,80,122,.13); border-left-color:#A0507A; color:#8a3d63}
-.athena-graft p{margin:0 0 .8em; text-indent:1em}
-.athena-graft p:last-child{margin-bottom:0}
 
-/* 条文文言（statute）＝ Noto Serif（TX328 font-statute） */
+/* 条文文言（statute）＝ Noto Serif */
 .athena-graft blockquote.statute{margin:8px 0 12px; padding:12px 16px; border-radius:6px; font-family:"Noto Serif JP","Yu Mincho","Hiragino Mincho ProN",serif; font-size:.95rem; line-height:1.95; color:#2E4953; background:#fbfdfd; border:1px solid #cfe6e2; border-left:4px solid #6b7280}
 .athena-graft blockquote.statute p{margin:0; text-indent:0}
 
 /* 判旨（case）＝ TX328 .judgment-text（Zen Old Mincho・⚖判旨 pinkバッジ=--mid #D78A8A・等幅） */
-.athena-graft blockquote.case{position:relative; margin:20px 0 12px; padding:14px 16px 12px; border-radius:6px; font-family:"Zen Old Mincho","Yu Mincho","Hiragino Mincho ProN",serif; font-weight:700; font-size:.95rem; line-height:1.95; color:#2E4953; background:#fff; border:1px solid #ee9a9a; border-top:2px solid #D78A8A}
-.athena-graft blockquote.case::before{content:"⚖ 判旨"; position:absolute; top:-12px; left:16px; font-family:"Source Code Pro","Consolas",monospace; font-size:.72rem; font-weight:700; letter-spacing:.04em; color:#fff; background:#D78A8A; padding:4px 13px; border-radius:3px; box-shadow:0 1px 3px rgba(0,0,0,.16)}
+.athena-graft blockquote.case{position:relative; margin:20px 0 12px; padding:14px 16px 12px; border-radius:6px; font-family:"Zen Old Mincho","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; font-weight:700; font-size:.95rem; line-height:1.95; color:#2E4953; background:#fff; border:1px solid #ee9a9a; border-top:2px solid #D78A8A}
+.athena-graft blockquote.case::before{content:"⚖ 判旨"; position:absolute; top:-12px; left:16px; font-family:"Source Code Pro","Consolas","Menlo",monospace; font-size:.72rem; font-weight:700; letter-spacing:.04em; color:#fff; background:#D78A8A; padding:4px 13px; border-radius:3px; box-shadow:0 1px 3px rgba(0,0,0,.16)}
 .athena-graft blockquote.case p{margin:0; text-indent:0}
 
 /* テーブル ＝ TX328（th=accent teal #4E8597・td罫 #88AEBA・ゼブラ #F0E8ED） */
-.athena-graft table{width:100%; border-collapse:collapse; margin:9px 0 5px; font-size:.9rem; font-family:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif; background:#fff}
+.athena-graft table{width:100%; border-collapse:collapse; margin:9px 0 5px; font-size:.9rem; font-family:"Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif; background:#fff}
 .athena-graft th,.athena-graft td{border:1px solid #88AEBA; padding:10px 12px; vertical-align:top; text-align:left; line-height:1.7}
-.athena-graft th{background:#4E8597; color:#fff; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif; font-weight:700; letter-spacing:.04em; white-space:nowrap}
+.athena-graft th{background:#4E8597; color:#fff; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; font-weight:700; letter-spacing:.04em; white-space:nowrap}
 .athena-graft tr:nth-child(even) td{background:#F0E8ED}
-
-/* 型別アイコン（TX328 basis-card-header） */
-.athena-graft section[id^="ref-stat"] > h4::before{content:"📜 "}
-.athena-graft section[id^="ref-case"] > h4::before{content:"⚖ "}
-.athena-graft section[id^="ref-doctrine"] > h4::before{content:"📖 "}
-.athena-graft section[id^="ref-term"] > h4::before{content:"📕 "}
-
-/* 型別の面・罫（TX328：条文=teal #eef6f6 / 判例=pink #fdf1f1＋濃pinkヘッダ / 学説・用語=デフォルトbasis-card） */
-.athena-graft section[id^="ref-stat"]{background:#eef6f6; border-color:#bcdbd7; border-left:5px solid #7fb1ad}
-.athena-graft section[id^="ref-case"]{background:#fdf1f1; border-color:#f0c3c3; border-left:5px solid #ee9a9a}
-.athena-graft section[id^="ref-case"] > h4{background:#fdc9c9; color:#7a2e2e; border-bottom-color:#f3b3b3}
-.athena-graft section[id^="ref-doctrine"]{border-left:5px solid #D6C9DC}
-.athena-graft section[id^="ref-term"]{border-left:5px solid #D6C9DC}
 
 /* 核心論点ボックス ＝ TX328 .note（青・ℹ NOTE・Zen Kaku） */
 .athena-graft .key-box{position:relative; background:#e7f1ff; border:1px solid rgba(21,101,192,.30); border-radius:8px; padding:14px 16px 12px; margin:12px 0; font-family:"Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif; font-weight:500}
-.athena-graft .key-box::before{content:"\2139 \6838\5fc3\8ad6\70b9\ff08\914d\70b9\306e\9ad8\3044\9806\ff09"; display:block; font-family:"Source Code Pro","Consolas",monospace; font-weight:700; font-size:.72rem; letter-spacing:.1em; color:#0d47a1; margin-bottom:7px}
+.athena-graft .key-box::before{content:"\2139 \6838\5fc3\8ad6\70b9\ff08\914d\70b9\306e\9ad8\3044\9806\ff09"; display:block; font-family:"Source Code Pro","Consolas","Menlo",monospace; font-weight:700; font-size:.72rem; letter-spacing:.1em; color:#0d47a1; margin-bottom:7px}
 .athena-graft .key-box ol{margin:0; padding-left:1.4em}
 .athena-graft .key-box li{margin:.3em 0; line-height:1.8}
 
-/* 重要度 ＝ TX328 .freq-badge（high=accent #4E8597／mid #88AEBA／low #DCE8E8） */
-.athena-graft .rank-A,.athena-graft .rank-B,.athena-graft .rank-C,.athena-graft .tan{display:inline-block; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",sans-serif; font-weight:700; font-size:.78em; padding:2px 9px; border-radius:4px; letter-spacing:.08em; vertical-align:1px}
-.athena-graft .rank-A,.athena-graft .tan-super{color:#fff; background:#4E8597; border:2px solid #14252C}
+/* インライン重要度（本文中の rank-* / tan-*）＝ freq-badge 階調 */
+.athena-graft .rank-A,.athena-graft .rank-B,.athena-graft .rank-C,.athena-graft .tan{display:inline-block; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; font-weight:700; font-size:.78em; padding:1px 8px; border-radius:4px; letter-spacing:.06em; vertical-align:1px}
+.athena-graft .rank-A,.athena-graft .tan-super{color:#fff; background:#4E8597}
 .athena-graft .rank-B,.athena-graft .tan-high{color:#2E4953; background:#88AEBA}
 .athena-graft .rank-C,.athena-graft .tan-std{color:#2E4953; background:#DCE8E8}
 .athena-graft .tan{margin-left:4px}
@@ -158,6 +154,42 @@ def tag_h5_roles(block):
     return re.sub(r'<h5>(.*?)</h5>', repl, block, flags=re.S)
 
 
+# ATHENA の ref-entry を TX328 の本物の型（basis-card / basis-card-header / basis-card-body）へ流し込む
+TYPE_CLS = {'stat': 'statute-card', 'case': 'case-card', 'doctrine': 'doctrine-card', 'term': 'term-card'}
+TYPE_ICON = {'stat': '📜', 'case': '⚖', 'doctrine': '📖', 'term': '📕'}
+TAN_FREQ = {'tan-super': 'freq-high', 'tan-high': 'freq-mid', 'tan-std': 'freq-low'}
+
+RANK_FREQ = {'rank-A': ('freq-high', '★★★'), 'rank-B': ('freq-mid', '★★'), 'rank-C': ('freq-low', '★')}
+
+def to_basis_card(raw, kind):
+    """ref-entry → TX328 の本物の型 <div class="basis-card {type}-card"><div class="basis-card-header">…</div><div class="basis-card-body">…</div></div>
+    題名＝先頭の h4、無ければ先頭の h5（学説・用語は h5 が題名）。本文側の残り h5 だけ kd-label 化する。"""
+    m_id = re.search(r'<section class="ref-entry" id="([^"]+)">', raw)
+    cid = m_id.group(1) if m_id else ''
+    inner = raw[m_id.end():] if m_id else raw
+    inner = re.sub(r'</section>\s*$', '', inner).strip()
+    # 題名要素：h4 優先、無ければ先頭 h5
+    mt = re.search(r'<h4[^>]*>(.*?)</h4>', inner, re.S) or re.search(r'<h5[^>]*>(.*?)</h5>', inner, re.S)
+    title_raw = mt.group(1) if mt else ''
+    body = (inner[:mt.start()] + inner[mt.end():]) if mt else inner
+    # 重要度 → freq-badge（短答★ tan、無ければ rank-A/B/C）
+    freq_html = ''
+    tan = re.search(r'<span class="tan ([^"]+)">(.*?)</span>', title_raw, re.S)
+    if tan:
+        freq_html = f'<span class="freq-badge {TAN_FREQ.get(tan.group(1).split()[0], "freq-mid")}">{tan.group(2).strip()}</span>'
+    else:
+        rk = re.search(r'class="(rank-[ABC])"', title_raw)
+        if rk:
+            fc, star = RANK_FREQ[rk.group(1)]
+            freq_html = f'<span class="freq-badge {fc}">{star}</span>'
+    title = re.sub(r'<span class="tan[^"]*">.*?</span>', '', title_raw, flags=re.S)
+    title = re.sub(r'<[^>]+>', '', title).strip()
+    body = tag_h5_roles(body.strip())
+    header = f'<div class="basis-card-header">{TYPE_ICON[kind]} {title}{freq_html}</div>'
+    return (f'<div class="basis-card {TYPE_CLS[kind]}" id="{cid}">\n'
+            f'{header}\n<div class="basis-card-body">\n{body}\n</div>\n</div>')
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("id", help="問題ID（例 刑JX001）")
@@ -187,10 +219,10 @@ def main():
 
     # --- サニタイズ ---
     issue = tag_h5_roles(strip_backrefs(issue)) if issue else ""
-    stats = [tag_h5_roles(strip_backrefs(e)) for e in stats]
-    cases = [tag_h5_roles(strip_backrefs(e)) for e in cases]
-    docs  = [tag_h5_roles(strip_backrefs(e)) for e in docs]
-    terms = [tag_h5_roles(strip_backrefs(e)) for e in terms]
+    stats = [to_basis_card(strip_backrefs(e), 'stat') for e in stats]
+    cases = [to_basis_card(strip_backrefs(e), 'case') for e in cases]
+    docs  = [to_basis_card(strip_backrefs(e), 'doctrine') for e in docs]
+    terms = [to_basis_card(strip_backrefs(e), 'term') for e in terms]
 
     def sect(kind, title, sub, items):
         if not items: return ""
