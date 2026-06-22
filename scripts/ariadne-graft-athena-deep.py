@@ -85,7 +85,7 @@ GRAFT_CSS = """
 /* テーブル ＝ TX328（th=accent teal #4E8597・td罫 #88AEBA・ゼブラ #F0E8ED） */
 .athena-graft table{width:100%; border-collapse:collapse; margin:9px 0 5px; font-size:.9rem; font-family:"Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif; background:#fff}
 .athena-graft th,.athena-graft td{border:1px solid #88AEBA; padding:10px 12px; vertical-align:top; text-align:left; line-height:1.7}
-.athena-graft th{background:#4E8597; color:#fff; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; font-weight:700; letter-spacing:.04em; white-space:nowrap}
+.athena-graft th{background:#d6e8e7; color:#1f4d4a; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; font-weight:700; letter-spacing:.04em; white-space:nowrap}
 .athena-graft tr:nth-child(even) td{background:#F0E8ED}
 
 /* 核心論点ボックス ＝ TX328 .note（青・ℹ NOTE・Zen Kaku） */
@@ -127,6 +127,54 @@ def balanced_div(html, start_idx):
             if depth == 0:
                 return html[start_idx:i]
     return None
+
+
+def merge_empty_cells(html):
+    """ATHENA の表は「効果」等を1行目だけ書き2行目以降を空セルにする（rowspan のつもり）。
+    空 <td></td> を直上の同列セルへ rowspan 結合し、空白行に見える問題を解消する。
+    既存 rowspan/colspan を含む表は触らない（誤結合防止）。"""
+    def fix_table(mt):
+        tbl = mt.group(0)
+        if 'rowspan' in tbl or 'colspan' in tbl:
+            return tbl
+        rows = re.findall(r'<tr[^>]*>(.*?)</tr>', tbl, re.S)
+        parsed = []
+        for rrow in rows:
+            cells = re.findall(r'<(t[hd])((?:\s[^>]*)?)>(.*?)</\1>', rrow, re.S)
+            parsed.append([list(c) for c in cells])
+        ncol = max((len(r) for r in parsed), default=0)
+        if ncol == 0:
+            return tbl
+        delete = set(); span = {}
+        for col in range(ncol):
+            owner = None
+            for row in range(len(parsed)):
+                if col >= len(parsed[row]):
+                    owner = None; continue
+                inner = parsed[row][col][2]
+                if inner.strip() == '':
+                    if owner is not None:
+                        span[owner] = span.get(owner, 1) + 1
+                        delete.add((row, col))
+                    # 直上に親が無い空セルはそのまま
+                else:
+                    owner = (row, col)
+        if not delete:
+            return tbl
+        out = []
+        for row in range(len(parsed)):
+            cs = []
+            for col in range(len(parsed[row])):
+                if (row, col) in delete:
+                    continue
+                tag, attrs, inner = parsed[row][col]
+                rs = span.get((row, col))
+                if rs and rs > 1:
+                    attrs = attrs + f' rowspan="{rs}"'
+                cs.append(f'<{tag}{attrs}>{inner}</{tag}>')
+            out.append('<tr>' + ''.join(cs) + '</tr>')
+        return '<table>' + ''.join(out) + '</table>'
+    return re.sub(r'<table[^>]*>.*?</table>', fix_table, html, flags=re.S)
 
 
 def strip_backrefs(block):
@@ -182,7 +230,7 @@ def to_basis_card(raw, kind):
             freq_html = f'<span class="freq-badge {fc}">{star}</span>'
     title = re.sub(r'<span class="tan[^"]*">.*?</span>', '', title_raw, flags=re.S)
     title = re.sub(r'<[^>]+>', '', title).strip()
-    body = tag_h5_roles(body.strip())
+    body = merge_empty_cells(tag_h5_roles(body.strip()))
     header = f'<div class="basis-card-header">{TYPE_ICON[kind]} {title}{freq_html}</div>'
     return (f'<div class="basis-card {TYPE_CLS[kind]}" id="{cid}">\n'
             f'{header}\n<div class="basis-card-body">\n{body}\n</div>\n</div>')
@@ -216,7 +264,7 @@ def main():
         return
 
     # --- サニタイズ ---
-    issue = tag_h5_roles(strip_backrefs(issue)) if issue else ""
+    issue = merge_empty_cells(tag_h5_roles(strip_backrefs(issue))) if issue else ""
     stats = [to_basis_card(strip_backrefs(e), 'stat') for e in stats]
     cases = [to_basis_card(strip_backrefs(e), 'case') for e in cases]
     docs  = [to_basis_card(strip_backrefs(e), 'doctrine') for e in docs]
