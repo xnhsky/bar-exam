@@ -35,46 +35,69 @@ XREF_ANCHOR = ".xref{color:var(--a-head); font-weight:700}"
 GRAFT_MARK = "ATHENA-GRAFT"
 
 GRAFT_CSS = """
-/* ==== ATHENA-GRAFT : アテナ(JX)から移植した 論点/条文/判例/学説 の scoped 描画 ==== */
-.athena-graft{margin:6px 0 2px}
-.athena-graft .graft-h{font-family:var(--f-soft); color:#fff; font-weight:800; font-size:.86rem; letter-spacing:.04em; background:linear-gradient(135deg,var(--a-head),var(--a-foot)); border-radius:9px 9px 0 0; padding:9px 14px; margin:18px 0 0; display:flex; align-items:center; gap:8px}
-.athena-graft .graft-note{font-family:var(--f-soft); font-size:.76rem; color:var(--ink-soft); background:var(--sheet); border:1px solid var(--line-2); border-top:none; border-radius:0 0 9px 9px; padding:6px 14px 7px; margin:0 0 8px}
-.athena-graft .card,.athena-graft .ref-entry{background:#fff; border:1px solid var(--line-2); border-radius:11px; padding:14px 17px; margin:11px 0; box-shadow:0 2px 7px rgba(70,58,80,.05); line-height:1.9; font-family:var(--f-body); font-size:.9rem; color:var(--ink)}
-.athena-graft .ref-entry{border-left:4px solid var(--a-mid)}
-/* 背景＝マイルドライナー（薄）で系統別に：条文ブルー／判例ピンク／学説グリーン／用語オレンジ */
-.athena-graft section[id^="ref-stat"]{background:var(--ml-blue); border-color:var(--ml-blue-b); border-left:4px solid var(--ml-blue-d)}
-.athena-graft section[id^="ref-case"]{background:var(--ml-pink); border-color:var(--ml-pink-b); border-left:4px solid var(--ml-pink-d)}
-.athena-graft section[id^="ref-doctrine"]{background:var(--ml-green); border-color:var(--ml-green-b); border-left:4px solid var(--ml-green-d)}
-.athena-graft section[id^="ref-term"]{background:var(--ml-orange); border-color:var(--ml-orange-b); border-left:4px solid var(--ml-orange-d)}
-.athena-graft h3{font-family:var(--f-disp); font-size:1.04rem; color:var(--a-head); margin:0 0 8px}
-.athena-graft h4{font-family:var(--f-disp); font-size:.98rem; color:var(--ink); margin:0 0 7px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; border:none; padding:0}
-.athena-graft h5{font-family:var(--f-soft); font-size:.82rem; font-weight:800; color:#4a4450; margin:13px 0 3px; padding-left:9px; border-left:3px solid rgba(0,0,0,.22)}
-.athena-graft p{margin:.4em 0; text-indent:0}
-/* 内側の条文引用・表は白半透明で本文を読みやすく（薄い色面の上でも可読） */
-.athena-graft blockquote.statute,.athena-graft blockquote.case{margin:8px 0; padding:11px 15px; border-radius:9px; font-family:var(--f-disp); line-height:1.95; background:rgba(255,255,255,.66)}
-.athena-graft blockquote.statute{border-left:4px solid var(--ml-blue-d)}
-.athena-graft blockquote.case{border-left:4px solid var(--ml-pink-d)}
+/* ==== ATHENA-GRAFT : アテナ移植を高級誌面に作り込む（scoped・系統別マイルドライナー） ==== */
+.athena-graft{margin:10px 0 2px; --gc:#f6f4ef; --gcb:var(--line-2); --gcd:var(--a-head); --gcm:var(--a-mid)}
+/* 系統トークン（条文Blue／判例Pink／学説Green／用語Orange）＝カード内で継承 */
+.athena-graft section[id^="ref-stat"]{--gc:var(--ml-blue); --gcb:var(--ml-blue-b); --gcd:var(--ml-blue-d); --gcm:var(--ml-blue-m)}
+.athena-graft section[id^="ref-case"]{--gc:var(--ml-pink); --gcb:var(--ml-pink-b); --gcd:var(--ml-pink-d); --gcm:var(--ml-pink-m)}
+.athena-graft section[id^="ref-doctrine"]{--gc:var(--ml-green); --gcb:var(--ml-green-b); --gcd:var(--ml-green-d); --gcm:var(--ml-green-m)}
+.athena-graft section[id^="ref-term"]{--gc:var(--ml-orange); --gcb:var(--ml-orange-b); --gcd:var(--ml-orange-d); --gcm:var(--ml-orange-m)}
+
+/* 章扉バンド（系統色の帯＋エンボス＋柱）＝誌面のセクション扉 */
+.athena-graft .graft-h{position:relative; font-family:var(--f-disp); color:#fff; font-weight:800; font-size:1rem; letter-spacing:.07em; background:linear-gradient(135deg,var(--a-head),var(--a-foot)); border-radius:13px 13px 0 0; padding:13px 17px 12px 19px; margin:26px 0 0; display:flex; align-items:center; gap:10px; box-shadow:0 4px 13px rgba(70,58,80,.17), inset 0 1px 0 rgba(255,255,255,.22)}
+.athena-graft .graft-h::before{content:""; position:absolute; left:8px; top:50%; transform:translateY(-50%); width:4px; height:1.15em; border-radius:3px; background:rgba(255,255,255,.72)}
+.athena-graft .graft-note{font-family:var(--f-soft); font-size:.745rem; color:var(--ink-soft); background:#fff; border:1px solid var(--line-2); border-top:none; border-radius:0 0 13px 13px; padding:8px 17px 9px; margin:0 0 12px; box-shadow:0 3px 9px rgba(70,58,80,.06); line-height:1.7}
+
+/* プロファイルカード（系統色の薄面＋立体＋左スパイン） */
+.athena-graft .card,.athena-graft .ref-entry{position:relative; background:var(--gc); border:1px solid var(--gcb); border-left:5px solid var(--gcd); border-radius:14px; padding:16px 19px 17px; margin:14px 0; line-height:1.92; font-family:var(--f-body); font-size:.9rem; color:#322c38; box-shadow:0 4px 13px rgba(70,58,80,.08), inset 0 1px 0 rgba(255,255,255,.55)}
+.athena-graft .ref-entry::after{content:""; position:absolute; inset:0; border-radius:14px; pointer-events:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+
+/* カード見出し（条文名・判例名）＝明朝大・下に系統罫・バッジ右寄せ */
+.athena-graft h3{font-family:var(--f-disp); font-size:1.12rem; color:var(--a-head); margin:0 0 5px; letter-spacing:.04em}
+.athena-graft .ref-entry > h4{font-family:var(--f-disp); font-size:1.04rem; font-weight:800; color:#2c2632; margin:-1px 0 11px; padding:0 0 9px; border-bottom:1.5px solid var(--gcb); display:flex; align-items:center; gap:9px; flex-wrap:wrap; letter-spacing:.02em; line-height:1.5}
+.athena-graft .card > h4{font-family:var(--f-disp); font-size:1rem; color:var(--a-head); margin:15px 0 7px; padding:3px 0 3px 12px; border-left:4px solid var(--a-head); letter-spacing:.02em}
+
+/* 小見出し h5 ＝アイブロウ（系統色のひし形ティック＋レター間隔） */
+.athena-graft h5{font-family:var(--f-soft); font-size:.745rem; font-weight:800; letter-spacing:.09em; color:var(--gcd); margin:15px 0 4px; padding-left:17px; position:relative; text-transform:none}
+.athena-graft h5::before{content:""; position:absolute; left:1px; top:.16em; width:9px; height:9px; border-radius:2px; background:var(--gcd); transform:rotate(45deg); box-shadow:0 1px 2px rgba(0,0,0,.18)}
+.athena-graft p{margin:.42em 0; text-indent:0}
+
+/* 法文／判旨＝白の引用紙パネル（明朝・コーナーラベル・内影） */
+.athena-graft blockquote.statute,.athena-graft blockquote.case{position:relative; margin:10px 0 12px; padding:15px 17px 13px; border-radius:11px; font-family:var(--f-disp); font-size:.95rem; line-height:1.98; color:#2f2935; background:linear-gradient(180deg,#ffffff,rgba(255,255,255,.86)); border:1px solid var(--gcb); border-left:4px solid var(--gcd); box-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 2px 7px rgba(70,58,80,.06)}
+.athena-graft blockquote.statute::before{content:"§ 法文"; position:absolute; top:-9px; left:14px; font-family:var(--f-code); font-size:.62rem; font-weight:700; letter-spacing:.1em; color:#fff; background:var(--gcd); padding:2px 8px; border-radius:5px; box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.athena-graft blockquote.case::before{content:"⚖ 判旨"; position:absolute; top:-9px; left:14px; font-family:var(--f-code); font-size:.62rem; font-weight:700; letter-spacing:.08em; color:#fff; background:var(--gcd); padding:2px 8px; border-radius:5px; box-shadow:0 1px 3px rgba(0,0,0,.18)}
 .athena-graft blockquote p{margin:0; text-indent:0}
-.athena-graft table{width:100%; border-collapse:collapse; margin:8px 0; font-size:.85rem; font-family:var(--f-body); background:rgba(255,255,255,.5)}
-.athena-graft th,.athena-graft td{border:1px solid rgba(0,0,0,.14); padding:6px 9px; text-align:left; vertical-align:top}
-.athena-graft th{background:rgba(255,255,255,.7); color:var(--ink); font-family:var(--f-soft); font-weight:700; white-space:nowrap}
-.athena-graft .key-box{background:var(--gd-soft); border:1px solid var(--gd-line); border-radius:10px; padding:11px 14px 11px 16px; margin:10px 0}
-.athena-graft .key-box ol{margin:0; padding-left:1.3em}
-.athena-graft .key-box li{margin:.25em 0; font-size:.88rem}
-.athena-graft .rank-A,.athena-graft .rank-B,.athena-graft .rank-C{font-weight:800; padding:0 4px; border-radius:3px; font-family:var(--f-soft); font-size:.92em}
-.athena-graft .rank-A{color:#8a1f1f; background:#f6d5d5}
-.athena-graft .rank-B{color:#7a5810; background:#fbeec9}
-.athena-graft .rank-C{color:#445; background:#e3e7ec}
-.athena-graft .tan{display:inline-block; font-family:var(--f-soft); font-weight:800; font-size:.68rem; padding:1px 7px; border-radius:4px; letter-spacing:.04em; vertical-align:1px; margin-left:4px}
-.athena-graft .tan-super{background:#8a1f1f; color:#fff}
-.athena-graft .tan-high{background:#c2982f; color:#fff}
-.athena-graft .tan-std{background:#79a6a6; color:#fff}
+
+/* 誌面テーブル（系統色ヘッダ帯＋ゼブラ＋角丸クリップ） */
+.athena-graft table{width:100%; border-collapse:separate; border-spacing:0; margin:10px 0 5px; font-size:.84rem; font-family:var(--f-body); background:#fff; border:1px solid var(--gcb); border-radius:10px; overflow:hidden; box-shadow:0 2px 7px rgba(70,58,80,.06)}
+.athena-graft th,.athena-graft td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--gcb)}
+.athena-graft th{background:linear-gradient(135deg,var(--gcd),var(--gcm)); color:#fff; font-family:var(--f-soft); font-weight:700; letter-spacing:.03em; white-space:nowrap; box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+.athena-graft tr:nth-child(even) td{background:rgba(0,0,0,.022)}
+.athena-graft tr:last-child td{border-bottom:none}
+
+/* 論点カードの核心ボックス（金の囲み・誌面） */
+.athena-graft .key-box{position:relative; background:linear-gradient(180deg,var(--gd-soft),#fff); border:1px solid var(--gd-line); border-left:4px solid var(--gd); border-radius:12px; padding:14px 16px 13px; margin:12px 0; box-shadow:0 3px 9px rgba(160,120,30,.10)}
+.athena-graft .key-box::before{content:"★ 核心論点（配点の高い順）"; display:block; font-family:var(--f-soft); font-weight:800; font-size:.74rem; letter-spacing:.05em; color:var(--gd-deep); margin-bottom:6px}
+.athena-graft .key-box ol{margin:0; padding-left:1.4em}
+.athena-graft .key-box li{margin:.3em 0; font-size:.88rem; line-height:1.8}
+
+/* 重要度バッジ（艶あり立体ピル） */
+.athena-graft .rank-A,.athena-graft .rank-B,.athena-graft .rank-C{display:inline-block; font-family:var(--f-soft); font-weight:800; font-size:.82em; padding:1px 9px; border-radius:7px; letter-spacing:.03em; box-shadow:0 1px 2px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.4); vertical-align:1px}
+.athena-graft .rank-A{color:#fff; background:linear-gradient(135deg,#c45069,#8a1f3a)}
+.athena-graft .rank-B{color:#fff; background:linear-gradient(135deg,#d6a83f,#9c7016)}
+.athena-graft .rank-C{color:#fff; background:linear-gradient(135deg,#8a93a0,#5b6470)}
+.athena-graft .tan{display:inline-block; font-family:var(--f-soft); font-weight:800; font-size:.66rem; padding:2px 8px; border-radius:6px; letter-spacing:.04em; vertical-align:1px; color:#fff; box-shadow:0 1px 2px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.35)}
+.athena-graft .tan-super{background:linear-gradient(135deg,#b53a52,#8a1f1f)}
+.athena-graft .tan-high{background:linear-gradient(135deg,#d6a83f,#a8761c)}
+.athena-graft .tan-std{background:linear-gradient(135deg,#7faaaa,#557d7d)}
+/* 本文蛍光（マイルドライナー下線） */
 .athena-graft .hl-super{background:linear-gradient(transparent 58%,var(--hl-gold) 58%); font-weight:700; padding:0 2px}
 .athena-graft .hl-high{background:linear-gradient(transparent 60%,var(--hl-green) 60%); font-weight:700; padding:0 2px}
 .athena-graft .hl-std{background:linear-gradient(transparent 66%,var(--hl-blue) 66%); padding:0 2px}
-.athena-graft a.xref{color:var(--a-head); font-weight:700; text-decoration:none; border-bottom:1.5px solid var(--li-line)}
-.athena-graft a.xref:hover{background:var(--li-soft)}
-.athena-graft .xref-dead{color:var(--ink); font-weight:600}
+.athena-graft strong{color:#241f2a; font-weight:800}
+.athena-graft a.xref{color:var(--gcd); font-weight:700; text-decoration:none; border-bottom:1.5px solid var(--gcb); padding:0 1px}
+.athena-graft a.xref:hover{background:rgba(255,255,255,.6)}
+.athena-graft .xref-dead{color:#322c38; font-weight:600}
 .athena-graft .back-to-toc{display:none}
 """
 
