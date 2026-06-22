@@ -91,7 +91,7 @@ GRAFT_CSS = """
 
 /* 核心論点ボックス ＝ TX328 .note（青・ℹ NOTE・Zen Kaku） */
 .athena-graft .key-box{position:relative; background:#e7f1ff; border:1px solid rgba(21,101,192,.30); border-radius:8px; padding:14px 16px 12px; margin:12px 0; font-family:"Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif; font-weight:500}
-.athena-graft .key-box::before{content:"\2139 \6838\5fc3\8ad6\70b9\ff08\914d\70b9\306e\9ad8\3044\9806\ff09"; display:block; font-family:"Source Code Pro","Consolas","Menlo",monospace; font-weight:700; font-size:.72rem; letter-spacing:.1em; color:#0d47a1; margin-bottom:7px}
+.athena-graft .key-box::before{content:"🔑 KEY"; display:block; font-family:"Source Code Pro","Consolas","Menlo",monospace; font-weight:700; font-size:.72rem; letter-spacing:.1em; color:#0d47a1; margin-bottom:7px}
 .athena-graft .key-box ol{margin:0; padding-left:1.4em}
 .athena-graft .key-box li{margin:.3em 0; line-height:1.8}
 
