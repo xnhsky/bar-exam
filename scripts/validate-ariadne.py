@@ -172,19 +172,24 @@ def main():
             fe = '＋事実/評価語' if ('class="fact"' in inner or 'class="eval"' in inner) else '（事実/評価語スパン未付与）'
             P('A24', f'模範答案 問規当結カード {len(role_ps)} 段落{fe}')
 
-    # ---- A25 深掘り層をアテナ級に（TX 参考条文判例書式・spec §2-7／§11・当面 WARNING）----
+    # ---- A25 深掘り層をアテナ級に（TX 参考条文判例書式 or アテナ移植・spec §2-7／§11・当面 WARNING）----
     deep = re.search(r'<details id="deep-dive".*?</details>', html, re.S)
     deep_inner = deep.group(0) if deep else ''
     if deep_inner:
-        has_case = 'basis-card case-card' in deep_inner or 'case-card' in deep_inner
+        has_case = 'case-card' in deep_inner
         has_stat = 'statute-card' in deep_inner
-        if has_case and has_stat:
+        # アテナ移植(graft)形式：athena-graft 内に条文/判例 ref-entry がある
+        has_graft = 'athena-graft' in deep_inner and 'id="ref-stat' in deep_inner and 'id="ref-case' in deep_inner
+        if has_graft:
+            ns = len(re.findall(r'id="ref-stat', deep_inner)); nc = len(re.findall(r'id="ref-case', deep_inner)); nd = len(re.findall(r'id="ref-doctrine', deep_inner))
+            P('A25', f'深掘り層がアテナ移植（条文{ns}・判例{nc}・学説{nd}の完全プロファイル）でアテナ級')
+        elif has_case and has_stat:
             P('A25', '深掘り層がTX参考条文判例書式（判例case-card＋条文statute-card）でアテナ級')
         else:
             miss = []
             if not has_case: miss.append('判例case-card')
             if not has_stat: miss.append('条文statute-card')
-            W('A25', f'深掘り層がアテナ級でない（不足: {"／".join(miss)}・TX書式へ・spec §2-7／§11）')
+            W('A25', f'深掘り層がアテナ級でない（不足: {"／".join(miss)}・TX書式 or アテナ移植へ・spec §2-7／§11）')
 
     # ---- A26 アテナで詳しく（百科事典版へのジャンプ・spec §11・当面 WARNING）----
     ga = re.search(r'class="go-athena"[^>]*data-athena-code="([^"]*)"', html)
