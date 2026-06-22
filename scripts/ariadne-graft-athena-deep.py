@@ -35,79 +35,83 @@ XREF_ANCHOR = ".xref{color:var(--a-head); font-weight:700}"
 GRAFT_MARK = "ATHENA-GRAFT"
 
 GRAFT_CSS = """
-/* ==== ATHENA-GRAFT : アテナ移植を高級誌面に作り込む（scoped・マイルドライナー自由構成＋役割別フォント） ====
-   ■ 色＝マイルドライナーから系統割付（自由構成）：論点=Violet／条文=Blue／判例=Pink／学説=Green／用語=Yellow
-   ■ フォント＝役割別：明朝(f-disp)＝題名・法文/判旨｜丸ゴ(f-soft)＝章扉・ラベル・小見出し・表頭｜
-                      角ゴ(f-body)＝本文・解説・表本文｜等幅(f-code)＝コード的ラベル(§法文/⚖判旨/短答) */
-.athena-graft{margin:10px 0 2px; --gc:#f6f4ef; --gcb:var(--line-2); --gcd:var(--a-head); --gcm:var(--a-mid)}
-/* 系統トークン（カード内で継承） */
-.athena-graft .card{--gc:var(--ml-violet); --gcb:var(--ml-violet-b); --gcd:var(--ml-violet-d); --gcm:var(--ml-violet-m)}
-.athena-graft section[id^="ref-stat"]{--gc:var(--ml-blue); --gcb:var(--ml-blue-b); --gcd:var(--ml-blue-d); --gcm:var(--ml-blue-m)}
-.athena-graft section[id^="ref-case"]{--gc:var(--ml-pink); --gcb:var(--ml-pink-b); --gcd:var(--ml-pink-d); --gcm:var(--ml-pink-m)}
-.athena-graft section[id^="ref-doctrine"]{--gc:var(--ml-green); --gcb:var(--ml-green-b); --gcd:var(--ml-green-d); --gcm:var(--ml-green-m)}
-.athena-graft section[id^="ref-term"]{--gc:var(--ml-yellow); --gcb:var(--ml-yellow-b); --gcd:var(--ml-yellow-d); --gcm:var(--ml-yellow-m)}
+/* ==== ATHENA-GRAFT : TX(GENESIS) 参考条文判例の作りを正典に再現（scoped・役割別フォント） ====
+   ■ TX 由来の構築：白の basis-card／型別の左罫＋ヘッダ淡色帯／kd-label 役割色の小見出し／
+     条文引用パネル／判旨ティールバッジ／freq-badge 重要度／TX テーブル。
+   ■ フォント役割：明朝(f-disp)=題名・条文/判旨｜丸ゴ(f-soft)=見出し・ラベル・表頭・バッジ｜
+                  角ゴ(f-body)=本文・解説・表本文｜等幅(f-code)=コード的ラベル */
+.athena-graft{margin:10px 0 2px}
 
-/* 章扉バンド（系統色の帯＝多色誌面）｜フォント＝丸ゴシック(ラベル役割) */
-.athena-graft .graft-h{position:relative; font-family:var(--f-soft); color:#fff; font-weight:800; font-size:1rem; letter-spacing:.07em; background:linear-gradient(135deg,var(--bg1,var(--a-head)),var(--bg2,var(--a-foot))); border-radius:13px 13px 0 0; padding:13px 17px 12px 21px; margin:26px 0 0; display:flex; align-items:center; gap:10px; box-shadow:0 4px 13px rgba(70,58,80,.17), inset 0 1px 0 rgba(255,255,255,.22)}
-.athena-graft .graft-h::before{content:""; position:absolute; left:9px; top:50%; transform:translateY(-50%); width:4px; height:1.15em; border-radius:3px; background:rgba(255,255,255,.78)}
-.athena-graft .gh-issue{--bg1:#6A4D86; --bg2:#46315c}
-.athena-graft .gh-stat {--bg1:#2F6A8C; --bg2:#1d465e}
-.athena-graft .gh-case {--bg1:#A84E74; --bg2:#76304f}
-.athena-graft .gh-doc  {--bg1:#4E7536; --bg2:#344f22}
-.athena-graft .gh-term {--bg1:#8a7320; --bg2:#574610}
-/* 章扉キャプション｜フォント＝角ゴシック(読む文) */
-.athena-graft .graft-note{font-family:var(--f-body); font-size:.745rem; color:var(--ink-soft); background:#fff; border:1px solid var(--line-2); border-top:none; border-radius:0 0 13px 13px; padding:8px 17px 9px; margin:0 0 12px; box-shadow:0 3px 9px rgba(70,58,80,.06); line-height:1.7}
+/* セクション見出し（TX セクション見出し風・左アクセント） */
+.athena-graft .graft-h{font-family:var(--f-soft); font-weight:800; font-size:.96rem; letter-spacing:.04em; color:var(--a-head); background:linear-gradient(90deg,rgba(0,0,0,.035),transparent); border-left:4px solid var(--a-head); border-radius:4px; padding:7px 0 7px 12px; margin:26px 0 0; display:flex; align-items:center; gap:9px}
+.athena-graft .graft-note{font-family:var(--f-body); font-size:.75rem; color:var(--ink-soft); margin:3px 0 12px 16px; line-height:1.7}
 
-/* プロファイルカード（系統色の薄面＋立体＋左スパイン）｜本文フォント＝角ゴシック */
-.athena-graft .card,.athena-graft .ref-entry{position:relative; background:var(--gc); border:1px solid var(--gcb); border-left:5px solid var(--gcd); border-radius:14px; padding:16px 19px 17px; margin:14px 0; line-height:1.92; font-family:var(--f-body); font-size:.9rem; color:#322c38; box-shadow:0 4px 13px rgba(70,58,80,.08), inset 0 1px 0 rgba(255,255,255,.55)}
-.athena-graft .ref-entry::after{content:""; position:absolute; inset:0; border-radius:14px; pointer-events:none; box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+/* プロファイルカード ＝ TX .basis-card（白・角丸・型別左罫・ヘッダ帯） */
+.athena-graft .card,.athena-graft .ref-entry{background:#fff; border:1px solid var(--line-2); border-radius:10px; padding:0 19px 16px; margin:14px 0; overflow:hidden; box-shadow:0 2px 8px rgba(70,58,80,.06); font-family:var(--f-body); font-size:.9rem; line-height:1.92; color:#2f2935}
+.athena-graft .ref-entry{border-left:5px solid #6b7280}
+.athena-graft section[id^="ref-case"]{border-left-color:var(--a-mid)}
+.athena-graft section[id^="ref-doctrine"]{border-left-color:#8E6E9A}
+.athena-graft section[id^="ref-term"]{border-left-color:#5b6470}
 
-/* タイトル類｜フォント＝明朝(格式・法律文) */
-.athena-graft h3{font-family:var(--f-disp); font-size:1.12rem; color:var(--gcd); margin:0 0 5px; letter-spacing:.04em}
-.athena-graft .ref-entry > h4{font-family:var(--f-disp); font-size:1.05rem; font-weight:800; color:#2c2632; margin:-1px 0 11px; padding:0 0 9px; border-bottom:1.5px solid var(--gcb); display:flex; align-items:center; gap:9px; flex-wrap:wrap; letter-spacing:.02em; line-height:1.5}
-.athena-graft .card > h4{font-family:var(--f-disp); font-size:1rem; color:var(--gcd); margin:15px 0 7px; padding:3px 0 3px 12px; border-left:4px solid var(--gcd); letter-spacing:.02em}
+/* カードヘッダ ＝ TX .basis-card-header（型別淡色帯・明朝） */
+.athena-graft .ref-entry > h4{font-family:var(--f-disp); font-weight:700; font-size:1.05em; color:#2c2632; letter-spacing:.03em; margin:0 -19px 14px; padding:12px 19px; background:#f3f4f6; border-bottom:1.5px solid var(--line-2); display:flex; align-items:center; gap:9px; flex-wrap:wrap}
+.athena-graft section[id^="ref-case"] > h4{background:#ffeef1}
+.athena-graft section[id^="ref-doctrine"] > h4{background:#f1ecf6}
+.athena-graft section[id^="ref-term"] > h4{background:#eef0f2}
 
-/* 小見出し h5 ＝アイブロウ｜フォント＝丸ゴシック(ラベル) */
-.athena-graft h5{font-family:var(--f-soft); font-size:.745rem; font-weight:800; letter-spacing:.09em; color:var(--gcd); margin:15px 0 4px; padding-left:17px; position:relative}
-.athena-graft h5::before{content:""; position:absolute; left:1px; top:.16em; width:9px; height:9px; border-radius:2px; background:var(--gcd); transform:rotate(45deg); box-shadow:0 1px 2px rgba(0,0,0,.18)}
-.athena-graft p{margin:.42em 0; text-indent:0}
+/* 論点カード（issue）＝ TX card 風 */
+.athena-graft .card{padding:14px 18px 16px; border-left:5px solid var(--a-head)}
+.athena-graft .card h3{font-family:var(--f-disp); font-size:1.1rem; color:var(--a-head); margin:0 0 10px; padding-bottom:7px; border-bottom:1.5px solid var(--line-2); letter-spacing:.03em}
+.athena-graft .card > h4{font-family:var(--f-disp); font-size:1rem; color:var(--a-head); margin:14px 0 7px; padding-left:11px; border-left:4px solid var(--a-head)}
 
-/* 法文／判旨＝白の引用紙パネル｜フォント＝明朝(法律文)・ラベルは等幅 */
-.athena-graft blockquote.statute,.athena-graft blockquote.case{position:relative; margin:13px 0 12px; padding:15px 17px 13px; border-radius:11px; font-family:var(--f-disp); font-size:.96rem; line-height:1.98; color:#2f2935; background:linear-gradient(180deg,#ffffff,rgba(255,255,255,.86)); border:1px solid var(--gcb); border-left:4px solid var(--gcd); box-shadow:inset 0 1px 0 rgba(255,255,255,.8), 0 2px 7px rgba(70,58,80,.06)}
-.athena-graft blockquote.statute::before{content:"§ 法文"; position:absolute; top:-9px; left:14px; font-family:var(--f-code); font-size:.62rem; font-weight:700; letter-spacing:.1em; color:#fff; background:var(--gcd); padding:2px 8px; border-radius:5px; box-shadow:0 1px 3px rgba(0,0,0,.18)}
-.athena-graft blockquote.case::before{content:"⚖ 判旨"; position:absolute; top:-9px; left:14px; font-family:var(--f-code); font-size:.62rem; font-weight:700; letter-spacing:.08em; color:#fff; background:var(--gcd); padding:2px 8px; border-radius:5px; box-shadow:0 1px 3px rgba(0,0,0,.18)}
-.athena-graft blockquote p{margin:0; text-indent:0}
+/* 小見出し h5 ＝ TX .kd-label（役割色・インラインタグ）｜丸ゴシック */
+.athena-graft h5{display:inline-block; font-family:var(--f-soft); font-size:.78rem; font-weight:700; letter-spacing:.05em; margin:14px 0 5px; padding:1px 11px; border:1px solid var(--line-2); border-left:3px solid #5b6470; border-radius:3px; background:#eef0f2; color:#3c4450}
+.athena-graft h5.r-hogo{background:rgba(94,140,140,.14); border-left-color:#5E8C8C; color:#37625f}
+.athena-graft h5.r-shushi{background:rgba(142,110,154,.16); border-left-color:#8E6E9A; color:#5f4a69}
+.athena-graft h5.r-shatei{background:rgba(79,138,91,.15); border-left-color:#4F8A5B; color:#2f6b3c}
+.athena-graft h5.r-youken{background:#eef0f2; border-left-color:#5b6470; color:#3c4450}
+.athena-graft h5.r-ate{background:rgba(194,152,47,.16); border-left-color:#c2982f; color:#856219}
+.athena-graft h5.r-chui{background:rgba(160,80,122,.13); border-left-color:#A0507A; color:#8a3d63}
+.athena-graft p{margin:.4em 0; text-indent:0}
 
-/* 誌面テーブル（系統色ヘッダ帯＋ゼブラ）｜表頭=丸ゴシック／本文=角ゴシック */
-.athena-graft table{width:100%; border-collapse:separate; border-spacing:0; margin:10px 0 5px; font-size:.84rem; font-family:var(--f-body); background:#fff; border:1px solid var(--gcb); border-radius:10px; overflow:hidden; box-shadow:0 2px 7px rgba(70,58,80,.06)}
-.athena-graft td{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--gcb)}
-.athena-graft th{padding:8px 12px; text-align:left; vertical-align:top; border-bottom:1px solid var(--gcb); background:linear-gradient(135deg,var(--gcd),var(--gcm)); color:#fff; font-family:var(--f-soft); font-weight:700; letter-spacing:.03em; white-space:nowrap; box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
-.athena-graft tr:nth-child(even) td{background:rgba(0,0,0,.022)}
+/* 条文文言（statute）＝ TX 条文引用風（白パネル・左罫・明朝） */
+.athena-graft blockquote.statute{margin:8px 0 12px; padding:12px 16px; border-radius:8px; font-family:var(--f-disp); font-size:.95rem; line-height:1.95; color:#2f2935; background:#f7f8fa; border:1px solid var(--line-2); border-left:4px solid #6b7280}
+.athena-graft blockquote.statute p{margin:0; text-indent:0}
+
+/* 判旨（case）＝ TX .judgment-text（【判旨】ティールバッジ・明朝） */
+.athena-graft blockquote.case{position:relative; margin:18px 0 12px; padding:14px 16px 12px; border-radius:8px; font-family:var(--f-disp); font-weight:600; font-size:.95rem; line-height:1.95; color:#2f2935; background:#fff; border:1px solid var(--a-mid); border-top:2px solid var(--ai)}
+.athena-graft blockquote.case::before{content:"判旨"; position:absolute; top:-11px; left:14px; font-family:var(--f-soft); font-size:.68rem; font-weight:800; letter-spacing:.08em; color:#fff; background:linear-gradient(135deg,var(--ai),var(--ai-deep)); padding:2px 10px; border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.athena-graft blockquote.case p{margin:0; text-indent:0}
+
+/* テーブル ＝ TX 風（淡ヘッダ・けい線・角丸クリップ）｜表頭=丸ゴ／本文=角ゴ */
+.athena-graft table{width:100%; border-collapse:separate; border-spacing:0; margin:9px 0 5px; font-size:.84rem; font-family:var(--f-body); background:#fff; border:1px solid var(--line-2); border-radius:8px; overflow:hidden}
+.athena-graft td{padding:7px 11px; vertical-align:top; border-bottom:1px solid var(--line-2)}
+.athena-graft th{padding:7px 11px; vertical-align:top; border-bottom:1.5px solid var(--line-2); background:#f3f4f6; color:#2c2632; font-family:var(--f-soft); font-weight:700; white-space:nowrap; text-align:left}
 .athena-graft tr:last-child td{border-bottom:none}
 
-/* 論点カードの核心ボックス（金の囲み）｜ラベル=丸ゴシック */
-.athena-graft .key-box{position:relative; background:linear-gradient(180deg,var(--gd-soft),#fff); border:1px solid var(--gd-line); border-left:4px solid var(--gd); border-radius:12px; padding:14px 16px 13px; margin:12px 0; box-shadow:0 3px 9px rgba(160,120,30,.10)}
-.athena-graft .key-box::before{content:"★ 核心論点（配点の高い順）"; display:block; font-family:var(--f-soft); font-weight:800; font-size:.74rem; letter-spacing:.05em; color:var(--gd-deep); margin-bottom:6px}
-.athena-graft .key-box ol{margin:0; padding-left:1.4em}
-.athena-graft .key-box li{margin:.3em 0; font-size:.88rem; line-height:1.8}
+/* 核心論点ボックス ＝ TX .note 風 */
+.athena-graft .key-box{background:#e7f1ff; border:1px solid rgba(21,101,192,.30); border-radius:8px; padding:13px 16px 12px; margin:12px 0}
+.athena-graft .key-box::before{content:"\2139 \6838\5fc3\8ad6\70b9\ff08\914d\70b9\306e\9ad8\3044\9806\ff09"; display:block; font-family:var(--f-soft); font-weight:700; font-size:.74rem; letter-spacing:.04em; color:#1a4f8a; margin-bottom:6px}
+.athena-graft .key-box ol{margin:0; padding-left:1.35em}
+.athena-graft .key-box li{margin:.28em 0; font-size:.88rem; line-height:1.8}
 
-/* 重要度バッジ（艶あり立体ピル）｜丸ゴシック */
-.athena-graft .rank-A,.athena-graft .rank-B,.athena-graft .rank-C{display:inline-block; font-family:var(--f-soft); font-weight:800; font-size:.82em; padding:1px 9px; border-radius:7px; letter-spacing:.03em; box-shadow:0 1px 2px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.4); vertical-align:1px}
-.athena-graft .rank-A{color:#fff; background:linear-gradient(135deg,#c45069,#8a1f3a)}
-.athena-graft .rank-B{color:#fff; background:linear-gradient(135deg,#d6a83f,#9c7016)}
-.athena-graft .rank-C{color:#fff; background:linear-gradient(135deg,#8a93a0,#5b6470)}
-.athena-graft .tan{display:inline-block; font-family:var(--f-code); font-weight:700; font-size:.64rem; padding:2px 8px; border-radius:6px; letter-spacing:.04em; vertical-align:1px; color:#fff; box-shadow:0 1px 2px rgba(0,0,0,.16), inset 0 1px 0 rgba(255,255,255,.35)}
-.athena-graft .tan-super{background:linear-gradient(135deg,#b53a52,#8a1f1f)}
-.athena-graft .tan-high{background:linear-gradient(135deg,#d6a83f,#a8761c)}
-.athena-graft .tan-std{background:linear-gradient(135deg,#7faaaa,#557d7d)}
-/* 本文蛍光（マイルドライナー下線） */
+/* 重要度 ＝ TX .freq-badge（rank/tan を 高/中/低 に写像）｜丸ゴ */
+.athena-graft .rank-A,.athena-graft .rank-B,.athena-graft .rank-C,.athena-graft .tan{display:inline-block; font-family:var(--f-soft); font-weight:700; font-size:.74em; padding:2px 9px; border-radius:4px; letter-spacing:.06em; vertical-align:1px}
+.athena-graft .rank-A{color:#fff; background:#c0506a}
+.athena-graft .rank-B{color:#5a3d00; background:#f3d99a}
+.athena-graft .rank-C{color:#33404d; background:#dfe3e8}
+.athena-graft .tan{color:#fff; margin-left:4px}
+.athena-graft .tan-super{background:#b53a52}
+.athena-graft .tan-high{background:#c2982f}
+.athena-graft .tan-std{background:#79a6a6}
+/* 本文蛍光（薄） */
 .athena-graft .hl-super{background:linear-gradient(transparent 58%,var(--hl-gold) 58%); font-weight:700; padding:0 2px}
 .athena-graft .hl-high{background:linear-gradient(transparent 60%,var(--hl-green) 60%); font-weight:700; padding:0 2px}
 .athena-graft .hl-std{background:linear-gradient(transparent 66%,var(--hl-blue) 66%); padding:0 2px}
-.athena-graft strong{color:#241f2a; font-weight:800}
-.athena-graft a.xref{color:var(--gcd); font-weight:700; text-decoration:none; border-bottom:1.5px solid var(--gcb); padding:0 1px}
-.athena-graft a.xref:hover{background:rgba(255,255,255,.6)}
-.athena-graft .xref-dead{color:#322c38; font-weight:600}
+.athena-graft strong{color:#241f2a; font-weight:700}
+.athena-graft a.xref{color:#1a2540; font-weight:700; text-decoration:none; background:rgba(20,40,90,.06); border-bottom:1.5px solid rgba(20,40,90,.4); padding:0 2px; border-radius:2px}
+.athena-graft a.xref:hover{color:#fff; background:#1a2540}
+.athena-graft .xref-dead{color:#2f2935; font-weight:600}
 .athena-graft .back-to-toc{display:none}
 """
 
@@ -132,6 +136,23 @@ def strip_backrefs(block):
     block = re.sub(r'<div class="back-refs">.*?</div>', '', block, flags=re.S)
     block = re.sub(r'<a [^>]*class="back-to-toc"[^>]*>.*?</a>', '', block, flags=re.S)
     return block
+
+
+# TX .kd-label の役割色へ：ATHENA の h5 見出し文言から役割クラスを推定して付与
+ROLE_MAP = [('保護法益', 'r-hogo'), ('立法趣旨', 'r-shushi'), ('制度趣旨', 'r-shushi'), ('趣旨', 'r-shushi'),
+            ('射程', 'r-shatei'), ('要件', 'r-youken'), ('効果', 'r-youken'), ('体系的位置', 'r-youken'), ('性質', 'r-youken'),
+            ('答案', 'r-ate'), ('使い方', 'r-ate'), ('具体化', 'r-ate'), ('分解', 'r-ate'),
+            ('注意', 'r-chui'), ('批判', 'r-chui'), ('改正', 'r-chui'), ('関連', 'r-chui'), ('対立', 'r-chui')]
+
+def tag_h5_roles(block):
+    def repl(m):
+        text = m.group(1)
+        cls = 'r-youken'
+        for kw, c in ROLE_MAP:
+            if kw in text:
+                cls = c; break
+        return f'<h5 class="kd-label {cls}">{text}</h5>'
+    return re.sub(r'<h5>(.*?)</h5>', repl, block, flags=re.S)
 
 
 def main():
@@ -162,11 +183,11 @@ def main():
         return
 
     # --- サニタイズ ---
-    issue = strip_backrefs(issue) if issue else ""
-    stats = [strip_backrefs(e) for e in stats]
-    cases = [strip_backrefs(e) for e in cases]
-    docs  = [strip_backrefs(e) for e in docs]
-    terms = [strip_backrefs(e) for e in terms]
+    issue = tag_h5_roles(strip_backrefs(issue)) if issue else ""
+    stats = [tag_h5_roles(strip_backrefs(e)) for e in stats]
+    cases = [tag_h5_roles(strip_backrefs(e)) for e in cases]
+    docs  = [tag_h5_roles(strip_backrefs(e)) for e in docs]
+    terms = [tag_h5_roles(strip_backrefs(e)) for e in terms]
 
     def sect(kind, title, sub, items):
         if not items: return ""
