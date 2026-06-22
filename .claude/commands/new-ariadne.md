@@ -19,6 +19,9 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
 1. `outputs/001_JX/{科目}JX/{科目}JX{NNN}.html`（ATHENA）を一次情報源に Read。事案と論点の自己照合（不一致は中断）。
 2. `canonical/ARIADNE.html` を `outputs/ux/000_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html` へ複製→空化→鋳造。
 3. 解法7手（SCAN→BUILD）＋骨子＋自己採点＋模範reveal＋深掘り＋**自己完結○× 10〜15枚**（`data-arena="1"`＋`data-correct-value`）。
+   **深掘り層はアテナ級（spec §11）**：判例・学説・条文を **TX 参考条文判例書式**（`.basis-card.case-card`/`.statute-card`＋
+   【事案】【判旨】【補足】＋`.kd-label` 制度趣旨/保護法益＋`.freq-badge`）で鋳造し、末尾に**「アテナで詳しく」ボタン**
+   （`.go-athena data-athena-code="{元問題ID}"`＝postMessage `lexia:navigate` で本物のアテナ版へジャンプ）。
 4. `validate-ariadne.py` で A1〜A21 ERROR 0 を確認。
 5. **master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 

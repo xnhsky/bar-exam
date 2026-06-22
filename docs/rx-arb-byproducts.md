@@ -76,6 +76,11 @@ pwsh -NoProfile -File scripts/rx-arb-backfill.ps1 -Subject 刑 -SkipRx -SkipArb 
 - **TREE は外部 arbor 不在なら vendored モード**（`canonical/ARBOR.html` + `validate-tree.py`）へ
   自動フォールバックするので、arbor を持たない PC でも TREE を埋められる。
 - 抑止スイッチ：`-SkipRx` / `-SkipArb` / `-SkipAriadne`。
+- **ARIADNE 深掘り層のアテナ級化＋アテナジャンプ（spec §11・2026-06-22）**：新規生成は canonical 継承で
+  自動。**既存 ARIADNE への B（「アテナで詳しく」ボタン＋TX書式CSS＋JS）後追いは
+  `python scripts/ariadne-athena-deep-backfill.py [--subject 刑] [--apply]`（冪等）**。深掘り層の中身を
+  TX 参考条文判例カードへアテナ級化する A は問題固有＝再生成で揃う（backfill は B を先行配備する保険）。
+  Lexia 側の受け口は `lexia` リポジトリ `LXA_FEAT_ariadne-athena-jump`（postMessage `lexia:navigate`）。
 - 生成後の永続化は通常の git commit か `jx-finalize.ps1 -Subject 刑 -Ids ... -NoCleanup`。
   バックフィルは入力 PDF を消さない（cleanup は新規生成パイプライン側の責務）。
 

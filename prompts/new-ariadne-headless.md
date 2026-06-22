@@ -27,7 +27,15 @@
    - **骨子**（`.bone`）＝第1/第2/…の番号＋見出し＋論点＋結論一行（違法性・責任は「阻却事由なし・一言で通過」を明記）。
    - **照合・自己採点**（`.rubric`）＝採点講評の減点ポイントを☐リスト化（**AI採点に依存しない**）。
    - **模範答案**（`details.reveal-answer`）＝JX 模範を簡潔化して収録（字下げ・明朝）。**各段落 `<p>` に問規当結の役割クラスを付与**（spec §10）：問題提起=`class="role r-issue"`／規範=`class="role r-norm"`（説名は `<b class="rule">`）／あてはめ=`class="role r-apply"`／結論=`class="role r-concl"`（`.ma-h` 見出しには付けない）。あてはめ段落では **事実=`<span class="fact">`（生の事実）／評価語=`<span class="eval">`（「現実的危険を有する」等の橋渡し評価）** を括る。CSS は canonical 継承。
-   - **深掘り層**（`details#deep-dive`）＝規範コア／判例射程／条文を**薄く**。フル解説は ATHENA へ誘導。
+   - **深掘り層**（`details#deep-dive`）＝**アテナ級**に鋳造（spec §11）。判例・学説・条文は **TX 参考条文判例書式**で：
+     ①規範（`.box-norm`）②学説対立（`.gakusetsu > .gk`・本問採用説に `.gk.adopt`）③**判例 完全プロファイル**
+     （`.basis-card.case-card`：ヘッダ `⚖ 判例名`＋`.freq-badge` ★、本文は **【事案】【判旨】【補足】** を
+     `<p class="hanging"><strong>…</strong><span class="hang-body">…`、【判旨】は `.judgment-text`）④**条文 完全プロファイル**
+     （`.basis-card.statute-card`：`.para-num` 項番号＋条文文言、`.note>.note-body` に制度趣旨/保護法益/要件/射程を
+     `.kd-label.r-shushi/r-hogo/r-youken/r-shatei` で整理。周辺条文は `.kd-item` 一覧）。相互参照は `a.ref-stat`/`a.ref-case`。
+     CSS は {SKELETON} 継承。**法的正確性は {JX_HTML} に厳密準拠**（無い判例・規範を創作しない）。
+     **末尾に「アテナで詳しく」ボタン**：`<a class="go-athena" role="button" tabindex="0" data-athena-code="{元問題ID}" data-athena-href="../../../001_JX/{00N_科目}/{元問題ID}.html">…</a>`
+     （`data-athena-code` は `_ARIADNE` を付けない元 ID＝例 `刑JX001`。文言にメタ除去 regex 語＝`本問`/`正解は肢` 等を含めない）。
 3-bis. **答案構成パズル（spec §9・周回の主役）** ─ エンジン（CSS/JS/ヒント・フォールバック）は {SKELETON} 継承で自動。生成時に**問題固有の下記**を付与する：
    - **骨子タグ**：`.bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。
    - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。
