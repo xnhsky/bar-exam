@@ -56,11 +56,28 @@ if (Test-Path $lock) {
 }
 "$PID $stamp" | Out-File -FilePath $lock -Encoding utf8
 try {
-  # --- 2. 稼働中バッチ回避 ---
+  # --- 2. 稼働中バッチ回避（プロセス検出＝最優先・ログmtimeは補助）---
+  #   ① JX 生成中はバッチログが数十分沈黙するため mtime だけでは取りこぼす（実害：
+  #   生成中の問題を autofill が二重生成）。実プロセスの CommandLine を見て確実に検出する。
+  $procs = @(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe' OR Name='powershell.exe'" -ErrorAction SilentlyContinue |
+    Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine })
+  # バッチは patterns\JX.ps1 として起動し jx-batch-runner.ps1 は同一プロセス内呼び出しで
+  # CommandLine に出ない。ランチャー名（patterns\JX.ps1）と runner 名の両方を拾う。
+  $batchProc = @($procs | Where-Object { $_.CommandLine -match '(jx-batch-runner|night-batch-runner)\.ps1|patterns[\\/]JX\.ps1' })
+  if ($batchProc.Count -gt 0) {
+    Log "バッチ進行中（JX バッチプロセス稼働・PID $($batchProc[0].ProcessId)）→ 今回スキップ（②-verify に委譲）" 'Yellow'
+    exit 0
+  }
+  $bfProc = @($procs | Where-Object { $_.CommandLine -match 'rx-arb-backfill\.ps1' })
+  if ($bfProc.Count -gt 0) {
+    Log "backfill が別途稼働中（PID $($bfProc[0].ProcessId)）→ 今回スキップ（多重生成防止）" 'Yellow'
+    exit 0
+  }
+  # 補助：ログ mtime（プロセス検出の取りこぼし保険）
   $recentBatch = @(Get-ChildItem -Path $LogsDir -Filter 'jx-batch-*.log' -File -ErrorAction SilentlyContinue |
     Where-Object { ((Get-Date) - $_.LastWriteTime).TotalMinutes -lt $BusyWindowMin })
   if ($recentBatch.Count -gt 0) {
-    Log "バッチ進行中（$($recentBatch[0].Name) が直近 $BusyWindowMin 分以内に更新）→ 今回スキップ（②-verify に委譲）" 'Yellow'
+    Log "バッチログが直近 $BusyWindowMin 分以内に更新（$($recentBatch[0].Name)）→ 今回スキップ（②-verify に委譲）" 'Yellow'
     exit 0
   }
 
