@@ -44,6 +44,7 @@ GRAFT_CSS = """
 .athena-graft section[id^="ref-stat"]{border-left-color:#6b7280}
 .athena-graft section[id^="ref-case"]{border-left-color:var(--ai)}
 .athena-graft section[id^="ref-doctrine"]{border-left-color:var(--li)}
+.athena-graft section[id^="ref-term"]{border-left-color:var(--gd)}
 .athena-graft h3{font-family:var(--f-disp); font-size:1.04rem; color:var(--a-head); margin:0 0 8px}
 .athena-graft h4{font-family:var(--f-disp); font-size:.98rem; color:var(--ink); margin:0 0 7px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; border:none; padding:0}
 .athena-graft h5{font-family:var(--f-soft); font-size:.82rem; font-weight:800; color:var(--li-deep); margin:13px 0 3px; padding-left:9px; border-left:3px solid var(--li-line)}
@@ -116,11 +117,12 @@ def main():
     # --- 抽出（balanced 単位） ---
     mi = re.search(r'<div class="card" id="issue-extraction">', a)
     issue = balanced_div(a, mi.start()) if mi else None
-    entries = re.findall(r'<section class="ref-entry" id="ref-(?:stat|case|doctrine)-[^"]+">.*?</section>', a, re.S)
+    entries = re.findall(r'<section class="ref-entry" id="ref-(?:stat|case|doctrine|term)-[^"]+">.*?</section>', a, re.S)
     stats = [e for e in entries if 'id="ref-stat' in e]
     cases = [e for e in entries if 'id="ref-case' in e]
     docs  = [e for e in entries if 'id="ref-doctrine' in e]
-    print(f"[抽出] 論点:{1 if issue else 0} 条文:{len(stats)} 判例:{len(cases)} 学説:{len(docs)}")
+    terms = [e for e in entries if 'id="ref-term' in e]
+    print(f"[抽出] 論点:{1 if issue else 0} 条文:{len(stats)} 判例:{len(cases)} 学説:{len(docs)} 用語:{len(terms)}")
     if args.check:
         return
 
@@ -129,6 +131,7 @@ def main():
     stats = [strip_backrefs(e) for e in stats]
     cases = [strip_backrefs(e) for e in cases]
     docs  = [strip_backrefs(e) for e in docs]
+    terms = [strip_backrefs(e) for e in terms]
 
     def sect(title, sub, items):
         if not items: return ""
@@ -143,6 +146,7 @@ def main():
     graft.append(sect("📜 条文 完全プロファイル", "全文／体系的位置／要件効果／立法趣旨・保護法益／関連条文網／答案での使い方（アテナ正典から移植）", stats))
     graft.append(sect("⚖ 判例 完全プロファイル", "事案／判旨／補足／射程／後続判例／答案での使い方（アテナ正典から移植）", cases))
     graft.append(sect("📖 学説一覧", "各説の論拠・帰結・批判（アテナ正典から移植）", docs))
+    graft.append(sect("📕 用語集", "本問の重要概念の定義・趣旨（アテナ正典から移植）", terms))
     graft.append('    </div>')
     graft_html = "\n".join(x for x in graft if x.strip())
 
