@@ -87,11 +87,12 @@ GRAFT_CSS = """
 .athena-graft section[id^="ref-doctrine"] > h4::before{content:"📖 "; font-family:var(--f-body)}
 .athena-graft section[id^="ref-term"] > h4::before{content:"📕 "; font-family:var(--f-body)}
 
-/* 系統色＝リテラル直値（CSS変数の継承に依存せず、どの描画環境でも確実に出す） */
-.athena-graft section[id^="ref-stat"]{background:#DFEFF7; border-color:#A8D6E8; border-left-color:#2F6A8C}
-.athena-graft section[id^="ref-stat"] > h4{background:#C3E3F1}
-.athena-graft section[id^="ref-stat"] th{background:#2F6A8C}
-.athena-graft section[id^="ref-stat"] blockquote.statute{border-left-color:#2F6A8C; border-color:#bcdcec}
+/* 系統色＝リテラル直値（CSS変数の継承に依存せず、どの描画環境でも確実に出す）
+   条文=TX328 そのままの teal（淡teal面＋teal罫・accent #4E8597） */
+.athena-graft section[id^="ref-stat"]{background:#eef6f6; border-color:#bcdbd7; border-left-color:#4E8597}
+.athena-graft section[id^="ref-stat"] > h4{background:#d6eae7}
+.athena-graft section[id^="ref-stat"] th{background:#4E8597}
+.athena-graft section[id^="ref-stat"] blockquote.statute{border-left-color:#4E8597; border-color:#cfe6e2}
 .athena-graft section[id^="ref-case"]{background:#FBE5EE; border-color:#F3B0CA; border-left-color:#A84E74}
 .athena-graft section[id^="ref-case"] > h4{background:#F6D0DF}
 .athena-graft section[id^="ref-case"] th{background:#A84E74}
