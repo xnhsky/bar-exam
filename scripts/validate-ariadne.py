@@ -200,6 +200,19 @@ def main():
     else:
         W('A26', 'アテナ版ジャンプボタン(.go-athena data-athena-code)がない（postMessage lexia:navigate 連携・spec §11）')
 
+    # ---- A27 答案構成の作法（教授のひとことコラム＋ステップ別周回ドリル・spec §12・2026-06-22・当面 WARNING）----
+    bc = extract_divs(html, 'bc-wrap')
+    if bc:
+        body = bc[0][1]
+        cols = body.count('class="bc-col"')          # 🎓 教授のひとこと（5ステップ）
+        quizzes = body.count('self-check-quiz')        # ステップ別 周回ドリル
+        if cols >= 5 and quizzes >= 5:
+            P('A27', f'答案構成の作法あり（🎓教授のひとこと {cols}・周回ドリル {quizzes}）')
+        else:
+            W('A27', f'答案構成の作法が不完全（コラム {cols}・ドリル {quizzes}・各5想定・spec §12）')
+    else:
+        W('A27', '答案構成の作法(.bc-wrap)が無い（canonical 複製で付与・spec §12）')
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")
