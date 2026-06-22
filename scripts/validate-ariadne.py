@@ -120,6 +120,43 @@ def main():
     if has_engine: P('A22', '答案構成パズルエンジンあり')
     else: W('A22', 'パズルエンジン未実装（canonical 複製 or ariadne-puzzle-backfill.py で付与・spec §9）')
 
+    # ---- A23 教示↔周回ドリル 字面の近接コピー backstop（spec §4・2026-06-22）----
+    # 各手の教示（.do＋details.peek 本文）と、その手内の周回ドリル（設問＋解説）の
+    # 文字 8-gram 重複率を測る。これは「教示をほぼそのまま貼った」字面コピーの再発検知に限る。
+    # ※本質的な重複は“意味の言い換え”（同じ命題を別語で問う＝再認）であり字面検出は不能。
+    #   意味重複の排除は spec §4「教示↔ドリル 非重複の原則」のルーブリック（人/LLM判断）で担保する。
+    def _ngrams(s, n=8):
+        s = re.sub(r'[\s　、。「」（）()・,.]', '', s)
+        return set(s[i:i+n] for i in range(len(s) - n + 1)) if len(s) >= n else ({s} if s else set())
+    OVERLAP_TH = 0.30
+    overlap_hits = []  # (step_title, drill_idx, ratio)
+    for stag, sinner in extract_divs(html, 'step'):
+        instr = ''
+        for dm in re.finditer(r'class="do"[^>]*>(.*?)</p>', sinner, re.S):
+            instr += ' ' + text_only(dm.group(1))
+        for pm in re.finditer(r'class="peek".*?class="body"[^>]*>(.*?)</details>', sinner, re.S):
+            instr += ' ' + text_only(pm.group(1))
+        instr_ng = _ngrams(instr)
+        if not instr_ng:
+            continue
+        ttl_m = re.search(r'class="ttl"[^>]*>(.*?)</div>', sinner, re.S)
+        stitle = text_only(ttl_m.group(1)) if ttl_m else '(無題の手)'
+        for di, (qtag, qinner) in enumerate(extract_divs(sinner, 'self-check-quiz'), 1):
+            qm = re.search(r'class="quiz-question"[^>]*>(.*?)</p>', qinner, re.S)
+            am = re.search(r'class="quiz-answer"[^>]*>(.*?)</div>', qinner, re.S)
+            drill = (text_only(qm.group(1)) if qm else '') + ' ' + (text_only(am.group(1)) if am else '')
+            d_ng = _ngrams(drill)
+            if not d_ng:
+                continue
+            ratio = len(d_ng & instr_ng) / len(d_ng)
+            if ratio >= OVERLAP_TH:
+                overlap_hits.append((stitle, di, ratio))
+    if overlap_hits:
+        detail = '；'.join(f'「{t}」ドリル{i}(字面{r:.0%})' for t, i, r in overlap_hits[:8])
+        W('A23', f'教示の字面コピー疑い {len(overlap_hits)} 枚（転用知識の想起へ書換・spec §4）: {detail}')
+    else:
+        P('A23', '教示↔ドリルの字面コピーなし（意味重複は spec §4 ルーブリックで担保）')
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")
