@@ -26,7 +26,7 @@
      立ち止まる石＝論点には `.tag-issue`＋1行の超短定義を併記（初学者が deep を開かず1周できるよう）。
    - **骨子**（`.bone`）＝第1/第2/…の番号＋見出し＋論点＋結論一行（違法性・責任は「阻却事由なし・一言で通過」を明記）。
    - **照合・自己採点**（`.rubric`）＝採点講評の減点ポイントを☐リスト化（**AI採点に依存しない**）。
-   - **模範答案**（`details.reveal-answer`）＝JX 模範を簡潔化して収録（字下げ・明朝）。
+   - **模範答案**（`details.reveal-answer`）＝JX 模範を簡潔化して収録（字下げ・明朝）。**各段落 `<p>` に問規当結の役割クラスを付与**（spec §10）：問題提起=`class="role r-issue"`／規範=`class="role r-norm"`（説名は `<b class="rule">`）／あてはめ=`class="role r-apply"`／結論=`class="role r-concl"`（`.ma-h` 見出しには付けない）。あてはめ段落では **事実=`<span class="fact">`（生の事実）／評価語=`<span class="eval">`（「現実的危険を有する」等の橋渡し評価）** を括る。CSS は canonical 継承。
    - **深掘り層**（`details#deep-dive`）＝規範コア／判例射程／条文を**薄く**。フル解説は ATHENA へ誘導。
 3-bis. **答案構成パズル（spec §9・周回の主役）** ─ エンジン（CSS/JS/ヒント・フォールバック）は {SKELETON} 継承で自動。生成時に**問題固有の下記**を付与する：
    - **骨子タグ**：`.bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。

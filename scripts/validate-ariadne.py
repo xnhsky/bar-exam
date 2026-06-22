@@ -157,6 +157,21 @@ def main():
     else:
         P('A23', '教示↔ドリルの字面コピーなし（意味重複は spec §4 ルーブリックで担保）')
 
+    # ---- A24 模範答案 問規当結カード（spec §ARIADNE・誌面リスキン・当面 WARNING）----
+    ma = extract_divs(html, 'model-answer')
+    if ma:
+        inner = ma[0][1]
+        role_ps = re.findall(r'<p[^>]*class="[^"]*\br-(?:issue|norm|apply|concl)\b', inner)
+        total_ps = re.findall(r'<p\b(?![^>]*\bma-h\b)', inner)
+        has_css = 'MA-ROLE-RESTYLE' in html
+        if not has_css:
+            W('A24', '模範答案リスキンCSS未注入（scripts/ariadne-ma-restyle.py で付与）')
+        elif len(role_ps) == 0:
+            W('A24', f'模範答案の問規当結カード未適用（役割クラス r-issue/r-norm/r-apply/r-concl が0・段落{len(total_ps)}個）')
+        else:
+            fe = '＋事実/評価語' if ('class="fact"' in inner or 'class="eval"' in inner) else '（事実/評価語スパン未付与）'
+            P('A24', f'模範答案 問規当結カード {len(role_ps)} 段落{fe}')
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")
