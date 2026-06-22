@@ -35,7 +35,7 @@ BLOCK = MARK + r"""
 .model-answer u{text-decoration-color:var(--shu-line);text-decoration-thickness:2px;text-underline-offset:3px}
 /* 役割カード共通：問規当結カード＋食い出しバッジ＋一行点線 */
 .model-answer p.role{
-  --lh:2.15em; position:relative; margin:17px 0; padding:.62em 15px .6em 18px; line-height:var(--lh);
+  --lh:2.15em; position:relative; margin:22px 0; padding:1.5em 15px .6em 18px; line-height:var(--lh);
   text-indent:1em; background:var(--c); border:1px solid var(--cb); border-left:5px solid var(--cm);
   border-radius:11px; box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 7px rgba(80,60,80,.07);
 }
@@ -45,7 +45,7 @@ BLOCK = MARK + r"""
   background:var(--cb); border:none; border-radius:9px; box-shadow:0 2px 6px rgba(80,60,80,.13); text-indent:0;
 }
 .model-answer p.role::after{
-  content:""; position:absolute; left:18px; right:13px; top:.62em; bottom:.5em; pointer-events:none; opacity:.6;
+  content:""; position:absolute; left:18px; right:13px; top:1.5em; bottom:.5em; pointer-events:none; opacity:.6;
   background:var(--cd);
   -webkit-mask:
     repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--lh) - 1.1px), #000 calc(var(--lh) - 1.1px), #000 var(--lh)),
