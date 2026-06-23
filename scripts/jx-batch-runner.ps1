@@ -74,6 +74,15 @@ try {
   }
 } catch {}
 
+# === autofill 常駐タスクの冪等登録（CLAUDE.md §4-6・2026-06-23 配線）===
+#   副産物(RX/TREE/ARIADNE)の欠落を 2h ごとに自動補完する常駐タスクを、このPCに冪等登録する
+#   （register 側が「既に登録済みならスキップ」する設計＝何度走っても無害）。これで JX バッチを
+#   回したPCには自動で常駐スイープが入り、両PCのどちらが点いていても欠落が回収される。
+try {
+  $__reg = Join-Path $ProjectRoot "scripts\register-rx-arb-autofill-task.ps1"
+  if (Test-Path $__reg) { & pwsh -NoProfile -File $__reg -Quiet 2>$null }
+} catch {}
+
 $JxPromptSrc   = Join-Path $ProjectRoot "prompts\new-jx-headless.md"
 $TtsPromptSrc  = Join-Path $ProjectRoot "prompts\tts-jx-headless.md"
 # JX 正典スケルトン（唯一の clone 起点・TX の GENESIS に相当）
