@@ -23,9 +23,17 @@ STEPS = [
 ]
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+def _safe(x):
+    """Windows cp932 コンソールでも落ちないよう ASCII 化（mojibake より crash 回避優先）"""
+    return str(x).encode('ascii', 'replace').decode('ascii')
+
 def main():
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
     args = sys.argv[1:]
-    print(f"[polish] {len(STEPS)} steps over {'指定ファイル' if args else '全ARIADNE+canonical'}")
+    print(_safe(f"[polish] {len(STEPS)} steps over {'specified files' if args else 'all ARIADNE+canonical'}"))
     for s in STEPS:
         path = os.path.join(HERE, s)
         if not os.path.exists(path):
@@ -34,10 +42,10 @@ def main():
         tail = (r.stdout or '').strip().splitlines()
         msg = tail[-1] if tail else f"exit={r.returncode}"
         flag = '' if r.returncode == 0 else '  <<ERROR'
-        print(f"  - {s:28} {msg}{flag}")
+        print(_safe(f"  - {s:28} {msg}{flag}"))
         if r.returncode != 0 and r.stderr:
-            print('    ', r.stderr.strip().splitlines()[-1])
-    print("[polish] done（再実行で全 step 0 変更＝spec整合）")
+            print('    ', _safe(r.stderr.strip().splitlines()[-1]))
+    print("[polish] done (re-run = 0 changes across all steps = spec-consistent)")
 
 if __name__ == '__main__':
     main()
