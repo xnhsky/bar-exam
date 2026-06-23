@@ -32,6 +32,15 @@ param(
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $ProjectRoot
+
+# 作成日時スタンプ保険フックの冪等インストール（CLAUDE.md §9・2026-06-23）。
+# 常駐タスクは git pull 後に毎回走るので、両PCのどちらが点いていてもフックが自動有効化される
+# （core.hooksPath 設定は冪等＝何度走っても無害・一度効けば .git/config に永続）。
+try {
+  $__hp = (& git -C $ProjectRoot config --get core.hooksPath) 2>$null
+  if ($__hp -ne 'scripts/git-hooks') { & git -C $ProjectRoot config core.hooksPath scripts/git-hooks 2>$null }
+} catch {}
+
 $LogsDir = Join-Path $ProjectRoot 'logs'
 if (-not (Test-Path $LogsDir)) { New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null }
 $Backfill = Join-Path $ProjectRoot 'scripts\rx-arb-backfill.ps1'

@@ -62,6 +62,18 @@ $JxOutputBase  = Join-Path $ProjectRoot "outputs\001_JX"
 $TtsOutputBase = Join-Path $ProjectRoot "outputs\002_TTS"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 
+# === 作成日時スタンプ保険フックの冪等インストール（CLAUDE.md §9・2026-06-23）===
+#   生成セッションが jx-push.sh を経由せず素の git commit をしてもスタンプ(lexia-genmeta)が
+#   必ず入るよう pre-commit を有効化。core.hooksPath 設定は冪等なので毎バッチ走っても無害
+#   （このPCで一度効けば .git/config に永続）。両PCはJXバッチを回すたびに自動で有効化される。
+try {
+  $__hp = (& git -C $ProjectRoot config --get core.hooksPath) 2>$null
+  if ($__hp -ne 'scripts/git-hooks') {
+    & git -C $ProjectRoot config core.hooksPath scripts/git-hooks 2>$null
+    Write-Host "[hooks] 作成日時スタンプ保険を有効化（core.hooksPath=scripts/git-hooks）" -ForegroundColor DarkGray
+  }
+} catch {}
+
 $JxPromptSrc   = Join-Path $ProjectRoot "prompts\new-jx-headless.md"
 $TtsPromptSrc  = Join-Path $ProjectRoot "prompts\tts-jx-headless.md"
 # JX 正典スケルトン（唯一の clone 起点・TX の GENESIS に相当）
