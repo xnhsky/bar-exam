@@ -55,17 +55,27 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit", type=int, default=0, help="先頭 N 件だけ処理 (0=全件)")
     ap.add_argument("--include-tx", action="store_true", help="TX も対象に含める")
+    ap.add_argument("--all", action="store_true", help="Lexia 取込全カテゴリ(TX/JX/ux/references)")
+    ap.add_argument("--restamp", action="store_true", help="作成日があっても再刻印する(既定はスキップ)")
     a = ap.parse_args()
 
-    dirs = list(DEFAULT_DIRS) + ([TX_DIR] if a.include_tx else [])
+    if a.all:
+        dirs = ["outputs/000_TX", "outputs/001_JX", "outputs/ux", "references"]
+    else:
+        dirs = list(DEFAULT_DIRS) + ([TX_DIR] if a.include_tx else [])
+    dirs = [d for d in dirs if Path(d).is_dir()]
     files: list[str] = []
     for d in dirs:
         files.extend(str(p) for p in sorted(Path(d).rglob("*.html")))
     if a.limit:
         files = files[: a.limit]
 
-    stamped = nochange = nodate = 0
+    stamped = nochange = nodate = skipped = 0
     for f in files:
+        # 既に作成日があるファイルは触らない（冪等・誤って実日付を git 日時で上書きしない）。
+        if not a.restamp and "作成日" in Path(f).read_text(encoding="utf-8", errors="replace"):
+            skipped += 1
+            continue
         dt = first_commit_dt(f)
         if dt is None:
             nodate += 1
@@ -77,7 +87,7 @@ def main() -> int:
             print(f"[{'would ' if a.dry_run else ''}stamp] {dt.strftime('%Y-%m-%d %H:%M')}  {f}")
         else:
             nochange += 1
-    print(f"\n--- {'DRY-RUN ' if a.dry_run else ''}summary: stamped={stamped} nochange={nochange} no-git-date={nodate} total={len(files)} ---")
+    print(f"\n--- {'DRY-RUN ' if a.dry_run else ''}summary: stamped={stamped} skipped(作成日あり)={skipped} nochange={nochange} no-git-date={nodate} total={len(files)} ---")
     return 0
 
 

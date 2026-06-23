@@ -1,63 +1,75 @@
 #!/usr/bin/env python3
-"""作成日スタンプ（2026-06-20・既存 JX/ARIADNE/RX/TREE 向け・冪等）.
+# -*- coding: utf-8 -*-
+"""作成日＋版スタンプ（時刻つき・冪等・2026-06-23 改修）.
 
-TX は GENESIS フッターに「作成日：YYYY-MM-DD」を埋め込むが、JX(ATHENA)・
-ARIADNE/RX/TREE(副産物) は作成日を記録しておらず、Lexia 一覧で作成日が空欄になる。
-本スクリプトは作成日を持たない HTML に **git 初回コミット日**（その問題が repo に
-登録された日＝概算の作成日）を `<!-- 作成日：YYYY-MM-DD -->` コメントで </body> 直前に
-埋め込む。Lexia の extractCreatedDate は raw HTML から「作成日：…」を拾うので一覧に出る。
+JX(ATHENA)・副産物(RX/TREE/ARIADNE) のフッターに機械可読の
+「作成日：YYYY-MM-DD HH:MM ／ <版>」(class=lexia-genmeta) を刻む。Lexia は raw 取得した
+本文からこれを読み、GitHub Commits API を叩かずに生成日時・版を取得する(レート制限回避)。
 
-- 冪等：既に「作成日」を含むファイルはスキップ。
-- 改行コードは元ファイルに合わせて保持（CRLF/LF）。
-- 対象：outputs/001_JX/** と outputs/ux/**（TX は既に作成日があるため対象外）。
+日時の決め方（「再生成では更新する」を満たす肝）:
+  - 生成/再生成直後でファイルが **dirty（未追跡 or HEAD と差分あり）** → **現在時刻(JST)**。
+  - 追跡済みで未変更（＝既存ファイルの後追い刻印） → **git 初出コミット日時**。
+冪等: 既に lexia-genmeta スタンプを持つファイルはスキップ（旧 <!-- 作成日：… --> コメントは
+stamp_footer 側が刻印時に除去する）。
+
+呼び出し元: jx-push.sh 工程0（リモート/ローカルの回収動線）。対象は **Lexia が取り込む
+全カテゴリ**（outputs/000_TX・001_JX・ux/** ＋ top-level references/**）。既に「作成日」を
+持つファイル（TX 既存フッター・genmeta 済み等）は触らず、作成日の無いものだけ刻む。
 """
 from __future__ import annotations
-import subprocess
+
 import pathlib
+import subprocess
 import sys
-import datetime
+from datetime import datetime
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from stamp_footer import stamp_file, infer_version, JST  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-MARK = "作成日".encode("utf-8")
-BODY = b"</body>"
-TODAY = datetime.date.today().isoformat()  # 未コミット新規ファイル用フォールバック
 
 
-def git_created(rel: str) -> str | None:
-    out = subprocess.run(
-        ["git", "-C", str(REPO), "log", "--diff-filter=A", "--format=%ad",
-         "--date=format:%Y-%m-%d", "--", rel],
-        capture_output=True, text=True,
-    ).stdout.strip().splitlines()
-    return out[-1] if out else None  # 末尾＝最初の add コミット日
+def _git(*args: str) -> str:
+    return subprocess.run(
+        ["git", "-C", str(REPO), *args], capture_output=True, text=True
+    ).stdout
+
+
+def is_dirty(rel: str) -> bool:
+    """未追跡 or HEAD と差分あり（＝いま生成/再生成された）か。"""
+    return bool(_git("status", "--porcelain", "--", rel).strip())
+
+
+def first_commit_dt(rel: str) -> datetime | None:
+    out = _git("log", "--follow", "--format=%cI", "--", rel).strip().splitlines()
+    return datetime.fromisoformat(out[-1]).astimezone(JST) if out else None
 
 
 def targets() -> list[pathlib.Path]:
+    # Lexia が取り込む全カテゴリ（TX/JX/副産物/参考資料/references）。
     files: list[pathlib.Path] = []
-    files += sorted((REPO / "outputs/001_JX").rglob("*.html"))
-    files += sorted((REPO / "outputs/ux").rglob("*.html"))
+    for d in ("outputs/000_TX", "outputs/001_JX", "outputs/ux", "references"):
+        base = REPO / d
+        if base.is_dir():
+            files += sorted(base.rglob("*.html"))
     return files
 
 
 def main() -> int:
-    stamped = skipped = nodate = 0
+    now = datetime.now(JST)
+    stamped = skipped = 0
     for f in targets():
-        data = f.read_bytes()
-        if MARK in data:
+        txt = f.read_text(encoding="utf-8")
+        # 既に作成日あり（TX 既存フッター・genmeta 済み・旧コメント等）は触らない＝冪等。
+        if "作成日" in txt:
             skipped += 1
             continue
-        idx = data.rfind(BODY)
-        if idx < 0:
-            nodate += 1
-            continue
-        # git 初回コミット日。未コミットの新規（生成直後）は取得不可なので今日の日付で代用。
-        date = git_created(str(f.relative_to(REPO))) or TODAY
-        eol = b"\r\n" if b"\r\n" in data else b"\n"
-        marker = ("<!-- 作成日：" + date + " -->").encode("utf-8") + eol
-        data = data[:idx] + marker + data[idx:]
-        f.write_bytes(data)
+        rel = str(f.relative_to(REPO))
+        # 再生成/新規（dirty）は現在時刻、未変更の既存は初出コミット日時。
+        dt = now if is_dirty(rel) else (first_commit_dt(rel) or now)
+        stamp_file(str(f), dt, infer_version(rel, txt))
         stamped += 1
-    print(f"stamped={stamped}  skipped(has作成日)={skipped}  nodate/no-body={nodate}")
+    print(f"stamped={stamped}  skipped(作成日あり)={skipped}")
     return 0
 
 

@@ -121,6 +121,8 @@ try {
   }
 
   # --- 6. outputs/ux だけ commit→push（JX HTML には触れない）---
+  # フッターに生成日時＋版を刻む（Lexia が raw 取得して読む・冪等・失敗は非致命）
+  try { & python scripts/stamp-created-date.py 2>&1 | Out-Null } catch { Log "stamp skip: $_" 'Yellow' }
   & git add -- outputs/ux 2>&1 | Out-Null
   & git diff --cached --quiet -- outputs/ux
   if ($LASTEXITCODE -eq 0) {

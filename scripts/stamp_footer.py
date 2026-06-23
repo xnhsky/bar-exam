@@ -35,12 +35,12 @@ _GENMETA_RE = re.compile(
 _LEGACY_COMMENT_RE = re.compile(r'[ \t]*<!--\s*作成日：[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}\s*-->[ \t]*\n?')
 
 
+_REF_LABEL = {"GDE": "参考資料 GDE", "MTD": "参考資料 MTD", "TAN": "参考資料 TAN", "RON": "参考資料 RON"}
+
+
 def infer_version(path: str, html: str) -> str:
-    """パスと本文からカテゴリ別の版文字列を推定する。"""
+    """パスと本文からカテゴリ別の版文字列を推定する（Lexia が読む全カテゴリ対応）。"""
     p = path.replace("\\", "/")
-    if "/000_TX/" in p or "TX" in Path(p).name and "/001_JX/" not in p and "/ux/" not in p:
-        m = re.search(r"TX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
-        return f"TX v{m.group(1)} {m.group(2)}" if m else "TX v11.1.0 LOOP-CORE"
     if "/ux/001_RX/" in p:
         m = re.search(r"AXIOM[^0-9]{0,14}v([0-9]+\.[0-9]+)", html)
         return f"RX AXIOM v{m.group(1)}" if m else "RX AXIOM v2.8"
@@ -50,6 +50,17 @@ def infer_version(path: str, html: str) -> str:
     if "/ux/000_ARIADNE/" in p:
         m = re.search(r"ARIADNE[^0-9]{0,12}v([0-9]+\.[0-9]+)", html)
         return f"ARIADNE v{m.group(1)}" if m else "ARIADNE v0.3"
+    # 参考資料（top-level references/ や outputs/ux/003_参考資料・ファイル名サフィックス _GDE 等）
+    if "/references/" in p or "参考資料" in p or any(f"_{t}." in Path(p).name for t in _REF_LABEL):
+        name = Path(p).name
+        for tag, label in _REF_LABEL.items():
+            if f"_{tag}." in name:
+                vm = re.search(r"V(\d+)", name)  # 例 導き書V2_GDE → V2
+                return f"{label}{' v' + vm.group(1) if vm else ''}"
+        return "参考資料"
+    if "/000_TX/" in p:
+        m = re.search(r"TX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
+        return f"TX v{m.group(1)} {m.group(2)}" if m else "TX v11.1.0 LOOP-CORE"
     if "/001_JX/" in p:
         m = re.search(r"JX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
         return f"JX v{m.group(1)} {m.group(2)}" if m else "JX v4.0.0 LOOP-FOLD"

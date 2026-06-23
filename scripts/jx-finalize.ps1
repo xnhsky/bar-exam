@@ -126,6 +126,8 @@ foreach ($id in $Ids) {
     if ($DryRun) {
         Write-Host "  [DRYRUN] git add $($addPaths -join ' ') ; commit"
     } else {
+        # フッターに生成日時＋版を刻む（Lexia が raw 取得して読む・冪等・失敗は非致命）
+        try { python scripts/stamp-created-date.py | Out-Null } catch { Write-Host "  [stamp] skip: $_" -ForegroundColor Yellow }
         git add -- $addPaths
         # 差分があれば commit（無ければ既コミット済みとして続行）
         git diff --cached --quiet -- $addPaths
