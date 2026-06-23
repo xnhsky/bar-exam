@@ -37,8 +37,8 @@
      **末尾に「アテナで詳しく」ボタン**：`<a class="go-athena" role="button" tabindex="0" data-athena-code="{元問題ID}" data-athena-href="../../../001_JX/{00N_科目}/{元問題ID}.html">…</a>`
      （`data-athena-code` は `_ARIADNE` を付けない元 ID＝例 `刑JX001`。文言にメタ除去 regex 語＝`本問`/`正解は肢` 等を含めない）。
 3-bis. **答案構成パズル（spec §9・周回の主役）** ─ エンジン（CSS/JS/ヒント・フォールバック）は {SKELETON} 継承で自動。生成時に**問題固有の下記**を付与する：
-   - **骨子タグ**：`.bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。
-   - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。
+   - **骨子タグ**：`.bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。**論点チップは `【論点】…` と書き冠番号を付けない（`【論点①】`/`【論点1】` 禁止＝無番号おとりと番号の有無で識別できネタバレになる・配置順は `.b1` 第1/第2 見出しで担保・spec §9-2・validate-ariadne A27 が ERROR）**。
+   - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。おとり論点も `iss:【論点】…`（冠番号なし）で本物と識別不能にする。
    - **試験下書き `.drafting`**（骨子の直前）：先頭に **`.draft-problem`＝問題文原文の再掲（上部 `.problem .pq` を逐語コピー＝答案構成で上へ遡らず済む）**、その直下に **`.draft-digest`＝骨子用に一行へ圧縮したメモ**（`<span class="ddl">骨子用に一行圧縮</span>` ラベル付き）を置く。続けて①人物関係図 `.rel-map`②時系列 `.timeline`③拾う文言 `.facts`。**いずれも生の事実抽出まで**（論点名・規範は書かない＝パズルの想起対象）。
    - **想起カード**：○×のうち**規範名・要件・定義を問える3枚前後**を `class="self-check-quiz recall" data-recall="1" data-correct-value="○"`＋`.recall-reveal`（onclick で `.quiz-answer` 開示）＋`.recall-grade` に「書けた○/書けなかった×」へ格上げ。
 3-ter. **答案構成の作法（spec §12・教授のひとこと＋ステップ別周回ドリル）** ─ 構造（`.bc-wrap`／5ステップ＝予測・軸・骨・重心・締め／`.bc-col` CSS）は {SKELETON} 継承。**手順タイトル・5枚の周回ドリル○×は汎用＝原則そのまま流用可**（ドリルは復習プール単独表示の制約で必ず汎用）。**🎓教授のひとことコラム（`.bc-col`・5枚）は問題固有＝各問 TTS（耳トレ台本の答案構成/差がつく点/事案分析）から本問コーチングを抽出して鋳造**（端的な `.bc-inst` と register を分け重複回避・型タイトル維持・本文は `text-indent:1em` 字下げ）。生成時に**問題固有**を鋳造する：各ステップ `.bc-inst`（本問の登場人物・罪名・順序）／④重心の `.bc-weight` 配点バー＋`.bc-cap` 字数目安／⑤締めの `.box-trap` 書かないことリスト／末尾 `.bc-rhythm` リズム超簡略版。**ドリルは答案構成の転用可能な手順原理**（設計優先・重い罪先行・規範先出し・重心集中・実益薄論点の切捨て）を○×で、**正解は偏らせない（○×混在）**。位置は解法ナビ（BRIDGE）と骨子（手7 BUILD）の間。

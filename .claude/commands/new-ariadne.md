@@ -31,6 +31,7 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
 - **答案構成の作法（spec §12・教授のひとこと＋ステップ別周回ドリル）**：解法ナビ（BRIDGE）と骨子（手7 BUILD）の間に `.bc-wrap`（5ステップ＝予測・軸・骨・重心・締め）。構造・CSS・型タイトル・5枚の周回ドリル○×は canonical 継承（**ドリルは復習プール単独表示の制約で必ず汎用**）。**🎓教授のひとことコラム（`.bc-col`・5枚）は問題固有**＝各問の TTS（耳トレ台本の答案構成/差がつく点/事案分析）から本問のコーチングを抽出して鋳造（端的な `.bc-inst` 本問とは register を分け重複回避・字下げ `text-indent:1em`）。問題固有は他に各ステップ `.bc-inst`（本問の登場人物・順序）／④`.bc-weight` 配点バー＋`.bc-cap` 字数／⑤`.box-trap` 書かないこと／末尾 `.bc-rhythm` を鋳造。**ドリルは転用可能な手順原理を○×で・正解は○×混在**。`validate-ariadne.py` A27 が検査。**ナビは ORDER・BRIDGE 含め各ステップに `💡 box-tip` を1つ**（凸凹なく）。
 - **答案構成パズル（spec §9・周回の主役）**：エンジンは canonical 継承。生成時に骨子へ
   規範 `.krule`／あてはめ `.kfact` タグ、`.bone` に `data-kp-decoys`、骨子直前に試験下書き `.drafting`、
+  **論点チップ `.iss` は `【論点】…` と書き冠番号（`【論点①】` 等）を付けない**（無番号おとりと番号で識別できネタバレ＝順序は `.b1` で担保・spec §9-2・`validate-ariadne.py` A28・既存除去は `scripts/ariadne-iss-denumber-backfill.py`）、
   ○× の3枚前後を想起カード（`.recall`/`data-recall`）へ格上げ。下書きは「生の事実抽出」までに留める。
   **下書き先頭は `.draft-problem`＝問題文原文の再掲（`.problem .pq` 逐語）＋直下に `.draft-digest`＝骨子用圧縮メモ**
   （答案構成で上へ遡らず済むよう原文を必ず再掲。原文＋圧縮の二段）。

@@ -120,6 +120,22 @@ def main():
     if has_engine: P('A22', '答案構成パズルエンジンあり')
     else: W('A22', 'パズルエンジン未実装（canonical 複製 or ariadne-puzzle-backfill.py で付与・spec §9）')
 
+    # ---- A28 論点チップの冠番号ネタバレ禁止（spec §9-3・2026-06-23）----
+    # 本物の論点チップ <span class="iss">【論点①】… が番号付きだと、無番号おとり
+    # （iss:【論点】…）と番号の有無で見分けられ、配置順(①→第1)も丸見え＝ネタバレ。
+    # 本物 .iss・おとり双方とも 【論点】… で統一する（番号は禁止）。
+    NUMRE = r'[0-9０-９①-⑳]+'
+    bone_tag = bone[0][0] if bone else ''
+    bone_inner = bone[0][1] if bone else ''
+    numbered_iss = re.findall(r'class="iss">【論点' + NUMRE + r'】', bone_inner)
+    numbered_dcv = re.findall(r'iss:【論点' + NUMRE + r'】', bone_tag)
+    nbad = len(numbered_iss) + len(numbered_dcv)
+    if nbad:
+        E('A28', f'論点チップに冠番号【論点①②…】が {nbad} 件（おとりと識別可能＝ネタバレ）'
+                 '。scripts/ariadne-iss-denumber-backfill.py で除去し【論点】に統一')
+    else:
+        P('A28', '論点チップに冠番号なし（おとりと識別不能＝ネタバレ防止）')
+
     # ---- A23 教示↔周回ドリル 字面の近接コピー backstop（spec §4・2026-06-22）----
     # 各手の教示（.do＋details.peek 本文）と、その手内の周回ドリル（設問＋解説）の
     # 文字 8-gram 重複率を測る。これは「教示をほぼそのまま貼った」字面コピーの再発検知に限る。
