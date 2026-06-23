@@ -20,6 +20,7 @@ STEPS = [
     'ariadne-indent-normalize.py', # 字下げ遺伝リセット＋トラッキング相殺
     'ariadne-hanging.py',       # 模範答案 role .pn/.pb ぶら下がり（CSS土台）
     'ariadne-modelanswer.py',   # 模範答案 ぶら下がり＋階層インデント＋1字下げ統一
+    'ariadne-pb-indent.py',     # 全 .pb（役割カード含む）本文先頭1字下げ＋display:block
 ]
 HERE = os.path.dirname(os.path.abspath(__file__))
 
