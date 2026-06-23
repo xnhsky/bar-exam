@@ -71,28 +71,34 @@ def infer_version(path: str, html: str) -> str:
     return "v?"
 
 
-def _build_line(dt: datetime, version: str) -> str:
-    """英語表記の機械可読スタンプ行。Lexia は data-generated と本文 "Generated: …" を読む。"""
+def _build_line(dt: datetime, version: str, centered: bool = False) -> str:
+    """英語表記の機械可読スタンプ行。Lexia は data-generated と本文 "Generated: …" を読む。
+    centered=True（フッターコンテナを持たない RX/ARIADNE 等）は中央揃えで最下部に置く。"""
     disp = dt.astimezone(JST).strftime("%Y-%m-%d %H:%M")
     iso = dt.astimezone(JST).isoformat(timespec="minutes")
+    style = ' style="text-align:center"' if centered else ''
     return (
-        f'<p class="footer-date {GENMETA_CLASS}" data-generated="{iso}">'
+        f'<p class="footer-date {GENMETA_CLASS}"{style} data-generated="{iso}">'
         f'Generated: {disp} / {version}</p>'
     )
+
+
+def _has_footer_container(html: str) -> bool:
+    """フッターのコンテナ（JX/TREE=<footer> / TX=footer-spec）を持つか。"""
+    return "</footer>" in html or 'class="footer-spec"' in html
 
 
 def stamp_html(html: str, dt: datetime, version: str) -> str:
     """HTML 文字列に英語スタンプを施して返す (冪等)。
 
-    配置はフッターのコンテナ内に収める:
-      1) 既存の genmeta 行があればその場で置換（位置＝既存コンテナを維持）。
-      2) TX 既存の日本語 footer-date 行 (footer-spec コンテナ内) をその場で英語置換。
-      3) どちらも無ければ </footer> 直前（footer コンテナ内）に挿入。
-      4) <footer> が無いカテゴリ(RX/ARIADNE 等)は <footer class="lexia-foot"> で包んで挿入。
+    配置:
+      - コンテナ有り(TX=footer-spec / JX・TREE=<footer>): その内側に置く（既存行はその場置換）。
+      - コンテナ無し(RX/ARIADNE 等): フッター情報の最下部（</body> 直前）に **中央揃え** で置く。
     """
-    line = _build_line(dt, version)
+    centered = not _has_footer_container(html)
+    line = _build_line(dt, version, centered=centered)
     html = _LEGACY_COMMENT_RE.sub("", html)
-    # 1) 既存 genmeta をその場置換（先頭1件・重複があれば後段で1本化）。
+    # 1) 既存 genmeta をその場置換（先頭1件）。
     if _GENMETA_RE.search(html):
         return _GENMETA_RE.sub(lambda _m: line + "\n", html, count=1)
     # 2) TX 既存の日本語 footer-date をその場で英語置換（footer-spec コンテナ内を維持）。
@@ -102,12 +108,11 @@ def stamp_html(html: str, dt: datetime, version: str) -> str:
     idx = html.rfind("</footer>")
     if idx != -1:
         return html[:idx] + line + "\n" + html[idx:]
-    # 4) footer 要素が無い → <footer> で包んでコンテナ化し </body> 直前へ。
-    wrapped = f'<footer class="lexia-foot">{line}</footer>\n'
+    # 4) コンテナ無し → フッター情報の最下部（</body> 直前）に中央揃えで置く。
     idx = html.rfind("</body>")
     if idx != -1:
-        return html[:idx] + wrapped + html[idx:]
-    return html.rstrip("\n") + "\n" + wrapped
+        return html[:idx] + line + "\n" + html[idx:]
+    return html.rstrip("\n") + "\n" + line + "\n"
 
 
 def stamp_file(path: str, dt: datetime, version: str | None = None, *, dry_run: bool = False) -> bool:
