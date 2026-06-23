@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# =============================================================================
+# pre-commit フック — コミット経路に依存しない作成日時スタンプの保険。
+#
+# どんな経路（jx-push.sh / jx-finalize.ps1 / 素の git commit）でコミットしても、
+# ステージ済みの Lexia 取込 HTML に lexia-genmeta スタンプが無ければ現在時刻(JST)で
+# 刻んで再ステージする（scripts/stamp-staged.py）。これにより「スタンプ無し HTML が
+# GitHub に push される」事故を構造的に防ぐ。
+#
+# 有効化（各 PC で一度だけ）: scripts/install-hooks.sh を実行（core.hooksPath を設定）。
+# =============================================================================
+set -uo pipefail
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+py="$(command -v python3 || command -v python)" || exit 0
+"$py" "$ROOT/scripts/stamp-staged.py" || true
+exit 0
