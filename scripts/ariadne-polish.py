@@ -16,6 +16,7 @@ STEPS = [
     'ariadne-matrix.py',        # 骨子マトリクス金バー/見出し
     'ariadne-stepnum.py',       # 行頭ステップ番号box
     'ariadne-weightbar3.py',    # 配点バー（ラベル内蔵+safe center+ellipsis）
+    'ariadne-weightbar-name.py',# 配点バー 名称欠落（数字のみ）を凡例から補完（A28・恒久対策）
     'ariadne-badge-center.py',  # バッジ letter-spacing 中央化
     'ariadne-indent-normalize.py', # 字下げ遺伝リセット＋トラッキング相殺
     'ariadne-hanging.py',       # 模範答案 role .pn/.pb ぶら下がり（CSS土台）

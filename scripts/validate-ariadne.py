@@ -213,6 +213,19 @@ def main():
     else:
         W('A27', '答案構成の作法(.bc-wrap)が無い（canonical 複製で付与・spec §12）')
 
+    # ---- A28 配点バー（横グラフ）の論点名（spec §12・2026-06-23・名称欠落=数字のみ表示を禁止）----
+    # 正典 ARIADNE／他全問の規律：各セグメントは「論点名＋％」。title/本文が "35%" 等の
+    # パーセントだけ（名称欠落）になっていると横グラフが数字の羅列になる（刑JX063 実害）。
+    wspans = re.findall(r'<span class="w[ywxc]"[^>]*>(.*?)</span>', html)
+    if wspans:
+        bare = [text_only(t).strip() for t in wspans
+                if re.fullmatch(r'約?\s*\d+\s*%?', text_only(t).strip())]
+        if bare:
+            E('A28', f'配点バーに論点名が無いセグメント {len(bare)} 個（数字のみ {bare}）'
+                     '＝凡例(bc-legend)に合わせ「論点名＋％」へ補完（scripts/ariadne-weightbar-name.py か ariadne-polish.py）')
+        else:
+            P('A28', f'配点バー全 {len(wspans)} セグメントに論点名あり')
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")
