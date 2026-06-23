@@ -270,6 +270,20 @@ foreach ($t in $Targets) {
     }
 }
 
+# --- 統合ポリッシュ（恒久対策・冪等）：ARIADNE 生成直後に全磨き込みを spec へ正規化 ---
+# 配点バー/バッジ中央化/字下げ・階層・ぶら下がり/骨子箱 等を ariadne-polish.py で一括適用。
+# 冪等なので既存ファイルにも安全（再実行=0変更）。役割色塗りは生成プロンプト §10 が付与。
+if ($AriadneEnabled) {
+    $polish = Join-Path $ProjectRoot "scripts\ariadne-polish.py"
+    if (Test-Path $polish) {
+        $ariaFiles = @(Get-ChildItem -Path $AriadneOutputDir -Filter '*_ARIADNE.html' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName)
+        if ($ariaFiles.Count -gt 0) {
+            Write-Host "[ARIADNE POLISH] 統合ポリッシュ適用（$($ariaFiles.Count) ファイル・冪等）" -ForegroundColor Cyan
+            & python $polish @ariaFiles 2>&1 | Out-Host
+        }
+    }
+}
+
 Write-Host "`n=== rx-arb-backfill 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "コストログ: $RxArbCsv"
 Stop-Transcript | Out-Null
