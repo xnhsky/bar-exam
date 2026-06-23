@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>建造物の一体性・「焼損」の意義 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. LXIII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">建造物の一体性・「焼損」の意義 <em>— Structural Unity &amp; the Meaning of "Burning"</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">建造物の<br>一体性と<br>「焼損」</h2>
+      <div class="mm-root-en">Unity of Structure &amp; "Burning"</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑法<br>
+        <em>Origin</em>重要問題 第63問 · 現住建造物等放火罪<br>
+        <em>Form</em>規範定立型 + あてはめ精度
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+      <!-- ===== Branch 1 — 出題位置 ===== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑法各論・<strong>公共危険罪の中核＝放火罪</strong>。現住建造物等放火罪（108条）の成否を、<strong>①客体の確定（建造物の一体性）→②既遂時期（「焼損」の意義）</strong>の二段で処理する典型問題。抽象的危険犯としての放火罪の構造理解を試す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>放火で必出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>「焼損」の意義（独立燃焼説）は放火罪の問題でほぼ必出。本問は「マット全焼」で既遂へ誘導する罠が仕掛けられ、<strong>何が燃えたか（建造物か動産か）</strong>の仕分けで合否が分かれる。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。条文選択（108か109か）は一体性で、既遂か未遂かは焼損で決まる。<strong>マットの全焼を見て既遂と即断すると一気に失点</strong>する誘導型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>建造物侵入罪（130条前段）／非現住建造物等放火罪（109条）との区別／放火未遂（112条）・予備（113条）／放火の故意と公共の危険の認識の要否／罪数（牽連犯・54条1項後段）。とりわけ<strong>「侵入＋放火未遂＝牽連犯」</strong>の罪数処理が結びの到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ===== Branch 2 — 事案構造 ===== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>A高校卒業生の甲は、母校への仕返しから深夜に敷地へ侵入。宿舎で宿直中の担当教諭<strong>Bを発見</strong>し「体育館に火をつけてBを困らせよう」と決意。<strong>体育館裏手の倉庫に火のついた新聞紙を投入</strong>して逃走。新聞紙は倉庫内の<strong>マットの下に落ちマットが全焼</strong>したが、床の難燃性防火シートの一部が溶解し<strong>有毒ガスが発生しただけ</strong>で、マットから倉庫（建造物）へは燃え移らなかった。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者・建物配置</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲（A高校卒業生・行為者）／B（担当教諭・宿直中で宿舎に在室＝現在者）。<strong>中央の宿舎を挟み、体育館・校舎がそれぞれ約10mの木造の渡り廊下で接続</strong>。倉庫と体育館は一個の建造物（問題文の指示）。放火時、体育館は無人。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 深夜の立入りは<strong>建造物侵入罪</strong>か。<br>② 無人の体育館（倉庫）を有人の宿舎と<strong>一体の現住建造物</strong>とみうるか（建造物の一体性）。<br>③ 建造物が独立燃焼に至らず有毒ガスのみの場合「<strong>焼損</strong>」があるか（既遂・未遂）。<br>④ 侵入と放火未遂の<strong>罪数</strong>は。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ===== Branch 3 — 処理手順 § (special) ===== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 建造物侵入罪を端的に</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>時系列に従い、まず深夜のA高校敷地内への立入りを<strong>建造物侵入罪（130条前段）</strong>で端的に肯定する。客体は「人の看守する……建造物」（囲繞地を含む）、行為は管理権者の意思に反する立入り＝「侵入」。<strong>ほぼ争いなく成立するので短く</strong>処理して放火罪へ進む。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 客体の確定＝建造物の一体性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>出火点（倉庫・体育館）は無人だが、宿舎にBが在室。<strong>客体が108条（現住）か109条（非現住）かを先に確定</strong>しなければ既遂・未遂に進めない。木造渡り廊下による<strong>物理的一体性（構造的一体性＋延焼可能性）</strong>から全体を一個の現住建造物と評価する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 既遂時期＝「焼損」の有無</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>客体確定後、既遂か未遂かを<strong>独立燃焼説</strong>で判定。「焼損」＝火が媒介物を離れ目的物が独立して燃焼を継続する状態。<strong>マットは取り外し可能な動産で建造物の一部でない</strong>／倉庫の床は防火シート溶解・有毒ガスのみで独立燃焼に至らず。よって「焼損」なし。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 未遂の結論→罪数</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「焼損」を欠く以上、現住建造物等放火罪は<strong>未遂（112条）</strong>にとどまる。最後に建造物侵入罪と放火未遂の罪数を処理。侵入は放火の<strong>手段</strong>であり、両者は<strong>牽連犯（54条1項後段）</strong>となる。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- ===== Branch 4 — 論点① 建造物の一体性 ===== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Structural Unity</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 一体性が問題となる理由</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>出火点（倉庫・体育館）単体では「現に人がいる建造物」に当たらず、そのままなら<strong>109条（非現住建造物）</strong>の客体。しかし宿舎にBが在室し各棟が渡り廊下で接続しているため、<strong>全体を一体とみれば108条（現住建造物）</strong>に当たりうる。客体の性質が条文選択を決める。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 物理的一体性（本問の決め手）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>108条の重罰根拠は現住部分への生命・身体の危険波及にある。そこで<strong>物理的一体性</strong>＝構造的に接続し延焼可能性が認められれば一体と評価する。本問は<strong>約10mの木造の渡り廊下</strong>で接続＝燃えやすい構造で延焼可能性が高く、物理的一体性を肯定できる。</p><div class="norm">複数の建築物が結合した建築物群について、物理的一体性又は機能的一体性のいずれかが認められれば、全体を一個の現住建造物と評価する。<span class="norm-cite">— 一体性の判断基準</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 機能的一体性との関係</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>機能的一体性</strong>＝全体が一体として日夜人の起居に利用されていること。<span class="case-name">最決平元.7.14</span>は物理的・機能的の両面から社殿群を一個の現住建造物と認めた。本問は機能的一体性は事実不明だが、<strong>物理的一体性が認められればいずれか一方で足りる</strong>ため、物理的一体性一本で一体性を肯定する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ===== Branch 5 — 論点② 「焼損」の意義 ===== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Meaning of "Burning"</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 独立燃焼説（判例・通説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>放火罪は<strong>公共危険罪</strong>であり、公共の危険は目的物が独立して燃焼を開始した時点で発生する。また未遂規定のない失火罪（116条）と既遂時期を統一的に把握すべき。よって「焼損」を早い時点で肯定する。</p><div class="norm">「焼損」とは、火が媒介物を離れ、目的物が独立して燃焼を継続する状態に達したことをいう。<span class="norm-cite">— 独立燃焼説（最判昭23・11・2、最判昭25・5・25）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 効用喪失説と批判</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>効用喪失説は、目的物が<strong>本来の効用を失った時点</strong>で既遂とする。しかし既遂時期が遅くなりすぎ公共危険罪の趣旨と整合しない。</p><p><em>本問での帰結</em> — もっとも本問は<strong>いずれの説でも未遂</strong>（建造物の独立燃焼も効用喪失もない）。判例の独立燃焼説で一貫処理すれば足りる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · マットの仕分けと未遂の結論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>マットは取り外し可能な動産で「建造物」の一部でない</strong>から、全焼しても「焼損」とはいえない。また倉庫の床は防火シートの一部溶解・有毒ガス発生のみで、<strong>建造物が独立して燃焼を継続する状態に至っていない</strong>。よって「焼損」なし＝<strong>現住建造物等放火罪の未遂（112条）</strong>にとどまる。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- ===== Branch 6 — 論証文言ゾーン ===== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 建造物の一体性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">現住建造物等放火罪が重く処罰されるのは、人の生命・身体への危険が高い点にある。そうだとすれば、複数の建築物が結合した建築物群については、物理的一体性又は機能的一体性のいずれかが認められれば、全体を一個の現住建造物と評価すべきである。物理的一体性は、構造的一体性を前提に延焼可能性を加味して判断する。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 「焼損」＝独立燃焼説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">放火罪は公共危険罪であり、公共の危険は目的物が独立して燃焼を開始した時点で発生する。また未遂のない失火罪と既遂時期を統一的に把握すべきである。したがって、「焼損」とは、火が媒介物を離れ、目的物が独立して燃焼を継続する状態に達したことをいうと解する。<span class="norm-cite">— 独立燃焼説型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">仕分け · マットは建造物外</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">マットは取り外しが可能な物であり、「建造物」の一部ではないから、これが全焼しても「焼損した」とはいえない。また、倉庫の床は防火シートの一部が溶解して有毒ガスが発生しただけで、マットから倉庫に燃え移っておらず、建造物が独立して燃焼を継続する状態には至っていない。<span class="norm-cite">— あてはめ直結型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 未遂と罪数（牽連犯）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">したがって、「焼損した」とはいえず、本件では現住建造物等放火罪の未遂（112条）が成立するにとどまる。以上より、甲には建造物侵入罪及び現住建造物等放火罪の未遂が成立し、侵入は放火の手段であるから、これらは牽連犯（54条1項後段）となる。<span class="norm-cite">— 結論・罪数処理型</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ===== Branch 7 — あてはめ事実カタログ ===== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 一体性を基礎づける（肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>宿舎を中央に体育館・校舎が<strong>約10mの木造の渡り廊下で接続</strong>／木造＝燃えやすく延焼可能性が高い／宿舎にBが宿直として在室（有人部分の存在）。<br>──物理的一体性（構造的一体性＋延焼可能性）を基礎づけ、全体を一個の現住建造物と評価できる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 「焼損」を否定する（未遂材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>燃えたのは<strong>マット（取り外し可能な動産）</strong>であり建造物の一部でない／倉庫の床の防火シートは<strong>一部溶解・有毒ガス発生のみ</strong>／<strong>マットから倉庫（建造物）に燃え移っていない</strong>。<br>──建造物が独立して燃焼を継続する状態に至らず「焼損」否定（未遂）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 侵入・故意（周辺事実）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>深夜に管理権者の意思に反してA高校敷地（囲繞地）へ立入り＝侵入／「困らせてやろう」と考え倉庫に点火＝<strong>放火の故意</strong>あり。<br>──108条は抽象的危険犯ゆえ<strong>公共の危険の認識は不要</strong>。客体が現住建造物であることの認識で足りる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ===== Branch 8 — 直前期コア § (special) ===== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>一体性</strong> — 物理的一体性又は機能的一体性のいずれかで全体を一個の現住建造物<br>② <strong>焼損</strong> — 火が媒介物を離れ目的物が独立して燃焼を継続する状態（独立燃焼説）<br>③ <strong>建造物の範囲</strong> — 取り外し可能な動産（マット等）は建造物の一部でない</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最決平元.7.14</span> — 社殿群を物理的・機能的一体性で一個の現住建造物（一体性の代表判例）<br>② <span class="case-name">最判昭23.11.2</span> — 独立燃焼説の採用<br>③ <span class="case-name">最判昭25.5.25</span> — 独立燃焼説の確認</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 現住建造物等放火 — 108条（死刑又は無期若しくは5年以上の懲役）<br>· 非現住建造物等放火 — 109条<br>· 放火未遂 — 112条／予備 — 113条<br>· 建造物侵入 — 130条前段<br>· 罪数 — 54条1項後段（牽連犯）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「物理的一体性又は機能的一体性」<br>· 「火が媒介物を離れ独立して燃焼を継続」<br>· 「取り外し可能な物は建造物の一部でない」<br>· 「公共の危険は独立燃焼の開始時に発生」<br>· 「焼損したとはいえず未遂にとどまる」</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- ===== Branch 9 — 関連論点ネットワーク ===== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 108条と109条の区別</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>現住建造物（108条）は「現に人が住居に使用し又は現に人がいる」建造物。非現住（109条）はそれ以外。<strong>「住居に使用」と「現に人がいる」はいずれかを充たせば足りる</strong>。本問は一体性を肯定して全体を108条で処理。否定すれば体育館単体は109条となる点が分岐。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 抽象的危険犯としての放火罪</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>108条・109条1項は<strong>公共の危険の発生を要件としない抽象的危険犯</strong>。したがって故意として公共の危険の認識は不要で、客体が現住建造物であることの認識で足りる。これに対し110条（建造物等以外放火）・109条2項（自己所有）は<strong>具体的危険犯</strong>で公共の危険の発生が要件。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 放火未遂（112条）・予備（113条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「焼損」に至らないとき<strong>未遂（112条）</strong>で処理する。なお110条には未遂規定がない。実行の着手は点火（媒介物への着火）時。本問は中止行為がないため中止未遂（43条但書）の余地はない。焼損前の段階なら予備（113条）の問題となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 罪数（牽連犯）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>建造物侵入罪は放火罪の<strong>手段</strong>たる関係に立つから、両者は<strong>牽連犯（54条1項後段）</strong>として科刑上一罪となる。住居侵入と目的犯罪は牽連犯とするのが判例・通説。観念的競合（前段）と混同しない点に注意。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ===== Branch 10 — 失点パターン ===== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 無人ゆえ一律109条で処理</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>体育館が無人だからと<strong>いきなり109条（非現住）で処理</strong>するのは誤り。宿舎にBが在室する点と渡り廊下による一体性を必ず検討し、108条への到達可能性を論ずる。「倉庫＝非現住」で論述を打ち切る逐語の落とし穴に注意。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 客体を確定せず焼損へ飛ぶ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>客体が108条か109条かを確定する前に<strong>既遂・未遂（焼損）を論ずる</strong>と、何の罪の既遂を論じているか不明になる。<strong>客体確定が論理的前提</strong>。一体性→焼損の順序を崩さない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ マット全焼で既遂と即断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本問最大の罠。「マットが全焼」を見て<strong>既遂と即断</strong>するのが致命的失点。マットは取り外し可能な動産で<strong>建造物の一部でない</strong>と見抜き、建造物自体の独立燃焼の有無に評価を絞れるかが合否を分ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 独立燃焼説の規範を立てない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>規範なしでいきなり「燃え移っていないから未遂」と書くと中程度減点。<strong>「焼損」＝独立燃焼説の規範を端的にでも定立</strong>し、根拠（公共危険罪性・失火罪との統一）を一言添える。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 未遂条文・罪数を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>結論を「未遂」とだけ書き<strong>112条を落とす</strong>、また<strong>侵入と放火の罪数（牽連犯）を処理し忘れる</strong>のは小幅だが確実な失点。未遂の根拠条文と牽連犯を一文ずつ必ず示す。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- ===== Branch 11 — フェーズ別活用 ===== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフは閉じたまま。侵入→一体性→焼損→罪数の二段ロケット構造を掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。物理的一体性と独立燃焼説の<strong>射程</strong>を意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。同じ事実を一体性（延焼可能性）と焼損（独立燃焼）で<strong>角度を変えて</strong>使う訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。一体性・焼損の規範を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外は閉じる。3 判例と条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- ===== Branch 12 — 参照判例・条文・学説 ===== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決平成元年7月14日</span><span class="mm-leaf-sub"><em>Shrine Complex · Structural Unity</em> · 百選Ⅱ</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>建造物の一体性の代表判例</strong>。回廊で接続された複数の社殿群について「その一部に放火されることにより全体に危険が及ぶと考えられる一体の構造であり、また、全体が一体として日夜人の起居に利用されていた」として、<strong>物理的にも機能的にも全体が一個の現住建造物</strong>と認めた。<em>射程</em> — 物理的一体性・機能的一体性という二つの判断軸を示す。本問の渡り廊下接続に直接妥当する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和23年11月2日</span><span class="mm-leaf-sub"><em>Independent Combustion</em> · 「焼損」</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>独立燃焼説を採用した判例</strong>。放火罪を公共危険罪と性格づけ、火力が媒介物を離れて目的物が独立して燃焼を継続しうる状態に達したときに既遂を認める。<em>射程</em> — 「焼損」の意義の起点。本問では建造物が独立燃焼に至らないため未遂を導く根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和25年5月25日</span><span class="mm-leaf-sub"><em>Independent Combustion · Confirmed</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>独立燃焼説を確認した判例</strong>。火が媒介物を離れて目的物が独立に燃焼を継続する状態に達すれば既遂とする立場を維持。<em>射程</em> — 独立燃焼説が判例として確立していることを示す。難燃材建築物が増えた現代でも判例はなお独立燃焼説を維持している。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法108条</span><span class="mm-leaf-sub"><em>art. 108 · Arson of Inhabited Structure</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「放火して、現に人が住居に使用し又は現に人がいる建造物……を焼損した者は、死刑又は無期若しくは五年以上の懲役に処する」。<em>射程</em> — 「現に人がいる建造物」（一体性で判断）と「焼損」（独立燃焼説）を規範として展開する起点。本問では客体は肯定・焼損は否定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法109条</span><span class="mm-leaf-sub"><em>art. 109 · Non-inhabited Structure</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>現に人が住居に使用せず、かつ現に人がいない建造物等への放火を処罰。一体性を否定すれば無人の体育館単体はこちらの客体となる。本問は一体性を肯定して108条で処理するため、対比のための参照条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法112条</span><span class="mm-leaf-sub"><em>art. 112 · Attempted Arson</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>108条・109条1項の未遂を処罰する根拠条文。「焼損」に至らない本問では「現住建造物等放火罪の未遂（108条・112条）」と並記して引用する。なお110条には未遂規定がない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法130条前段</span><span class="mm-leaf-sub"><em>art. 130 · Unlawful Entry of Structure</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「正当な理由がないのに……人の看守する……建造物……に侵入した……者は、三年以下の懲役又は十万円以下の罰金に処する」。深夜のA高校敷地（囲繞地を含む）への管理権者の意思に反する立入りを建造物侵入罪で捕捉。放火の手段として牽連犯となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法54条1項後段</span><span class="mm-leaf-sub"><em>art. 54(1) · Means-End Crimes</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「犯罪の手段若しくは結果である行為が他の罪名に触れるときは、その最も重い刑により処断する」。建造物侵入が放火の手段である関係から、両者を<strong>牽連犯</strong>として科刑上一罪で処断する根拠。観念的競合（前段）と区別する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">独立燃焼説（学説）</span><span class="mm-leaf-sub"><em>Independent-Combustion Theory</em> · 通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>放火罪の公共危険罪性と失火罪との既遂時期の統一から、火が媒介物を離れ目的物が独立して燃焼を継続する状態で「焼損」を認める通説。対立する<strong>効用喪失説</strong>（本来の効用喪失時に既遂）は既遂時期が遅すぎると批判される。本問はいずれの説でも未遂。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- ===== Branch 13 — Active Recall § (15 questions) ===== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">放火罪における「焼損」の意義は（独立燃焼説）？</span></summary>
+                  <div class="mm-q-answer">火が<span class="kw">媒介物を離れ</span>、目的物が<span class="kw">独立して燃焼を継続する状態</span>に達したこと。放火罪が公共危険罪である点から導かれる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">建造物の一体性の判断基準は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">物理的一体性</span>又は<span class="kw">機能的一体性</span>のいずれかが認められれば、全体を一個の現住建造物と評価する。108条の重罰根拠（危険の波及）から導く。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">取り外し可能なマットが全焼したら「焼損」か？</span></summary>
+                  <div class="mm-q-answer">「焼損」<span class="kw">ではない</span>。マットは取り外し可能な動産で<span class="verb">建造物の一部でない</span>から、全焼しても建造物の独立燃焼にはあたらない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">「焼損」に至らないときの罪名・根拠条文は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">現住建造物等放火罪の未遂</span>（<span class="kw">108条・112条</span>）。建造物が独立して燃焼を継続する状態に至らないため既遂とならない。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">もし倉庫の床（建造物の一部）まで燃え移り独立燃焼していたら、結論はどう変わるか？</span></summary>
+                  <div class="mm-q-answer">建造物が独立して燃焼を継続する状態に達し「焼損」が肯定される。客体は一体性により現住建造物だから、<span class="kw">現住建造物等放火罪の既遂</span>（108条）が成立する。本問との差は「建造物自体が独立燃焼したか」の一点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">渡り廊下がなく各棟が完全に独立していたら、一体性の処理はどうなるか？</span></summary>
+                  <div class="mm-q-answer">物理的一体性（構造的接続・延焼可能性）が否定され、機能的一体性も認められなければ一体性は否定。無人の体育館単体は<span class="kw">109条（非現住建造物）</span>の客体として処理することになる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">効用喪失説を採ると本問の結論は変わるか？</span></summary>
+                  <div class="mm-q-answer">変わらない。本問は建造物の<span class="kw">効用喪失もない</span>（有毒ガス・シート溶解のみ）から、効用喪失説でも未遂。<span class="kw">いずれの説でも未遂</span>になるため、判例の独立燃焼説で一貫処理すれば足りる。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">建造物の一体性の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">現住建造物等放火罪が重く処罰されるのは人の生命・身体への危険が高い点にあるから、複数の建築物が結合した建築物群については、物理的一体性又は機能的一体性のいずれかが認められれば全体を一個の現住建造物と評価すべきである。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">「焼損」＝独立燃焼説の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">放火罪は公共危険罪であり公共の危険は目的物が独立して燃焼を開始した時点で発生し、また未遂のない失火罪と既遂時期を統一的に把握すべきであるから、「焼損」とは火が媒介物を離れ目的物が独立して燃焼を継続する状態に達したことをいう。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">マットの仕分けと未遂の結論の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">マットは取り外しが可能な物で「建造物」の一部ではないから全焼しても「焼損」とはいえず、倉庫の床も防火シートの一部溶解と有毒ガス発生のみで建造物が独立して燃焼を継続する状態に至っていないから、現住建造物等放火罪の未遂（112条）が成立するにとどまる。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">建造物侵入罪（最小）→ 一体性で客体確定（30%）→ 焼損で既遂・未遂（最厚め40%）→ 罪数（10%）</span>。焼損のあてはめ（マット仕分け＋床評価）が最大の配点。客体確定を飛ばさない論理順序が前提。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">建造物侵入罪と放火未遂罪の罪数は？理由は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">牽連犯</span>（54条1項後段）。侵入は放火の<span class="kw">手段</span>たる関係に立つから。観念的競合（前段）ではない点に注意。一文で「侵入は放火の手段だから牽連犯」と切る。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">渡り廊下で接続＋宿舎に在室者 → ？</span></summary>
+                  <div class="mm-q-answer">物理的一体性で一個の現住建造物。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">マット全焼・建造物は燃え移らず → ？</span></summary>
+                  <div class="mm-q-answer">独立燃焼なし＝「焼損」否定。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">侵入＋放火未遂 → ？</span></summary>
+                  <div class="mm-q-answer">手段結果で牽連犯（112条）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. LXIII — 建造物の一体性・「焼損」の意義 · 13 chapters · 3 cases · 15 qq.</div>
+</footer>
+
+</body>
+</html>
