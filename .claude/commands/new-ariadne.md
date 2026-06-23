@@ -24,8 +24,9 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
    freq-badge ゴールド・判旨ティールバッジ・フォント/文字色も TX328 同値）。末尾に**「アテナで詳しく」ボタン**
    （`.go-athena data-athena-code="{元問題ID}"`＝postMessage `lexia:navigate` で本物のアテナ版へジャンプ）。
    後追いは `scripts/ariadne-graft-athena-deep.py`（移植）／`ariadne-athena-deep-backfill.py`（ジャンプ＋CSS）。
-4. `validate-ariadne.py` で A1〜A21 ERROR 0 を確認。
-5. **master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
+4. **体裁強化を冪等付与（必須・2点）**：`python scripts/ariadne-enhance.py {OUT}`（①深層部 条文の「N項」をバッジ化＋項を点線区切り／③マストヘッドに目次ジャンプTOC／④各セクション区切り＋深掘り前に「▲先頭へ戻る」）→ `python scripts/ariadne-autolink.py {OUT}`（②本文インライン相互リンク＝条文・判例・学説・用語をその語のままリンクし、解法ナビ⇄深層部・カード間を相互リンク）。両スクリプトとも**冪等**（再実行安全）。
+5. `validate-ariadne.py` で A1〜A21 ERROR 0 を確認。
+6. **master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 
 ## 規律
 - **答案構成の作法（spec §12・教授のひとこと＋ステップ別周回ドリル）**：解法ナビ（BRIDGE）と骨子（手7 BUILD）の間に `.bc-wrap`（5ステップ＝予測・軸・骨・重心・締め）。構造・CSS・型タイトル・5枚の周回ドリル○×は canonical 継承（**ドリルは復習プール単独表示の制約で必ず汎用**）。**🎓教授のひとことコラム（`.bc-col`・5枚）は問題固有**＝各問の TTS（耳トレ台本の答案構成/差がつく点/事案分析）から本問のコーチングを抽出して鋳造（端的な `.bc-inst` 本問とは register を分け重複回避・字下げ `text-indent:1em`）。問題固有は他に各ステップ `.bc-inst`（本問の登場人物・順序）／④`.bc-weight` 配点バー＋`.bc-cap` 字数／⑤`.box-trap` 書かないこと／末尾 `.bc-rhythm` を鋳造。**ドリルは転用可能な手順原理を○×で・正解は○×混在**。`validate-ariadne.py` A27 が検査。**ナビは ORDER・BRIDGE 含め各ステップに `💡 box-tip` を1つ**（凸凹なく）。
