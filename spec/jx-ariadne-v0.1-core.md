@@ -349,7 +349,7 @@ finalize 工程に組込み済み・既存 57 枚＋`canonical/ARIADNE.html` 反
 | # | 内容 | 付与スクリプト |
 |---|---|---|
 | ① | 深層部 条文プロファイルの「N項」を**ピル型バッジ化**し、項どうしを**点線**で区切る（`.stat-para`/`.stat-pn`/`.stat-pt`） | `scripts/ariadne-enhance.py` |
-| ② | **本文インライン相互リンク**：条文・判例・学説・用語を**その語のまま**控えめな下線リンク（`a.xref auto`）にし、解法ナビ⇄深層部・カード間を相互リンク（最長一致・初出のみ・自己リンク除外・漢字連結の部分一致回避・学説/用語同名は学説優先） | `scripts/ariadne-autolink.py` |
+| ② | **本文インライン相互リンク**：条文・判例・学説・用語を**その語のまま**控えめな下線リンク（`a.xref auto`）にし、解法ナビ→深層部・カード間を相互リンク（最長一致・初出のみ・自己リンク除外・漢字連結の部分一致回避・学説/用語同名は学説優先）。**帰り道**＝各深層部カード末尾に「↩ 解法ナビ STEP n へ戻る」（参照元の手・無ければ `#sec-nav`／`.card-return`）を付与し双方向化 | `scripts/ariadne-autolink.py`（＋step id は `ariadne-enhance.py`） |
 | ③ | マストヘッドに**目次ジャンプ TOC**（`.toc-nav`・問題文/解法ナビ/作法/骨子/想起/照合/深掘り）。`#top`/各 sec へアンカー | `scripts/ariadne-enhance.py` |
 | ④ | 各セクション区切り＋深掘り前に「**▲ 先頭へ戻る**」（`.to-top`→`#top`） | `scripts/ariadne-enhance.py` |
 

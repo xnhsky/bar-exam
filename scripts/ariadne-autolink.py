@@ -148,7 +148,18 @@ def linkify_chunk(chunk, own_id, items):
         if skip > 0:
             out.append(p); continue
         out.append(_link_text(p, own_id, items, used, before.get(i, ''), after.get(i, '')))
-    return ''.join(out)
+    return ''.join(out), used
+
+def _insert_return(chunk, html_return):
+    """カード本文の末尾（body 閉じ div の直前）へ「解法ナビへ戻る」リンクを挿入。"""
+    chunk = re.sub(r'<div class="card-return">.*?</div>\s*', '', chunk, flags=re.S)
+    i_card = chunk.rfind('</div>')
+    if i_card == -1:
+        return chunk
+    i_body = chunk.rfind('</div>', 0, i_card)
+    if i_body == -1:
+        return chunk
+    return chunk[:i_body] + html_return + chunk[i_body:]
 
 def _link_text(text, own_id, items, used, before_char, after_char):
     n = len(text)
@@ -179,6 +190,7 @@ def process(html, report=False):
     cards = build_registry(html)
     items = build_alias_map(cards)
     counts = {'A_steps': 0, 'B_cards': 0}
+    fwd = {}   # card_id -> (step_id, label) ＝ 各カードを最初に参照した解法ナビの手（帰り道）
 
     # ---- Zone A: 解法ナビの各 .step ----
     a_start = html.find('<!-- ===== 解法ナビ')
@@ -187,7 +199,14 @@ def process(html, report=False):
         region = html[a_start:a_end]
         def repl_step(m):
             chunk = m.group(0)
-            new = linkify_chunk(chunk, None, items)
+            sm = re.search(r'id="(step-[^"]+)"', chunk)
+            sid = sm.group(1) if sm else None
+            lm = re.search(r'STEP\s*([0-9]+[′\'`]?)', chunk)
+            label = ('STEP ' + lm.group(1)) if lm else '解法ナビ'
+            new, used = linkify_chunk(chunk, None, items)
+            if sid:
+                for tid in used:
+                    fwd.setdefault(tid, (sid, label))
             counts['A_steps'] += new.count('<a class="xref auto"')
             return new
         region2 = re.sub(r'<div class="step"[^>]*>.*?(?=\n  <!-- 手|\n  <!-- =====|\Z)',
@@ -202,9 +221,15 @@ def process(html, report=False):
         def repl_card(m):
             cid = m.group('id')
             chunk = m.group(0)
-            new = linkify_chunk(chunk, cid, items)
+            new, _used = linkify_chunk(chunk, cid, items)
             counts['B_cards'] += new.count('<a class="xref auto"')
-            return new
+            tgt = fwd.get(cid)
+            if tgt:
+                rhtml = (f'<div class="card-return"><a href="#{tgt[0]}">'
+                         f'↩ 解法ナビ {tgt[1]} へ戻る</a></div>')
+            else:
+                rhtml = '<div class="card-return"><a href="#sec-nav">↩ 解法ナビへ戻る</a></div>'
+            return _insert_return(new, rhtml)
         region2 = re.sub(
             r'<div class="basis-card [a-z]+-card" id="(?P<id>[^"]+)">.*?(?=\n<div class="basis-card |\n      <div class="graft-h|\Z)',
             repl_card, region, flags=re.S)
@@ -228,6 +253,8 @@ def main():
     # 既存の自動リンク（再実行）を一旦剥がして冪等化。class="xref auto" のみ対象＝
     # 手書きの 論点マトリクス等 class="xref"（auto なし）は温存。
     html = re.sub(r'<a class="xref auto" href="#[^"]+">(.*?)</a>', r'\1', html)
+    # 既存の「解法ナビへ戻る」リンクも一旦除去（冪等）
+    html = re.sub(r'<div class="card-return">.*?</div>\s*', '', html, flags=re.S)
     out = process(html, report=args.report)
     if args.dry_run:
         sys.stderr.write('(dry-run: not written)\n')

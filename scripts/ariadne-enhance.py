@@ -49,6 +49,15 @@ a.xref:hover{color:#fff; background:#3a4a78; border-bottom-color:#3a4a78}
 @media print{ .toc-nav,.to-top{display:none} }
 """
 
+# 深層部カード→解法ナビへ戻る（相互リンクの帰り道・控えめなテキストリンク／autolink が本文へ挿入）
+CARD_RETURN_CSS = """
+/* 深層部カード→解法ナビへ戻る（相互リンクの帰り道） */
+.athena-graft .card-return{margin-top:13px; padding-top:9px; border-top:1px dashed #D6C9DC; text-align:right}
+.athena-graft .card-return a{display:inline-flex; align-items:center; gap:4px; font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif; font-size:.74rem; font-weight:700; color:#4E8597; text-decoration:none; border-bottom:1.5px dashed #9fc3c0; padding:1px 3px; border-radius:3px; transition:background .12s,color .12s}
+.athena-graft .card-return a:hover{color:#fff; background:#4E8597; border-bottom-color:#4E8597}
+@media print{ .card-return{display:none} }
+"""
+
 def strip_tags(s):
     return re.sub(r'<[^>]+>', '', s)
 
@@ -134,13 +143,30 @@ def add_toc_and_totop(html):
                   html, count=1)
     return html
 
+def assign_step_ids(html):
+    """解法ナビの各 .step に id="step-N"（出現順）を冪等付与（autolink の帰り道リンク先）。"""
+    cnt = [0]
+    def repl(m):
+        cnt[0] += 1
+        tag = m.group(0)
+        if 'id=' in tag:
+            return tag   # 既存 id は温存（番号は出現順なので整合）
+        return tag.replace('<div class="step"', f'<div class="step" id="step-{cnt[0]}"', 1)
+    return re.sub(r'<div class="step"[^>]*>', repl, html)
+
 def inject_css(html):
-    if '.toc-nav{' in html or 'ARIADNE-ENHANCE v1' in html:
-        return html
-    return html.replace('</style>', CSS_BUNDLE + '</style>', 1)
+    add = ''
+    if '.toc-nav{' not in html and 'ARIADNE-ENHANCE v1' not in html:
+        add += CSS_BUNDLE
+    if '.card-return{' not in html:
+        add += CARD_RETURN_CSS
+    if add:
+        html = html.replace('</style>', add + '</style>', 1)
+    return html
 
 def enhance(html):
     html = transform_statutes(html)
+    html = assign_step_ids(html)
     html = add_toc_and_totop(html)
     html = inject_css(html)
     return html
