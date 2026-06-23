@@ -33,9 +33,13 @@ _GENMETA_RE = re.compile(
 )
 # 旧来の固定コメント <!-- 作成日：2026-06-20 --> (日付のみ・テンプレ複製) を除去。
 _LEGACY_COMMENT_RE = re.compile(r'[ \t]*<!--\s*作成日：[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}\s*-->[ \t]*\n?')
+# TX 既存の日本語フッター行 <p class="footer-date">作成日：…</p> (genmeta 無し)。英語統一で置換する。
+_NATIVE_FOOTERDATE_RE = re.compile(
+    r'[ \t]*<p class="footer-date">作成日：.*?</p>[ \t]*\n?', re.DOTALL
+)
 
 
-_REF_LABEL = {"GDE": "参考資料 GDE", "MTD": "参考資料 MTD", "TAN": "参考資料 TAN", "RON": "参考資料 RON"}
+_REF_LABEL = {"GDE": "Reference GDE", "MTD": "Reference MTD", "TAN": "Reference TAN", "RON": "Reference RON"}
 
 
 def infer_version(path: str, html: str) -> str:
@@ -57,7 +61,7 @@ def infer_version(path: str, html: str) -> str:
             if f"_{tag}." in name:
                 vm = re.search(r"V(\d+)", name)  # 例 導き書V2_GDE → V2
                 return f"{label}{' v' + vm.group(1) if vm else ''}"
-        return "参考資料"
+        return "Reference"
     if "/000_TX/" in p:
         m = re.search(r"TX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
         return f"TX v{m.group(1)} {m.group(2)}" if m else "TX v11.1.0 LOOP-CORE"
@@ -68,26 +72,42 @@ def infer_version(path: str, html: str) -> str:
 
 
 def _build_line(dt: datetime, version: str) -> str:
+    """英語表記の機械可読スタンプ行。Lexia は data-generated と本文 "Generated: …" を読む。"""
     disp = dt.astimezone(JST).strftime("%Y-%m-%d %H:%M")
     iso = dt.astimezone(JST).isoformat(timespec="minutes")
     return (
         f'<p class="footer-date {GENMETA_CLASS}" data-generated="{iso}">'
-        f'作成日：{disp} ／ {version}</p>'
+        f'Generated: {disp} / {version}</p>'
     )
 
 
 def stamp_html(html: str, dt: datetime, version: str) -> str:
-    """HTML 文字列に刻印を施して返す (冪等)。"""
-    # 1) 既存刻印・旧固定コメントを除去。
-    html = _GENMETA_RE.sub("", html)
-    html = _LEGACY_COMMENT_RE.sub("", html)
+    """HTML 文字列に英語スタンプを施して返す (冪等)。
+
+    配置はフッターのコンテナ内に収める:
+      1) 既存の genmeta 行があればその場で置換（位置＝既存コンテナを維持）。
+      2) TX 既存の日本語 footer-date 行 (footer-spec コンテナ内) をその場で英語置換。
+      3) どちらも無ければ </footer> 直前（footer コンテナ内）に挿入。
+      4) <footer> が無いカテゴリ(RX/ARIADNE 等)は <footer class="lexia-foot"> で包んで挿入。
+    """
     line = _build_line(dt, version)
-    # 2) 末尾の </footer> 直前に挿入。無ければ </body> 直前、それも無ければ末尾。
-    for anchor in ("</footer>", "</body>"):
-        idx = html.rfind(anchor)
-        if idx != -1:
-            return html[:idx] + line + "\n" + html[idx:]
-    return html.rstrip("\n") + "\n" + line + "\n"
+    html = _LEGACY_COMMENT_RE.sub("", html)
+    # 1) 既存 genmeta をその場置換（先頭1件・重複があれば後段で1本化）。
+    if _GENMETA_RE.search(html):
+        return _GENMETA_RE.sub(lambda _m: line + "\n", html, count=1)
+    # 2) TX 既存の日本語 footer-date をその場で英語置換（footer-spec コンテナ内を維持）。
+    if _NATIVE_FOOTERDATE_RE.search(html):
+        return _NATIVE_FOOTERDATE_RE.sub(line + "\n", html, count=1)
+    # 3) </footer> 直前（footer コンテナ内）に挿入。
+    idx = html.rfind("</footer>")
+    if idx != -1:
+        return html[:idx] + line + "\n" + html[idx:]
+    # 4) footer 要素が無い → <footer> で包んでコンテナ化し </body> 直前へ。
+    wrapped = f'<footer class="lexia-foot">{line}</footer>\n'
+    idx = html.rfind("</body>")
+    if idx != -1:
+        return html[:idx] + wrapped + html[idx:]
+    return html.rstrip("\n") + "\n" + wrapped
 
 
 def stamp_file(path: str, dt: datetime, version: str | None = None, *, dry_run: bool = False) -> bool:

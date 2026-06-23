@@ -24,7 +24,7 @@ import sys
 from datetime import datetime
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from stamp_footer import stamp_file, infer_version, JST  # noqa: E402
+from stamp_footer import stamp_file, infer_version, JST, GENMETA_CLASS  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
@@ -60,8 +60,8 @@ def main() -> int:
     stamped = skipped = 0
     for f in targets():
         txt = f.read_text(encoding="utf-8")
-        # 既に作成日あり（TX 既存フッター・genmeta 済み・旧コメント等）は触らない＝冪等。
-        if "作成日" in txt:
+        # 既に英語スタンプ(genmeta)済みは触らない＝冪等。未スタンプ(新規生成・旧TX native)は刻む。
+        if GENMETA_CLASS in txt:
             skipped += 1
             continue
         rel = str(f.relative_to(REPO))
