@@ -61,6 +61,32 @@ def code_key(s):
     return (m.group(1).upper(), int(m.group(2)))
 
 
+# 公式 TX（outputs/000_TX/...）と Lexia 用 TX（outputs/ux/000_TX/...）は
+# 「同一問題の 2 表示版（公式＝番号5択 / Lexia＝記述単位 ox-grid）」＝意図的ミラー。
+# 同一 <title> になるのは正常なので DUP-TITLE から除外する（科目/ファイル名が一致する組）。
+def _mirror_sig(f):
+    s = f.as_posix()
+    for pref in ("/ux/000_TX/", "/000_TX/"):   # ux 版を先に判定（部分一致対策）
+        i = s.find(pref)
+        if i >= 0:
+            tail = s[i + len(pref):]            # 例: 001_刑法/刑TX350.html
+            # Lexia 用は識別のため末尾 _lex を付ける（刑TX350_lex.html）。
+            # 公式（刑TX350.html）とミラー判定するため _lex を正規化して落とす。
+            tail = re.sub(r"_lex(?=\.html?$)", "", tail, flags=re.I)
+            return tail
+    return None
+
+
+def is_official_lexia_mirror(fs):
+    sigs = set()
+    for f in fs:
+        sig = _mirror_sig(f)
+        if sig is None:
+            return False
+        sigs.add(sig)
+    return len(sigs) == 1
+
+
 # class="marker" 直後の窓からコードを拾う (BeautifulSoup 非依存・軽量)。
 # footer-spec の version feature-tag (例 "TX v9.2.0") は CODE_RE が数字直結のみ
 # 拾うため誤検出しない。検査対象は ID が出る doc-header / footer-problem に限定。
@@ -141,7 +167,8 @@ def check_root(root):
         errors += len(mismatches)
 
     print("\n[D81] DUP-TITLE (同一 <title> を持つ別ファイル)")
-    dup_titles = {t: fs for t, fs in title_groups.items() if len(set(fs)) >= 2}
+    dup_titles = {t: fs for t, fs in title_groups.items()
+                  if len(set(fs)) >= 2 and not is_official_lexia_mirror(set(fs))}
     if not dup_titles:
         print("  なし ✅")
     else:
