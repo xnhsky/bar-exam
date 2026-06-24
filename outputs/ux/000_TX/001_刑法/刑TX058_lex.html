@@ -3206,6 +3206,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3305,24 +3390,84 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <nav class="sec-nav"><a href="#part-a">↑A-1</a><a href="#choice-1">↓肢1</a></nav>
     <h2 class="section-title"><span class="sec-icon">❀</span>A-2 解答</h2>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜5 から1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">検討順に、下の一問一答で各空欄①〜④の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。旧過失論（修正旧過失論）と新過失論の対比で切り分けます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="2" data-answer-type="single" data-explanation="学生Aは旧過失論（修正旧過失論）、学生Bは新過失論の立場。①＝ア：旧過失論では過失の中心は予見義務違反であり、信頼の原則は予見可能性を否定する原理として『予見可能性』の判断において考慮される。②＝エ：旧過失論への批判は、予見可能性のみで過失を認めると処罰範囲が広くなり過ぎるという点。③＝ウ：新過失論の『結果回避のための適切な措置（結果回避義務）』の内容は行政取締法規が定める義務に帰着せざるを得ず、過失犯が行政取締法規違反の結果的加重犯になってしまうという批判。④＝カ：処罰範囲拡大の批判に対し、修正旧過失論は実行行為の内容として実質的危険性を要求することで処罰範囲を限定できると反論する。イ（結果回避義務）は新過失論の中心概念で①に不適、オ（重大な結果が予見可能なのに回避義務がないのは妥当でない）はむしろ旧過失論への批判で③に不適、キ（予見可能性を結果回避義務を導く前提要件として位置付ける）は新過失論寄りの構造で④に不適。よって①ア・②エ・③ウ・④カの当てはめのみが整合する。">
-      <p class="answer-instruction">①〜④に入る語句の正しい組合せを、上記【組合せ】の 1〜5 から1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各空欄の語句を1つずつ選ぶ（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="アエウカ" data-answer-type="ox-grid" data-explanation="学生Aは旧過失論（修正旧過失論）、学生Bは新過失論の立場。①＝ア：旧過失論では過失の中心は予見義務違反であり、信頼の原則は予見可能性を否定する原理として『予見可能性』の判断において考慮される。②＝エ：旧過失論への批判は、予見可能性のみで過失を認めると処罰範囲が広くなり過ぎるという点。③＝ウ：新過失論の『結果回避のための適切な措置（結果回避義務）』の内容は行政取締法規が定める義務に帰着せざるを得ず、過失犯が行政取締法規違反の結果的加重犯になってしまうという批判。④＝カ：処罰範囲拡大の批判に対し、修正旧過失論は実行行為の内容として実質的危険性を要求することで処罰範囲を限定できると反論する。イ（結果回避義務）は新過失論の中心概念で①に不適、オ（重大な結果が予見可能なのに回避義務がないのは妥当でない）はむしろ旧過失論への批判で③に不適、キ（予見可能性を結果回避義務を導く前提要件として位置付ける）は新過失論寄りの構造で④に不適。よって①ア・②エ・③ウ・④カの当てはめのみが整合する。">
+      <p class="answer-instruction">上の解法ナビが示す順に、各空欄①〜④の語句を1つずつ選んでください（選ぶたびに上の組合せ候補が絞られます）。全空欄を選んだら「解答を表示」で採点。採点後、各行に<strong>論点のコア（転用可能な法理）</strong>が展開されます。復習プールにはこの法理命題だけが入ります。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row mc" data-stmt="1">
+          <span class="ox-label">①</span>
+          <div class="ox-main">
+            <p class="ox-q">旧過失論（修正旧過失論）において、信頼の原則は何の判断で考慮されるか？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="ア"><span class="mc-key">ア</span>予見可能性</button>
+            <button class="answer-slot ox-btn" type="button" data-value="イ"><span class="mc-key">イ</span>結果回避義務</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">旧過失論（修正旧過失論）は過失の中心を予見義務違反に置く。信頼の原則は予見可能性を否定（限定）する原理として『予見可能性』の判断において考慮される。結果回避義務は新過失論の中心概念であって①には入らない。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="2">
+          <span class="ox-label">②</span>
+          <div class="ox-main">
+            <p class="ox-q">旧過失論に対する批判の内容は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="ウ"><span class="mc-key">ウ</span>行政取締法規が定める義務に帰着せざるを得ず、刑法上の過失犯が行政取締法規違反の結果的加重犯になってしまう</button>
+            <button class="answer-slot ox-btn" type="button" data-value="エ"><span class="mc-key">エ</span>予見可能性のみで過失を認めると、過失犯の処罰範囲が広くなり過ぎる</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">旧過失論に対しては、予見可能性のみで過失を認めると過失犯の処罰範囲が広くなり過ぎるとの批判がある。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="3">
+          <span class="ox-label">③</span>
+          <div class="ox-main">
+            <p class="ox-q">新過失論に対する批判の内容は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="エ"><span class="mc-key">エ</span>予見可能性のみで過失を認めると処罰範囲が広くなり過ぎる</button>
+            <button class="answer-slot ox-btn" type="button" data-value="ウ"><span class="mc-key">ウ</span>行政取締法規が定める義務に帰着せざるを得ず、過失犯が行政取締法規違反の結果的加重犯になってしまう</button>
+            <button class="answer-slot ox-btn" type="button" data-value="オ"><span class="mc-key">オ</span>重大な結果が予見可能であるのに回避義務がないというのは妥当でない</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">新過失論に対しては、『結果回避のための適切な措置（結果回避義務）』の内容が行政取締法規上の義務に帰着せざるを得ず、過失犯が行政取締法規違反の結果的加重犯になってしまうとの批判がある。『回避義務がないのは妥当でない』はむしろ旧過失論への批判であって新過失論への批判ではない。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="4">
+          <span class="ox-label">④</span>
+          <div class="ox-main">
+            <p class="ox-q">処罰範囲拡大の批判に対する修正旧過失論の反論は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="カ"><span class="mc-key">カ</span>実行行為の内容として実質的危険性を要求する</button>
+            <button class="answer-slot ox-btn" type="button" data-value="キ"><span class="mc-key">キ</span>予見可能性を結果回避義務を導く前提要件として位置付ける</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">修正旧過失論は、処罰範囲が広くなり過ぎるとの批判に対し、実行行為の内容として実質的危険性を要求することで処罰範囲を限定できると反論する。予見可能性を結果回避義務を導く前提要件として位置付けるのは新過失論寄りの構造で④には入らない。</span></p>
+          </div>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 2</strong>　①ア ②エ ③ウ ④カ。過失犯の本質をめぐり学生A（修正旧過失論）と学生B（新過失論）が対比される。①旧過失論で信頼の原則は予見可能性の判断において考慮される（ア）／②旧過失論への批判＝予見可能性のみでは処罰範囲が広すぎる（エ）／③新過失論への批判＝結果回避義務が行政取締法規上の義務に帰着し結果的加重犯化（ウ）／④修正旧過失論の反論＝実行行為に実質的危険性を要求して処罰範囲を限定（カ）。番号でなく各空欄の法理で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　各空欄の正解と<strong>論点のコア（転用可能な法理）</strong>は下表のとおり。組合せ番号でなく、各空欄の法理で判定する。下表が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:ア,2:エ,3:ウ,4:カ">
+          <thead><tr><th style="width:3em;">空欄</th><th style="width:8em;">正解</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1"><td style="text-align:center;font-weight:700;">①</td><td style="text-align:center;font-weight:700;">予見可能性（ア）</td><td>旧過失論（修正旧過失論）は過失の中心を予見義務違反に置く。信頼の原則は予見可能性を否定（限定）する原理として『予見可能性』の判断において考慮される。結果回避義務は新過失論の中心概念であって①には入らない。</td></tr>
+            <tr data-stmt="2"><td style="text-align:center;font-weight:700;">②</td><td style="text-align:center;font-weight:700;">処罰範囲が広すぎる（エ）</td><td>旧過失論に対しては、予見可能性のみで過失を認めると過失犯の処罰範囲が広くなり過ぎるとの批判がある。</td></tr>
+            <tr data-stmt="3"><td style="text-align:center;font-weight:700;">③</td><td style="text-align:center;font-weight:700;">行政取締法規へ帰着（ウ）</td><td>新過失論に対しては、『結果回避のための適切な措置（結果回避義務）』の内容が行政取締法規上の義務に帰着せざるを得ず、過失犯が行政取締法規違反の結果的加重犯になってしまうとの批判がある。『回避義務がないのは妥当でない』はむしろ旧過失論への批判であって新過失論への批判ではない。</td></tr>
+            <tr data-stmt="4"><td style="text-align:center;font-weight:700;">④</td><td style="text-align:center;font-weight:700;">実質的危険性を要求（カ）</td><td>修正旧過失論は、処罰範囲が広くなり過ぎるとの批判に対し、実行行為の内容として実質的危険性を要求することで処罰範囲を限定できると反論する。予見可能性を結果回避義務を導く前提要件として位置付けるのは新過失論寄りの構造で④には入らない。</td></tr>
+          </tbody>
+        </table>
       </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
@@ -4252,5 +4397,86 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（ガイド専念）：回答ボタンは持たず、検討順＋💡コツ＋組合せ消去パネルで誘導する。
+   ユーザーは下の ox-grid（多肢選択の一問一答）で各空欄を1つずつ回答 → ここが消去を更新 →
+   全部そろったら下の「解答を表示」で採点（記録は ox-grid 一本＝Lexia 復習プール）。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥','7':'⑦','8':'⑧','9':'⑨'};
+  // 本物の組合せ5択（番号→各空欄の語句）
+  var COMBOS = {"1": {"1": "ア", "2": "ウ", "3": "エ", "4": "キ"}, "2": {"1": "ア", "2": "エ", "3": "ウ", "4": "カ"}, "3": {"1": "ア", "2": "エ", "3": "オ", "4": "カ"}, "4": {"1": "イ", "2": "ウ", "3": "オ", "4": "カ"}, "5": {"1": "イ", "2": "エ", "3": "ウ", "4": "キ"}};
+  var ORDER = ["1", "2", "3", "4"];
+  var TIP = {"1": "旧過失論（修正旧過失論）の核は<b>予見義務違反</b>。信頼の原則は予見可能性を否定する原理だから『<b>予見可能性</b>』の判断において考慮される（ア）。結果回避義務（イ）は新過失論の中心概念で①に不適。", "2": "旧過失論への批判。予見可能性のみで過失を認めると<b>過失犯の処罰範囲が広くなり過ぎる</b>（エ）。", "3": "新過失論への批判。『結果回避のための適切な措置（結果回避義務）』の内容は<b>行政取締法規が定める義務に帰着</b>せざるを得ず、過失犯が行政取締法規違反の結果的加重犯になってしまう（ウ）。オ（重大な結果が予見可能なのに回避義務がないのは妥当でない）はむしろ旧過失論への批判で③に不適。", "4": "修正旧過失論の反論。処罰範囲拡大の批判に対し、<b>実行行為の内容として実質的危険性を要求</b>することで処罰範囲を限定できると反論する（カ）。キ（予見可能性を結果回避義務を導く前提要件として位置付ける）は新過失論寄りの構造で④に不適。"};
+  function picks(){
+    var p = {};
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      var b = r.getAttribute('data-stmt'); var sel = r.querySelector('.ox-btn.selected');
+      if (b && sel) p[b] = (sel.getAttribute('data-value') || '');
+    });
+    return p;
+  }
+  function liveNums(p){
+    var out = [];
+    for (var n in COMBOS){ if(!COMBOS.hasOwnProperty(n)) continue;
+      var ok = true;
+      for (var b in p){ if(p.hasOwnProperty(b) && COMBOS[n][b] !== p[b]){ ok = false; break; } }
+      if (ok) out.push(n);
+    }
+    return out;
+  }
+  function renderCombos(p){
+    var live = {}; liveNums(p).forEach(function(n){ live[n] = true; });
+    var html = '';
+    Object.keys(COMBOS).forEach(function(n){
+      var seq = '';
+      ORDER_ALL.forEach(function(b){
+        var L = COMBOS[n][b]; if (L === undefined) return;
+        var on = (p[b] && p[b] === L);
+        seq += (on ? '<b>' : '') + CIRC[b] + L + (on ? '</b>' : '') + ' ';
+      });
+      html += '<div class="sn-combo ' + (live[n] ? 'live' : 'dead') + '"><span class="sn-cno">' + n + '</span><div class="sn-cseq">' + seq + '</div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function currentBlank(p){
+    for (var i=0;i<ORDER.length;i++){ if(!p[ORDER[i]]) return ORDER[i]; }
+    return null;
+  }
+  var ORDER_ALL = Object.keys(COMBOS['1'] || {});
+  function render(){
+    var p = picks();
+    renderCombos(p);
+    var live = liveNums(p);
+    remainBox.innerHTML = '残っている組合せ番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
+    var cb = currentBlank(p);
+    var done = Object.keys(p).length;
+    var total = ORDER.length;
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cb && r.getAttribute('data-stmt') === cb);
+    });
+    var h = '';
+    if (cb){
+      h += '<p class="sn-progress">STEP ' + (done+1) + ' / ' + total + '　─　次は空欄 ' + CIRC[cb] + ' を、下の一問一答で回答</p>';
+      h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">' + TIP[cb] + '</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の ' + CIRC[cb] + ' で語句を選ぶと、ここの候補が絞られます。</p>';
+    } else if (live.length === 1){
+      h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + live[0] + '</div>全部そろいました。下の「解答を表示」で採点。番号でなく、いま辿った検討の筋道（どの空欄で立場と理由が定まり、どこが確認だったか）ごと身につけよう。</div>';
+    } else {
+      h += '<div class="sn-result' + (live.length===0?' miss':'') + '">' + (live.length===0 ? '選んだ語句が互いに矛盾して残る番号がありません。どこかを選び直そう。' : '残り：' + live.join('・') + '。あと一歩、残りの空欄を決めよう。') + '</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
