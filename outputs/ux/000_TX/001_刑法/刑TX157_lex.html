@@ -3246,6 +3246,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3356,25 +3441,81 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>③c　④g　⑧i</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>⑤c　⑥i　⑧j</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜5 から1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">A＝Ⅲ説（全面否定・因果的影響部分のみ評価）／B＝Ⅱ₁説（因果性遡及・加担後寄与部分の傷害罪j）／C＝Ⅱ₂説（積極利用・結果全部の傷害罪i）の対応を確かめ、各組合せ肢1〜5を下の一問一答で○×判定しよう。</span>
+      </div>
+      <div class="sn-body">
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="5" data-answer-type="single" data-explanation="本問は①〜⑧に語句a〜jを各1回入れ、整合する組合せを問う。土台となる法理は3つ。①Ⅲ説（全面否定説）は後行者の因果的影響部分のみを評価する（理由b・結論h）。②Ⅱ₁説（因果性遡及型）は『なお先行者が実現しようとする結果に因果性が及ぶ』(a)を理由に限定肯定(g)し、加担後寄与部分の傷害罪(j)にとどめる。③Ⅱ₂説（積極利用型）は『先行事実の積極的利用』(c)を理由に限定肯定(g)し、結果全部の傷害罪(i)を認めるが、判例（最決平24.11.6）はこの積極利用を『暴行の動機ないし契機にすぎない』(d)と評価し否定する。A=Ⅲ説／C=Ⅱ₂説／B=Ⅱ₁説と判明すれば、①b②h③a④g⑤c⑥i⑦d⑧j が確定する。組合せ番号でなく各学説の理由と結論の対応で判定する。">
-      <p class="answer-instruction">上記【選択肢】の 1〜5 から正しい組合せを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="××××○" data-answer-type="ox-grid" data-explanation="本問は①〜⑧に語句a〜jを各1回入れ、整合する組合せを問う。土台となる法理は3つ。①Ⅲ説（全面否定説）は後行者の因果的影響部分のみを評価する（理由b・結論h）。②Ⅱ₁説（因果性遡及型）は『なお先行者が実現しようとする結果に因果性が及ぶ』(a)を理由に限定肯定(g)し、加担後寄与部分の傷害罪(j)にとどめる。③Ⅱ₂説（積極利用型）は『先行事実の積極的利用』(c)を理由に限定肯定(g)し、結果全部の傷害罪(i)を認めるが、判例（最決平24.11.6）はこの積極利用を『暴行の動機ないし契機にすぎない』(d)と評価し否定する。A=Ⅲ説／C=Ⅱ₂説／B=Ⅱ₁説と判明すれば、①b②h③a④g⑤c⑥i⑦d⑧j が確定する。組合せ番号でなく各学説の理由と結論の対応で判定する。">
+      <p class="answer-instruction">肢1〜5それぞれに ○（正しい組合せ）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全肢に○×を付けてから reveal）。各語句が a〜j のうちどの学説の理由・結論に対応するかで判定する。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">①a／④f／⑦d ── ①にⅡ₁説の理由(a)を、④に「全面的に肯定」(f)を置く組合せ</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">①b／③a／⑦e ── ⑦に「自己の犯罪遂行の手段」(e)を置く組合せ</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">②h／⑤a／⑥i ── ⑤にⅡ₁説の理由(a)を、⑥に結果全部の傷害罪(i)を置く組合せ</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">③c／④g／⑧i ── ③にⅡ₂説の理由(c)を、⑧に結果全部の傷害罪(i)を置く組合せ</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">⑤c／⑥i／⑧j ── ⑤にⅡ₂説の理由(c)、⑥に結果全部の傷害罪(i)、⑧に加担後寄与部分の傷害罪(j)を置く組合せ</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 5</strong>　承継的共同正犯の3説。A＝Ⅲ説（全面否定・後行者の因果的影響部分のみ評価／②h・理由b）／B＝Ⅱ₁説（因果性遡及・理由a／加担後寄与部分の傷害罪j）／C＝Ⅱ₂説（積極利用・理由c／結果全部の傷害罪i）。判例（最決平24.11.6）は積極利用を『暴行の動機・契機にすぎない』(d・⑦)と評価。①b②h③a④g⑤c⑥i⑦d⑧jが確定し、整合するのは肢5（⑤c⑥i⑧j）。番号でなく各説の理由と結論の対応で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　各肢の○×は下表のとおり。組合せ番号を暗記するのではなく、a〜j の各語句が<strong>どの学説の理由・結論に対応するか</strong>で正誤を判定する。確定する充填は ①b ②h ③a ④g ⑤c ⑥i ⑦d ⑧j。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:x,4:x,5:o">
+          <thead><tr><th style="width:3em;">肢</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="x"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>④に「全面的に肯定」(f)は不可。AはⅢ説（全面否定説）で②に入るのは「全面的に否定」(h)。承継的共同正犯を全面肯定するのはⅠ説のみで本会話に登場しない。</td></tr>
+            <tr data-stmt="2" data-verdict="x"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>⑦に「自己の犯罪遂行の手段」(e)は不可。⑦は判例（最決平24.11.6）が積極利用事情をどう評価したかで、「暴行の動機ないし契機にすぎない」(d)が入る。eは事例の事実描写で会話の空欄候補ではない。</td></tr>
+            <tr data-stmt="3" data-verdict="x"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>⑤a が不可。⑤はCの理由＝Ⅱ₂説（積極利用型）の理由(c)。aはⅡ₁説（因果性遡及型）の理由で、Bの理由③に入る。②h は正しいが⑤の対応が崩れる。</td></tr>
+            <tr data-stmt="4" data-verdict="x"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>⑧i が不可。⑧はBの結論＝Ⅱ₁説の帰結で、加担後寄与部分の傷害罪(j)。iは結果全部の傷害罪でCの結論⑥に入る。③c④g は正しいが⑧の罪責範囲が逆。</td></tr>
+            <tr data-stmt="5" data-verdict="o"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>⑤c（Ⅱ₂説の理由）・⑥i（Cの結論＝結果全部の傷害罪）・⑧j（Bの結論＝加担後寄与部分の傷害罪）が全て学説の理由・結論と整合する。Ⅱ₁説とⅡ₂説で罪責範囲が i／j に分かれる対比が核心。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4310,5 +4451,48 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
+   1つずつ回答するよう誘導し、要所で💡コツと論点のコア（実体命題）を提示する。
+   採点は下の ox-grid 一本（記録は ox-grid＝Lexia 復習プール）。エンジンは問題横断で固定。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
+  var ORDER = ["1", "2", "3", "4", "5"];   // 検討順（ox-row の data-stmt 値の配列）
+  var STEP  = {"1": {"label": "肢1", "q": "肢1（①a／④f／⑦d）は正しい組合せか？", "tip": "④に『全面的に肯定』(f)は不可。A＝Ⅲ説（全面否定説）で②は『全面的に否定』(h)。全面肯定はⅠ説のみで本会話に登場しない＝<b>×</b>。"}, "2": {"label": "肢2", "q": "肢2（①b／③a／⑦e）は正しいか？", "tip": "⑦は判例（最決平24.11.6）が積極利用事情を『暴行の動機ないし契機にすぎない』(d)と評価した点。eではない＝<b>×</b>。"}, "3": {"label": "肢3", "q": "肢3（②h／⑤a／⑥i）は正しいか？", "tip": "⑤はC＝Ⅱ₂説（積極利用型）の理由(c)。a はⅡ₁説（因果性遡及型）の理由でB の③に入る＝<b>×</b>。"}, "4": {"label": "肢4", "q": "肢4（③c／④g／⑧i）は正しいか？", "tip": "⑧はB＝Ⅱ₁説の帰結で加担後寄与部分の傷害罪(j)。i は結果全部の傷害罪でC の⑥に入る＝<b>×</b>。"}, "5": {"label": "肢5", "q": "肢5（⑤c／⑥i／⑧j）は正しいか？", "tip": "⑤c（Ⅱ₂説の理由）・⑥i（C＝結果全部の傷害罪）・⑧j（B＝加担後寄与部分の傷害罪）が全て整合＝<b>○</b>。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
+  /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
+  function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
+  function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
+  function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
+  function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
+  function render(){
+    var cur = currentStep();
+    var done = doneCount();
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
+    });
+    var h = '';
+    if (cur){
+      var s = STEP[cur] || {};
+      h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
+      if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
+      if (s.tip) h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+    } else {
+      h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
