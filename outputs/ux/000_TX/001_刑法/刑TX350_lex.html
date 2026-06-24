@@ -1646,17 +1646,19 @@ blockquote{
   box-shadow:0 0 0 3px rgba(var(--accent-rgb),.20);
 }
 .ox-btn.correct-mark{
-  background:var(--recall-correct);
-  color:#fff;
-  border-color:var(--recall-correct);
-  box-shadow:0 2px 8px rgba(46,125,50,.20);
+  background:#e6f4e6;
+  color:#1b5e20;
+  border-color:#69a96e;
+  box-shadow:0 0 0 2px rgba(46,125,50,.18);
 }
+.ox-btn.correct-mark .mc-key{ background:#cfe8cf; color:#1b5e20; }
 .ox-btn.incorrect-mark{
-  background:var(--recall-incorrect);
-  color:#fff;
-  border-color:var(--recall-incorrect);
-  box-shadow:0 2px 8px rgba(176,0,50,.20);
+  background:#fdecef;
+  color:#8a1818;
+  border-color:#d98a93;
+  box-shadow:0 0 0 2px rgba(176,0,50,.16);
 }
+.ox-btn.incorrect-mark .mc-key{ background:#f6d6db; color:#8a1818; }
 .ox-btn:disabled{
   cursor:not-allowed;
 }
@@ -3237,6 +3239,7 @@ body.snav-on .solve-nav{display:block;}
 .sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
   border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
 .sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
 .sn-opts{display:flex; flex-direction:column; gap:8px;}
 .sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
   border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
@@ -3265,6 +3268,30 @@ body.snav-on .solve-nav{display:block;}
 .answer-area.combo-mode #answer-feedback{display:none;}
 .cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
   border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3354,7 +3381,7 @@ body.snav-on .solve-nav{display:block;}
 
     <div class="solve-nav" id="solve-nav">
       <div class="sn-head">📐 解法ナビ
-        <span class="sn-sub">検討すべき順に、本物の5択を1つずつ判断 → 矛盾する番号が消えて、残った番号にたどり着く。要所で解法のコツも出ます。</span>
+        <span class="sn-sub">検討すべき順に、下の一問一答で各空欄の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。要所で解法のコツも出ます。</span>
       </div>
       <div class="sn-body">
         <div class="sn-combos" id="sn-combos"></div>
@@ -3363,51 +3390,66 @@ body.snav-on .solve-nav{display:block;}
       </div>
     </div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各空欄の正解語句が妥当かを○×で判定（自分で○×を付けてから「解答を表示」）</h3>
+    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各空欄の語句を1つずつ選ぶ（上の解法ナビの順に。全部選んだら「解答を表示」）</h3>
 
-    <div class="answer-area" id="answer-area" data-correct-value="○○○○○" data-answer-type="ox-grid" data-explanation="各空欄の正解語句は ①b ②c ③f ④g ⑤j（組合せ5）。①は「公共の危険」の内容＝判例（最決平15.4.14）の不限定説（b）。②③は学生Bが認識必要説（c）を責任主義（f）を根拠に採ること。④はその必要説への批判＝未必の故意肯定（g）。⑤は学生Bが認識不要とする判例（最判昭60.3.28）に反対（j）すること。各空欄は『公共の危険の内容（具体的危険）』と『その認識の要否』という2つの軸で、判例と学説の対立構造を正確に把握できるかを問う。">
-      <p class="answer-instruction">空欄①〜⑤それぞれに掲げた正解語句が妥当か、○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全空欄に○×を付けてから reveal）。組合せ番号は○×から自動で定まります。</p>
+    <div class="answer-area" id="answer-area" data-correct-value="bcfgj" data-answer-type="ox-grid" data-explanation="各空欄の正解語句は ①b ②c ③f ④g ⑤j（組合せ5）。①は「公共の危険」の内容＝判例（最決平15.4.14）の不限定説（b）。②③は学生Bが認識必要説（c）を責任主義（f）を根拠に採ること。④はその必要説への批判＝未必の故意肯定（g）。⑤は学生Bが認識不要とする判例（最判昭60.3.28）に反対（j）すること。各空欄は『公共の危険の内容（具体的危険）』と『その認識の要否』という2つの軸で、判例と学説の対立構造を正確に把握できるかを問う。">
+      <p class="answer-instruction">上の解法ナビが示す順に、各空欄①〜⑤の語句を1つずつ選んでください（選ぶたびに上の組合せ候補が絞られます）。全空欄を選んだら「解答を表示」で採点。採点後、各行に<strong>論点のコア（転用可能な法理）</strong>が展開されます。復習プールにはこの法理命題だけが入ります。</p>
 
       <div class="answer-ox-grid">
-        <div class="ox-row" data-stmt="1">
+        <div class="ox-row mc" data-stmt="1">
           <span class="ox-label">①</span>
-          <span class="ox-stmt">公共の危険の内容＝<strong>b</strong>（限定せず不特定・多数の生命身体財産への危険）が正しい</span>
-          <span class="ox-btn-group">
-            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
-            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          <div class="ox-main">
+            <p class="ox-q">「公共の危険」（110条1項）の内容＝具体的危険の範囲は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="a"><span class="mc-key">a</span>延焼の危険にとどまる（限定説）</button>
+            <button class="answer-slot ox-btn" type="button" data-value="b"><span class="mc-key">b</span>限定せず不特定・多数の生命身体財産への危険（不限定説）</button>
           </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">110条1項の「公共の危険」は、建造物等への延焼の危険に限られず、不特定・多数の人の生命・身体・財産に対する危険も含む（不限定説。最決平15.4.14）。</span></p>
+          </div>
         </div>
-        <div class="ox-row" data-stmt="2">
+        <div class="ox-row mc" data-stmt="2">
           <span class="ox-label">②</span>
-          <span class="ox-stmt">学生Bは公共の危険の認識を<strong>c</strong>（必要）と考える、が正しい</span>
-          <span class="ox-btn-group">
-            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
-            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          <div class="ox-main">
+            <p class="ox-q">学生B（限定説）は「公共の危険」の認識を必要と考えるか、不要と考えるか？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="c"><span class="mc-key">c</span>必要（認識必要説）</button>
+            <button class="answer-slot ox-btn" type="button" data-value="d"><span class="mc-key">d</span>不要（認識不要説）</button>
           </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">公共の危険犯について、公共の危険発生の認識を要するとするのが認識必要説である（責任主義を重視し、認識なき重い処罰を避ける立場）。</span></p>
+          </div>
         </div>
-        <div class="ox-row" data-stmt="3">
+        <div class="ox-row mc" data-stmt="3">
           <span class="ox-label">③</span>
-          <span class="ox-stmt">必要説の根拠＝<strong>f</strong>（責任主義から結果的責任は否定されるべき）が正しい</span>
-          <span class="ox-btn-group">
-            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
-            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          <div class="ox-main">
+            <p class="ox-q">学生B（必要説）がその立場を採る根拠は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="e"><span class="mc-key">e</span>条文の文言「よって公共の危険を生じさせた」</button>
+            <button class="answer-slot ox-btn" type="button" data-value="f"><span class="mc-key">f</span>責任主義（結果的責任は否定されるべき）</button>
           </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">認識必要説の根拠は責任主義にある（行為者が認識・予見し得ない公共の危険の結果で重く処罰すべきでない）。条文の文言「よって公共の危険を生じさせた」はむしろ認識不要説の根拠とされる。</span></p>
+          </div>
         </div>
-        <div class="ox-row" data-stmt="4">
+        <div class="ox-row mc" data-stmt="4">
           <span class="ox-label">④</span>
-          <span class="ox-stmt">必要説への批判＝<strong>g</strong>（現住建造物等放火罪の未必の故意が認められてしまう）が正しい</span>
-          <span class="ox-btn-group">
-            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
-            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          <div class="ox-main">
+            <p class="ox-q">必要説に対する批判の中身は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="g"><span class="mc-key">g</span>現住建造物等放火罪の未必の故意が認められてしまう</button>
+            <button class="answer-slot ox-btn" type="button" data-value="h"><span class="mc-key">h</span>不可罰の基本犯の結果的加重犯を認めることになる</button>
           </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">認識必要説に対しては、公共の危険の認識を要求すると、客体への延焼等を介して現住建造物等放火罪の（未必の）故意が認められてしまう、との批判がある。</span></p>
+          </div>
         </div>
-        <div class="ox-row" data-stmt="5">
+        <div class="ox-row mc" data-stmt="5">
           <span class="ox-label">⑤</span>
-          <span class="ox-stmt">学生Bは認識不要とする判例に<strong>j</strong>（反対）する、が正しい</span>
-          <span class="ox-btn-group">
-            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
-            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          <div class="ox-main">
+            <p class="ox-q">学生Bは「認識不要」とする判例に賛成か、反対か？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="i"><span class="mc-key">i</span>判例に賛成</button>
+            <button class="answer-slot ox-btn" type="button" data-value="j"><span class="mc-key">j</span>判例に反対</button>
           </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">判例（最判昭60.3.28）は、放火罪における公共の危険の発生について行為者の認識を不要とする（認識不要説）。</span></p>
+          </div>
         </div>
       </div>
 
@@ -3415,15 +3457,15 @@ body.snav-on .solve-nav{display:block;}
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解</strong>　各空欄の○×は下表のとおり。組合せ番号を覚えるのではなく、各空欄に現れた<strong>論点のコア</strong>で正解語句を判定する。下表「論点のコア」が学習資産。</p>
-        <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:o,4:o,5:o">
-          <thead><tr><th style="width:3em;">空欄</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+        <p class="fa-summary"><strong>正解</strong>　各空欄の正解と<strong>論点のコア（転用可能な法理）</strong>は下表のとおり。組合せ番号でなく、各空欄の法理で判定する。下表が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:b,2:c,3:f,4:g,5:j">
+          <thead><tr><th style="width:3em;">空欄</th><th style="width:6.5em;">正解</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
           <tbody>
-            <tr data-stmt="1" data-verdict="o"><td style="text-align:center;font-weight:700;">①b</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>110条1項の「公共の危険」は108条・109条1項所定の建造物等への延焼の危険に限られず、不特定又は多数の人の生命・身体・財産への危険も含む（最決平15.4.14）。aの延焼限定説は不採用。</td></tr>
-            <tr data-stmt="2" data-verdict="o"><td style="text-align:center;font-weight:700;">②c</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>学生Bは⑤で判例（認識不要説）に反対する立場を採るから、公共の危険の認識は「必要」（c）と整合。問題全体の論理一貫性から逆算して確定する。</td></tr>
-            <tr data-stmt="3" data-verdict="o"><td style="text-align:center;font-weight:700;">③f</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>認識必要説の根拠は責任主義＝結果的責任を極力否定すべき（f）。eの「文言が結果的加重犯的」は認識不要説の根拠であり、必要説を採る②cと対応しない。</td></tr>
-            <tr data-stmt="4" data-verdict="o"><td style="text-align:center;font-weight:700;">④g</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>必要説への批判＝公共の危険の認識を要求すると延焼の認識との区別ができず、現住建造物等放火罪等の未必の故意が認められ109条2項・110条の適用領域が事実上消える（g）。</td></tr>
-            <tr data-stmt="5" data-verdict="o"><td style="text-align:center;font-weight:700;">⑤j</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>判例は公共の危険の認識を不要とする（最判昭60.3.28）。学生Bは必要説を採るから判例に「反対」（j）。⑤で立場が確定すると②③が逆算で定まる。</td></tr>
+            <tr data-stmt="1"><td style="text-align:center;font-weight:700;">①</td><td style="text-align:center;font-weight:700;">不限定説</td><td>110条1項の「公共の危険」は108条・109条1項所定の建造物等への延焼の危険に限られず、不特定又は多数の人の生命・身体・財産への危険も含む（最決平15.4.14）。</td></tr>
+            <tr data-stmt="2"><td style="text-align:center;font-weight:700;">②</td><td style="text-align:center;font-weight:700;">認識必要説</td><td>公共の危険犯において、公共の危険発生の認識を要するとするのが認識必要説である（責任主義を重視し、認識なき重い処罰を避ける立場）。</td></tr>
+            <tr data-stmt="3"><td style="text-align:center;font-weight:700;">③</td><td style="text-align:center;font-weight:700;">責任主義</td><td>認識必要説の根拠は責任主義にある（行為者が認識・予見し得ない結果で重く処罰すべきでない）。条文の文言「よって公共の危険を生じさせた」はむしろ認識不要説の根拠とされる。</td></tr>
+            <tr data-stmt="4"><td style="text-align:center;font-weight:700;">④</td><td style="text-align:center;font-weight:700;">未必の故意の不当拡張</td><td>認識必要説に対しては、公共の危険の認識を要求すると延焼の認識との区別がつかず、現住建造物等放火罪等の（未必の）故意が認められ、109条2項・110条の適用領域が事実上消えるとの批判がある。</td></tr>
+            <tr data-stmt="5"><td style="text-align:center;font-weight:700;">⑤</td><td style="text-align:center;font-weight:700;">判例＝認識不要説</td><td>判例（最判昭60.3.28）は、放火罪における公共の危険の発生について行為者の認識を不要とする（認識不要説）。</td></tr>
           </tbody>
         </table>
       </div>
@@ -4330,8 +4372,9 @@ body.snav-on .solve-nav{display:block;}
 
 
 <script>
-/* 解法ナビ（試作）：検討すべき順に本物の5択を1つずつ判断 → 矛盾する番号が外れて残った番号へ。
-   要所で解法アドバイスを表示。最後に「公式解答へ記入」で ox-grid を遠隔操作して採点（記録は ox-grid 一本）。 */
+/* 解法ナビ（ガイド専念）：回答ボタンは持たず、検討順＋💡コツ＋組合せ消去パネルで誘導する。
+   ユーザーは下の ox-grid（多肢選択の一問一答）で各空欄を1つずつ回答 → ここが消去を更新 →
+   全部そろったら下の「解答を表示」で採点（記録は ox-grid 一本＝Lexia 復習プール）。 */
 (function(){
   var root = document.getElementById('solve-nav');
   var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
@@ -4339,7 +4382,6 @@ body.snav-on .solve-nav{display:block;}
   var combosBox = document.getElementById('sn-combos');
   var remainBox = document.getElementById('sn-remain');
   var stage = document.getElementById('sn-stage');
-
   var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤'};
   // 本物の組合せ5択（番号→各空欄の語句）
   var COMBOS = {
@@ -4349,186 +4391,74 @@ body.snav-on .solve-nav{display:block;}
     '4':{'1':'b','2':'d','3':'e','4':'g','5':'i'},
     '5':{'1':'b','2':'c','3':'f','4':'g','5':'j'}
   };
-  // ox-grid 各行が「正しい」とする語句（○×記入の基準）
-  var OFFICIAL = {'1':'b','2':'c','3':'f','4':'g','5':'j'};
-  // 検討する順序（立場がいちばん堅く決まる空欄から）
   var ORDER = ['5','2','3','1','4'];
-  var STEP = {
-    '5':{q:'⑤ 学生Bは判例に賛成？ 反対？', loc:'会話の最後（⑤）。ただしBは序盤で自分から態度を述べている。',
-      tip:'まず<b>立場がいちばん堅く決まる空欄</b>を起点に。Bは冒頭で「判例の立場には反対しています」と明言している。発言者の地の文に答えが落ちていることが多い。',
-      opts:[{k:'i',t:'判例に賛成'},{k:'j',t:'判例に反対'}],
-      note:'Bは判例に反対＝<b>アンカー確定</b>。これで ⑤i 側の番号が外れる。'},
-    '2':{q:'② Bは「公共の危険」の認識を 必要？ 不要？', loc:'②（Bの「私は…と考えます」）。',
-      tip:'立場が決まれば芋づる式。判例は「認識<b>不要</b>」説。Bはその判例に反対なのだから、逆の「<b>必要</b>」説に立つはず。一人の主張は最後まで一本筋＝論理一貫で逆算する。',
-      opts:[{k:'c',t:'必要'},{k:'d',t:'不要'}],
-      note:'必要説で確定。⑤と矛盾しない。②d 側の番号が外れる。'},
-    '3':{q:'③ Bが必要説を採る「理由」は？', loc:'③（「なぜなら…からです」）。',
-      tip:'理由づけは<b>立場とセット</b>で押さえる。必要説の支えは<b>責任主義</b>（結果だけで重く罰しない）。条文の文言「よって公共の危険を生じさせた」は、むしろ<b>不要説</b>側の根拠なので、必要説のBがこれを挙げるのは筋が通らない。',
-      opts:[{k:'e',t:'条文の文言「よって公共の危険を生じさせた」'},{k:'f',t:'責任主義（結果的責任は否定すべき）'}],
-      note:'責任主義で確定。③e 側の番号が外れる。'},
-    '1':{q:'① 「公共の危険」の“内容”は？（確認）', loc:'①（学生Aの最初の発言）。',
-      tip:'ここは確認ステップ。教授が「Aの考えは判例と同じ」と評価している＝Aの説＝判例。判例（最決平15.4.14）は延焼に限定しない<b>不限定説</b>。',
-      opts:[{k:'a',t:'延焼の危険（限定説）'},{k:'b',t:'限定せず不特定・多数の生命身体財産への危険（不限定説）'}],
-      note:'判例＝不限定説で確認OK。'},
-    '4':{q:'④ Aの“批判”の中身は？（確認）', loc:'④（学生Aの「しかし…」）。',
-      tip:'必要説への典型批判は「<b>未必の故意</b>が広がってしまう」。h（不可罰の結果加重犯）は別系統の議論で、ここでは噛み合わない。批判は「どの説への批判か」を意識すると選びやすい。',
-      opts:[{k:'g',t:'現住建造物等放火罪の未必の故意が認められてしまう'},{k:'h',t:'不可罰である基本犯の結果加重犯を認めることになる'}],
-      note:'批判の中身も確認OK。'}
+  var TIP = {
+    '5':'まず<b>立場がいちばん堅く決まる空欄</b>から。Bは冒頭で「判例の立場には反対」と明言している。発言者の地の文に答えが落ちていることが多い。',
+    '2':'立場が決まれば芋づる式。判例は「認識<b>不要</b>」説。Bはその判例に反対だから、逆の「<b>必要</b>」説に立つはず（一人の主張は一本筋＝逆算）。',
+    '3':'理由づけは<b>立場とセット</b>。必要説の支えは<b>責任主義</b>。条文の文言「よって公共の危険を生じさせた」はむしろ<b>不要説</b>側の根拠なので必要説のBには合わない。',
+    '1':'確認ステップ。教授が「Aの考えは判例と同じ」と評価＝Aの説＝判例。判例（最決平15.4.14）は延焼に限定しない<b>不限定説</b>。',
+    '4':'必要説への典型批判は「<b>未必の故意</b>が広がってしまう」。h（不可罰の基本犯の結果的加重犯）は別系統で噛み合わない。'
   };
-
-  var picks = {};   // blank -> letter
-  var idx = 0;
-
-  function liveNums(){
+  function picks(){
+    var p = {};
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      var b = r.getAttribute('data-stmt'); var sel = r.querySelector('.ox-btn.selected');
+      if (b && sel) p[b] = (sel.getAttribute('data-value') || '');
+    });
+    return p;
+  }
+  function liveNums(p){
     var out = [];
-    for (var n in COMBOS){ if (!COMBOS.hasOwnProperty(n)) continue;
+    for (var n in COMBOS){ if(!COMBOS.hasOwnProperty(n)) continue;
       var ok = true;
-      for (var b in picks){ if (picks.hasOwnProperty(b) && COMBOS[n][b] !== picks[b]) { ok = false; break; } }
+      for (var b in p){ if(p.hasOwnProperty(b) && COMBOS[n][b] !== p[b]){ ok = false; break; } }
       if (ok) out.push(n);
     }
     return out;
   }
-
-  function renderCombos(winNum){
-    var live = {}; liveNums().forEach(function(n){ live[n] = true; });
+  function renderCombos(p){
+    var live = {}; liveNums(p).forEach(function(n){ live[n] = true; });
     var html = '';
     ['1','2','3','4','5'].forEach(function(n){
       var seq = '';
       ['1','2','3','4','5'].forEach(function(b){
-        var L = COMBOS[n][b];
-        var on = (picks[b] && picks[b] === L);
+        var L = COMBOS[n][b]; var on = (p[b] && p[b] === L);
         seq += (on ? '<b>' : '') + CIRC[b] + L + (on ? '</b>' : '') + ' ';
       });
-      var cls = 'sn-combo ' + (winNum === n ? 'win' : (live[n] ? 'live' : 'dead'));
-      html += '<div class="' + cls + '"><span class="sn-cno">' + n + '</span><div class="sn-cseq">' + seq + '</div></div>';
+      html += '<div class="sn-combo ' + (live[n] ? 'live' : 'dead') + '"><span class="sn-cno">' + n + '</span><div class="sn-cseq">' + seq + '</div></div>';
     });
     combosBox.innerHTML = html;
   }
-
-  function esc(s){ return s; } // 文言は内製・エスケープ不要
-
-  function renderStep(){
-    var live = liveNums();
-    renderCombos(null);
+  function currentBlank(p){
+    for (var i=0;i<ORDER.length;i++){ if(!p[ORDER[i]]) return ORDER[i]; }
+    return null;
+  }
+  function render(){
+    var p = picks();
+    renderCombos(p);
+    var live = liveNums(p);
     remainBox.innerHTML = '残っている組合せ番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
-
-    // 終了条件：番号が1つ以下、または順序を使い切った
-    if (live.length <= 1 || idx >= ORDER.length){ return finish(live); }
-
-    var blank = ORDER[idx];
-    var s = STEP[blank];
-    var stepNo = idx + 1;
-    var h = '';
-    h += '<p class="sn-progress">STEP ' + stepNo + ' / ' + ORDER.length + '　─　空欄 ' + CIRC[blank] + ' を検討</p>';
-    h += '<p class="sn-step-q">' + s.q + '</p>';
-    h += '<p class="sn-step-loc">📍 ' + s.loc + '</p>';
-    h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span>' + s.tip + '</div>';
-    h += '<div class="sn-opts">';
-    s.opts.forEach(function(o){
-      h += '<button type="button" class="sn-opt" data-blank="' + blank + '" data-k="' + o.k + '">' +
-           '<span class="sn-key">' + o.k + '</span><span>' + o.t + '</span></button>';
+    var cb = currentBlank(p);
+    var done = Object.keys(p).length;
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cb && r.getAttribute('data-stmt') === cb);
     });
-    h += '</div>';
-    h += trailHTML();
-    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
-    stage.innerHTML = h;
-  }
-
-  function trailHTML(){
-    var keys = Object.keys(picks);
-    if (!keys.length) return '';
-    var t = '<div class="sn-trail">これまでの判断：';
-    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">' + CIRC[b] + ' = ' + picks[b] + '</span>'; });
-    return t + '</div>';
-  }
-
-  function onPick(blank, k){
-    picks[blank] = k;
-    var note = STEP[blank].note;
-    idx += 1;
-    renderStep();
-    // 直前の判断に対する一言フィードバックを差し込む
-    var fb = document.createElement('div');
-    fb.className = 'sn-feedback';
-    fb.innerHTML = '<strong>' + CIRC[blank] + ' = ' + k + '</strong>　' + note;
-    stage.insertBefore(fb, stage.firstChild);
-  }
-
-  function finish(live){
     var h = '';
-    if (live.length === 1){
-      var W = live[0];
-      renderCombos(W);
-      h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + W + '</div>' +
-           'これがあなたの判断で導いた答え。番号を暗記するのではなく、いま辿った「⑤→②→③ で立場と理由が定まり、残りが確認で揃う」筋道ごと身につけよう。</div>';
-      h += '<div class="sn-actions">' +
-           '<button type="button" class="sn-btn primary" id="sn-apply" data-w="' + W + '">この答え（組合せ ' + W + '）で確定</button>' +
-           '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
-    } else if (live.length === 0){
-      h += '<div class="sn-result miss">判断が互いに矛盾して、残る番号が無くなりました。どこかの選択を見直そう（一人の発言は最後まで一本筋になるはず）。</div>';
-      h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    if (cb){
+      h += '<p class="sn-progress">STEP ' + (done+1) + ' / 5　─　次は空欄 ' + CIRC[cb] + ' を、下の一問一答で回答</p>';
+      h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">' + TIP[cb] + '</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の ' + CIRC[cb] + ' で語句を選ぶと、ここの候補が絞られます。</p>';
+    } else if (live.length === 1){
+      h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + live[0] + '</div>全部そろいました。下の「解答を表示」で採点。番号でなく、いま辿った「⑤→②→③ で立場と理由が定まり残りが確認で揃う」筋道ごと身につけよう。</div>';
     } else {
-      h += '<div class="sn-result">残った番号：<span class="sn-big">' + live.join('・') + '</span>。あと一歩。残りを分ける空欄を会話で確かめて1つに決めよう。</div>';
-      h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+      h += '<div class="sn-result' + (live.length===0?' miss':'') + '">' + (live.length===0 ? '選んだ語句が互いに矛盾して残る番号がありません。どこかを選び直そう。' : '残り：' + live.join('・') + '。あと一歩、残りの空欄を決めよう。') + '</div>';
     }
-    stage.innerHTML = h + trailHTML();
-  }
-
-  // ===== 下の一問一答（解答欄）は出さず、ナビの結論をそのまま解答にする =====
-  // ox-grid（記述単位・Lexia 記録／検証器 G25）は DOM に残し、ナビが導いた番号から裏で○×を記入する。
-  function answerNum(){
-    for (var n in COMBOS){ if (!COMBOS.hasOwnProperty(n)) continue;
-      var all = true;
-      ['1','2','3','4','5'].forEach(function(b){ if (COMBOS[n][b] !== OFFICIAL[b]) all = false; });
-      if (all) return n;
-    }
-    return '5';
-  }
-
-  function commitAnswer(N){
-    if (area.classList.contains('answered')) return;
-    // 裏の ox-grid に○×を記入して採点（Lexia の記述単位記録はこれで残る）
-    ['1','2','3','4','5'].forEach(function(b){
-      var val = (COMBOS[N][b] === OFFICIAL[b]) ? '○' : '×';
-      var row = area.querySelector('.ox-row[data-stmt="' + b + '"]');
-      if (!row) return;
-      var btn = row.querySelector('.ox-btn[data-value="' + val + '"]');
-      if (btn) btn.click();
-    });
-    var rv = area.querySelector('.reveal-answer-btn');
-    if (rv && !rv.disabled) rv.click();
-    var hint = area.querySelector('.cp-hint');
-    if (hint) hint.parentNode.removeChild(hint);
-    // 正誤をナビ内に表示（下の一問一答は出さない）
-    var ans = answerNum();
-    var ok = (N === ans);
-    var h = '<div class="sn-result' + (ok ? '' : ' miss') + '">' +
-      (ok ? '<div class="sn-big">✓ 正解（組合せ ' + ans + '）</div>解説で論点のコアを確認しよう。'
-          : '<div class="sn-big">✗ 不正解</div>あなたの答え：組合せ ' + N + '／正しいのは組合せ ' + ans + '。下の解説で外した空欄を確認しよう。') +
-      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
     stage.innerHTML = h;
-    renderCombos(N);
-    var fa = area.querySelector('.final-answer');
-    if (fa) fa.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-
-  function restart(){ picks = {}; idx = 0; renderStep(); }
-
-  root.addEventListener('click', function(e){
-    var t = e.target;
-    if (!t || !t.closest) return;
-    var opt = t.closest('.sn-opt');
-    if (opt){ onPick(opt.getAttribute('data-blank'), opt.getAttribute('data-k')); return; }
-    if (t.closest('#sn-reset')){ restart(); return; }
-    var ap = t.closest('#sn-apply');
-    if (ap){ commitAnswer(ap.getAttribute('data-w')); return; }
-  }, false);
-
-  // ===== Lexia 用：解法ナビを常時表示（公式版と別ファイルなので裏ルートは廃止） =====
-  // combo-mode は付与しない＝下の ox-grid 一問一答（復習プール）はそのまま表示。
-  // ナビの「確定」で ox-grid を裏で記入して採点する（commitAnswer）。
-  document.body.classList.add('snav-on');   // .solve-nav を表示
-  renderStep();
+  // ox-grid の選択を監視（クリック後に状態反映）。reveal 後の再描画にも追従。
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
 })();
 </script>
 
