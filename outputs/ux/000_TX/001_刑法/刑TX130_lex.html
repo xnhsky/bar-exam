@@ -3210,6 +3210,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3297,25 +3382,90 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>③f　⑥l</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>④g　⑤j</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜5 から1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">学説の順（主観説→形式的客観説→実質的客観説→修正説）に、下の一問一答で各空欄の語句を1つずつ判断しよう。各説の着手概念で正誤が決まります。</span>
+      </div>
+      <div class="sn-body">
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="4" data-answer-type="single" data-explanation="①〜⑥の正しい語句は①a・②c・③f・④g・⑤i・⑥l。①は主観説（行為者の危険な性格の発現）＝犯意の飛躍的表動（a）。②③は形式的客観説（構成要件該当行為の開始＝宝石に手を伸ばす）→居間に立ち入ろうとした時点では着手なし（c）・着手時期が遅くなり過ぎるとの批判（f）。④⑤は実質的客観説（占有侵害の現実的危険性の発生＝g）→タンスの在りかを知らず居間に立ち入ろうとした時点では危険未発生で着手なし（i）。⑥は形式説を修正した密接関連行為説（l）。組合せ番号ではなく各学説の着手概念という法理で正誤を判定する。">
-      <p class="answer-instruction">①〜⑥に入る語句の正しい組合せを、上記【組合せ】の 1〜5 から1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="acfgil" data-answer-type="ox-grid" data-explanation="①〜⑥の正しい語句は①a・②c・③f・④g・⑤i・⑥l。①は主観説（行為者の危険な性格の発現）＝犯意の飛躍的表動（a）。②③は形式的客観説（構成要件該当行為の開始＝宝石に手を伸ばす）→居間に立ち入ろうとした時点では着手なし（c）・着手時期が遅くなり過ぎるとの批判（f）。④⑤は実質的客観説（占有侵害の現実的危険性の発生＝g）→タンスの在りかを知らず居間に立ち入ろうとした時点では危険未発生で着手なし（i）。⑥は形式説を修正した密接関連行為説（l）。組合せ番号ではなく各学説の着手概念という法理で正誤を判定する。">
+      <p class="answer-instruction">①〜⑥それぞれで（　）内の2つから適切な語句を選んでから「解答を表示」を押してください（導き書§3-1：必ず6つ全部に選択を付けてから reveal）。確定した語句列から正しい組合せが定まります。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="①">
+          <span class="ox-label">①</span>
+          <span class="ox-stmt">主観説（犯罪は行為者の危険な性格の発現とみる立場）は、実行の着手を「犯意の飛躍的表動」があった時点に求める。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="a">a 犯意の飛躍的表動</button>
+            <button class="answer-slot ox-btn" type="button" data-value="b">b 法益侵害の危険が高まった</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="②">
+          <span class="ox-label">②</span>
+          <span class="ox-stmt">形式的客観説（着手＝構成要件該当行為の開始）からは、宝石に手を伸ばす前の「居間に立ち入ろうとした時点」では実行の着手は認められない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="c">c 認められない</button>
+            <button class="answer-slot ox-btn" type="button" data-value="d">d 認められる</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="③">
+          <span class="ox-label">③</span>
+          <span class="ox-stmt">形式的客観説に対しては、着手時期が遅くなり過ぎる（物色して歩いても窃盗未遂が成立せず、窃盗予備が不可罰となる）との批判がある。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="e">e 不明確になる</button>
+            <button class="answer-slot ox-btn" type="button" data-value="f">f 遅くなり過ぎる</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="④">
+          <span class="ox-label">④</span>
+          <span class="ox-stmt">実質的客観説（着手＝結果発生の現実的危険性のある行為の開始）は、窃盗では占有侵害の現実的危険性が発生した時点に着手を求める。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="g">g 占有侵害の現実的危険性が発生した</button>
+            <button class="answer-slot ox-btn" type="button" data-value="h">h 窃取行為と密接に関連する行為を開始した</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="⑤">
+          <span class="ox-label">⑤</span>
+          <span class="ox-stmt">実質的客観説を本事例に当てはめると、甲はタンスの在りかを知らないため、居間に立ち入ろうとした時点では占有侵害の現実的危険性が未発生で、着手は認められない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="i">i 認められない</button>
+            <button class="answer-slot ox-btn" type="button" data-value="j">j 探し始めた時点で認められる</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="⑥">
+          <span class="ox-label">⑥</span>
+          <span class="ox-stmt">形式的客観説を修正した修正説は、窃取行為と密接に関連する行為の開始を着手とする（占有侵害の現実的危険性発生を基準にする実質的客観説とは区別される）。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="k">k 占有侵害の現実的危険性が発生した</button>
+            <button class="answer-slot ox-btn" type="button" data-value="l">l 窃取行為と密接に関連する行為を開始した</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 4</strong>　①a ②c ③f ④g ⑤i ⑥l。窃盗罪の実行の着手時期を3学説で対比する。①主観説＝犯意の飛躍的表動（a）／②③形式的客観説＝構成要件該当行為の開始ゆえ居間進入では着手なし（c）・着手が遅すぎるとの批判（f）／④⑤実質的客観説＝占有侵害の現実的危険性の発生（g）ゆえタンスの在りかを知らない本事例では着手なし（i）／⑥形式説修正説＝密接関連行為の開始（l）。番号でなく各説の着手概念で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　①〜⑥の正しい語句は下表のとおり（語句列 ①a ②c ③f ④g ⑤i ⑥l）。組合せ番号を覚えるのではなく、各学説の着手概念という<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="①:a,②:c,③:f,④:g,⑤:i,⑥:l">
+          <thead><tr><th style="width:3em;">空欄</th><th style="width:3.5em;">正答</th><th>登場した論点のコア（学説と着手概念・転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="①" data-verdict="a"><td style="text-align:center;font-weight:700;">①</td><td style="text-align:center;font-weight:800;color:var(--accent);">a</td><td>主観説＝犯罪を行為者の危険な性格の発現とみる。着手は「犯意の飛躍的表動」があった時点。bの「法益侵害の危険」は客観説の発想で不適。</td></tr>
+            <tr data-stmt="②" data-verdict="c"><td style="text-align:center;font-weight:700;">②</td><td style="text-align:center;font-weight:800;color:var(--accent);">c</td><td>形式的客観説＝着手は構成要件該当行為（占有移転の開始＝宝石に手を伸ばす）の開始。居間に立ち入ろうとした時点では着手は認められない。</td></tr>
+            <tr data-stmt="③" data-verdict="f"><td style="text-align:center;font-weight:700;">③</td><td style="text-align:center;font-weight:800;color:var(--accent);">f</td><td>形式的客観説への批判＝着手時期が遅くなり過ぎる（物色して歩いても窃盗未遂が成立せず、窃盗予備は不可罰となる不当）。eの「不明確」は妥当しない。</td></tr>
+            <tr data-stmt="④" data-verdict="g"><td style="text-align:center;font-weight:700;">④</td><td style="text-align:center;font-weight:800;color:var(--accent);">g</td><td>実質的客観説＝結果発生の現実的危険性のある行為の開始を着手とする。窃盗では占有侵害の現実的危険性が発生した時点。</td></tr>
+            <tr data-stmt="⑤" data-verdict="i"><td style="text-align:center;font-weight:700;">⑤</td><td style="text-align:center;font-weight:800;color:var(--accent);">i</td><td>実質的客観説の本事例あてはめ＝甲はタンスの在りかを知らず、居間に立ち入ろうとした時点では占有侵害の現実的危険性が未発生→着手は認められない。</td></tr>
+            <tr data-stmt="⑥" data-verdict="l"><td style="text-align:center;font-weight:700;">⑥</td><td style="text-align:center;font-weight:800;color:var(--accent);">l</td><td>修正説（形式的客観説の修正）＝「窃取行為と密接に関連する行為の開始」。kの「現実的危険性発生」は実質的客観説そのもので、形式説の修正とはいえない。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4207,5 +4357,48 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
+   1つずつ回答するよう誘導し、要所で💡コツと論点のコア（実体命題）を提示する。
+   採点は下の ox-grid 一本（記録は ox-grid＝Lexia 復習プール）。エンジンは問題横断で固定。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
+  var ORDER = ["①", "②", "③", "④", "⑤", "⑥"];   // 検討順（ox-row の data-stmt 値の配列）
+  var STEP  = {"①": {"label": "①", "q": "主観説は、実行の着手をどの時点に求めるか？", "tip": "主観説は犯罪を<b>行為者の危険な性格の発現</b>とみる。着手は<b>犯意の飛躍的表動</b>があった時点。『法益侵害の危険』は客観説の発想で主観説には合わない。"}, "②": {"label": "②", "q": "形式的客観説では、居間に立ち入ろうとした時点で着手は認められるか？", "tip": "形式的客観説は着手を<b>構成要件該当行為（占有移転の開始＝宝石に手を伸ばす）の開始</b>に求める。居間に立ち入ろうとした段階ではまだ構成要件該当行為の開始がなく、着手は<b>認められない</b>。"}, "③": {"label": "③", "q": "形式的客観説に対する批判の内容は？", "tip": "形式的客観説には、着手時期が<b>遅くなり過ぎる</b>（物色しても窃盗未遂が立たず窃盗予備が不可罰となる）との批判がある。『不明確になる』は妥当しない。"}, "④": {"label": "④", "q": "実質的客観説は、実行の着手をどの時点に求めるか？", "tip": "実質的客観説は<b>結果発生の現実的危険性のある行為の開始</b>を着手とする。窃盗では<b>占有侵害の現実的危険性が発生した</b>時点。"}, "⑤": {"label": "⑤", "q": "実質的客観説を本事例に当てはめると、居間に立ち入ろうとした時点で着手は認められるか？", "tip": "甲はタンスの在りかを知らず、居間に立ち入ろうとした段階では占有侵害の現実的危険性が未発生＝着手は<b>認められない</b>。"}, "⑥": {"label": "⑥", "q": "形式的客観説を修正した修正説は、着手をどの時点に求めるか？", "tip": "修正説は<b>窃取行為と密接に関連する行為の開始</b>を着手とする。『占有侵害の現実的危険性発生』は実質的客観説そのもので、形式説の修正とはいえない。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
+  /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
+  function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
+  function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
+  function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
+  function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
+  function render(){
+    var cur = currentStep();
+    var done = doneCount();
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
+    });
+    var h = '';
+    if (cur){
+      var s = STEP[cur] || {};
+      h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
+      if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
+      if (s.tip) h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+    } else {
+      h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
