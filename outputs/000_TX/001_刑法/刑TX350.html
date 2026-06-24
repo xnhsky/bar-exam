@@ -3261,23 +3261,8 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .answer-area.combo-mode .answer-ox-grid,
 .answer-area.combo-mode > .reveal-answer-btn,
 .answer-area.combo-mode #answer-feedback{display:none;}
-.combo-pick{margin:4px 0 6px;}
-.combo-pick .cp-head{font-weight:700; color:var(--accent); font-size:.98em; margin:0 0 4px; font-family:var(--font-display,sans-serif);}
-.combo-pick .cp-sub{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px; line-height:1.6;}
-.cp-list{display:flex; flex-direction:column; gap:8px;}
-.cp-btn{display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
-  border:1.5px solid var(--border-mid,#ccc); border-radius:10px; padding:12px 13px; background:#fff;
-  font-size:.95em; color:var(--bg-dark,#333); -webkit-tap-highlight-color:transparent; line-height:1.5;}
-.cp-btn:hover{border-color:var(--accent);}
-.cp-btn .cp-no{flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--soft,#eee);
-  color:var(--bg-dark,#333); font-weight:800; display:flex; align-items:center; justify-content:center;}
-.cp-btn.picked{box-shadow:0 0 0 2px rgba(0,0,0,.05);}
-.cp-btn.correct{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
-.cp-btn.correct .cp-no{background:var(--recall-correct-light,#43a047); color:#fff;}
-.cp-btn.wrong{border-color:var(--recall-incorrect,#c62828); background:#fff4f6;}
-.cp-btn.wrong .cp-no{background:var(--recall-incorrect,#c62828); color:#fff;}
-.cp-btn:disabled{cursor:default;}
-.cp-result{margin-top:12px; padding:11px 13px; border-radius:9px; line-height:1.7; font-size:.92em;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -4423,7 +4408,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
   function renderStep(){
     var live = liveNums();
     renderCombos(null);
-    remainBox.innerHTML = '残っている番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
+    remainBox.innerHTML = '残っている組合せ番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
 
     // 終了条件：番号が1つ以下、または順序を使い切った
     if (live.length <= 1 || idx >= ORDER.length){ return finish(live); }
@@ -4475,7 +4460,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
       h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + W + '</div>' +
            'これがあなたの判断で導いた答え。番号を暗記するのではなく、いま辿った「⑤→②→③ で立場と理由が定まり、残りが確認で揃う」筋道ごと身につけよう。</div>';
       h += '<div class="sn-actions">' +
-           '<button type="button" class="sn-btn primary" id="sn-apply" data-w="' + W + '">この番号（' + W + '）で解答する</button>' +
+           '<button type="button" class="sn-btn primary" id="sn-apply" data-w="' + W + '">この答え（組合せ ' + W + '）で確定</button>' +
            '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
     } else if (live.length === 0){
       h += '<div class="sn-result miss">判断が互いに矛盾して、残る番号が無くなりました。どこかの選択を見直そう（一人の発言は最後まで一本筋になるはず）。</div>';
@@ -4487,10 +4472,8 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     stage.innerHTML = h + trailHTML();
   }
 
-  // ===== 公式回答を「オリジナルの5択（組合せ番号）」に置き換える =====
-  // ox-grid（記述単位・Lexia 記録／検証器 G25）は DOM に残し、選んだ番号から裏で○×を記入する。
-  var selector = null;
-
+  // ===== 下の一問一答（解答欄）は出さず、ナビの結論をそのまま解答にする =====
+  // ox-grid（記述単位・Lexia 記録／検証器 G25）は DOM に残し、ナビが導いた番号から裏で○×を記入する。
   function answerNum(){
     for (var n in COMBOS){ if (!COMBOS.hasOwnProperty(n)) continue;
       var all = true;
@@ -4500,31 +4483,8 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     return '5';
   }
 
-  function buildSelector(){
-    var box = document.createElement('div');
-    box.className = 'combo-pick';
-    var h = '<p class="cp-head">📝 解答 ── 組合せ番号を1つ選ぶ</p>' +
-            '<p class="cp-sub">①〜⑤に入る語句の正しい組合せを、次の5つから選んでタップ。</p><div class="cp-list">';
-    ['1','2','3','4','5'].forEach(function(n){
-      var seq = '';
-      ['1','2','3','4','5'].forEach(function(b){ seq += CIRC[b] + COMBOS[n][b] + '　'; });
-      h += '<button type="button" class="cp-btn" data-num="' + n + '"><span class="cp-no">' + n +
-           '</span><span class="cp-seq">' + seq + '</span></button>';
-    });
-    h += '</div><div class="cp-result" id="cp-result" hidden></div>';
-    box.innerHTML = h;
-    var instr = area.querySelector('.answer-instruction');
-    if (instr) area.insertBefore(box, instr); else area.insertBefore(box, area.firstChild);
-    area.classList.add('combo-mode');
-    selector = box;
-    box.addEventListener('click', function(e){
-      var b = e.target.closest ? e.target.closest('.cp-btn') : null;
-      if (b) pickCombo(b.getAttribute('data-num'));
-    }, false);
-  }
-
-  function pickCombo(N){
-    if (!selector || area.classList.contains('answered')) return;
+  function commitAnswer(N){
+    if (area.classList.contains('answered')) return;
     // 裏の ox-grid に○×を記入して採点（Lexia の記述単位記録はこれで残る）
     ['1','2','3','4','5'].forEach(function(b){
       var val = (COMBOS[N][b] === OFFICIAL[b]) ? '○' : '×';
@@ -4535,25 +4495,19 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     });
     var rv = area.querySelector('.reveal-answer-btn');
     if (rv && !rv.disabled) rv.click();
-    // 5択の見た目を採点
+    var hint = area.querySelector('.cp-hint');
+    if (hint) hint.parentNode.removeChild(hint);
+    // 正誤をナビ内に表示（下の一問一答は出さない）
     var ans = answerNum();
-    Array.prototype.forEach.call(selector.querySelectorAll('.cp-btn'), function(btn){
-      var n = btn.getAttribute('data-num');
-      btn.disabled = true;
-      if (n === N) btn.classList.add('picked');
-      if (n === ans) btn.classList.add('correct');
-      else if (n === N) btn.classList.add('wrong');
-    });
-    var res = selector.querySelector('#cp-result');
-    if (res){
-      res.hidden = false;
-      var ok = (N === ans);
-      res.style.background = ok ? '#eef8ef' : '#fff4f6';
-      res.style.borderLeft = '5px solid ' + (ok ? 'var(--recall-correct-light,#43a047)' : 'var(--recall-incorrect,#c62828)');
-      res.innerHTML = ok
-        ? '<strong>✓ 正解（組合せ ' + ans + '）</strong>　下の解説で論点のコアを確認しよう。'
-        : '<strong>✗ 不正解</strong>　あなたの選択：組合せ ' + N + '／正しいのは組合せ ' + ans + '。解説で外した空欄を確認しよう。';
-    }
+    var ok = (N === ans);
+    var h = '<div class="sn-result' + (ok ? '' : ' miss') + '">' +
+      (ok ? '<div class="sn-big">✓ 正解（組合せ ' + ans + '）</div>解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>あなたの答え：組合せ ' + N + '／正しいのは組合せ ' + ans + '。下の解説で外した空欄を確認しよう。') +
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h;
+    renderCombos(N);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function restart(){ picks = {}; idx = 0; renderStep(); }
@@ -4565,14 +4519,17 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     if (opt){ onPick(opt.getAttribute('data-blank'), opt.getAttribute('data-k')); return; }
     if (t.closest('#sn-reset')){ restart(); return; }
     var ap = t.closest('#sn-apply');
-    if (ap){
-      pickCombo(ap.getAttribute('data-w'));
-      if (selector) selector.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
+    if (ap){ commitAnswer(ap.getAttribute('data-w')); return; }
   }, false);
 
-  buildSelector();
+  // 下の一問一答（ox-grid）を非表示にし、代わりに上のナビへ誘導するメモを置く
+  area.classList.add('combo-mode');
+  var note = document.createElement('p');
+  note.className = 'cp-hint';
+  note.innerHTML = '▲ この問題の解答は上の「📐 解法ナビ」で行います。ナビを進めて組合せ番号を確定すると、ここに正誤と解説が表示されます。';
+  var instr = area.querySelector('.answer-instruction');
+  if (instr) area.insertBefore(note, instr); else area.insertBefore(note, area.firstChild);
+
   renderStep();
 })();
 </script>
