@@ -3242,6 +3242,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3317,26 +3402,81 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>保護責任者遺棄等致傷罪（刑法第219条、第218条）には、傷害結果に故意がある場合は含まれない。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>保護責任者遺棄等罪（刑法第218条）における遺棄には、置き去りは含まれない。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しいものを2個選ぶ</h3>
-
-    <div class="answer-area" id="answer-area" data-correct-value="2,4" data-answer-type="multi" data-explanation="本問は遺棄の罪をめぐる5命題の正誤を判例の立場から個別に判定する。肢1＝遺棄罪は生命及び身体に対する危険犯であり「生命に対する危険」のみでは足りない（×）。肢2＝業務上堕胎に併発した保護責任者遺棄致死罪の成立を最決昭63.1.19が認める（○）。肢3＝218条の客体は限定列挙であり扶助を必要とする者一般に拡張されない（×）。肢4＝219条は結果的加重犯で、遺棄時に傷害・殺人の故意があれば傷害罪・殺人罪が成立し致傷罪には含まれない（○）。肢5＝最判昭34.7.24は218条の遺棄に置き去り（不作為）も包含するとした（×）。組合せ番号ではなく各記述に現れた法理で正誤を判定する。">
-      <p class="answer-instruction">次の1〜5のうち、正しいものを2個選び、「解答を表示」を押してください。</p>
-
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述1〜5を順に、下の一問一答で正(○)/誤(×)を判定しよう。遺棄罪（217条）と保護責任者遺棄罪（218条）で「遺棄」概念・保護法益・結果的加重犯の処理が異なる点がコアです。</span>
       </div>
-      <p class="selection-counter">選択中: 0 / 2 個</p>
+      <div class="sn-body">
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
+
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）</h3>
+
+    <div class="answer-area" id="answer-area" data-correct-value="×○×○×" data-answer-type="ox-grid" data-explanation="本問は遺棄の罪をめぐる5命題の正誤を判例の立場から個別に判定する。肢1＝遺棄罪は生命及び身体に対する危険犯であり「生命に対する危険」のみでは足りない（×）。肢2＝業務上堕胎に併発した保護責任者遺棄致死罪の成立を最決昭63.1.19が認める（○）。肢3＝218条の客体は限定列挙であり扶助を必要とする者一般に拡張されない（×）。肢4＝219条は結果的加重犯で、遺棄時に傷害・殺人の故意があれば傷害罪・殺人罪が成立し致傷罪には含まれない（○）。肢5＝最判昭34.7.24は218条の遺棄に置き去り（不作為）も包含するとした（×）。組合せ番号ではなく各記述に現れた法理で正誤を判定する。">
+      <p class="answer-instruction">肢1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">遺棄罪（217条）の成立には「生命」に対する危険の発生が必要。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">違法堕胎で出生した未熟児を放置死させた医師に保護責任者遺棄等致死罪が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">218条の「老年者…病者」は例示列挙で、扶助を必要とする者であれば客体となる。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">保護責任者遺棄等致傷罪には傷害結果に故意がある場合は含まれない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">218条の遺棄には置き去り（不作為）は含まれない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+      </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 2・4</strong>　肢2＝業務上堕胎に併発する保護責任者遺棄致死罪の成立を最決昭63.1.19が認める（○）。肢4＝219条は結果的加重犯で、遺棄時に傷害・殺人の故意があれば傷害罪・殺人罪が成立し致傷罪には含まれない（○）。肢1＝遺棄罪は生命及び身体に対する抽象的危険犯で「生命」のみに限らない（×）。肢3＝218条の客体は限定列挙で扶助を要する者一般に拡張されない（×）。肢5＝218条の遺棄は置き去り（不作為）も含む（最判昭34.7.24）（×）。番号でなく各記述の法理で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり（正しいものは2個）。番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:x,4:o,5:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="x"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>遺棄罪の保護法益は「生命及び身体」。判例（大判大4.5.21）は抽象的危険犯とし、生命だけに危険発生を限定しない。</td></tr>
+            <tr data-stmt="2" data-verdict="o"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>母体外で生命の保続可能性ある胎児（未熟児）は「人」として保護に値し、堕胎を実行した医師は保護責任を負う。業務上堕胎罪と保護責任者遺棄致死罪は併発し得る（最決昭63.1.19）。</td></tr>
+            <tr data-stmt="3" data-verdict="x"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>218条の客体は「老年者・幼年者・身体障害者・病者」の限定列挙。扶助を要する原因がこれらに限られ、道に迷った者等は含まない。</td></tr>
+            <tr data-stmt="4" data-verdict="o"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>219条は遺棄罪の結果的加重犯。遺棄時に傷害・殺人の故意があれば傷害罪・殺人罪が成立し、致傷罪は故意なき致傷のみを捕捉する。</td></tr>
+            <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>218条の「遺棄」には作為の移置だけでなく不作為の置き去りも含む（最判昭34.7.24）。217条と218条で遺棄概念の広狭がある点が核心。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4265,5 +4405,48 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
+   1つずつ回答するよう誘導し、要所で💡コツと論点のコア（実体命題）を提示する。
+   採点は下の ox-grid 一本（記録は ox-grid＝Lexia 復習プール）。エンジンは問題横断で固定。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
+  var ORDER = ["1", "2", "3", "4", "5"];   // 検討順（ox-row の data-stmt 値の配列）
+  var STEP  = {"1": {"label": "1", "q": "遺棄罪（217条）の成立には「生命」に対する危険の発生が必要である──正しい？", "tip": "遺棄罪の保護法益は<b>生命及び身体</b>で、判例（大判大4.5.21）は抽象的危険犯とする。「生命」のみに危険発生を限定するのは誤り。"}, "2": {"label": "2", "q": "違法堕胎で出生した未熟児を、生育可能と認識しつつ保護せず死亡させた医師に保護責任者遺棄等致死罪が成立し得る──正しい？", "tip": "母体外で生命の保続可能性ある未熟児は「人」として保護に値し、堕胎を実行した医師は保護責任を負う。<b>業務上堕胎罪と保護責任者遺棄致死罪は併発し得る</b>（最決昭63.1.19）。"}, "3": {"label": "3", "q": "218条の「老年者・幼年者・身体障害者・病者」は例示列挙で、扶助を必要とする者であれば客体となる──正しい？", "tip": "218条の客体は<b>限定列挙</b>。扶助を要する原因がこれら4類型に限られ、道に迷った者等に拡張されない。「例示列挙」とするのは誤り。"}, "4": {"label": "4", "q": "保護責任者遺棄等致傷罪には、傷害結果に故意がある場合は含まれない──正しい？", "tip": "219条は遺棄罪の<b>結果的加重犯</b>。遺棄時に傷害・殺人の故意があれば傷害罪・殺人罪が成立し、致傷罪は故意なき致傷のみを捕捉する。"}, "5": {"label": "5", "q": "218条の「遺棄」には置き去り（不作為）は含まれない──正しい？", "tip": "218条の「遺棄」は作為の移置だけでなく<b>不作為の置き去りも含む</b>（最判昭34.7.24）。217条（移置に限る）と218条（移置＋置き去り）で遺棄概念の広狭がある点が核心。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
+  /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
+  function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
+  function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
+  function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
+  function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
+  function render(){
+    var cur = currentStep();
+    var done = doneCount();
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
+    });
+    var h = '';
+    if (cur){
+      var s = STEP[cur] || {};
+      h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
+      if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
+      if (s.tip) h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+    } else {
+      h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
