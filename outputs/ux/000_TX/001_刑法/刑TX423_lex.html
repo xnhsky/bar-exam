@@ -3208,6 +3208,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3289,25 +3346,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>この【判旨】は、甲が以前Y警察署刑事課に勤務中に扱った事件に関して、X警察署地域課に異動になった後に現金の供与を受けたとしても、供与を受けた時点で公務員である以上収賄罪が成立することを認めたものである。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>この【判旨】は、当該事件の捜査を担当しているY警察署刑事課所属の警察官への働き掛けは、あっせん収賄罪にいう「あっせん」であり、これが職務行為や職務密接関連行為に該当することはないと考えている。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち正しいものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「正しいものはどれか」の候補から誤りが消え、残った番号へ。要所で判定のコツも出ます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="2" data-answer-type="single" data-explanation="各記述の正誤は1×・2○・3×・4×・5×（判旨の理解として正しいのは記述2）。本決定（最決平17.3.11・百選Ⅱ105）は、単純収賄罪（197条1項前段）の『その職務に関し』（職務関連性）について、警察官の犯罪捜査に関する一般的職務権限がA県警察の管轄区域であるA県全域に及ぶことを根拠に職務関連性を肯定した。記述2は、職務関連性の判断において、甲が所属するA県警察の警察官に対し法令が与えた一般的職務権限に属する職務行為か否かを重視する、という判旨の核心ロジックを正確に説明しており正しい。記述1は、判旨はX地域課とY刑事課の一般的職務権限が同一であること（甲の権限が告発事件捜査にも及ぶこと）を前提とするのであって『権限を異にする』ことを前提とはしておらず誤り。記述3は、判旨は甲の行為が職務行為・職務密接関連行為のいずれかに当たることを前提とするのであって捜査情報漏えいが職務関連行為に当たらないとは述べておらず誤り。記述4は、甲は当初よりX地域課に勤務していた事案でありY刑事課からの異動という事実は存在しないため誤り（事案の誤認）。記述5は、判旨はY刑事課所属警察官への働き掛けを職務行為・職務密接関連行為に当たるとして職務関連性を肯定したのであり、あっせん収賄罪の『あっせん』に当たり職務関連行為に該当しないとは考えていないため誤り。">
-      <p class="answer-instruction">記述1〜5のうち正しいものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各記述の○×を判定（自分で○×を付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="×○×××" data-answer-type="ox-grid" data-explanation="各記述の正誤は1×・2○・3×・4×・5×（判旨の理解として正しいのは記述2）。本決定（最決平17.3.11・百選Ⅱ105）は、単純収賄罪（197条1項前段）の『その職務に関し』（職務関連性）について、警察官の犯罪捜査に関する一般的職務権限がA県警察の管轄区域であるA県全域に及ぶことを根拠に職務関連性を肯定した。記述2は、職務関連性の判断において、甲が所属するA県警察の警察官に対し法令が与えた一般的職務権限に属する職務行為か否かを重視する、という判旨の核心ロジックを正確に説明しており正しい。記述1は、判旨はX地域課とY刑事課の一般的職務権限が同一であること（甲の権限が告発事件捜査にも及ぶこと）を前提とするのであって『権限を異にする』ことを前提とはしておらず誤り。記述3は、判旨は甲の行為が職務行為・職務密接関連行為のいずれかに当たることを前提とするのであって捜査情報漏えいが職務関連行為に当たらないとは述べておらず誤り。記述4は、甲は当初よりX地域課に勤務していた事案でありY刑事課からの異動という事実は存在しないため誤り（事案の誤認）。記述5は、判旨はY刑事課所属警察官への働き掛けを職務行為・職務密接関連行為に当たるとして職務関連性を肯定したのであり、あっせん収賄罪の『あっせん』に当たり職務関連行為に該当しないとは考えていないため誤り。">
+      <p class="answer-instruction">記述1〜5それぞれに ○（判旨の理解として正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず5記述全部に○×を付けてから reveal）。設問は「【判旨】の理解として正しいもの」を問うています。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">両課は一般的職務権限を「異にする」が犯罪捜査で密接関連だから職務関連性が認められた、と判旨を説明する</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">判旨は、甲が所属するA県警察の警察官に法令が与えた一般的職務権限に属する職務行為か否かを重視している</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">捜査情報漏えいは禁じられているから職務行為等に当たらず職務関連性は否定される、と判旨が考えているとする</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">Y刑事課勤務中に扱った事件につきX地域課への異動後に供与を受けた、という前提を判旨に帰す</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">Y刑事課警察官への働き掛けをあっせん収賄の「あっせん」と捉え職務関連行為に当たらないと判旨が考えているとする</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 2</strong>　設問は【判旨】（<strong>最決平17.3.11</strong>）の理解として正しいものを問う。判旨は職務関連性を<strong>法令が甲に与えた一般的職務権限に属する職務行為か否か</strong>で判断し、犯罪捜査権限がA県全域に及ぶ結果、甲の権限はY事件にも及ぶとして職務関連性を肯定した（一般的職務権限論）。この枠組みを正確に描写する記述2が正しい。記述1は権限を「異にする」と取り違え職務密接関連行為論と混同、記述3は適法・違法不問の原則を看過、記述4は本件にない異動の事実を付加した事案誤認、記述5は単純収賄をあっせん収賄と混同しており、いずれも誤り。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:x,4:x,5:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="x"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>本決定の基礎づけは一般的職務権限論＝甲の犯罪捜査権限がA県全域に及び両課の権限が同一（Y事件にも及ぶ）こと。「権限を異にするが密接関連」（職務密接関連行為論）と前提・構成を取り違える。</td></tr>
+            <tr data-stmt="2" data-verdict="o"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>職務関連性は、賄賂の対象行為が法令の与えた一般的職務権限に属するか否かで判断。現に具体的事務を担当していなくても一般的職務権限の範囲内なら『その職務に関し』に当たる（最決平17.3.11）。判旨の核心を正確に説明。</td></tr>
+            <tr data-stmt="3" data-verdict="x"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>賄賂罪は職務行為の適法・違法を問わない（不正行為は197条の3で加重）。判旨は職務関連性を肯定しており、「禁じられているから職務行為でない＝否定」という結論方向の誤読。</td></tr>
+            <tr data-stmt="4" data-verdict="x"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>本件は甲が当初よりX地域課勤務で、Y刑事課からの異動の事実は存在しない（事案誤認）。転職・異動後の前職に関する収賄（最決昭58.3.25の論点）を異動のない本件にすり替えている。</td></tr>
+            <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>あっせん収賄罪（197条の4）は「他の公務員」の職務へのあっせんの報酬を処罰する別構造。本件は甲自身の一般的職務権限がY事件に及ぶ単純収賄であり、判旨は職務関連性を肯定。あっせんと捉える誤り。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4236,5 +4350,132 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'correct';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "判旨は、両課が一般的職務権限を異にするが職務が密接に関連することを根拠に職務関連性を認めた、という理解は正しい？", "tip": "判旨は両課の権限を「異にする」とは前提せず、犯罪捜査権限がA県全域に及ぶ結果<b>甲の一般的職務権限がY事件にも及ぶ（権限は同一）</b>ことを根拠とする。記述は<b>一般的職務権限論</b>と<b>職務密接関連行為論</b>を混同し判旨の前提を取り違えている。", "note": "× 判旨の前提（権限の同一性）と基礎づけ理論を取り違える記述が誤り。→ 選択肢1は消える。"}, "2": {"q": "判旨は職務関連性の判断で、甲に法令が与えた一般的職務権限に属する職務行為か否かを重視している、という理解は正しい？", "tip": "『その職務に関し』（<b>197条1項前段</b>）は賄賂の対象が公務員の一般的職務権限に属するか否かで判断し、現に具体的事務を担当していなくても権限の範囲内なら該当する。記述はこの判旨の枠組みを過不足なく言い当てている。", "note": "○ 判旨の規範＝一般的職務権限論を正確に説明している。記述は正しい。→ 選択肢2が残る。"}, "3": {"q": "判旨は、捜査情報の漏えいはそもそも禁じられているので職務行為や職務密接関連行為に該当しないと考えている、という理解は正しい？", "tip": "判旨は甲の行為を『その職務に関し賄賂を収受した』と<b>職務関連性を肯定</b>している。賄賂罪は職務行為の<b>適法・違法を問わず</b>、不正な職務行為の対価はむしろ加重収賄罪（197条の3）として重く処罰される。", "note": "× 判旨が肯定した職務関連性を否定方向に誤読する記述が誤り。→ 選択肢3は消える。"}, "4": {"q": "判旨は、Y刑事課勤務中に扱った事件についてX地域課へ異動後に現金供与を受けても公務員である以上収賄罪が成立すると認めた、という理解は正しい？", "tip": "本件は甲が<b>当初よりX地域課に勤務</b>していた事案で、Y刑事課からの異動という事実は存在しない。記述は本件を転職・異動後の収賄（最決昭58.3.25の論点）にすり替える<b>事案誤認</b>である。", "note": "× 本件にない異動の事実を付加して別論点にすり替える記述が誤り。→ 選択肢4は消える。"}, "5": {"q": "判旨は、当該事件を担当するY刑事課の警察官への働き掛けはあっせん収賄罪の「あっせん」であり職務行為等に該当しないと考えている、という理解は正しい？", "tip": "判旨は甲の働き掛けを<b>甲自身の一般的職務権限内の職務行為</b>として単純収賄罪の職務関連性を肯定した。あっせん収賄罪（197条の4）は『<b>他の公務員</b>』へのあっせんの報酬を処罰する別構造であり、記述は両罪を混同している。", "note": "× 単純収賄をあっせん収賄と混同し職務関連性を否定する記述が誤り。→ 選択肢5は消える。残るは2。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = __NUMS__;                    // ['1'..'N'] positional row numbers
+  var KEYS = __KEYS__;                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    ['1','2','3','4','5'].forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    ['1','2','3','4','5'].forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    ['1','2','3','4','5'].forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var row = area.querySelector('.ox-row[data-stmt="'+b+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
