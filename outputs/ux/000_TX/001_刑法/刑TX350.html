@@ -4524,29 +4524,11 @@ body.snav-on .solve-nav{display:block;}
     if (ap){ commitAnswer(ap.getAttribute('data-w')); return; }
   }, false);
 
-  // ===== 裏ルート判定：フラグが立っているときだけナビを起動する =====
-  function navEnabled(){
-    try {
-      if (/nav/i.test(location.hash)) return true;            // #nav（手元テスト・Lexia のハッシュ付与）
-      if (/[?&]nav=1\b/.test(location.search)) return true;   // ?nav=1
-      if (window.localStorage && localStorage.getItem('lexiaSolveNav') === '1') return true; // Lexia 設定で保存
-      if (window.__LEXIA_SOLVE_NAV__) return true;            // Lexia が iframe に注入
-    } catch (e) {}
-    return false;
-  }
-
-  if (navEnabled()){
-    document.body.classList.add('snav-on');
-    // ナビ起動時のみ：下の一問一答（ox-grid）を裏に回し、ナビへ誘導するメモを置く
-    area.classList.add('combo-mode');
-    var note = document.createElement('p');
-    note.className = 'cp-hint';
-    note.innerHTML = '▲ 裏ルート：この問題は上の「📐 解法ナビ」で解答します。番号を確定すると、ここに正誤と解説が表示されます。';
-    var instr = area.querySelector('.answer-instruction');
-    if (instr) area.insertBefore(note, instr); else area.insertBefore(note, area.firstChild);
-    renderStep();
-  }
-  // フラグが無ければ何もしない＝公式の○×解答がそのまま表示される（ナビは非表示）
+  // ===== Lexia 用：解法ナビを常時表示（公式版と別ファイルなので裏ルートは廃止） =====
+  // combo-mode は付与しない＝下の ox-grid 一問一答（復習プール）はそのまま表示。
+  // ナビの「確定」で ox-grid を裏で記入して採点する（commitAnswer）。
+  document.body.classList.add('snav-on');   // .solve-nav を表示
+  renderStep();
 })();
 </script>
 
