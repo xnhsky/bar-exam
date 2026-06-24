@@ -222,7 +222,12 @@ def build(num, spec):
     lex = inject_lex(lex, spec)
     open(lex_path, "w", encoding="utf-8").write(lex)
 
-    # ===== (2) 公式（組合せ番号 single） =====
+    # ===== (2) 公式 =====
+    if spec.get('keep_official'):
+        # マークシート個別判定型（各事例に1/2/3 等）＝過去問そのものが個別判定で、
+        # 単一の組合せ番号が存在しない。公式は既存 ox-grid を温存（ナビは入れない）。
+        print(f"刑TX{num}: mode={spec['mode']} 公式=ox-grid 温存（番号single なし）  lex={len(lex)}B")
+        return
     instr = spec.get('instr', f'①〜の語句の正しい組合せを、上記【組合せ】の 1〜{nopt} から1つ選び、「解答を表示」を押してください。')
     off = write_official(src, a0, a1, head_m, ans, expl, spec['summary'], instr, nopt)
     open(src_path, "w", encoding="utf-8").write(off)
