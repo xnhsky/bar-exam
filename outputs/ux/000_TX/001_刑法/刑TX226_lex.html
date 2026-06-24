@@ -3243,6 +3243,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3318,25 +3403,81 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">エ</span>甲は、覚せい剤を使用した後、自動車の運転を開始したが、運転中、覚せい剤の影響により正常な運転が困難な状態になったのに、それを認識しながらあえて運転を続けたため、自車を電柱に激突させ、同乗者を死亡させた。</div>
     <div class="problem-text"><span class="choice-num-inline">オ</span>甲は、自動車を運転中、長距離運転の過労から眠気を覚えたにもかかわらず、その状態のままあえて運転を続けたため、運転中に眠り込んでしまい、自車を進路左前方の歩道に進入させ、歩道上の歩行者に衝突させて同人を死亡させた。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜5 から1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">事例ア〜オを順に、下の一問一答で危険運転致死罪が成立(○)/不成立(×)かを判定しよう。各号の客観的行為類型と主観的要件（目的・認識）の有無が決め手です。</span>
+      </div>
+      <div class="sn-body">
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="1" data-answer-type="single" data-explanation="各事例で危険運転致死罪が成立するか（○＝成立／×＝不成立）を判定する。ア＝○（進行を制御する技能を有しない＝3号の客観的類型に該当）、イ＝×（赤信号「殊更に無視」＝確定的認識か全く意に介さないかが要件で、気付かなかった本件は当たらない＝7号否定）、ウ＝×（妨害目的の直前侵入＝4号だが、対向車線進入に気付かず妨害「目的」が無い）、エ＝○（薬物の影響で正常運転困難・それを認識しあえて運転＝1号該当）、オ＝×（妨害目的の直前侵入＝4号だが、眠り込んでおり危険運転行為の認識も妨害「目的」も無い）。組合せ番号ではなく、各号の客観的類型と主観的要件（目的・認識）の有無で判定する。">
-      <p class="answer-instruction">アからオまでの各事例のうち危険運転致死罪が成立するものの正しい組合せを、上記 1〜5（1.アエ 2.アオ 3.イウ 4.イエ 5.ウオ）から1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="○××○×" data-answer-type="ox-grid" data-explanation="各事例で危険運転致死罪が成立するか（○＝成立／×＝不成立）を判定する。ア＝○（進行を制御する技能を有しない＝3号の客観的類型に該当）、イ＝×（赤信号「殊更に無視」＝確定的認識か全く意に介さないかが要件で、気付かなかった本件は当たらない＝7号否定）、ウ＝×（妨害目的の直前侵入＝4号だが、対向車線進入に気付かず妨害「目的」が無い）、エ＝○（薬物の影響で正常運転困難・それを認識しあえて運転＝1号該当）、オ＝×（妨害目的の直前侵入＝4号だが、眠り込んでおり危険運転行為の認識も妨害「目的」も無い）。組合せ番号ではなく、各号の客観的類型と主観的要件（目的・認識）の有無で判定する。">
+      <p class="answer-instruction">事例ア〜オそれぞれに ○（危険運転致死罪が成立）／×（成立しない）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全事例に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="ア">
+          <span class="ox-label">ア</span>
+          <span class="ox-stmt">未取得・無経験・初歩技能なしで走行→対向車に衝突死亡（3号「進行制御技能なし」）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="イ">
+          <span class="ox-label">イ</span>
+          <span class="ox-stmt">逃走中、赤信号に気付かず交差点進入→二輪車に衝突死亡（7号「赤信号殊更無視」）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="ウ">
+          <span class="ox-label">ウ</span>
+          <span class="ox-stmt">メール操作で対向車線進入に気付かず進行→対向車に衝突死亡（4号「妨害目的の直前侵入」）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="エ">
+          <span class="ox-label">エ</span>
+          <span class="ox-stmt">覚せい剤の影響で正常運転困難・認識しあえて運転→電柱激突で同乗者死亡（1号「薬物影響」）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="オ">
+          <span class="ox-label">オ</span>
+          <span class="ox-stmt">過労の眠気をおしてあえて運転→眠り込み歩道進入、歩行者に衝突死亡（4号「妨害目的の直前侵入」）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 1（アエ）</strong>　各号の客観的行為類型と主観的要件で判定する。ア＝○（2条3号「進行制御技能なし」＝極めて未熟な状態での走行・目的不要）／エ＝○（2条1号「薬物の影響で正常運転困難」＝覚せい剤も薬物・困難を認識しあえて運転）。イ＝×（2条7号「赤信号殊更無視」は確定的認識を要し気付かなかった本件は不該当）／ウ＝×（2条4号は妨害目的を要し進入に気付かない本件は目的なし）／オ＝×（眠り込んでおり危険運転の認識も妨害目的もない）。番号でなく各号の要件で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　各事例の成否（○＝成立／×＝不成立）は下表のとおり。組合せ番号「アエ」を覚えるのではなく、各号の<strong>客観的行為類型</strong>と<strong>主観的要件（目的・認識）</strong>の有無で判定する。下表「成否を分ける核」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="ア:o,イ:x,ウ:x,エ:o,オ:x">
+          <thead><tr><th style="width:3em;">事例</th><th style="width:3.5em;">成否</th><th>成否を分ける核（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="ア" data-verdict="o"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>2条3号「進行を制御する技能を有しない」＝運転技術が極めて未熟な状態で走行する<strong>客観的類型</strong>。免許・経験・初歩技能の欠如で該当し、特別の主観的目的は不要。</td></tr>
+            <tr data-stmt="イ" data-verdict="x"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>2条7号「赤色信号を殊更に無視」＝赤を確定的に認識しつつ無視、又はおよそ意に介さない態度を要する。<strong>気付かなかった</strong>本件はどちらにも当たらず不成立（過失運転致死止まり）。</td></tr>
+            <tr data-stmt="ウ" data-verdict="x"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>2条4号は「人又は車の通行を妨害する<strong>目的</strong>」で直前に侵入する類型。メールに気を取られ進入に気付かない本件は妨害「目的」を欠き不成立。</td></tr>
+            <tr data-stmt="エ" data-verdict="o"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>2条1号「アルコール又は薬物の影響により正常な運転が困難な状態」。<strong>覚せい剤も「薬物」</strong>に含まれ、困難状態を認識しあえて運転継続したため該当。</td></tr>
+            <tr data-stmt="オ" data-verdict="x"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>歩道進入は2条4号の「人に著しく接近」に当たり得るが、<strong>眠り込んでおり</strong>危険運転行為の認識も妨害「目的」も無く不成立（過労運転は別途処罰対象）。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4224,5 +4365,48 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
+   1つずつ回答するよう誘導し、要所で💡コツと論点のコア（実体命題）を提示する。
+   採点は下の ox-grid 一本（記録は ox-grid＝Lexia 復習プール）。エンジンは問題横断で固定。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
+  var ORDER = ["ア", "イ", "ウ", "エ", "オ"];   // 検討順（ox-row の data-stmt 値の配列）
+  var STEP  = {"ア": {"label": "ア", "q": "免許も運転経験も初歩技能もないのに走行し対向車の運転者を死亡させた──危険運転致死は成立する？", "tip": "2条3号「進行を制御する技能を有しない」＝運転技術が<b>極めて未熟な状態</b>で走行する客観的類型。免許・経験・初歩技能の欠如で該当し、特別の主観的目的は不要。"}, "イ": {"label": "イ", "q": "逃走中、赤信号に気付かず交差点に進入し二輪車の運転者を死亡させた──成立する？", "tip": "2条7号「赤色信号を殊更に無視」＝赤を<b>確定的に認識しつつ無視</b>、又はおよそ意に介さない態度を要する。<b>気付かなかった</b>本件はどちらにも当たらず不成立（過失運転致死止まり）。"}, "ウ": {"label": "ウ", "q": "メール操作で対向車線への進入に気付かず対向車の運転者を死亡させた──成立する？", "tip": "2条4号は「人又は車の通行を妨害する<b>目的</b>」で直前に進入する類型。進入に気付かない本件は妨害「目的」を欠き不成立。"}, "エ": {"label": "エ", "q": "覚せい剤の影響で正常運転困難と認識しつつあえて運転を続け同乗者を死亡させた──成立する？", "tip": "2条1号「アルコール又は薬物の影響により正常な運転が困難な状態」。<b>覚せい剤も「薬物」</b>に含まれ、困難状態を認識しあえて運転を続けたため該当。"}, "オ": {"label": "オ", "q": "過労の眠気をおしてあえて運転し眠り込んで歩道上の歩行者を死亡させた──成立する？", "tip": "歩道進入は2条4号「人に著しく接近」に当たり得るが、<b>眠り込んでおり</b>危険運転行為の認識も妨害「目的」も無く不成立（過労運転は別途処罰対象）。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
+  /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
+  function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
+  function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
+  function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
+  function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
+  function render(){
+    var cur = currentStep();
+    var done = doneCount();
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
+    });
+    var h = '';
+    if (cur){
+      var s = STEP[cur] || {};
+      h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
+      if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
+      if (s.tip) h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+    } else {
+      h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
