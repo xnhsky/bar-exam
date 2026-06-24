@@ -3206,6 +3206,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3280,25 +3337,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>確定判決によって刑務所に収容されていた甲は、その看守に当たっていた刑務官に対する単なる反抗として同刑務官を押し倒したところ、同刑務官が気絶したため、その隙に逃走しようと思い立ち、同刑務所から逃走した。甲に加重逃走罪が成立する余地はない。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>甲は、逮捕状により警察官に逮捕された乙の身柄を奪い返そうと考え、路上において、乙を連行中の同警察官に対し、体当たりをする暴行を加え、同警察官がひるんだ隙に、同所から乙を連れ去った。甲に被拘禁者奪取罪が成立する余地はない。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち正しいものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「正しいものはどれか」の候補から誤りが消え、残った番号へ。要所で判定のコツも出ます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="4" data-answer-type="single" data-explanation="記述1（加重逃走の着手）：最判昭54.12.25は、加重逃走罪（98条）のうち拘禁場・械具の損壊によるものは、逃走の手段としての損壊が開始されたときには逃走行為自体に着手していなくても実行の着手があるとする。甲は逃走の手段として換気孔周辺の壁の損壊を開始しているから加重逃走罪の実行に着手しており、未遂が成立する余地がある。記述2（逃走罪の既遂時期）：逃走罪（97条）の既遂は、拘禁状態からの離脱、すなわち看守者の実力的支配を脱した時点で認められる。甲は追跡を完全に振り切って民家の庭に隠れた時点で実力的支配を脱しており既遂に達するから、後に連れ戻されても既遂が成立する余地がある。記述3（看守者逃走援助）：101条の『逃走させた』には逃走を惹起・容易にする一切の行為・不作為が含まれ、看守者である刑務官甲が乙の房を解錠して逃走させた行為は看守者逃走援助罪に当たり、成立する余地がある。記述4（加重逃走の暴行）：98条の『暴行若しくは脅迫』は逃走の手段として看守者等に対して行われることを要し、単に看守者に対して反抗するための暴行では本罪は成立しない。甲は単なる反抗として刑務官を押し倒したに過ぎないから98条の暴行に当たらず、加重逃走罪が成立する余地はない（記述4が正しい）。記述5（被拘禁者奪取）：99条被拘禁者奪取罪の客体『法令により拘禁された者』には逮捕状により逮捕・留置された者も含まれ、甲は暴行により乙を自己の実力的支配下に移しており『奪取』に当たるから、被拘禁者奪取罪が成立する余地がある。">
-      <p class="answer-instruction">記述1〜5のうち正しいものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各記述の○×を判定（自分で○×を付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="×××○×" data-answer-type="ox-grid" data-explanation="記述1（加重逃走の着手）：最判昭54.12.25は、加重逃走罪（98条）のうち拘禁場・械具の損壊によるものは、逃走の手段としての損壊が開始されたときには逃走行為自体に着手していなくても実行の着手があるとする。甲は逃走の手段として換気孔周辺の壁の損壊を開始しているから加重逃走罪の実行に着手しており、未遂が成立する余地がある。記述2（逃走罪の既遂時期）：逃走罪（97条）の既遂は、拘禁状態からの離脱、すなわち看守者の実力的支配を脱した時点で認められる。甲は追跡を完全に振り切って民家の庭に隠れた時点で実力的支配を脱しており既遂に達するから、後に連れ戻されても既遂が成立する余地がある。記述3（看守者逃走援助）：101条の『逃走させた』には逃走を惹起・容易にする一切の行為・不作為が含まれ、看守者である刑務官甲が乙の房を解錠して逃走させた行為は看守者逃走援助罪に当たり、成立する余地がある。記述4（加重逃走の暴行）：98条の『暴行若しくは脅迫』は逃走の手段として看守者等に対して行われることを要し、単に看守者に対して反抗するための暴行では本罪は成立しない。甲は単なる反抗として刑務官を押し倒したに過ぎないから98条の暴行に当たらず、加重逃走罪が成立する余地はない（記述4が正しい）。記述5（被拘禁者奪取）：99条被拘禁者奪取罪の客体『法令により拘禁された者』には逮捕状により逮捕・留置された者も含まれ、甲は暴行により乙を自己の実力的支配下に移しており『奪取』に当たるから、被拘禁者奪取罪が成立する余地がある。">
+      <p class="answer-instruction">記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">逃走の手段として房内の壁を損壊したが脱出できなかった甲に、加重逃走罪の未遂罪が成立する余地はない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">護送中に脱出し追跡を完全に振り切って隠れたが、後に発見・連れ戻された甲に、逃走罪の既遂罪が成立する余地はない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">看守する刑務官の甲が、未決勾留中の乙の房の扉を解錠して逃走させた場合、甲に看守者逃走援助罪が成立する余地はない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">看守の刑務官への単なる反抗として押し倒し、気絶した隙に逃走しようと思い立って逃走した甲に、加重逃走罪が成立する余地はない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">逮捕状で逮捕・連行中の乙を、警察官への体当たりの暴行でひるませて連れ去った甲に、被拘禁者奪取罪が成立する余地はない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 4</strong>　逃走の罪（97〜101条）を、主体（被拘禁者本人／私人／看守者）と態様（単純／加重／奪取／援助）の組合せで横断的に問う。<strong>記述4</strong>は、98条の暴行・脅迫が逃走の手段として看守者等に向けられることを要する点を突く。甲は単なる反抗で刑務官を押し倒した<strong>後に</strong>逃走を思い立っており、暴行は逃走の手段でなく加重逃走罪は成立する余地がないから正しい。他は、損壊開始で着手あり未遂が成立し得る記述1、実力的支配の離脱で既遂となり連れ戻しで消えない記述2、解錠は101条の「逃走させた」に当たる記述3、逮捕者も99条の客体で支配下移転は奪取に当たる記述5がいずれも「成立する余地はない」とする点で誤り。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:x,4:o,5:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="x"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>損壊型加重逃走罪の着手＝逃走の手段としての損壊が開始された時（最判昭54.12.25）。逃走行為自体への着手は不要で、壁の損壊を開始すれば未遂が成立し得る。</td></tr>
+            <tr data-stmt="2" data-verdict="x"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>逃走罪の既遂＝看守者の実力的支配からの完全な離脱時。いったん既遂に達すれば、後の発見・連れ戻しで既遂は消えない。</td></tr>
+            <tr data-stmt="3" data-verdict="x"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>看守者逃走援助罪（101条）の『逃走させた』＝逃走を惹起・容易にする一切の行為・不作為。看守者が房を解錠する積極的行為は当然これに当たる。</td></tr>
+            <tr data-stmt="4" data-verdict="o"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>98条の暴行・脅迫は逃走の手段として看守者等に向けられることを要する。逃走の意思形成より前の単なる反抗の暴行は手段性を欠き、加重逃走罪は不成立。</td></tr>
+            <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>99条の客体『法令により拘禁された者』には逮捕状で逮捕された者も含む。『奪取』＝看守者の実力的支配から離脱させ自己・第三者の支配下に移すこと（手段不問）。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4255,5 +4369,132 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'correct';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "逃走の手段として房内の壁を損壊したが脱出できなかった甲に、加重逃走罪の未遂罪が成立する余地はないといえる？", "tip": "損壊型の加重逃走罪は<b>逃走の手段としての損壊を開始した時点で実行の着手</b>が認められる（最判昭54.12.25）。壁を削り始めた甲は着手済みで、穴を開けられなくても102条の未遂が成立し得る。", "note": "× 損壊開始時に着手があり未遂が成立し得る。記述は誤り。→ 選択肢1は消える。"}, "2": {"q": "護送中に脱出し追跡を完全に振り切って隠れたが後に発見・連れ戻された甲に、逃走罪の既遂罪が成立する余地はないといえる？", "tip": "逃走罪（97条）の既遂は<b>看守者の実力的支配を完全に脱した時点</b>で成立する。追跡を振り切って隠れた時点で既遂に達し、いったん成立した既遂は後の連れ戻しで遡って消滅しない。", "note": "× 実力的支配の離脱で既遂が成立し連れ戻しで消えない。記述は誤り。→ 選択肢2は消える。"}, "3": {"q": "看守する刑務官の甲が未決勾留中の乙の房の扉を解錠して逃走させた場合、甲に看守者逃走援助罪が成立する余地はないといえる？", "tip": "101条の「逃走させた」は<b>逃走を惹起・容易にする一切の行為・不作為</b>をいう。乙は未決勾留中で「法令により拘禁された者」に当たり、房を解錠する積極的行為は当然これに当たる。", "note": "× 解錠は101条の「逃走させた」に当たる。記述は誤り。→ 選択肢3は消える。"}, "4": {"q": "看守の刑務官への単なる反抗として押し倒し、気絶した隙に逃走を思い立って逃走した甲に、加重逃走罪が成立する余地はないといえる？", "tip": "98条の暴行・脅迫は<b>逃走の手段として看守者等に向けられること</b>を要する。甲は反抗として押し倒した後に逃走を思い立っており、暴行は逃走の手段でなく手段性を欠く（単純逃走罪は別途成立し得る）。", "note": "○ 単なる反抗の暴行は手段性を欠き加重逃走罪は不成立。記述は正しい。→ 選択肢4が残る。"}, "5": {"q": "逮捕状で逮捕・連行中の乙を、警察官への体当たりの暴行でひるませて連れ去った甲に、被拘禁者奪取罪が成立する余地はないといえる？", "tip": "99条の客体「法令により拘禁された者」には<b>逮捕状・現行犯・緊急逮捕で逮捕された者も含む</b>。「奪取」は実力的支配から離脱させ自己の支配下に移すこと（手段不問）で、連れ去った甲は奪取に当たる（単なる解放なら100条）。", "note": "× 逮捕者も客体で支配下に移せば奪取に当たる。記述は誤り。→ 選択肢5は消える。残るは4。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = __NUMS__;                    // ['1'..'N'] positional row numbers
+  var KEYS = __KEYS__;                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    ['1','2','3','4','5'].forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    ['1','2','3','4','5'].forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    ['1','2','3','4','5'].forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var row = area.querySelector('.ox-row[data-stmt="'+b+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
