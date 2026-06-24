@@ -1,0 +1,394 @@
+<!doctype html>
+<!-- ============================================================================
+  canonical/SOLVE-NAV.html  —  TX 二系統化「解法ナビ」正典スキャフォールド（v11.1.0）
+  ----------------------------------------------------------------------------
+  内容非依存の構造シェル。Lexia 用 _lex（outputs/ux/000_TX/..._lex.html）に new-tx が
+    [STYLE]  → <head> の </style> 直前
+    [SHELL]  → PART A の answer-area <h3>【解答】… の直前
+    [SCRIPT] → </body> 直前（問題型に応じ SCRIPT-OX か SCRIPT-COMBO を 1 つだけ）
+  を注入する。エンジン JS は基準ペア（刑TX001_lex／刑TX350_lex）で実証済みコードを逐語コピー。
+  問題固有なのは各 SCRIPT 内の「問題固有データ」デリミタ内だけ（new-tx が本問値で置換）。
+  公式（000_TX）には注入しない。これは canonical 構造シェルであり §7「outputs を template
+  流用」禁止には当たらない（本文ではない）。
+
+  ■ どちらの SCRIPT を使うか（new-tx が判定）
+    - 独立 5 択（「正しい/誤っているものを1つ選べ」＝各記述が独立命題）→ [SCRIPT-OX]
+      （各記述を順に○×判定 → 残った番号へ。答えは ox-grid の data-correct-value から自動導出）
+    - 組合せ・穴埋め・議論形式（答えが組合せ番号）→ [SCRIPT-COMBO]
+      （本物の5択 COMBOS を1空欄ずつ絞る。COMBOS/OFFICIAL/ORDER/STEP を本問値で記述）
+  ============================================================================ -->
+
+<!-- ====================== [STYLE]  </style> 直前へ（両型共通） ====================== -->
+<style id="solve-nav-style">
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+</style>
+
+<!-- ====================== [SHELL]  answer-area <h3>【解答】… の直前へ（両型共通） ====================== -->
+<div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">検討すべき順に、本物の5択を1つずつ判断 → 矛盾する番号が消えて、残った番号にたどり着く。要所で解法のコツも出ます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
+
+<!-- ============================================================================
+     [SCRIPT-OX]  独立 5 択用（「正しい/誤っているものを1つ選べ」）
+     FILL: MODE（correct/incorrect）と STMT（各記述の q/tip/note）。ORDER は既定 1..5。
+     答えは ox-grid の data-correct-value から correctNum() が自動導出する。
+     ============================================================================ -->
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'correct';   /* FILL: 'correct'=正しいものを1つ選べ / 'incorrect'=誤っているものを1つ選べ */
+  var STMT = { /* FILL: 各記述の誘導 '1':{q:'記述1：…正しい？',tip:'…',note:'× …→選択肢1は消える。'}, … '5':{…} */ };
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    ['1','2','3','4','5'].forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    ['1','2','3','4','5'].forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    ['1','2','3','4','5'].forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var row = area.querySelector('.ox-row[data-stmt="'+b+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
+
+<!-- ============================================================================
+     [SCRIPT-COMBO]  組合せ・穴埋め・議論形式用（答えが組合せ番号）
+     FILL: COMBOS / OFFICIAL / ORDER / STEP（明示デリミタ内）。
+     ============================================================================ -->
+<script>
+/* 解法ナビ（試作）：検討すべき順に本物の5択を1つずつ判断 → 矛盾する番号が外れて残った番号へ。
+   要所で解法アドバイスを表示。最後に「公式解答へ記入」で ox-grid を遠隔操作して採点（記録は ox-grid 一本）。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+
+  var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤'};
+  /* ===== 問題固有データ（new-tx が本問値で置換・ここだけ編集）===== */
+  var COMBOS = { /* 本物の組合せ5択: '1':{'1':'a','2':'d','3':'f','4':'h','5':'i'}, ... */ };
+  var OFFICIAL = { /* 各空欄の正解キー: '1':'b','2':'c','3':'f','4':'g','5':'j' */ };
+  var ORDER = [ /* 検討順（立場が一番堅く決まる空欄から）: '5','2','3','1','4' */ ];
+  var STEP = { /* '5':{q:'…',loc:'…',tip:'…',opts:[{k:'i',t:'…'},{k:'j',t:'…'}],note:'…'}, … */ };
+  /* ===== 問題固有データ ここまで。以下のエンジンは正典＝編集しない ===== */
+  var picks = {};   // blank -> letter
+  var idx = 0;
+
+  function liveNums(){
+    var out = [];
+    for (var n in COMBOS){ if (!COMBOS.hasOwnProperty(n)) continue;
+      var ok = true;
+      for (var b in picks){ if (picks.hasOwnProperty(b) && COMBOS[n][b] !== picks[b]) { ok = false; break; } }
+      if (ok) out.push(n);
+    }
+    return out;
+  }
+
+  function renderCombos(winNum){
+    var live = {}; liveNums().forEach(function(n){ live[n] = true; });
+    var html = '';
+    ['1','2','3','4','5'].forEach(function(n){
+      var seq = '';
+      ['1','2','3','4','5'].forEach(function(b){
+        var L = COMBOS[n][b];
+        var on = (picks[b] && picks[b] === L);
+        seq += (on ? '<b>' : '') + CIRC[b] + L + (on ? '</b>' : '') + ' ';
+      });
+      var cls = 'sn-combo ' + (winNum === n ? 'win' : (live[n] ? 'live' : 'dead'));
+      html += '<div class="' + cls + '"><span class="sn-cno">' + n + '</span><div class="sn-cseq">' + seq + '</div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+
+  function esc(s){ return s; } // 文言は内製・エスケープ不要
+
+  function renderStep(){
+    var live = liveNums();
+    renderCombos(null);
+    remainBox.innerHTML = '残っている組合せ番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
+
+    // 終了条件：番号が1つ以下、または順序を使い切った
+    if (live.length <= 1 || idx >= ORDER.length){ return finish(live); }
+
+    var blank = ORDER[idx];
+    var s = STEP[blank];
+    var stepNo = idx + 1;
+    var h = '';
+    h += '<p class="sn-progress">STEP ' + stepNo + ' / ' + ORDER.length + '　─　空欄 ' + CIRC[blank] + ' を検討</p>';
+    h += '<p class="sn-step-q">' + s.q + '</p>';
+    h += '<p class="sn-step-loc">📍 ' + s.loc + '</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span>' + s.tip + '</div>';
+    h += '<div class="sn-opts">';
+    s.opts.forEach(function(o){
+      h += '<button type="button" class="sn-opt" data-blank="' + blank + '" data-k="' + o.k + '">' +
+           '<span class="sn-key">' + o.k + '</span><span>' + o.t + '</span></button>';
+    });
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+
+  function trailHTML(){
+    var keys = Object.keys(picks);
+    if (!keys.length) return '';
+    var t = '<div class="sn-trail">これまでの判断：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">' + CIRC[b] + ' = ' + picks[b] + '</span>'; });
+    return t + '</div>';
+  }
+
+  function onPick(blank, k){
+    picks[blank] = k;
+    var note = STEP[blank].note;
+    idx += 1;
+    renderStep();
+    // 直前の判断に対する一言フィードバックを差し込む
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback';
+    fb.innerHTML = '<strong>' + CIRC[blank] + ' = ' + k + '</strong>　' + note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+
+  function finish(live){
+    var h = '';
+    if (live.length === 1){
+      var W = live[0];
+      renderCombos(W);
+      h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + W + '</div>' +
+           'これがあなたの判断で導いた答え。番号を暗記するのではなく、いま辿った筋道（どの空欄で立場と理由が定まり、どこが確認だったか）ごと身につけよう。</div>';
+      h += '<div class="sn-actions">' +
+           '<button type="button" class="sn-btn primary" id="sn-apply" data-w="' + W + '">この答え（組合せ ' + W + '）で確定</button>' +
+           '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    } else if (live.length === 0){
+      h += '<div class="sn-result miss">判断が互いに矛盾して、残る番号が無くなりました。どこかの選択を見直そう（一人の発言は最後まで一本筋になるはず）。</div>';
+      h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    } else {
+      h += '<div class="sn-result">残った番号：<span class="sn-big">' + live.join('・') + '</span>。あと一歩。残りを分ける空欄を会話で確かめて1つに決めよう。</div>';
+      h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    }
+    stage.innerHTML = h + trailHTML();
+  }
+
+  // ===== 下の一問一答（解答欄）は出さず、ナビの結論をそのまま解答にする =====
+  // ox-grid（記述単位・Lexia 記録／検証器 G25）は DOM に残し、ナビが導いた番号から裏で○×を記入する。
+  function answerNum(){
+    for (var n in COMBOS){ if (!COMBOS.hasOwnProperty(n)) continue;
+      var all = true;
+      ['1','2','3','4','5'].forEach(function(b){ if (COMBOS[n][b] !== OFFICIAL[b]) all = false; });
+      if (all) return n;
+    }
+    return '';   // 正常データなら到達しない
+  }
+
+  function commitAnswer(N){
+    if (area.classList.contains('answered')) return;
+    // 裏の ox-grid に○×を記入して採点（Lexia の記述単位記録はこれで残る）
+    ['1','2','3','4','5'].forEach(function(b){
+      var val = (COMBOS[N][b] === OFFICIAL[b]) ? '○' : '×';
+      var row = area.querySelector('.ox-row[data-stmt="' + b + '"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="' + val + '"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var hint = area.querySelector('.cp-hint');
+    if (hint) hint.parentNode.removeChild(hint);
+    // 正誤をナビ内に表示（下の一問一答は出さない）
+    var ans = answerNum();
+    var ok = (N === ans);
+    var h = '<div class="sn-result' + (ok ? '' : ' miss') + '">' +
+      (ok ? '<div class="sn-big">✓ 正解（組合せ ' + ans + '）</div>解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>あなたの答え：組合せ ' + N + '／正しいのは組合せ ' + ans + '。下の解説で外した空欄を確認しよう。') +
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h;
+    renderCombos(N);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+
+  root.addEventListener('click', function(e){
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-blank'), opt.getAttribute('data-k')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    var ap = t.closest('#sn-apply');
+    if (ap){ commitAnswer(ap.getAttribute('data-w')); return; }
+  }, false);
+
+  // ===== Lexia 用：解法ナビを常時表示（公式版と別ファイルなので裏ルートは廃止） =====
+  // combo-mode は付与しない＝下の ox-grid 一問一答（復習プール）はそのまま表示。
+  // ナビの「確定」で ox-grid を裏で記入して採点する（commitAnswer）。
+  document.body.classList.add('snav-on');   // .solve-nav を表示
+  renderStep();
+})();
+</script>

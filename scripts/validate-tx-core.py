@@ -516,6 +516,13 @@ class Validator:
     # --- G23：reveal 記述○×一覧表 ---
 
     def g23_verdict_table(self):
+        # 二系統化：記述○×一覧表（data-answer-key）は ox-grid／Lexia 用 _lex の肢データ源。
+        # 公式（outputs/000_TX/...）が real-exam 5択（single/multi）の場合は対象外（過去問そのまま）。
+        area = self.soup.find(class_="answer-area")
+        is_lex = self.html_path.stem.endswith("_lex")
+        atype = area.get("data-answer-type", "") if area else ""
+        if not is_lex and atype in ("single", "multi"):
+            return  # 公式 real-exam 版は ○×一覧表 任意
         fa = self.soup.find(class_="final-answer")
         if not fa:
             self.err("G23", ".final-answer（記述○×一覧表のコンテナ）が存在しない")
@@ -544,9 +551,16 @@ class Validator:
         if not area:
             return  # G3 で報告済
         atype = area.get("data-answer-type", "")
+        # 二系統化（v11.1.0）：Lexia 用 _lex（outputs/ux/000_TX/..._lex.html）は ox-grid 必須
+        # ＝記述単位○×が Lexia 復習プールの肢データ源。一方、公式（outputs/000_TX/...）は
+        # 過去問そのままの「本物の5択」＝ single / multi を許容する（解法ナビは _lex のみ）。
+        is_lex = self.html_path.stem.endswith("_lex")
+        if not is_lex and atype in ("single", "multi"):
+            return  # 公式（real-exam 5択）＝ ox-grid 固有検査は対象外
         if atype != "ox-grid":
-            self.err("G25", f"PART A の data-answer-type が '{atype}'（ox-grid を期待）"
-                            "＝5記述の○×収集が肢データ源・spec 第2項/第9項")
+            who = "Lexia 用 _lex は" if is_lex else "ox-grid でない公式は single/multi のみ可。"
+            self.err("G25", f"PART A の data-answer-type が '{atype}'（ox-grid を期待）。{who}"
+                            "5記述の○×収集が肢データ源・spec 第2項/第9項")
             return
         rows = area.find_all(class_="ox-row")
         if len(rows) < 2:
@@ -739,7 +753,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G28, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G30, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

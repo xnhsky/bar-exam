@@ -64,10 +64,12 @@ baseline：canonical/GENESIS-CORE.html
 - **Phase 4** section-by-section 内容差替（HEAD配色／HEADER／PART A=ox-grid 5記述○×＋answer-key／
   記述単位 PART B（choice-points 前倒し・教授①②）／参考条文判例（保護法益・制度趣旨・判例濃淡）／
   体系ツリー・放射マップ2枚／footer。**PART C・PART D は作らない**＝深掘りは別冊 `/deepen-tx`）
+- **Phase 4h** 二系統出力：公式（`outputs/000_TX`・本物の5択）＋ `_lex`（`outputs/ux/000_TX`・ox-grid＋解法ナビ）の2ファイルに分離（new-tx Phase 4h 参照）
 - **Phase 5** SVG 重なり機械検査（体系ツリー・放射マップの bounding box AABB 全ペア衝突判定）
-- **Phase 6** 検証（`scripts/validate-tx-core.py` で G1〜G26 全件通過確認）と配信
-- **Phase 7** git コミットで永続化（必須）：検証通過後、`outputs/000_TX/{科目TX}/` の
-  HTML を `git add` → **本問単位で commit** → `git push`（本線 master へ集約・§8/§9）。
+- **Phase 6** 検証（`scripts/validate-tx-core.py` を**両ファイル**に実行し G1〜G30 全件通過確認・`_lex`=ox-grid／公式=single/multi）と配信
+- **Phase 7** git コミットで永続化（必須）：検証通過後、**公式と `_lex` の2ファイル**を
+  `git add`（`outputs/000_TX/{科目TX}/{ファイル名}.html` ＋ `outputs/ux/000_TX/{科目TX}/{ファイル名}_lex.html`）
+  → **本問単位で commit** → `git push`（本線 master へ集約・§8/§9）。
   生成＝コミットで GitHub に永続化。**各問完了ごとに即 commit/push**
   （バッチ途中で中断してもコンテナ回収による HTML ロストを防ぐ）。
 

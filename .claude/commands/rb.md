@@ -52,10 +52,11 @@ v11.0.0 LOOP-CORE 規律そのままで連続生成し、**各問の検証通過
 
 - Phase 0 環境確認 → Phase 1 PDF 解析・配色判定・冒頭応答
 - Phase 2 命名（CLAUDE.md §2） → Phase 3 GENESIS clone + 本文空初期化
-- Phase 4 section 差替 → Phase 5 SVG 重なり機械検査
-- Phase 6 `scripts/validate-tx-core.py` で G1〜G18 ERROR 0 件確認
-- **Phase 7 git コミット（必須）**：検証通過後、`outputs/000_TX/{科目TX}/{ファイル名}.html` を
-  `git add` → **1 問ごとに commit** → `git push`（本線 master へ集約・§8 / §9）。
+- Phase 4 section 差替 → **Phase 4h 二系統出力**（公式＋`_lex` の2ファイル・new-tx 参照）→ Phase 5 SVG 重なり機械検査
+- Phase 6 `scripts/validate-tx-core.py` を**両ファイル**に実行し G1〜G30 ERROR 0 件確認（`_lex`=ox-grid／公式=single・multi）
+- **Phase 7 git コミット（必須）**：検証通過後、**公式と `_lex` の2ファイル**を
+  `git add outputs/000_TX/{科目TX}/{ファイル名}.html outputs/ux/000_TX/{科目TX}/{ファイル名}_lex.html`
+  → **1 問ごとに commit** → `git push`（本線 master へ集約・§8 / §9）。
   生成＝コミットで GitHub に永続化し、コンテナ回収による HTML ロストを防ぐ。
   **問が 1 つ完了するたびに即 commit/push**（数十問を 1 コミットにまとめない）。
 
