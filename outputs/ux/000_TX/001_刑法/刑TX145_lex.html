@@ -3206,6 +3206,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3293,24 +3378,142 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>①A,B,C　②D　③A　④C,D　⑤A,B</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>①A,B　②C,D　③D　④A,B　⑤C,D</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜5 から1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">3つの事例それぞれで、4つの従属性説（独立性説A／最小限従属性説B／制限従属性説C／極端従属性説D）が共犯成立に至るかを○×判定しよう。鍵は『その説が正犯に何を要求するか（実行不要／構成要件のみ／＋違法／＋責任）』です。</span>
+      </div>
+      <div class="sn-body">
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="1" data-answer-type="single" data-explanation="①〜⑤に入る見解は①A,B,C・②D・③A・④A,B・⑤C,D（正しい組合せは肢1）。本問は実行従属性（従属性の有無）と要素従属性（従属性の程度＝何を備えれば共犯が成立するか）の理解を試す。要素従属性は備える要素が少ない順にB最小限（構成要件のみ）→C制限（＋違法）→D極端（＋責任）、Aは正犯の実行自体を要しない共犯独立性説。①②は正犯（乙12歳）の責任、③は構成要件該当性（故意）、④⑤は違法性（正当防衛）が分岐点。">
-      <p class="answer-instruction">①〜⑤に入る見解の正しい組合せを、上記【組合せ】の 1〜5 から1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="○○○×○×××○○××" data-answer-type="ox-grid" data-explanation="①〜⑤に入る見解は①A,B,C・②D・③A・④A,B・⑤C,D（正しい組合せは肢1）。本問は実行従属性（従属性の有無）と要素従属性（従属性の程度＝何を備えれば共犯が成立するか）の理解を試す。要素従属性は備える要素が少ない順にB最小限（構成要件のみ）→C制限（＋違法）→D極端（＋責任）、Aは正犯の実行自体を要しない共犯独立性説。①②は正犯（乙12歳）の責任、③は構成要件該当性（故意）、④⑤は違法性（正当防衛）が分岐点。">
+      <p class="answer-instruction">各組合せ（肢1〜5）に ○（①〜の対応がすべて正しい組合せ）／×（いずれかが誤り）を付けてから「解答を表示」を押してください。下表「論点のコア」が学習資産です。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">事例1×A</span>
+          <span class="ox-stmt">責任無能力者（12歳）を唆して窃盗を実行させた事例で、共犯独立性説（正犯が犯罪を実行したか否かを問わず教唆・幇助行為があれば足りる）からは、甲に窃盗罪の教唆犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">事例1×B</span>
+          <span class="ox-stmt">責任無能力者を唆して窃盗を実行させた事例で、最小限従属性説（正犯が構成要件に該当すれば足りる）からは、甲に窃盗罪の教唆犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">事例1×C</span>
+          <span class="ox-stmt">責任無能力者を唆して窃盗を実行させた事例で、制限従属性説（正犯が構成要件に該当し、かつ違法であることを要する）からは、甲に窃盗罪の教唆犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">事例1×D</span>
+          <span class="ox-stmt">責任無能力者を唆して窃盗を実行させた事例で、極端従属性説（正犯が構成要件・違法性・責任を備えることを要する）からは、甲に窃盗罪の教唆犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">事例2×A</span>
+          <span class="ox-stmt">故意のない者を唆して故意犯に当たる行為を実行させた事例で、共犯独立性説からは、甲に教唆犯が成立し得る（故意は構成要件要素であることを前提とする）。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="6">
+          <span class="ox-label">事例2×B</span>
+          <span class="ox-stmt">故意のない者を唆して故意犯に当たる行為を実行させた事例で、最小限従属性説からは、甲に教唆犯が成立し得る（故意は構成要件要素であることを前提とする）。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="7">
+          <span class="ox-label">事例2×C</span>
+          <span class="ox-stmt">故意のない者を唆して故意犯に当たる行為を実行させた事例で、制限従属性説からは、甲に教唆犯が成立し得る（故意は構成要件要素であることを前提とする）。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="8">
+          <span class="ox-label">事例2×D</span>
+          <span class="ox-stmt">故意のない者を唆して故意犯に当たる行為を実行させた事例で、極端従属性説からは、甲に教唆犯が成立し得る（故意は構成要件要素であることを前提とする）。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="9">
+          <span class="ox-label">事例3×A</span>
+          <span class="ox-stmt">正当防衛が成立する（適法な）者に木刀を渡して傷害を実現させた事例で、共犯独立性説からは、甲に傷害罪の幇助犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="10">
+          <span class="ox-label">事例3×B</span>
+          <span class="ox-stmt">正当防衛が成立する者に木刀を渡して傷害を実現させた事例で、最小限従属性説（正犯が構成要件に該当すれば足り、違法性は要しない）からは、甲に傷害罪の幇助犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="11">
+          <span class="ox-label">事例3×C</span>
+          <span class="ox-stmt">正当防衛が成立する者に木刀を渡して傷害を実現させた事例で、制限従属性説（正犯が違法であることを要する）からは、甲に傷害罪の幇助犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="12">
+          <span class="ox-label">事例3×D</span>
+          <span class="ox-stmt">正当防衛が成立する者に木刀を渡して傷害を実現させた事例で、極端従属性説（正犯が違法性・責任を要する）からは、甲に傷害罪の幇助犯が成立し得る。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 1</strong>　①A,B,C ②D ③A ④A,B ⑤C,D。狭義の共犯の要素従属性（正犯が何を備えれば共犯が成立するか）を3事例で問う。①責任無能力者の窃盗→責任を要しない独立性A・最小限B・制限Cで成立、責任を要する極端Dは不成立（＝②D）。③故意なき者の利用→構成要件該当性すら要しない独立性Aのみ成立。④正当防衛（適法）者への幇助→違法性を要しない独立性A・最小限Bで成立、違法性を要する制限C・極端Dは不成立（＝⑤C,D）。番号でなく各説が正犯に要求する要素で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　各組合せの○×は下表のとおり。組合せ番号を覚えるのではなく、各組合せが主張する<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:o,4:x,5:o,6:x,7:x,8:x,9:o,10:o,11:x,12:x">
+          <thead><tr><th style="width:3em;">組合せ</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="o"><td style="text-align:center;font-weight:700;">事例1×A</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>共犯独立性説は正犯の実行行為への従属を要しない（共犯の処罰根拠を共犯者自身の行為に求める）。正犯の責任の有無を問わず教唆犯が成立し得る。</td></tr>
+            <tr data-stmt="2" data-verdict="o"><td style="text-align:center;font-weight:700;">事例1×B</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>最小限従属性説は正犯の構成要件該当性のみを要求する。責任無能力者の窃盗も構成要件には該当するから、責任の欠如は共犯成立を妨げない。</td></tr>
+            <tr data-stmt="3" data-verdict="o"><td style="text-align:center;font-weight:700;">事例1×C</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>制限従属性説は正犯の構成要件該当性＋違法性を要求する（責任は不要）。責任無能力者の窃盗も構成要件該当・違法であるから、責任の個別性により共犯が成立し得る（通説）。</td></tr>
+            <tr data-stmt="4" data-verdict="x"><td style="text-align:center;font-weight:700;">事例1×D</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>誤り。極端従属性説は正犯が責任まで備えることを要求するため、責任無能力者を正犯とする場合には共犯が成立する余地がない。</td></tr>
+            <tr data-stmt="5" data-verdict="o"><td style="text-align:center;font-weight:700;">事例2×A</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>共犯独立性説は正犯の構成要件該当性にも従属しないため、正犯の故意の欠如にかかわらず教唆犯が成立し得る。</td></tr>
+            <tr data-stmt="6" data-verdict="x"><td style="text-align:center;font-weight:700;">事例2×B</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>誤り。故意を構成要件要素とすると、故意のない正犯の行為は構成要件該当性を欠く。最小限従属性説でも正犯の構成要件該当性は要するため教唆犯は成立しない（この場合は間接正犯が問題となる）。</td></tr>
+            <tr data-stmt="7" data-verdict="x"><td style="text-align:center;font-weight:700;">事例2×C</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>誤り。制限従属性説は構成要件該当性＋違法性を要するが、故意なき正犯の行為は構成要件該当性を欠くため教唆犯は成立しない。</td></tr>
+            <tr data-stmt="8" data-verdict="x"><td style="text-align:center;font-weight:700;">事例2×D</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>誤り。極端従属性説は構成要件・違法・責任のすべてを要するから、構成要件該当性すら欠く本事例では当然に教唆犯は成立しない。</td></tr>
+            <tr data-stmt="9" data-verdict="o"><td style="text-align:center;font-weight:700;">事例3×A</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>共犯独立性説は正犯の実行行為に従属しないため、正犯が適法（正当防衛）であっても幇助行為があれば幇助犯が成立し得る。</td></tr>
+            <tr data-stmt="10" data-verdict="o"><td style="text-align:center;font-weight:700;">事例3×B</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>最小限従属性説は正犯の構成要件該当性のみを要求し違法性を要しない。正当防衛で適法な正犯の行為も構成要件には該当するから、幇助犯が成立し得る。</td></tr>
+            <tr data-stmt="11" data-verdict="x"><td style="text-align:center;font-weight:700;">事例3×C</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>誤り。制限従属性説は正犯が違法であることを要するが、正当防衛により正犯の行為は適法（違法性阻却）であるから、幇助犯は成立しない（違法の連帯）。</td></tr>
+            <tr data-stmt="12" data-verdict="x"><td style="text-align:center;font-weight:700;">事例3×D</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>誤り。極端従属性説は正犯の違法性・責任を要するが、正当防衛で適法な正犯では違法性を欠くため幇助犯は成立しない。</td></tr>
+          </tbody>
+        </table>
       </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
@@ -4227,5 +4430,48 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
+   1つずつ回答するよう誘導し、要所で💡コツと論点のコア（実体命題）を提示する。
+   採点は下の ox-grid 一本（記録は ox-grid＝Lexia 復習プール）。エンジンは問題横断で固定。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
+  var ORDER = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];   // 検討順（ox-row の data-stmt 値の配列）
+  var STEP  = {"1": {"label": "事例1×独立性説A", "q": "12歳（責任無能力）の乙を唆して窃盗させた事例で、独立性説からは甲に窃盗教唆が成立するか？", "tip": "独立性説は<b>正犯が犯罪を実行したか否かを問わない</b>。正犯の責任の有無に関わらず甲の教唆行為があれば成立し得る＝○。"}, "2": {"label": "事例1×最小限従属性説B", "q": "同事例で、最小限従属性説からは成立するか？", "tip": "最小限従属性説は正犯が<b>構成要件に該当すれば足りる</b>。乙の窃盗は構成要件該当（責任は問わない）＝成立し得る○。"}, "3": {"label": "事例1×制限従属性説C", "q": "同事例で、制限従属性説からは成立するか？", "tip": "制限従属性説は正犯が<b>構成要件該当＋違法</b>であれば足りる（責任は不要）。乙の窃盗は構成要件該当・違法＝成立し得る○。"}, "4": {"label": "事例1×極端従属性説D", "q": "同事例で、極端従属性説からは成立するか？", "tip": "極端従属性説は正犯が<b>構成要件・違法・責任のすべて</b>を要する。12歳の乙は責任無能力＝責任を欠くため成立の余地なし×。"}, "5": {"label": "事例2×独立性説A", "q": "故意のない乙を唆して故意犯に当たる行為を実行させた事例で、独立性説からは成立するか？", "tip": "故意が構成要件要素なら乙の行為は構成要件該当性すら欠くが、独立性説は<b>正犯の実行自体を要しない</b>＝甲の教唆で成立し得る○。"}, "6": {"label": "事例2×最小限従属性説B", "q": "同事例で、最小限従属性説からは成立するか？", "tip": "最小限従属性説でも正犯の<b>構成要件該当性は要する</b>。故意を欠く乙の行為は構成要件該当性を欠く（故意＝構成要件要素）＝成立しない×。"}, "7": {"label": "事例2×制限従属性説C", "q": "同事例で、制限従属性説からは成立するか？", "tip": "制限従属性説は構成要件該当＋違法を要する。<b>構成要件該当性を欠く</b>以上成立しない×。"}, "8": {"label": "事例2×極端従属性説D", "q": "同事例で、極端従属性説からは成立するか？", "tip": "極端従属性説は構成要件・違法・責任のすべてを要する。<b>構成要件該当性を欠く</b>以上成立しない×。"}, "9": {"label": "事例3×独立性説A", "q": "正当防衛が成立する（適法な）乙に木刀を渡して傷害させた事例で、独立性説からは甲に傷害幇助が成立するか？", "tip": "独立性説は<b>正犯の実行自体を要しない</b>＝正犯が適法でも甲の幇助行為があれば成立し得る○。"}, "10": {"label": "事例3×最小限従属性説B", "q": "同事例で、最小限従属性説からは成立するか？", "tip": "最小限従属性説は正犯が<b>構成要件に該当すれば足り、違法性は要しない</b>。乙の行為は構成要件該当（違法性は阻却されるが問わない）＝成立し得る○。"}, "11": {"label": "事例3×制限従属性説C", "q": "同事例で、制限従属性説からは成立するか？", "tip": "制限従属性説は正犯が<b>違法であることを要する</b>。乙は正当防衛で適法＝違法性を欠くため成立しない×。"}, "12": {"label": "事例3×極端従属性説D", "q": "同事例で、極端従属性説からは成立するか？", "tip": "極端従属性説は違法性も責任も要する。乙は適法＝違法性を欠くため成立しない×。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
+  /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
+  function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
+  function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
+  function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
+  function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
+  function render(){
+    var cur = currentStep();
+    var done = doneCount();
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
+    });
+    var h = '';
+    if (cur){
+      var s = STEP[cur] || {};
+      h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
+      if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
+      if (s.tip) h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+    } else {
+      h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
