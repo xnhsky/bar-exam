@@ -3211,8 +3211,10 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
    解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
    公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
    ============================================================ */
-.solve-nav{margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
   background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
 .sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
   color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
@@ -4522,15 +4524,29 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     if (ap){ commitAnswer(ap.getAttribute('data-w')); return; }
   }, false);
 
-  // 下の一問一答（ox-grid）を非表示にし、代わりに上のナビへ誘導するメモを置く
-  area.classList.add('combo-mode');
-  var note = document.createElement('p');
-  note.className = 'cp-hint';
-  note.innerHTML = '▲ この問題の解答は上の「📐 解法ナビ」で行います。ナビを進めて組合せ番号を確定すると、ここに正誤と解説が表示されます。';
-  var instr = area.querySelector('.answer-instruction');
-  if (instr) area.insertBefore(note, instr); else area.insertBefore(note, area.firstChild);
+  // ===== 裏ルート判定：フラグが立っているときだけナビを起動する =====
+  function navEnabled(){
+    try {
+      if (/nav/i.test(location.hash)) return true;            // #nav（手元テスト・Lexia のハッシュ付与）
+      if (/[?&]nav=1\b/.test(location.search)) return true;   // ?nav=1
+      if (window.localStorage && localStorage.getItem('lexiaSolveNav') === '1') return true; // Lexia 設定で保存
+      if (window.__LEXIA_SOLVE_NAV__) return true;            // Lexia が iframe に注入
+    } catch (e) {}
+    return false;
+  }
 
-  renderStep();
+  if (navEnabled()){
+    document.body.classList.add('snav-on');
+    // ナビ起動時のみ：下の一問一答（ox-grid）を裏に回し、ナビへ誘導するメモを置く
+    area.classList.add('combo-mode');
+    var note = document.createElement('p');
+    note.className = 'cp-hint';
+    note.innerHTML = '▲ 裏ルート：この問題は上の「📐 解法ナビ」で解答します。番号を確定すると、ここに正誤と解説が表示されます。';
+    var instr = area.querySelector('.answer-instruction');
+    if (instr) area.insertBefore(note, instr); else area.insertBefore(note, area.firstChild);
+    renderStep();
+  }
+  // フラグが無ければ何もしない＝公式の○×解答がそのまま表示される（ナビは非表示）
 })();
 </script>
 
