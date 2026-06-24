@@ -3241,6 +3241,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3316,26 +3401,81 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">エ</span>甲が、乙を殺害した後に初めて財物奪取の意思を生じ、乙が身に付けていた腕時計をその場で奪った場合、強盗殺人既遂罪（刑法第240条後段）が成立する。</div>
     <div class="problem-text"><span class="choice-num-inline">オ</span>甲が、財物奪取の意思で乙宅に乙の留守中に侵入し、乙の甥でたまたま留守番をしていた丙（15歳）に対し、暴行を加えてその反抗を抑圧し、タンス内から乙が所有し管理する衣類を奪った場合、強盗既遂罪（刑法第236条第1項）は成立しない。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 誤っている記述の個数（0〜5）を選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">強盗罪をめぐる5つの記述（罪責の結論）について、下の一問一答で各記述の正(○)/誤(×)を判定しよう。誤っている記述の個数が答えになります。強取・昏酔強盗・2項強盗・奪取意思の時点・暴行の相手方がコアです。</span>
+      </div>
+      <div class="sn-body">
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="5" data-answer-type="single" data-explanation="本問は『誤っているものの個数』を問う。各記述の○×は、ア×（強取は反抗抑圧と奪取の因果が認められれば被害者の不知でも成立／236条1項）、イ×（236条1項の暴行で意識喪失させた以上は典型的強盗であり昏酔強盗239条は成立しない）、ウ×（だまし取り後に返還を免れるための暴行は財物の取得手段ではなく財産上の利益取得＝2項強盗236条2項）、エ×（強盗罪は故意犯ゆえ暴行時点で奪取意思が必要・殺害後に初めて生じた意思では強盗殺人不成立／殺人罪と窃盗罪＝死者の占有保護の併合罪）、オ×（暴行の相手方は所有者に限らず目的遂行の障害者で足り、留守番の甥への暴行で強盗成立）。よって誤りは5個＝正解は選択肢5。組合せ番号ではなく各記述に現れた法理で判定する。">
-      <p class="answer-instruction">誤っている記述の個数（0〜5）を1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="0">0</button>
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="×××××" data-answer-type="ox-grid" data-explanation="本問は『誤っているものの個数』を問う。各記述の○×は、ア×（強取は反抗抑圧と奪取の因果が認められれば被害者の不知でも成立／236条1項）、イ×（236条1項の暴行で意識喪失させた以上は典型的強盗であり昏酔強盗239条は成立しない）、ウ×（だまし取り後に返還を免れるための暴行は財物の取得手段ではなく財産上の利益取得＝2項強盗236条2項）、エ×（強盗罪は故意犯ゆえ暴行時点で奪取意思が必要・殺害後に初めて生じた意思では強盗殺人不成立／殺人罪と窃盗罪＝死者の占有保護の併合罪）、オ×（暴行の相手方は所有者に限らず目的遂行の障害者で足り、留守番の甥への暴行で強盗成立）。よって誤りは5個＝正解は選択肢5。組合せ番号ではなく各記述に現れた法理で判定する。">
+      <p class="answer-instruction">記述ア〜オそれぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="ア">
+          <span class="ox-label">ア</span>
+          <span class="ox-stmt">反抗抑圧後にポケットから奪取・被害者は不知。強盗既遂は「成立しない」か？</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="イ">
+          <span class="ox-label">イ</span>
+          <span class="ox-stmt">頭部強打で意識喪失させ財物奪取。「昏酔強盗既遂罪」が成立するか？</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="ウ">
+          <span class="ox-label">ウ</span>
+          <span class="ox-stmt">だまし取り後、返還を免れるため暴行で取戻しを抑圧。「1項強盗」が成立するか？</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="エ">
+          <span class="ox-label">エ</span>
+          <span class="ox-stmt">殺害後に初めて奪取意思を生じ腕時計を奪取。「強盗殺人既遂罪」が成立するか？</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="オ">
+          <span class="ox-label">オ</span>
+          <span class="ox-stmt">所有者でない留守番の甥（15歳）に暴行し反抗抑圧して衣類奪取。強盗既遂は「成立しない」か？</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 5（誤っている記述は5個）</strong>　記述ア〜オはいずれも誤り。ア＝×（被害者の不知でも強取は成立・最判昭23.12.24）／イ＝×（236条1項の暴行で意識喪失させれば典型的強盗で昏酔強盗の余地なし）／ウ＝×（占有確保後の取戻し抑圧は2項強盗・最決昭61.11.18）／エ＝×（暴行時に奪取意思を欠けば強盗殺人不成立・殺人罪と窃盗罪の併合罪・最判昭41.4.8）／オ＝×（暴行の相手方は障害者で足り留守番の甥でも強盗成立・最判昭22.11.26）。誤っているものは5個。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。5記述すべてが誤りで、誤っているものの個数は<strong>5個（選択肢5）</strong>。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="ア:x,イ:x,ウ:x,エ:x,オ:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="ア" data-verdict="x"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>「強取」は反抗抑圧と財物奪取の間に因果関係があれば足り、被害者が奪取を不知でも成立する（最判昭23.12.24）。よって「成立しない」とする記述は誤り。</td></tr>
+            <tr data-stmt="イ" data-verdict="x"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>239条の「昏酔させる」が236条1項の暴行に当たる有形力による場合は典型的強盗が成立し、昏酔強盗罪を論ずる余地はない。よって昏酔強盗成立とする記述は誤り。</td></tr>
+            <tr data-stmt="ウ" data-verdict="x"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>占有確保後に返還を免れるための暴行は財物奪取の手段ではなく財産上不法の利益取得＝2項強盗（236条2項）。1項強盗とする記述は誤り（最決昭61.11.18）。</td></tr>
+            <tr data-stmt="エ" data-verdict="x"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>強盗罪は故意犯で、暴行・脅迫の時点に奪取意思が必要。殺害後に初めて生じた意思では強盗殺人は不成立。殺人罪と死者の占有を保護する窃盗罪の併合罪（最判昭41.4.8）。強盗殺人とする記述は誤り。</td></tr>
+            <tr data-stmt="オ" data-verdict="x"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>強盗罪の暴行・脅迫の相手方は財物の所有者に限らず、目的遂行の障害となる者で足りる（最判昭22.11.26）。留守番の甥への暴行で強盗成立。「成立しない」とする記述は誤り。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4296,5 +4436,48 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
+   1つずつ回答するよう誘導し、要所で💡コツと論点のコア（実体命題）を提示する。
+   採点は下の ox-grid 一本（記録は ox-grid＝Lexia 復習プール）。エンジンは問題横断で固定。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
+  var ORDER = ["ア", "イ", "ウ", "エ", "オ"];   // 検討順（ox-row の data-stmt 値の配列）
+  var STEP  = {"ア": {"label": "ア", "q": "反抗を抑圧して財物を奪ったが被害者が奪取に気付かなかった場合、強盗既遂罪は成立しない──この記述は正しい？", "tip": "「強取」は反抗抑圧と財物奪取の間に因果関係があれば足り、<b>被害者が奪取を不知でも成立</b>する（最判昭23.12.24）。「成立しない」とする記述は誤り。"}, "イ": {"label": "イ", "q": "頭部を強打して意識を喪失させ財物を奪った場合、昏酔強盗既遂罪（239条）が成立する──この記述は正しい？", "tip": "239条の「昏酔させる」が<b>236条1項の暴行に当たる有形力</b>による場合は典型的強盗が成立し、昏酔強盗罪を論ずる余地はない。昏酔強盗成立とする記述は誤り。"}, "ウ": {"label": "ウ", "q": "だまし取った後、返還を免れるため暴行で取戻しを抑圧した場合、1項強盗（236条1項）が成立する──この記述は正しい？", "tip": "占有確保後に返還を免れるための暴行は財物奪取の手段でなく<b>財産上不法の利益取得＝2項強盗（236条2項）</b>。1項強盗とする記述は誤り（最決昭61.11.18）。"}, "エ": {"label": "エ", "q": "乙を殺害した後に初めて奪取意思を生じ腕時計を奪った場合、強盗殺人既遂罪（240条後段）が成立する──この記述は正しい？", "tip": "強盗罪は故意犯で、暴行・脅迫の時点に奪取意思が必要。<b>殺害後に初めて生じた意思では強盗殺人は不成立</b>。殺人罪と死者の占有を保護する窃盗罪の併合罪（最判昭41.4.8）。強盗殺人とする記述は誤り。"}, "オ": {"label": "オ", "q": "留守番の甥（15歳・所有者でない）に暴行し反抗抑圧して乙所有の衣類を奪った場合、強盗既遂罪は成立しない──この記述は正しい？", "tip": "強盗罪の暴行・脅迫の相手方は財物の所有者に限らず、<b>目的遂行の障害となる者で足りる</b>（最判昭22.11.26）。留守番の甥への暴行で強盗成立。「成立しない」とする記述は誤り。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
+  /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
+  function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
+  function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
+  function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
+  function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
+  function render(){
+    var cur = currentStep();
+    var done = doneCount();
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
+    });
+    var h = '';
+    if (cur){
+      var s = STEP[cur] || {};
+      h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
+      if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
+      if (s.tip) h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+    } else {
+      h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
