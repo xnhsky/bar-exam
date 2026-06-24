@@ -3206,6 +3206,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3280,25 +3337,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">エ</span>甲は、親族関係にない窃盗犯人乙から盗品の保管を依頼された。甲は、同盗品が、甲の実父丙の自宅から窃取された丙所有の物であると知りつつ、乙からの依頼を受け入れて、同盗品を保管した。甲は盗品等保管罪の刑が免除される。</div>
     <div class="problem-text"><span class="choice-num-inline">オ</span>甲は、妻乙が、親族関係にない窃盗犯人丙から盗品であると知りつつ購入した物を、乙から依頼を受け、盗品であると知りつつ、乙の指定した場所まで運んだ。甲は盗品等運搬罪の刑が免除される。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち正しいものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「正しいものはどれか」の候補から誤りが消え、残った番号へ。要所で判定のコツも出ます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="1" data-answer-type="single" data-explanation="各記述の正誤は○×で下表のとおり（正しい記述はアのみ）。ア：盗品（自転車B）から取り外したサドルを別の車体に容易に着脱可能な状態で取り付けても、サドルは容易に分離回復でき盗品性を失わない（最判昭24.10.20・百選Ⅱ77）。これを知りつつ購入した甲に盗品等有償譲受け罪が成立し正しい。イ：盗品を保管した後に返却し、改めて有償処分のあっせんをした場合、盗品等保管罪と盗品等有償処分あっせん罪は別個独立に成立し併合罪となる（最判昭25.3.24）。『あっせん罪のみが成立する』は誤り。ウ：本犯（窃盗）が刑事未成年でも、客観的に犯罪構成要件に該当し違法な財産犯であれば客体は盗品等に当たる（大判明44.12.18）。本犯の有責性（責任能力）は不要であり、甲に盗品等無償譲受け罪が成立するから『成立しない』は誤り。エ：257条1項の刑の免除は本犯（窃盗犯人乙）と盗品犯人（保管犯甲）との間に所定の親族関係がある場合に限られる（最決昭38.11.8）。甲乙間に親族関係がない以上、被害者が甲の実父丙であっても免除されないから『免除される』は誤り。オ：同じく257条1項は本犯（窃盗犯人丙）と盗品犯人（運搬犯甲）との親族関係を要する。甲乙が夫婦でも、乙は本犯ではなく盗品犯人（有償譲受け犯）にすぎず、盗品犯人相互間の親族関係は257条1項の対象外であるから『免除される』は誤り。">
-      <p class="answer-instruction">記述1〜5のうち正しいものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各記述の○×を判定（自分で○×を付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="○××××" data-answer-type="ox-grid" data-explanation="各記述の正誤は○×で下表のとおり（正しい記述はアのみ）。ア：盗品（自転車B）から取り外したサドルを別の車体に容易に着脱可能な状態で取り付けても、サドルは容易に分離回復でき盗品性を失わない（最判昭24.10.20・百選Ⅱ77）。これを知りつつ購入した甲に盗品等有償譲受け罪が成立し正しい。イ：盗品を保管した後に返却し、改めて有償処分のあっせんをした場合、盗品等保管罪と盗品等有償処分あっせん罪は別個独立に成立し併合罪となる（最判昭25.3.24）。『あっせん罪のみが成立する』は誤り。ウ：本犯（窃盗）が刑事未成年でも、客観的に犯罪構成要件に該当し違法な財産犯であれば客体は盗品等に当たる（大判明44.12.18）。本犯の有責性（責任能力）は不要であり、甲に盗品等無償譲受け罪が成立するから『成立しない』は誤り。エ：257条1項の刑の免除は本犯（窃盗犯人乙）と盗品犯人（保管犯甲）との間に所定の親族関係がある場合に限られる（最決昭38.11.8）。甲乙間に親族関係がない以上、被害者が甲の実父丙であっても免除されないから『免除される』は誤り。オ：同じく257条1項は本犯（窃盗犯人丙）と盗品犯人（運搬犯甲）との親族関係を要する。甲乙が夫婦でも、乙は本犯ではなく盗品犯人（有償譲受け犯）にすぎず、盗品犯人相互間の親族関係は257条1項の対象外であるから『免除される』は誤り。">
+      <p class="answer-instruction">記述ア〜オそれぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="ア">
+          <span class="ox-label">ア</span>
+          <span class="ox-stmt">盗品のサドルを別車体に容易に着脱可能な状態で付けた自転車を購入 → 有償譲受け罪成立</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="イ">
+          <span class="ox-label">イ</span>
+          <span class="ox-stmt">盗品を保管・返却後、改めて有償処分をあっせん → あっせん罪『のみ』成立</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="ウ">
+          <span class="ox-label">ウ</span>
+          <span class="ox-stmt">刑事未成年の本犯から無償譲受け → 盗品等無償譲受け罪は成立しない</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="エ">
+          <span class="ox-label">エ</span>
+          <span class="ox-stmt">非親族の本犯乙から保管依頼・被害者は甲の実父丙 → 保管罪の刑が免除される</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="オ">
+          <span class="ox-label">オ</span>
+          <span class="ox-stmt">妻乙（有償譲受け犯）の依頼で運搬・本犯丙は非親族 → 運搬罪の刑が免除される</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 1</strong>　記述アのみが正しい。盗品サドルが容易に着脱可能な状態で別車体に付いていても、容易に分離回復できる以上被害者の追求権は消滅せず盗品性は継続し（最判昭24.10.20）、知情で購入した甲に盗品等有償譲受け罪が成立する。記述イ（保管罪と有償処分あっせん罪は別個独立に成立し併合罪となり「あっせん罪のみ」は誤り・最判昭25.3.24）・記述ウ（本犯が刑事未成年でも客観的に構成要件該当・違法な財産犯であれば盗品性は維持され無償譲受け罪が成立するため「成立しない」は誤り・大判明44.12.18）・記述エ（257条1項の刑の免除は本犯と盗品犯人の親族関係を要し、被害者と盗品犯人の親族関係では免除されないため誤り・最決昭38.11.8）・記述オ（257条1項は本犯と盗品犯人の親族関係を要し、盗品犯人相互間の配偶者関係では免除されないため誤り・最決昭38.11.8）はいずれも誤り。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="ア:o,イ:x,ウ:x,エ:x,オ:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="ア" data-verdict="o"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>盗品性の本質＝被害者の追求権の存続。容易に分離回復できる取付け・付合（民243条）では所有権を失わず盗品性は継続する（最判昭24.10.20・百選Ⅱ77）。</td></tr>
+            <tr data-stmt="イ" data-verdict="x"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>盗品の保管罪は返却で終了し、その後の有償処分あっせんは別個独立に成立する（最判昭25.3.24）。両罪は併合罪で『あっせん罪のみ』ではない。</td></tr>
+            <tr data-stmt="ウ" data-verdict="x"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>盗品性は本犯の構成要件該当・違法で足り、本犯の有責性（責任能力）は不要（大判明44.12.18）。本犯が刑事未成年でも客体は盗品等に当たる。</td></tr>
+            <tr data-stmt="エ" data-verdict="x"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>257条1項の刑免除は本犯と盗品犯人の間の親族関係を要する（最決昭38.11.8）。盗品犯人と被害者（実父）の親族関係は対象外。</td></tr>
+            <tr data-stmt="オ" data-verdict="x"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>257条1項は本犯との親族関係を要する。盗品犯人相互間（夫婦）の関係は『犯人相互間の関係』にすぎず免除の対象外（最決昭38.11.8）。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4256,5 +4370,133 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'correct';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "記述ア：盗品サドルが別車体に容易に着脱可能な状態で取り付けられた自転車Aと知りつつ購入した甲に、盗品等有償譲受け罪が成立する——正しい？", "tip": "盗品性の継続の判断基準は完成品化の有無でなく<b>容易に分離回復できるか</b>の一点であり（最判昭24.10.20）、容易着脱可能なら被害者の追求権が存続し盗品性は失われない点が核心。", "note": "○ 容易に着脱可能な状態での取付けは付合による所有権喪失が生じず盗品性が継続するため（最判昭24.10.20）、知情で購入した甲に盗品等有償譲受け罪が成立する。→ 選択肢1が残る。"}, "2": {"q": "記述イ：盗品を保管した後に返却し、改めて依頼を受けて宝石を売却した甲に盗品等有償処分あっせん罪のみが成立する——正しい？", "tip": "返却で保管罪が終了した後の売却周旋は<b>「前の保管罪とは全然別個独立に成立」</b>するとした最判昭25.3.24が直接根拠。「のみ」で一罪に切り詰めるのが誤りの核。", "note": "× 盗品を返却後に改めて有償処分をあっせんした場合、保管罪と有償処分あっせん罪は別個独立に成立し併合罪となるため（最判昭25.3.24）、「あっせん罪のみ」は誤り。→ 選択肢2は消える。"}, "3": {"q": "記述ウ：刑事未成年である乙が窃取した物を盗品と知りつつ無償で譲り受けた甲に盗品等無償譲受け罪は成立しない——正しい？", "tip": "盗品性の根拠は被害者の追求権侵害であり、<b>本犯の責任能力（有責性）</b>は客体の盗品性と別次元とする判例（大判明44.12.18）が核心。構成要件該当・違法な領得があれば足りる。", "note": "× 本犯が刑事未成年でも客観的に構成要件該当・違法な財産犯であれば盗品性は維持されるため（大判明44.12.18）、甲に盗品等無償譲受け罪が成立し「成立しない」は誤り。→ 選択肢3は消える。"}, "4": {"q": "記述エ：親族関係にない窃盗犯人乙から依頼を受けて保管した甲は、被害者が甲の実父丙であれば盗品等保管罪の刑が免除される——正しい？", "tip": "257条1項が要求する親族関係は<b>本犯（窃盗犯人乙）と盗品犯人（甲）の間</b>にあることが必要（最決昭38.11.8）。盗品犯人と被害者の親族関係は条文の射程外。", "note": "× 257条1項の刑の免除は本犯と盗品犯人との間の親族関係を要件とし（最決昭38.11.8）、甲と本犯乙は非親族であるため、被害者が甲の実父でも免除されない。→ 選択肢4は消える。"}, "5": {"q": "記述オ：窃盗犯人丙から盗品を購入した妻乙の依頼でその盗品を運搬した甲は、乙との夫婦関係により盗品等運搬罪の刑が免除される——正しい？", "tip": "257条1項は<b>本犯（丙）と盗品犯人（甲）の親族関係</b>を要求し、盗品犯人相互間（甲乙の夫婦関係）の親族関係は対象外（最決昭38.11.8）という役割の腑分けが鍵。", "note": "× 257条1項は本犯と盗品犯人の親族関係を要件とするところ（最決昭38.11.8）、甲が夫婦関係をもつ乙は本犯ではなく盗品犯人にすぎないため、甲と本犯丙が非親族である以上免除されない。→ 選択肢5は消える。残るは1。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = ["1", "2", "3", "4", "5"];                    // ['1'..'N'] positional row numbers
+  var KEYS = ["ア", "イ", "ウ", "エ", "オ"];                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    NUMS.forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    NUMS.forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    NUMS.forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var key = KEYS[parseInt(b,10)-1] || b;
+      var row = area.querySelector('.ox-row[data-stmt="'+key+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
