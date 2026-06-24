@@ -632,14 +632,19 @@ class Validator:
 
         for i, row in enumerate(rows):
             label = (row.get("data-stmt") or "").strip()
-            # ① data-correct-value の i 文字目が正規の全角 ○/× か（半角 x/o 混入検出）
             raw = cv[i] if i < len(cv) else ""
-            if raw not in ("○", "×"):
+            # 行の選択肢（.ox-btn の data-value）。○× 型は ○/×、多肢選択型は a/b/c… 。
+            valid = [(b.get("data-value") or "") for b in row.find_all(class_="ox-btn")]
+            valid = [v for v in valid if v]
+            # ① data-correct-value の i 文字目が、その行の選択肢のどれかと一致するか
+            #    （○× 型の半角 x/o 混入も、選択肢に無い＝ここで検出される）
+            if valid and raw not in valid:
                 self.err("G29", f"記述{label or i+1} の data-correct-value 文字 '{raw}' が "
-                                "全角 ○/× でない（半角 x/o 等の混入＝Lexia で判定不能）")
+                                f"その行の選択肢 {valid} に無い（半角混入／正解不整合＝Lexia で判定不能）")
                 continue
             pos_v = norm(raw)
-            # ② 位置文字列とラベル対応正誤表が一致するか
+            # ② ○× 型のみ：位置文字列とラベル対応正誤表（data-answer-key）が一致するか
+            #    （多肢選択型は norm が None になり、この照合はスキップされる）
             key_v = keymap.get(label)
             if key_v is not None and pos_v is not None and pos_v != key_v:
                 self.err("G29", f"記述{label} で data-correct-value（位置）='{raw}' と "
