@@ -116,6 +116,11 @@
 > - コマンド：`.claude/commands/new-tx.md`（v11）。検証：`scripts/validate-tx-core.py`（G1〜G26）／
 >   別冊 `scripts/validate-tx-deep.py`（D1〜D13）。深掘り別冊は `/deepen-tx` で誤答データ解禁時に後追い。
 > - Lexia 連携：[[lexia-tx-statement-tracking]]。
+> - **プール対象テキストの自己完結（2026-06-24・spec 第3-bis項／validate G30）**：Lexia は誤答記述を
+>   肢キーで単独追跡し一問一答カードとして問題本体から切り離して提示する。`.ox-stmt`・正誤表の論点コアに
+>   その回の問題固有ラベル（A説/B説・甲乙説・第N説・空欄①〜⑤・選択肢記号(a)〜(j)・他記述/本問依存）を
+>   残さない＝**見解は実体の学説名で主語化、記号は語句の実体に置換**して記号フリーにする。選択肢原文は
+>   PART A `.problem-text` に温存（正規化するのは ox-stmt と論点コアだけ）。G30 が WARNING で検出（既存 90 問該当）。
 >
 > **下記 §3-1〜§3-6 は旧 v10.0.0 GOLD-SKELETON の記述で、既存197問（v10）の保守用。** 新規生成では
 > v11 を使う（GENESIS.html／PART C/D／12問ドリル規律／validate-tx-gold.py は v10 legacy 専用）。
