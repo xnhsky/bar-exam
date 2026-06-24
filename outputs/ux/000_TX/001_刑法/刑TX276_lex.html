@@ -3242,6 +3242,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3317,25 +3374,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>甲は、乙から封かんされた現金10万円入りの封筒を渡されて丙に届けるよう依頼され、丙方に向かって歩き始めたが、途中で封筒内の現金が欲しくなり、封を開いて封筒に入っていた現金のうち2万円を取り出してこれを自分のものにした後、残りの現金が入った封筒を丙に届けた。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>甲は、乙が他の者から盗んできた宝石を乙所有の自動車の中に置いているのを知っていたところ、ある日、同車が無施錠で駐車されているのに気付き、同車内から同宝石を持ち去り、これを自分のものにした。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち誤っているものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「誤っているものはどれか」の候補から正しい記述が消え、残った番号へ。要所で判定のコツも出ます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="3" data-answer-type="single" data-explanation="本問は窃盗罪の客体である『他人の占有する財物』につき、占有の有無・帰属が問われる5事例。○＝窃盗罪成立／×＝不成立で判定する。事例1（店員）は商品の占有が店主乙に残るため甲に窃盗罪成立＝○。事例2（脱衣場の置き忘れ時計）は旅館主の事実上の支配が及ぶため占有が認められ窃盗罪成立＝○。事例3（被害者死亡直後の財布奪取）は死者の占有は原則否定され、行為と無関係に居合わせた甲には占有侵害がなく、占有離脱物横領罪にとどまり窃盗罪不成立＝×（これが本問の答え）。事例4（封かん物の中身抜取り）は内容物の占有は委託者乙に残るとするのが判例で、甲が抜き取れば窃盗罪成立＝○。事例5（盗品の宝石の奪取）は占有は適法な権原の有無を問わず保護されるため、盗品でも乙の占有を侵害すれば窃盗罪成立＝○。覚えるべきは占有の有無を決める『事実上の支配＋支配の意思』という判定軸であって、選択番号ではない。">
-      <p class="answer-instruction">記述1〜5のうち誤っているものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各事例で窃盗罪が成立するか○（成立）／×（不成立）を判定（付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="○○×○○" data-answer-type="ox-grid" data-explanation="本問は窃盗罪の客体である『他人の占有する財物』につき、占有の有無・帰属が問われる5事例。○＝窃盗罪成立／×＝不成立で判定する。事例1（店員）は商品の占有が店主乙に残るため甲に窃盗罪成立＝○。事例2（脱衣場の置き忘れ時計）は旅館主の事実上の支配が及ぶため占有が認められ窃盗罪成立＝○。事例3（被害者死亡直後の財布奪取）は死者の占有は原則否定され、行為と無関係に居合わせた甲には占有侵害がなく、占有離脱物横領罪にとどまり窃盗罪不成立＝×（これが本問の答え）。事例4（封かん物の中身抜取り）は内容物の占有は委託者乙に残るとするのが判例で、甲が抜き取れば窃盗罪成立＝○。事例5（盗品の宝石の奪取）は占有は適法な権原の有無を問わず保護されるため、盗品でも乙の占有を侵害すれば窃盗罪成立＝○。覚えるべきは占有の有無を決める『事実上の支配＋支配の意思』という判定軸であって、選択番号ではない。">
+      <p class="answer-instruction">事例1〜5それぞれに ○（窃盗罪が成立する）／×（成立しない）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全事例に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">コンビニ店員が店長外出中に商品を持ち出す（商品の占有は誰に？）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">旅館の共同浴場脱衣場に置き忘れられた時計を持ち去る（占有離脱か旅館主の占有か）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">第三者の犯行で死亡した直後の被害者の財布を奪う（死者の占有は認められるか）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">委託された封かん物の中身（現金）を抜き取る（内容物の占有は委託者か受託者か）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">他人が盗んできた盗品（宝石）を奪う（違法な原因による占有も保護されるか）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 3</strong>　記述3のみが誤り。事例3では甲は乙と丙のけんかに無関係な第三者で、乙が丙を刺し殺した直後に財布を持ち去っており死者の占有は原則否定されるため窃盗罪は成立せず占有離脱物横領罪にとどまる。記述1（コンビニ店員が商品を領得すれば店主の占有侵害で窃盗罪成立）・記述2（旅館の脱衣場は旅館主の事実上の支配が及ぶため置き忘れ時計の奪取は窃盗罪成立）・記述4（封かん委託物の内容物の占有は委託者に残るとする判例から中身の抜取りは窃盗罪成立）・記述5（盗品でも占有は保護されるため占有侵害があれば窃盗罪成立）はいずれも正しい。</p>
+        <p class="fa-summary"><strong>正解</strong>　各事例の窃盗罪の成否（○＝成立／×＝不成立）は下表のとおり。窃盗罪が成立しないのは1つだけ。選択番号を覚えるのではなく、占有の有無を決める<strong>「事実上の支配＋支配の意思」</strong>という判定軸で正誤を見極める。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:x,4:o,5:o">
+          <thead><tr><th style="width:3em;">事例</th><th style="width:3.5em;">窃盗罪</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="o"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>店員（占有補助者）が扱う商品の占有は店主に帰属する。店員は店主の手足として管理を補助するにすぎない（大判大7.2.6）。</td></tr>
+            <tr data-stmt="2" data-verdict="o"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>管理者の支配する場所（旅館の脱衣場）に置き忘れられた物は、管理者の事実上の支配下にあり、その占有が認められる（大判大8.4.4）。</td></tr>
+            <tr data-stmt="3" data-verdict="x"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>死者の占有は原則として認められない。死亡に無関係な第三者が死後に財物を奪う行為は占有離脱物横領罪にとどまる（大判大13.3.28）。</td></tr>
+            <tr data-stmt="4" data-verdict="o"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>封かんされた委託物は、包装全体の占有は受託者にあるが、内容物の占有は委託者に残る。中身を抜き取れば窃盗罪が成立する（大判大2.3.17）。</td></tr>
+            <tr data-stmt="5" data-verdict="o"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>窃盗罪の保護する占有は権原ある占有に限られず、盗犯の占有でも侵害すれば窃盗罪が成立する（札幌高判昭27.3.8、東京高判昭29.5.24）。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4288,5 +4402,133 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'incorrect';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "記述1：コンビニ店員甲が外出中の店長乙の商品を自分のバッグに入れ持ち出した——窃盗罪が成立する。正しい？", "tip": "店員は<b>占有補助者</b>にすぎず商品の占有は店主に帰属する。占有補助者が物を領得すれば上位者の占有を侵害したことになり横領ではなく窃盗となる。", "note": "○ 商品の占有は店主乙にあり甲はその占有を侵害したため窃盗罪が成立し正しい。→ 選択肢1は消える。"}, "2": {"q": "記述2：旅館の脱衣場で他の宿泊客が置き忘れた時計を甲が持ち去った——窃盗罪が成立する。正しい？", "tip": "<b>場所管理者の占有</b>：建物内の物には管理者の事実上の支配が及ぶ（大判大8.4.4）。管理者が物の存在を現実に認識していなくても占有は認められる。", "note": "○ 旅館主の事実上の支配が脱衣場内の置き忘れ時計に及んでいるため甲はその占有を侵害し窃盗罪が成立し正しい。→ 選択肢2は消える。"}, "3": {"q": "記述3：乙が丙を刺し殺した直後に甲が死亡した丙の財布を持ち去った——窃盗罪が成立する。正しい？", "tip": "<b>死者の占有は原則否定</b>される（大判大13.3.28）。甲は丙の死亡に無関係な第三者であり侵害すべき占有が存在しないため窃盗罪ではなく<b>占有離脱物横領罪</b>（254条）にとどまる。", "note": "× 死者には占有が認められないため侵害すべき占有が存在せず窃盗罪は成立しないので窃盗罪成立とする記述は誤りである。→ これが『誤っている記述』＝答え。"}, "4": {"q": "記述4：封かん現金入り封筒を届けるよう依頼された甲が中身の2万円を抜き取った——窃盗罪が成立する。正しい？", "tip": "封かん委託物は<b>包装全体の占有は受託者・内容物の占有は委託者</b>に残るとする判例（大判大2.3.17）。中身だけ抜くと委託者の占有侵害＝窃盗となる。", "note": "○ 内容物の占有は委託者乙に残るとする判例の立場から甲が中身を抜き取れば乙の占有を侵害し窃盗罪が成立し正しい。→ 選択肢4は消える。"}, "5": {"q": "記述5：乙が他から盗んできた宝石を乙の無施錠の車内に置いているのを甲が持ち去った——窃盗罪が成立する。正しい？", "tip": "窃盗罪が保護する占有は<b>適法な権原のある占有に限られない</b>。盗品であっても乙の事実上の占有があれば保護され、これを侵害すれば窃盗罪となる。", "note": "○ 盗品であっても乙の占有は保護され甲がこれを侵害すれば窃盗罪が成立するため正しい。→ 選択肢5は消える。残るは3。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = ["1", "2", "3", "4", "5"];                    // ['1'..'N'] positional row numbers
+  var KEYS = ["1", "2", "3", "4", "5"];                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    NUMS.forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    NUMS.forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    NUMS.forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var key = KEYS[parseInt(b,10)-1] || b;
+      var row = area.querySelector('.ox-row[data-stmt="'+key+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
