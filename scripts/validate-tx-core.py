@@ -401,6 +401,9 @@ class Validator:
         # 別冊は対象外（validate-tx-deep.py が担当）
         if stem.endswith("-deep"):
             return
+        # Lexia 用 TX（outputs/ux/000_TX/...）は公式と区別するため末尾 _lex を付ける
+        # （刑TX350_lex.html）。ID 形式判定では _lex を正規化して落とす。
+        stem = re.sub(r"_lex$", "", stem, flags=re.IGNORECASE)
         m = re.match(r"(刑TX|憲TX|民訴TX|刑訴TX|行政TX|民TX|商TX)(\d{3,})$", stem)
         if not m:
             self.err("G14", f"ファイル名 ID 形式違反: '{stem}'")

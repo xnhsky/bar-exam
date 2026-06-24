@@ -69,7 +69,11 @@ def _mirror_sig(f):
     for pref in ("/ux/000_TX/", "/000_TX/"):   # ux 版を先に判定（部分一致対策）
         i = s.find(pref)
         if i >= 0:
-            return s[i + len(pref):]            # 例: 001_刑法/刑TX350.html
+            tail = s[i + len(pref):]            # 例: 001_刑法/刑TX350.html
+            # Lexia 用は識別のため末尾 _lex を付ける（刑TX350_lex.html）。
+            # 公式（刑TX350.html）とミラー判定するため _lex を正規化して落とす。
+            tail = re.sub(r"_lex(?=\.html?$)", "", tail, flags=re.I)
+            return tail
     return None
 
 
