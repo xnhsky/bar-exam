@@ -3206,6 +3206,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3283,25 +3340,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>法益の権衡が緊急避難の要件とされていることは、この見解の根拠となり得ない。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>この見解に対しては、学生Bが採る見解から「無関係な他人のためにする緊急避難が認められていることを説明できない。」との批判がある。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち正しいものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「正しいものはどれか」の候補から誤りが消え、残った番号へ。学生A＝緊急避難＝違法性阻却事由説の帰結はどれか。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="1" data-answer-type="single" data-explanation="学生Aの見解は違法性阻却事由説（緊急避難＝「正」・正対正で反撃に正当防衛不成立）である。記述1は正しい。制限従属性説（共犯成立には正犯行為の構成要件該当性＋違法性を要する）を前提とすると、違法性阻却事由説では正犯（避難者）の行為は違法性が阻却され違法性を欠くため、従属の対象を欠き幇助者は不可罰となる。記述2は誤り。違法性阻却の実質的理由を優越的利益の保護に求める考え方はむしろ緊急避難を違法性阻却の基本型とするため、違法性阻却事由説と矛盾しない。記述3は誤り。民法720条は危難が人の不法行為由来か（正当防衛）物由来か（緊急避難）で区別し、人の適法行為由来の危難はいずれにも該当せず対応行為は不法行為となるため、違法性阻却事由説でも民法上の損害賠償責任を問われることがある。記述4は誤り。違法性阻却事由説は37条1項本文が害の均衡（法益権衡）を要求することを根拠とするため、法益権衡が要件とされていることはむしろ違法性阻却事由説の根拠となり得る。記述5は誤り。「無関係な他人のためにする緊急避難を説明できない」との批判は責任阻却事由説（学生B）に向けられるものであり、違法性阻却事由説（学生A）への批判にはなり得ない。">
-      <p class="answer-instruction">記述1〜5のうち正しいものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各記述の○×を判定（自分で○×を付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="○××××" data-answer-type="ox-grid" data-explanation="学生Aの見解は違法性阻却事由説（緊急避難＝「正」・正対正で反撃に正当防衛不成立）である。記述1は正しい。制限従属性説（共犯成立には正犯行為の構成要件該当性＋違法性を要する）を前提とすると、違法性阻却事由説では正犯（避難者）の行為は違法性が阻却され違法性を欠くため、従属の対象を欠き幇助者は不可罰となる。記述2は誤り。違法性阻却の実質的理由を優越的利益の保護に求める考え方はむしろ緊急避難を違法性阻却の基本型とするため、違法性阻却事由説と矛盾しない。記述3は誤り。民法720条は危難が人の不法行為由来か（正当防衛）物由来か（緊急避難）で区別し、人の適法行為由来の危難はいずれにも該当せず対応行為は不法行為となるため、違法性阻却事由説でも民法上の損害賠償責任を問われることがある。記述4は誤り。違法性阻却事由説は37条1項本文が害の均衡（法益権衡）を要求することを根拠とするため、法益権衡が要件とされていることはむしろ違法性阻却事由説の根拠となり得る。記述5は誤り。「無関係な他人のためにする緊急避難を説明できない」との批判は責任阻却事由説（学生B）に向けられるものであり、違法性阻却事由説（学生A）への批判にはなり得ない。">
+      <p class="answer-instruction">記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">制限従属性説＋違法性阻却事由説で正犯の違法性を欠き幇助者は不可罰</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">違法性阻却の実質的理由を優越的利益の保護に求める考え方と矛盾する</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">刑法上の緊急避難に当たる行為は民法上も損害賠償責任を問われることはない</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">法益の権衡が要件とされていることはこの見解の根拠となり得ない</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">学生Bの見解から「無関係な他人のための緊急避難を説明できない」との批判がある</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 1</strong>　学生Aの違法性阻却事由説（緊急避難＝「正」）の帰結を問う。記述1は正しい――制限従属性説の下では正犯（避難者）の違法性が阻却され従属対象を欠くため幇助者は不可罰。記述2は優越的利益説とむしろ整合し矛盾しない、記述3は民法720条の区別から人の適法行為由来の危難では民事責任を問われ得る、記述4は害の均衡を要件とすることはむしろ自説の根拠となり得る、記述5の「無関係な他人のための避難を説明できない」批判は責任阻却事由説（学生B）向けで、いずれも誤り。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:x,5:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="o"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>違法性阻却事由説では緊急避難は「正」＝違法性を欠く。制限従属性説は共犯成立に正犯の違法性を要するから、正犯の違法性が阻却されれば幇助者は従属対象を欠き不可罰となる。</td></tr>
+            <tr data-stmt="2" data-verdict="x"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>優越的利益説は緊急避難を違法性阻却の基本型とするので、違法性阻却事由説とはむしろ整合する。「矛盾する」とみるのは取り違え。</td></tr>
+            <tr data-stmt="3" data-verdict="x"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>民法720条は危難が人の不法行為由来か物由来かで区別する。人の適法行為由来の危難はいずれにも当たらず不法行為（709条）となり得るため、刑法上の緊急避難でも民事責任を問われ得る。</td></tr>
+            <tr data-stmt="4" data-verdict="x"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>害の均衡（法益権衡）を要件とすることは、優越利益を救う違法性阻却の発想と整合し、むしろ違法性阻却事由説の根拠となり得る。</td></tr>
+            <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>「無関係な他人のための避難を説明できない」との批判は、期待可能性の減少で説明する責任阻却事由説に向くもので、違法性阻却事由説には妥当しない。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4216,5 +4330,133 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'correct';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "記述1：制限従属性説を前提とすると、正犯が緊急避難に当たる行為をした場合、その幇助をした者は不可罰となる——正しい？", "tip": "違法性阻却事由説では緊急避難は「正」＝違法性を欠く。共犯成立に正犯の違法性を要する<b>制限従属性説</b>の下では、正犯の違法性が阻却されれば従属対象を欠き幇助者は不可罰となる。", "note": "○ 違法性阻却事由説＋制限従属性説から導かれる正しい帰結。→ 選択肢1が残る。"}, "2": {"q": "記述2：この見解は違法性阻却の実質的理由を優越的利益の保護に求める考え方と矛盾する——正しい？", "tip": "<b>優越的利益説</b>は緊急避難を違法性阻却の基本型とするので、違法性阻却事由説とはむしろ整合する。「矛盾する」とみるのは両者の関係を逆に把握した取り違え。", "note": "× 優越的利益説とむしろ整合し矛盾しない。→ 選択肢2は消える。"}, "3": {"q": "記述3：この見解によれば刑法上の緊急避難に当たる行為は民法上も損害賠償責任を問われることはない——正しい？", "tip": "民法720条は危難が人の不法行為由来か物由来かで区別し、<b>人の適法行為由来</b>の危難はいずれにも当たらず対応行為は不法行為（709条）となり得る。違法性阻却事由説でも民事責任を問われ得る。", "note": "× 民法720条の区別上、民事責任を問われ得るのに「問われない」とした。→ 選択肢3は消える。"}, "4": {"q": "記述4：法益の権衡が緊急避難の要件とされていることは、この見解の根拠となり得ない——正しい？", "tip": "違法性阻却事由説は<b>37条1項本文が害の均衡（法益権衡）を要求すること</b>を自説の根拠とする。法益権衡が要件とされていることはむしろ違法性阻却事由説の根拠となり得る。", "note": "× 法益権衡はむしろ自説の根拠となり得るのに「なり得ない」とした。→ 選択肢4は消える。"}, "5": {"q": "記述5：この見解に対しては学生Bの見解から「無関係な他人のためにする緊急避難を説明できない」との批判がある——正しい？", "tip": "「無関係な他人のための避難を説明できない」との批判は、緊急避難を<b>期待可能性の減少で説明する責任阻却事由説（学生B）</b>に向くもの。違法性阻却事由説（学生A）は優越利益保護で説明でき、批判は当たらない。", "note": "× この批判は責任阻却事由説（学生B）向けで学生Aへの批判にはならない。→ 選択肢5は消える。残るは1。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = ["1", "2", "3", "4", "5"];                    // ['1'..'N'] positional row numbers
+  var KEYS = ["1", "2", "3", "4", "5"];                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    NUMS.forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    NUMS.forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    NUMS.forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var key = KEYS[parseInt(b,10)-1] || b;
+      var row = area.querySelector('.ox-row[data-stmt="'+key+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
