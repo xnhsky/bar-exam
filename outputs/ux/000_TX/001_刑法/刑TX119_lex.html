@@ -3208,6 +3208,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3310,24 +3395,119 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>①b　②c　③f　④h　⑤i　⑥k　⑦n</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>①b　②d　③e　④g　⑤j　⑥k　⑦m</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜5 から1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">検討順に、下の一問一答で各空欄の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。要所で解法のコツも出ます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="3" data-answer-type="single" data-explanation="①〜⑦の空欄に正しい語句が入る組合せは、①b 危険運転致死／②c 責任能力／③f 原因において自由な行為／④g 行為と責任の同時存在の原則／⑤j 間接正犯／⑥l 心神耗弱／⑦m 適用している、である。①甲が酩酊して正常な運転が困難な状態で人を死亡させた行為は危険運転致死（自動車運転死傷行為処罰法2条1号・柱書）に当たる＝b。②運転開始時に是非善悪の識別能力・制御能力を失った状態は心神喪失で責任能力が欠ける＝c（行為能力dは私法上の概念で誤り）。③責任無能力状態で犯罪結果を実現させた場合の可罰性を根拠付けるのが原因において自由な行為の理論＝f（『原因において違法な行為』eという概念は存在しない）。④責任能力は実行行為時に存在する必要があるとするのが行為と責任の同時存在の原則＝g（罪刑法定主義hは無関係）。⑤責任無能力の自分を道具として利用すると捉え同時存在の原則を維持する構成要件モデルは間接正犯類似説＝j（共謀共同正犯iは共犯論で誤り）。⑥道具といえるか問題となるのは完全な責任無能力でない限定責任能力＝心神耗弱l（心神喪失kでは道具性の問題は生じにくい）。⑦最決昭43.2.27は心神耗弱状態でも飲酒の際に運転の意思が認められれば39条2項の減軽をすべきでないとして理論を適用している＝m。各空欄に現れた法理で語句の正誤を判定するのがコア。">
-      <p class="answer-instruction">①〜⑦に入る語句の正しい組合せを、上記【組合せ】の 1〜5 から1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各空欄の語句を1つずつ選ぶ（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="bcfgjlm" data-answer-type="ox-grid" data-explanation="①〜⑦の空欄に正しい語句が入る組合せは、①b 危険運転致死／②c 責任能力／③f 原因において自由な行為／④g 行為と責任の同時存在の原則／⑤j 間接正犯／⑥l 心神耗弱／⑦m 適用している、である。①甲が酩酊して正常な運転が困難な状態で人を死亡させた行為は危険運転致死（自動車運転死傷行為処罰法2条1号・柱書）に当たる＝b。②運転開始時に是非善悪の識別能力・制御能力を失った状態は心神喪失で責任能力が欠ける＝c（行為能力dは私法上の概念で誤り）。③責任無能力状態で犯罪結果を実現させた場合の可罰性を根拠付けるのが原因において自由な行為の理論＝f（『原因において違法な行為』eという概念は存在しない）。④責任能力は実行行為時に存在する必要があるとするのが行為と責任の同時存在の原則＝g（罪刑法定主義hは無関係）。⑤責任無能力の自分を道具として利用すると捉え同時存在の原則を維持する構成要件モデルは間接正犯類似説＝j（共謀共同正犯iは共犯論で誤り）。⑥道具といえるか問題となるのは完全な責任無能力でない限定責任能力＝心神耗弱l（心神喪失kでは道具性の問題は生じにくい）。⑦最決昭43.2.27は心神耗弱状態でも飲酒の際に運転の意思が認められれば39条2項の減軽をすべきでないとして理論を適用している＝m。各空欄に現れた法理で語句の正誤を判定するのがコア。">
+      <p class="answer-instruction">上の解法ナビが示す順に、各空欄①〜⑦の語句を1つずつ選んでください（選ぶたびに上の組合せ候補が絞られます）。全空欄を選んだら「解答を表示」で採点。採点後、各行に<strong>論点のコア（転用可能な法理）</strong>が展開されます。復習プールにはこの法理命題だけが入ります。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row mc" data-stmt="1">
+          <span class="ox-label">①</span>
+          <div class="ox-main">
+            <p class="ox-q">本事例の構成要件上の罪名は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="a"><span class="mc-key">a</span>業務上過失致死</button>
+            <button class="answer-slot ox-btn" type="button" data-value="b"><span class="mc-key">b</span>危険運転致死</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">酩酊により正常な運転が困難な状態で自動車を走行させ人を死亡させた行為は、危険運転致死罪（自動車の運転により人を死傷させる行為等の処罰に関する法律2条1号）に当たる。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="2">
+          <span class="ox-label">②</span>
+          <div class="ox-main">
+            <p class="ox-q">運転開始時に欠けていたのは何の能力か？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="c"><span class="mc-key">c</span>責任能力</button>
+            <button class="answer-slot ox-btn" type="button" data-value="d"><span class="mc-key">d</span>行為能力</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">是非善悪の識別能力及びその識別に従って行動を制御する能力を失った状態（心神喪失）では責任能力が欠ける。行為能力は私法上の概念であって刑法の責任要件ではない。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="3">
+          <span class="ox-label">③</span>
+          <div class="ox-main">
+            <p class="ox-q">責任無能力状態で結果を実現した者の可罰性を根拠づける理論は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="e"><span class="mc-key">e</span>原因において違法な行為</button>
+            <button class="answer-slot ox-btn" type="button" data-value="f"><span class="mc-key">f</span>原因において自由な行為</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">原因において自由な行為とは、結果惹起行為の時点で責任能力を欠いても、その原因となった行為の時点で完全な責任能力があれば完全な責任を問い得るとする理論をいう。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="4">
+          <span class="ox-label">④</span>
+          <div class="ox-main">
+            <p class="ox-q">原因において自由な行為が修正・例外を論じる対象となる原則は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="g"><span class="mc-key">g</span>行為と責任の同時存在の原則</button>
+            <button class="answer-slot ox-btn" type="button" data-value="h"><span class="mc-key">h</span>罪刑法定主義</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">行為と責任の同時存在の原則とは、責任非難の対象たる実行行為の時点に責任能力が存在することを要するとする原則をいう。原因において自由な行為はこの原則の維持・例外をめぐって構成が分かれる。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="5">
+          <span class="ox-label">⑤</span>
+          <div class="ox-main">
+            <p class="ox-q">同時存在の原則を維持しつつ責任無能力の自分を道具として利用すると捉える構成は、何と同様に考えるか？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="i"><span class="mc-key">i</span>共謀共同正犯</button>
+            <button class="answer-slot ox-btn" type="button" data-value="j"><span class="mc-key">j</span>間接正犯</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">構成要件モデル（同時存在の原則を維持する立場）は、責任無能力状態の自己を道具として利用したと捉え、他人を道具とする間接正犯と同様に原因行為に実行行為性を認める。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="6">
+          <span class="ox-label">⑥</span>
+          <div class="ox-main">
+            <p class="ox-q">結果惹起時に『道具といえるか』が問題となるのは、どの責任状態の場合か？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="k"><span class="mc-key">k</span>心神喪失</button>
+            <button class="answer-slot ox-btn" type="button" data-value="l"><span class="mc-key">l</span>心神耗弱</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">心神耗弱（限定責任能力）の場合は意思による制御の余地が残るため、結果惹起時の行為者を完全な『道具』と評価できるかが問題となる。完全な責任無能力（心神喪失）ではこの問題は生じにくい。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="7">
+          <span class="ox-label">⑦</span>
+          <div class="ox-main">
+            <p class="ox-q">判例は心神耗弱の場合に原因において自由な行為の理論を適用しているか、していないか？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="m"><span class="mc-key">m</span>適用している</button>
+            <button class="answer-slot ox-btn" type="button" data-value="n"><span class="mc-key">n</span>適用していない</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">判例（最決昭43.2.27）は、心神耗弱状態であっても、飲酒の際に運転の意思が認められる場合には39条2項による刑の減軽をすべきでないとして、原因において自由な行為の理論を適用している。</span></p>
+          </div>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 3</strong>　①b ②c ③f ④g ⑤j ⑥l ⑦m。①酩酊運転致死＝危険運転致死（b）／②欠けるのは責任能力（c）／③可罰性の根拠＝原因において自由な行為（f）／④維持・例外の対象＝行為と責任の同時存在の原則（g）／⑤道具利用構成は間接正犯類似（j）／⑥道具性が問題となるのは心神耗弱（l）／⑦判例は心神耗弱に理論を適用している（m・最決昭43.2.27）。番号でなく各空欄の法理で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　各空欄の正解と<strong>論点のコア（転用可能な法理）</strong>は下表のとおり。組合せ番号でなく、各空欄の法理で判定する。下表が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:b,2:c,3:f,4:g,5:j,6:l,7:m">
+          <thead><tr><th style="width:3em;">空欄</th><th style="width:8em;">正解</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1"><td style="text-align:center;font-weight:700;">①</td><td style="text-align:center;font-weight:700;">危険運転致死（b）</td><td>酩酊により正常な運転が困難な状態で自動車を走行させ人を死亡させた行為は、危険運転致死罪（自動車の運転により人を死傷させる行為等の処罰に関する法律2条1号）に当たる。</td></tr>
+            <tr data-stmt="2"><td style="text-align:center;font-weight:700;">②</td><td style="text-align:center;font-weight:700;">責任能力（c）</td><td>是非善悪の識別能力及びその識別に従って行動を制御する能力を失った状態（心神喪失）では責任能力が欠ける。行為能力は私法上の概念であって刑法の責任要件ではない。</td></tr>
+            <tr data-stmt="3"><td style="text-align:center;font-weight:700;">③</td><td style="text-align:center;font-weight:700;">原因において自由な行為（f）</td><td>原因において自由な行為とは、結果惹起行為の時点で責任能力を欠いても、その原因となった行為の時点で完全な責任能力があれば完全な責任を問い得るとする理論をいう。</td></tr>
+            <tr data-stmt="4"><td style="text-align:center;font-weight:700;">④</td><td style="text-align:center;font-weight:700;">行為と責任の同時存在の原則（g）</td><td>行為と責任の同時存在の原則とは、責任非難の対象たる実行行為の時点に責任能力が存在することを要するとする原則をいう。原因において自由な行為はこの原則の維持・例外をめぐって構成が分かれる。</td></tr>
+            <tr data-stmt="5"><td style="text-align:center;font-weight:700;">⑤</td><td style="text-align:center;font-weight:700;">間接正犯（j）</td><td>構成要件モデル（同時存在の原則を維持する立場）は、責任無能力状態の自己を道具として利用したと捉え、他人を道具とする間接正犯と同様に原因行為に実行行為性を認める。</td></tr>
+            <tr data-stmt="6"><td style="text-align:center;font-weight:700;">⑥</td><td style="text-align:center;font-weight:700;">心神耗弱（l）</td><td>心神耗弱（限定責任能力）の場合は意思による制御の余地が残るため、結果惹起時の行為者を完全な『道具』と評価できるかが問題となる。完全な責任無能力（心神喪失）ではこの問題は生じにくい。</td></tr>
+            <tr data-stmt="7"><td style="text-align:center;font-weight:700;">⑦</td><td style="text-align:center;font-weight:700;">適用している（m）</td><td>判例（最決昭43.2.27）は、心神耗弱状態であっても、飲酒の際に運転の意思が認められる場合には39条2項による刑の減軽をすべきでないとして、原因において自由な行為の理論を適用している。</td></tr>
+          </tbody>
+        </table>
       </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
@@ -4232,5 +4412,86 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（ガイド専念）：回答ボタンは持たず、検討順＋💡コツ＋組合せ消去パネルで誘導する。
+   ユーザーは下の ox-grid（多肢選択の一問一答）で各空欄を1つずつ回答 → ここが消去を更新 →
+   全部そろったら下の「解答を表示」で採点（記録は ox-grid 一本＝Lexia 復習プール）。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥','7':'⑦','8':'⑧','9':'⑨'};
+  // 本物の組合せ5択（番号→各空欄の語句）
+  var COMBOS = {"1": {"1": "a", "2": "c", "3": "e", "4": "g", "5": "j", "6": "l", "7": "m"}, "2": {"1": "a", "2": "d", "3": "f", "4": "g", "5": "i", "6": "l", "7": "n"}, "3": {"1": "b", "2": "c", "3": "f", "4": "g", "5": "j", "6": "l", "7": "m"}, "4": {"1": "b", "2": "c", "3": "f", "4": "h", "5": "i", "6": "k", "7": "n"}, "5": {"1": "b", "2": "d", "3": "e", "4": "g", "5": "j", "6": "k", "7": "m"}};
+  var ORDER = ["1", "2", "3", "4", "5", "6", "7"];
+  var TIP = {"1": "事例の罪名を確定。酩酊して正常な運転が困難な状態で人を死亡させた行為は<b>危険運転致死</b>（自動車運転死傷行為処罰法2条1号）。業務上過失致死（a）は正常運転困難状態の危険運転には当たらない。", "2": "運転開始時に是非善悪の識別・制御能力を失った状態は心神喪失＝<b>責任能力</b>が欠ける（c）。行為能力（d）は私法上の概念で刑法の責任要件ではない。", "3": "責任無能力状態で結果を実現した場合の可罰性を根拠づける理論＝<b>原因において自由な行為</b>（f）。『原因において違法な行為』（e）という概念は存在しない。", "4": "責任能力は実行行為時に存在することを要するとする原則＝<b>行為と責任の同時存在の原則</b>（g）。罪刑法定主義（h）は別系統で無関係。", "5": "責任無能力の自分を道具として利用すると捉え、同時存在の原則を維持する構成要件モデル＝<b>間接正犯</b>類似説（j）。共謀共同正犯（i）は共犯論で場違い。", "6": "道具性が問題となるのは完全な責任無能力ではない限定責任能力＝<b>心神耗弱</b>（l）。心神喪失（k）まで至ると道具性の問題はむしろ生じにくい。", "7": "判例（最決昭43.2.27）は心神耗弱状態でも飲酒の際に運転の意思が認められれば39条2項の減軽をすべきでないとして理論を<b>適用している</b>（m）。"};
+  function picks(){
+    var p = {};
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      var b = r.getAttribute('data-stmt'); var sel = r.querySelector('.ox-btn.selected');
+      if (b && sel) p[b] = (sel.getAttribute('data-value') || '');
+    });
+    return p;
+  }
+  function liveNums(p){
+    var out = [];
+    for (var n in COMBOS){ if(!COMBOS.hasOwnProperty(n)) continue;
+      var ok = true;
+      for (var b in p){ if(p.hasOwnProperty(b) && COMBOS[n][b] !== p[b]){ ok = false; break; } }
+      if (ok) out.push(n);
+    }
+    return out;
+  }
+  function renderCombos(p){
+    var live = {}; liveNums(p).forEach(function(n){ live[n] = true; });
+    var html = '';
+    Object.keys(COMBOS).forEach(function(n){
+      var seq = '';
+      ORDER_ALL.forEach(function(b){
+        var L = COMBOS[n][b]; if (L === undefined) return;
+        var on = (p[b] && p[b] === L);
+        seq += (on ? '<b>' : '') + CIRC[b] + L + (on ? '</b>' : '') + ' ';
+      });
+      html += '<div class="sn-combo ' + (live[n] ? 'live' : 'dead') + '"><span class="sn-cno">' + n + '</span><div class="sn-cseq">' + seq + '</div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function currentBlank(p){
+    for (var i=0;i<ORDER.length;i++){ if(!p[ORDER[i]]) return ORDER[i]; }
+    return null;
+  }
+  var ORDER_ALL = Object.keys(COMBOS['1'] || {});
+  function render(){
+    var p = picks();
+    renderCombos(p);
+    var live = liveNums(p);
+    remainBox.innerHTML = '残っている組合せ番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
+    var cb = currentBlank(p);
+    var done = Object.keys(p).length;
+    var total = ORDER.length;
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cb && r.getAttribute('data-stmt') === cb);
+    });
+    var h = '';
+    if (cb){
+      h += '<p class="sn-progress">STEP ' + (done+1) + ' / ' + total + '　─　次は空欄 ' + CIRC[cb] + ' を、下の一問一答で回答</p>';
+      h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">' + TIP[cb] + '</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の ' + CIRC[cb] + ' で語句を選ぶと、ここの候補が絞られます。</p>';
+    } else if (live.length === 1){
+      h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + live[0] + '</div>全部そろいました。下の「解答を表示」で採点。番号でなく、いま辿った検討の筋道（どの空欄で立場と理由が定まり、どこが確認だったか）ごと身につけよう。</div>';
+    } else {
+      h += '<div class="sn-result' + (live.length===0?' miss':'') + '">' + (live.length===0 ? '選んだ語句が互いに矛盾して残る番号がありません。どこかを選び直そう。' : '残り：' + live.join('・') + '。あと一歩、残りの空欄を決めよう。') + '</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>

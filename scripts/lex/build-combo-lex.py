@@ -55,7 +55,7 @@ NAV_JS_TMPL = r'''<script>
   var combosBox = document.getElementById('sn-combos');
   var remainBox = document.getElementById('sn-remain');
   var stage = document.getElementById('sn-stage');
-  var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥'};
+  var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥','7':'⑦','8':'⑧','9':'⑨'};
   // 本物の組合せ5択（番号→各空欄の語句）
   var COMBOS = __COMBOS__;
   var ORDER = __ORDER__;
@@ -139,7 +139,7 @@ ROW_TMPL = ('        <div class="ox-row mc" data-stmt="__B__">\n'
   '        </div>\n')
 OPT_TMPL = ('            <button class="answer-slot ox-btn" type="button" data-value="__K__"><span class="mc-key">__K__</span>__T__</button>\n')
 
-CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥'}
+CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥','7':'⑦','8':'⑧','9':'⑨'}
 
 def find_block(html, start_tag='<div class="answer-area"'):
     i = html.find(start_tag)
@@ -179,9 +179,14 @@ def build(num, spec):
     blank_ids = list(blanks.keys())
 
     expl = re.search(r'data-explanation="([^"]*)"', area, re.S).group(1)
-    # 解答 h3（【解答】…）を捕捉
-    head_m = re.search(r'<h3[^>]*>【解答】[^<]*</h3>', src)
-    head_ox = head_m.group(0)
+    # answer-area の直前にある【解答】h3（あれば）を捕捉＝置換領域に含める（重複防止）。
+    # 無い問（例 119：answer-area が【組合せ】h3 直後）もあるため optional 扱い。
+    pre = src[:a0]
+    head_m = re.search(r'<h3[^>]*>【解答】[^<]*</h3>\s*$', pre)
+    head_ox = head_m.group(0) if head_m else None
+    HEAD_NEW = ('<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; '
+      'margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); '
+      'font-family:var(--font-display);">__TXT__</h3>\n\n    ')
 
     # ===== (1) Lexia 用 _lex =====
     shutil.copyfile(src_path, lex_path)
@@ -216,14 +221,16 @@ def build(num, spec):
       '        </table>\n'
       '      </div>')
     la0, la1 = find_block(lex)            # lex 上で answer-area を再検索（src と同位置だが安全に再取得）
-    lex = lex[:la0] + lex_area + lex[la1:]
+    # 旧【解答】h3 があれば置換領域に含めて除去（重複防止）
+    lhead = re.search(r'<h3[^>]*>【解答】[^<]*</h3>\s*$', lex[:la0])
+    cut0 = lhead.start() if lhead else la0
+    # solve-nav SHELL ＋ 新しい【解答】h3 を answer-area の直前に置く
+    shell = NAV_SHELL.replace('__SUB__', spec['sub'])
+    head_new = HEAD_NEW.replace('__TXT__', '【解答】── 上の解法ナビの順に、各空欄の語句を1つずつ選ぶ（全部選んだら「解答を表示」）')
+    lex = lex[:cut0] + shell + head_new + lex_area + lex[la1:]
     # 1a. CSS 注入（</style> 直前）
     k = lex.rfind('</style>')
     lex = lex[:k] + "\n/* === 解法ナビ（Lexia用・常時表示） === */\n" + CSS + "\n" + lex[k:]
-    # 1b. solve-nav SHELL を【解答】h3 の直前へ
-    shell = NAV_SHELL.replace('__SUB__', spec['sub'])
-    hi = lex.find(head_ox)
-    lex = lex[:hi] + shell + lex[hi:]
     # 1e. SCRIPT-COMBO（ガイド専念型）を </body> 直前へ
     js = (NAV_JS_TMPL.replace('__COMBOS__', json.dumps(combos, ensure_ascii=False))
                      .replace('__ORDER__', json.dumps(order, ensure_ascii=False))
@@ -235,9 +242,7 @@ def build(num, spec):
     # ===== (2) 公式（単一5択・組合せ番号 single） =====
     nopt = len(combos)
     instr = f'①〜{CIRC[blank_ids[-1]]}に入る語句の正しい組合せを、上記【組合せ】の 1〜{nopt} から1つ選び、「解答を表示」を押してください。'
-    head_official = ('<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; '
-      'margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); '
-      'font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜'+str(nopt)+' から1つ選ぶ</h3>')
+    head_official = HEAD_NEW.replace('__TXT__', '【解答】── 正しい組合せ番号を 1〜'+str(nopt)+' から1つ選ぶ')
     slots = ''.join('        <button class="answer-slot" type="button" data-value="%s">%s</button>\n'%(n,n) for n in combos)
     official_area = ('<div class="answer-area" id="answer-area" data-correct-value="'+ans+'" '
       'data-answer-type="single" data-explanation="'+expl+'">\n'
@@ -248,8 +253,9 @@ def build(num, spec):
       '      <div class="final-answer" hidden="">\n'
       '        <p class="fa-summary">'+spec['summary']+'</p>\n'
       '      </div>')
-    off = src[:a0] + official_area + src[a1:]
-    off = off.replace(head_ox, head_official, 1)
+    # 旧【解答】h3（あれば）を含めて answer-area を差し替え（重複防止）
+    cut0 = head_m.start() if head_m else a0
+    off = src[:cut0] + head_official + official_area + src[a1:]
     open(src_path, "w", encoding="utf-8").write(off)
     print(f"刑TX{num}: ans=組合せ{ans}  cv={cv}  lex={len(lex)}B official={len(off)}B")
 
@@ -294,6 +300,56 @@ COMBO_SPECS = {
           "opts":[{"k":"i","t":"事実判断"},{"k":"j","t":"法律判断"}],
           "core":"被告人の精神状態が心神喪失・心神耗弱に該当するかは法律判断であって裁判所の専権事項であり、その前提となる生物学的要素・心理学的要素の評価も究極的には裁判所の判断に委ねられる（最決昭58.9.13・最判平20.4.25）。"}},
    "summary":"<strong>正解 3</strong>　①b ②c ③e ④g ⑤j。責任能力は混合的方法で判断する。①不可知論で『分からない』対象＝心理学的要素（b）／②心神喪失の定義は『又は』（c・選択的・大判昭6.12.3）／③診断は臨床精神医学の本分（e・最判平20.4.25）／④鑑定意見は採用し得ない合理的事情なき限り尊重（g・拘束ではない）／⑤該当性は法律判断で裁判所の専権（j・最決昭58.9.13）。番号でなく各空欄の法理で判定する。"},
+
+ # ----- 119 原因において自由な行為（共通H23-4）-----
+ "119": {
+   "sub": "検討順に、下の一問一答で各空欄の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。要所で解法のコツも出ます。",
+   "combos": {
+     "1":{"1":"a","2":"c","3":"e","4":"g","5":"j","6":"l","7":"m"},
+     "2":{"1":"a","2":"d","3":"f","4":"g","5":"i","6":"l","7":"n"},
+     "3":{"1":"b","2":"c","3":"f","4":"g","5":"j","6":"l","7":"m"},
+     "4":{"1":"b","2":"c","3":"f","4":"h","5":"i","6":"k","7":"n"},
+     "5":{"1":"b","2":"d","3":"e","4":"g","5":"j","6":"k","7":"m"}},
+   "official": {"1":"b","2":"c","3":"f","4":"g","5":"j","6":"l","7":"m"},
+   "order": ["1","2","3","4","5","6","7"],
+   "tip": {
+     "1":"事例の罪名を確定。酩酊して正常な運転が困難な状態で人を死亡させた行為は<b>危険運転致死</b>（自動車運転死傷行為処罰法2条1号）。業務上過失致死（a）は正常運転困難状態の危険運転には当たらない。",
+     "2":"運転開始時に是非善悪の識別・制御能力を失った状態は心神喪失＝<b>責任能力</b>が欠ける（c）。行為能力（d）は私法上の概念で刑法の責任要件ではない。",
+     "3":"責任無能力状態で結果を実現した場合の可罰性を根拠づける理論＝<b>原因において自由な行為</b>（f）。『原因において違法な行為』（e）という概念は存在しない。",
+     "4":"責任能力は実行行為時に存在することを要するとする原則＝<b>行為と責任の同時存在の原則</b>（g）。罪刑法定主義（h）は別系統で無関係。",
+     "5":"責任無能力の自分を道具として利用すると捉え、同時存在の原則を維持する構成要件モデル＝<b>間接正犯</b>類似説（j）。共謀共同正犯（i）は共犯論で場違い。",
+     "6":"道具性が問題となるのは完全な責任無能力ではない限定責任能力＝<b>心神耗弱</b>（l）。心神喪失（k）まで至ると道具性の問題はむしろ生じにくい。",
+     "7":"判例（最決昭43.2.27）は心神耗弱状態でも飲酒の際に運転の意思が認められれば39条2項の減軽をすべきでないとして理論を<b>適用している</b>（m）。"},
+   "blanks": {
+     "1":{"q":"本事例の構成要件上の罪名は？",
+          "label":"危険運転致死（b）",
+          "opts":[{"k":"a","t":"業務上過失致死"},{"k":"b","t":"危険運転致死"}],
+          "core":"酩酊により正常な運転が困難な状態で自動車を走行させ人を死亡させた行為は、危険運転致死罪（自動車の運転により人を死傷させる行為等の処罰に関する法律2条1号）に当たる。"},
+     "2":{"q":"運転開始時に欠けていたのは何の能力か？",
+          "label":"責任能力（c）",
+          "opts":[{"k":"c","t":"責任能力"},{"k":"d","t":"行為能力"}],
+          "core":"是非善悪の識別能力及びその識別に従って行動を制御する能力を失った状態（心神喪失）では責任能力が欠ける。行為能力は私法上の概念であって刑法の責任要件ではない。"},
+     "3":{"q":"責任無能力状態で結果を実現した者の可罰性を根拠づける理論は？",
+          "label":"原因において自由な行為（f）",
+          "opts":[{"k":"e","t":"原因において違法な行為"},{"k":"f","t":"原因において自由な行為"}],
+          "core":"原因において自由な行為とは、結果惹起行為の時点で責任能力を欠いても、その原因となった行為の時点で完全な責任能力があれば完全な責任を問い得るとする理論をいう。"},
+     "4":{"q":"原因において自由な行為が修正・例外を論じる対象となる原則は？",
+          "label":"行為と責任の同時存在の原則（g）",
+          "opts":[{"k":"g","t":"行為と責任の同時存在の原則"},{"k":"h","t":"罪刑法定主義"}],
+          "core":"行為と責任の同時存在の原則とは、責任非難の対象たる実行行為の時点に責任能力が存在することを要するとする原則をいう。原因において自由な行為はこの原則の維持・例外をめぐって構成が分かれる。"},
+     "5":{"q":"同時存在の原則を維持しつつ責任無能力の自分を道具として利用すると捉える構成は、何と同様に考えるか？",
+          "label":"間接正犯（j）",
+          "opts":[{"k":"i","t":"共謀共同正犯"},{"k":"j","t":"間接正犯"}],
+          "core":"構成要件モデル（同時存在の原則を維持する立場）は、責任無能力状態の自己を道具として利用したと捉え、他人を道具とする間接正犯と同様に原因行為に実行行為性を認める。"},
+     "6":{"q":"結果惹起時に『道具といえるか』が問題となるのは、どの責任状態の場合か？",
+          "label":"心神耗弱（l）",
+          "opts":[{"k":"k","t":"心神喪失"},{"k":"l","t":"心神耗弱"}],
+          "core":"心神耗弱（限定責任能力）の場合は意思による制御の余地が残るため、結果惹起時の行為者を完全な『道具』と評価できるかが問題となる。完全な責任無能力（心神喪失）ではこの問題は生じにくい。"},
+     "7":{"q":"判例は心神耗弱の場合に原因において自由な行為の理論を適用しているか、していないか？",
+          "label":"適用している（m）",
+          "opts":[{"k":"m","t":"適用している"},{"k":"n","t":"適用していない"}],
+          "core":"判例（最決昭43.2.27）は、心神耗弱状態であっても、飲酒の際に運転の意思が認められる場合には39条2項による刑の減軽をすべきでないとして、原因において自由な行為の理論を適用している。"}},
+   "summary":"<strong>正解 3</strong>　①b ②c ③f ④g ⑤j ⑥l ⑦m。①酩酊運転致死＝危険運転致死（b）／②欠けるのは責任能力（c）／③可罰性の根拠＝原因において自由な行為（f）／④維持・例外の対象＝行為と責任の同時存在の原則（g）／⑤道具利用構成は間接正犯類似（j）／⑥道具性が問題となるのは心神耗弱（l）／⑦判例は心神耗弱に理論を適用している（m・最決昭43.2.27）。番号でなく各空欄の法理で判定する。"},
 }
 
 if __name__ == '__main__':
