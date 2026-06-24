@@ -3208,56 +3208,54 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
 
 /* ============================================================
-   解法サポート（試作・議論形式）── 解法ナビ + スティッキー○×バー
-   答えは出さない（手順の足場）。既存 .ox-btn を遠隔操作するので Lexia 無改修で動く。
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
    ============================================================ */
-.kaihou-nav{margin:18px 0 14px; border:1.5px solid var(--accent); border-radius:12px;
+.solve-nav{margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
   background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
-.kaihou-nav>summary{list-style:none; cursor:pointer; padding:12px 16px; font-weight:700;
-  font-family:var(--font-display,sans-serif); color:#fff; background:var(--accent);
-  display:flex; align-items:center; gap:8px; user-select:none;}
-.kaihou-nav>summary::-webkit-details-marker{display:none;}
-.kaihou-nav>summary .kn-chev{margin-left:auto; transition:transform .2s;}
-.kaihou-nav[open]>summary .kn-chev{transform:rotate(180deg);}
-.kn-sub{font-weight:500; font-size:.82em; opacity:.92;}
-.kn-body{padding:14px 16px 16px;}
-.kn-step{display:flex; gap:12px; padding:10px 0; border-bottom:1px dashed var(--border-mid,#ddd);}
-.kn-step:last-child{border-bottom:none;}
-.kn-no{flex:0 0 auto; width:28px; height:28px; border-radius:50%; background:var(--accent);
-  color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.95em;}
-.kn-txt{flex:1;}
-.kn-txt b{display:block; margin-bottom:3px; color:var(--accent);}
-.kn-txt p{margin:0; font-size:.93em; line-height:1.7;}
-.kn-foot{margin-top:12px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
-  font-size:.88em; line-height:1.6;}
-.kaihou-bar{position:fixed; left:0; right:0; bottom:0; z-index:9000;
-  background:rgba(255,255,255,.97); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
-  border-top:2px solid var(--accent); box-shadow:0 -3px 14px rgba(0,0,0,.12);
-  padding:8px 8px calc(8px + env(safe-area-inset-bottom));
-  transform:translateY(120%); transition:transform .25s;}
-.kaihou-bar.show{transform:translateY(0);}
-.kaihou-bar.collapsed .kb-grid, .kaihou-bar.collapsed .kb-reveal{display:none;}
-.kb-head{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
-.kb-title{font-weight:700; font-size:.8em; color:var(--accent); font-family:var(--font-display,sans-serif);}
-.kb-toggle{margin-left:auto; background:none; border:1px solid var(--accent); color:var(--accent);
-  border-radius:6px; font-size:.75em; padding:3px 8px; cursor:pointer;}
-.kb-grid{display:flex; gap:6px; align-items:stretch;}
-.kb-cell{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0;}
-.kb-lbl{font-weight:800; font-size:.85em; color:var(--bg-dark,#333);}
-.kb-btns{display:flex; gap:3px;}
-.kb-ox{width:34px; height:34px; border-radius:7px; border:1.5px solid var(--border-mid,#ccc);
-  background:#fff; font-size:1em; font-weight:700; cursor:pointer; color:var(--bg-dark,#333);
-  display:flex; align-items:center; justify-content:center; padding:0; -webkit-tap-highlight-color:transparent;}
-.kb-ox.sel{background:var(--accent); color:#fff; border-color:var(--accent);}
-.kb-ox.ok{background:var(--recall-correct-light,#43a047); color:#fff; border-color:transparent;}
-.kb-ox.ng{background:var(--recall-incorrect,#c62828); color:#fff; border-color:transparent;}
-.kb-reveal{display:block; width:100%; margin-top:8px; padding:11px; border:none; border-radius:8px;
-  background:var(--accent); color:#fff; font-weight:700; font-size:.95em; cursor:pointer;}
-.kb-reveal:disabled{opacity:.45; cursor:not-allowed;}
-@media (min-width:760px){
-  .kaihou-bar{max-width:560px; left:50%; right:auto; border-radius:14px 14px 0 0; transform:translate(-50%,120%);}
-  .kaihou-bar.show{transform:translate(-50%,0);}
-}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
 </style>
 </head>
 <body id="top">
@@ -3345,24 +3343,16 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>①b　②d　③e　④g　⑤i</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>①b　②c　③f　④g　⑤j</div>
 
-    <details class="kaihou-nav">
-      <summary>📐 解法ナビ<span class="kn-sub">議論形式の解き方（答えは出ません・手順の足場）</span><span class="kn-chev">▾</span></summary>
-      <div class="kn-body">
-        <div class="kn-step"><div class="kn-no">1</div><div class="kn-txt">
-          <b>アンカーを1つ決める</b>
-          <p>会話の中で「立場が確定する空欄」を最初に押さえる。目印は ①教授が「判例と同じ」等の評価を返している空欄／②判例・条文の文言が直結する空欄／③相手が批判している空欄（批判が成り立つ側で立場が決まる）。ここを起点（アンカー）にする。</p>
-        </div></div>
-        <div class="kn-step"><div class="kn-no">2</div><div class="kn-txt">
-          <b>立場を1本に通して逆算する</b>
-          <p>登場人物の主張は一本筋で通っている。アンカーで決めた立場と矛盾しないよう、残りの空欄を埋める。「この人がここでこう言うなら、あそこはこうなるはず」と逆算する。総当たりはしない。</p>
-        </div></div>
-        <div class="kn-step"><div class="kn-no">3</div><div class="kn-txt">
-          <b>2軸に畳んで○×、番号は最後に</b>
-          <p>論点はたいてい2本の軸に畳める（例：「公共の危険」の内容は何か／その認識は要るか）。軸ごとに○×を確定し、最後に○×から番号へ機械的に対応させる。番号そのものは覚えない。</p>
-        </div></div>
-        <div class="kn-foot">この手順で、下の【解答】の各空欄に<strong>自分で</strong>○×を付けてみましょう。画面下の<strong>解答バー</strong>を使えば、会話を読みながらスクロールせずに○×を付けられます。</div>
+    <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">検討すべき順に、本物の5択を1つずつ判断 → 矛盾する番号が消えて、残った番号にたどり着く。要所で解法のコツも出ます。</span>
       </div>
-    </details>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
     <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各空欄の正解語句が妥当かを○×で判定（自分で○×を付けてから「解答を表示」）</h3>
 
@@ -4330,108 +4320,182 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 </script>
 
 
-<div class="kaihou-bar" id="kaihou-bar" aria-hidden="true">
-  <div class="kb-head">
-    <span class="kb-title">📝 解答バー — 各空欄に○×（スクロール不要）</span>
-    <button type="button" class="kb-toggle" id="kb-toggle">隠す</button>
-  </div>
-  <div class="kb-grid" id="kb-grid"></div>
-  <button type="button" class="kb-reveal" id="kb-reveal" disabled="">解答を表示</button>
-</div>
 <script>
-/* 解法サポート（試作）：スティッキー○×バー。既存解答ロジックの .ox-btn を遠隔操作するだけ＝二重管理しない */
+/* 解法ナビ（試作）：検討すべき順に本物の5択を1つずつ判断 → 矛盾する番号が外れて残った番号へ。
+   要所で解法アドバイスを表示。最後に「公式解答へ記入」で ox-grid を遠隔操作して採点（記録は ox-grid 一本）。 */
 (function(){
+  var root = document.getElementById('solve-nav');
   var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
-  var bar  = document.getElementById('kaihou-bar');
-  if (!area || !bar) return;
-  var rows = Array.prototype.slice.call(area.querySelectorAll('.ox-row'));
-  if (!rows.length) { bar.parentNode.removeChild(bar); return; }
-  var grid = document.getElementById('kb-grid');
-  var barReveal = document.getElementById('kb-reveal');
-  var realReveal = area.querySelector('.reveal-answer-btn');
-  var toggle = document.getElementById('kb-toggle');
-  var partA = document.getElementById('part-a');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
 
-  function valOf(b){ return (b && (b.getAttribute('data-value') || (b.textContent||'').trim())) || ''; }
-  function rowLabel(r, i){
-    var lab = r.querySelector('.ox-label');
-    return (lab && lab.textContent.trim()) || String(i + 1);
+  var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤'};
+  // 本物の組合せ5択（番号→各空欄の語句）
+  var COMBOS = {
+    '1':{'1':'a','2':'d','3':'f','4':'h','5':'i'},
+    '2':{'1':'a','2':'d','3':'e','4':'g','5':'j'},
+    '3':{'1':'b','2':'c','3':'e','4':'h','5':'j'},
+    '4':{'1':'b','2':'d','3':'e','4':'g','5':'i'},
+    '5':{'1':'b','2':'c','3':'f','4':'g','5':'j'}
+  };
+  // ox-grid 各行が「正しい」とする語句（○×記入の基準）
+  var OFFICIAL = {'1':'b','2':'c','3':'f','4':'g','5':'j'};
+  // 検討する順序（立場がいちばん堅く決まる空欄から）
+  var ORDER = ['5','2','3','1','4'];
+  var STEP = {
+    '5':{q:'⑤ 学生Bは判例に賛成？ 反対？', loc:'会話の最後（⑤）。ただしBは序盤で自分から態度を述べている。',
+      tip:'まず<b>立場がいちばん堅く決まる空欄</b>を起点に。Bは冒頭で「判例の立場には反対しています」と明言している。発言者の地の文に答えが落ちていることが多い。',
+      opts:[{k:'i',t:'判例に賛成'},{k:'j',t:'判例に反対'}],
+      note:'Bは判例に反対＝<b>アンカー確定</b>。これで ⑤i 側の番号が外れる。'},
+    '2':{q:'② Bは「公共の危険」の認識を 必要？ 不要？', loc:'②（Bの「私は…と考えます」）。',
+      tip:'立場が決まれば芋づる式。判例は「認識<b>不要</b>」説。Bはその判例に反対なのだから、逆の「<b>必要</b>」説に立つはず。一人の主張は最後まで一本筋＝論理一貫で逆算する。',
+      opts:[{k:'c',t:'必要'},{k:'d',t:'不要'}],
+      note:'必要説で確定。⑤と矛盾しない。②d 側の番号が外れる。'},
+    '3':{q:'③ Bが必要説を採る「理由」は？', loc:'③（「なぜなら…からです」）。',
+      tip:'理由づけは<b>立場とセット</b>で押さえる。必要説の支えは<b>責任主義</b>（結果だけで重く罰しない）。条文の文言「よって公共の危険を生じさせた」は、むしろ<b>不要説</b>側の根拠なので、必要説のBがこれを挙げるのは筋が通らない。',
+      opts:[{k:'e',t:'条文の文言「よって公共の危険を生じさせた」'},{k:'f',t:'責任主義（結果的責任は否定すべき）'}],
+      note:'責任主義で確定。③e 側の番号が外れる。'},
+    '1':{q:'① 「公共の危険」の“内容”は？（確認）', loc:'①（学生Aの最初の発言）。',
+      tip:'ここは確認ステップ。教授が「Aの考えは判例と同じ」と評価している＝Aの説＝判例。判例（最決平15.4.14）は延焼に限定しない<b>不限定説</b>。',
+      opts:[{k:'a',t:'延焼の危険（限定説）'},{k:'b',t:'限定せず不特定・多数の生命身体財産への危険（不限定説）'}],
+      note:'判例＝不限定説で確認OK。'},
+    '4':{q:'④ Aの“批判”の中身は？（確認）', loc:'④（学生Aの「しかし…」）。',
+      tip:'必要説への典型批判は「<b>未必の故意</b>が広がってしまう」。h（不可罰の結果加重犯）は別系統の議論で、ここでは噛み合わない。批判は「どの説への批判か」を意識すると選びやすい。',
+      opts:[{k:'g',t:'現住建造物等放火罪の未必の故意が認められてしまう'},{k:'h',t:'不可罰である基本犯の結果加重犯を認めることになる'}],
+      note:'批判の中身も確認OK。'}
+  };
+
+  var picks = {};   // blank -> letter
+  var idx = 0;
+
+  function liveNums(){
+    var out = [];
+    for (var n in COMBOS){ if (!COMBOS.hasOwnProperty(n)) continue;
+      var ok = true;
+      for (var b in picks){ if (picks.hasOwnProperty(b) && COMBOS[n][b] !== picks[b]) { ok = false; break; } }
+      if (ok) out.push(n);
+    }
+    return out;
   }
-  function realBtn(i, v){
-    var bs = rows[i].querySelectorAll('.ox-btn');
-    for (var k = 0; k < bs.length; k++){ if (valOf(bs[k]) === v) return bs[k]; }
-    return null;
-  }
 
-  rows.forEach(function(r, i){
-    var cell = document.createElement('div'); cell.className = 'kb-cell';
-    var lbl = document.createElement('span'); lbl.className = 'kb-lbl'; lbl.textContent = rowLabel(r, i);
-    var btns = document.createElement('div'); btns.className = 'kb-btns';
-    ['○', '×'].forEach(function(v){
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'kb-ox'; b.textContent = v;
-      b.setAttribute('data-v', v); b.setAttribute('data-row', String(i));
-      btns.appendChild(b);
-    });
-    cell.appendChild(lbl); cell.appendChild(btns); grid.appendChild(cell);
-  });
-
-  grid.addEventListener('click', function(e){
-    var b = e.target.closest ? e.target.closest('.kb-ox') : null;
-    if (!b || area.classList.contains('answered')) return;
-    var rb = realBtn(parseInt(b.getAttribute('data-row'), 10), b.getAttribute('data-v'));
-    if (rb) rb.click();
-    setTimeout(sync, 0);
-  });
-  barReveal.addEventListener('click', function(){
-    if (realReveal && !realReveal.disabled) realReveal.click();
-    setTimeout(sync, 0);
-  });
-  toggle.addEventListener('click', function(){
-    bar.classList.toggle('collapsed');
-    toggle.textContent = bar.classList.contains('collapsed') ? '開く' : '隠す';
-  });
-
-  function sync(){
-    var answered = area.classList.contains('answered');
-    rows.forEach(function(r, i){
-      var sel = r.querySelector('.ox-btn.selected');
-      var selVal = sel ? valOf(sel) : null;
-      var cellBtns = grid.querySelectorAll('.kb-ox[data-row="' + i + '"]');
-      Array.prototype.forEach.call(cellBtns, function(cb){
-        cb.classList.remove('sel', 'ok', 'ng');
-        var v = cb.getAttribute('data-v');
-        if (answered){
-          var real = realBtn(i, v);
-          if (real && real.classList.contains('correct-mark')) cb.classList.add('ok');
-          else if (real && real.classList.contains('incorrect-mark')) cb.classList.add('ng');
-          else if (v === selVal) cb.classList.add('sel');
-        } else if (v === selVal){
-          cb.classList.add('sel');
-        }
+  function renderCombos(winNum){
+    var live = {}; liveNums().forEach(function(n){ live[n] = true; });
+    var html = '';
+    ['1','2','3','4','5'].forEach(function(n){
+      var seq = '';
+      ['1','2','3','4','5'].forEach(function(b){
+        var L = COMBOS[n][b];
+        var on = (picks[b] && picks[b] === L);
+        seq += (on ? '<b>' : '') + CIRC[b] + L + (on ? '</b>' : '') + ' ';
       });
+      var cls = 'sn-combo ' + (winNum === n ? 'win' : (live[n] ? 'live' : 'dead'));
+      html += '<div class="' + cls + '"><span class="sn-cno">' + n + '</span><div class="sn-cseq">' + seq + '</div></div>';
     });
-    if (realReveal){
-      barReveal.disabled = realReveal.disabled || answered;
-      if (answered) barReveal.textContent = '解答済み';
-    }
+    combosBox.innerHTML = html;
   }
 
-  document.addEventListener('click', function(){ setTimeout(sync, 0); }, false);
+  function esc(s){ return s; } // 文言は内製・エスケープ不要
 
-  function updateVisibility(){
-    if (area.classList.contains('answered')){
-      setTimeout(function(){ bar.classList.remove('show'); }, 2500);
-      return;
-    }
-    var rect = area.getBoundingClientRect();
-    var topRect = partA ? partA.getBoundingClientRect() : rect;
-    var inView = topRect.top < window.innerHeight && rect.bottom > -200;
-    bar.classList.toggle('show', inView);
+  function renderStep(){
+    var live = liveNums();
+    renderCombos(null);
+    remainBox.innerHTML = '残っている番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
+
+    // 終了条件：番号が1つ以下、または順序を使い切った
+    if (live.length <= 1 || idx >= ORDER.length){ return finish(live); }
+
+    var blank = ORDER[idx];
+    var s = STEP[blank];
+    var stepNo = idx + 1;
+    var h = '';
+    h += '<p class="sn-progress">STEP ' + stepNo + ' / ' + ORDER.length + '　─　空欄 ' + CIRC[blank] + ' を検討</p>';
+    h += '<p class="sn-step-q">' + s.q + '</p>';
+    h += '<p class="sn-step-loc">📍 ' + s.loc + '</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span>' + s.tip + '</div>';
+    h += '<div class="sn-opts">';
+    s.opts.forEach(function(o){
+      h += '<button type="button" class="sn-opt" data-blank="' + blank + '" data-k="' + o.k + '">' +
+           '<span class="sn-key">' + o.k + '</span><span>' + o.t + '</span></button>';
+    });
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
   }
-  window.addEventListener('scroll', updateVisibility, { passive: true });
-  window.addEventListener('resize', updateVisibility);
-  sync(); updateVisibility();
+
+  function trailHTML(){
+    var keys = Object.keys(picks);
+    if (!keys.length) return '';
+    var t = '<div class="sn-trail">これまでの判断：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">' + CIRC[b] + ' = ' + picks[b] + '</span>'; });
+    return t + '</div>';
+  }
+
+  function onPick(blank, k){
+    picks[blank] = k;
+    var note = STEP[blank].note;
+    idx += 1;
+    renderStep();
+    // 直前の判断に対する一言フィードバックを差し込む
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback';
+    fb.innerHTML = '<strong>' + CIRC[blank] + ' = ' + k + '</strong>　' + note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+
+  function finish(live){
+    var h = '';
+    if (live.length === 1){
+      var W = live[0];
+      renderCombos(W);
+      h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + W + '</div>' +
+           'これがあなたの判断で導いた答え。番号を暗記するのではなく、いま辿った「⑤→②→③ で立場と理由が定まり、残りが確認で揃う」筋道ごと身につけよう。</div>';
+      h += '<div class="sn-actions">' +
+           '<button type="button" class="sn-btn primary" id="sn-apply" data-w="' + W + '">この番号で公式解答に記入して採点</button>' +
+           '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    } else if (live.length === 0){
+      h += '<div class="sn-result miss">判断が互いに矛盾して、残る番号が無くなりました。どこかの選択を見直そう（一人の発言は最後まで一本筋になるはず）。</div>';
+      h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    } else {
+      h += '<div class="sn-result">残った番号：<span class="sn-big">' + live.join('・') + '</span>。あと一歩。残りを分ける空欄を会話で確かめて1つに決めよう。</div>';
+      h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    }
+    stage.innerHTML = h + trailHTML();
+  }
+
+  function applyToOxGrid(W){
+    ['1','2','3','4','5'].forEach(function(b){
+      var val = (COMBOS[W][b] === OFFICIAL[b]) ? '○' : '×';
+      var row = area.querySelector('.ox-row[data-stmt="' + b + '"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="' + val + '"]');
+      if (btn && !area.classList.contains('answered')) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var done = document.createElement('div');
+    done.className = 'sn-feedback';
+    done.innerHTML = '公式の【解答】欄に○×を記入して採点しました。下の【解答】で正誤と論点のコアを確認しよう。';
+    stage.appendChild(done);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+
+  root.addEventListener('click', function(e){
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-blank'), opt.getAttribute('data-k')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    var ap = t.closest('#sn-apply');
+    if (ap){ applyToOxGrid(ap.getAttribute('data-w')); return; }
+  }, false);
+
+  renderStep();
 })();
 </script>
 
