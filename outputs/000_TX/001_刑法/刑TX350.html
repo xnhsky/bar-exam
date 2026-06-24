@@ -3206,6 +3206,58 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* ============================================================
+   解法サポート（試作・議論形式）── 解法ナビ + スティッキー○×バー
+   答えは出さない（手順の足場）。既存 .ox-btn を遠隔操作するので Lexia 無改修で動く。
+   ============================================================ */
+.kaihou-nav{margin:18px 0 14px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+.kaihou-nav>summary{list-style:none; cursor:pointer; padding:12px 16px; font-weight:700;
+  font-family:var(--font-display,sans-serif); color:#fff; background:var(--accent);
+  display:flex; align-items:center; gap:8px; user-select:none;}
+.kaihou-nav>summary::-webkit-details-marker{display:none;}
+.kaihou-nav>summary .kn-chev{margin-left:auto; transition:transform .2s;}
+.kaihou-nav[open]>summary .kn-chev{transform:rotate(180deg);}
+.kn-sub{font-weight:500; font-size:.82em; opacity:.92;}
+.kn-body{padding:14px 16px 16px;}
+.kn-step{display:flex; gap:12px; padding:10px 0; border-bottom:1px dashed var(--border-mid,#ddd);}
+.kn-step:last-child{border-bottom:none;}
+.kn-no{flex:0 0 auto; width:28px; height:28px; border-radius:50%; background:var(--accent);
+  color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.95em;}
+.kn-txt{flex:1;}
+.kn-txt b{display:block; margin-bottom:3px; color:var(--accent);}
+.kn-txt p{margin:0; font-size:.93em; line-height:1.7;}
+.kn-foot{margin-top:12px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  font-size:.88em; line-height:1.6;}
+.kaihou-bar{position:fixed; left:0; right:0; bottom:0; z-index:9000;
+  background:rgba(255,255,255,.97); -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+  border-top:2px solid var(--accent); box-shadow:0 -3px 14px rgba(0,0,0,.12);
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  transform:translateY(120%); transition:transform .25s;}
+.kaihou-bar.show{transform:translateY(0);}
+.kaihou-bar.collapsed .kb-grid, .kaihou-bar.collapsed .kb-reveal{display:none;}
+.kb-head{display:flex; align-items:center; gap:8px; margin-bottom:6px;}
+.kb-title{font-weight:700; font-size:.8em; color:var(--accent); font-family:var(--font-display,sans-serif);}
+.kb-toggle{margin-left:auto; background:none; border:1px solid var(--accent); color:var(--accent);
+  border-radius:6px; font-size:.75em; padding:3px 8px; cursor:pointer;}
+.kb-grid{display:flex; gap:6px; align-items:stretch;}
+.kb-cell{flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; min-width:0;}
+.kb-lbl{font-weight:800; font-size:.85em; color:var(--bg-dark,#333);}
+.kb-btns{display:flex; gap:3px;}
+.kb-ox{width:34px; height:34px; border-radius:7px; border:1.5px solid var(--border-mid,#ccc);
+  background:#fff; font-size:1em; font-weight:700; cursor:pointer; color:var(--bg-dark,#333);
+  display:flex; align-items:center; justify-content:center; padding:0; -webkit-tap-highlight-color:transparent;}
+.kb-ox.sel{background:var(--accent); color:#fff; border-color:var(--accent);}
+.kb-ox.ok{background:var(--recall-correct-light,#43a047); color:#fff; border-color:transparent;}
+.kb-ox.ng{background:var(--recall-incorrect,#c62828); color:#fff; border-color:transparent;}
+.kb-reveal{display:block; width:100%; margin-top:8px; padding:11px; border:none; border-radius:8px;
+  background:var(--accent); color:#fff; font-weight:700; font-size:.95em; cursor:pointer;}
+.kb-reveal:disabled{opacity:.45; cursor:not-allowed;}
+@media (min-width:760px){
+  .kaihou-bar{max-width:560px; left:50%; right:auto; border-radius:14px 14px 0 0; transform:translate(-50%,120%);}
+  .kaihou-bar.show{transform:translate(-50%,0);}
+}
 </style>
 </head>
 <body id="top">
@@ -3292,6 +3344,25 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">3</span>①b　②c　③e　④h　⑤j</div>
     <div class="problem-text"><span class="choice-num-inline">4</span>①b　②d　③e　④g　⑤i</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>①b　②c　③f　④g　⑤j</div>
+
+    <details class="kaihou-nav">
+      <summary>📐 解法ナビ<span class="kn-sub">議論形式の解き方（答えは出ません・手順の足場）</span><span class="kn-chev">▾</span></summary>
+      <div class="kn-body">
+        <div class="kn-step"><div class="kn-no">1</div><div class="kn-txt">
+          <b>アンカーを1つ決める</b>
+          <p>会話の中で「立場が確定する空欄」を最初に押さえる。目印は ①教授が「判例と同じ」等の評価を返している空欄／②判例・条文の文言が直結する空欄／③相手が批判している空欄（批判が成り立つ側で立場が決まる）。ここを起点（アンカー）にする。</p>
+        </div></div>
+        <div class="kn-step"><div class="kn-no">2</div><div class="kn-txt">
+          <b>立場を1本に通して逆算する</b>
+          <p>登場人物の主張は一本筋で通っている。アンカーで決めた立場と矛盾しないよう、残りの空欄を埋める。「この人がここでこう言うなら、あそこはこうなるはず」と逆算する。総当たりはしない。</p>
+        </div></div>
+        <div class="kn-step"><div class="kn-no">3</div><div class="kn-txt">
+          <b>2軸に畳んで○×、番号は最後に</b>
+          <p>論点はたいてい2本の軸に畳める（例：「公共の危険」の内容は何か／その認識は要るか）。軸ごとに○×を確定し、最後に○×から番号へ機械的に対応させる。番号そのものは覚えない。</p>
+        </div></div>
+        <div class="kn-foot">この手順で、下の【解答】の各空欄に<strong>自分で</strong>○×を付けてみましょう。画面下の<strong>解答バー</strong>を使えば、会話を読みながらスクロールせずに○×を付けられます。</div>
+      </div>
+    </details>
 
     <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各空欄の正解語句が妥当かを○×で判定（自分で○×を付けてから「解答を表示」）</h3>
 
@@ -4258,5 +4329,110 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<div class="kaihou-bar" id="kaihou-bar" aria-hidden="true">
+  <div class="kb-head">
+    <span class="kb-title">📝 解答バー — 各空欄に○×（スクロール不要）</span>
+    <button type="button" class="kb-toggle" id="kb-toggle">隠す</button>
+  </div>
+  <div class="kb-grid" id="kb-grid"></div>
+  <button type="button" class="kb-reveal" id="kb-reveal" disabled="">解答を表示</button>
+</div>
+<script>
+/* 解法サポート（試作）：スティッキー○×バー。既存解答ロジックの .ox-btn を遠隔操作するだけ＝二重管理しない */
+(function(){
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  var bar  = document.getElementById('kaihou-bar');
+  if (!area || !bar) return;
+  var rows = Array.prototype.slice.call(area.querySelectorAll('.ox-row'));
+  if (!rows.length) { bar.parentNode.removeChild(bar); return; }
+  var grid = document.getElementById('kb-grid');
+  var barReveal = document.getElementById('kb-reveal');
+  var realReveal = area.querySelector('.reveal-answer-btn');
+  var toggle = document.getElementById('kb-toggle');
+  var partA = document.getElementById('part-a');
+
+  function valOf(b){ return (b && (b.getAttribute('data-value') || (b.textContent||'').trim())) || ''; }
+  function rowLabel(r, i){
+    var lab = r.querySelector('.ox-label');
+    return (lab && lab.textContent.trim()) || String(i + 1);
+  }
+  function realBtn(i, v){
+    var bs = rows[i].querySelectorAll('.ox-btn');
+    for (var k = 0; k < bs.length; k++){ if (valOf(bs[k]) === v) return bs[k]; }
+    return null;
+  }
+
+  rows.forEach(function(r, i){
+    var cell = document.createElement('div'); cell.className = 'kb-cell';
+    var lbl = document.createElement('span'); lbl.className = 'kb-lbl'; lbl.textContent = rowLabel(r, i);
+    var btns = document.createElement('div'); btns.className = 'kb-btns';
+    ['○', '×'].forEach(function(v){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'kb-ox'; b.textContent = v;
+      b.setAttribute('data-v', v); b.setAttribute('data-row', String(i));
+      btns.appendChild(b);
+    });
+    cell.appendChild(lbl); cell.appendChild(btns); grid.appendChild(cell);
+  });
+
+  grid.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('.kb-ox') : null;
+    if (!b || area.classList.contains('answered')) return;
+    var rb = realBtn(parseInt(b.getAttribute('data-row'), 10), b.getAttribute('data-v'));
+    if (rb) rb.click();
+    setTimeout(sync, 0);
+  });
+  barReveal.addEventListener('click', function(){
+    if (realReveal && !realReveal.disabled) realReveal.click();
+    setTimeout(sync, 0);
+  });
+  toggle.addEventListener('click', function(){
+    bar.classList.toggle('collapsed');
+    toggle.textContent = bar.classList.contains('collapsed') ? '開く' : '隠す';
+  });
+
+  function sync(){
+    var answered = area.classList.contains('answered');
+    rows.forEach(function(r, i){
+      var sel = r.querySelector('.ox-btn.selected');
+      var selVal = sel ? valOf(sel) : null;
+      var cellBtns = grid.querySelectorAll('.kb-ox[data-row="' + i + '"]');
+      Array.prototype.forEach.call(cellBtns, function(cb){
+        cb.classList.remove('sel', 'ok', 'ng');
+        var v = cb.getAttribute('data-v');
+        if (answered){
+          var real = realBtn(i, v);
+          if (real && real.classList.contains('correct-mark')) cb.classList.add('ok');
+          else if (real && real.classList.contains('incorrect-mark')) cb.classList.add('ng');
+          else if (v === selVal) cb.classList.add('sel');
+        } else if (v === selVal){
+          cb.classList.add('sel');
+        }
+      });
+    });
+    if (realReveal){
+      barReveal.disabled = realReveal.disabled || answered;
+      if (answered) barReveal.textContent = '解答済み';
+    }
+  }
+
+  document.addEventListener('click', function(){ setTimeout(sync, 0); }, false);
+
+  function updateVisibility(){
+    if (area.classList.contains('answered')){
+      setTimeout(function(){ bar.classList.remove('show'); }, 2500);
+      return;
+    }
+    var rect = area.getBoundingClientRect();
+    var topRect = partA ? partA.getBoundingClientRect() : rect;
+    var inView = topRect.top < window.innerHeight && rect.bottom > -200;
+    bar.classList.toggle('show', inView);
+  }
+  window.addEventListener('scroll', updateVisibility, { passive: true });
+  window.addEventListener('resize', updateVisibility);
+  sync(); updateVisibility();
+})();
+</script>
 
 </body></html>
