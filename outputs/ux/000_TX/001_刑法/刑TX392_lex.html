@@ -3206,6 +3206,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3281,25 +3338,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>甲は、わいせつな内容を含む書籍を販売したが、その目的は作品の文芸的・思想的価値を社会に主張することであった。この場合、甲にわいせつ文書頒布罪が成立することはない。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>甲は、日本国外で販売する目的で、日本国内において、わいせつな内容を含む書籍を所持した。この場合、甲にわいせつ文書有償頒布目的所持罪が成立する。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち正しいものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「正しいものはどれか」の候補から誤りが消え、残った番号へ。要所で判定のコツも出ます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="3" data-answer-type="single" data-explanation="わいせつ電磁的記録等送信頒布罪（刑法175条1項後段）の成否につき、最決平26.11.25（百選Ⅱ101）は、不特定の顧客のダウンロード操作を契機に自動的にデータを送信する機能を備えた配信サイトを利用してわいせつ動画ファイルを顧客のPCに記録・保存させる行為は、電気通信の送信によりわいせつな電磁的記録を『頒布』したものに当たるとした（記述3は判例どおりで正しい＝○）。記述1は準強制わいせつ致傷罪の成否につき条文構造（旧178条1項・176条・181条）を前提とすると随伴性評価が一義に確定せず、判例の立場で正誤を断定できないため積極的に正しいとはいえない（×）。記述2は性的意図がなくても被害者が性的屈辱感を感じたなら176条のわいせつ行為となり得る（最大判平29.11.29・百選Ⅱ14）ため『不同意わいせつ罪が成立することはない』との断定は誤り（×）。記述4は文芸的・思想的価値を主張する目的でも主として読者の好色的興味に訴えると認められれば『わいせつの文書』に当たり得る（最判昭55.11.28・四畳半襖の下張・百選Ⅱ100）ため『成立することはない』との断定は誤り（×）。記述5は175条2項の『有償で頒布する目的』は日本国内において頒布する目的をいい、国外販売目的の国内所持では同罪は成立しない（最判昭52.12.22）ため『成立する』とする記述は誤り（×）。">
-      <p class="answer-instruction">記述1〜5のうち正しいものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各記述の○×を判定（自分で○×を付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="××○××" data-answer-type="ox-grid" data-explanation="わいせつ電磁的記録等送信頒布罪（刑法175条1項後段）の成否につき、最決平26.11.25（百選Ⅱ101）は、不特定の顧客のダウンロード操作を契機に自動的にデータを送信する機能を備えた配信サイトを利用してわいせつ動画ファイルを顧客のPCに記録・保存させる行為は、電気通信の送信によりわいせつな電磁的記録を『頒布』したものに当たるとした（記述3は判例どおりで正しい＝○）。記述1は準強制わいせつ致傷罪の成否につき条文構造（旧178条1項・176条・181条）を前提とすると随伴性評価が一義に確定せず、判例の立場で正誤を断定できないため積極的に正しいとはいえない（×）。記述2は性的意図がなくても被害者が性的屈辱感を感じたなら176条のわいせつ行為となり得る（最大判平29.11.29・百選Ⅱ14）ため『不同意わいせつ罪が成立することはない』との断定は誤り（×）。記述4は文芸的・思想的価値を主張する目的でも主として読者の好色的興味に訴えると認められれば『わいせつの文書』に当たり得る（最判昭55.11.28・四畳半襖の下張・百選Ⅱ100）ため『成立することはない』との断定は誤り（×）。記述5は175条2項の『有償で頒布する目的』は日本国内において頒布する目的をいい、国外販売目的の国内所持では同罪は成立しない（最判昭52.12.22）ため『成立する』とする記述は誤り（×）。">
+      <p class="answer-instruction">記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">熟睡中のわいせつ後、覚醒・抵抗されわいせつ意思喪失後、逃走目的で暴行を加え負傷させた。準強制わいせつ致傷罪は成立せず準強制わいせつ罪と傷害罪が成立するにとどまる。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">性的意図を有さず専ら侮辱・報復するため乙を脅迫して裸にして写真撮影した。不同意わいせつ罪が成立することはない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">自ら管理する動画配信サイトにわいせつ動画をアップし、顧客のDL操作に応じて自動送信・記録・保存させた。わいせつ電磁的記録等送信頒布罪が成立する。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">わいせつな内容を含む書籍を販売したが、目的は作品の文芸的・思想的価値を社会に主張することであった。わいせつ文書頒布罪が成立することはない。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">日本国外で販売する目的で、日本国内において、わいせつな内容を含む書籍を所持した。わいせつ文書有償頒布目的所持罪が成立する。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 3</strong>　本問は刑法175条・176条・181条のわいせつ関連罪を横断する。正解は記述3。<strong>175条1項後段の「頒布」</strong>とは不特定・多数の者の記録媒体上に電磁的記録を存在させることをいい、自動送信機能を備えた配信サイトでは顧客のDL操作は送信の契機にすぎず運営者が送信主体となる（最決平26.11.25）。よって動画をアップロードし顧客PCに記録・保存させた甲にわいせつ電磁的記録等送信頒布罪が成立し、判例どおりで正しい。他は、随伴性が一義に確定しない記述1、性的意図不要論で成立し得る記述2、芸術性は緩和の一要素にすぎない記述4、国内頒布目的に限定される記述5がいずれも断定の誤りで外れる。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:x,5:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="x"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>致傷罪（181条）はわいせつの機会の随伴暴行からの致傷も含む（最決平20.1.22）。わいせつ意思喪失後・逃走目的の暴行の随伴性は条文構造前提では一義に定まらず、積極的に正しいとは断定できない。</td></tr>
+            <tr data-stmt="2" data-verdict="x"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>性的意図は176条わいせつ行為の一律の成立要件ではない（最大判平29.11.29が昭和45年判例を変更）。侮辱・報復目的でも被害者の性的屈辱感を介してわいせつ行為該当性は肯定され得るため、不同意わいせつ罪は成立し得る。</td></tr>
+            <tr data-stmt="3" data-verdict="o"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>175条1項後段の『頒布』＝不特定・多数の記録媒体上に電磁的記録を存在させること。顧客のDL操作は送信の契機にすぎず、自動送信機能を備えた運営者が送信主体（最決平26.11.25）。判例どおりで正しい。</td></tr>
+            <tr data-stmt="4" data-verdict="x"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>わいせつ文書性は文書全体の総合考慮で『主として好色的興味に訴えるか』を判断（最判昭55.11.28・四畳半襖の下張）。芸術性・思想性は緩和の一要素にすぎず、文芸的価値主張の目的でも成立し得る。</td></tr>
+            <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>175条2項の『有償で頒布する目的』＝日本国内において頒布する目的に限定（最判昭52.12.22）。175条の趣旨はわが国の健全な性風俗の維持＝属地的保護。国外販売目的の国内所持では同罪は成立しない。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4212,5 +4326,132 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'correct';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "わいせつ意思喪失後・逃走目的の暴行で乙を負傷させた場合、準強制わいせつ致傷罪は成立せず、準強制わいせつ罪と傷害罪が成立するにとどまる、で正しい？", "tip": "致傷罪（181条）は<b>わいせつの機会に同一意思の発動で行われた随伴暴行からの致傷</b>も含む（最決平20.1.22）。本問は意思喪失後・逃走目的で随伴性が連続説／断絶説で結論が反転し一義に確定しないため、致傷罪不成立とは積極的に断定できない。", "note": "× 随伴性が一義に確定せず、致傷罪不成立とは断定できない。記述は誤り。→ 選択肢1は消える。"}, "2": {"q": "性的意図を有さず専ら侮辱・報復目的で乙を脅迫して裸にし撮影した場合、不同意わいせつ罪が成立することはない、で正しい？", "tip": "最大判平29.11.29が性的意図を要するとした昭和45年判例を変更。<b>わいせつ行為該当性は行為の性的性質を総合考慮</b>し、侮辱・報復目的でも被害者が性的屈辱感を感じれば成立し得る。", "note": "× 性的意図は不要で侮辱目的でも成立し得るため、記述は誤り。→ 選択肢2は消える。"}, "3": {"q": "動画配信サイトにわいせつ動画をアップし、顧客のDL操作で自動送信させ顧客PCに記録・保存させた場合、わいせつ電磁的記録等送信頒布罪が成立する、で正しい？", "tip": "175条1項後段の<b>「頒布」＝不特定・多数の者の記録媒体上に電磁的記録を存在させること</b>（最決平26.11.25）。自動送信機能下では顧客のDL操作は契機にすぎず、送信主体は運営者である。", "note": "○ 自動送信の主体は運営者で判例どおり頒布に当たる。記述は正しい。→ 選択肢3が残る。"}, "4": {"q": "わいせつ書籍を販売したが目的が作品の文芸的・思想的価値の主張であった場合、わいせつ文書頒布罪が成立することはない、で正しい？", "tip": "わいせつ性は文書全体を総合考慮し<b>主として読者の好色的興味に訴えるか</b>で判断（最判昭55.11.28・四畳半襖の下張）。芸術性・思想性は性的刺激を緩和する一要素にすぎず成立を当然には否定しない。", "note": "× 芸術性は緩和の一要素にすぎず成立し得るため、記述は誤り。→ 選択肢4は消える。"}, "5": {"q": "日本国外で販売する目的で日本国内においてわいせつ書籍を所持した場合、わいせつ文書有償頒布目的所持罪が成立する、で正しい？", "tip": "175条2項の「有償で頒布する目的」＝<b>日本国内において頒布する目的</b>に限定（最判昭52.12.22）。175条はわが国の健全な性風俗を守る属地的規定で、国外販売目的の国内所持は法益を害さず不成立。", "note": "× 国内頒布目的に限定され国外販売目的では不成立。記述は誤り。→ 選択肢5は消える。残るは3。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = __NUMS__;                    // ['1'..'N'] positional row numbers
+  var KEYS = __KEYS__;                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    ['1','2','3','4','5'].forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    ['1','2','3','4','5'].forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    ['1','2','3','4','5'].forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var row = area.querySelector('.ox-row[data-stmt="'+b+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
