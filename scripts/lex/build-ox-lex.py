@@ -7,7 +7,9 @@
 """
 import re, shutil, os, json
 
-ROOT = "/home/user/bar-exam"
+# ROOT はスクリプト位置（<repo>/scripts/lex/build-ox-lex.py）から解決＝ローカル/リモート両対応。
+# 旧: ROOT = "/home/user/bar-exam"（リモート固定でローカル不可）
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SUBJ = "outputs/000_TX/001_刑法"
 UXD  = "outputs/ux/000_TX/001_刑法"
 NAV_TEMPLATE = os.path.join(ROOT, UXD, "刑TX350_lex.html")
@@ -171,6 +173,12 @@ def build(num, spec):
     src = open(src_path, encoding="utf-8").read()
     a0, a1 = find_block(src)
     area = src[a0:a1]
+    # 冪等ガード：公式が既に単一5択（single/multi）へ変換済みなら再変換しない。
+    # 全SPECSを残したまま再実行でき、未変換（ox-grid）の問だけを処理する。
+    at = re.search(r'data-answer-type="([^"]*)"', area)
+    if at and at.group(1) != 'ox-grid':
+        print(f"刑TX{num}: 変換済み（data-answer-type={at.group(1)}）→ skip")
+        return
     expl = re.search(r'data-explanation="([^"]*)"', area).group(1)
     cv = re.search(r'data-correct-value="([^"]*)"', area).group(1)
     seq = re.sub(r'[^○×]', '', cv)
