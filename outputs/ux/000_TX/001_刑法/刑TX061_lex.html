@@ -3205,6 +3205,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3279,25 +3336,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>複数の行為者につき、行為者共同の注意義務が観念でき、行為者がその共同の注意義務に違反し、共同の注意義務違反と発生した結果との間に因果関係が認められる場合には、過失犯の共同正犯が成立し得る。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>過失行為を行った者を監督すべき地位にある者の過失の有無を判断する際には、信頼の原則は適用されない。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち誤っているものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「誤っているものはどれか」の候補から正しい記述が消え、残った番号へ。罠は記述5の信頼の原則の言い切り。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="5" data-answer-type="single" data-explanation="本問は『誤っているもの』を選ぶ形式。記述1は、過失処罰には刑法38条1項ただし書の『特別の規定』を要するが、これは過失処罰の明文に限られず、特別法の目的から過失処罰の趣旨が包含されると認められれば足りるとするのが判例（最決昭28.3.5）であり、判例の立場と整合する。記述2は、業務上過失致死傷罪の『業務』を①社会生活上の地位に基づき②反復継続して行う行為で③他人の生命身体等に危害を加えるおそれがあるものとする判例の定義（最判昭33.4.18）どおりである。記述3は、『重過失』をわずかな注意で結果の予見・回避が可能だったのにこれを怠った注意義務違反の程度が著しい場合とする趣旨（東京高判昭62.10.6）どおりである。記述4は、過失犯の共同正犯の成立には共同の注意義務に共同して違反したことを要するとの判例の立場（最決平28.7.12・明石歩道橋）と整合する。記述5は『監督過失においては信頼の原則は適用されない』と断定するが、札幌高判昭56.1.22（病院ボイラーマン火災）は一定の限度では監督過失においても信頼の原則が妥当する旨を認めており、判例の立場に反する。各記述が依拠すべき判例の判旨と一致するかを照合するのが解法である。">
-      <p class="answer-instruction">記述1〜5のうち誤っているものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各記述の○×を判定（自分で○×を付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="○○○○×" data-answer-type="ox-grid" data-explanation="本問は『誤っているもの』を選ぶ形式。記述1は、過失処罰には刑法38条1項ただし書の『特別の規定』を要するが、これは過失処罰の明文に限られず、特別法の目的から過失処罰の趣旨が包含されると認められれば足りるとするのが判例（最決昭28.3.5）であり、判例の立場と整合する。記述2は、業務上過失致死傷罪の『業務』を①社会生活上の地位に基づき②反復継続して行う行為で③他人の生命身体等に危害を加えるおそれがあるものとする判例の定義（最判昭33.4.18）どおりである。記述3は、『重過失』をわずかな注意で結果の予見・回避が可能だったのにこれを怠った注意義務違反の程度が著しい場合とする趣旨（東京高判昭62.10.6）どおりである。記述4は、過失犯の共同正犯の成立には共同の注意義務に共同して違反したことを要するとの判例の立場（最決平28.7.12・明石歩道橋）と整合する。記述5は『監督過失においては信頼の原則は適用されない』と断定するが、札幌高判昭56.1.22（病院ボイラーマン火災）は一定の限度では監督過失においても信頼の原則が妥当する旨を認めており、判例の立場に反する。各記述が依拠すべき判例の判旨と一致するかを照合するのが解法である。">
+      <p class="answer-instruction">記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">過失処罰の明文がなくても、特別法の目的から過失処罰の趣旨が包含されると認められれば刑法38条1項ただし書の『特別の規定』に当たり過失処罰が可能か。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">業務上過失致死傷罪の『業務』＝社会生活上の地位に基づき反復継続して行う行為で他人の生命身体等に危害を加えるおそれがあるもの、という定義の正確性。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">『重過失』＝わずかな注意で結果の予見・回避が可能だったのにこれを怠った場合、という重過失の意義の正確性。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">共同の注意義務が観念でき、これに違反し、結果との因果関係が認められる場合に過失犯の共同正犯が成立し得るか。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">監督者の過失の有無を判断する際、信頼の原則は適用されない、という命題の当否。</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 5</strong>　記述5のみが誤り。『監督過失には信頼の原則は適用されない』と断定するが、<strong>札幌高判昭56.1.22</strong>（病院ボイラーマン火災）は一定の限度で監督過失にも信頼の原則が妥当する旨を認めており判例に反する。他の4記述（『特別の規定』は明文不要＝最決昭28.3.5／『業務』三要素＝最判昭33.4.18／重過失＝東京高判昭62.10.6／過失共同正犯＝最決平28.7.12）はいずれも判例の判旨どおりで正しい。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:o,4:o,5:x">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="o"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>刑法38条1項ただし書の『特別の規定』は過失処罰の明文に限られず、立法目的の解釈で過失処罰の趣旨が読み込める場合を含む（最決昭28.3.5）。</td></tr>
+            <tr data-stmt="2" data-verdict="o"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>『業務』＝①社会生活上の地位に基づき②反復継続して行う行為で③他人の生命身体等に危害を加えるおそれがあるもの（最判昭33.4.18）。娯楽・無報酬でも該当し得る。</td></tr>
+            <tr data-stmt="3" data-verdict="o"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>『重過失』の標識は注意義務違反の程度の著しさ（わずかな注意で予見・回避できたのに怠ったこと）であり、結果の重大性ではない（東京高判昭62.10.6）。</td></tr>
+            <tr data-stmt="4" data-verdict="o"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>過失犯の共同正犯は、共同の注意義務に共同して違反したことを要する（各人の個別違反では足りない）（最決平28.7.12・明石歩道橋）。</td></tr>
+            <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>信頼の原則は監督過失でも一定の限度で妥当し得る（札幌高判昭56.1.22）。『常に適用されない／排除される』との断定は判例に反する。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4231,5 +4345,133 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'incorrect';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "記述1：過失処罰の明文がなくても、特別法の目的から過失処罰の趣旨が包含されると認められれば刑法38条1項ただし書の『特別の規定』に当たり過失処罰ができる——正しい？", "tip": "『特別の規定』は<b>過失処罰の明文に限られず</b>、立法目的の解釈で過失処罰の趣旨が読み取れる場合を含むのが判例（最決昭28.3.5・外国人登録令）。記述1はこの立場を正確に述べる。", "note": "○ 判例（最決昭28.3.5）の立場と整合＝正しい。→ 選択肢1は消える。"}, "2": {"q": "記述2：業務上過失致死傷罪の『業務』＝社会生活上の地位に基づき反復継続して行う行為で他人の生命身体等に危害を加えるおそれがあるもの——正しい？", "tip": "『業務』＝<b>①社会生活上の地位に基づく②反復継続行為で③他人の生命身体等に危害を加えるおそれがあるもの</b>（最判昭33.4.18・狩猟事件）。記述2はこの三要素定義どおり。", "note": "○ 判例（最判昭33.4.18）の三要素定義と一致＝正しい。→ 選択肢2は消える。"}, "3": {"q": "記述3：『重過失』＝わずかな注意で結果の予見・回避が可能だったのにこれを怠った場合——正しい？", "tip": "重過失＝<b>わずかな注意で結果の予見・回避が容易だったのに怠った、注意義務違反の程度が著しい場合</b>（東京高判昭62.10.6）。記述3はこの趣旨どおり。", "note": "○ 重過失の意義（東京高判昭62.10.6）どおり＝正しい。→ 選択肢3は消える。"}, "4": {"q": "記述4：共同の注意義務が観念でき、これに違反し結果との因果関係が認められる場合に過失犯の共同正犯が成立し得る——正しい？", "tip": "過失犯の共同正犯は<b>共同の注意義務に共同して違反したこと</b>を要する（最決平28.7.12・明石歩道橋／百選Ⅰ79）。記述4はこの枠組みと整合。", "note": "○ 判例（最決平28.7.12）の成立要件と整合＝正しい。→ 選択肢4は消える。"}, "5": {"q": "記述5：監督者の過失の有無を判断する際、信頼の原則は適用されない——正しい？", "tip": "<b>札幌高判昭56.1.22</b>（病院ボイラーマン火災）は<b>一定の限度では監督過失でも信頼の原則が妥当する</b>旨を認める。『適用されない』との言い切りは判例に反する。", "note": "× 監督過失でも信頼の原則は一定限度で妥当する＝言い切りが判例に反する。→ これが『誤っている記述』＝答え。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = ["1", "2", "3", "4", "5"];                    // ['1'..'N'] positional row numbers
+  var KEYS = ["1", "2", "3", "4", "5"];                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    NUMS.forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    NUMS.forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    NUMS.forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var key = KEYS[parseInt(b,10)-1] || b;
+      var row = area.querySelector('.ox-row[data-stmt="'+key+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
