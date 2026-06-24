@@ -3206,6 +3206,91 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
 </style>
 </head>
 <body id="top">
@@ -3304,24 +3389,98 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>①b　②d　③e　④i　⑤g</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>①b　②i　③f　④c　⑤g</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 正しい組合せ番号を 1〜5 から1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">検討順に、下の一問一答で各空欄の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。各説（具体的危険説／旧客観説／純粋客観説／修正客観的危険説）の内容で切り分けます。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="2" data-answer-type="single" data-explanation="①〜⑤の正しい語句は①a・②d・③f・④i・⑤h（正しい組合せは肢2）。①②は具体的危険説：本事例で一般人が危険を感じる以上、殺人未遂が成立する（①a）。具体的危険説への批判は、一般人の危険感が基準で曖昧＝印象で未遂犯処罰を決める（②d）。③④⑤は客観説：旧客観説は結果発生の絶対的不能・相対的不能で区別し本事例は相対的不能で未遂（③f）。純粋客観説（事後的純科学的判断）を徹底すると、結果不発生の原因を解明できた場合すべて不能犯となる（④i）。修正客観的危険説は、結果発生をもたらす仮定的事実が存在し得たかを一般人基準で事後的に問う（⑤h）。">
-      <p class="answer-instruction">①〜⑤に入る語句の正しい組合せを、上記【組合せ】の 1〜5 から1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各空欄の語句を1つずつ選ぶ（全部選んだら「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="adfih" data-answer-type="ox-grid" data-explanation="①〜⑤の正しい語句は①a・②d・③f・④i・⑤h（正しい組合せは肢2）。①②は具体的危険説：本事例で一般人が危険を感じる以上、殺人未遂が成立する（①a）。具体的危険説への批判は、一般人の危険感が基準で曖昧＝印象で未遂犯処罰を決める（②d）。③④⑤は客観説：旧客観説は結果発生の絶対的不能・相対的不能で区別し本事例は相対的不能で未遂（③f）。純粋客観説（事後的純科学的判断）を徹底すると、結果不発生の原因を解明できた場合すべて不能犯となる（④i）。修正客観的危険説は、結果発生をもたらす仮定的事実が存在し得たかを一般人基準で事後的に問う（⑤h）。">
+      <p class="answer-instruction">上の解法ナビが示す順に、各空欄①〜⑤の語句を1つずつ選んでください（選ぶたびに上の組合せ候補が絞られます）。全空欄を選んだら「解答を表示」で採点。採点後、各行に<strong>論点のコア（転用可能な法理）</strong>が展開されます。復習プールにはこの法理命題だけが入ります。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row mc" data-stmt="1">
+          <span class="ox-label">①</span>
+          <div class="ox-main">
+            <p class="ox-q">具体的危険説に立つと、本事例で甲に殺人未遂罪は成立するか？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="a"><span class="mc-key">a</span>成立する</button>
+            <button class="answer-slot ox-btn" type="button" data-value="b"><span class="mc-key">b</span>成立しない</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">具体的危険説は、行為時に一般人が認識し得た事情及び行為者が特に知っていた事情を基礎とし、一般人が結果発生の危険を感じる場合に可罰的未遂を肯定する。本事例では一般人が危険を感じるから殺人未遂罪が成立する。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="2">
+          <span class="ox-label">②</span>
+          <div class="ox-main">
+            <p class="ox-q">具体的危険説に対する批判の内容は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="c"><span class="mc-key">c</span>迷信犯に未遂犯を認める</button>
+            <button class="answer-slot ox-btn" type="button" data-value="d"><span class="mc-key">d</span>印象で未遂犯処罰を決める</button>
+            <button class="answer-slot ox-btn" type="button" data-value="e"><span class="mc-key">e</span>行為者の認識内容が客観的真実に合致するか否かで区別する</button>
+            <button class="answer-slot ox-btn" type="button" data-value="i"><span class="mc-key">i</span>結果不発生の原因を解明できた場合、すべて不能犯となる</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">具体的危険説には、判断基準が一般人の抱く危険感（印象）に依存して曖昧であり、印象によって未遂犯処罰の有無を決めることになる、との批判がある。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="3">
+          <span class="ox-label">③</span>
+          <div class="ox-main">
+            <p class="ox-q">結果発生の危険を事後的・客観的に判断する旧客観説の区別基準は？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="e"><span class="mc-key">e</span>行為者の認識内容が客観的真実に合致するか否かで区別する</button>
+            <button class="answer-slot ox-btn" type="button" data-value="f"><span class="mc-key">f</span>結果発生の絶対的不能・相対的不能によって区別する</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">旧客観説（具体的危険説と対比される事後的客観的判断説）は、結果発生が絶対的に不能か相対的に不能かによって不能犯と未遂犯を区別する。相対的不能であれば未遂犯となる。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="4">
+          <span class="ox-label">④</span>
+          <div class="ox-main">
+            <p class="ox-q">結果発生の危険性を事後的・純科学的に判断する考え方（純粋客観説）を徹底すると、どうなるか？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="g"><span class="mc-key">g</span>行為者の誤信が相当と認められる</button>
+            <button class="answer-slot ox-btn" type="button" data-value="i"><span class="mc-key">i</span>結果不発生の原因を解明できた場合、すべて不能犯となる</button>
+            <button class="answer-slot ox-btn" type="button" data-value="c"><span class="mc-key">c</span>迷信犯に未遂犯を認める</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">結果発生の危険性を事後的・純科学的に判断する立場を徹底すると、結果が発生しなかった原因を解明できた以上、その結果は科学的に不可能だったことになり、あらゆる未遂が不能犯となってしまう。</span></p>
+          </div>
+        </div>
+        <div class="ox-row mc" data-stmt="5">
+          <span class="ox-label">⑤</span>
+          <div class="ox-main">
+            <p class="ox-q">修正客観的危険説は、何の可能性を判断して妥当な結論を導くか？</p>
+          <span class="ox-btn-group mc">
+            <button class="answer-slot ox-btn" type="button" data-value="h"><span class="mc-key">h</span>結果発生をもたらす仮定的事実が存在し得た</button>
+            <button class="answer-slot ox-btn" type="button" data-value="g"><span class="mc-key">g</span>行為者の誤信が相当と認められる</button>
+          </span>
+            <p class="ox-core-wrap"><span class="ox-core-tag">論点のコア</span><span class="ox-stmt">修正客観的危険説は、結果不発生の原因を究明するとともに、いかなる事情があれば結果が発生し得たかを明らかにし、結果発生をもたらす仮定的事実が存在し得た可能性を一般人を基準に事後的に判断する。</span></p>
+          </div>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 2</strong>　①a ②d ③f ④i ⑤h。不能犯と未遂犯の区別。①②具体的危険説＝一般人が危険を感じれば未遂成立（a）／その批判は印象で処罰を決める曖昧さ（d）。③④⑤客観説＝旧客観説は絶対的・相対的不能で区別（f）／純粋客観説を徹底すると全て不能犯化（i）／修正客観的危険説は仮定的事実の存在可能性を判断（h）。番号でなく各空欄の法理で判定する。</p>
+        <p class="fa-summary"><strong>正解</strong>　各空欄の正解と<strong>論点のコア（転用可能な法理）</strong>は下表のとおり。組合せ番号でなく、各空欄の法理で判定する。下表が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:a,2:d,3:f,4:i,5:h">
+          <thead><tr><th style="width:3em;">空欄</th><th style="width:8em;">正解</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1"><td style="text-align:center;font-weight:700;">①</td><td style="text-align:center;font-weight:700;">成立する（a）</td><td>具体的危険説は、行為時に一般人が認識し得た事情及び行為者が特に知っていた事情を基礎とし、一般人が結果発生の危険を感じる場合に可罰的未遂を肯定する。本事例では一般人が危険を感じるから殺人未遂罪が成立する。</td></tr>
+            <tr data-stmt="2"><td style="text-align:center;font-weight:700;">②</td><td style="text-align:center;font-weight:700;">印象で未遂犯処罰を決める（d）</td><td>具体的危険説には、判断基準が一般人の抱く危険感（印象）に依存して曖昧であり、印象によって未遂犯処罰の有無を決めることになる、との批判がある。</td></tr>
+            <tr data-stmt="3"><td style="text-align:center;font-weight:700;">③</td><td style="text-align:center;font-weight:700;">絶対的不能・相対的不能で区別（f）</td><td>旧客観説（具体的危険説と対比される事後的客観的判断説）は、結果発生が絶対的に不能か相対的に不能かによって不能犯と未遂犯を区別する。相対的不能であれば未遂犯となる。</td></tr>
+            <tr data-stmt="4"><td style="text-align:center;font-weight:700;">④</td><td style="text-align:center;font-weight:700;">原因を解明できれば全て不能犯（i）</td><td>結果発生の危険性を事後的・純科学的に判断する立場を徹底すると、結果が発生しなかった原因を解明できた以上、その結果は科学的に不可能だったことになり、あらゆる未遂が不能犯となってしまう。</td></tr>
+            <tr data-stmt="5"><td style="text-align:center;font-weight:700;">⑤</td><td style="text-align:center;font-weight:700;">仮定的事実の存在し得た可能性（h）</td><td>修正客観的危険説は、結果不発生の原因を究明するとともに、いかなる事情があれば結果が発生し得たかを明らかにし、結果発生をもたらす仮定的事実が存在し得た可能性を一般人を基準に事後的に判断する。</td></tr>
+          </tbody>
+        </table>
       </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
@@ -4227,5 +4386,86 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（ガイド専念）：回答ボタンは持たず、検討順＋💡コツ＋組合せ消去パネルで誘導する。
+   ユーザーは下の ox-grid（多肢選択の一問一答）で各空欄を1つずつ回答 → ここが消去を更新 →
+   全部そろったら下の「解答を表示」で採点（記録は ox-grid 一本＝Lexia 復習プール）。 */
+(function(){
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥','7':'⑦','8':'⑧','9':'⑨'};
+  // 本物の組合せ5択（番号→各空欄の語句）
+  var COMBOS = {"1": {"1": "a", "2": "c", "3": "e", "4": "g", "5": "h"}, "2": {"1": "a", "2": "d", "3": "f", "4": "i", "5": "h"}, "3": {"1": "a", "2": "e", "3": "f", "4": "c", "5": "g"}, "4": {"1": "b", "2": "d", "3": "e", "4": "i", "5": "g"}, "5": {"1": "b", "2": "i", "3": "f", "4": "c", "5": "g"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var TIP = {"1": "具体的危険説のあてはめ。一般人が認識し得た事情＋行為者が特に知っていた事情を基礎に、一般人が結果発生の危険を感じれば可罰的未遂。本事例は一般人が危険を感じる＝殺人未遂が<b>成立する</b>（a）。", "2": "具体的危険説への批判。基準が一般人の危険『感』なので曖昧＝<b>印象で未遂犯処罰を決める</b>（d）。迷信犯に未遂を認める（c）は別の説への批判で噛み合わない。", "3": "旧客観説（事後的客観的判断）の区別基準。結果発生の<b>絶対的不能・相対的不能</b>で区別する（f）。本事例は相対的不能で未遂。『認識内容が客観的真実に合致するか』（e）は別系統の基準。", "4": "純粋客観説（事後的純科学的判断）を徹底した帰結。結果不発生の原因を解明できれば、結果は科学的に不可能だったことになり<b>すべて不能犯</b>となる（i）。", "5": "修正客観的危険説の判断方法。いかなる事情があれば結果が生じ得たかを問い、<b>結果発生をもたらす仮定的事実が存在し得た</b>かを一般人基準で事後的に判断する（h）。"};
+  function picks(){
+    var p = {};
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      var b = r.getAttribute('data-stmt'); var sel = r.querySelector('.ox-btn.selected');
+      if (b && sel) p[b] = (sel.getAttribute('data-value') || '');
+    });
+    return p;
+  }
+  function liveNums(p){
+    var out = [];
+    for (var n in COMBOS){ if(!COMBOS.hasOwnProperty(n)) continue;
+      var ok = true;
+      for (var b in p){ if(p.hasOwnProperty(b) && COMBOS[n][b] !== p[b]){ ok = false; break; } }
+      if (ok) out.push(n);
+    }
+    return out;
+  }
+  function renderCombos(p){
+    var live = {}; liveNums(p).forEach(function(n){ live[n] = true; });
+    var html = '';
+    Object.keys(COMBOS).forEach(function(n){
+      var seq = '';
+      ORDER_ALL.forEach(function(b){
+        var L = COMBOS[n][b]; if (L === undefined) return;
+        var on = (p[b] && p[b] === L);
+        seq += (on ? '<b>' : '') + CIRC[b] + L + (on ? '</b>' : '') + ' ';
+      });
+      html += '<div class="sn-combo ' + (live[n] ? 'live' : 'dead') + '"><span class="sn-cno">' + n + '</span><div class="sn-cseq">' + seq + '</div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function currentBlank(p){
+    for (var i=0;i<ORDER.length;i++){ if(!p[ORDER[i]]) return ORDER[i]; }
+    return null;
+  }
+  var ORDER_ALL = Object.keys(COMBOS['1'] || {});
+  function render(){
+    var p = picks();
+    renderCombos(p);
+    var live = liveNums(p);
+    remainBox.innerHTML = '残っている組合せ番号：<strong>' + live.join('・') + '</strong>（' + live.length + ' 件）';
+    var cb = currentBlank(p);
+    var done = Object.keys(p).length;
+    var total = ORDER.length;
+    area.querySelectorAll('.ox-row').forEach(function(r){
+      r.classList.toggle('sn-current', !!cb && r.getAttribute('data-stmt') === cb);
+    });
+    var h = '';
+    if (cb){
+      h += '<p class="sn-progress">STEP ' + (done+1) + ' / ' + total + '　─　次は空欄 ' + CIRC[cb] + ' を、下の一問一答で回答</p>';
+      h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">' + TIP[cb] + '</span></div>';
+      h += '<p class="sn-step-loc">↓ 下の一問一答の ' + CIRC[cb] + ' で語句を選ぶと、ここの候補が絞られます。</p>';
+    } else if (live.length === 1){
+      h += '<div class="sn-result"><div class="sn-big">残った組合せは ' + live[0] + '</div>全部そろいました。下の「解答を表示」で採点。番号でなく、いま辿った検討の筋道（どの空欄で立場と理由が定まり、どこが確認だったか）ごと身につけよう。</div>';
+    } else {
+      h += '<div class="sn-result' + (live.length===0?' miss':'') + '">' + (live.length===0 ? '選んだ語句が互いに矛盾して残る番号がありません。どこかを選び直そう。' : '残り：' + live.join('・') + '。あと一歩、残りの空欄を決めよう。') + '</div>';
+    }
+    stage.innerHTML = h;
+  }
+  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  document.body.classList.add('snav-on');
+  render();
+})();
+</script>
 
 </body></html>
