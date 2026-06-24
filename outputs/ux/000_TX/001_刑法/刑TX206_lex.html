@@ -3242,6 +3242,63 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・常時表示） === */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
 </style>
 </head>
 <body id="top">
@@ -3317,25 +3374,82 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="problem-text"><span class="choice-num-inline">4</span>前に拘禁刑に処せられたことがあってもその執行を猶予された者が、2年以下の拘禁刑の言渡しを受け、情状に特に酌量すべきものがあるときは、その執行を猶予することができる場合がある。</div>
     <div class="problem-text"><span class="choice-num-inline">5</span>刑の執行猶予の期間内に更に罪を犯して拘禁刑以上の刑に処せられ、その刑について執行猶予の言渡しがないときは、猶予の言渡しを取り消さなければならない。</div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 記述1〜5のうち誤っているものを1つ選ぶ</h3>
+        <div class="solve-nav" id="solve-nav">
+      <div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定 →「誤っているものはどれか」の候補から正しい記述が消え、残った番号へ。処断刑の上下限と執行猶予の要件・取消です。</span>
+      </div>
+      <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
+        <p class="sn-remain" id="sn-remain"></p>
+        <div id="sn-stage"></div>
+      </div>
+    </div>
 
-    <div class="answer-area" id="answer-area" data-correct-value="2" data-answer-type="single" data-explanation="本問は「誤っているもの」を1つ選ぶ単純5択。各記述は処断刑の上下限の計算と執行猶予の要件・取消の正確な理解を問う。記述2のみが誤り＝幇助犯の処断刑の下限を1月としている点が誤りで、刑を減軽する場合の有期拘禁刑の下限は『1月未満とすることができる』（14条2項後段）から、正しくは15日以上5年以下となる。他の記述（1・3・4・5）はいずれも条文どおりで正しい。組合せ番号ではなく各記述に現れた『加重・減軽の計算手順』と『執行猶予の要件・取消』という法理で正誤を判定する。">
-      <p class="answer-instruction">記述1〜5のうち誤っているものを1つ選び、「解答を表示」を押してください。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各記述の○×を判定（自分で○×を付けてから「解答を表示」）</h3>
 
-      <div class="answer-row">
-        <button class="answer-slot" type="button" data-value="1">1</button>
-        <button class="answer-slot" type="button" data-value="2">2</button>
-        <button class="answer-slot" type="button" data-value="3">3</button>
-        <button class="answer-slot" type="button" data-value="4">4</button>
-        <button class="answer-slot" type="button" data-value="5">5</button>
+    <div class="answer-area" id="answer-area" data-correct-value="○×○○○" data-answer-type="ox-grid" data-explanation="本問は「誤っているもの」を1つ選ぶ単純5択。各記述は処断刑の上下限の計算と執行猶予の要件・取消の正確な理解を問う。記述2のみが誤り＝幇助犯の処断刑の下限を1月としている点が誤りで、刑を減軽する場合の有期拘禁刑の下限は『1月未満とすることができる』（14条2項後段）から、正しくは15日以上5年以下となる。他の記述（1・3・4・5）はいずれも条文どおりで正しい。組合せ番号ではなく各記述に現れた『加重・減軽の計算手順』と『執行猶予の要件・取消』という法理で正誤を判定する。">
+      <p class="answer-instruction">記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+
+      <div class="answer-ox-grid">
+        <div class="ox-row" data-stmt="1">
+          <span class="ox-label">1</span>
+          <span class="ox-stmt">殺人＋傷害の併合罪を有期拘禁刑で処断 → 5年以上30年以下</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="2">
+          <span class="ox-label">2</span>
+          <span class="ox-stmt">窃盗の幇助犯を拘禁刑で処断 → 1月以上5年以下</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="3">
+          <span class="ox-label">3</span>
+          <span class="ox-stmt">強盗致傷を有期拘禁刑で酌量減軽 → 3年以上10年以下</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="4">
+          <span class="ox-label">4</span>
+          <span class="ox-stmt">前刑の執行を猶予された者にも再度の執行猶予の余地（25条2項）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
+        <div class="ox-row" data-stmt="5">
+          <span class="ox-label">5</span>
+          <span class="ox-stmt">猶予期間内の再犯で拘禁刑以上・猶予なし → 必要的取消（26条1号）</span>
+          <span class="ox-btn-group">
+            <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
+            <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
+          </span>
+        </div>
       </div>
 
       <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解 2</strong>　記述2のみが誤り。記述2＝幇助は必要的減軽で、有期拘禁刑を減軽するとき下限は1月未満（15日）まで下げられる（68条3号）から、正しくは15日以上5年以下。下限を1月とするのは誤り。記述1（殺人＋傷害の併合罪＝5年以上30年以下）・記述3（強盗致傷の酌量減軽＝3年以上10年以下）・記述4（再度の執行猶予の余地＝25条2項）・記述5（猶予期間内の再犯で拘禁刑以上・猶予なしは必要的取消＝26条1号）はいずれも条文どおりで正しい。</p>
+        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。誤りは記述2の1つ（＝本問の正解番号2）。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>（加重・減軽の計算手順／執行猶予の要件・取消）で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:o,4:o,5:o">
+          <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+          <tbody>
+            <tr data-stmt="1" data-verdict="o"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>併合罪加重（47条）＝最重の罪の長期に1/2を加えるが、有期拘禁刑は30年が上限（14条2項）。殺人20年→30年・下限は最重の罪の短期5年で固定。</td></tr>
+            <tr data-stmt="2" data-verdict="x"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>幇助は必要的減軽（63条・68条3号で長期と短期を1/2）。減軽時の有期拘禁刑の下限は1月未満とできる（14条2項後段）→正しくは15日以上5年以下。「1月以上」とした点が誤り。</td></tr>
+            <tr data-stmt="3" data-verdict="o"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>強盗致傷（240条）の有期拘禁刑は6年以上20年以下。酌量減軽も68条の例による（71条）→長期・短期を1/2して3年以上10年以下。</td></tr>
+            <tr data-stmt="4" data-verdict="o"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>再度の執行猶予（25条2項本文）＝前刑が「猶予された」拘禁刑であっても、2年以下の言渡し＋情状に特に酌量すべきものがあれば猶予可。「できる場合がある」と限定した表現は正しい。</td></tr>
+            <tr data-stmt="5" data-verdict="o"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td>必要的取消（26条1号）＝猶予期間内に更に罪を犯し拘禁刑以上に処せられ、その刑に猶予がないときは取り消さなければならない（裁量の余地なし）。</td></tr>
+          </tbody>
+        </table>
       </div>
+    </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
@@ -4286,5 +4400,133 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
 </script>
 
+
+<script>
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
+(function(){
+  var MODE = 'incorrect';                 // 'correct' | 'incorrect'
+  var STMT = {"1": {"q": "記述1：殺人＋傷害の併合罪を有期拘禁刑で処断→5年以上30年以下——正しい？", "tip": "併合罪加重で長期は最も重い罪の長期に1.5倍（上限30年）、下限は最も重い罪の下限。殺人の下限5年・加重上限30年で<b>5年以上30年以下</b>。", "note": "○ 併合罪加重の計算どおり正しい。→ 選択肢1は消える。"}, "2": {"q": "記述2：窃盗の幇助犯を拘禁刑で処断→1月以上5年以下——正しい？", "tip": "幇助は必要的減軽（63条）。有期拘禁刑を減軽するとき長期・短期とも2分の1＝短期1月の半分<b>15日</b>まで下げられる（68条3号）。下限を1月とするのは誤りで、正しくは<b>15日以上5年以下</b>。", "note": "× 減軽後の下限は15日。1月以上は誤り。→ これが『誤っている記述』＝答え。"}, "3": {"q": "記述3：強盗致傷を有期拘禁刑で酌量減軽→3年以上10年以下——正しい？", "tip": "強盗致傷（240条前段）は無期又は6年以上の拘禁刑。有期を選択し酌量減軽すると長期・短期とも2分の1＝<b>3年以上10年以下</b>。", "note": "○ 酌量減軽の計算どおり正しい。→ 選択肢3は消える。"}, "4": {"q": "記述4：前刑の執行を猶予された者にも再度の執行猶予の余地がある（25条2項）——正しい？", "tip": "<b>再度の執行猶予</b>は、前に執行猶予中の者に一定要件（25条2項・原則保護観察付き）で認められる余地がある。", "note": "○ 25条2項の再度の猶予で正しい。→ 選択肢4は消える。"}, "5": {"q": "記述5：猶予期間内の再犯で拘禁刑以上・猶予なし→必要的取消（26条1号）——正しい？", "tip": "猶予期間内に更に罪を犯し<b>拘禁刑以上</b>に処せられその刑の執行を猶予されないときは、執行猶予は<b>必要的に取り消される</b>（26条1号）。", "note": "○ 必要的取消で正しい。→ 選択肢5は消える。残るは2。"}};
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = ["1", "2", "3", "4", "5"];                    // ['1'..'N'] positional row numbers
+  var KEYS = ["1", "2", "3", "4", "5"];                    // actual data-stmt keys in order (ア..オ or 1..5)
+  var root = document.getElementById('solve-nav');
+  var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+  if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
+  var remainBox = document.getElementById('sn-remain');
+  var stage = document.getElementById('sn-stage');
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    NUMS.forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    NUMS.forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
+    });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
+    var h = '';
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h;
+  }
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    NUMS.forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var key = KEYS[parseInt(b,10)-1] || b;
+      var row = area.querySelector('.ox-row[data-stmt="'+key+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
+  document.body.classList.add('snav-on');
+  renderStep();
+})();
+</script>
 
 </body></html>
