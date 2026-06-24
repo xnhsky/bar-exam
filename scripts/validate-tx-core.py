@@ -646,6 +646,39 @@ class Validator:
                                 f"正誤表 data-answer-key='{ '○' if key_v=='o' else '×' }' が不一致"
                                 "（○位置のズレ＝Lexia で正答が誤答扱いになる）")
 
+    def g30_no_symbol_only_stmt(self):
+        # ox-stmt（一問一答の文言）が「①b ②c ③e…」のような記号のみの組合せ肢でないか。
+        # Lexia は記号のみ肢を復習プールから恒久除外する（src/App.jsx isSymbolOnlyStmt /
+        # commit 2ebbe70）。記号列の暗記には転用可能な学習価値が無いため、生成側でも
+        # 一問一答に記号のみ肢を作らない。組合せ問題は空欄ごとの実質命題へ分解する
+        # （良い例：刑TX350「公共の危険の内容＝b（限定せず…）が正しい」）。
+        # 判定は Lexia と同一：丸数字 3 つ以上 かつ 実質日本語（漢字・かな）2 文字以下。
+        area = self.soup.find(class_="answer-area")
+        if not area or area.get("data-answer-type", "") != "ox-grid":
+            return
+
+        def is_symbol_only(t):
+            circled = sub = 0
+            for ch in (t or ""):
+                c = ord(ch)
+                if (0x2460 <= c <= 0x2473) or (0x3251 <= c <= 0x32BF) or \
+                   (0x2776 <= c <= 0x277F) or (0x2780 <= c <= 0x2789):
+                    circled += 1
+                    continue
+                if (0x3040 <= c <= 0x30FF) or (0x4E00 <= c <= 0x9FFF) or (0x3400 <= c <= 0x4DBF):
+                    sub += 1
+            return circled >= 3 and sub <= 2
+
+        bad = []
+        for row in area.find_all(class_="ox-row"):
+            el = row.find(class_="ox-stmt")
+            if el and is_symbol_only(el.get_text()):
+                bad.append((row.get("data-stmt") or "?"))
+        if bad:
+            self.err("G30", f"ox-stmt が記号のみ（①b②c…）の記述: {bad}。"
+                            "Lexia の復習プールから除外され一問一答にならない。"
+                            "組合せは空欄ごとの実質命題へ分解する（例：刑TX350）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -674,6 +707,7 @@ class Validator:
         self.g27_part_a_statute_ref()
         self.g28_choice_premise()
         self.g29_answer_value_consistency()
+        self.g30_no_symbol_only_stmt()
 
 
 def main():
