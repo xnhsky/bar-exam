@@ -229,6 +229,44 @@ def main():
     else:
         W('A27', '答案構成の作法(.bc-wrap)が無い（canonical 複製で付与・spec §12）')
 
+    # ---- A29 想起カード→対応RX論証カードのリンク（data-rx・Lexia LXA_FEAT_008・2026-06-25）----
+    # 各想起カード（data-recall）に、その論点に対応する RX 論証カードのコードを data-rx で持たせる。
+    # Lexia は想起の誤答時、この RX を復習プールへ注入する（弱点RXの失敗駆動レビュー）。
+    # 移行期は欠落=WARN。値の科目/JX不整合・参照先RX不在=ERROR（誤リンク＝別論点RXを注入する事故を防ぐ）。
+    abase = os.path.basename(norm)
+    mfile = re.match(r'^(.+?)JX(\d{3})_ARIADNE\.html$', abase)
+    recall_cards = [(t, i) for (t, i) in cards if 'data-recall' in t]
+    if mfile and recall_cards:
+        subj, num = mfile.group(1), mfile.group(2)        # 例 ('刑','004')
+        rx_pat = re.compile(r'^' + re.escape(subj) + r'RX' + num + r'_\d+$')
+        # 同JX配下のRX出力ディレクトリ（実在すれば参照先の存在も検査）
+        rx_dir = None
+        if 'ux/001_ARIADNE/' in norm:
+            cand = os.path.dirname(norm).replace('ux/001_ARIADNE/', 'ux/002_RX/') + '/' + subj + 'JX' + num
+            if os.path.isdir(cand):
+                rx_dir = cand
+        miss, badfmt, notfound = 0, [], []
+        for tag, _inner in recall_cards:
+            mrx = re.search(r'data-rx="([^"]*)"', tag)
+            rxv = mrx.group(1).strip() if mrx else ''
+            if not rxv:
+                miss += 1
+            elif not rx_pat.match(rxv):
+                badfmt.append(rxv)
+            elif rx_dir and not os.path.isfile(rx_dir + '/' + rxv + '.html'):
+                notfound.append(rxv)
+        if badfmt or notfound:
+            parts = []
+            if badfmt: parts.append(f'科目/JX不整合 {len(badfmt)}件({"・".join(badfmt[:5])})')
+            if notfound: parts.append(f'参照先RX不在 {len(notfound)}件({"・".join(notfound[:5])})')
+            E('A29', f'想起カードの data-rx 異常: {"／".join(parts)}（誤リンク＝Lexiaが別論点のRXを注入）')
+        elif miss:
+            W('A29', f'想起カード {miss}/{len(recall_cards)} 枚に data-rx 欠落'
+                     '（対応RXを刻む・scripts/ariadne-backfill-rx-link.py／spec §9-5・移行期WARN）')
+        else:
+            P('A29', f'全想起カード({len(recall_cards)}枚)に対応RX data-rx あり'
+                     + ('＋参照先実在' if rx_dir else ''))
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")

@@ -213,10 +213,17 @@ outputs/ux/001_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 
 ### 9-5. 想起カード（○×の一部を格上げ・Lexia 連携）
 ○×は **10 枚前後**に整理し、**うち数枚を想起（1問1答）化**する：
-`<div class="self-check-quiz recall" data-arena="1" data-recall="1" data-correct-value="○">`
+`<div class="self-check-quiz recall" data-arena="1" data-recall="1" data-rx="{科目}RX{NNN}_{論点序号}" data-correct-value="○">`
 ＋`.quiz-question`（【想起】…を挙げよ）＋`<button class="recall-reveal" onclick="…答えを開示">`＋
 `.quiz-answer`（模範）＋`.quiz-btns.recall-grade` に `.quiz-btn[data-value="○"]`書けた/`[data-value="×"]`書けなかった。
 Lexia は `data-recall` を読み復習プールで「答えを見る→自己採点」UIに分岐（○=書けた=正解＝SM-2 卒業に前進）。
+
+**`data-rx`＝対応 RX 論証カードのリンク（2026-06-25・Lexia LXA_FEAT_008）**：各想起カードに、その想起が問う論点に
+対応する RX 論証カードのコードを `data-rx="{科目prefix}RX{NNN}_{論点序号}"`（科目prefix込み・拡張子なし、例 `刑RX004_2`）で持たせる。
+`{論点序号}` は JX 論点①②③の順＝同JX配下 `outputs/ux/002_RX/{00N_科目}/{科目}JX{NNN}/` の `_1/_2/_3` に一致。
+**1カード=1RX**（多対一可＝複数の想起カードが同一 RX を指してよい）。対応 RX の無い総論的カードは `data-rx` 省略可。
+Lexia は想起の**誤答時にこの RX を復習プールへ注入**し、ARIADNE 周回がそのまま弱点 RX の失敗駆動レビューになる。
+検証は `validate-ariadne.py` A29（欠落=移行期 WARN／科目JX不整合・参照先RX不在=ERROR）。
 
 ### 9-6. 検証
 `validate-ariadne.py` A22：パズルエンジン（`KP-PUZZLE-BACKFILL` マーカー or `kp-levels`＋boot JS）の存在を確認（当面 WARNING）。
