@@ -29,7 +29,7 @@ DATA.json の形:
 """
 import json, re, sys, os
 
-CIRC = {str(i): c for i, c in enumerate('①②③④⑤⑥⑦⑧⑨⑩', start=1)}
+CIRC = {str(i): c for i, c in enumerate('①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮', start=1)}
 
 ENGINE = '''<script>
 /* 解法ナビ（Type A・空欄単位／議論・穴埋め）：本文を読み返さず、一番堅く決まる空欄（アンカー）から
@@ -46,7 +46,7 @@ ENGINE = '''<script>
   var WIN="__WIN__";      // 全部正しく選んだとき一致する組合せ番号（表示用）
   var B=__B__;            // { '<空欄>':{loc,frag,q,tip,opts:[{k,t}],ans,core}, … }
   /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
-  var CC=["","①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩"];
+  var CC=["","①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫","⑬","⑭","⑮"];
   var C={}; Object.keys(B).forEach(function(n){ C[n]=CC[parseInt(n,10)]||n; });
   var ALL=Object.keys(B);
   var picks={},i=0;
