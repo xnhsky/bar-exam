@@ -96,6 +96,27 @@ if (-not $NoGate) {
     Write-Host "[GATE PASS] 重複・ID 不整合なし。finalize を続行します。" -ForegroundColor Green
 }
 
+# === 配布前ゲート: RX カバレッジ（dangling / UNREACHABLE 参照）チェック ===
+# RX 論証カードの参照が dangling（リンク先なし）／UNREACHABLE（到達不能）になっていないかを
+# 検査し、見つかれば commit/push せず中止する。直上の check-duplicates と同じ関門。
+# ※ DryRun でも実行（事前確認になる）。緊急回避は -NoGate。
+if (-not $NoGate) {
+    Write-Host "`n--- 配布前ゲート: scripts/check-rx-coverage.py --strict ---" -ForegroundColor Cyan
+    # -X utf8: stdout がパイプ/リダイレクト/headless（バッチ transcript・scheduled task 等）のとき
+    #   Python が既定 cp932 で出力し、本スクリプトの ↔(U+2194)/—(U+2014) 等で UnicodeEncodeError
+    #   →終了コード1で空振り ABORT してしまう事故を防ぐ（コンソール直結時のみ救われる不安定さを排除）。
+    #   呼び出し側（jx-finalize 自分のファイル）に閉じた対処で、check-rx-coverage.py 本体は不変。
+    python -X utf8 (Join-Path $ProjectRoot 'scripts/check-rx-coverage.py') '--strict'
+    # ↑ 直上の check-duplicates と同じ $LASTEXITCODE / -NoGate 中止ハンドリングを踏襲
+    #   （dangling か UNREACHABLE があれば exit 1 で commit を止める）
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ABORT] RX カバレッジの dangling/UNREACHABLE を検出。修正するまで finalize（commit/push）を中止します。" -ForegroundColor Red
+        Write-Host "        （緊急時のみ -NoGate で回避可能。原因は上記 check-rx-coverage の出力を参照）" -ForegroundColor DarkGray
+        exit 1
+    }
+    Write-Host "[GATE PASS] RX カバレッジの dangling/UNREACHABLE なし。finalize を続行します。" -ForegroundColor Green
+}
+
 foreach ($id in $Ids) {
     Write-Host "`n=== finalize $id ===" -ForegroundColor Cyan
     $num = Get-IdNumber $id
