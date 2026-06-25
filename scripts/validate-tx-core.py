@@ -87,6 +87,32 @@ FORBIDDEN_PHRASES = [
 # G22：choice-points 内で禁止（論点コアに混ぜてはならない）
 CHOICE_POINTS_FORBIDDEN = [r"本記述は誤り", r"本記述は正しい", r"記述[アイウエオ]は", r"正解は肢"]
 
+# G30：プール対象テキスト（ox-stmt・verdict 論点コア）の自己完結ルール。
+# Lexia は誤答した記述を「肢キー」で単独追跡し（{問題ID}#stmt-ラベル）、間隔反復の
+# 一問一答カードとして問題本体から切り離して提示する。そのカード本文に「その回の問題
+# レイアウト固有のラベル」が残ると、知識ではなく記号対応の暗記になり転用できない
+# （A説/B説は実体の学説名が来年は別ラベルで呼ばれ、プール内で偽の関連を量産する）。
+# よってプール対象テキストは①見解を実体名で主語化し②空欄記号/選択肢記号/他記述・他肢
+# 参照/「本問」「上記見解」依存を残さないこと。検出は当面 WARNING（既存コーパスの
+# 後追い書き直しの worklist にする・安定後 ERROR 化）。
+POOL_LABEL_PATTERNS = [
+    (r"[A-EＡ-Ｅ]\s*説", "問題ローカルの見解ラベル『A説』＝実体の学説名で主語化する"),
+    (r"[A-EＡ-Ｅ]の見解", "問題ローカルの見解ラベル『Aの見解』＝実体の学説名で主語化する"),
+    (r"[甲乙丙丁]\s*説", "甲乙説ラベル＝実体の学説名で主語化する"),
+    (r"第\s*[1-5１-５一二三四五]\s*説", "第N説ラベル＝実体の学説名で主語化する"),
+    (r"[①-⑩]", "空欄記号（丸数字）の残留＝命題本文に置換する"),
+    (r"[（(][a-jａ-ｊ][）)]", "選択肢記号（a〜j）の残留＝語句本文に置換する"),
+    (r"記述[アイウエオ]", "他記述の相互参照＝各記述を自己完結させる"),
+    (r"肢[アイウエオ1-5１-５]", "肢番号への参照＝命題本文で書く"),
+    (r"上記(?:の)?見解", "『上記見解』依存＝前提を命題内に含めて自己完結させる"),
+    (r"本問", "『本問』依存＝問題非依存の命題として書く"),
+    # 2026-06-25 拡張：283/310型（bare見解letter・事例・学生ラベル）を捕捉。WARNING（worklist）。
+    (r"学生[A-EＡ-Ｅ]", "問題ローカルの学生ラベル『学生A』＝実体の学説名で主語化する"),
+    (r"[A-EＡ-Ｅ]\s*[・／]\s*[A-EＡ-Ｅ]", "見解letterの連結『A・B』＝実体の学説名に展開する"),
+    (r"[A-EＡ-Ｅ]（[^）]{1,12}）", "見解letter＋注釈『A（…）』＝実体の学説名で主語化する"),
+    (r"事例[ⅠⅡⅢⅣⅤ]", "事例ローマ数字ラベル＝事案の実体内容で表す"),
+]
+
 # G19：解答前ネタバレ
 ANSWER_SPOILER_VISIBLE_PATTERNS = [
     r"正解は[肢記述]?[0-9０-９]", r"正しいのは[肢記述]*[0-9０-９]",
@@ -698,6 +724,36 @@ class Validator:
                             "Lexia の復習プールから除外され一問一答にならない。"
                             "組合せは空欄ごとの実質命題へ分解する（例：刑TX350）")
 
+    def g30_pool_self_contained(self):
+        # [G31] プール対象テキスト＝(1) 各 .ox-stmt（カード見出し命題）と
+        # (2) reveal 正誤表 .statement-verdict-table の論点コア列（最終 td）。
+        # POOL_LABEL_PATTERNS にマッチする「問題ローカルのラベル／他記述・本問依存」を
+        # 自己完結阻害として WARNING する（記号フリー・実体名主語化・spec 第3-bis項）。
+        targets = []
+        for el in self.soup.find_all(class_="ox-stmt"):
+            targets.append(("ox-stmt", el.get_text(" ", strip=True)))
+        tbl = self.soup.find("table", class_="statement-verdict-table")
+        if tbl:
+            for tr in tbl.find_all("tr"):
+                tds = tr.find_all("td")
+                if tds:
+                    targets.append(("論点コア", tds[-1].get_text(" ", strip=True)))
+
+        hits = []
+        for where, txt in targets:
+            if not txt:
+                continue
+            for pat, reason in POOL_LABEL_PATTERNS:
+                m = re.search(pat, txt)
+                if m:
+                    hits.append((where, m.group(0).strip(), reason, txt[:46]))
+                    break  # 1テキスト1指摘
+        if hits:
+            head = "; ".join(f"[{w}]『{frag}…』←{why}({tok})" for w, tok, why, frag in hits[:4])
+            more = f" 他 {len(hits)-4} 件" if len(hits) > 4 else ""
+            self.warn("G31", f"プール対象テキスト {len(hits)} 件が一問一答として自己完結していない: "
+                             f"{head}{more}（記号フリー・見解は実体名で主語化・spec 第3-bis項）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -727,6 +783,7 @@ class Validator:
         self.g28_choice_premise()
         self.g29_answer_value_consistency()
         self.g30_no_symbol_only_stmt()
+        self.g30_pool_self_contained()
 
 
 def main():
