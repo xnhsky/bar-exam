@@ -26,25 +26,28 @@ APPLY = "--apply" in sys.argv
 
 # 想起カード（document順）→ 対応RXコード。None = 刻まない（総論/解法の型/対応RX無し）。
 # 2026-06-25 初版（刑法 001-070・全64問・手判定）。新規生成は new-ariadne 側で data-rx を直接付与する。
+# 2026-06-25 追補：data-rx 起点が皆無で Lexia supplementJxRx が発火しなかった 刑JX006/011/018/058 に
+#   「論点まるごと想起」ブロック（各 RX 論点に対応する想起カード＋data-rx）を追加し起点を確保（取りこぼし解消）。
+#   これらの想起カードは生成時に data-rx を直接刻んであるため、本バックフィルでは skip 扱い（冪等）。
 MAP = {
  "刑JX001_ARIADNE.html": ["刑RX001_1", "刑RX001_1", None],
  "刑JX002_ARIADNE.html": ["刑RX002_2", "刑RX002_1", None],
  "刑JX003_ARIADNE.html": ["刑RX003_1", "刑RX003_1"],
  "刑JX004_ARIADNE.html": ["刑RX004_2", "刑RX004_1", "刑RX004_1"],
  "刑JX005_ARIADNE.html": ["刑RX005_1", "刑RX005_2", "刑RX005_1"],
- "刑JX006_ARIADNE.html": [],
+ "刑JX006_ARIADNE.html": ["刑RX006_1", "刑RX006_2", "刑RX006_3"],
  "刑JX007_ARIADNE.html": [None, "刑RX007_1", "刑RX007_2"],
  "刑JX008_ARIADNE.html": ["刑RX008_1", "刑RX008_2", "刑RX008_4"],
  "刑JX009_ARIADNE.html": ["刑RX009_1", "刑RX009_3"],
  "刑JX010_ARIADNE.html": ["刑RX010_1", "刑RX010_2"],
- "刑JX011_ARIADNE.html": [None, None],
+ "刑JX011_ARIADNE.html": [None, None, "刑RX011_1", "刑RX011_2"],
  "刑JX012_ARIADNE.html": ["刑RX012_1", "刑RX012_3"],
  "刑JX013_ARIADNE.html": [None, None, "刑RX013_2"],
  "刑JX014_ARIADNE.html": ["刑RX014_1", "刑RX014_1", "刑RX014_2"],
  "刑JX015_ARIADNE.html": ["刑RX015_1", "刑RX015_1", "刑RX015_2"],
  "刑JX016_ARIADNE.html": ["刑RX016_1", "刑RX016_2"],
  "刑JX017_ARIADNE.html": ["刑RX017_1", "刑RX017_3"],
- "刑JX018_ARIADNE.html": [],
+ "刑JX018_ARIADNE.html": ["刑RX018_1", "刑RX018_2", "刑RX018_3", "刑RX018_4"],
  "刑JX025_ARIADNE.html": ["刑RX025_2", "刑RX025_1", "刑RX025_3"],
  "刑JX026_ARIADNE.html": [None, "刑RX026_1", "刑RX026_4"],
  "刑JX027_ARIADNE.html": ["刑RX027_1", "刑RX027_2", "刑RX027_3"],
@@ -78,7 +81,7 @@ MAP = {
  "刑JX055_ARIADNE.html": ["刑RX055_1", "刑RX055_1"],
  "刑JX056_ARIADNE.html": ["刑RX056_1", "刑RX056_2", "刑RX056_2"],
  "刑JX057_ARIADNE.html": [None, "刑RX057_1", "刑RX057_2"],
- "刑JX058_ARIADNE.html": [],
+ "刑JX058_ARIADNE.html": ["刑RX058_1", "刑RX058_2", "刑RX058_3", "刑RX058_4", "刑RX058_5", "刑RX058_6"],
  "刑JX059_ARIADNE.html": [None, None, "刑RX059_1"],
  "刑JX060_ARIADNE.html": [None, "刑RX060_1"],
  "刑JX061_ARIADNE.html": ["刑RX061_1", "刑RX061_3"],
