@@ -3,7 +3,7 @@
 
 Usage:
     python scripts/validate-tree.py <file.html>
-    例: python scripts/validate-tree.py outputs/ux/002_TREE/001_刑法/刑JX042_TREE.html
+    例: python scripts/validate-tree.py outputs/ux/003_TREE/001_刑法/刑JX042_TREE.html
 
 位置づけ:
     ARBOR の完全仕様 (S1-S20) は外部 arbor リポジトリの verify.py にあり、ローカル専用。

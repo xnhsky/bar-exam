@@ -25,7 +25,7 @@ import sys
 from bs4 import BeautifulSoup, Tag
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-RX_DIR = REPO / "outputs/ux/001_RX"
+RX_DIR = REPO / "outputs/ux/002_RX"
 AXIOM = REPO / "canonical/AXIOM.html"
 MARKER = "AXIOM-RECANON"
 

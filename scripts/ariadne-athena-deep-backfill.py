@@ -3,7 +3,7 @@
 """
 ariadne-athena-deep-backfill.py — 既存 ARIADNE への「アテナで詳しく」ジャンプ＋TX書式CSS 後追い（spec §11-3・冪等）
 
-既存 outputs/ux/000_ARIADNE/**/*_ARIADNE.html に対して、機械的に注入する：
+既存 outputs/ux/001_ARIADNE/**/*_ARIADNE.html に対して、機械的に注入する：
   ① TX 参考条文判例書式の CSS ブロック（canonical/ARIADNE.html から抽出＝ドリフト防止）
   ② 深掘り層末尾の「アテナで詳しく」ボタン（.go-athena・postMessage lexia:navigate / 単体は相対リンク）
   ③ ボタンを動かす gotoAthena JS（click 委譲＋keydown）
@@ -20,7 +20,7 @@ import argparse, re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ARIADNE_DIR = ROOT / "outputs" / "ux" / "000_ARIADNE"
+ARIADNE_DIR = ROOT / "outputs" / "ux" / "001_ARIADNE"
 CANON = ROOT / "canonical" / "ARIADNE.html"
 
 XREF_ANCHOR = ".xref{color:var(--a-head); font-weight:700}"

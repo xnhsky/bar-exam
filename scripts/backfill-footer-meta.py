@@ -28,9 +28,9 @@ from stamp_footer import stamp_file, JST  # noqa: E402
 
 DEFAULT_DIRS = [
     "outputs/001_JX",
-    "outputs/ux/001_RX",
-    "outputs/ux/002_TREE",
-    "outputs/ux/000_ARIADNE",
+    "outputs/ux/002_RX",
+    "outputs/ux/003_TREE",
+    "outputs/ux/001_ARIADNE",
 ]
 TX_DIR = "outputs/000_TX"
 

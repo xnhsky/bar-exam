@@ -28,7 +28,7 @@ import sys
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-RX_DIR = REPO / "outputs/ux/001_RX"
+RX_DIR = REPO / "outputs/ux/002_RX"
 
 NORM_RE = re.compile(
     r'(<button class="norm-toggle"[^>]*>.*?</button>\s*<div class="norm-box">.*?</div>)',

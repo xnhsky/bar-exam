@@ -21,8 +21,8 @@ import sys
 import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-SRC = ROOT / "outputs/ux/000_ARIADNE/001_刑法/刑JX001_ARIADNE.html"
-ARIADNE_DIR = ROOT / "outputs/ux/000_ARIADNE"
+SRC = ROOT / "outputs/ux/001_ARIADNE/001_刑法/刑JX001_ARIADNE.html"
+ARIADNE_DIR = ROOT / "outputs/ux/001_ARIADNE"
 
 MARKER = "KP-PUZZLE-BACKFILL"
 

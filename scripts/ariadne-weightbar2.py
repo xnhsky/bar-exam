@@ -48,7 +48,7 @@ def process(path):
     return False
 
 def main():
-    targets = sys.argv[1:] or (sorted(glob.glob('outputs/ux/000_ARIADNE/001_刑法/*_ARIADNE.html')) + ['canonical/ARIADNE.html'])
+    targets = sys.argv[1:] or (sorted(glob.glob('outputs/ux/001_ARIADNE/001_刑法/*_ARIADNE.html')) + ['canonical/ARIADNE.html'])
     n = sum(process(p) for p in targets)
     print(f"[weightbar2] {n}/{len(targets)} updated")
 

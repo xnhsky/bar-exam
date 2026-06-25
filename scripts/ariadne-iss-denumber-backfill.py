@@ -43,7 +43,7 @@ def process(text):
 def main():
     args = [a for a in sys.argv[1:] if a != '--apply']
     apply = '--apply' in sys.argv
-    files = args or glob.glob('outputs/ux/000_ARIADNE/**/*ARIADNE.html', recursive=True)
+    files = args or glob.glob('outputs/ux/001_ARIADNE/**/*ARIADNE.html', recursive=True)
     files = sorted(files)
 
     changed = 0

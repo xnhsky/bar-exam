@@ -45,16 +45,16 @@ _REF_LABEL = {"GDE": "Reference GDE", "MTD": "Reference MTD", "TAN": "Reference 
 def infer_version(path: str, html: str) -> str:
     """パスと本文からカテゴリ別の版文字列を推定する（Lexia が読む全カテゴリ対応）。"""
     p = path.replace("\\", "/")
-    if "/ux/001_RX/" in p:
+    if "/ux/002_RX/" in p:
         m = re.search(r"AXIOM[^0-9]{0,14}v([0-9]+\.[0-9]+)", html)
         return f"RX AXIOM v{m.group(1)}" if m else "RX AXIOM v2.8"
-    if "/ux/002_TREE/" in p:
+    if "/ux/003_TREE/" in p:
         m = re.search(r"ARBOR v([0-9]+\.[0-9]+)", html)
         return f"TREE ARBOR v{m.group(1)}" if m else "TREE ARBOR v5.0"
-    if "/ux/000_ARIADNE/" in p:
+    if "/ux/001_ARIADNE/" in p:
         m = re.search(r"ARIADNE[^0-9]{0,12}v([0-9]+\.[0-9]+)", html)
         return f"ARIADNE v{m.group(1)}" if m else "ARIADNE v0.3"
-    # 参考資料（top-level references/ や outputs/ux/003_参考資料・ファイル名サフィックス _GDE 等）
+    # 参考資料（top-level references/ や outputs/ux/004_参考資料・ファイル名サフィックス _GDE 等）
     if "/references/" in p or "参考資料" in p or any(f"_{t}." in Path(p).name for t in _REF_LABEL):
         name = Path(p).name
         for tag, label in _REF_LABEL.items():

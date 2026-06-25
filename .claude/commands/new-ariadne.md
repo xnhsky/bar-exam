@@ -17,7 +17,7 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
 
 ## 工程（要約）
 1. `outputs/001_JX/{科目}JX/{科目}JX{NNN}.html`（ATHENA）を一次情報源に Read。事案と論点の自己照合（不一致は中断）。
-2. `canonical/ARIADNE.html` を `outputs/ux/000_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html` へ複製→空化→鋳造。
+2. `canonical/ARIADNE.html` を `outputs/ux/001_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html` へ複製→空化→鋳造。
 3. 解法7ステップ（SCAN→BUILD）＋骨子＋自己採点＋模範reveal＋深掘り＋**自己完結○× 10〜15枚**（`data-arena="1"`＋`data-correct-value`）。
    **深掘り層はアテナ級（spec §11）**：論点・条文・判例・学説・用語を **刑TX328 の本物の型（basis-card）に流し込む**
    （`.basis-card.statute-card/.case-card/.doctrine-card/.term-card`＋`basis-card-header`／`basis-card-body`・kd-label役割色・

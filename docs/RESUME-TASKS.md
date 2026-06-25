@@ -28,9 +28,9 @@ for n in $(seq -w 9 18); do f="outputs/001_JX/001_刑法/刑JX0${n#0}.html"; [ -
 # 2) 副産物（RX/TREE/ARIADNE）が欠けている刑法JX
 for h in outputs/001_JX/001_刑法/刑JX*.html; do
   id=$(basename "$h" .html); n=$(echo "$id" | grep -oE '[0-9]+')
-  rx=$(ls "outputs/ux/001_RX/001_刑法/$id/"*.html 2>/dev/null | wc -l)
-  tree=$([ -f "outputs/ux/002_TREE/001_刑法/${id}_TREE.html" ] && echo Y || echo -)
-  aria=$([ -f "outputs/ux/000_ARIADNE/001_刑法/${id}_ARIADNE.html" ] && echo Y || echo -)
+  rx=$(ls "outputs/ux/002_RX/001_刑法/$id/"*.html 2>/dev/null | wc -l)
+  tree=$([ -f "outputs/ux/003_TREE/001_刑法/${id}_TREE.html" ] && echo Y || echo -)
+  aria=$([ -f "outputs/ux/001_ARIADNE/001_刑法/${id}_ARIADNE.html" ] && echo Y || echo -)
   [ "$rx" -eq 0 -o "$tree" = "-" -o "$aria" = "-" ] && echo "副産物欠落: $id (RX=$rx TREE=$tree ARIADNE=$aria)"
 done
 
@@ -50,9 +50,9 @@ Phase 9（副産物）＋Phase 10（push）まで完走する＝HTML＋TTS台本
 
 | 副産物 | プロンプト全文 | 出力先 | 検証 |
 |---|---|---|---|
-| RX | `prompts/new-rx-headless.md` | `outputs/ux/001_RX/001_刑法/{ID}/{科目接頭}RX{NNN}_*.html` | `python scripts/validate-rx.py <DIR> 刑RX{NNN}` |
-| TREE | `prompts/new-arb-headless.md`（vendored・`canonical/ARBOR.html` 参照） | `outputs/ux/002_TREE/001_刑法/{ID}_TREE.html` | `python scripts/validate-tree.py <FILE>` |
-| ARIADNE | `prompts/new-ariadne-headless.md`（`canonical/ARIADNE.html` 複製起点） | `outputs/ux/000_ARIADNE/001_刑法/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <FILE>` |
+| RX | `prompts/new-rx-headless.md` | `outputs/ux/002_RX/001_刑法/{ID}/{科目接頭}RX{NNN}_*.html` | `python scripts/validate-rx.py <DIR> 刑RX{NNN}` |
+| TREE | `prompts/new-arb-headless.md`（vendored・`canonical/ARBOR.html` 参照） | `outputs/ux/003_TREE/001_刑法/{ID}_TREE.html` | `python scripts/validate-tree.py <FILE>` |
+| ARIADNE | `prompts/new-ariadne-headless.md`（`canonical/ARIADNE.html` 複製起点） | `outputs/ux/001_ARIADNE/001_刑法/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <FILE>` |
 
 **title 必ず書換**：RX の `<title>` は各カードの論点名（h1）に、ARIADNE の `<title>` は
 `{ID} 解法ナビ｜{主題} — ARIADNE` にする（テンプレの「論点名」「刑JX001」を残さない）。

@@ -11,7 +11,7 @@
    既存の役割未タグ段落は従来表示のまま（無害）。
 
 使い方:  python scripts/ariadne-ma-restyle.py <file.html> [<file.html> ...]
-         python scripts/ariadne-ma-restyle.py --all       # canonical + outputs/ux/000_ARIADNE 全件
+         python scripts/ariadne-ma-restyle.py --all       # canonical + outputs/ux/001_ARIADNE 全件
 冪等（MARK..ENDMARK を毎回置換）。
 """
 import sys, os, re, glob
@@ -89,7 +89,7 @@ def main():
     if not args:
         print(__doc__); sys.exit(2)
     if args[0] == '--all':
-        files = ['canonical/ARIADNE.html'] + sorted(glob.glob('outputs/ux/000_ARIADNE/**/*_ARIADNE.html', recursive=True))
+        files = ['canonical/ARIADNE.html'] + sorted(glob.glob('outputs/ux/001_ARIADNE/**/*_ARIADNE.html', recursive=True))
     else:
         files = args
     n = 0

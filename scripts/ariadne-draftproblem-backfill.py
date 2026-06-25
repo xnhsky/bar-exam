@@ -32,7 +32,7 @@ ARIADNE 解法ナビの「試験下書き」`.drafting` ブロックの問題文
 """
 import sys, re, glob, os
 
-DEFAULT_DIR = "outputs/ux/000_ARIADNE/001_刑法"
+DEFAULT_DIR = "outputs/ux/001_ARIADNE/001_刑法"
 
 CSS_DIGEST = (
     "\n.draft-digest{font-family:var(--f-soft); font-size:.84rem; line-height:1.8; "

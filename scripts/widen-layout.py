@@ -14,9 +14,9 @@ TX/JX/ARIADNE/RX のレイアウト CSS を一括で広げる。各置換は lit
       コンテンツ幅 1080 -> 1320px / 外周 padding 40->24px・20->16px /
       カード余白 32x36 -> 28x30px / モバイル余白 14->10px・section 18->14px /
       モバイルの表は見切れ防止で横スクロール化（GitHub 方式）
-  - ARIADNE（canonical/ARIADNE.html ＋ outputs/ux/000_ARIADNE 全件）
+  - ARIADNE（canonical/ARIADNE.html ＋ outputs/ux/001_ARIADNE 全件）
       --maxw 780 -> 1040px / wrap・sheet 余白を微減
-  - RX（outputs/ux/001_RX 全件）: カード幅 680 -> 920px
+  - RX（outputs/ux/002_RX 全件）: カード幅 680 -> 920px
   - TREE（ARBOR）は横スクロール式キャンバスで中央寄せ余白がないため対象外
 """
 from __future__ import annotations

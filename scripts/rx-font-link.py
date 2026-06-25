@@ -36,7 +36,7 @@ FONT_LINES = [
 
 def main() -> int:
     applied = skipped = nohead = 0
-    for f in sorted((REPO / "outputs/ux/001_RX").rglob("*.html")):
+    for f in sorted((REPO / "outputs/ux/002_RX").rglob("*.html")):
         data = f.read_bytes()
         if MARKER in data:
             skipped += 1

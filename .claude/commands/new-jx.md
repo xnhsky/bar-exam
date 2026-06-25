@@ -135,9 +135,9 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
     | 副産物 | 起動プロンプト | 出力先 | 検証 |
     |---|---|---|---|
-    | **RX** | `prompts/new-rx-headless.md` 全文 | `outputs/ux/001_RX/{00N_科目}/`（基幹 `{科目接頭}RX{NNN}`） | `python scripts/validate-rx.py <出力DIR> {科目接頭}RX{NNN}` |
-    | **TREE** | `prompts/new-arb-headless.md` 全文（**vendored モード**） | `outputs/ux/002_TREE/{00N_科目}/{ID}_TREE.html` | `python scripts/validate-tree.py <出力ファイル>` |
-    | **ARIADNE** | `prompts/new-ariadne-headless.md` 全文 | `outputs/ux/000_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <出力ファイル>` |
+    | **RX** | `prompts/new-rx-headless.md` 全文 | `outputs/ux/002_RX/{00N_科目}/`（基幹 `{科目接頭}RX{NNN}`） | `python scripts/validate-rx.py <出力DIR> {科目接頭}RX{NNN}` |
+    | **TREE** | `prompts/new-arb-headless.md` 全文（**vendored モード**） | `outputs/ux/003_TREE/{00N_科目}/{ID}_TREE.html` | `python scripts/validate-tree.py <出力ファイル>` |
+    | **ARIADNE** | `prompts/new-ariadne-headless.md` 全文 | `outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` | `python scripts/validate-ariadne.py <出力ファイル>` |
 
     - **共通の素材**：いま生成・検証 PASS した JX HTML（`outputs/001_JX/{00N_科目}/{ID}.html`）が一次情報源。
       同一問題由来の再構成なので流用は正当（**他 JX からの流用は禁止**）。
@@ -161,9 +161,9 @@ description: 新規 JX ファイルを問題 PDF から生成（v3.2）
 
     | 系統 | 存在条件 |
     |---|---|
-    | **RX** | `outputs/ux/001_RX/{00N_科目}/{ID}/` に `{科目接頭}RX{NNN}_*.html` が **1 枚以上** |
-    | **TREE** | `outputs/ux/002_TREE/{00N_科目}/{ID}_TREE.html` が存在 |
-    | **ARIADNE** | `outputs/ux/000_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` が存在 |
+    | **RX** | `outputs/ux/002_RX/{00N_科目}/{ID}/` に `{科目接頭}RX{NNN}_*.html` が **1 枚以上** |
+    | **TREE** | `outputs/ux/003_TREE/{00N_科目}/{ID}_TREE.html` が存在 |
+    | **ARIADNE** | `outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` が存在 |
 
     - 各系統の **validate（validate-rx / validate-tree / validate-ariadne）が PASS** であることも併せて確認。
     - **欠落・未検証があれば、その系統の `Agent` を最大 2 回まで再起動**して埋める（RX→TREE→ARIADNE のうち

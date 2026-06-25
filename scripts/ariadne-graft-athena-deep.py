@@ -29,7 +29,7 @@ import argparse, re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ARIADNE_DIR = ROOT / "outputs" / "ux" / "000_ARIADNE"
+ARIADNE_DIR = ROOT / "outputs" / "ux" / "001_ARIADNE"
 JX_DIR = ROOT / "outputs" / "001_JX"
 XREF_ANCHOR = ".xref{color:var(--a-head); font-weight:700}"
 GRAFT_MARK = "ATHENA-GRAFT"

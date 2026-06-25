@@ -367,9 +367,9 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
 
 ### §4-6. RX/TREE/ARIADNE 副産物（2026-06-11 導入・2026-06-20 リモート対応）
 
-検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/ux/001_RX/`・1論点1HTML）・
-**TREE 樹形図**（`outputs/ux/002_TREE/`・ARBOR 仕様）・**ARIADNE 解法ナビ**
-（`outputs/ux/000_ARIADNE/`）を自動生成する（既定 ON・非致命）。
+検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/ux/002_RX/`・1論点1HTML）・
+**TREE 樹形図**（`outputs/ux/003_TREE/`・ARBOR 仕様）・**ARIADNE 解法ナビ**
+（`outputs/ux/001_ARIADNE/`）を自動生成する（既定 ON・非致命）。
 
 > **【最上位原則・2026-06-22】JX 生成は「副産物 3 種（RX/TREE/ARIADNE）の生成まで含めて 1 セット」。**
 > どんな指示・どの経路（バッチ／`/new-jx`／対話で「JX 作って」「JX＋TTS だけ」「JX-PICK 56」等）であっても、

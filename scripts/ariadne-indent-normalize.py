@@ -46,7 +46,7 @@ def process(path):
     return True
 
 def main():
-    targets = sys.argv[1:] or (sorted(glob.glob('outputs/ux/000_ARIADNE/001_刑法/*_ARIADNE.html')) + ['canonical/ARIADNE.html'])
+    targets = sys.argv[1:] or (sorted(glob.glob('outputs/ux/001_ARIADNE/001_刑法/*_ARIADNE.html')) + ['canonical/ARIADNE.html'])
     n = 0
     for p in targets:
         if process(p):

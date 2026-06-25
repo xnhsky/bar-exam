@@ -44,9 +44,9 @@ try {
 $LogsDir = Join-Path $ProjectRoot 'logs'
 if (-not (Test-Path $LogsDir)) { New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null }
 $Backfill = Join-Path $ProjectRoot 'scripts\rx-arb-backfill.ps1'
-$AriaOut  = Join-Path $ProjectRoot 'outputs\ux\000_ARIADNE'
-$RxOut    = Join-Path $ProjectRoot 'outputs\ux\001_RX'
-$TreeOut  = Join-Path $ProjectRoot 'outputs\ux\002_TREE'
+$AriaOut  = Join-Path $ProjectRoot 'outputs\ux\001_ARIADNE'
+$RxOut    = Join-Path $ProjectRoot 'outputs\ux\002_RX'
+$TreeOut  = Join-Path $ProjectRoot 'outputs\ux\003_TREE'
 $JxBase   = Join-Path $ProjectRoot 'outputs\001_JX'
 $Subjects = @('刑','刑訴','民','商','民訴','行政','憲')
 $SubjMap  = @{ '刑'='001_刑法';'刑訴'='002_刑事訴訟法';'民'='003_民法';'商'='004_商法';'民訴'='005_民事訴訟法';'行政'='006_行政法';'憲'='007_憲法' }

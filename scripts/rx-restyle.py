@@ -14,7 +14,7 @@ import re
 import sys
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-RX_DIR = REPO / "outputs/ux/001_RX"
+RX_DIR = REPO / "outputs/ux/002_RX"
 AXIOM = REPO / "canonical/AXIOM.html"
 HEAD_RE = re.compile(r"<head>.*?</head>", re.S)
 TITLE_RE = re.compile(r"<title>.*?</title>", re.S)

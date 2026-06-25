@@ -2,9 +2,9 @@
 #
 # 各問題 ID について、以下を安全な順序で行う:
 #   ① GitHub バックアップ : outputs/001_JX/{Subject}JX/{ID}.html ＋ outputs/002_TTS/{ID}/
-#                          ＋ 副産物 outputs/ux/001_RX/{00N_科目}/{Subject}RX{NNN}_*.html
-#                          ＋ outputs/ux/002_TREE/{00N_科目}/{ID}_TREE.html
-#                          ＋ outputs/ux/000_ARIADNE/{00N_科目}/{ID}_ARIADNE.html を git add → commit
+#                          ＋ 副産物 outputs/ux/002_RX/{00N_科目}/{Subject}RX{NNN}_*.html
+#                          ＋ outputs/ux/003_TREE/{00N_科目}/{ID}_TREE.html
+#                          ＋ outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html を git add → commit
 #   ② 入力クリーンアップ  : 入力 PDF（inputs/001_JX/{科目}/重問PDF/{n}.pdf）＋ 逐語 を git rm → commit
 #       └ 削除の多重ガード（1 つでも欠ければ削除しない）:
 #            (a) HTML が git にコミット済み（①で担保）
@@ -112,17 +112,17 @@ foreach ($id in $Ids) {
     # 副産物（RX 論証カード / ARBOR 樹形図）も同じコミットで永続化（存在するものだけ）
     if ($null -ne $num) {
         # RX は問題ごとにサブフォルダ（{科目}JX{NNN}/）へ折る（2026-06-20 恒久化）
-        $rxDirAbs = Join-Path $ProjectRoot "outputs\ux\001_RX\$($DriveHtml[$Subject])\$id"
+        $rxDirAbs = Join-Path $ProjectRoot "outputs\ux\002_RX\$($DriveHtml[$Subject])\$id"
         $rxFilter = "${Subject}RX" + $num.ToString('000') + "_*.html"
         foreach ($r in @(Get-ChildItem -Path $rxDirAbs -Filter $rxFilter -File -ErrorAction SilentlyContinue)) {
-            $addPaths += "outputs/ux/001_RX/$($DriveHtml[$Subject])/$id/$($r.Name)"
+            $addPaths += "outputs/ux/002_RX/$($DriveHtml[$Subject])/$id/$($r.Name)"
         }
     }
-    $arbAbs = Join-Path $ProjectRoot "outputs\ux\002_TREE\$($DriveHtml[$Subject])\${id}_TREE.html"
-    if (Test-Path -LiteralPath $arbAbs) { $addPaths += "outputs/ux/002_TREE/$($DriveHtml[$Subject])/${id}_TREE.html" }
+    $arbAbs = Join-Path $ProjectRoot "outputs\ux\003_TREE\$($DriveHtml[$Subject])\${id}_TREE.html"
+    if (Test-Path -LiteralPath $arbAbs) { $addPaths += "outputs/ux/003_TREE/$($DriveHtml[$Subject])/${id}_TREE.html" }
     # ARIADNE 解法ナビ＋周回（Lexia 取込・存在すれば同じコミットで永続化）
-    $ariaAbs = Join-Path $ProjectRoot "outputs\ux\000_ARIADNE\$($DriveHtml[$Subject])\${id}_ARIADNE.html"
-    if (Test-Path -LiteralPath $ariaAbs) { $addPaths += "outputs/ux/000_ARIADNE/$($DriveHtml[$Subject])/${id}_ARIADNE.html" }
+    $ariaAbs = Join-Path $ProjectRoot "outputs\ux\001_ARIADNE\$($DriveHtml[$Subject])\${id}_ARIADNE.html"
+    if (Test-Path -LiteralPath $ariaAbs) { $addPaths += "outputs/ux/001_ARIADNE/$($DriveHtml[$Subject])/${id}_ARIADNE.html" }
     if ($DryRun) {
         Write-Host "  [DRYRUN] git add $($addPaths -join ' ') ; commit"
     } else {
