@@ -102,7 +102,11 @@ if (-not $NoGate) {
 # ※ DryRun でも実行（事前確認になる）。緊急回避は -NoGate。
 if (-not $NoGate) {
     Write-Host "`n--- 配布前ゲート: scripts/check-rx-coverage.py --strict ---" -ForegroundColor Cyan
-    python (Join-Path $ProjectRoot 'scripts/check-rx-coverage.py') '--strict'
+    # -X utf8: stdout がパイプ/リダイレクト/headless（バッチ transcript・scheduled task 等）のとき
+    #   Python が既定 cp932 で出力し、本スクリプトの ↔(U+2194)/—(U+2014) 等で UnicodeEncodeError
+    #   →終了コード1で空振り ABORT してしまう事故を防ぐ（コンソール直結時のみ救われる不安定さを排除）。
+    #   呼び出し側（jx-finalize 自分のファイル）に閉じた対処で、check-rx-coverage.py 本体は不変。
+    python -X utf8 (Join-Path $ProjectRoot 'scripts/check-rx-coverage.py') '--strict'
     # ↑ 直上の check-duplicates と同じ $LASTEXITCODE / -NoGate 中止ハンドリングを踏襲
     #   （dangling か UNREACHABLE があれば exit 1 で commit を止める）
     if ($LASTEXITCODE -ne 0) {
