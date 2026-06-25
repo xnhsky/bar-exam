@@ -260,9 +260,16 @@ def main():
             if badfmt: parts.append(f'科目/JX不整合 {len(badfmt)}件({"・".join(badfmt[:5])})')
             if notfound: parts.append(f'参照先RX不在 {len(notfound)}件({"・".join(notfound[:5])})')
             E('A29', f'想起カードの data-rx 異常: {"／".join(parts)}（誤リンク＝Lexiaが別論点のRXを注入）')
+        elif miss == len(recall_cards):
+            # 1枚も刻まれていない＝未バックフィル。総論カードのみで対応RXが無い問題もここに含むが
+            # 人手確認を促す意味で WARN（移行期）。
+            W('A29', f'想起カード {len(recall_cards)}枚すべて data-rx 欠落（未バックフィル）'
+                     '（scripts/ariadne-backfill-rx-link.py／spec §9-5・移行期WARN）')
         elif miss:
-            W('A29', f'想起カード {miss}/{len(recall_cards)} 枚に data-rx 欠落'
-                     '（対応RXを刻む・scripts/ariadne-backfill-rx-link.py／spec §9-5・移行期WARN）')
+            # 一部に data-rx あり＝バックフィル済。残りの欠落は総論/解法の型/汎用想起で
+            # 対応RXが無く意図的に省略したもの（spec §9-5「対応RX無しは省略可」）。
+            P('A29', f'想起カード {len(recall_cards)-miss}/{len(recall_cards)} 枚に対応RX data-rx'
+                     f'（残 {miss} 枚は総論/汎用で省略）' + ('＋参照先実在' if rx_dir else ''))
         else:
             P('A29', f'全想起カード({len(recall_cards)}枚)に対応RX data-rx あり'
                      + ('＋参照先実在' if rx_dir else ''))
