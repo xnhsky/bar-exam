@@ -109,6 +109,19 @@ python scripts/tx-lex-gist-backfill.py --worklist wl.md  # 要点執筆が必要
 Errors:0→commit。**新規生成は正典 `SOLVE-NAV.html`／`new-tx.md` が最初からこの形を出す**ので、
 本ツールは主に「正典更新前に作った既存問」の取りこぼし回収用。刑法 362 問は展開済み（todo 0）。
 
+## 議論形式の作り直し: tx-classify-format.py ＋ tx-build-typeA.py（Type A・解法ナビ主役）
+
+議論形式・空欄補充の組合せ問題は、最終番号が**各空欄の小判断（論点）の集計**にすぎないため、
+「組合せ○×」をやめ **解法ナビ主役・空欄単位記録** へ作り直す（2026-06-25 ユーザー指示・gold＝刑TX351）。
+
+- **`tx-classify-format.py`** … _lex を Type A（議論・空欄補充）/ B-combo（記述組合せ）/ B-single（独立5択）へ
+  機械分類（解答選択肢のトークン構成で判定）。`--map out.md`／`--list-a`。刑法は Type A 22 問。
+- **`tx-build-typeA.py <CODE> <DATA.json>`** … 刑TX351 で実証した「解法ナビ（アンカー順・空欄2択）＋
+  空欄単位 ox-grid（`ox-core-wrap` でネタバレ防止・`data-oxgrid-mode="blank"`）」へ変換。**エンジン JS は固定**、
+  問題固有データ（order / win / 各空欄 loc・frag・q・tip・opts・ans・core）だけ JSON で差し替え（空欄⑮まで）。
+  作り直し手順：分類器で Type A を抽出 → 各問 1 エージェントで会話を読み JSON 執筆 → builder 適用 →
+  `validate-tx-core` Errors:0 → commit。Type B は要点化（上記 `tx-lex-gist-backfill.py`）のまま。
+
 ## カバレッジゲート: check-rx-coverage.py（RX 論証カードの復習プール到達性）
 
 Lexia は ARIADNE 想起カードの `data-rx` を辿って RX 論証カードを復習プールへ注入する
