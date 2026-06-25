@@ -120,6 +120,26 @@ ANSWER_SPOILER_VISIBLE_PATTERNS = [
     r"答え?は[肢記述][0-9０-９]",
 ]
 
+# G32：解法ナビの常時表示ヘッダー（.sn-sub）が、学生が一問一答で自力導出すべき
+# 各話者の到達結論（限定説／認識不要説／判例反対 等）を断定形で先出ししていないか。
+# 実害例＝刑TX351_lex の sn-sub が「学生Bは限定説・判例反対、学生Aは認識不要説」と
+# 結論を断定し、組合せ問題の正答（○××××＝組合せ1）が一読で割れた（commit 389df14 で是正）。
+# STEP の💡コツ（JS の tip ／.sn-tip）は段階提示かつ疑問形で誘導するため対象外
+# （「Bは限定説か非限定説か」等は許容・前段の結論再掲も progressive nav として許容）。
+# 判定：sn-sub を 。、— 等で節分割し、各節が「は／＝ で主語に到達結論キーワードを結びつけ」
+# かつ 疑問・検討マーカーを欠くとき結論先出しとして WARNING する（中立メタヒント
+# ＝「立場の一貫性が鍵」型は許容）。正典は canonical/SOLVE-NAV.html の手順説明 sn-sub。
+SNAV_STANCE_KEYWORDS = [
+    "限定説", "非限定説", "必要説", "不要説", "認識必要", "認識不要",
+    "判例反対", "判例賛成", "賛成説", "反対説", "肯定説", "否定説",
+    "積極説", "消極説", "違法説", "責任説",
+]
+SNAV_INTERROGATIVE_MARKERS = [
+    r"か[がをはのも、。？！\s）」]", r"か$", r"かどうか", r"どちら", r"否か",
+    r"確かめ", r"確認", r"判別", r"見極め", r"問う", r"を問", r"賛否",
+    r"対立", r"争点", r"ねじれ", r"どれ", r"いずれ", r"検討",
+]
+
 CANONICAL_301_LEAKAGE = [
     "詐欺罪と他罪の成否", "詐欺罪のみが成立し得る", "背任行為が同時に詐欺の欺罔行為に当たる",
     "畏怖の一材料", "集金業務を委託", "偽造通貨行使罪に包含", "最判昭28.5.8",
@@ -754,6 +774,42 @@ class Validator:
             self.warn("G31", f"プール対象テキスト {len(hits)} 件が一問一答として自己完結していない: "
                              f"{head}{more}（記号フリー・見解は実体名で主語化・spec 第3-bis項）")
 
+    def _snav_stance_assertion(self, clause):
+        # 節が「は／＝ で主語に到達結論を結びつけ」かつ疑問・検討マーカーを欠くなら
+        # 結論先出しと判定し、該当キーワードを返す（無ければ None）。
+        if any(re.search(m, clause) for m in SNAV_INTERROGATIVE_MARKERS):
+            return None
+        if not ("は" in clause or "＝" in clause or "=" in clause):
+            return None
+        for kw in SNAV_STANCE_KEYWORDS:
+            if kw in clause:
+                return kw
+        return None
+
+    def g32_solvenav_subhead_no_spoiler(self):
+        nav = self.soup.find(class_="solve-nav")
+        if not nav:
+            return
+        sub = nav.find(class_="sn-sub")
+        if not sub:
+            return
+        text = sub.get_text(" ", strip=True)
+        clauses = re.split(r"[、。，．；;！!？?…—―\-]+", text)
+        hits = []
+        for c in clauses:
+            c = c.strip()
+            if not c:
+                continue
+            kw = self._snav_stance_assertion(c)
+            if kw:
+                hits.append((kw, c[:30]))
+        if hits:
+            head = "; ".join(f"『{frag}…』(到達結論:{kw})" for kw, frag in hits[:3])
+            self.warn("G32",
+                      f"解法ナビの常時表示ヘッダー sn-sub が各話者の到達結論を断定的に先出し: {head}"
+                      "（学生が一問一答で自力導出すべき結論は伏せ、"
+                      "『立場の一貫性が鍵』型の中立メタヒントに留める・正典 canonical/SOLVE-NAV）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -784,6 +840,7 @@ class Validator:
         self.g29_answer_value_consistency()
         self.g30_no_symbol_only_stmt()
         self.g30_pool_self_contained()
+        self.g32_solvenav_subhead_no_spoiler()
 
 
 def main():
@@ -815,7 +872,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G30, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G32, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
