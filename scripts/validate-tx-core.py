@@ -739,11 +739,23 @@ class Validator:
                 if tds:
                     targets.append(("論点コア", tds[-1].get_text(" ", strip=True)))
 
+        # 座談会型の例外（2026-06-25）：学生A/B/C 等の話者ラベルが 3 つ以上の ox-stmt の
+        # 対応主語に現れる問題（話者↔見解の総当たり対応＝刑TX090型）では、学生ラベルは
+        # 甲乙丙の登場人物と同じく問題内在の話者識別子であり、転用可能な見解ラベルではない。
+        # 除去すると命題が成立せず answer-key を壊すため、この型に限り学生ラベル
+        # （STUDENT_LABEL_PAT）だけを G31 の対象から外す（擬陽性・spec 第3-bis項の例外）。
+        STUDENT_LABEL_PAT = r"学生[A-EＡ-Ｅ]"
+        student_ox = sum(1 for w, t in targets
+                         if w == "ox-stmt" and re.search(STUDENT_LABEL_PAT, t))
+        zadankai = student_ox >= 3
+
         hits = []
         for where, txt in targets:
             if not txt:
                 continue
             for pat, reason in POOL_LABEL_PATTERNS:
+                if zadankai and pat == STUDENT_LABEL_PAT:
+                    continue  # 座談会型：話者ラベルは内在識別子（擬陽性）
                 m = re.search(pat, txt)
                 if m:
                     hits.append((where, m.group(0).strip(), reason, txt[:46]))
