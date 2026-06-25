@@ -50,6 +50,15 @@ import re
 import sys
 from pathlib import Path
 
+# Windows の headless／パイプ実行は stdout が cp932 になり、↔(U+2194)・絵文字・中点(·)など
+# cp932 外の文字を print した瞬間に UnicodeEncodeError でクラッシュ→exit 1 する（＝gate に
+# 組み込むとクリーンでも"空振りブロック"になる）。caller 依存を無くすため出力を UTF-8 に固定。
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass  # Python<3.7 等 reconfigure 不可環境では従来どおり
+
 ROOT = Path(__file__).resolve().parents[1]
 RX_BASE = ROOT / "outputs" / "ux" / "002_RX"
 ARI_BASE = ROOT / "outputs" / "ux" / "001_ARIADNE"
