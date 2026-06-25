@@ -3260,6 +3260,22 @@ body.snav-on .solve-nav{display:block;}
 .sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
 .sn-btn.primary{background:var(--accent); color:#fff;}
 .sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+
+/* === 選択肢の高速化：要点一行（ox-gist）＋全文は折りたたみ（ox-detail）── 2026-06-25 === */
+.answer-ox-grid .ox-row{ align-items:flex-start; }
+.answer-ox-grid .ox-main{ flex:1 1 auto; min-width:0; }
+.answer-ox-grid .ox-gist{ margin:0; font-weight:700; line-height:1.7; color:var(--bg-dark,#333); font-size:.97em; }
+.answer-ox-grid .ox-gist b{ font-weight:800; color:var(--accent); }
+.answer-ox-grid .ox-detail{ margin-top:8px; }
+.answer-ox-grid .ox-detail > summary{ cursor:pointer; display:inline-flex; align-items:center; gap:4px;
+  font-size:.78em; font-weight:700; color:var(--accent); list-style:none; user-select:none;
+  padding:2px 10px; border:1px solid var(--border-mid,#ccc); border-radius:999px; background:#fff; }
+.answer-ox-grid .ox-detail > summary::-webkit-details-marker{ display:none; }
+.answer-ox-grid .ox-detail > summary::before{ content:'＋ '; font-weight:800; }
+.answer-ox-grid .ox-detail[open] > summary::before{ content:'− '; }
+.answer-ox-grid .ox-detail[open] > summary{ background:var(--soft,#f3f3f3); }
+.answer-ox-grid .ox-detail .ox-stmt{ display:block; flex:none; margin:8px 0 0; font-size:.85em;
+  line-height:1.8; color:var(--bg-dark,#444); opacity:.85; }
 /* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
 .answer-area.combo-mode .answer-instruction,
 .answer-area.combo-mode .answer-ox-grid,
@@ -3391,7 +3407,7 @@ body.snav-on .solve-nav{display:block;}
 
         <div class="solve-nav" id="solve-nav">
       <div class="sn-head">📐 解法ナビ
-        <span class="sn-sub">検討順に、下の一問一答で各空欄の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。各説（具体的危険説／旧客観説／純粋客観説／修正客観的危険説）の内容で切り分けます。</span>
+        <span class="sn-sub">各空欄の語句を1つずつ選ぶと矛盾する組合せ番号が消え、残った番号にたどり着く。</span>
       </div>
       <div class="sn-body">
         <div class="sn-combos" id="sn-combos"></div>
@@ -4402,7 +4418,7 @@ body.snav-on .solve-nav{display:block;}
   // 本物の組合せ5択（番号→各空欄の語句）
   var COMBOS = {"1": {"1": "a", "2": "c", "3": "e", "4": "g", "5": "h"}, "2": {"1": "a", "2": "d", "3": "f", "4": "i", "5": "h"}, "3": {"1": "a", "2": "e", "3": "f", "4": "c", "5": "g"}, "4": {"1": "b", "2": "d", "3": "e", "4": "i", "5": "g"}, "5": {"1": "b", "2": "i", "3": "f", "4": "c", "5": "g"}};
   var ORDER = ["1", "2", "3", "4", "5"];
-  var TIP = {"1": "具体的危険説のあてはめ。一般人が認識し得た事情＋行為者が特に知っていた事情を基礎に、一般人が結果発生の危険を感じれば可罰的未遂。本事例は一般人が危険を感じる＝殺人未遂が<b>成立する</b>（a）。", "2": "具体的危険説への批判。基準が一般人の危険『感』なので曖昧＝<b>印象で未遂犯処罰を決める</b>（d）。迷信犯に未遂を認める（c）は別の説への批判で噛み合わない。", "3": "旧客観説（事後的客観的判断）の区別基準。結果発生の<b>絶対的不能・相対的不能</b>で区別する（f）。本事例は相対的不能で未遂。『認識内容が客観的真実に合致するか』（e）は別系統の基準。", "4": "純粋客観説（事後的純科学的判断）を徹底した帰結。結果不発生の原因を解明できれば、結果は科学的に不可能だったことになり<b>すべて不能犯</b>となる（i）。", "5": "修正客観的危険説の判断方法。いかなる事情があれば結果が生じ得たかを問い、<b>結果発生をもたらす仮定的事実が存在し得た</b>かを一般人基準で事後的に判断する（h）。"};
+  var TIP = {"1": "決め手は<b>一般人の危険感</b>。具体的危険説では一般人が危険を感じれば足り、本事例は感じるから殺人未遂が成立する。", "2": "決め手は<b>曖昧さ</b>。一般人の危険『感』という印象で未遂犯処罰の有無を決める点が批判される。", "3": "決め手は<b>絶対的不能か相対的不能か</b>。旧客観説はこの区別で不能犯と未遂犯を分ける。", "4": "決め手は<b>原因解明の徹底</b>。純科学的に詰めると結果不発生の原因が分かり、あらゆる未遂が不能犯になってしまう。", "5": "決め手は<b>仮定的事実の存在可能性</b>。修正客観的危険説は結果が生じ得た事情を一般人基準で事後的に判断する。"};
   function picks(){
     var p = {};
     area.querySelectorAll('.ox-row').forEach(function(r){

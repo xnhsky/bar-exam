@@ -3262,6 +3262,22 @@ body.snav-on .solve-nav{display:block;}
 .sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
 .sn-btn.primary{background:var(--accent); color:#fff;}
 .sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+
+/* === 選択肢の高速化：要点一行（ox-gist）＋全文は折りたたみ（ox-detail）── 2026-06-25 === */
+.answer-ox-grid .ox-row{ align-items:flex-start; }
+.answer-ox-grid .ox-main{ flex:1 1 auto; min-width:0; }
+.answer-ox-grid .ox-gist{ margin:0; font-weight:700; line-height:1.7; color:var(--bg-dark,#333); font-size:.97em; }
+.answer-ox-grid .ox-gist b{ font-weight:800; color:var(--accent); }
+.answer-ox-grid .ox-detail{ margin-top:8px; }
+.answer-ox-grid .ox-detail > summary{ cursor:pointer; display:inline-flex; align-items:center; gap:4px;
+  font-size:.78em; font-weight:700; color:var(--accent); list-style:none; user-select:none;
+  padding:2px 10px; border:1px solid var(--border-mid,#ccc); border-radius:999px; background:#fff; }
+.answer-ox-grid .ox-detail > summary::-webkit-details-marker{ display:none; }
+.answer-ox-grid .ox-detail > summary::before{ content:'＋ '; font-weight:800; }
+.answer-ox-grid .ox-detail[open] > summary::before{ content:'− '; }
+.answer-ox-grid .ox-detail[open] > summary{ background:var(--soft,#f3f3f3); }
+.answer-ox-grid .ox-detail .ox-stmt{ display:block; flex:none; margin:8px 0 0; font-size:.85em;
+  line-height:1.8; color:var(--bg-dark,#444); opacity:.85; }
 /* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
 .answer-area.combo-mode .answer-instruction,
 .answer-area.combo-mode .answer-ox-grid,
@@ -3397,7 +3413,7 @@ body.snav-on .solve-nav{display:block;}
 
         <div class="solve-nav" id="solve-nav">
       <div class="sn-head">📐 解法ナビ
-        <span class="sn-sub">検討順に、下の一問一答で各空欄の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。要所で解法のコツも出ます。</span>
+        <span class="sn-sub">各空欄の語句を順に選ぶと矛盾する組合せ番号が消え、残った番号にたどり着く。</span>
       </div>
       <div class="sn-body">
         <div class="sn-combos" id="sn-combos"></div>
@@ -4428,7 +4444,7 @@ body.snav-on .solve-nav{display:block;}
   // 本物の組合せ5択（番号→各空欄の語句）
   var COMBOS = {"1": {"1": "a", "2": "c", "3": "e", "4": "g", "5": "j", "6": "l", "7": "m"}, "2": {"1": "a", "2": "d", "3": "f", "4": "g", "5": "i", "6": "l", "7": "n"}, "3": {"1": "b", "2": "c", "3": "f", "4": "g", "5": "j", "6": "l", "7": "m"}, "4": {"1": "b", "2": "c", "3": "f", "4": "h", "5": "i", "6": "k", "7": "n"}, "5": {"1": "b", "2": "d", "3": "e", "4": "g", "5": "j", "6": "k", "7": "m"}};
   var ORDER = ["1", "2", "3", "4", "5", "6", "7"];
-  var TIP = {"1": "事例の罪名を確定。酩酊して正常な運転が困難な状態で人を死亡させた行為は<b>危険運転致死</b>（自動車運転死傷行為処罰法2条1号）。業務上過失致死（a）は正常運転困難状態の危険運転には当たらない。", "2": "運転開始時に是非善悪の識別・制御能力を失った状態は心神喪失＝<b>責任能力</b>が欠ける（c）。行為能力（d）は私法上の概念で刑法の責任要件ではない。", "3": "責任無能力状態で結果を実現した場合の可罰性を根拠づける理論＝<b>原因において自由な行為</b>（f）。『原因において違法な行為』（e）という概念は存在しない。", "4": "責任能力は実行行為時に存在することを要するとする原則＝<b>行為と責任の同時存在の原則</b>（g）。罪刑法定主義（h）は別系統で無関係。", "5": "責任無能力の自分を道具として利用すると捉え、同時存在の原則を維持する構成要件モデル＝<b>間接正犯</b>類似説（j）。共謀共同正犯（i）は共犯論で場違い。", "6": "道具性が問題となるのは完全な責任無能力ではない限定責任能力＝<b>心神耗弱</b>（l）。心神喪失（k）まで至ると道具性の問題はむしろ生じにくい。", "7": "判例（最決昭43.2.27）は心神耗弱状態でも飲酒の際に運転の意思が認められれば39条2項の減軽をすべきでないとして理論を<b>適用している</b>（m）。"};
+  var TIP = {"1": "決め手は<b>正常な運転が困難な状態</b>。酩酊運転で人を死亡させた本事例は危険運転致死で、過失犯には落ちない。", "2": "決め手は<b>是非善悪の識別・制御能力</b>。これを失った状態は心神喪失で、欠けるのは刑法上の責任能力である。", "3": "決め手は<b>原因行為時に責任能力がある</b>こと。責任無能力時の結果実現を可罰とする理論は原因において自由な行為である。", "4": "決め手は<b>実行行為時に責任能力が要る</b>こと。原因において自由な行為が修正を論じる対象は行為と責任の同時存在の原則である。", "5": "決め手は<b>無能力の自分を道具とみる</b>こと。同時存在を維持する構成は、他人を道具とする間接正犯と同様に考える。", "6": "決め手は<b>制御の余地が残る</b>こと。道具性が問われるのは限定責任能力すなわち心神耗弱で、心神喪失なら問題は生じにくい。", "7": "決め手は<b>飲酒時に運転の意思がある</b>こと。判例は心神耗弱でも39条2項の減軽を否定し、理論を適用している。"};
   function picks(){
     var p = {};
     area.querySelectorAll('.ox-row').forEach(function(r){

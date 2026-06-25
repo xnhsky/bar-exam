@@ -3260,6 +3260,22 @@ body.snav-on .solve-nav{display:block;}
 .sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
 .sn-btn.primary{background:var(--accent); color:#fff;}
 .sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+
+/* === 選択肢の高速化：要点一行（ox-gist）＋全文は折りたたみ（ox-detail）── 2026-06-25 === */
+.answer-ox-grid .ox-row{ align-items:flex-start; }
+.answer-ox-grid .ox-main{ flex:1 1 auto; min-width:0; }
+.answer-ox-grid .ox-gist{ margin:0; font-weight:700; line-height:1.7; color:var(--bg-dark,#333); font-size:.97em; }
+.answer-ox-grid .ox-gist b{ font-weight:800; color:var(--accent); }
+.answer-ox-grid .ox-detail{ margin-top:8px; }
+.answer-ox-grid .ox-detail > summary{ cursor:pointer; display:inline-flex; align-items:center; gap:4px;
+  font-size:.78em; font-weight:700; color:var(--accent); list-style:none; user-select:none;
+  padding:2px 10px; border:1px solid var(--border-mid,#ccc); border-radius:999px; background:#fff; }
+.answer-ox-grid .ox-detail > summary::-webkit-details-marker{ display:none; }
+.answer-ox-grid .ox-detail > summary::before{ content:'＋ '; font-weight:800; }
+.answer-ox-grid .ox-detail[open] > summary::before{ content:'− '; }
+.answer-ox-grid .ox-detail[open] > summary{ background:var(--soft,#f3f3f3); }
+.answer-ox-grid .ox-detail .ox-stmt{ display:block; flex:none; margin:8px 0 0; font-size:.85em;
+  line-height:1.8; color:var(--bg-dark,#444); opacity:.85; }
 /* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
 .answer-area.combo-mode .answer-instruction,
 .answer-area.combo-mode .answer-ox-grid,
@@ -3376,7 +3392,7 @@ body.snav-on .solve-nav{display:block;}
 
         <div class="solve-nav" id="solve-nav">
       <div class="sn-head">📐 解法ナビ
-        <span class="sn-sub">検討順に、下の一問一答で各空欄①〜⑤の語句を1つずつ選ぶ → 矛盾する組合せ番号が消えて、残った番号にたどり着く。傷害致死の実行行為をどの行為に求めるか（致命傷の結果行為か原因の飲酒行為か）を軸に切り分けます。</span>
+        <span class="sn-sub">傷害致死の実行行為を結果行為か飲酒行為のどちらに置くかを軸に、各空欄を1つずつ選んで矛盾する番号を消していく。</span>
       </div>
       <div class="sn-body">
         <div class="sn-combos" id="sn-combos"></div>
@@ -4397,7 +4413,7 @@ body.snav-on .solve-nav{display:block;}
   // 本物の組合せ5択（番号→各空欄の語句）
   var COMBOS = {"1": {"1": "a", "2": "c", "3": "e", "4": "h", "5": "i"}, "2": {"1": "a", "2": "d", "3": "f", "4": "g", "5": "j"}, "3": {"1": "b", "2": "c", "3": "f", "4": "g", "5": "j"}, "4": {"1": "b", "2": "d", "3": "e", "4": "h", "5": "i"}, "5": {"1": "b", "2": "d", "3": "f", "4": "g", "5": "j"}};
   var ORDER = ["1", "2", "3", "4", "5"];
-  var TIP = {"1": "致命傷の結果行為（心神喪失下で乙の腹部を蹴った行為）を実行行為とすると、行為と責任の同時存在の原則の<b>例外を認めない限り</b>傷害致死罪は成立しない（b）。", "2": "心神喪失の原因である飲酒行為（飲酒時点では責任能力あり）を実行行為とすれば、責任能力が実行行為時に存在＝同時存在の原則の<b>枠内で</b>成立を説明できる（c）。", "3": "原因行為を実行行為とする後者の見解は『<b>原因において自由な行為</b>』として可罰性を認める（f）。", "4": "この見解（<b>間接正犯</b>類似説）は、間接正犯において他人を道具として利用する認識・予見が必要なのと同様、自己を道具として利用する認識・予見を要求する（g）。", "5": "甲が心神喪失の状態と<b>なった後も</b>暴行を継続することの認識・予見があれば、自己を道具として利用する認識・予見が肯定され傷害致死罪が成立する（j）。"};
+  var TIP = {"1": "決め手は<b>実行行為をどこに置くか</b>。致命傷の結果行為（蹴った行為）に置くと、同時存在の例外を認めない限り不成立（b）。", "2": "決め手は<b>責任能力の時点</b>。飲酒行為を実行行為とすれば責任能力が実行行為時に存在し、同時存在の枠内で説明できる（c）。", "3": "決め手は<b>可罰性の根拠</b>。原因行為を実行行為とする見解は『原因において自由な行為』として処罰する（f）。", "4": "決め手は<b>道具利用の認識</b>。間接正犯類似説は、間接正犯と同様に自己を道具として利用する認識・予見を要求する（g）。", "5": "決め手は<b>暴行継続の認識</b>。心神喪失となった後も暴行を続ける認識・予見があれば自己を道具利用＝成立（j）。"};
   function picks(){
     var p = {};
     area.querySelectorAll('.ox-row').forEach(function(r){
