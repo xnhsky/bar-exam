@@ -130,6 +130,14 @@
 > - 検証＝`validate-tx-core.py` を両ファイルに（`_lex`=ox-grid 必須／公式=single・multi 可・G23/G25 自動緩和・G30）＋`check-duplicates.py`（公式↔_lex ミラー除外）。
 > - **全展開（既存問の _lex 化）はローカルPCのバッチ**。Lexia 側 `filterLexiaImportable` が「_lex 在る問だけ公式を除外」＝移行期混在で安全。
 >
+> **【物語解説・2026-06-26 ユーザー指示】全 TX `_lex` の必須要素。** 基本書を読まない学習者の「本当にわからない時に
+> 読む救済テキスト」として、`.final-answer` 冒頭に**初学者向けの物語解説（一連の読み物）**を入れる（公式 `000_TX` には入れない）。
+> 記号フリー（①〜・(a)〜・A説/甲乙説・記述記号への言及禁止）・問題の論理に沿って一本に・**物語性が薄い寄せ集めは
+> 偽の物語を捏造せず共通概念で束ねる**（例：過失の下位類型＝「この論点に引かれた複数の境界線」）。配置は物語（全体を一読で理解）→
+> 肢別の論点コア正誤表（ピンポイント確認）の二段。注入＝`scripts/tx-inject-narrative.py`（Type A は `tx-build-typeA.py` 内蔵）・
+> 素材抽出＝`scripts/tx-extract-source.py`。`new-tx` Phase 4i で標準搭載・CSS は `canonical/GENESIS-CORE.html` 同梱。
+> 刑法 362問は展開済み（Type A 22＋Type B 340・gold＝刑TX311/刑TX351）。
+>
 > **下記 §3-1〜§3-6 は旧 v10.0.0 GOLD-SKELETON の記述で、既存197問（v10）の保守用。** 新規生成では
 > v11 を使う（GENESIS.html／PART C/D／12問ドリル規律／validate-tx-gold.py は v10 legacy 専用）。
 
