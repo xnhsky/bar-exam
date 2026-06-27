@@ -21,7 +21,11 @@ NARR_CSS = '''/* Type A/B 物語解説（読み物）：問題の流れを一連
 .fa-narrative-title{ margin:0 0 10px; font-weight:800; font-size:1.02em; color:var(--accent); letter-spacing:.02em; }
 .fa-narrative p{ margin:0 0 .7em; line-height:1.95; font-size:1.0em; text-align:justify; }
 .fa-narrative p:last-child{ margin-bottom:0; }
-.fa-narrative b{ color:var(--accent-darker,var(--accent)); font-weight:700; }
+.fa-narrative b{ color:var(--accent-darker,var(--accent)); font-weight:700; }'''
+
+# 意味ラベル（食い出しタブ）だけの追補 CSS。旧 .fa-narrative CSS のみ持つ既存ファイルへ
+# 後から昇格注入できるよう本体から分離する（基準＝`p[data-fa-label]::before` の有無）。
+NARR_TAB_CSS = '''
 /* 意味ラベル（食い出しタブ）：段落の左上に食い出させて貼る／背景交互色で区切る */
 .fa-narrative p[data-fa-label]{ position:relative; margin-top:20px; padding:14px 16px 12px;
   border-radius:10px; background:var(--light,#fafafa); border:1px solid var(--soft,#e8e8e8); }
@@ -30,6 +34,7 @@ NARR_CSS = '''/* Type A/B 物語解説（読み物）：問題の流れを一連
   padding:2px 12px; border-radius:8px; background:var(--accent); color:#fff; font-size:.78em; font-weight:800;
   letter-spacing:.04em; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,.18); }
 '''
+NARR_CSS = NARR_CSS + NARR_TAB_CSS
 
 INTENT_CSS = '''/* Type A/B 出題趣旨サマリー：出題者視点でコア・命題／角度／ねらいを俯瞰する */
 .fa-intent{ margin:0 0 16px; padding:14px 16px; border-radius:12px;
@@ -110,6 +115,9 @@ def inject(code, data):
     # CSS（無ければ注入・冪等）
     if '.fa-narrative{' not in h:
         h = h.replace('</style>', NARR_CSS + '</style>', 1)
+    elif 'p[data-fa-label]::before' not in h:
+        # 旧 .fa-narrative CSS のみの既存ファイル＝食い出しタブ CSS を昇格注入
+        h = h.replace('</style>', NARR_TAB_CSS + '</style>', 1)
     if data.get('intent') and '.fa-intent{' not in h:
         h = h.replace('</style>', INTENT_CSS + '</style>', 1)
     open(f, 'w', encoding='utf-8').write(h)
