@@ -24,6 +24,8 @@ spec: spec/tx-v11.0.0-core.md 第7項
     G26 PART D 不在：drill-block / recall-arena / #part-d / flow-svg が無い
     G29 答え整合：data-correct-value（位置）と data-answer-key（ラベル）が記述ごとに一致し、
         各文字が全角○/×（半角 x/o 混入＝Lexia で判定不能を検出）
+    G32 復習プール本文の記号フリー化：_lex の .syn-lead / .choice-points li に
+        問題ローカル記号（A説・①・記述ア・事例Ⅰ等）が残らない
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -766,6 +768,39 @@ class Validator:
             self.warn("G31", f"プール対象テキスト {len(hits)} 件が一問一答として自己完結していない: "
                              f"{head}{more}（記号フリー・見解は実体名で主語化・spec 第3-bis項）")
 
+    def g32_pool_review_text_symbol_free(self):
+        # Lexia 復習プールは肢キーカードに PART B の THE GIST(.syn-lead) と
+        # POINT(.choice-points li) を併載する。ここに空欄番号・選択肢記号・
+        # A説/B説・記述参照・事例番号などが残ると、問題ローカル記号の暗記に
+        # 退化するため _lex では ERROR として止める。
+        if not self.html_path.stem.endswith("_lex"):
+            return
+
+        targets = []
+        for idx, el in enumerate(self.soup.select(".syn-lead"), 1):
+            targets.append((f"syn-lead#{idx}", el.get_text(" ", strip=True)))
+        for cp_idx, cp in enumerate(self.soup.select(".choice-points"), 1):
+            for li_idx, li in enumerate(cp.find_all("li"), 1):
+                targets.append((f"choice-points#{cp_idx} li#{li_idx}",
+                                li.get_text(" ", strip=True)))
+
+        hits = []
+        for where, txt in targets:
+            if not txt:
+                continue
+            for pat, reason in POOL_LABEL_PATTERNS:
+                m = re.search(pat, txt)
+                if m:
+                    hits.append((where, m.group(0).strip(), reason, txt[:60]))
+                    break
+
+        if hits:
+            head = "; ".join(f"[{w}]『{frag}…』←{why}({tok})"
+                             for w, tok, why, frag in hits[:5])
+            more = f" 他 {len(hits)-5} 件" if len(hits) > 5 else ""
+            self.err("G32", f"復習プール併載テキスト {len(hits)} 件に問題ローカル記号が残留: "
+                            f"{head}{more}（.syn-lead / .choice-points li は実体名・概念名で自己完結させる）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -796,6 +831,7 @@ class Validator:
         self.g29_answer_value_consistency()
         self.g30_no_symbol_only_stmt()
         self.g30_pool_self_contained()
+        self.g32_pool_review_text_symbol_free()
 
 
 def main():
@@ -827,7 +863,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G30, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G32, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
