@@ -766,6 +766,45 @@ class Validator:
             self.warn("G31", f"プール対象テキスト {len(hits)} 件が一問一答として自己完結していない: "
                              f"{head}{more}（記号フリー・見解は実体名で主語化・spec 第3-bis項）")
 
+    def g32_pool_gist_point_self_contained(self):
+        # [G32] Lexia 復習プールが ox-stmt とは別に表面化する PART B の
+        # (1) THE GIST = .syn-lead と (2) POINT = .choice-points li も自己完結対象。
+        # Lexia の extractStmtMeta が肢キーカードに gist/points として載せるため、ここに
+        # 問題ローカルの見解ラベル／空欄記号／他記述参照が残ると一問一答が記号暗記になる。
+        # POOL_LABEL_PATTERNS で WARNING（記号フリー・spec 第3-bis項）。座談会例外も継承。
+        targets = []
+        for el in self.soup.find_all(class_="syn-lead"):
+            targets.append(("GIST", el.get_text(" ", strip=True)))
+        for cp in self.soup.find_all(class_="choice-points"):
+            for li in cp.find_all("li"):
+                targets.append(("POINT", li.get_text(" ", strip=True)))
+
+        STUDENT_LABEL_PAT = r"学生[A-EＡ-Ｅ]"
+        # 座談会型判定は ox-stmt 側（g31 と同基準）で行い、GIST/POINT へも一貫適用する。
+        student_ox = sum(1 for el in self.soup.find_all(class_="ox-stmt")
+                         if re.search(STUDENT_LABEL_PAT, el.get_text(" ", strip=True)))
+        zadankai = student_ox >= 3
+
+        hits = []
+        for where, txt in targets:
+            if not txt:
+                continue
+            for pat, reason in POOL_LABEL_PATTERNS:
+                if zadankai and pat == STUDENT_LABEL_PAT:
+                    continue
+                # 本問：GIST/POINT は本文流れ説明で「本問」が自然に出やすく擬陽性が多い→対象外
+                if pat == r"本問":
+                    continue
+                m = re.search(pat, txt)
+                if m:
+                    hits.append((where, m.group(0).strip(), reason, txt[:46]))
+                    break
+        if hits:
+            head = "; ".join(f"[{w}]『{frag}…』←{why}({tok})" for w, tok, why, frag in hits[:4])
+            more = f" 他 {len(hits)-4} 件" if len(hits) > 4 else ""
+            self.warn("G32", f"GIST/POINT {len(hits)} 件が一問一答として自己完結していない: "
+                             f"{head}{more}（Lexia がプールに表面化・記号フリー・spec 第3-bis項）")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -796,6 +835,7 @@ class Validator:
         self.g29_answer_value_consistency()
         self.g30_no_symbol_only_stmt()
         self.g30_pool_self_contained()
+        self.g32_pool_gist_point_self_contained()
 
 
 def main():
