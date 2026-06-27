@@ -25,11 +25,15 @@ param(
     [string]$Subject = '',
     [string]$ProblemId = '',   # 空なら科目の全 {ID}.html を対象
     [switch]$InitAll,          # 全7科目のフォルダを repo ミラー＋Drive に作成して終了
+    [string]$ProjectRoot = '', # 別 clone/root の成果物を配置する場合に指定（未指定はこの repo）
     [switch]$DryRun
 )
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 
 # 科目 → Drive フォルダ名（HTML 用 00N_科目 / 耳トレ用 「N 科目」）
 $Map = [ordered]@{

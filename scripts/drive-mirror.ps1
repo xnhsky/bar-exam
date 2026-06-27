@@ -25,12 +25,8 @@
 #>
 [CmdletBinding()]
 param(
-  [string[]]$Sources = @(
-    'c:\Users\xnrg2.DESKTOP-5664QR6\bar-exam',
-    'c:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-gx',
-    'c:\Users\xnrg2.DESKTOP-5664QR6\Lexia',
-    'c:\Users\xnrg2.DESKTOP-5664QR6\arbor'
-  ),
+  [string[]]$Sources = @(),
+  [string]$ProjectRoot = '',  # bar-exam clone/root（未指定はこの repo / BAREXAM_PROJECT_ROOT）
   # マイドライブ直下に作るミラー親フォルダ名（配下に <プロジェクト名> を作成）
   [string]$DestRoot = 'repo-backup',
   # マイドライブのマウント候補（先に存在したものを採用）
@@ -45,6 +41,20 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
+
+if (-not $PSBoundParameters.ContainsKey('Sources')) {
+  $Sources = @(
+    $ProjectRoot,
+    'c:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-gx',
+    'c:\Users\xnrg2.DESKTOP-5664QR6\Lexia',
+    'c:\Users\xnrg2.DESKTOP-5664QR6\arbor'
+  )
+}
+
 # --- マイドライブのマウント先を自動検出 ---
 $myDrive = $null
 foreach ($cand in $MyDriveCandidates) {
@@ -57,7 +67,7 @@ if (-not $myDrive) {
 $destBase = Join-Path $myDrive $DestRoot
 
 # --- ログ先（bar-exam\logs\ は .gitignore 済） ---
-$logDir = 'c:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\logs\drive-mirror'
+$logDir = Join-Path $ProjectRoot 'logs\drive-mirror'
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir -Force | Out-Null }
 $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
 $logFile = Join-Path $logDir "mirror_$stamp.log"

@@ -27,10 +27,14 @@ param(
     [switch]$NoCleanup,         # ①のみ（GitHub バックアップ）で入力削除はしない
     [switch]$NoDriveCheck,      # Drive 未マウント時の緊急用（git 履歴のみが復元元になる）
     [switch]$NoGate,            # 配布前ゲート（重複/ID 不整合チェック）を抑止する緊急用
+    [string]$ProjectRoot = '',  # 別 clone/root の成果物を永続化する場合に指定（未指定はこの repo）
     [switch]$DryRun
 )
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 Set-Location $ProjectRoot
 
 # pwsh -File 経由ではカンマ区切りが 1 要素になることがあるため正規化（"a,b" -> a, b）

@@ -48,12 +48,16 @@ param(
     [switch]$SkipArb,                   # 指定時は②-arb ARBOR樹形図生成（Lexia 用副産物）をスキップ
     [switch]$SkipAriadne,               # 指定時は②-ariadne ARIADNE解法ナビ生成（Lexia 用副産物）をスキップ
     [string]$ArborRoot = 'C:\Users\xnrg2.DESKTOP-5664QR6\arbor',  # ARBOR 正典リポジトリのルート
+    [string]$ProjectRoot = '',          # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
 )
 
 # === パス定義 ===
 # スクリプト自身の位置 (= scripts\) の親をプロジェクトルートとする
-$ProjectRoot   = Split-Path -Parent $PSScriptRoot
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 # 科目 → 00N_科目 サブフォルダ（全シリーズ共通・入出力とも・2026-06-20 inputs も統一）
 $SubjectDir    = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
 # 入力は科目フォルダ(00N_科目)に 重問PDF\＋講義逐語\ を内包：inputs\001_JX\00N_科目\重問PDF\NN.pdf
@@ -79,8 +83,10 @@ try {
 #   （register 側が「既に登録済みならスキップ」する設計＝何度走っても無害）。これで JX バッチを
 #   回したPCには自動で常駐スイープが入り、両PCのどちらが点いていても欠落が回収される。
 try {
-  $__reg = Join-Path $ProjectRoot "scripts\register-rx-arb-autofill-task.ps1"
-  if (Test-Path $__reg) { & pwsh -NoProfile -File $__reg -Quiet 2>$null }
+  if (-not $DryRun) {
+    $__reg = Join-Path $ProjectRoot "scripts\register-rx-arb-autofill-task.ps1"
+    if (Test-Path $__reg) { & pwsh -NoProfile -File $__reg -ProjectRoot $ProjectRoot -Quiet 2>$null }
+  }
 } catch {}
 
 $JxPromptSrc   = Join-Path $ProjectRoot "prompts\new-jx-headless.md"
@@ -298,7 +304,7 @@ foreach ($pdf in $AllPdfs) {
     }
     $problemId    = "${Subject}JX${num}"
     $jxOutputPath = Join-Path $JxOutputDir "${problemId}.html"
-    $ttsOutputDir = Join-Path $TtsOutputDir $problemId
+    $problemTtsOutputDir = Join-Path $TtsOutputDir $problemId
     $transcript   = Find-Transcript -NumInt $numInt   # 同番号逐語（必須）
     # 判定優先順位：既存 HTML > 逐語欠如 > 処理対象
     $status = if (Test-Path $jxOutputPath) { "SKIP_EXISTS" }
@@ -309,7 +315,7 @@ foreach ($pdf in $AllPdfs) {
         Number         = $num
         ProblemId      = $problemId
         JxOutputPath   = $jxOutputPath
-        TtsOutputDir   = $ttsOutputDir
+        TtsOutputDir   = $problemTtsOutputDir
         TranscriptPath = $transcript
         Status         = $status
     }
@@ -790,7 +796,7 @@ if ($DeployIds.Count -gt 0 -and -not $DryRun) {
         $nums = @($missing | ForEach-Object { if ($_ -match '(\d+)\s*$') { [int]$Matches[1] } } | Sort-Object)
         $bf = Join-Path $ProjectRoot 'scripts\rx-arb-backfill.ps1'
         if (Test-Path $bf) {
-            $bfArgs = @('-NoProfile','-File',$bf,'-Subject',$Subject,'-FromNumber',$nums[0],'-ToNumber',$nums[-1])
+            $bfArgs = @('-NoProfile','-File',$bf,'-Subject',$Subject,'-FromNumber',$nums[0],'-ToNumber',$nums[-1],'-ProjectRoot',$ProjectRoot)
             if (-not $RxEnabled)      { $bfArgs += '-SkipRx' }
             if (-not $ArbEnabled)     { $bfArgs += '-SkipArb' }
             if (-not $AriadneEnabled) { $bfArgs += '-SkipAriadne' }
@@ -845,7 +851,7 @@ if ($SkipDeploy) {
 } else {
     foreach ($id in $DeployIds) {
         Write-Host "[⑥ DEPLOY] $id を配置..." -ForegroundColor Cyan
-        & pwsh -NoProfile -File $JxDeploy -Subject $Subject -ProblemId $id
+        & pwsh -NoProfile -File $JxDeploy -Subject $Subject -ProblemId $id -ProjectRoot $ProjectRoot
     }
     Write-Host "[⑥ DEPLOY] $($DeployIds.Count) 問の配置完了。" -ForegroundColor Green
 }
@@ -864,7 +870,7 @@ if ($Finalize -and -not $DryRun) {
     } elseif (-not (Test-Path $JxFinalize)) {
         Write-Host "[⑦ FINALIZE] jx-finalize.ps1 が見つかりません: $JxFinalize（スキップ）" -ForegroundColor Yellow
     } else {
-        $finArgs = @('-NoProfile','-File',$JxFinalize,'-Subject',$Subject,'-Ids',($DeployIds -join ','))
+        $finArgs = @('-NoProfile','-File',$JxFinalize,'-Subject',$Subject,'-Ids',($DeployIds -join ','),'-ProjectRoot',$ProjectRoot)
         if ($NoPush) { $finArgs += '-NoPush' }
         & pwsh @finArgs
         Write-Host "[⑦ FINALIZE] 完了（commit/push＋入力削除）。" -ForegroundColor Green

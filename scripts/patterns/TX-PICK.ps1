@@ -12,6 +12,7 @@ param(
     [int]$FromNumber = 0,
     [int]$ToNumber = 0,
     [int]$MaxProblems = 1,
+    [string]$ProjectRoot = '',  # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [switch]$DryRun
 )
 if ($Number -gt 0) { $FromNumber = $Number; $ToNumber = $Number; $MaxProblems = 1 }
@@ -19,10 +20,13 @@ if ($FromNumber -le 0 -and $ToNumber -le 0) {
     Write-Host "[TX-PICK] -Number か -FromNumber/-ToNumber を指定してください。" -ForegroundColor Red
     exit 1
 }
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$DefaultProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $Runner = Join-Path $ProjectRoot 'scripts\night-batch-runner.ps1'
 
-$params = @{ FromNumber = $FromNumber; ToNumber = $ToNumber; MaxProblems = $MaxProblems }
+$params = @{ FromNumber = $FromNumber; ToNumber = $ToNumber; MaxProblems = $MaxProblems; ProjectRoot = $ProjectRoot }
 if ($DryRun) { $params.DryRun = $true }
 
 Write-Host "[TX-PICK] 任意NBR・範囲 $FromNumber〜$ToNumber・最大 $MaxProblems 問" -ForegroundColor Cyan

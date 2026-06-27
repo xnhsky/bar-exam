@@ -29,6 +29,11 @@ DATA.json の形:
 """
 import json, re, sys, os
 
+REPO_ROOT = os.path.abspath(os.environ.get(
+    'BAREXAM_PROJECT_ROOT',
+    os.path.join(os.path.dirname(__file__), '..')
+))
+
 CIRC = {str(i): c for i, c in enumerate('①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮', start=1)}
 
 ENGINE = '''<script>
@@ -178,11 +183,11 @@ INTENT_CSS = '''/* Type A 出題趣旨サマリー：出題者視点でコア・
 
 
 def build(code, data):
-    f = f'outputs/ux/000_TX/001_刑法/{code}_lex.html'
+    f = os.path.join(REPO_ROOT, 'outputs', 'ux', '000_TX', '001_刑法', f'{code}_lex.html')
     if not os.path.exists(f):
         # 科目フォルダ総当たり
         import glob
-        cand = glob.glob(f'outputs/ux/000_TX/*/{code}_lex.html')
+        cand = glob.glob(os.path.join(REPO_ROOT, 'outputs', 'ux', '000_TX', '*', f'{code}_lex.html'))
         if not cand:
             raise SystemExit(f'not found: {code}_lex.html')
         f = cand[0]

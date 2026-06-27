@@ -2,7 +2,7 @@
 #
 # 【JX パイプライン → Gemini TTS 連携・橋渡し】
 # 既存 jx-batch-runner.ps1 が生成・検証した音声台本
-#   outputs/002_TTS/{PROBLEM_ID}/{ID}-{連番}.txt  （例 刑JX029-1.txt … 刑JX029-13.txt）
+#   outputs/002_TTS/{00N_科目}/{PROBLEM_ID}/{ID}-{連番}.txt  （例 刑JX029-1.txt … 刑JX029-13.txt）
 # を、Gemini TTS の入力フォルダ
 #   tts/input_texts/
 # へコピー（集約）する。コピー後 tts/run-tts.ps1 で wav 化する想定。
@@ -22,6 +22,7 @@ param(
     [string]$ProblemId = "",   # 例: 刑JX032。未指定なら outputs/002_TTS 配下の全 ID
     [switch]$Force,            # 既に wav がある台本もコピーする
     [switch]$Run,              # 集約後に tts/run-tts.ps1 を実行
+    [string]$ProjectRoot = '',  # 別 clone/root の台本を集約する場合に指定（未指定はこの repo）
     [switch]$DryRun            # コピーせず予定だけ表示
 )
 
@@ -30,7 +31,10 @@ param(
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # === パス定義（scripts\ の親 = プロジェクトルート）===
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $TtsSrcBase  = Join-Path $ProjectRoot "outputs\002_TTS"        # JX パイプラインの台本出力
 $TtsInputDir = Join-Path $ProjectRoot "tts\input_texts"    # Gemini TTS 入力
 $TtsAudioDir = Join-Path $ProjectRoot "tts\output_audio"   # 既存 wav 判定用
@@ -47,13 +51,21 @@ if (-not $DryRun) {
 
 # === コピー対象の問題フォルダを決定 ===
 if ($ProblemId) {
-    $srcDirs = @(Get-Item -Path (Join-Path $TtsSrcBase $ProblemId) -ErrorAction SilentlyContinue)
+    $direct = Join-Path $TtsSrcBase $ProblemId
+    $srcDirs = @(Get-Item -Path $direct -ErrorAction SilentlyContinue)
     if (-not $srcDirs -or $srcDirs.Count -eq 0) {
-        Write-Host "[ABORT] 台本フォルダが見つかりません: $(Join-Path $TtsSrcBase $ProblemId)" -ForegroundColor Red
+        $srcDirs = @(Get-ChildItem -Path $TtsSrcBase -Directory -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.Name -eq $ProblemId } |
+            Sort-Object FullName)
+    }
+    if (-not $srcDirs -or $srcDirs.Count -eq 0) {
+        Write-Host "[ABORT] 台本フォルダが見つかりません: $ProblemId under $TtsSrcBase" -ForegroundColor Red
         exit 1
     }
 } else {
-    $srcDirs = @(Get-ChildItem -Path $TtsSrcBase -Directory | Sort-Object Name)
+    $srcDirs = @(Get-ChildItem -Path $TtsSrcBase -Directory -Recurse -ErrorAction SilentlyContinue |
+        Where-Object { @(Get-ChildItem -Path $_.FullName -Filter "*.txt" -File -ErrorAction SilentlyContinue).Count -gt 0 } |
+        Sort-Object FullName)
 }
 
 Write-Host "=== tts-stage-inputs 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
@@ -117,5 +129,5 @@ if ($Run) {
     }
 }
 
-Write-Host "`n次の手順:  pwsh -NoProfile -File tts\run-tts.ps1" -ForegroundColor Cyan
+Write-Host "`n次の手順:  pwsh -NoProfile -File `"$RunTts`"" -ForegroundColor Cyan
 exit 0

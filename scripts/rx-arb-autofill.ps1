@@ -26,11 +26,15 @@ param(
   [int]$MaxPerSubject = 4,     # 1 スイープ・1 科目あたりの最大補完数（暴走防止・頻度で追いつく）
   [int]$BusyWindowMin = 20,    # この分以内に jx-batch-*.log 更新があればバッチ中とみなしスキップ
   [switch]$NoPush,
+  [string]$ProjectRoot = '',   # 別 clone/root で生成する場合に指定（未指定はこの repo）
   [switch]$DryRun
 )
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 Set-Location $ProjectRoot
 
 # 作成日時スタンプ保険フックの冪等インストール（CLAUDE.md §9・2026-06-23）。
@@ -126,7 +130,7 @@ try {
   foreach ($t in $totalMissing) {
     $nums = @($t.Ids | ForEach-Object { if ($_ -match '(\d+)\s*$') { [int]$Matches[1] } } | Sort-Object)
     Log "$($t.Subject)：backfill 起動（範囲 $($nums[0])〜$($nums[-1])・最大 $MaxPerSubject 件）" 'Cyan'
-    & pwsh -NoProfile -File $Backfill -Subject $t.Subject -FromNumber $nums[0] -ToNumber $nums[-1] -MaxProblems $MaxPerSubject
+    & pwsh -NoProfile -File $Backfill -Subject $t.Subject -FromNumber $nums[0] -ToNumber $nums[-1] -MaxProblems $MaxPerSubject -ProjectRoot $ProjectRoot
   }
 
   # --- 6. outputs/ux だけ commit→push（JX HTML には触れない）---

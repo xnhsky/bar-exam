@@ -20,6 +20,7 @@ param(
     [int]$FromNumber = 0,              # 処理対象の最小問題番号 (0 = 下限なし)
     [int]$ToNumber = 0,                # 処理対象の最大問題番号 (0 = 上限なし)
     [switch]$DryRun,                   # 実 claude -p 呼ばずパス解決確認のみ
+    [string]$ProjectRoot = '',         # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [ValidateSet('v10.0.0','v9.2.0','v9.1.0')]
     [string]$SpecVersion = 'v10.0.0'   # 既定 v10.0.0 GOLD-SKELETON（GENESIS baseline）
 )
@@ -55,9 +56,12 @@ $ValidatePassRegex = switch ($SpecVersion) {
 }
 
 # === 設定 ===
-# スクリプト自身の位置 (= scripts\) の親をプロジェクトルートとする
-# これで OWNER PC / xnrg2 PC など複数環境で同じスクリプトが動作する
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+# スクリプト自身の位置 (= scripts\) の親を既定プロジェクトルートとする。
+# -ProjectRoot / BAREXAM_PROJECT_ROOT 指定時は別 clone/root へ明示的に逃がせる。
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $PdfDir      = Join-Path $ProjectRoot "inputs\000_TX\001_刑法"
 $OutputBase  = Join-Path $ProjectRoot "outputs\000_TX"
 $LogsDir     = Join-Path $ProjectRoot "logs"

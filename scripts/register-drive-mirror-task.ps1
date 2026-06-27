@@ -10,13 +10,19 @@
 [CmdletBinding()]
 param(
   [string]$TaskName = 'bar-exam-drive-mirror',
-  [int]$IntervalHours = 3
+  [int]$IntervalHours = 3,
+  [string]$ProjectRoot = ''  # 別 clone/root で登録する場合に指定（未指定はこの repo）
 )
+
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 
 $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
 if (-not $pwshPath) { $pwshPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" }
-$script = 'c:\Users\xnrg2.DESKTOP-5664QR6\bar-exam\scripts\drive-mirror.ps1'
-$tr = "`"$pwshPath`" -NoProfile -ExecutionPolicy Bypass -File `"$script`""
+$script = Join-Path $ProjectRoot 'scripts\drive-mirror.ps1'
+$tr = "`"$pwshPath`" -NoProfile -ExecutionPolicy Bypass -File `"$script`" -ProjectRoot `"$ProjectRoot`""
 
 # 既存があれば削除（無ければ無視）
 schtasks.exe /Delete /TN $TaskName /F 2>$null | Out-Null

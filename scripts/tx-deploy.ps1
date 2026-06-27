@@ -37,6 +37,7 @@ param(
     'H:\My Drive', 'G:\My Drive',
     "$env:USERPROFILE\Google ドライブ", "$env:USERPROFILE\Google Drive"
   ),
+  [string]$ProjectRoot = '',  # 別 clone/root の成果物を配置する場合に指定（未指定はこの repo）
   [switch]$DryRun
 )
 
@@ -68,7 +69,10 @@ Write-Host "配信先  : $txRoot"
 Write-Host "DryRun  : $($DryRun.IsPresent)"
 Write-Host ("-" * 60)
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$repoRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $targets = if ($Subject) { @($Subject) } else { $folderMap.Keys }
 
 $totalCopied = 0

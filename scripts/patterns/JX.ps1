@@ -27,16 +27,21 @@ param(
     [int]$ToNumber = 0,         # 任意レンジの上限
     [switch]$NoFinalize,        # 指定時は⑦永続化＋入力削除を行わない（既定は実行）
     [switch]$NoPush,            # ⑦で push 抑止（commit のみ）
+    [string]$ProjectRoot = '',  # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [switch]$DryRun
 )
 if ($Number -gt 0) { $FromNumber = $Number; $ToNumber = $Number; $MaxProblems = 1 }
-$ProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$DefaultProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $Runner = Join-Path $ProjectRoot 'scripts\jx-batch-runner.ps1'
 
 # 音声(⑤)は行わない。-SkipAudio で台本集約まで（音声は AI Studio で手動）。
 # 既定で ⑦Finalize（HTML＋TTS を git commit/push＝GitHub バックアップ → Drive バックアップ確認後に
 # 入力 PDF＋逐語を git rm）まで通す。バックアップ無しでの削除は finalize 側のガードで防止。
 $params = @{ Subject = $Subject; MaxProblems = $MaxProblems; SkipAudio = $true }
+$params.ProjectRoot = $ProjectRoot
 if (-not $NoFinalize) { $params.Finalize = $true }
 if ($NoPush)    { $params.NoPush = $true }
 if ($FromNumber -gt 0) { $params.FromNumber = $FromNumber }

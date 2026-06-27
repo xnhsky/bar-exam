@@ -18,9 +18,15 @@
 param(
   [string]$TaskName = 'bar-exam-rx-arb-autofill',
   [int]$IntervalHours = 2,
+  [string]$ProjectRoot = '',  # 別 clone/root で登録する場合に指定（未指定はこの repo）
   [switch]$Force,      # 登録済みでも作り直す
   [switch]$Quiet       # 指定で出力を抑制（セッション開始時の冪等確認用）
 )
+
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 
 # 冪等確認：既存タスクがあれば（-Force でない限り）即終了
 $exists = $false
@@ -34,8 +40,8 @@ if ($exists -and -not $Force) {
 $pwshPath = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
 if (-not $pwshPath) { $pwshPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" }
 # パス可搬：このスクリプトと同じ scripts\ 配下の autofill を指す（OWNER PC でもそのまま動く）
-$script = Join-Path $PSScriptRoot 'rx-arb-autofill.ps1'
-$tr = "`"$pwshPath`" -NoProfile -ExecutionPolicy Bypass -File `"$script`""
+$script = Join-Path $ProjectRoot 'scripts\rx-arb-autofill.ps1'
+$tr = "`"$pwshPath`" -NoProfile -ExecutionPolicy Bypass -File `"$script`" -ProjectRoot `"$ProjectRoot`""
 
 schtasks.exe /Delete /TN $TaskName /F 2>$null | Out-Null
 

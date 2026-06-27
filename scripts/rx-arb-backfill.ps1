@@ -27,10 +27,14 @@ param(
     [switch]$SkipArb,
     [switch]$SkipAriadne,
     [string]$ArborRoot = 'C:\Users\xnrg2.DESKTOP-5664QR6\arbor',
+    [string]$ProjectRoot = '',          # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [switch]$DryRun
 )
 
-$ProjectRoot   = Split-Path -Parent $PSScriptRoot
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 # 科目 → 00N_科目 サブフォルダ
 $SubjDir = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
 $JxOutputDir   = Join-Path $ProjectRoot "outputs\001_JX\$SubjDir"

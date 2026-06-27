@@ -26,13 +26,17 @@ param(
     [int]$ToNumber       = 0,           # 0 = 上限なし
     [int]$MaxProblems    = 5,           # 1 起動あたり処理数
     [string[]]$Times     = @('21:00','23:00','01:00','03:00','05:00'),
+    [string]$ProjectRoot = '',          # 別 clone/root で登録する場合に指定（未指定はこの repo）
     [switch]$Unregister
 )
 
 $ErrorActionPreference = 'Stop'
 
-# === パス解決（マルチ PC 対応：$PSScriptRoot から算出）===
-$ProjectRoot = Split-Path -Parent $PSScriptRoot
+# === パス解決（マルチ PC / clone 分離対応）===
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $RunnerPath  = Join-Path $ProjectRoot 'scripts\night-batch-runner.ps1'
 if (-not (Test-Path $RunnerPath)) { throw "runner not found: $RunnerPath" }
 
@@ -56,7 +60,8 @@ $argList = @(
     '-NoProfile',
     '-ExecutionPolicy', 'Bypass',
     '-File', "`"$RunnerPath`"",
-    '-MaxProblems', $MaxProblems
+    '-MaxProblems', $MaxProblems,
+    '-ProjectRoot', "`"$ProjectRoot`""
 )
 if ($FromNumber -gt 0) { $argList += @('-FromNumber', $FromNumber) }
 if ($ToNumber   -gt 0) { $argList += @('-ToNumber',   $ToNumber) }
