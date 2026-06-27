@@ -145,6 +145,8 @@ footer-spec（feature-tag 先頭 = TX v11.0.0 LOOP-CORE・別冊リンク）
 POOL_LABEL_PATTERNS で ox-stmt・論点コアのラベル残留・他記述/本問依存を検出。**G32（同 WARNING・
 `g32_pool_gist_point_self_contained`）が GIST・POINT を検出**（2026-06-27 新設）。既存 90 問
 （2026-06-24 時点）が G31 該当＝後追い書き直しの worklist。コーパス安定後に ERROR 化する。
+**G31/G32 の ERROR 化タイミング・撤去・バックログの発火条件は `docs/deferred-safeguards.md` が正典**
+（曖昧トリガーの抜け防止・記号フリー化バックログの DoD を集約）。
 
 **座談会型の例外（2026-06-25）：** 学生A/B/C 等の話者ラベルが **3 つ以上の `.ox-stmt` の
 対応主語**に現れる問題（話者↔見解の総当たり対応＝刑TX090 型）では、学生ラベルは甲乙丙の
