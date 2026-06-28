@@ -26,7 +26,7 @@ param(
     [switch]$NoPush,            # push を抑止（既定は push する）
     [switch]$NoCleanup,         # ①のみ（GitHub バックアップ）で入力削除はしない
     [switch]$NoDriveCheck,      # Drive 未マウント時の緊急用（git 履歴のみが復元元になる）
-    [switch]$NoGate,            # 配布前ゲート（重複/ID 不整合チェック）を抑止する緊急用
+    [switch]$NoGate,            # 配布前ゲート（重複/ID/同期契約チェック）を抑止する緊急用
     [string]$ProjectRoot = '',  # 別 clone/root の成果物を永続化する場合に指定（未指定はこの repo）
     [switch]$DryRun
 )
@@ -98,6 +98,22 @@ if (-not $NoGate) {
         exit 1
     }
     Write-Host "[GATE PASS] 重複・ID 不整合なし。finalize を続行します。" -ForegroundColor Green
+}
+
+# === 配布前ゲート: Lexia 同期契約（fileName/code/title/category/sourcePath/genmeta）チェック ===
+# Lexia が HTML を取り込むときに導出する fileName / code / title / subject / category と、
+# raw HTML から読む sourcePath 相当・作成日時 genmeta・ARIADNE data-rx を横断検査する。
+# 「HTML本文不足」「ID不一致」「作成日欠落で毎回更新扱い」になる生成物を git に入れない。
+# ※ DryRun でも実行（事前確認になる）。緊急回避は -NoGate。
+if (-not $NoGate) {
+    Write-Host "`n--- 配布前ゲート: scripts/check-lexia-sync-contract.py --summary ---" -ForegroundColor Cyan
+    python -X utf8 (Join-Path $ProjectRoot 'scripts/check-lexia-sync-contract.py') '--summary'
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ABORT] Lexia 同期契約の不整合を検出。修正するまで finalize（commit/push）を中止します。" -ForegroundColor Red
+        Write-Host "        （緊急時のみ -NoGate で回避可能。原因は上記 ERROR を参照）" -ForegroundColor DarkGray
+        exit 1
+    }
+    Write-Host "[GATE PASS] Lexia 同期契約の致命的不整合なし。finalize を続行します。" -ForegroundColor Green
 }
 
 # === 配布前ゲート: RX カバレッジ（dangling / UNREACHABLE 参照）チェック ===
