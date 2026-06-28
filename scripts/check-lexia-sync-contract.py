@@ -294,7 +294,7 @@ def audit_entry(path: Path) -> tuple[Entry | None, list[str], list[str]]:
     if meta["category"] == "ARIADNE":
         target = re.search(r'data-athena-code="([^"]+)"', html)
         if not target:
-            warnings.append("data-athena-code が無い（ATHENA ジャンプ不能）")
+            errors.append("data-athena-code が無い（ATHENA ジャンプ不能）")
         elif not same_code(meta["baseCode"], target.group(1)):
             errors.append(f"data-athena-code が baseCode と一致しない: {target.group(1)} != {meta['baseCode']}")
 

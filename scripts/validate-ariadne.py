@@ -207,14 +207,14 @@ def main():
             if not has_stat: miss.append('条文statute-card')
             W('A25', f'深掘り層がアテナ級でない（不足: {"／".join(miss)}・TX書式 or アテナ移植へ・spec §2-7／§11）')
 
-    # ---- A26 アテナで詳しく（百科事典版へのジャンプ・spec §11・当面 WARNING）----
+    # ---- A26 アテナで詳しく（百科事典版へのジャンプ・spec §11）----
     ga = re.search(r'class="go-athena"[^>]*data-athena-code="([^"]*)"', html)
     if not ga:
         ga = re.search(r'data-athena-code="([^"]*)"[^>]*class="go-athena"', html)
     if ga and ga.group(1).strip():
         P('A26', f'アテナ版ジャンプボタンあり（targetCode={ga.group(1)}）')
     else:
-        W('A26', 'アテナ版ジャンプボタン(.go-athena data-athena-code)がない（postMessage lexia:navigate 連携・spec §11）')
+        E('A26', 'アテナ版ジャンプボタン(.go-athena data-athena-code)がない（postMessage lexia:navigate 連携・spec §11）')
 
     # ---- A27 答案構成の作法（教授のひとことコラム＋ステップ別周回ドリル・spec §12・2026-06-22・当面 WARNING）----
     bc = extract_divs(html, 'bc-wrap')
