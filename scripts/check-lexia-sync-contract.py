@@ -15,6 +15,7 @@ Lexia は bar-exam の HTML を path / fileName / code / title / subject / categ
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import re
 import sys
@@ -63,6 +64,8 @@ SCRIPT_RE = re.compile(r"<script\b[^>]*>(.*?)</script>", re.S | re.I)
 TAG_RE = re.compile(r"<[^>]+>")
 DATA_RX_RE = re.compile(r'data-rx="([^"]*)"')
 SELF_CHECK_OPEN_RE = re.compile(r'<div\b[^>]*\bclass="[^"]*\bself-check-quiz\b[^"]*"[^>]*>', re.I)
+ARIADNE_RX_MAP_PATH = ROOT / "scripts" / "ariadne-backfill-rx-link.py"
+ARIADNE_RX_MAP: dict[str, list[str | None]] | None = None
 
 MIN_BYTES = {
     "TX_OFFICIAL": 20 * 1024,
@@ -216,6 +219,44 @@ def collect_files(roots: Iterable[str]) -> list[Path]:
     return sorted(set(files), key=lambda x: x.as_posix())
 
 
+def load_ariadne_rx_map() -> dict[str, list[str | None]]:
+    global ARIADNE_RX_MAP
+    if ARIADNE_RX_MAP is not None:
+        return ARIADNE_RX_MAP
+    ARIADNE_RX_MAP = {}
+    try:
+        tree = ast.parse(ARIADNE_RX_MAP_PATH.read_text(encoding="utf-8"))
+    except OSError:
+        return ARIADNE_RX_MAP
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            names = [target.id for target in node.targets if isinstance(target, ast.Name)]
+            if "MAP" not in names:
+                continue
+            try:
+                value = ast.literal_eval(node.value)
+            except (ValueError, SyntaxError):
+                value = {}
+            if isinstance(value, dict):
+                ARIADNE_RX_MAP = value
+            break
+    return ARIADNE_RX_MAP
+
+
+def expected_ariadne_rx_values(filename: str) -> list[str | None] | None:
+    mapping = load_ariadne_rx_map()
+    values = mapping.get(filename)
+    return values if isinstance(values, list) else None
+
+
+def summarize_codes(codes: Iterable[str], limit: int = 12) -> str:
+    vals = sorted(set(codes), key=lambda s: (code_key(s) or ("", "", 10**9, None), s))
+    shown = ", ".join(vals[:limit])
+    if len(vals) > limit:
+        shown += f", ... (+{len(vals) - limit})"
+    return shown or "—"
+
+
 def genmeta_status(html: str) -> tuple[list[str], str]:
     stamps = GENMETA_RE.findall(html)
     if not stamps:
@@ -302,21 +343,30 @@ def audit_entry(path: Path) -> tuple[Entry | None, list[str], list[str]]:
         if recall_tags:
             rx_values = []
             missing = 0
+            intentional_missing = 0
             bad = []
             dangling = []
+            expected_values = expected_ariadne_rx_values(path.name)
+            if expected_values is not None and len(expected_values) != len(recall_tags):
+                warnings.append(f"data-rx MAP 長と想起カード数が不一致: MAP={len(expected_values)} cards={len(recall_tags)}")
+                expected_values = None
             expected = re.compile(r"^" + re.escape(meta["baseCode"].replace("JX", "RX")) + r"_\d+$")
-            for tag in recall_tags:
+            for i, tag in enumerate(recall_tags):
                 m = DATA_RX_RE.search(tag)
                 rx = m.group(1).strip() if m else ""
                 if not rx:
-                    missing += 1
+                    if expected_values is not None and expected_values[i] is None:
+                        intentional_missing += 1
+                    else:
+                        missing += 1
                     continue
                 rx_values.append(rx)
                 if not expected.fullmatch(rx):
                     bad.append(rx)
                 elif not rx_exists_for(rel, rx):
                     dangling.append(rx)
-            if missing == len(recall_tags):
+            effective_total = len(recall_tags) - intentional_missing
+            if missing and missing == effective_total:
                 warnings.append(f"想起カード {len(recall_tags)} 枚すべて data-rx 欠落")
             elif missing:
                 warnings.append(f"想起カード data-rx 欠落 {missing}/{len(recall_tags)} 枚")
@@ -373,6 +423,7 @@ def main() -> int:
             titles[e.title].append(e.sourcePath)
 
     global_errors: list[str] = []
+    global_warnings: list[str] = []
     for key, paths in ids.items():
         if len(paths) > 1:
             global_errors.append(f"category+code 重複 {key}: {', '.join(paths[:6])}")
@@ -389,9 +440,35 @@ def main() -> int:
             if not (cats <= {"TX_OFFICIAL", "TX_LEXIA"} and len(base_codes) == 1):
                 global_errors.append(f"title 重複 '{title[:80]}': {', '.join(paths[:6])}")
 
+    by_category: dict[str, set[str]] = defaultdict(set)
+    for e in entries:
+        by_category[e.category].add(e.baseCode)
+
+    official_tx = by_category["TX_OFFICIAL"]
+    lexia_tx = by_category["TX_LEXIA"]
+    if missing := official_tx - lexia_tx:
+        global_warnings.append(f"TX _lex 欠落 {len(missing)} 件: {summarize_codes(missing)}")
+    if orphan := lexia_tx - official_tx:
+        global_warnings.append(f"TX 公式 HTML 欠落 {len(orphan)} 件: {summarize_codes(orphan)}")
+
+    jx = by_category["JX"]
+    ariadne = by_category["ARIADNE"]
+    tree = by_category["TREE"]
+    rx_bases = by_category["RX"]
+    if missing := jx - ariadne:
+        global_warnings.append(f"JX 対応 ARIADNE 欠落 {len(missing)} 件: {summarize_codes(missing)}")
+    if missing := jx - tree:
+        global_warnings.append(f"JX 対応 TREE 欠落 {len(missing)} 件: {summarize_codes(missing)}")
+    if orphan := ariadne - jx:
+        global_warnings.append(f"JX 本体が無い ARIADNE {len(orphan)} 件: {summarize_codes(orphan)}")
+    if orphan := tree - jx:
+        global_warnings.append(f"JX 本体が無い TREE {len(orphan)} 件: {summarize_codes(orphan)}")
+    if orphan := rx_bases - jx:
+        global_warnings.append(f"JX 本体が無い RX {len(orphan)} 件: {summarize_codes(orphan)}")
+
     category_counts = Counter(e.category for e in entries)
     err_count = sum(len(e) for _, e, _ in per_file) + len(global_errors)
-    warn_count = sum(len(w) for _, _, w in per_file)
+    warn_count = sum(len(w) for _, _, w in per_file) + len(global_warnings)
 
     print("=== Lexia 同期契約チェック ===")
     print(f"roots={', '.join(args.roots)} / html={len(files)} / classified={len(entries)}")
@@ -402,6 +479,12 @@ def main() -> int:
         print("[GLOBAL ERROR]")
         for msg in global_errors:
             print(f"  ERROR {msg}")
+        print()
+
+    if global_warnings:
+        print("[GLOBAL WARN]")
+        for msg in global_warnings:
+            print(f"  WARN  {msg}")
         print()
 
     for path, errors, warnings in per_file:
