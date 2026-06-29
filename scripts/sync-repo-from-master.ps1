@@ -96,6 +96,17 @@ while ($true) {
   Start-Sleep -Seconds $PollSec
 }
 
+$currentBranchBefore = (@(Invoke-RepoGit branch --show-current 2>$null) -join "`n").Trim()
+$currentHeadBefore = (@(Invoke-RepoGit rev-parse HEAD 2>$null) -join "`n").Trim()
+if (
+  [string]::IsNullOrWhiteSpace($WaitForSha) -and
+  $currentBranchBefore -eq $Branch -and
+  $currentHeadBefore -eq $remoteSha
+) {
+  Say "already up to date: $Branch@$($remoteSha.Substring(0, 8))" 'DarkGray'
+  exit 0
+}
+
 $status = @(Invoke-RepoGit status --porcelain)
 if ($status.Count -gt 0) {
   if ($NoStash) {
