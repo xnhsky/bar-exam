@@ -31,8 +31,10 @@ function Say([string]$Message, [string]$Color = 'Gray') {
 
 $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $script:GitExe = (Get-Command git -CommandType Application -ErrorAction Stop).Source
+$script:GitExitCode = 0
 function Invoke-RepoGit {
   & $script:GitExe -C $ProjectRoot @args
+  $script:GitExitCode = $LASTEXITCODE
 }
 
 $LogsDir = Join-Path $ProjectRoot 'logs'
@@ -42,7 +44,7 @@ if (-not (Test-Path -LiteralPath $LogsDir)) {
 $script:LogPath = Join-Path $LogsDir 'repo-sync-from-master.log'
 
 Invoke-RepoGit rev-parse --is-inside-work-tree 2>$null | Out-Null
-if ($LASTEXITCODE -ne 0) {
+if ($script:GitExitCode -ne 0) {
   Say "not a git repository: $ProjectRoot" 'Red'
   exit 1
 }
@@ -52,7 +54,7 @@ $deadline = (Get-Date).AddSeconds($TimeoutSec)
 
 while ($true) {
   Invoke-RepoGit fetch $Remote $Branch 2>&1 | Out-Null
-  if ($LASTEXITCODE -ne 0) {
+  if ($script:GitExitCode -ne 0) {
     Say "fetch failed: $Remote $Branch" 'Red'
     exit 1
   }
@@ -61,7 +63,7 @@ while ($true) {
   if ([string]::IsNullOrWhiteSpace($WaitForSha)) { break }
 
   Invoke-RepoGit merge-base --is-ancestor $WaitForSha $remoteSha 2>$null
-  if ($LASTEXITCODE -eq 0) { break }
+  if ($script:GitExitCode -eq 0) { break }
 
   if ((Get-Date) -ge $deadline) {
     Say "remote did not reach pushed commit within ${TimeoutSec}s: $WaitForSha" 'Yellow'
@@ -78,7 +80,7 @@ if ($status.Count -gt 0) {
   }
   $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
   Invoke-RepoGit stash push -u -m "auto-sync before $remoteRef $stamp" 2>&1 | Out-Null
-  if ($LASTEXITCODE -ne 0) {
+  if ($script:GitExitCode -ne 0) {
     Say "git stash failed; target was not updated" 'Red'
     exit 1
   }
@@ -93,14 +95,14 @@ if ($currentBranch -ne $Branch) {
   } else {
     Invoke-RepoGit switch $Branch
   }
-  if ($LASTEXITCODE -ne 0) {
+  if ($script:GitExitCode -ne 0) {
     Say "failed to switch target to $Branch" 'Red'
     exit 1
   }
 }
 
 Invoke-RepoGit pull --ff-only $Remote $Branch
-if ($LASTEXITCODE -ne 0) {
+if ($script:GitExitCode -ne 0) {
   Say "fast-forward pull failed; target was left on $Branch without destructive reset" 'Red'
   exit 1
 }
