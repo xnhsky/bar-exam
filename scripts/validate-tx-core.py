@@ -30,6 +30,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
         問題ローカル記号（A説・①・記述ア・事例Ⅰ等）が残らない
   G34 TX360 SM2 payload 契約：inline _lex の .ox-row 直下に .ox-pool-explain があり、
       通常 SM2 カード本文へ fa-narrative / 詳説 / 問題ローカル記号を混ぜない
+  G35 物語解説タイポグラフィ：.fa-narrative の強調太字を過剰に太くしない
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -464,7 +465,7 @@ class Validator:
             return
         first = tags[0].get_text().strip()
         # v11/v12.x.x LOOP-CORE を許容。
-        # v12.1.0 はインライン肢カードを主導線にした正典化版（v11 系とは後方互換）。
+        # v12.1.1 は v12.1.0 inline canon に narrative typography patch を重ねた版。
         if not (first.startswith(("TX v11.", "TX v12.")) and "LOOP-CORE" in first):
             self.err("G15", f"feature-tag 先頭が 'TX v11/v12.x.x LOOP-CORE' でない: '{first}'")
 
@@ -591,7 +592,7 @@ class Validator:
         if not area:
             return  # G3 で報告済
         atype = area.get("data-answer-type", "")
-        # 二系統化（v11.1.0 継承／v12.1.0 active）：Lexia 用 _lex（outputs/ux/000_TX/..._lex.html）は ox-grid 必須
+        # 二系統化（v11.1.0 継承／v12.1.1 active）：Lexia 用 _lex（outputs/ux/000_TX/..._lex.html）は ox-grid 必須
         # ＝記述単位○×が Lexia 復習プールの肢データ源。一方、公式（outputs/000_TX/...）は
         # 過去問そのままの「本物の5択」＝ single / multi を許容する（解法ナビは _lex のみ）。
         is_lex = self.html_path.stem.endswith("_lex")
@@ -891,6 +892,23 @@ class Validator:
             self.err("G34", f".ox-pool-explain に問題都合ラベルが残留: {head}{more}。"
                             "SM2 payload は論点コア・テーゼへ置換する。")
 
+    def g35_fa_narrative_emphasis_weight(self):
+        # v12.1.1 typography patch: story explanation is a rescue reading text.
+        # Bold terms should guide the eye, not become black chunks on iPhone.
+        css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+        m = re.search(r"\.fa-narrative\s+b\s*\{(?P<body>[^}]*)\}", css, re.S)
+        if not m:
+            return
+        body = m.group("body")
+        w = re.search(r"font-weight\s*:\s*(?P<weight>\d+)", body)
+        if not w:
+            return
+        weight = int(w.group("weight"))
+        if weight > 560:
+            self.err("G35", f".fa-narrative b の font-weight が {weight}。"
+                            "v12.1.1 では物語解説の強調は 560 以下にして、"
+                            "モバイルで潰れる太字へ戻さない。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -924,6 +942,7 @@ class Validator:
         self.g32_pool_review_text_symbol_free()
         self.g33_tx_lex_reflex_core_five_tags()
         self.g34_tx360_sm2_payload_contract()
+        self.g35_fa_narrative_emphasis_weight()
 
 
 def main():
@@ -955,7 +974,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G34, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G35, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

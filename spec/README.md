@@ -8,7 +8,7 @@
 
 | ファイル | 用途 |
 |---|---|
-| `tx-v12.1.0-inline-core.md` | TX 現行（v12.1.0 LOOP-CORE）インライン肢カード正典 |
+| `tx-v12.1.0-inline-core.md` | TX 現行（v12.1.1 LOOP-CORE。ファイル名は互換維持）インライン肢カード正典 |
 | `tx-v11.0.0-core.md` | TX 基盤（v12 が継承する肢単位管理・ox-grid 構造骨子） |
 | `tx-v11.1.0-twotrack.md` | TX 二系統（公式5択 / Lexia `_lex`）規律 |
 | `jx-v4.0.0-core.md` | JX 現行（v4.0.0 LOOP-FOLD）構造骨子 |

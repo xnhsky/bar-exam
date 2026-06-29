@@ -64,7 +64,7 @@ def infer_version(path: str, html: str) -> str:
         return "Reference"
     if "/000_TX/" in p:
         m = re.search(r"TX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
-        return f"TX v{m.group(1)} {m.group(2)}" if m else "TX v12.1.0 LOOP-CORE"
+        return f"TX v{m.group(1)} {m.group(2)}" if m else "TX v12.1.1 LOOP-CORE"
     if "/001_JX/" in p:
         m = re.search(r"JX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
         return f"JX v{m.group(1)} {m.group(2)}" if m else "JX v4.0.0 LOOP-FOLD"

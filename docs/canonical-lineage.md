@@ -8,14 +8,14 @@
 
 ## TX（短答式）
 
-### 現行 active ＝ **v12.1.0 LOOP-CORE**（2026-06-29・刑TX360 inline canon を baseline に昇格）
+### 現行 active ＝ **v12.1.1 LOOP-CORE**（2026-06-29・刑TX360 inline canon + typography patch）
 
 | 役割 | canonical | 生成コマンド | validator |
 |---|---|---|---|
-| **コア**（全問生成・周回＋誤答修正が単体完結） | **`canonical/GENESIS-CORE.html`**（v12.1.0） | `/new-tx`（batch-tx・rb 継承） | `scripts/validate-tx-core.py`（G1〜G34） |
+| **コア**（全問生成・周回＋誤答修正が単体完結） | **`canonical/GENESIS-CORE.html`**（v12.1.1） | `/new-tx`（batch-tx・rb 継承） | `scripts/validate-tx-core.py`（G1〜G35） |
 | **別冊**（深掘り・誤答データ解禁時のみ） | **`canonical/GENESIS-DEEP.html`** | `/deepen-tx` | `scripts/validate-tx-deep.py`（D1〜D13） |
 
-- 構造正典 spec：**`spec/tx-v12.1.0-inline-core.md`**（active）。基盤は `spec/tx-v11.0.0-core.md`（肢単位管理）と `spec/tx-v11.1.0-twotrack.md`（公式/ Lexia 二系統）。
+- 構造正典 spec：**`spec/tx-v12.1.0-inline-core.md`**（active。v12.1.1 typography patch を含む）。基盤は `spec/tx-v11.0.0-core.md`（肢単位管理）と `spec/tx-v11.1.0-twotrack.md`（公式/ Lexia 二系統）。
 - 設計の核（v11.0.0 から継承）：肢（記述）単位管理／PART A=ox-grid 5記述○×＋answer-key／記述単位 PART B／参考条文判例
   （保護法益・制度趣旨・判例濃淡）／体系ツリー＋放射マップ2枚／PART C・PART D（12問ドリル）は廃止。
 - **v11.1.0 デザイン進化（刑TX327 昇格・2026-06-15）**：①誌面リスキン（明朝＋極細罫・`--ed-*`・`<style>` §1〜§17）／
@@ -24,7 +24,8 @@
   NOTE 化（条文＝スモークブルー系）／④**3層配色**：大前提＝V3 3パターン基調・PART A 問題解答＝ナチュラルマイルド色・
   それ以外＝4分類パレット役割固定色（§18〜§22 に内蔵＝複製で自動継承・生成時に再選定しない）。正誤○緑/×赤は semantic。
 - **v12.0.0 major（2026-06-29）**：周回主導線を下部 ox-grid から問題文直後の `.tx-inline-card` へ移行。各肢カードに OX、条文原文、文言・趣旨・射程・切断点・転用、記憶フック、答案圧縮、詳説トグルを集約。PART B は独立巡回先ではなく、各肢カードの詳説ソースに格下げ。
-- **v12.1.0 minor（2026-06-29・active）**：TX360 試作で確定した誌面仕上げを正典化。上部5秒トースト、iPhone向け余白、Mildliner 系配色、条文=ブルー/判例=ピンク/補助根拠=グレー、SM2 用 `.ox-pool-explain` ミラー、問題都合ラベルを論点コア・テーゼへ置換する運用を固定。
+- **v12.1.0 minor（2026-06-29）**：TX360 試作で確定した誌面仕上げを正典化。上部5秒トースト、iPhone向け余白、Mildliner 系配色、条文=ブルー/判例=ピンク/補助根拠=グレー、SM2 用 `.ox-pool-explain` ミラー、問題都合ラベルを論点コア・テーゼへ置換する運用を固定。
+- **v12.1.1 patch（2026-06-29・active）**：ストーリー/物語解説の強調太字を軽量化。`.fa-narrative b` は `font-weight:560` 以下を正典化し、モバイルで潰れる700系の太字へ戻さない。validator G35 で回帰を止める。
 - Lexia 連携：間違えた肢を `{問題ID}#stmt-{記述}` で要復習プール＋弱点克服帳へ。
 
 ### 世代の系譜（frozen / legacy）
@@ -34,7 +35,7 @@
 | v8/v9 | `canonical/KTX301.html` | v8.11.x／v9.0.0-genkei／v9.1.0-mindmap／v9.2.0-deepdive | **legacy** | 構造参考のみ。本文流用は AP-42 違反 |
 | v10 | `canonical/GENESIS.html` | v10.0.0 GOLD-SKELETON | **凍結** | 刑TX311 ベース。既存197問（v10）の保守用。`validate-tx-gold.py`(G1〜G19)・`validate-tx.py`(legacy S1〜S91) |
 | **v11** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v11.1.0 LOOP-CORE**（v11.0.0→2026-06-15 刑TX327 昇格） | **frozen** | GENESIS を再編して CORE/DEEP に分割。v11.1.0 で誌面リスキン＋3層配色＋SYNTHESIS子カード＋PART B+ |
-| **v12** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v12.1.0 LOOP-CORE**（v12.0.0 major→v12.1.0 TX360 polish） | **active** | 問題文直後のインライン肢カードを主導線にし、PART B を詳説トグルへ吸収。Lexia/SM2 は裏 ox-grid と `.ox-pool-explain` を単一情報源にする |
+| **v12** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v12.1.1 LOOP-CORE**（v12.0.0 major→v12.1.0 TX360 polish→v12.1.1 narrative typography） | **active** | 問題文直後のインライン肢カードを主導線にし、PART B を詳説トグルへ吸収。Lexia/SM2 は裏 ox-grid と `.ox-pool-explain` を単一情報源にする |
 
 > **「GENESIS」名の整理**：無印 `GENESIS.html` ＝ **v10 凍結**。新規生成の起点は **`GENESIS-CORE`／`GENESIS-DEEP`**。
 > 改名はしない（spec・validator・commands・CLAUDE.md に配線済みで churn のみ）。曖昧さは本表で解消する。
@@ -87,7 +88,7 @@
 
 | script | 対象 | チェック |
 |---|---|---|
-| `validate-tx-core.py` | TX v11/v12 コア | G1〜G34 |
+| `validate-tx-core.py` | TX v11/v12 コア | G1〜G35 |
 | `validate-tx-deep.py` | TX v11 別冊 | D1〜D13 |
 | `validate-tx-gold.py` | TX v10 | G1〜G19（legacy 保守） |
 | `validate-tx.py` | TX v8.x〜v9.x | S1〜S91（legacy） |
@@ -103,7 +104,7 @@
 
 ```
 spec/
-  tx-v12.1.0-inline-core.md ← TX 現行
+  tx-v12.1.0-inline-core.md ← TX 現行（v12.1.1 typography patch 含む）
   tx-v11.0.0-core.md     ← TX 基盤（v12 が継承）
   tx-v11.1.0-twotrack.md ← TX 二系統（v12 が継承）
   jx-v3.2-master.md      ← JX 現行運用
