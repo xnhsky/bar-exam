@@ -9,25 +9,23 @@ set -uo pipefail
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
 TARGET="${BAREXAM_CODEX_ROOT:-C:/Users/xnrg2.DESKTOP-5664QR6/bar-exam-codex}"
 SCRIPT="$ROOT/scripts/sync-repo-from-master.ps1"
-LOGDIR="$ROOT/logs"
+LAUNCHER="$ROOT/scripts/start-repo-sync.ps1"
 
-pwsh_bin="$(command -v pwsh || command -v powershell.exe || command -v powershell || true)"
-if [[ -z "$pwsh_bin" || ! -f "$SCRIPT" ]]; then
+powershell_bin="$(command -v powershell.exe || command -v powershell || true)"
+if [[ -z "$powershell_bin" || ! -f "$SCRIPT" || ! -f "$LAUNCHER" ]]; then
   exit 0
 fi
 
-mkdir -p "$LOGDIR" 2>/dev/null || true
-
 while read -r local_ref local_sha remote_ref remote_sha; do
   if [[ "$remote_ref" == "refs/heads/master" && "$local_sha" != "0000000000000000000000000000000000000000" ]]; then
-    nohup "$pwsh_bin" -NoProfile -ExecutionPolicy Bypass \
-      -File "$SCRIPT" \
+    "$powershell_bin" -NoProfile -ExecutionPolicy Bypass \
+      -File "$LAUNCHER" \
+      -SyncScript "$SCRIPT" \
       -ProjectRoot "$TARGET" \
       -Remote origin \
       -Branch master \
       -WaitForSha "$local_sha" \
-      -TimeoutSec 240 \
-      >> "$LOGDIR/post-push-sync-codex.log" 2>&1 &
+      -TimeoutSec 240 >/dev/null 2>&1 || true
   fi
 done
 

@@ -89,7 +89,7 @@ if ($status.Count -gt 0) {
 
 $currentBranch = (Invoke-RepoGit branch --show-current 2>$null).Trim()
 if ($currentBranch -ne $Branch) {
-  $localBranch = (Invoke-RepoGit branch --list $Branch 2>$null).Trim()
+  $localBranch = (@(Invoke-RepoGit branch --list $Branch 2>$null) -join "`n").Trim()
   if ([string]::IsNullOrWhiteSpace($localBranch)) {
     Invoke-RepoGit switch -c $Branch --track $remoteRef
   } else {
