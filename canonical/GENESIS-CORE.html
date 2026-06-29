@@ -1675,18 +1675,18 @@ blockquote{
 .tx-inline-verdict{ display:none; min-width:4.8em; font-weight:800; font-family:var(--ed-serif); }
 .tx-inline-card.revealed .tx-inline-verdict{ display:inline-block; }
 .tx-inline-explain{
-  margin:18px 0 0; padding:16px 18px; border:1px solid #e2d2c1; border-radius:10px;
+  margin:18px 0 0; padding:16px 18px; border:1px solid rgba(226,210,193,.62); border-radius:10px;
   background:linear-gradient(180deg,#fffefb 0%,#fff9ef 100%);
 }
 .tx-inline-explain[hidden]{ display:none !important; }
 .tx-mini-law{
-  display:grid; gap:10px; margin:0 0 14px; padding:14px; border-left:5px solid #7fb1c8;
-  background:#eaf5fb; border-radius:8px;
+  display:grid; gap:10px; margin:0 0 14px; padding:0; border:0;
+  background:transparent; border-radius:0;
 }
-.tx-law-item{ padding:12px 14px; border:0; border-left:4px solid #8eb8d1; border-radius:7px; background:rgba(249,252,255,.78); }
-.tx-law-item.is-main{ background:#dceef9; border-left-color:#4d83a3; box-shadow:0 2px 7px rgba(77,131,163,.08); }
-.tx-law-item.is-support{ background:#edf4f8; }
-.tx-law-item.is-context{ background:#f1f3f5; border-left-color:#aeb8c1; }
+.tx-law-item{ padding:12px 14px; border:1px solid rgba(152,177,199,.28); border-radius:7px; background:rgba(249,252,255,.78); }
+.tx-law-item.is-main{ background:#dceef9; border-color:rgba(90,139,176,.34); box-shadow:0 2px 7px rgba(77,131,163,.08); }
+.tx-law-item.is-support{ background:#edf4f8; border-color:rgba(165,178,192,.30); }
+.tx-law-item.is-context{ background:#f1f3f5; border-color:rgba(184,195,205,.28); }
 .tx-mini-law-title{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 8px; color:#234e75; font-weight:800; }
 .tx-mini-law-code,.tx-mini-law-article{
   display:inline-flex; align-items:center; justify-content:center; padding:2px 11px 3px;
@@ -1699,10 +1699,10 @@ blockquote{
 .tx-article-flow{ display:grid; gap:10px; }
 .tx-article-flow > p{
   display:grid; grid-template-columns:9.2em minmax(0,1fr); gap:14px; align-items:start;
-  margin:0; padding:12px 14px; border:1px solid #eee4cf; border-left:3px solid #e0c75a;
+  margin:0; padding:12px 14px; border:1px solid rgba(222,199,95,.36);
   border-radius:8px; background:linear-gradient(180deg,#fffbe9 0%,#fffef8 100%);
 }
-.tx-article-flow > p:has(.tx-flow-label.is-cut){ border-color:#f0c7ce; border-left-color:#e58b98; background:linear-gradient(180deg,#fff0f3 0%,#fffafa 100%); }
+.tx-article-flow > p:has(.tx-flow-label.is-cut){ border-color:rgba(224,126,148,.36); background:linear-gradient(180deg,#fff0f3 0%,#fffafa 100%); }
 .tx-flow-label{
   display:inline-flex; justify-content:center; align-items:center; min-height:30px;
   padding:2px 12px 3px; border:1px solid #e0c75a; border-radius:999px;
@@ -1714,10 +1714,10 @@ blockquote{
 .tx-flow-label.is-cut + .tx-flow-body{ color:#4a3036; }
 .tx-cycle-aids{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:4px 0 2px; }
 .tx-cycle-aids p{
-  position:relative; margin:0; padding:36px 14px 14px; border:1px solid #dacff0;
-  border-left:4px solid #a495d8; border-radius:8px; background:#f4effd;
+  position:relative; margin:0; padding:36px 14px 14px; border:1px solid rgba(166,139,207,.34);
+  border-radius:8px; background:#f4effd;
 }
-.tx-cycle-aids p:has(.tx-cycle-label.is-compress){ border-color:#f0c7d3; border-left-color:#e79aad; background:#fff1f5; }
+.tx-cycle-aids p:has(.tx-cycle-label.is-compress){ border-color:rgba(222,128,163,.34); background:#fff1f5; }
 .tx-cycle-label{
   position:absolute; top:-11px; left:12px; display:inline-flex; align-items:center;
   min-height:28px; padding:2px 13px 3px; border:1px solid #cbbdea; border-radius:999px;
@@ -1751,6 +1751,14 @@ blockquote{
 .tx-inline-browse-btn{ background:#fff; color:#a45a5d; margin-right:8px; }
 .tx-inline-browse-btn[aria-expanded="true"]{ background:#fff1f1; }
 .tx-inline-reveal-btn:disabled{ opacity:.45; cursor:not-allowed; }
+.tx-inline-result{
+  display:inline-flex; align-items:center; justify-content:center; min-height:36px;
+  padding:3px 14px; border:1px solid transparent; border-radius:999px;
+  font-family:var(--font-soft); font-weight:900; letter-spacing:.04em; text-indent:.04em;
+}
+.tx-inline-result[hidden]{ display:none !important; }
+.tx-inline-result.is-correct{ background:#e8f5e9; border-color:#8fca98; color:#2f7440; }
+.tx-inline-result.is-incorrect{ background:#fff0f3; border-color:#e7a5b1; color:#9a4655; }
 .answer-area.inline-prototype-mode .answer-instruction,
 .answer-area.inline-prototype-mode .answer-ox-grid,
 .answer-area.inline-prototype-mode > .reveal-answer-btn,
@@ -4068,6 +4076,27 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     var rb = area.querySelector('.reveal-answer-btn');
     inlineBtn.disabled = !rb || rb.disabled || area.classList.contains('answered');
   }
+  function setInlineResult(ok, correct){
+    var panel = document.querySelector('.tx-inline-reveal-panel');
+    if (!panel) return;
+    var result = panel.querySelector('.tx-inline-result');
+    if (!result) {
+      result = document.createElement('span');
+      result.className = 'tx-inline-result';
+      panel.appendChild(result);
+    }
+    result.hidden = false;
+    result.classList.toggle('is-correct', !!ok);
+    result.classList.toggle('is-incorrect', !ok);
+    result.textContent = ok ? '正解' : '不正解　正答：' + (correct || '');
+  }
+  function clearInlineResult(){
+    document.querySelectorAll('.tx-inline-result').forEach(function(result){
+      result.hidden = true;
+      result.classList.remove('is-correct','is-incorrect');
+      result.textContent = '';
+    });
+  }
   function updateRevealBtnState(area){
     if (!area) return;
     var type = getAnswerType(area);
@@ -4232,6 +4261,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
         fa.setAttribute('hidden','');
         fa.classList.remove('revealed');
       }
+      clearInlineResult();
     }
     setInlineBrowseState(false);
   }
@@ -4357,6 +4387,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
         fb.innerHTML = '<strong class="fb-verdict fb-incorrect">✗ 不正解</strong>　正解は<span class="fb-answer">' + escapeHTML(correct) + '</span>';
       }
     }
+    setInlineResult(ok, correct);
     revealFinalAnswer();
     revealInlineExplanations(area);
     area.classList.add('answered');
