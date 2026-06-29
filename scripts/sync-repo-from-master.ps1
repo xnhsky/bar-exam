@@ -23,6 +23,12 @@ param(
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+# Git hooks export repository-specific environment variables. If they leak into
+# this helper, `git -C <other clone>` can still resolve against the pushing repo.
+foreach ($name in @('GIT_DIR', 'GIT_WORK_TREE', 'GIT_INDEX_FILE', 'GIT_PREFIX')) {
+  Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
+}
+
 function Say([string]$Message, [string]$Color = 'Gray') {
   $line = "[repo-sync $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')] $Message"
   if (-not $Quiet) { Write-Host $line -ForegroundColor $Color }
