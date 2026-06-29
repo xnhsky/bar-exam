@@ -170,6 +170,7 @@ ARIADNE v1.2.0 PLACEHOLDER-LOCK（`canonical/ARIADNE.html`＋`canonical/ARIADNE.
 
 - A30: 問題文 `.problem .pq` の本文1字下げ。`text-indent:0` への退行を ERROR。
 - A31: 拾う文言 `.facts li` の近接2カラム、人物関係図/拾う文言カードの固定配置、`.cue` 先頭の不要な `...` / `…`。旧ワイド2カラムや非正典配置を ERROR。
+- A32: 照合カード `.collate`、模範答案 `details.reveal-answer`、深掘り `details#deep-dive` を骨子コンテナ `.skeleton` 内に固定。背景上の外置き・旧幅調整CSSを ERROR。
 - A29: 想起カード `data-rx` の科目/JX整合と参照先RX実在。
 - slot contract: `canonical/ARIADNE.placeholder.html` の v1.2.0 marker と `{{{...}}}` スロット存在。
 

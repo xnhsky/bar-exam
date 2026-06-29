@@ -31,7 +31,7 @@
      各ステップ＝`.do`（次にやること）＋`details.peek`（▶自分で1つ→確認）＋周回ドリル○×。**ORDER・BRIDGE を含め各ステップに `💡 box-tip` のコツ箱を1つ**（凸凹なく）。
      チェックポイント＝論点には `.tag-issue`＋1行の超短定義を併記（初学者が deep を開かず1周できるよう）。
    - **骨子**（`.bone.matrix-bone`）＝第1/第2/…の番号＋見出しを、JX019正典の**マトリクス型**で作る。各行は `.mrow`、本文は `.mcell`、中身は `.mline` に分け、ラベルは `.mstage q/r/a/c/cut`（問・論・規・当・結・削）、本文は `.mtext`。違法性・責任は必要な場合だけ一言で通過し、無理に独立行を作らない。**構造は {SLOT_CONTRACT} の許容断片から外れないこと。**
-   - **照合・自己採点**（`.rubric`）＝採点講評の減点ポイントを☐リスト化（**AI採点に依存しない**）。
+   - **照合・自己採点**（`.rubric`）＝採点講評の減点ポイントを☐リスト化（**AI採点に依存しない**）。`.collate`、`details.reveal-answer`、`details#deep-dive` は骨子コンテナ `.skeleton` の内側に置く。背景上へ外置きしない。
    - **模範答案**（`details.reveal-answer`）＝JX 模範を簡潔化して収録（字下げ・明朝）。**各段落 `<p>` に問規当結の役割クラスを付与**（spec §10）：問題提起=`class="role r-issue"`／規範=`class="role r-norm"`（説名は `<b class="rule">`）／あてはめ=`class="role r-apply"`／結論=`class="role r-concl"`（`.ma-h` 見出しには付けない）。あてはめ段落では **事実=`<span class="fact">`（生の事実）／評価語=`<span class="eval">`（「現実的危険を有する」等の橋渡し評価）** を括る。CSS は canonical 継承。
    - **深掘り層**（`details#deep-dive`）＝**アテナ級**に鋳造（spec §11）。判例・学説・条文は **TX 参考条文判例書式**で：
      ①規範（`.box-norm`）②学説対立（`.gakusetsu > .gk`・本問採用説に `.gk.adopt`）③**判例 完全プロファイル**
@@ -56,7 +56,7 @@
    - 設問文を Lexia メタ除去 regex（`(本問|本設問)[0-20字]正解｜正解は肢｜正解はどれ｜正解の組`）に当てない。
    - `<script>` 内に `</body>` リテラルを書かない（「`</`+`body>`」等で回避）。
 5. **体裁強化を冪等付与（必須）**：`python scripts/ariadne-enhance.py {OUT}`（①深層部 条文の「N項」バッジ化＋項を点線区切り／③マストヘッド目次ジャンプTOC／④各セクション区切り＋深掘り前に「▲先頭へ戻る」）→ `python scripts/ariadne-autolink.py {OUT}`（②本文インライン相互リンク＝条文・判例・学説・用語を語そのままリンク・解法ナビ⇄深層部・カード間相互）。両者**冪等**。
-6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A31 ERROR 0**。ERROR は該当部を修正して再検証。
+6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A32 ERROR 0**。ERROR は該当部を修正して再検証。
 7. **完了 sentinel を echo**（下記節のいずれか1つ）してから終了。本文は返さない。
 
 ## 注意
@@ -68,7 +68,7 @@
 
 ## 完了 sentinel（必ず 1 つだけ echo して終了）
 
-**完全成功時（validate A1〜A31 ERROR 0）：**
+**完全成功時（validate A1〜A32 ERROR 0）：**
 ```
 echo "BATCH_ITEM_COMPLETED:{PROBLEM_ID}-ARIADNE"
 ```

@@ -20,7 +20,7 @@ C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-codex で作業してください。
 - active slot contract: canonical/ARIADNE.placeholder.html
 - active spec: spec/jx-ariadne-v1.2.0-core.md
 - generator prompt: prompts/new-ariadne-headless.md
-- validator: scripts/validate-ariadne.py A1-A31
+- validator: scripts/validate-ariadne.py A1-A32
 
 目的:
 今後の ARIADNE 生成・改修は、Claude 正典の模範答案を維持したまま、JX019 型のマトリクス答案構成を正典として使う。JX から答案構成、想起、RX 論証カード、TREE 樹形図へ自然に回れる学習導線を維持・強化する。
@@ -52,12 +52,14 @@ C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-codex で作業してください。
 - 旧ワイド2カラムは禁止:
   `grid-template-columns:minmax(24em,1.35fr) minmax(18em,1fr); column-gap:24px`
 - 骨子の `.mline + .mline` と拾う文言の項目間には点線区切りを入れる。
+- 照合カード `.collate`、模範答案 `details.reveal-answer`、深掘り `details#deep-dive` は骨子コンテナ `.skeleton` の内側に置く。背景上へ外置きしない。
 - ラベル色は正典のマイルドライナー系を使う。難易度に応じた既存 ACTIVE ベースカラー（EASY/STD/HARD）の選択だけAI判断可。機能色や新色の創作は禁止。
 
 恒久対策:
 - validate-ariadne.py A29: `data-rx` の科目/JX整合と参照先RX実在を確認。
 - validate-ariadne.py A30: `.problem .pq` の `text-indent:0` 退行を ERROR。
 - validate-ariadne.py A31: `.facts li` の旧ワイド2カラム・非正典2カラム、人物関係図/拾う文言の全幅配置ミス、`.cue` 先頭の `...` / `…` を ERROR。
+- validate-ariadne.py A32: `.collate`、`details.reveal-answer`、`details#deep-dive` の背景上外置き・旧幅調整CSSを ERROR。
 - check-ariadne-canonical.py は canonical、slot contract、全 ARIADNE 出力を横断検証する。
 - check-lexia-preflight.py は ARIADNE canonical guard と RX coverage を含む。
 - jx-finalize.ps1 / jx-push.sh は commit/push 前に ARIADNE 正典ガードを通す。

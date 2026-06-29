@@ -10,7 +10,7 @@
 - Active ARIADNE spec: `spec/jx-ariadne-v1.2.0-core.md`
 - Active version name: **ARIADNE v1.2.0 PLACEHOLDER-LOCK**
 - Generator prompt: `prompts/new-ariadne-headless.md`
-- Primary validator: `scripts/validate-ariadne.py` A1-A31
+- Primary validator: `scripts/validate-ariadne.py` A1-A32
 - Cross-file guard: `scripts/check-ariadne-canonical.py`
 - Preflight route: `scripts/check-lexia-preflight.py`
 
@@ -144,6 +144,7 @@ Text rules:
 - A29: recall-card `data-rx` format and RX existence.
 - A30: `.problem .pq` indentation guard.
 - A31: facts compact columns, draft-card full-width placement, and no leading ellipsis in facts cue text.
+- A32: `.collate`, `details.reveal-answer`, and `details#deep-dive` stay inside the `.skeleton` container; old outside-width CSS is forbidden.
 
 `scripts/check-ariadne-canonical.py`:
 

@@ -344,6 +344,46 @@ def main():
     else:
         P('A31', '拾う文言2カラムは正典近接型＋下書き構造固定')
 
+    # ---- A32 正典回帰防止（照合〜深掘りを骨子コンテナ内へ固定・2026-06-30）----
+    # 自己採点・模範答案 reveal・深掘りは、背景上に浮かせず骨子コンテナ内に収める。
+    a32_errors = []
+    collate_rule = re.search(r'\.collate\{[^}]*\}', html)
+    reveal_rule = re.search(r'details\.reveal-answer\{[^}]*\}', html)
+    collate_css = re.sub(r'\s+', '', collate_rule.group(0)) if collate_rule else ''
+    reveal_css = re.sub(r'\s+', '', reveal_rule.group(0)) if reveal_rule else ''
+    self_idx = html.find('<!-- 照合・自己採点 -->')
+    deep_idx = html.find('<!-- 深掘り -->')
+    main_idx = html.find('</main>', deep_idx if deep_idx >= 0 else 0)
+    if not collate_css:
+        a32_errors.append('照合カード(.collate)のCSSが見つからない')
+    elif 'max-width:calc(var(--maxw)-120px)' in collate_css or 'width:100%' in collate_css:
+        a32_errors.append('照合カード(.collate)が旧・外置き幅調整CSSのまま')
+    elif 'margin:0014px' not in collate_css:
+        a32_errors.append('照合カード(.collate)が骨子コンテナ内の正典余白でない')
+    if not reveal_css:
+        a32_errors.append('模範答案reveal(details.reveal-answer)のCSSが見つからない')
+    elif 'max-width:calc(var(--maxw)-120px)' in reveal_css or 'width:100%' in reveal_css:
+        a32_errors.append('模範答案revealが旧・外置き幅調整CSSのまま')
+    elif 'margin:14px00' not in reveal_css:
+        a32_errors.append('模範答案revealが骨子コンテナ内の正典余白でない')
+    if '.skeleton-check-sep{' not in html or '<div class="skeleton-check-sep"></div>' not in html:
+        a32_errors.append('照合前の骨子コンテナ内セパレータ(.skeleton-check-sep)がない')
+    if self_idx < 0 or deep_idx < 0 or self_idx > deep_idx or main_idx < 0:
+        a32_errors.append('照合セクションと深掘りセクションの順序が確認できない')
+    else:
+        between_self_deep = html[self_idx:deep_idx]
+        deep_to_main = html[deep_idx:main_idx + len('</main>')]
+        if '\n\n  </div>\n\n  <div class="to-top"><a href="#top">▲ 先頭へ戻る</a></div>\n  <!-- 深掘り -->' in between_self_deep:
+            a32_errors.append('深掘り前に骨子コンテナが閉じている')
+        if '\n\n  </div>\n\n  <!-- 深掘り -->' in between_self_deep:
+            a32_errors.append('深掘り前に骨子コンテナが閉じている')
+        if '</details>\n\n  </div>\n\n  </main>' not in deep_to_main:
+            a32_errors.append('深掘り終了後に骨子コンテナが閉じられていない')
+    if a32_errors:
+        E('A32', ' / '.join(a32_errors))
+    else:
+        P('A32', '照合・模範答案・深掘りは骨子コンテナ内に固定')
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")

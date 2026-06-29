@@ -70,7 +70,7 @@
 |---|---|---|---|
 | **RX**（論証カード・1論点1HTML） | **`canonical/AXIOM.html`**（v1.0・2026-06-20 新設） | `prompts/new-rx-headless.md`（複製方式） | `scripts/validate-rx.py`（R1〜R10） |
 | **TREE**（樹形図・ARBOR 仕様） | `canonical/ARBOR.html`（gold TREE 複製） | `prompts/new-arb-headless.md` | `scripts/validate-tree.py`（T1〜T9） |
-| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（v1.2.0 PLACEHOLDER-LOCK・2026-06-29 active） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A31）＋`scripts/check-ariadne-canonical.py` |
+| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（v1.2.0 PLACEHOLDER-LOCK・2026-06-29 active） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A32）＋`scripts/check-ariadne-canonical.py` |
 
 - **AXIOM（RX 正典・2026-06-20）**：従来 RX は正典を持たず自由生成で CSS が 58 種に割れていた。
   gold 刑RX001_1 を基に AXIOM を新設し、**作り込みフォント（TX/JX と同一 Google Fonts）・規範レモン
@@ -80,7 +80,7 @@
   v1.1.0 を継承し、さらに **固定HTML＋変数スロット**方式を active にする。`canonical/ARIADNE.html` は
   DOM/CSS/JS/余白/機能色の固定正典、`canonical/ARIADNE.placeholder.html` は AI が置換してよい `{{{...}}}`
   スロット契約。模範答案は Claude 正典の問規当結カードを維持する。AI判断可のデザイン差分は既存
-  ACTIVE ベースカラー（EASY/STD/HARD）の難易度選択のみ。恒久対策は `validate-ariadne.py` A30/A31 と
+  ACTIVE ベースカラー（EASY/STD/HARD）の難易度選択のみ。恒久対策は `validate-ariadne.py` A30/A31/A32 と
   `check-ariadne-canonical.py`、同期前 `check-lexia-preflight.py` に組込み済み。
 - 詳細は **`docs/rx-arb-byproducts.md`**（副産物の正典）。
 
@@ -96,7 +96,7 @@
 | `validate-tx.py` | TX v8.x〜v9.x | S1〜S91（legacy） |
 | `validate-jx.py` | JX | J1〜J21＋JC1〜JD1(v4)＋JSB（タグ均衡） |
 | `validate-rx.py` / `validate-tts.py` | RX論証 / TTS台本 | 各系 |
-| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A31／canonical＋全出力横断 |
+| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A32／canonical＋全出力横断 |
 
 ---
 
