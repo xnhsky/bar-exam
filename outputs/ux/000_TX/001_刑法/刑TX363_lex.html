@@ -42,10 +42,10 @@
    文字色は 白・黒・黒寄りグレー から雰囲気で AI 判断
    出典: docs/palette-v3_2.pdf / memory/reference_palette_v3.md
    ============================================================ */
-/* === §5 V3 P1 Antique Pearl (palette ID: 09) ─ 刑TX363 配色 ===
+/* === §5 V3 P1 Antique Pearl (palette ID: 09) ─ 刑TX363 放火罪の基本概念 ===
+   正答率 80% → P1（≥ 60%）／落ち着いた基本概念の整理問題＝重厚な mauve で品よく
    役割割当て: ベース 70% / メイン 25% / アクセント 5% / サブ × 2
-   palette identity chip 1 #D4B5C4 は --accent-light で保存
-   正答率 80%（P1）・放火罪の基本概念＝落ち着いた mauve で重厚感を出す */
+   palette identity chip 1 #D4B5C4 は --accent-light で保存・base は全問固定 #F7F1E9 */
 :root{
   --accent:        #A07895;        /* メイン (25%) - dark mauve - header bg / link / branded */
   --accent-rgb:    160,120,149;
@@ -53,7 +53,7 @@
   --mid-rgb:       126,169,169;
 
   --light:         #E8E4DC;        /* サブ 2 - cream - 補助 surface */
-  --base:          #F7F1E9;        /* ベース (70%) - pale pink - 全体 surface */
+  --base:          #F7F1E9;        /* ベース (70%) - 全問固定クリーム - 全体 surface */
   --soft:          #E8E2EC;        /* サブ 1 - pale lavender - card 枠 */
   --paper:         #FFFFFF;        /* 純白 - UI neutral */
   --text:          #2E2530;        /* dark purple-gray - 本文 (legibility) */
@@ -950,14 +950,812 @@ section[id^="c-"] > h3{
   letter-spacing:.02em;
 }
 .choice-num-inline{
-  display:inline-block;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
   width:24px; height:24px;
+  box-sizing:border-box;
+  padding:0;
   background:var(--accent); color:#fff;
   border-radius:50%;
   font-family:var(--font-mono);
   font-weight:700; font-size:.86em;
-  text-align:center; line-height:24px;
-  margin-right:8px; vertical-align:1px;
+  line-height:1;
+  letter-spacing:0;
+  text-align:center;
+  text-indent:0;
+  margin-top:.42em;
+  margin-right:0;
+  vertical-align:1px;
+}
+.tx-inline-judge-list{
+  display:grid;
+  gap:16px;
+  margin:20px 0 22px;
+}
+.tx-inline-card{
+  position:relative;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(255,252,244,.96) 100%),
+    repeating-linear-gradient(0deg,rgba(80,55,35,.032) 0,rgba(80,55,35,.032) 1px,transparent 1px,transparent 7px);
+  border:1px solid rgba(142,83,78,.44);
+  border-left:6px solid var(--accent);
+  border-radius:8px;
+  padding:18px 20px 18px 20px;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.92) inset,
+    0 0 0 1px rgba(255,255,255,.70),
+    0 8px 20px rgba(74,42,36,.13);
+  overflow:hidden;
+}
+.tx-inline-card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(255,255,255,.58) 0%,transparent 18%,transparent 82%,rgba(80,45,38,.035) 100%),
+    radial-gradient(circle at 12% 0%,rgba(255,255,255,.46),transparent 34%);
+  mix-blend-mode:multiply;
+}
+.tx-inline-card.is-correct{
+  border-left-color:var(--recall-correct-light);
+  box-shadow:0 0 0 1px rgba(46,125,50,.20),0 8px 20px rgba(46,125,50,.11);
+}
+.tx-inline-card.is-incorrect{
+  border-left-color:var(--recall-incorrect);
+  box-shadow:0 0 0 1px rgba(176,0,50,.18),0 8px 20px rgba(176,0,50,.12);
+}
+.tx-inline-head{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:14px;
+  align-items:start;
+}
+.tx-inline-stmt{
+  position:relative;
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr);
+  column-gap:10px;
+  align-items:start;
+  font-family:var(--font-quote);
+  font-weight:520;
+  line-height:2.02;
+  letter-spacing:.02em;
+  margin:0;
+}
+.tx-inline-stmt-text{
+  display:block;
+  min-width:0;
+}
+.tx-inline-actions{
+  position:relative;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  white-space:nowrap;
+}
+.tx-inline-ox{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:48px;
+  height:38px;
+  padding:0 12px;
+  border-radius:7px;
+  border:2px solid var(--accent);
+  background:#fff;
+  color:var(--accent);
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:1em;
+  cursor:pointer;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s,color .15s;
+}
+.tx-inline-ox:hover:not(:disabled){
+  transform:translateY(-1px);
+  box-shadow:0 2px 6px rgba(var(--accent-rgb),.18);
+}
+.tx-inline-ox.selected{
+  background:var(--accent);
+  color:#fff;
+  box-shadow:0 0 0 3px rgba(var(--accent-rgb),.18);
+}
+.tx-inline-ox.correct-mark{
+  background:var(--recall-correct);
+  color:#fff;
+  border-color:var(--recall-correct);
+}
+.tx-inline-ox.incorrect-mark{
+  background:var(--recall-incorrect);
+  color:#fff;
+  border-color:var(--recall-incorrect);
+}
+.tx-inline-verdict{
+  display:none;
+  margin-left:4px;
+  font-family:var(--font-display);
+  font-weight:800;
+  letter-spacing:.04em;
+}
+.tx-inline-card.revealed .tx-inline-verdict{ display:inline-block; }
+.tx-inline-card.is-correct .tx-inline-verdict{ color:var(--recall-correct-light); }
+.tx-inline-card.is-incorrect .tx-inline-verdict{ color:var(--recall-incorrect); }
+.tx-inline-explain{
+  position:relative;
+  margin-top:16px;
+  padding:20px 20px 18px;
+  background:linear-gradient(180deg,rgba(255,253,247,.98) 0%,rgba(250,246,236,.98) 100%);
+  border:1px solid rgba(133,98,78,.22);
+  border-radius:8px;
+  font-family:var(--font-answer);
+  line-height:1.94;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.90) inset,
+    0 8px 20px rgba(74,42,36,.08);
+}
+.tx-inline-explain[hidden]{ display:none !important; }
+.tx-mini-law{
+  margin:0 0 12px;
+  display:grid;
+  gap:10px;
+  position:relative;
+  padding:22px 0 10px;
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+}
+.tx-mini-law::before{
+  content:'条文原文';
+  position:absolute;
+  top:-11px;
+  left:18px;
+  display:inline-flex;
+  align-items:center;
+  min-height:22px;
+  padding:1px 12px 2px;
+  border:1px solid #b9d1e9;
+  border-radius:999px;
+  background:#f8fcff;
+  color:#315a86;
+  font-family:var(--font-soft);
+  font-size:.82em;
+  font-weight:900;
+  letter-spacing:.04em;
+  box-shadow:0 2px 5px rgba(40,70,122,.09);
+}
+.tx-law-item{
+  padding:12px 14px 12px 18px;
+  border-radius:6px;
+  border:1px solid rgba(152,177,199,.28);
+  background:rgba(255,255,255,.62);
+  box-shadow:none;
+}
+.tx-law-item.is-main{
+  background:linear-gradient(180deg,#dcedfb 0%,#c5def5 100%);
+  border-color:rgba(90,139,176,.34);
+  box-shadow:0 2px 7px rgba(77,131,163,.08);
+}
+.tx-law-item.is-support{
+  background:linear-gradient(180deg,#f3f5f8 0%,#eceff3 100%);
+  border-color:rgba(165,178,192,.30);
+}
+.tx-law-item.is-context{
+  background:linear-gradient(180deg,#fafbfc 0%,#f2f4f6 100%);
+  border-color:rgba(184,195,205,.28);
+}
+.tx-law-item.is-case{
+  background:linear-gradient(180deg,#fff2f4 0%,#fde5e8 100%);
+  border-color:rgba(212,136,148,.26);
+}
+.tx-mini-law-title{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin:0 0 7px;
+  font-family:var(--font-soft);
+  font-weight:900;
+  color:#28467a;
+  letter-spacing:.04em;
+  text-indent:0;
+}
+.tx-mini-law-code,
+.tx-mini-law-article{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:28px;
+  padding:2px 12px 3px;
+  border-radius:999px;
+  border:1px solid #cbd9e9;
+  background:rgba(255,255,255,.66);
+  font-family:var(--font-soft);
+  font-size:.92em;
+  font-weight:800;
+  letter-spacing:.02em;
+  text-indent:0;
+  line-height:1.2;
+}
+.tx-mini-law-code{
+  color:#62738a;
+}
+.tx-mini-law-article{
+  color:#28467a;
+  border-color:#bfd3ec;
+  background:rgba(255,255,255,.78);
+}
+.tx-mini-law-text{
+  display:block;
+  margin-top:4px;
+  padding-left:24px;
+  font-family:var(--font-quote);
+  font-weight:720;
+  line-height:1.88;
+  color:#2e4953;
+  text-indent:1em;
+}
+.tx-article-flow{
+  display:grid;
+  gap:10px;
+  margin:0;
+}
+.tx-article-flow > p{
+  display:grid;
+  grid-template-columns:6.4em minmax(0,1fr);
+  column-gap:16px;
+  align-items:start;
+  margin:0;
+  padding:10px 14px 10px 0;
+  padding-left:0 !important;
+  border:1px solid rgba(222,199,95,.36);
+  border-radius:6px;
+  background:linear-gradient(180deg,rgba(255,252,219,.96) 0%,rgba(255,250,203,.88) 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.82) inset,
+    0 2px 6px rgba(143,116,22,.035);
+  text-indent:0 !important;
+}
+.tx-article-flow > p:nth-child(4){
+  border-color:rgba(224,126,148,.36);
+  background:linear-gradient(180deg,rgba(255,239,244,.96) 0%,rgba(255,247,250,.88) 100%);
+}
+.tx-article-flow .tx-flow-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:6.4em;
+  min-width:6.4em;
+  box-sizing:border-box;
+  margin:0;
+  padding:2px 9px 3px;
+  border-radius:999px;
+  background:linear-gradient(180deg,#fff2a8 0%,#ffe785 100%);
+  border:1px solid #dccb67;
+  color:#6e5410;
+  font-family:var(--font-soft);
+  font-weight:800;
+  text-align:center;
+  letter-spacing:.22em;
+  text-indent:.22em !important;
+  line-height:1.25;
+  white-space:nowrap;
+  vertical-align:.05em;
+  box-shadow:0 1px 0 rgba(255,255,255,.74) inset;
+}
+.tx-article-flow .tx-flow-label.is-cut{
+  background:linear-gradient(180deg,#ffdce5 0%,#f8cad7 100%);
+  border-color:#e093a6;
+  color:#8a1f1f;
+  letter-spacing:.04em;
+  text-indent:.04em !important;
+}
+.tx-article-flow .tx-flow-body{
+  display:block;
+  min-width:0;
+  padding:2px 0 2px 12px;
+  color:#2e4953;
+  font-weight:520;
+  line-height:1.96;
+  text-indent:1em;
+}
+.tx-cycle-aids{
+  display:grid;
+  gap:18px;
+  margin:18px 0 0 calc(6.4em + 16px);
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+.tx-cycle-aids p{
+  display:block;
+  position:relative;
+  margin:0;
+  padding:34px 22px 18px 26px;
+  border:1px solid rgba(166,139,207,.34);
+  border-radius:6px;
+  background:linear-gradient(180deg,rgba(245,241,252,.96) 0%,rgba(250,248,255,.92) 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.88) inset,
+    0 4px 11px rgba(102,76,150,.08);
+  text-indent:0 !important;
+}
+.tx-cycle-aids p:has(.tx-cycle-label.is-compress){
+  border-color:rgba(222,128,163,.34);
+  background:linear-gradient(180deg,rgba(255,241,247,.96) 0%,rgba(255,248,251,.92) 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.88) inset,
+    0 4px 11px rgba(196,94,137,.08);
+}
+.tx-cycle-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  position:absolute;
+  top:-13px;
+  left:18px;
+  width:auto;
+  min-width:8.2em;
+  box-sizing:border-box;
+  padding:4px 10px 5px 38px;
+  border-radius:999px 10px 10px 999px;
+  border:1px solid #c8b5e5;
+  background:linear-gradient(180deg,#fbf9ff 0%,#e9def8 100%);
+  color:#5f467e;
+  font-family:var(--font-soft);
+  font-weight:900;
+  letter-spacing:.02em;
+  text-indent:0;
+  line-height:1.2;
+  z-index:1;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.86) inset,
+    0 2px 5px rgba(102,76,150,.13);
+}
+.tx-cycle-label::before{
+  content:'記';
+  position:absolute;
+  left:5px;
+  top:50%;
+  transform:translateY(-50%);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:#8a72b8;
+  color:#fff;
+  font-family:var(--font-display);
+  font-weight:900;
+  font-size:.88em;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.52) inset,
+    0 2px 5px rgba(102,76,150,.24);
+}
+.tx-cycle-label::after{
+  content:'';
+  position:absolute;
+  right:-6px;
+  top:50%;
+  transform:translateY(-50%) rotate(45deg);
+  width:10px;
+  height:10px;
+  border-top:1px solid #c8b5e5;
+  border-right:1px solid #c8b5e5;
+  background:#e9def8;
+}
+.tx-cycle-label.is-compress{
+  border-color:#ebb4ca;
+  background:linear-gradient(180deg,#fff9fc 0%,#f7dce8 100%);
+  color:#8f4263;
+}
+.tx-cycle-label.is-compress::before{
+  content:'答';
+  background:#c76e94;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.52) inset,
+    0 2px 5px rgba(196,94,137,.24);
+}
+.tx-cycle-label.is-compress::after{
+  border-top-color:#ebb4ca;
+  border-right-color:#ebb4ca;
+  background:#f7dce8;
+}
+.tx-cycle-body{
+  display:block;
+  min-width:0;
+  color:#3b3346;
+  font-family:var(--font-answer);
+  font-weight:540;
+  line-height:1.92;
+  letter-spacing:.03em;
+  text-indent:0;
+}
+.tx-cycle-label.is-compress + .tx-cycle-body{
+  color:#4a3340;
+  font-weight:560;
+}
+.tx-article-flow .tx-ref-cluster{
+  white-space:nowrap;
+}
+.tx-detail-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  grid-column:2;
+  justify-self:start;
+  margin-top:10px;
+  padding:4px 12px;
+  border-radius:999px;
+  border:1px solid rgba(var(--accent-rgb),.34);
+  background:rgba(255,255,255,.72);
+  color:var(--accent);
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:.88em;
+  text-decoration:none;
+}
+.tx-detail-link:hover{
+  background:var(--light);
+  color:var(--accent-darker);
+}
+.tx-inline-detail{
+  margin:14px 0 0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+.tx-inline-detail > summary{
+  list-style:none;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:fit-content;
+  margin:0 0 10px auto;
+  padding:6px 16px;
+  border-radius:999px;
+  border:1px solid #d9b5b5;
+  background:linear-gradient(180deg,#fffdfb 0%,#fff1f1 100%);
+  color:#a65f59;
+  font-family:var(--font-soft);
+  font-weight:900;
+  font-size:.9em;
+  letter-spacing:.04em;
+  text-indent:.04em;
+}
+.tx-inline-detail > summary::-webkit-details-marker{ display:none; }
+.tx-inline-detail > summary::before{
+  content:'＋';
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1.25em;
+  height:1.25em;
+  margin-right:7px;
+  border-radius:50%;
+  background:#b0635c;
+  color:#fff;
+  font-family:var(--font-mono);
+  font-size:.9em;
+  line-height:1;
+}
+.tx-inline-detail[open] > summary::before{ content:'－'; }
+.tx-inline-detail .tx-detail-close-label{ display:none; }
+.tx-inline-detail[open] .tx-detail-open-label{ display:none; }
+.tx-inline-detail[open] .tx-detail-close-label{ display:inline; }
+.tx-detail-panel{
+  width:100%;
+  box-sizing:border-box;
+  margin:0;
+  padding:16px;
+  border:1px solid rgba(214,184,174,.42);
+  border-radius:8px;
+  background:linear-gradient(180deg,rgba(255,255,255,.96) 0%,rgba(250,248,245,.96) 100%);
+  font-family:var(--font-answer);
+  font-weight:660;
+  line-height:1.9;
+  color:#2e4953;
+  box-shadow:0 4px 12px rgba(74,42,36,.06);
+}
+.tx-detail-panel:not(.tx-detail-partb) p{
+  display:block !important;
+  grid-template-columns:none !important;
+  margin:0 0 10px;
+  padding:0 !important;
+  text-indent:1em !important;
+}
+.tx-detail-panel:not(.tx-detail-partb) p:last-child{
+  margin-bottom:0;
+}
+.tx-detail-partb{
+  display:grid;
+  gap:16px;
+  padding:14px 16px;
+}
+.tx-detail-partb .sub-card,
+.tx-detail-partb .choice-points{
+  margin:0;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.tx-detail-partb .sub-card.synthesis::before,
+.tx-detail-partb .sub-card.basis-link::before{
+  display:none !important;
+}
+.tx-detail-partb .sub-card.synthesis{
+  padding:0 0 18px;
+  border-bottom:1px dashed rgba(142,83,78,.22) !important;
+}
+.tx-detail-partb .sub-card.basis-link{
+  padding:0;
+}
+.tx-detail-partb .choice-points{
+  padding:16px 18px;
+  border:1px solid rgba(223,201,80,.32) !important;
+  border-radius:8px !important;
+  background:linear-gradient(180deg,rgba(255,252,218,.92) 0%,rgba(255,250,232,.92) 100%) !important;
+}
+.tx-detail-partb .syn-lead,
+.tx-detail-partb .syn-image{
+  margin-left:0;
+  margin-right:0;
+}
+.tx-detail-panel .tx-detail-kicker{
+  display:inline-block;
+  margin-right:8px;
+  padding:1px 8px 2px;
+  border-radius:999px;
+  background:#f4e5e5;
+  color:#8f4b47;
+  border:1px solid #d9b5b5;
+  font-family:var(--font-soft);
+  font-weight:900;
+  letter-spacing:.04em;
+  text-indent:.04em;
+}
+.tx-inline-reveal-panel{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px 14px;
+  margin:16px 0 20px;
+  padding:13px 16px;
+  background:var(--light);
+  border:1px solid var(--border-mid);
+  border-radius:8px;
+}
+.tx-inline-reveal-panel p{
+  flex:1 1 260px;
+  margin:0;
+  font-family:var(--font-note);
+  line-height:1.75;
+}
+.tx-inline-reveal-btn,
+.tx-inline-browse-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:0 22px;
+  border-radius:8px;
+  font-family:var(--font-display);
+  font-weight:800;
+  letter-spacing:.08em;
+  cursor:pointer;
+}
+.tx-inline-reveal-btn{
+  border:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent-darker));
+  color:#fff;
+  box-shadow:0 3px 8px rgba(var(--accent-rgb),.22);
+}
+.tx-inline-browse-btn{
+  border:1px solid #b9d1e9;
+  background:linear-gradient(180deg,#f8fcff 0%,#e9f4ff 100%);
+  color:#315a86;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.88) inset,
+    0 2px 6px rgba(49,90,134,.10);
+}
+.tx-inline-browse-btn:hover{
+  background:linear-gradient(180deg,#ffffff 0%,#ddecfb 100%);
+  color:#214c78;
+}
+.tx-inline-browse-btn[aria-expanded="true"]{
+  border-color:#d9b5b5;
+  background:linear-gradient(180deg,#fffdfb 0%,#fff1f1 100%);
+  color:#a65f59;
+}
+.tx-inline-reveal-btn:disabled{
+  opacity:.42;
+  cursor:not-allowed;
+  box-shadow:none;
+}
+.tx-inline-result{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  padding:3px 16px;
+  border:1px solid transparent;
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-weight:900;
+  letter-spacing:.04em;
+  text-indent:.04em;
+  box-shadow:0 1px 0 rgba(255,255,255,.80) inset;
+}
+.tx-inline-result[hidden]{ display:none !important; }
+.tx-inline-result.is-correct{
+  background:linear-gradient(180deg,#edf8ef 0%,#e4f4e7 100%);
+  border-color:#8fca98;
+  color:#2f7440;
+}
+.tx-inline-result.is-incorrect{
+  background:linear-gradient(180deg,#fff4f6 0%,#ffe8ee 100%);
+  border-color:#e7a5b1;
+  color:#9a4655;
+}
+.tx-inline-toast{
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top, 0px) + 18px);
+  z-index:9999;
+  transform:translate(-50%,-12px) scale(.98);
+  opacity:0;
+  pointer-events:none;
+  min-width:min(340px, calc(100vw - 36px));
+  box-sizing:border-box;
+  padding:14px 22px;
+  border:1px solid transparent;
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-weight:900;
+  text-align:center;
+  letter-spacing:.04em;
+  text-indent:.04em;
+  box-shadow:0 12px 28px rgba(50,36,30,.20), 0 1px 0 rgba(255,255,255,.80) inset;
+  transition:opacity .18s ease, transform .18s ease;
+}
+.tx-inline-toast[hidden]{ display:none !important; }
+.tx-inline-toast.is-visible{
+  opacity:1;
+  transform:translate(-50%,0) scale(1);
+}
+.tx-inline-toast.is-correct{
+  background:linear-gradient(180deg,#edf8ef 0%,#e4f4e7 100%);
+  border-color:#8fca98;
+  color:#2f7440;
+}
+.tx-inline-toast.is-incorrect{
+  background:linear-gradient(180deg,#fff4f6 0%,#ffe8ee 100%);
+  border-color:#e7a5b1;
+  color:#9a4655;
+}
+.partb-details{
+  margin:22px 0 26px;
+  border:1px solid rgba(142,83,78,.38);
+  border-radius:10px;
+  background:
+    linear-gradient(180deg,rgba(255,252,244,.92) 0%,rgba(255,255,255,.94) 100%),
+    repeating-linear-gradient(0deg,rgba(80,55,35,.026) 0,rgba(80,55,35,.026) 1px,transparent 1px,transparent 8px);
+  box-shadow:0 6px 18px rgba(74,42,36,.10);
+  overflow:hidden;
+}
+.partb-details > summary{
+  list-style:none;
+  cursor:pointer;
+  padding:16px 22px;
+  background:linear-gradient(180deg,#f6edd0 0%,#eadcab 100%);
+  border-bottom:1px solid rgba(142,83,78,.28);
+  font-family:var(--font-display);
+  font-weight:900;
+  color:#5a5526;
+  letter-spacing:.04em;
+}
+.partb-details > summary::-webkit-details-marker{ display:none; }
+.partb-details > summary::before{
+  content:'＋';
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1.6em;
+  height:1.6em;
+  margin-right:10px;
+  border-radius:50%;
+  background:#8a7a3a;
+  color:#fff;
+  font-family:var(--font-mono);
+  font-weight:800;
+  line-height:1;
+}
+.partb-details[open] > summary::before{ content:'－'; }
+.partb-details .choice-section{
+  margin:18px 18px;
+  border:1px solid rgba(142,83,78,.22);
+  box-shadow:0 3px 10px rgba(74,42,36,.07);
+}
+.partb-note{
+  margin:14px 18px 0;
+  padding:11px 14px;
+  background:rgba(255,255,255,.72);
+  border-left:4px solid #8a7a3a;
+  border-radius:6px;
+  font-family:var(--font-note);
+  line-height:1.75;
+}
+.tx-core-ledger{
+  margin:18px 0 0;
+  border:1px solid rgba(142,83,78,.30);
+  border-radius:8px;
+  background:rgba(255,255,255,.72);
+  overflow:hidden;
+}
+.tx-core-ledger > summary{
+  list-style:none;
+  cursor:pointer;
+  padding:12px 16px;
+  background:linear-gradient(180deg,#f6edd0 0%,#eadcab 100%);
+  color:#5a5526;
+  font-family:var(--font-display);
+  font-weight:900;
+}
+.tx-core-ledger > summary::-webkit-details-marker{ display:none; }
+.tx-core-ledger > summary::before{
+  content:'＋';
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:1.5em;
+  height:1.5em;
+  margin-right:8px;
+  border-radius:50%;
+  background:#8a7a3a;
+  color:#fff;
+  font-family:var(--font-mono);
+  line-height:1;
+}
+.tx-core-ledger[open] > summary::before{ content:'－'; }
+.tx-core-ledger .statement-verdict-table{
+  margin:0;
+  border-radius:0;
+}
+.answer-area.inline-prototype-mode{
+  background:transparent !important;
+  border:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+.answer-area.inline-prototype-mode .answer-instruction,
+.answer-area.inline-prototype-mode .answer-ox-grid,
+.answer-area.inline-prototype-mode > .reveal-answer-btn,
+.answer-area.inline-prototype-mode #answer-feedback{
+  display:none !important;
+}
+@media (max-width:768px){
+  .tx-inline-head{ grid-template-columns:1fr; }
+  .tx-inline-actions{ justify-content:flex-start; }
+  .tx-cycle-aids{ margin-left:0; }
+  .tx-cycle-aids p{ padding:36px 14px 16px; }
+  .tx-cycle-label{ left:12px; max-width:calc(100% - 24px); min-width:0; }
+  .tx-inline-detail{ margin-left:0; }
+  .tx-detail-partb{ padding:12px 8px; gap:16px; }
+  .tx-detail-partb .sub-card.synthesis,
+  .tx-detail-partb .sub-card.basis-link{ padding:30px 14px 18px; }
+  .tx-detail-partb .choice-points{ padding:24px 14px 14px; }
+  .tx-detail-partb .syn-path > p{ padding-left:36px; }
+  .tx-detail-partb .syn-step{ width:24px; height:24px; }
+  .tx-detail-partb .syn-step + strong{ letter-spacing:.03em; text-indent:.03em; }
+  .partb-details .choice-section{ margin:14px 10px; }
 }
 .answer-area{
   background:linear-gradient(180deg,var(--accent-soft) 0%,var(--paper) 100%);
@@ -2234,16 +3032,16 @@ p{
   /* === §5-bis V3 派生色 ─ Antique Pearl から HSL 派生 === */
 :root{
   --accent-light:  #D4B5C4;    /* palette chip 1 - 淡め mauve (palette identity) */
-  --accent-darker: #835E78;    /* chip 1 derived mid-tone mauve (L=44) - hover / gradient 終点 */
-  --mid-light:     #BFD9D9;    /* chip 3 derived - 淡め teal (palette identity) */
-  --mid-warm:      #E8D4D4;    /* pale rose - 暖系mid */
-  --mid-cool:      #BFD9D9;    /* pale teal - 寒系mid */
-  --accent-soft-2: #DECDDA;    /* lavender mauve - 淡 */
+  --accent-darker: #7A5470;    /* chip derived mid-tone mauve (L=40) - hover / gradient 終点 */
+  --mid-light:     #AAD1D1;    /* 淡め teal (palette identity) */
+  --mid-warm:      #D4B5C4;    /* pale mauve - 暖系mid */
+  --mid-cool:      #AAD1D1;    /* pale teal - 寒系mid */
+  --accent-soft-2: #E4D2DE;    /* mauve - 淡 */
   --mid-soft:      #ECECEC;    /* neutral - 極淡 */
   --surface-tint:  #E8E4DC;    /* cream tint (= --light) */
-  --neutral-cream: #F2E6E6;    /* (= --base) */
-  --contrast-warm: #E8D4D4;    /* pale rose - 暖系contrast */
-  --contrast-cool: #BFD9D9;    /* pale teal - 寒系contrast */
+  --neutral-cream: #F2EBE5;    /* (= --base) */
+  --contrast-warm: #D4B5C4;    /* pale mauve - 暖系contrast */
+  --contrast-cool: #AAD1D1;    /* pale teal - 寒系contrast */
 }
 
 
@@ -2737,7 +3535,7 @@ p.fa-summary,
 
 /* ============================================================
    §EDITORIAL RESKIN (2026-06-15) ── 参考誌面デザインへの洗練化
-   末尾オーバーライド層：v11 構造は不変・視覚のみ上書き。
+   末尾オーバーライド層：v12.1.0 inline canon gold。インライン肢カードを主導線として固定する。
    プレビューを見ながらここを微調整する。
    ============================================================ */
 :root{
@@ -3175,6 +3973,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .statement-verdict-table td{ background:#fffdf6 !important; border-color:#e3dcc2 !important; }
 .statement-verdict-table tbody tr:nth-child(even) td{ background:#f6edd0 !important; }
 .statement-verdict-table tbody tr:hover td{ background:#f3ecd6 !important; }
+
 /* TX-LEX short-answer reflex core: 文言・趣旨・射程・切断点・転用 */
 .tx-reflex-core{
   display:grid;
@@ -3238,11 +4037,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
 
-/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
-/* ============================================================
-   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
-   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
-   ============================================================ */
+/* === 解法ナビ（Lexia用・常時表示） === */
 /* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
 .solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
   background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
@@ -3266,10 +4061,15 @@ body.snav-on .solve-nav{display:block;}
 .sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
 .sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
 .sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
-.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
-  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
-.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
-.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-tip{margin:0 0 12px; padding:10px 12px; border-radius:8px; background:#fff6dd;
+  border:1px solid #eadf96; border-left:4px solid #dccb67; font-size:.86em; line-height:1.75;
+  display:grid; grid-template-columns:5.6em minmax(0,1fr); gap:10px; align-items:start;}
+.sn-tip .sn-tip-h{display:inline-flex; align-items:center; justify-content:center; min-height:26px;
+  padding:2px 10px 3px; border-radius:999px; border:1px solid #dccb67;
+  background:linear-gradient(180deg,#fff2a8 0%,#ffe785 100%); color:#6e5410;
+  font-family:var(--font-soft); font-weight:900; letter-spacing:.08em; text-indent:.08em;}
+.sn-tip .sn-tip-h::before{content:'💡'; margin-right:5px; letter-spacing:0; text-indent:0;}
+.sn-tip .sn-tip-b{display:block; min-width:0; text-indent:1em; color:#3f3328; font-weight:560;}
 .sn-opts{display:flex; flex-direction:column; gap:8px;}
 .sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
   border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
@@ -3298,31 +4098,7 @@ body.snav-on .solve-nav{display:block;}
 .answer-area.combo-mode #answer-feedback{display:none;}
 .cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
   border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
-
-/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
-.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
-.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
-.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
-.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
-.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
-.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
-
-/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
-.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
-.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
-.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
-.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
-.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
-.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
-.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
-/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
-.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
-  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
-.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
-.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
-.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
-  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
-/* Type A/B 物語解説（読み物）：問題の流れを一連の文章でコア／テーゼ中心に読ませる（v11.1.0+） */
+/* Type A/B 物語解説（読み物）：問題の流れを一連の文章でコア／テーゼ中心に読ませる（v12.1.0+） */
 .fa-narrative{ margin:0 0 18px; padding:16px 18px; border-radius:12px;
   background:var(--light,#fafafa); border:1px solid var(--soft,#e8e8e8); border-left:5px solid var(--accent);
   counter-reset:tx-fa; }
@@ -3330,23 +4106,75 @@ body.snav-on .solve-nav{display:block;}
   font-weight:800; font-size:1.02em; color:var(--accent); letter-spacing:.02em; }
 .fa-narrative p{ margin:0 0 .7em; line-height:1.95; font-size:1.0em; text-align:justify; }
 .fa-narrative > p:not(.fa-narrative-title){ position:relative; counter-increment:tx-fa; margin:20px 0 0 0;
-  padding:16px 15px 14px 16px; border:1px solid rgba(120,90,40,.16); border-left:3px solid rgba(193,124,42,.62);
-  border-radius:12px; box-shadow:0 1px 3px rgba(80,60,20,.06), inset 0 1px 0 rgba(255,255,255,.55); }
+  padding:34px 15px 14px 16px; border:1px solid rgba(120,90,40,.16); border-left:3px solid rgba(193,124,42,.62);
+  border-radius:12px; box-shadow:0 1px 3px rgba(80,60,20,.06), inset 0 1px 0 rgba(255,255,255,.55);
+  text-indent:1em; }
 .fa-narrative > p:not(.fa-narrative-title):nth-of-type(even){ background:rgba(255,255,255,.66); }
 .fa-narrative > p:not(.fa-narrative-title):nth-of-type(odd){ background:rgba(201,140,58,.085); }
 .fa-narrative > p:not(.fa-narrative-title):not([data-fa-label])::before{ content:counter(tx-fa); position:absolute; top:-11px; left:14px;
   display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px; text-indent:0;
   color:#fff; background:linear-gradient(180deg,#c8843a,#a8692a); border:1.5px solid rgba(255,255,255,.72);
   border-radius:999px; box-shadow:0 1px 3px rgba(120,80,20,.35); font-size:12px; font-weight:800; line-height:1; }
-.fa-narrative > p[data-fa-label]::before{ content:attr(data-fa-label); position:relative; top:-31px;
-  display:block; box-sizing:border-box; width:fit-content; max-width:min(38em, calc(100% - 8px));
-  margin:0 0 -18px 0; padding:5px 15px 6px; text-align:center; text-indent:0;
+.fa-narrative > p[data-fa-label]::before{ content:attr(data-fa-label); position:absolute; top:-13px; left:18px;
+  display:block; box-sizing:border-box; width:fit-content; max-width:min(38em, calc(100% - 36px));
+  margin:0; padding:5px 15px 6px; text-align:center; text-indent:0;
   color:#fff; background:linear-gradient(180deg,#c8843a,#a8692a); border:1.5px solid rgba(255,255,255,.72);
   border-radius:999px; box-shadow:0 1px 3px rgba(120,80,20,.35); font-size:12.5px; font-weight:500; line-height:1.45;
   letter-spacing:.025em; font-feature-settings:"palt" 0; font-stretch:normal; transform:none;
   white-space:normal; overflow-wrap:break-word; word-break:normal; }
 .fa-narrative p:last-child{ margin-bottom:0; }
 .fa-narrative b{ color:var(--accent-darker,var(--accent)); font-weight:700; }
+/* === TX360 iPhone compact override === */
+@media (max-width:600px){
+  body{ overflow-x:hidden; }
+  .container{ padding:0 4px 24px !important; }
+  .container > section,
+  .container > .choice-section{
+    padding:14px 8px !important;
+    border-radius:10px !important;
+  }
+  .tx-inline-judge-list{ gap:12px; margin:14px 0 18px; }
+  .tx-inline-card{
+    padding:14px 10px 16px 12px;
+    border-left-width:3px;
+    border-radius:10px;
+    box-shadow:0 1px 0 rgba(255,255,255,.90) inset,0 5px 14px rgba(74,42,36,.10);
+  }
+  .tx-inline-head{ grid-template-columns:1fr; gap:10px; }
+  .tx-inline-stmt{
+    grid-template-columns:22px minmax(0,1fr);
+    column-gap:7px;
+    line-height:1.9;
+  }
+  .tx-inline-actions{ justify-content:flex-start; gap:6px; flex-wrap:wrap; }
+  .tx-inline-ox{ min-width:44px; height:38px; padding:0 10px; }
+  .tx-inline-explain{ margin-top:12px; padding:14px 8px; border-radius:8px; }
+  .tx-mini-law{ gap:8px; padding-top:20px; }
+  .tx-mini-law::before{ left:12px; }
+  .tx-law-item{ padding:10px 9px 12px; border-radius:7px; }
+  .tx-mini-law-title{ gap:6px; margin-bottom:6px; }
+  .tx-mini-law-code,
+  .tx-mini-law-article{ min-height:26px; padding:2px 9px 3px; font-size:.86em; }
+  .tx-mini-law-text{ padding-left:0; line-height:1.85; }
+  .tx-article-flow{ gap:8px; }
+  .tx-article-flow > p{ grid-template-columns:1fr; gap:8px; padding:10px 9px 12px; }
+  .tx-article-flow .tx-flow-label{ width:auto; min-width:5.2em; justify-self:start; }
+  .tx-article-flow .tx-flow-body{ padding:0; line-height:1.85; }
+  .tx-cycle-aids{ margin-left:0; gap:12px; }
+  .tx-cycle-aids p{ padding:34px 12px 14px !important; }
+  .tx-inline-detail > summary{ margin-left:auto; }
+  .tx-detail-panel{ padding:12px 8px; }
+  .tx-detail-partb{ padding:10px 0; gap:14px; }
+  .tx-detail-partb .sub-card.synthesis,
+  .tx-detail-partb .sub-card.basis-link{ padding-left:0 !important; padding-right:0 !important; }
+  .tx-detail-partb .choice-points,
+  .tx-detail-partb .syn-lead,
+  .tx-detail-partb .syn-image{ padding-left:10px !important; padding-right:10px !important; }
+  .tx-detail-partb .syn-path > p{ padding-left:32px; }
+  .tx-detail-partb .syn-step{ width:22px; height:22px; }
+  .tx-inline-reveal-panel{ padding:12px 10px; }
+  .tx-inline-toast{ top:calc(env(safe-area-inset-top, 0px) + 12px); min-width:calc(100vw - 28px); padding:12px 16px; }
+}
 </style>
 </head>
 <body id="top">
@@ -3380,11 +4208,11 @@ body.snav-on .solve-nav{display:block;}
     <div class="toc-row">
       <a href="#part-a">問題文</a>
       <a href="#answer-area">解答</a>
-      <a href="#choice-1">記述1</a>
-      <a href="#choice-2">記述2</a>
-      <a href="#choice-3">記述3</a>
-      <a href="#choice-4">記述4</a>
-      <a href="#choice-5">記述5</a>
+      <a href="#stmt-1">記述1</a>
+      <a href="#stmt-2">記述2</a>
+      <a href="#stmt-3">記述3</a>
+      <a href="#stmt-4">記述4</a>
+      <a href="#stmt-5">記述5</a>
       <a href="#basis">共通根拠</a>
       <a href="#mindmap-tree">体系ツリー</a>
       <a href="#mindmap-radial">論点マップ</a>
@@ -3409,74 +4237,353 @@ body.snav-on .solve-nav{display:block;}
   <div class="part-title">PART A ── 問題情報</div>
 
   <section class="section" id="part-a">
-    <nav class="sec-nav"><a href="#answer-area">↓解答</a><a href="#choice-1">↓記述ア</a></nav>
+    <nav class="sec-nav"><a href="#answer-area">↓解答</a><a href="#stmt-1">↓記述1</a></nav>
     <h2 class="section-title"><span class="sec-icon">❀</span>問題と解答</h2>
 
     <p style="font-weight:600;">放火罪に関する次の1から5までの各記述を判例の立場に従って検討した場合、<span class="case-emphasis freq-high">誤っているもの</span>を2個選びなさい。</p>
 
+    <div class="case-description">
+      <div class="case-scene">
+        <div class="case-scene-label"><span class="case-scene-num">前</span><span class="case-scene-title">【前提】── 放火罪の客体区分と基本概念</span></div>
+        <p class="case-paragraph">放火罪は、火力で目的物を焼き、不特定多数の生命・身体・財産という<span class="case-emphasis freq-high">公共の安全</span>を脅かす点を処罰する公共危険罪である。客体により <span class="ron-mark freq-high">108条</span>＝現住建造物等放火罪、<span class="ron-mark freq-high">109条</span>＝非現住建造物等放火罪、<span class="ron-mark freq-high">110条</span>＝建造物等以外放火罪に分かれる。本問は、この放火罪を組み立てる5つの基本概念──「建造物」の意義、「放火」の意義、「焼損」の意義（既遂時期）、「公共の危険」の範囲、108条の「人」の範囲──について、判例の引いた境界線を正確になぞれるかを記述ごとに問う。番号より、各概念の定義・限定の理由づけを確かめながら読む。</p>
+      </div>
+    </div>
+
     <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:20px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【記述】── 放火罪の基本概念に関する5記述（誤りを2つ選ぶ）</h3>
 
-    <div class="problem-text"><span class="choice-num-inline">1</span>「建造物」とは、家屋その他これに類する工作物であって、土地に定着し、人の起居出入りに適する構造を有するものをいい、毀損しなければ家屋から取り外すことができない状態にある雨戸は、「建造物」の一部に当たる。</div>
-    <div class="problem-text"><span class="choice-num-inline">2</span>「放火」とは、目的物の焼損を惹起させる行為をいい、目的物への直接的な点火行為に限られず、媒介物への点火行為であっても、その燃焼作用が継続して目的物に延焼し得るものである場合、「放火」に当たる。</div>
-    <div class="problem-text"><span class="choice-num-inline">3</span>「焼損」とは、火力により目的物の重要部分が焼失し、その本来の効用が失われた状態をいい、不燃性の建造物のコンクリート壁が媒介物の火力によって崩落した場合、「焼損」に当たる。</div>
-    <div class="problem-text"><span class="choice-num-inline">4</span>建造物等以外放火罪にいう「公共の危険」は、現住建造物等放火罪や他人所有非現住建造物等放火罪の客体である建造物等に対する延焼の危険に限られず、不特定又は多数の人の生命、身体又は前記建造物等以外の財産に対する危険も含まれる。</div>
-    <div class="problem-text"><span class="choice-num-inline">5</span>現住建造物等放火罪にいう「現に人が住居に使用し」の「人」には犯人が含まれるが、「現に人がいる」の「人」には犯人が含まれない。</div>
+    <div class="tx-inline-judge-list" id="tx-inline-judge-list">
+      <article class="tx-inline-card" id="stmt-1" data-stmt="1">
+        <div class="tx-inline-head">
+          <p class="tx-inline-stmt"><span class="choice-num-inline">1</span><span class="tx-inline-stmt-text">「建造物」とは、家屋その他これに類する工作物であって、土地に定着し、人の起居出入りに適する構造を有するものをいい、毀損しなければ家屋から取り外すことができない状態にある雨戸は、「建造物」の一部に当たる。</span></p>
+          <div class="tx-inline-actions" aria-label="記述1の正誤を選ぶ">
+            <button class="tx-inline-ox" type="button" data-stmt="1" data-value="○">○</button>
+            <button class="tx-inline-ox" type="button" data-stmt="1" data-value="×">×</button>
+            <span class="tx-inline-verdict" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="tx-inline-explain" hidden>
+          <div class="tx-mini-law">
+            <div class="tx-law-item is-main">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">刑法</span><span class="tx-mini-law-article">第百八条</span></span>
+              <span class="tx-mini-law-text">放火して、現に人が住居に使用し又は現に人がいる建造物、汽車、電車、艦船又は鉱坑を焼損した者は、死刑又は無期若しくは五年以上の拘禁刑に処する。</span>
+            </div>
+            <div class="tx-law-item is-case">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">判例</span><span class="tx-mini-law-article">大判大13.5.31／最判昭25.12.14</span></span>
+              <span class="tx-mini-law-text">建造物とは家屋その他これに類する工作物で、土地に定着し人の起居出入りに適する構造を有するものをいう。家屋の従物が建造物の一部となるには、建付けられているだけでは足りず、毀損しなければ取り外せない状態にあることを要する。</span>
+            </div>
+          </div>
+          <div class="tx-article-flow">
+            <p><span class="tx-flow-label">文　言</span><span class="tx-flow-body">建造物は、土地に定着し、人の起居出入りに適する構造を有する工作物をいう。橋や塀は起居出入りに適さず建造物に当たらない。</span></p>
+            <p><span class="tx-flow-label">趣　旨</span><span class="tx-flow-body">放火罪が重いのは、人が利用する空間を火で焼くことで他人の生命・身体に高度の危険が及ぶからである。</span></p>
+            <p><span class="tx-flow-label">射　程</span><span class="tx-flow-body">雨戸などの従物は、毀損しなければ取り外せないほど一体化していれば建造物の一部となる。記述1はこの限定を正しく付している。</span></p>
+            <p><span class="tx-flow-label is-cut">切断点</span><span class="tx-flow-body">付属しているだけでは足りず、取り外しに毀損を要するか否かで切る。限定付きで正しいので記述1は正しい。</span></p>
+            <p><span class="tx-flow-label">転　用</span><span class="tx-flow-body">建具・設備・内装が出たら、土地への定着性と物理的一体性（毀損取外し要件）を分けて確認する。</span></p>
+            <div class="tx-cycle-aids">
+              <p><span class="tx-cycle-label">記憶フック</span><span class="tx-cycle-body">家の部品は「壊さないと外せないか」で家の一部かが決まる。</span></p>
+              <p><span class="tx-cycle-label is-compress">答案圧縮</span><span class="tx-cycle-body">雨戸＝毀損しなければ取り外せない → 建造物の一部 → ○。</span></p>
+            </div>
+            <details class="tx-inline-detail">
+              <summary><span class="tx-detail-open-label">詳説を開く</span><span class="tx-detail-close-label">詳説を閉じる</span></summary>
+              <div class="tx-detail-panel tx-detail-partb" data-partb-source="1">
+                <p><span class="tx-detail-kicker">詳説</span>建造物該当性は二段で判定する。まず建造物の定義（土地への定着＋人の起居出入りに適する構造）を満たすか、次に従物が建造物の一部となるかである。</p>
+                <p>従物の一部性は、家屋に建付けられているだけでは足りず、毀損しなければ取り外せない状態にあることを要する（最判昭25.12.14）。雨戸にこの限定を付した記述1は、前段の定義も後段の従物要件も判例どおりで正しい。</p>
+                <p>容易に取り外せる従物（畳・簡単に外せる建具）は建造物の一部に当たらない。「雨戸は常に建造物の一部」と限定を読み飛ばさないことが急所である。</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </article>
+
+      <article class="tx-inline-card" id="stmt-2" data-stmt="2">
+        <div class="tx-inline-head">
+          <p class="tx-inline-stmt"><span class="choice-num-inline">2</span><span class="tx-inline-stmt-text">「放火」とは、目的物の焼損を惹起させる行為をいい、目的物への直接的な点火行為に限られず、媒介物への点火行為であっても、その燃焼作用が継続して目的物に延焼し得るものである場合、「放火」に当たる。</span></p>
+          <div class="tx-inline-actions" aria-label="記述2の正誤を選ぶ">
+            <button class="tx-inline-ox" type="button" data-stmt="2" data-value="○">○</button>
+            <button class="tx-inline-ox" type="button" data-stmt="2" data-value="×">×</button>
+            <span class="tx-inline-verdict" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="tx-inline-explain" hidden>
+          <div class="tx-mini-law">
+            <div class="tx-law-item is-main">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">刑法</span><span class="tx-mini-law-article">第百八条</span></span>
+              <span class="tx-mini-law-text">放火して、現に人が住居に使用し又は現に人がいる建造物、汽車、電車、艦船又は鉱坑を焼損した者は、死刑又は無期若しくは五年以上の拘禁刑に処する。</span>
+            </div>
+            <div class="tx-law-item is-case">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">判例</span><span class="tx-mini-law-article">大判大3.10.13</span></span>
+              <span class="tx-mini-law-text">放火は目的物の焼損を惹起させる行為であり、目的物への直接点火に限らず、媒介物に点火してその燃焼作用が継続して目的物に延焼し得る場合には、媒介物への点火も放火に当たる。</span>
+            </div>
+          </div>
+          <div class="tx-article-flow">
+            <p><span class="tx-flow-label">文　言</span><span class="tx-flow-body">放火とは、目的物の焼損を惹起させる行為をいう。目的物への直接点火が典型だが、それに限られない。</span></p>
+            <p><span class="tx-flow-label">趣　旨</span><span class="tx-flow-body">危険なのは直接火をつけることだけでなく、火が目的物へ届く燃焼経路を作ること自体である。</span></p>
+            <p><span class="tx-flow-label">射　程</span><span class="tx-flow-body">媒介物への点火でも、その燃焼が継続して目的物へ延焼し得る関係があれば放火に当たる（大判大3.10.13）。記述2はこの限定を正しく付している。</span></p>
+            <p><span class="tx-flow-label is-cut">切断点</span><span class="tx-flow-body">直接火をつけたかではなく、目的物の焼損へつながる現実的な燃焼経路があるかで切る。正しい限定付きなので記述2は正しい。</span></p>
+            <p><span class="tx-flow-label">転　用</span><span class="tx-flow-body">新聞紙・布団・ガソリンなど媒介物が出たら、継続燃焼と目的物への延焼可能性の有無を見る。</span></p>
+            <div class="tx-cycle-aids">
+              <p><span class="tx-cycle-label">記憶フック</span><span class="tx-cycle-body">導火線に火を点ければ、もう本体に点けたのと同じ。</span></p>
+              <p><span class="tx-cycle-label is-compress">答案圧縮</span><span class="tx-cycle-body">媒介物点火＋継続して目的物へ延焼し得る → 放火 → ○。</span></p>
+            </div>
+            <details class="tx-inline-detail">
+              <summary><span class="tx-detail-open-label">詳説を開く</span><span class="tx-detail-close-label">詳説を閉じる</span></summary>
+              <div class="tx-detail-panel tx-detail-partb" data-partb-source="2">
+                <p><span class="tx-detail-kicker">詳説</span>放火は目的物の焼損を惹起させる実行行為で、目的物への直接点火に限られない。媒介物に点火しても、その燃焼作用が継続して目的物へ延焼し得る関係があれば放火に当たる（大判大3.10.13）。</p>
+                <p>逆に、一瞬で燃え尽きて延焼の現実的可能性がなければ放火に当たらない。記述2は「継続して延焼し得る」という限定を正確に付しており、判旨どおりで正しい。</p>
+                <p>「媒介物への点火は放火でない」と一律に否定させる罠に注意する。継続して延焼し得る関係の有無が分水嶺である。</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </article>
+
+      <article class="tx-inline-card" id="stmt-3" data-stmt="3">
+        <div class="tx-inline-head">
+          <p class="tx-inline-stmt"><span class="choice-num-inline">3</span><span class="tx-inline-stmt-text">「焼損」とは、火力により目的物の重要部分が焼失し、その本来の効用が失われた状態をいい、不燃性の建造物のコンクリート壁が媒介物の火力によって崩落した場合、「焼損」に当たる。</span></p>
+          <div class="tx-inline-actions" aria-label="記述3の正誤を選ぶ">
+            <button class="tx-inline-ox" type="button" data-stmt="3" data-value="○">○</button>
+            <button class="tx-inline-ox" type="button" data-stmt="3" data-value="×">×</button>
+            <span class="tx-inline-verdict" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="tx-inline-explain" hidden>
+          <div class="tx-mini-law">
+            <div class="tx-law-item is-main">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">刑法</span><span class="tx-mini-law-article">第百八条</span></span>
+              <span class="tx-mini-law-text">放火して、現に人が住居に使用し又は現に人がいる建造物、汽車、電車、艦船又は鉱坑を焼損した者は、死刑又は無期若しくは五年以上の拘禁刑に処する。</span>
+            </div>
+            <div class="tx-law-item is-case">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">判例</span><span class="tx-mini-law-article">大判明43.3.4／最判昭23.11.2</span></span>
+              <span class="tx-mini-law-text">焼損とは、火が媒介物を離れ、目的物が独立に燃焼を継続するに至った状態をいう（独立燃焼説）。効用喪失説・一部損壊説はより遅い時点を既遂とするが、判例は採らない。</span>
+            </div>
+          </div>
+          <div class="tx-article-flow">
+            <p><span class="tx-flow-label">文　言</span><span class="tx-flow-body">判例は焼損を、火が媒介物を離れて目的物が独立に燃焼を継続する状態と解する（独立燃焼説）。記述3冒頭の「重要部分焼失・効用喪失」は効用喪失説に近く、判例の定義とずれている。</span></p>
+            <p><span class="tx-flow-label">趣　旨</span><span class="tx-flow-body">既遂時期は効用の低下ではなく、目的物自体に火災危険が到達した時点で画する。公共危険罪としての早期処罰と整合する。</span></p>
+            <p><span class="tx-flow-label">射　程</span><span class="tx-flow-body">不燃性のコンクリート壁は熱で崩落しても、壁自体が独立に燃焼を継続しない。独立燃焼説では焼損に当たらない。</span></p>
+            <p><span class="tx-flow-label is-cut">切断点</span><span class="tx-flow-body">重要部分の効用喪失と、独立燃焼の有無を混同しない。定義も結論も判例とずれるので記述3は誤り。</span></p>
+            <p><span class="tx-flow-label">転　用</span><span class="tx-flow-body">既遂時期を問う記述では、設問が指定する立場（判例＝独立燃焼説か効用喪失説か）を冒頭の定義から揃える。</span></p>
+            <div class="tx-cycle-aids">
+              <p><span class="tx-cycle-label">記憶フック</span><span class="tx-cycle-body">焼損は「自分の火で燃え続けるか」。コンクリートは崩れても燃えていない。</span></p>
+              <p><span class="tx-cycle-label is-compress">答案圧縮</span><span class="tx-cycle-body">判例＝独立燃焼説 → 不燃性壁の崩落は独立燃焼でない → 焼損に非ず → ×。</span></p>
+            </div>
+            <details class="tx-inline-detail">
+              <summary><span class="tx-detail-open-label">詳説を開く</span><span class="tx-detail-close-label">詳説を閉じる</span></summary>
+              <div class="tx-detail-panel tx-detail-partb" data-partb-source="3">
+                <p><span class="tx-detail-kicker">詳説</span>焼損は放火罪の既遂時期を決める概念で、判例は独立燃焼説を採る。すなわち火が媒介物を離れ、目的物が独立に燃焼を継続するに至った状態を焼損とする（大判明43.3.4等）。</p>
+                <p>記述3の冒頭定義（重要部分焼失・効用喪失）は効用喪失説に近く、判例の物差しと異なる。さらに不燃性のコンクリート壁が火力で崩落しても、壁自体は燃えず独立燃焼に至らないから、独立燃焼説では焼損に当たらない。</p>
+                <p>設問が「判例の立場」を指定したら、定義の段階から判例説に揃える。効用喪失説的な定義を持ち込んだ記述3は、定義も結論も判例と齟齬し誤りである。</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </article>
+
+      <article class="tx-inline-card" id="stmt-4" data-stmt="4">
+        <div class="tx-inline-head">
+          <p class="tx-inline-stmt"><span class="choice-num-inline">4</span><span class="tx-inline-stmt-text">建造物等以外放火罪にいう「公共の危険」は、現住建造物等放火罪や他人所有非現住建造物等放火罪の客体である建造物等に対する延焼の危険に限られず、不特定又は多数の人の生命、身体又は前記建造物等以外の財産に対する危険も含まれる。</span></p>
+          <div class="tx-inline-actions" aria-label="記述4の正誤を選ぶ">
+            <button class="tx-inline-ox" type="button" data-stmt="4" data-value="○">○</button>
+            <button class="tx-inline-ox" type="button" data-stmt="4" data-value="×">×</button>
+            <span class="tx-inline-verdict" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="tx-inline-explain" hidden>
+          <div class="tx-mini-law">
+            <div class="tx-law-item is-main">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">刑法</span><span class="tx-mini-law-article">第百十条第一項</span></span>
+              <span class="tx-mini-law-text">放火して、前二条に規定する物以外の物を焼損し、よって公共の危険を生じさせた者は、一年以上十年以下の拘禁刑に処する。</span>
+            </div>
+            <div class="tx-law-item is-case">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">判例</span><span class="tx-mini-law-article">最決平15.4.14（百選Ⅱ85）</span></span>
+              <span class="tx-mini-law-text">110条1項の「公共の危険」は、必ずしも108条・109条1項の建造物等への延焼の危険のみに限られず、不特定又は多数の人の生命・身体又は前記建造物等以外の財産に対する危険も含む（非限定説）。</span>
+            </div>
+          </div>
+          <div class="tx-article-flow">
+            <p><span class="tx-flow-label">文　言</span><span class="tx-flow-body">110条1項は、建造物等「以外」の物を焼損し公共の危険を生じさせて成立する具体的危険犯であり、危険概念の広狭が成否を左右する。</span></p>
+            <p><span class="tx-flow-label">趣　旨</span><span class="tx-flow-body">火災は人の生命・身体だけでなく、周囲の不特定多数の財産にも広く危険を及ぼす。客体が建物以外なのに建物延焼だけを見るのは狭すぎる。</span></p>
+            <p><span class="tx-flow-label">射　程</span><span class="tx-flow-body">判例は建造物等への延焼危険に限らず、不特定多数の生命・身体・前記建造物等以外の財産への危険も含むとする（非限定説・最決平15.4.14）。記述4はこの判旨どおり。</span></p>
+            <p><span class="tx-flow-label is-cut">切断点</span><span class="tx-flow-body">建物延焼の危険がないことだけで公共の危険を否定しない。非限定説で正しいので記述4は正しい。</span></p>
+            <p><span class="tx-flow-label">転　用</span><span class="tx-flow-body">110条の危険判断では、危険を受ける対象を人の生命・身体・財産一般へ広げて読む。</span></p>
+            <div class="tx-cycle-aids">
+              <p><span class="tx-cycle-label">記憶フック</span><span class="tx-cycle-body">公共の危険は「周り一帯の危なさ」。建物延焼だけに絞らない。</span></p>
+              <p><span class="tx-cycle-label is-compress">答案圧縮</span><span class="tx-cycle-body">110条の公共の危険＝非限定説 → 人・身体・財産も含む → ○。</span></p>
+            </div>
+            <details class="tx-inline-detail">
+              <summary><span class="tx-detail-open-label">詳説を開く</span><span class="tx-detail-close-label">詳説を閉じる</span></summary>
+              <div class="tx-detail-panel tx-detail-partb" data-partb-source="4">
+                <p><span class="tx-detail-kicker">詳説</span>建造物等以外放火罪（110条1項）は具体的危険犯で、「公共の危険」の現実の発生が構成要件要素である。その危険概念の広狭が処罰範囲を直接決める。</p>
+                <p>最決平15.4.14（自動車放火の事案）は、110条1項の公共の危険を108条・109条1項の建造物等への延焼危険に限定せず、不特定又は多数の人の生命・身体・前記建造物等以外の財産への危険も含むとして非限定説を採った。</p>
+                <p>記述4はこの判旨をほぼ逐語的に反映しており正しい。限定説（建物延焼の危険に限る）で判定させる罠に注意する。</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </article>
+
+      <article class="tx-inline-card" id="stmt-5" data-stmt="5">
+        <div class="tx-inline-head">
+          <p class="tx-inline-stmt"><span class="choice-num-inline">5</span><span class="tx-inline-stmt-text">現住建造物等放火罪にいう「現に人が住居に使用し」の「人」には犯人が含まれるが、「現に人がいる」の「人」には犯人が含まれない。</span></p>
+          <div class="tx-inline-actions" aria-label="記述5の正誤を選ぶ">
+            <button class="tx-inline-ox" type="button" data-stmt="5" data-value="○">○</button>
+            <button class="tx-inline-ox" type="button" data-stmt="5" data-value="×">×</button>
+            <span class="tx-inline-verdict" aria-live="polite"></span>
+          </div>
+        </div>
+        <div class="tx-inline-explain" hidden>
+          <div class="tx-mini-law">
+            <div class="tx-law-item is-main">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">刑法</span><span class="tx-mini-law-article">第百八条</span></span>
+              <span class="tx-mini-law-text">放火して、現に人が住居に使用し又は現に人がいる建造物、汽車、電車、艦船又は鉱坑を焼損した者は、死刑又は無期若しくは五年以上の拘禁刑に処する。</span>
+            </div>
+            <div class="tx-law-item is-case">
+              <span class="tx-mini-law-title"><span class="tx-mini-law-code">判例</span><span class="tx-mini-law-article">最判昭32.6.21</span></span>
+              <span class="tx-mini-law-text">「現に人が住居に使用し」の人と「現に人がいる」の人を特に区別することなく、刑法108条にいう「人」とは犯人以外の者を指称する。</span>
+            </div>
+          </div>
+          <div class="tx-article-flow">
+            <p><span class="tx-flow-label">文　言</span><span class="tx-flow-body">108条の客体は「現に人が住居に使用し又は現に人がいる建造物」。この「人」に放火犯人自身が含まれるかが問題となる。</span></p>
+            <p><span class="tx-flow-label">趣　旨</span><span class="tx-flow-body">108条が最も重いのは、犯人以外の他人の生命・身体に類型的な危険が及ぶからである。犯人自身は保護の対象ではない。</span></p>
+            <p><span class="tx-flow-label">射　程</span><span class="tx-flow-body">判例は住居使用の人と現在の人を区別せず、108条の「人」を一律に「犯人以外の者」とする（最判昭32.6.21）。住居使用の人にも犯人は含まれない。</span></p>
+            <p><span class="tx-flow-label is-cut">切断点</span><span class="tx-flow-body">「住居使用」だけ犯人を含めるという区別はしない。前段が判例と矛盾するので記述5は誤り。</span></p>
+            <p><span class="tx-flow-label">転　用</span><span class="tx-flow-body">単独居住者・犯人同居・犯人現在の事案では、犯人以外の人がいるかを探す（いなければ109条の問題になる）。</span></p>
+            <div class="tx-cycle-aids">
+              <p><span class="tx-cycle-label">記憶フック</span><span class="tx-cycle-body">108条の「人」からは、住居でも現在でも一律に犯人を抜く。</span></p>
+              <p><span class="tx-cycle-label is-compress">答案圧縮</span><span class="tx-cycle-body">判例は区別せず「人」＝犯人以外 → 住居使用の人にも犯人含まず → 前段誤り → ×。</span></p>
+            </div>
+            <details class="tx-inline-detail">
+              <summary><span class="tx-detail-open-label">詳説を開く</span><span class="tx-detail-close-label">詳説を閉じる</span></summary>
+              <div class="tx-detail-panel tx-detail-partb" data-partb-source="5">
+                <p><span class="tx-detail-kicker">詳説</span>現住建造物等放火罪の重罰根拠は、犯人以外の他人の生命・身体への類型的危険にある。そのため108条の「人」は犯人以外の者を指す。</p>
+                <p>最判昭32.6.21は「住居に使用し」の人と「現にいる」の人を特に区別せず、一律に「犯人以外の者」とした。したがって住居使用の人にも犯人は含まれない。</p>
+                <p>記述5の後段（現在の人に犯人を含まない）は正しいが、前段（住居使用の人に犯人を含む）が判例と矛盾する。一部が正しくても前段が誤れば記述全体が誤りである。</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="tx-inline-reveal-panel">
+      <p>各記述の○×をこの場で選ぶと、裏側の Lexia 用 OX グリッドにも同じ回答が入ります。全記述を選ぶと採点できます。周回確認だけなら、全選択せずに解説だけ閲覧できます。</p>
+      <button class="tx-inline-browse-btn" type="button" aria-expanded="false">解説だけ閲覧</button>
+      <button class="tx-inline-reveal-btn" type="button" disabled="">解答を表示</button>
+      <span class="tx-inline-result" hidden></span>
+    </div>
 
         <div class="solve-nav" id="solve-nav">
       <div class="sn-head">📐 解法ナビ
-        <span class="sn-sub">記述1〜5を順に、下の一問一答で 正しい(○)／誤り(×) を判定しよう（本問は誤っているものを2個選ぶ問題）。建造物の定義と従物・放火＝媒介物点火・焼損＝独立燃焼説・公共の危険＝非限定説・『人』＝犯人以外がコアです。</span>
+        <span class="sn-sub">記述を上から順に○×判定 →「誤っているものを2個選ぶ」問題なので、×を付けた記述が答えの候補。建造物の一体性・放火＝媒介物点火・焼損＝独立燃焼説・公共の危険＝非限定説・「人」＝犯人以外がコアです。</span>
       </div>
       <div class="sn-body">
+        <div class="sn-combos" id="sn-combos"></div>
         <p class="sn-remain" id="sn-remain"></p>
         <div id="sn-stage"></div>
       </div>
     </div>
 
-<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）</h3>
-
-    <div class="answer-area" id="answer-area" data-correct-value="○○×○×" data-answer-type="ox-grid" data-explanation="記述1は建造物の意義（大判大13.5.31）と従物が建造物の一部となる要件（最判昭25.12.14＝毀損しなければ取り外せない状態）の双方を正しく述べており正しい。記述2は媒介物への点火でも継続燃焼により目的物に延焼し得れば放火に当たる（大判大3.10.13）として正しい。記述3は判例が採る独立燃焼説（火が媒介物を離れ目的物が独立に燃焼を継続する状態を焼損とする・大判明43.3.4等）によれば、不燃性建造物のコンクリート壁が崩落しても目的物が独立に燃焼を継続するに至ったとはいえないため焼損に当たらず、記述3後段の結論は誤り（記述3冒頭の効用喪失説的定義も判例の立場と異なる）。記述4は最決平15.4.14（百選Ⅱ85）が110条1項の公共の危険を建造物等への延焼危険に限定せず不特定多数の生命・身体・財産への危険も含むとした非限定説と整合し正しい。記述5は最判昭32.6.21が『住居に使用し』の人も『現にいる』の人も区別せず108条の『人』を『犯人以外の者』を指称するとしたため、住居使用の人にも犯人は含まれず、記述5前段（住居使用の人に犯人が含まれる）は誤り。組合せ番号ではなく各記述の法理で判定する。">
-      <p class="answer-instruction">記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
+    <div class="answer-area inline-prototype-mode" id="answer-area" data-correct-value="○○×○×" data-answer-type="ox-grid" data-explanation="各記述の正誤は1○・2○・3×・4○・5×（誤りは記述3と記述5の2つ）。本問の核心は、放火罪を組み立てる5つの基本概念について判例が引いた境界線を正確になぞれるかにある。記述1（建造物・従物の毀損取外し要件）・記述2（放火＝媒介物点火でも継続延焼し得れば該当）・記述4（110条の公共の危険＝非限定説・最決平15.4.14）は判例どおりで正しい。記述3は焼損につき判例が採る独立燃焼説によれば不燃性壁の崩落は焼損に当たらず、効用喪失説的定義も結論も判例と齟齬し誤り。記述5は最判昭32.6.21が住居使用・現在を区別せず108条の『人』を犯人以外の者とするため、住居使用の人に犯人を含むとする前段が誤り。組合せ番号ではなく各記述の法理で判定する。">
+      <p class="answer-instruction">本番形式で採点するときは、記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから解答を表示してください（本問は誤っているものを2個選ぶ）。周回確認だけなら、上の「解説だけ閲覧」から先に逐条解説を開けます。</p>
 
       <div class="answer-ox-grid">
         <div class="ox-row" data-stmt="1">
           <span class="ox-label">1</span>
-          <span class="ox-stmt">「建造物」＝土地に定着し人の起居出入りに適する工作物。毀損しなければ取り外せない雨戸は「建造物」の一部に当たる。</span>
+          <span class="ox-stmt">「建造物」とは土地に定着し人の起居出入りに適する構造を有する工作物をいい、毀損しなければ取り外せない状態にある雨戸は建造物の一部に当たる。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
+        <div class="ox-pool-explain" data-source="tx363-inline">
+          <p class="ox-pool-gist">切断点：付属しているだけでは足りず、取り外しに毀損を要するかで切る。 ／ 転用：建具・設備が出たら土地への定着性と物理的一体性を分けて確認する。</p>
+          <ul class="ox-pool-points">
+            <li>文言：建造物は、土地に定着し人の起居出入りに適する構造を有する工作物をいう。</li>
+            <li>趣旨：放火罪の重さは、人が利用する空間を火で焼き他人の生命・身体に高度の危険を及ぼす点にある。</li>
+            <li>射程：従物は、毀損しなければ取り外せないほど一体なら建造物の一部となる。</li>
+            <li>切断点：付属しているだけでは足りず、取り外しに毀損を要するかで切る。</li>
+            <li>転用：建具・設備・内装が出たら、土地への定着性と物理的一体性を分けて確認する。</li>
+            <li>記憶フック：家の部品は「壊さないと外せないか」で家の一部かが決まる。</li>
+            <li>答案圧縮：雨戸＝毀損しなければ取り外せない → 建造物の一部 → ○。</li>
+          </ul>
+        </div>
         </div>
         <div class="ox-row" data-stmt="2">
           <span class="ox-label">2</span>
-          <span class="ox-stmt">「放火」＝目的物の焼損を惹起させる行為。媒介物への点火でも継続燃焼で目的物に延焼し得る場合は「放火」に当たる。</span>
+          <span class="ox-stmt">「放火」は目的物の焼損を惹起させる行為で、媒介物への点火でもその燃焼作用が継続して目的物に延焼し得る場合は「放火」に当たる。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
+        <div class="ox-pool-explain" data-source="tx363-inline">
+          <p class="ox-pool-gist">切断点：直接火をつけたかではなく、目的物焼損へつながる現実的経路があるかで切る。 ／ 転用：媒介物が出たら継続燃焼と延焼可能性を見る。</p>
+          <ul class="ox-pool-points">
+            <li>文言：放火は、目的物の焼損を惹起させる行為をいう。</li>
+            <li>趣旨：危険なのは直接点火だけでなく、火が目的物へ届く燃焼経路を作ることでもある。</li>
+            <li>射程：媒介物への点火でも、燃焼が継続して目的物へ延焼し得れば放火に当たる。</li>
+            <li>切断点：直接火をつけたかではなく、目的物焼損へつながる現実的経路があるかで切る。</li>
+            <li>転用：新聞紙・布団・ガソリンなど媒介物が出たら、継続燃焼と延焼可能性を見る。</li>
+            <li>記憶フック：導火線に火を点ければ、もう本体に点けたのと同じ。</li>
+            <li>答案圧縮：媒介物点火＋継続して目的物へ延焼し得る → 放火 → ○。</li>
+          </ul>
+        </div>
         </div>
         <div class="ox-row" data-stmt="3">
           <span class="ox-label">3</span>
-          <span class="ox-stmt">「焼損」＝重要部分焼失・効用喪失。不燃性建造物のコンクリート壁が火力で崩落した場合も「焼損」に当たる。</span>
+          <span class="ox-stmt">判例の独立燃焼説によれば、不燃性建造物のコンクリート壁が火力で崩落しても目的物が独立に燃焼を継続せず「焼損」に当たらない（効用喪失説的定義での崩落＝焼損は誤り）。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
+        <div class="ox-pool-explain" data-source="tx363-inline">
+          <p class="ox-pool-gist">切断点：重要部分の効用喪失と、独立燃焼の有無を混同しない。 ／ 転用：既遂を問う記述では判例の独立燃焼説か効用喪失説かを見分ける。</p>
+          <ul class="ox-pool-points">
+            <li>文言：焼損は、火が媒介物を離れて目的物が独立に燃焼を継続する状態をいう。</li>
+            <li>趣旨：既遂は効用低下ではなく、目的物自体に火災危険が到達した時点で画する。</li>
+            <li>射程：不燃性壁が熱で崩れても、壁自体が燃焼し続けなければ焼損ではない。</li>
+            <li>切断点：重要部分の効用喪失と、独立燃焼の有無を混同しない。</li>
+            <li>転用：既遂を問う記述では、判例の独立燃焼説か効用喪失説かを見分ける。</li>
+            <li>記憶フック：焼損は「自分の火で燃え続けるか」。コンクリートは崩れても燃えていない。</li>
+            <li>答案圧縮：判例＝独立燃焼説 → 不燃性壁の崩落は独立燃焼でない → 焼損に非ず → ×。</li>
+          </ul>
+        </div>
         </div>
         <div class="ox-row" data-stmt="4">
           <span class="ox-label">4</span>
-          <span class="ox-stmt">110条1項の「公共の危険」は建造物等への延焼危険に限られず、不特定又は多数の人の生命・身体・前記建造物等以外の財産への危険も含む。</span>
+          <span class="ox-stmt">建造物等以外放火罪の「公共の危険」は建造物等への延焼の危険に限られず、不特定又は多数の人の生命・身体・前記建造物等以外の財産への危険も含む。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
+        <div class="ox-pool-explain" data-source="tx363-inline">
+          <p class="ox-pool-gist">切断点：建物延焼の危険がないことだけで公共の危険を否定しない。 ／ 転用：110条の危険判断では危険を受ける対象を人・身体・財産へ広げて読む。</p>
+          <ul class="ox-pool-points">
+            <li>文言：110条1項の公共の危険は、建造物等への延焼危険に限定されない。</li>
+            <li>趣旨：火災は人の生命・身体だけでなく、不特定多数の財産にも広く危険を及ぼす。</li>
+            <li>射程：建造物以外の財産への危険も公共の危険に含まれる（非限定説・最決平15.4.14）。</li>
+            <li>切断点：建物延焼の危険がないことだけで、公共の危険を否定しない。</li>
+            <li>転用：110条の危険判断では、危険を受ける対象を人・身体・財産へ広げて読む。</li>
+            <li>記憶フック：公共の危険は「周り一帯の危なさ」。建物延焼だけに絞らない。</li>
+            <li>答案圧縮：110条の公共の危険＝非限定説 → 人・身体・財産も含む → ○。</li>
+          </ul>
+        </div>
         </div>
         <div class="ox-row" data-stmt="5">
           <span class="ox-label">5</span>
-          <span class="ox-stmt">108条「現に人が住居に使用し」の「人」には犯人が含まれるが、「現に人がいる」の「人」には犯人が含まれない。</span>
+          <span class="ox-stmt">現住建造物等放火罪の「人」は、住居使用・現在のいずれの場合も犯人以外の者を指す（住居使用の人に犯人を含むとする前段は誤り）。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
+        <div class="ox-pool-explain" data-source="tx363-inline">
+          <p class="ox-pool-gist">切断点：「住居使用」だけ犯人を含めるという区別はしない。 ／ 転用：単独居住者・犯人同居・犯人現在の事案では犯人以外の人を探す。</p>
+          <ul class="ox-pool-points">
+            <li>文言：108条の「人」は、住居使用・現在のいずれも犯人以外の者を指す。</li>
+            <li>趣旨：現住建造物等放火罪は、犯人以外の生命・身体の危険を重く評価する。</li>
+            <li>射程：犯人だけが住む・いる建物は、その理由だけでは108条の現住性を満たさない。</li>
+            <li>切断点：「住居使用」だけ犯人を含めるという区別はしない。</li>
+            <li>転用：単独居住者・犯人同居・犯人現在の事案では、犯人以外の人を探す。</li>
+            <li>記憶フック：108条の「人」からは、住居でも現在でも一律に犯人を抜く。</li>
+            <li>答案圧縮：判例は区別せず「人」＝犯人以外 → 住居使用の人にも犯人含まず → ×。</li>
+          </ul>
+        </div>
         </div>
       </div>
 
@@ -3495,7 +4602,8 @@ body.snav-on .solve-nav{display:block;}
         <p data-fa-label="整理：判例の境界線">こうして並べてみると、五つの記述は別々のルールの寄せ集めに見えて、実は<b>「放火罪の各概念について、判例が引いた境界線を正しくなぞれているか」</b>という一本の問いで束ねられています。建造物の一体性、放火の媒介物、焼損の独立燃焼、公共の危険の広さ、人からの犯人除外——いずれも線の引き方を問う問題で、誤りはすべてその線を引き違えたものでした。焼損を効用喪失で測ってしまった記述と、住居使用の人にだけ犯人を含めてしまった記述が、線からはみ出しています。</p>
         <p data-fa-label="まとめ：定義への忠実さ">この問題の幹は、<b>放火罪の用語はどれも「公共の危険からの安全」という目的に向けて判例が精密に定義してきたものであり、その定義に忠実かどうかだけが当否を決める</b>という一点です。正解の番号は、五つの境界線を一つずつたどって誤りを二つ拾い出した結果にすぎません。覚えるべきは番号ではなく、焼損は独立燃焼説で測ること、人からは住居使用も現在も一律に犯人を除くこと——この理由づけそのものです。</p>
         </div>
-        <p class="fa-summary"><strong>正解</strong>　各記述の○×は下表のとおり。組合せ番号を覚えるのではなく、各記述に現れた<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
+        <details class="tx-core-ledger" hidden>
+          <summary>正誤一覧</summary>
         <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:x,4:o,5:x">
           <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
           <tbody>
@@ -3506,6 +4614,7 @@ body.snav-on .solve-nav{display:block;}
             <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>108条の「人」は、住居使用・現在のいずれも犯人以外の者を指す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>現住建造物等放火罪は、犯人以外の生命・身体の危険を重く評価する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>犯人だけが住む・いる建物は、その理由だけでは108条の現住性を満たさない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「住居使用」だけ犯人を含めるという区別はしない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>単独居住者・犯人同居・犯人現在の事案では、犯人以外の人を探す。</p></div></td></tr>
           </tbody>
         </table>
+        </details>
       </div>
     </div>
 
@@ -3513,13 +4622,16 @@ body.snav-on .solve-nav{display:block;}
   </section>
 
   <!-- ============================================================
-       PART B ── 記述別解説（ア〜エ）
+       PART B ── 記述別解説（記述1〜5）
        ============================================================ -->
-  <div class="part-title">PART B ── 記述別解説（1〜5）</div>
+  <div class="part-title partb-source-title" hidden>PART B ── 記述別解説（記述1〜5）</div>
+  <details class="partb-details partb-source" id="part-b-details" hidden aria-hidden="true">
+    <summary>PART B 詳説 ── 初回理解・詰まった記述だけ読む</summary>
+    <p class="partb-note">通常周回は上の OX カードで完結します。ここは、各概念の定義・判例の物差しを深掘りしたいときだけ開く詳説です。</p>
 
   <!-- =============== 記述1 =============== -->
   <section class="choice-section odd" id="choice-1">
-    <nav class="sec-nav"><a href="#answer-area">↑A-2</a><a href="#choice-2">記述2→</a></nav>
+    <nav class="sec-nav"><a href="#answer-area">↑解答</a><a href="#choice-2">記述2→</a></nav>
 
     <div class="choice-header-block">
       <div class="choice-big-badge">1</div>
@@ -3604,7 +4716,7 @@ body.snav-on .solve-nav{display:block;}
     <div class="sub-card synthesis">
       <h4>🎯 統合解説</h4>
       <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>「焼損」とは、火力により目的物の重要部分が焼失し、その本来の効用が失われた状態をいい、不燃性の建造物のコンクリート壁が媒介物の火力によって崩落した場合、「焼損」に当たる。</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。判例は焼損につき独立燃焼説（火が媒介物を離れ目的物が独立に燃焼継続）を採る。不燃性コンクリート壁の崩落は独立燃焼に至らず焼損に非ず。記述3冒頭の効用喪失説的定義も後段の結論も判例と齟齬し誤り。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。判例は焼損につき独立燃焼説（火が媒介物を離れ目的物が独立に燃焼継続）を採る。不燃性コンクリート壁の崩落は独立燃焼に至らず焼損に非ず。冒頭の効用喪失説的定義も「崩落＝焼損」という結論も判例と齟齬し誤り。</p>
       <div class="syn-path">
         <p><span class="syn-step">1</span><strong>焼損の意義＝独立燃焼説</strong><span class="syn-body">判例（<a class="ref-case" id="ref-shoson-301" href="#case-shoson">大判明43.3.4・最判昭23.11.2</a>等）は<span class="ron-mark freq-high">独立燃焼説</span>を採り、<span class="case-emphasis freq-high">火が媒介物を離れ目的物が独立に燃焼を継続するに至った状態</span>を焼損と解する。記述3冒頭の定義（重要部分焼失・効用喪失）は効用喪失説に近く、判例の定義とズレている。</span></p>
         <p><span class="syn-step">2</span><strong>不燃性壁崩落への適用</strong><span class="syn-body">不燃性のコンクリート壁が火力で崩落しても、壁自体は不燃性で<span class="ron-mark freq-high">独立に燃焼を継続するに至っていない</span>。独立燃焼説では「焼損」に当たらないから、崩落＝焼損とする記述3後段は判例と矛盾し誤り（効用喪失説なら焼損と評価する余地はあるが、本問は判例の立場を問う）。</span></p>      </div>
@@ -3642,7 +4754,7 @@ body.snav-on .solve-nav{display:block;}
     <div class="sub-card synthesis">
       <h4>🎯 統合解説</h4>
       <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>建造物等以外放火罪にいう「公共の危険」は、現住建造物等放火罪や他人所有非現住建造物等放火罪の客体である建造物等に対する延焼の危険に限られず、不特定又は多数の人の生命、身体又は前記建造物等以外の財産に対する危険も含まれる。</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。110条1項の「公共の危険」を建造物等への延焼危険に限定せず、不特定多数の人の生命・身体・財産への危険も含むとするのは最決平15.4.14（百選Ⅱ85）の非限定説どおりで、記述4は判旨に正確に対応する。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。110条1項の「公共の危険」を建造物等への延焼危険に限定せず、不特定多数の人の生命・身体・財産への危険も含むとするのは最決平15.4.14（百選Ⅱ85）の非限定説どおりで、この記述は判旨に正確に対応する。</p>
       <div class="syn-path">
         <p><span class="syn-step">1</span><strong>110条＝具体的危険犯</strong><span class="syn-body">建造物等以外放火罪（<a class="ref-stat" id="ref-law-110-401" href="#law-110">刑法110条1項</a>）は、108条・109条に規定する物以外の物を焼損し、よって「公共の危険」を生じさせて成立する<span class="case-emphasis freq-high">具体的危険犯</span>。危険概念の広狭が成否を直接左右する。</span></p>
         <p><span class="syn-step">2</span><strong>非限定説の採用</strong><span class="syn-body"><a class="ref-case" id="ref-koukyo-401" href="#case-koukyo">最決平15.4.14</a>は、「公共の危険」は必ずしも108条・109条1項の建造物等への延焼危険に限られず、<span class="ron-mark freq-high">不特定又は多数の人の生命・身体・前記建造物等以外の財産への危険も含む</span>とした（自動車放火の事案）。記述4はこの判旨をほぼ逐語的に反映し正しい。</span></p>      </div>
@@ -3671,7 +4783,7 @@ body.snav-on .solve-nav{display:block;}
 
   <!-- =============== 記述5（誤＝正解の1つ） =============== -->
   <section class="choice-section odd" id="choice-5">
-    <nav class="sec-nav"><a href="#choice-4">←記述4</a><a href="#cross-column-sec">PART B+→</a></nav>
+    <nav class="sec-nav"><a href="#choice-4">←記述4</a><a href="#basis">共通根拠→</a></nav>
 
     <div class="choice-header-block">
       <div class="choice-big-badge">5</div>
@@ -3680,7 +4792,7 @@ body.snav-on .solve-nav{display:block;}
     <div class="sub-card synthesis">
       <h4>🎯 統合解説</h4>
       <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>現住建造物等放火罪にいう「現に人が住居に使用し」の「人」には犯人が含まれるが、「現に人がいる」の「人」には犯人が含まれない。</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。最判昭32.6.21は「住居に使用し」の人と「現にいる」の人を区別せず、108条の「人」を「犯人以外の者」とした。住居使用の人にも犯人は含まれないから、含まれるとする記述5前段は判例と矛盾し誤り（後段は正しいが前段の誤りで全体が誤りとなる）。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。最判昭32.6.21は「住居に使用し」の人と「現にいる」の人を区別せず、108条の「人」を「犯人以外の者」とした。住居使用の人にも犯人は含まれないから、住居使用の人にだけ犯人を含むとする前段が判例と矛盾し誤り（現在の人に犯人を含まないとする後段は正しいが、前段の誤りで全体が誤りとなる）。</p>
       <div class="syn-path">
         <p><span class="syn-step">1</span><strong>108条の「人」の解釈問題</strong><span class="syn-body">現住建造物等放火罪（<a class="ref-stat" id="ref-law-108-501" href="#law-108">刑法108条</a>）の客体は「現に人が住居に使用し<span class="case-emphasis freq-high">又は</span>現に人がいる建造物」等。この「人」に放火犯人自身が含まれるかが問題となる。</span></p>
         <p><span class="syn-step">2</span><strong>区別なき犯人除外</strong><span class="syn-body"><a class="ref-case" id="ref-hito-501" href="#case-hito">最判昭32.6.21</a>は両概念を<span class="ron-mark freq-high">特に区別せず</span>108条の「人」を「犯人以外の者」を指称するとした。住居使用の人も犯人を含まないから、含むとする記述5前段は判例と矛盾。後段（現在の人に犯人は含まない）は正しいが、前段の誤りで記述全体が誤りとなる。</span></p>      </div>
@@ -3706,17 +4818,18 @@ body.snav-on .solve-nav{display:block;}
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
+  </details>
 
   <!-- ============================================================
        PART B+ ── 横断・比較・罠コラム
        ============================================================ -->
   <div class="part-title">PART B+ ── 横断・比較・罠コラム</div>
   <section class="section" id="cross-column-sec">
-    <nav class="sec-nav"><a href="#choice-5">←記述5</a><a href="#basis">参考条文判例→</a></nav>
+    <nav class="sec-nav"><a href="#stmt-5">←記述5</a><a href="#basis">参考条文判例→</a></nav>
 
     <div class="cross-column">
       <div class="col-block cb-cross">
-        <h4>🔗 客体の軽重で見る放火罪の体系 ── 危険の種類と法定刑</h4>
+        <h4>🔗 客体の軽重で見る放火罪の体系 ── 危険の種類と「公共の危険」・「人」</h4>
         <p class="col-lead">本問の5記述は放火罪の客体・行為・結果・危険・「人」を横断する。これらは「公共の危険が抽象的に擬制されるか・現実の発生を要するか」という危険犯の性格の差で一本につながる。記述4・5は客体の軽重と危険概念に直結する。</p>
         <table>
           <thead><tr><th class="jk2" style="width:18%;">条文・客体</th><th>危険犯の性格</th><th>「公共の危険」発生の要否</th></tr></thead>
@@ -3731,7 +4844,7 @@ body.snav-on .solve-nav{display:block;}
 
       <div class="col-block cb-compare">
         <h4>📊 比較 ── 本問5記述を貫く「判例の物差し」</h4>
-        <p class="col-lead">各記述は放火罪の異なる要素を問うが、いずれも「判例がどの説・どの範囲を採るか」を物差しにすれば判定できる。誤りの2記述（3・5）は判例と別の物差しを当てている。</p>
+        <p class="col-lead">各記述は放火罪の異なる要素を問うが、いずれも「判例がどの説・どの範囲を採るか」を物差しにすれば判定できる。誤りの2記述（記述3・5）は判例と別の物差しを当てている。</p>
         <table>
           <thead><tr><th class="jk2" style="width:10%;">記述</th><th style="width:30%;">問われた軸</th><th class="jk2" style="width:10%;">結論</th><th>決め手</th></tr></thead>
           <tbody>
@@ -3742,14 +4855,14 @@ body.snav-on .solve-nav{display:block;}
             <tr><th>5</th><td>108条「人」の範囲</td><td style="text-align:center;"><span class="cc-ox cc-ng">×</span></td><td>判例は住居使用・現在を区別せず犯人除外なのに前段で区別した</td></tr>
           </tbody>
         </table>
-        <p class="col-key"><span class="ck-tag">詰める順番</span>①各記述が「定義・範囲・学説選択」のどれを問うか判別→②判例が採る説／範囲を想起→③記述がそれと一致するか照合。3・5は冒頭定義や前段の段階で判例とズレる。</p>
+        <p class="col-key"><span class="ck-tag">詰める順番</span>①各記述が「定義・範囲・学説選択」のどれを問うか判別→②判例が採る説／範囲を想起→③記述がそれと一致するか照合。誤りの2記述は冒頭定義や前段の段階で判例とズレる。</p>
       </div>
 
       <div class="col-block cb-trap">
         <h4>⚠️ 間違いやすいポイント（誤答の型）</h4>
-        <p class="col-warn"><strong>TRAP 1（記述3）</strong>もっともらしい「効用喪失説」的定義を冒頭に置き、判例（独立燃焼説）を採るべき設問で別の物差しを使わせる。設問が「判例の立場」を指定したら、定義の段階から判例説に揃える。</p>
-        <p class="col-warn"><strong>TRAP 2（記述5）</strong>後段（現在の人に犯人を含まない）が正しいため記述全体を○と早合点させる。前段（住居使用の人に犯人を含む）が判例と矛盾すれば、一部が正しくても記述全体は誤り。</p>
-        <p class="col-warn"><strong>TRAP 3（記述1・4）</strong>「雨戸は常に建造物」「公共の危険は延焼危険に限る」と限定や範囲を雑に一般化させる。記述1は毀損取外し要件の限定付き、記述4は非限定説で、いずれも限定・範囲を正確に述べており正しい。</p>
+        <p class="col-warn"><strong>TRAP 1（焼損）</strong>もっともらしい「効用喪失説」的定義を冒頭に置き、判例（独立燃焼説）を採るべき設問で別の物差しを使わせる。設問が「判例の立場」を指定したら、定義の段階から判例説に揃える。</p>
+        <p class="col-warn"><strong>TRAP 2（「人」）</strong>後段（現在の人に犯人を含まない）が正しいため記述全体を○と早合点させる。前段（住居使用の人に犯人を含む）が判例と矛盾すれば、一部が正しくても記述全体は誤り。</p>
+        <p class="col-warn"><strong>TRAP 3（建造物・公共の危険）</strong>「雨戸は常に建造物」「公共の危険は延焼危険に限る」と限定や範囲を雑に一般化させる。建造物の記述は毀損取外し要件の限定付き、公共の危険の記述は非限定説で、いずれも限定・範囲を正確に述べており正しい。</p>
         <p class="col-type"><strong>THROUGH-LINE</strong>放火罪の正誤判定は「判例が採る説・範囲」を物差しに、記述の定義・限定・前段後段を一語ずつ照合する作業。物差しのすり替え（学説）と部分的正しさへの早合点が二大誤答源。</p>
       </div>
     </div>
@@ -3767,7 +4880,7 @@ body.snav-on .solve-nav{display:block;}
     <div class="basis-card statute-card" id="law-108">
       <div class="basis-card-header">📜 刑法108条 現住建造物等放火（客体・「人」）<span class="freq-badge freq-high">★★★</span></div>
       <div class="basis-card-body">
-        <p class="hanging"><span class="para-num">本文</span><span class="hang-body">放火して、現に<span class="ron-mark freq-high">人が住居に使用し</span>又は<span class="ron-mark freq-high">現に人がいる</span>建造物、汽車、電車、艦船又は鉱坑を<span class="case-emphasis freq-high">焼損</span>した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p>
+        <p class="hanging"><span class="para-num">本文</span><span class="hang-body">放火して、現に<span class="ron-mark freq-high">人が住居に使用し</span>又は<span class="ron-mark freq-high">現に人がいる</span>建造物、汽車、電車、艦船又は鉱坑を<span class="case-emphasis freq-high">焼損</span>した者は、死刑又は無期若しくは五年以上の拘禁刑に処する。</span></p>
         <div class="note">
           <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">最重の放火罪で抽象的危険犯（公共の危険の発生を要件としない）。客体は「現に人が住居に使用し」又は「現に人がいる」建造物等。「建造物」の意義（記述1）と「焼損」の既遂時期（記述3）も本条の解釈論。</span></div>
           <div class="kd-item"><span class="kd-label r-hogo">保護法益</span><span class="kd-text">公共の安全（不特定多数の生命・身体・財産）。とりわけ建造物内にいる犯人以外の他人の生命・身体への類型的危険が重罰根拠。</span></div>
@@ -3887,7 +5000,7 @@ body.snav-on .solve-nav{display:block;}
       <path class="line-sub" d="M 600 412 V 470 H 820 V 510"></path>
       <path class="line-sub" d="M 900 412 V 470 H 1040 V 510"></path>
 
-      <!-- L3 (4 判例の規範・本問関連層) -->
+      <!-- L3 (4 各記述の帰結・本問関連層) -->
       <g transform="translate(380, 540)"><rect class="l3-active" x="-105" y="-22" width="210" height="44" rx="8"></rect><text class="tx-l3-active" text-anchor="middle" y="5">独立燃焼説【判例】</text></g>
       <g transform="translate(600, 540)"><rect class="l3-fill" x="-100" y="-22" width="200" height="44" rx="8"></rect><text class="tx-l3" text-anchor="middle" y="5">効用喪失説（少数説）</text></g>
       <g transform="translate(820, 540)"><rect class="l3-fill" x="-105" y="-22" width="210" height="44" rx="8"></rect><text class="tx-l3" text-anchor="middle" y="5">非限定説（最決H15.4.14）</text></g>
@@ -3895,7 +5008,7 @@ body.snav-on .solve-nav{display:block;}
 
       <!-- 本問の論点 issue box (中央下) + arrow -->
       <g transform="translate(750, 700)"><rect class="issue-fill" x="-270" y="-50" width="540" height="100" rx="14"></rect><text class="tx-issue-ttl" text-anchor="middle" y="-15">▼ 本問の論点</text><text class="tx-issue-body" text-anchor="middle" y="12">放火罪5記述を判例の立場で正誤判定</text><text class="tx-issue-body" text-anchor="middle" y="32">誤り＝記述3（焼損・独立燃焼説）・記述5（108条の「人」）</text></g>
-      <!-- 矢印: issue box → L3 active 独立燃焼説 -->
+      <!-- 矢印: issue box → L3 active（記述3○） -->
       <line class="issue-arrow" x1="550" y1="680" x2="400" y2="570" marker-end="url(#issueArr)"></line>
       </svg>
       <p class="figure-caption">図：放火罪の体系的位置づけと5記述の正誤判定（4階層 + 本問論点）</p>
@@ -3912,8 +5025,8 @@ body.snav-on .solve-nav{display:block;}
       <svg class="radial-svg" viewBox="0 0 1500 1300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="放火罪5記述（建造物・放火・焼損・公共の危険・「人」）の正誤判定放射図（7主要枝＋本問の論点）">
         <defs>
           <linearGradient id="centerGrad" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stop-color="#bcbbf6"></stop>
-            <stop offset="1" stop-color="#a6a5f1"></stop>
+            <stop offset="0" stop-color="var(--accent)"></stop>
+            <stop offset="1" stop-color="var(--accent-darker)"></stop>
           </linearGradient>
           <marker id="issueArr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
             <path d="M2 1L8 5L2 9" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round"></path>
@@ -3934,52 +5047,52 @@ body.snav-on .solve-nav{display:block;}
       <line class="line-main" x1="608" y1="635" x2="330" y2="830"></line>
       <line class="line-main" x1="608" y1="545" x2="330" y2="350"></line>
 
-      <!-- ============ 主要枝① 記述1（正・建造物/雨戸） ============ -->
+      <!-- ============ 主要枝① 記述1（誤×・延焼罪） ============ -->
       <g transform="translate(750, 220)"><rect class="branch-fill" x="-140" y="-32" width="280" height="64" rx="10"></rect><text class="tx-branch" text-anchor="middle" y="6">記述1（正・建造物/雨戸）</text></g>
       <line class="line-sub" x1="650" y1="195" x2="460" y2="110"></line>
       <g transform="translate(460, 90)"><rect class="sub-elem" x="-110" y="-22" width="220" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">定着・起居出入適合</text></g>
       <line class="line-sub" x1="850" y1="195" x2="1040" y2="110"></line>
       <g transform="translate(1040, 90)"><rect class="sub-elem" x="-110" y="-22" width="220" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">毀損取外し要件（最判S25）</text></g>
 
-      <!-- ============ 主要枝② 記述2（正・放火/媒介物） ============ -->
+      <!-- ============ 主要枝② 記述2（誤×・109②未遂） ============ -->
       <g transform="translate(1200, 330)"><rect class="branch-fill" x="-140" y="-32" width="280" height="64" rx="10"></rect><text class="tx-branch" text-anchor="middle" y="6">記述2（正・放火/媒介物）</text></g>
       <line class="line-sub" x1="1290" y1="300" x2="1380" y2="230"></line>
       <g transform="translate(1380, 210)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">媒介物への点火</text></g>
       <line class="line-sub" x1="1320" y1="360" x2="1430" y2="400"></line>
       <g transform="translate(1390, 425)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">継続して延焼し得る</text></g>
 
-      <!-- ============ 主要枝③ 記述3（誤・焼損/独立燃焼説） ============ -->
+      <!-- ============ 主要枝③ 記述3（正○・予備不可罰＝正解） ============ -->
       <g transform="translate(1290, 590)"><rect class="branch-fill" x="-140" y="-32" width="280" height="64" rx="10"></rect><text class="tx-branch" text-anchor="middle" y="6">記述3（誤・焼損）</text></g>
       <line class="line-sub" x1="1380" y1="560" x2="1450" y2="520"></line>
       <g transform="translate(1390, 500)"><rect class="sub-statute" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-statute" text-anchor="middle" y="5">独立燃焼説（判例）</text></g>
       <line class="line-sub" x1="1380" y1="620" x2="1450" y2="660"></line>
       <g transform="translate(1390, 680)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">壁崩落は焼損に非ず</text></g>
 
-      <!-- ============ 主要枝④ 記述4（正・公共の危険） ============ -->
+      <!-- ============ 主要枝④ 記述4（誤×・消火妨害） ============ -->
       <g transform="translate(1200, 850)"><rect class="branch-fill" x="-140" y="-32" width="280" height="64" rx="10"></rect><text class="tx-branch" text-anchor="middle" y="6">記述4（正・公共の危険）</text></g>
       <line class="line-sub" x1="1290" y1="880" x2="1430" y2="960"></line>
       <g transform="translate(1390, 980)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">不特定多数の生命身体財産</text></g>
       <line class="line-sub" x1="1320" y1="820" x2="1430" y2="780"></line>
-      <g transform="translate(1390, 760)"><rect class="sub-statute" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-statute" text-anchor="middle" y="5">非限定説（最決H15）</text></g>
+      <g transform="translate(1390, 760)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">非限定説（最決H15）</text></g>
 
-      <!-- ============ 主要枝⑤ 記述5（誤・108条の「人」） ============ -->
+      <!-- ============ 主要枝⑤ 記述5（誤×・115条擬制） ============ -->
       <g transform="translate(750, 960)"><rect class="branch-fill" x="-140" y="-32" width="280" height="64" rx="10"></rect><text class="tx-branch" text-anchor="middle" y="6">記述5（誤・108条の「人」）</text></g>
       <line class="line-sub" x1="650" y1="990" x2="480" y2="1070"></line>
       <g transform="translate(480, 1090)"><rect class="sub-case" x="-110" y="-22" width="220" height="44" rx="6"></rect><text class="tx-case" text-anchor="middle" y="5">最判昭32.6.21</text></g>
       <line class="line-sub" x1="850" y1="990" x2="1020" y2="1070"></line>
       <g transform="translate(1020, 1090)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">「人」＝犯人以外</text></g>
 
-      <!-- ============ 主要枝⑥ 放火罪の保護法益 ============ -->
+      <!-- ============ 主要枝⑥ 危険犯の構造 ============ -->
       <g transform="translate(260, 850)"><rect class="branch-fill" x="-150" y="-32" width="300" height="64" rx="10"></rect><text class="tx-branch" text-anchor="middle" y="6">放火罪の保護法益</text></g>
       <line class="line-sub" x1="170" y1="880" x2="70" y2="960"></line>
       <g transform="translate(110, 980)"><rect class="sub-elem" x="-95" y="-22" width="190" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">公共の安全</text></g>
       <line class="line-sub" x1="200" y1="820" x2="70" y2="780"></line>
       <g transform="translate(110, 760)"><rect class="sub-elem" x="-95" y="-22" width="190" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">抽象的/具体的危険犯</text></g>
 
-      <!-- ============ 主要枝⑦ 客体の区分 ============ -->
+      <!-- ============ 主要枝⑦ 前段階処罰の限定 ============ -->
       <g transform="translate(260, 330)"><rect class="branch-fill" x="-150" y="-32" width="300" height="64" rx="10"></rect><text class="tx-branch" text-anchor="middle" y="6">客体の区分と軽重</text></g>
       <line class="line-sub" x1="170" y1="300" x2="70" y2="230"></line>
-      <g transform="translate(110, 210)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">108＞109＞110</text></g>
+      <g transform="translate(110, 210)"><rect class="sub-case" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-case" text-anchor="middle" y="5">108＞109＞110</text></g>
       <line class="line-sub" x1="200" y1="360" x2="70" y2="400"></line>
       <g transform="translate(110, 425)"><rect class="sub-elem" x="-100" y="-22" width="200" height="44" rx="6"></rect><text class="tx-elem" text-anchor="middle" y="5">現住/非現住/以外</text></g>
 
@@ -4001,12 +5114,12 @@ body.snav-on .solve-nav{display:block;}
        footer-spec (簡素化版・問題情報 + 作成日)
        ============================================================ -->
   <div class="footer-spec">
-    <p class="footer-problem"><strong>刑TX363</strong>・刑法（共通R1-8 放火罪の基本概念）── v11.1.0 LOOP-CORE（記述1〜5＋PART B+横断比較罠＋参考条文判例＋体系/放射SVG・PART A ox-grid）</p>
+    <p class="footer-problem"><strong>刑TX363</strong>・刑法（共通R1-8 放火罪の基本概念）── v12.1.0 LOOP-CORE（インライン肢カード＋詳説トグル＋記憶フック/答案圧縮＋PART B+横断比較罠＋参考条文判例＋体系/放射SVG）</p>
     <p class="footer-meta-info">正答率 80%／難度 ★☆☆</p>
-<p class="footer-date lexia-genmeta" data-generated="2026-06-06T12:00+09:00">Generated: 2026-06-06 12:00 / TX v11.1.0 LOOP-CORE</p>
-    <!-- v11 内部メタデータ（validate-tx-core.py 用・非表示） -->
+<p class="footer-date lexia-genmeta" data-generated="2026-06-29T12:00+09:00">Generated: 2026-06-29 12:00 / TX v12.1.0 LOOP-CORE</p>
+    <!-- v12 内部メタデータ（validate-tx-core.py 用・非表示） -->
     <p class="footer-meta-hidden" hidden="">
-      <span class="feature-tag" hidden="">TX v11.1.0 LOOP-CORE</span>
+      <span class="feature-tag" hidden="">TX v12.1.0 LOOP-CORE</span>
       <span class="feature-tag" hidden="">genesis-core-baseline</span>
       <span class="feature-tag" hidden="">part-b-statement-unit</span>
       <span class="feature-tag" hidden="">oxgrid-statement-answer-key</span>
@@ -4014,9 +5127,10 @@ body.snav-on .solve-nav{display:block;}
       <span class="feature-tag" hidden="">mindmap-tree-and-radial</span>
       <span class="feature-tag" hidden="">deep-volume-separated</span>
       <span class="feature-tag" hidden="">palette-v3-11-named</span>
+      <span class="feature-tag" hidden="">palette: Antique Pearl (P1)</span>
       <span class="feature-tag" hidden="">svg-overlap-checked</span>
       <span class="feature-tag" hidden="">content-independence</span>
-      <span class="feature-tag" hidden="">jp-prefix-naming</span>
+      \1\n      <span class="feature-tag" hidden="">lexia-oxgrid-solvenav</span>
     </p>
   </div>
 
@@ -4078,6 +5192,59 @@ body.snav-on .solve-nav{display:block;}
   function getAnswerType(area){
     return (area && area.dataset && area.dataset.answerType) || 'single';
   }
+  function updateInlineRevealButton(area){
+    var inlineBtn = document.querySelector('.tx-inline-reveal-btn');
+    if (!inlineBtn || !area) return;
+    var rb = area.querySelector('.reveal-answer-btn');
+    inlineBtn.disabled = !rb || rb.disabled || area.classList.contains('answered');
+  }
+  function setInlineResult(ok, correct){
+    var panel = document.querySelector('.tx-inline-reveal-panel');
+    if (!panel) return;
+    var result = panel.querySelector('.tx-inline-result');
+    if (!result) {
+      result = document.createElement('span');
+      result.className = 'tx-inline-result';
+      panel.appendChild(result);
+    }
+    result.hidden = false;
+    result.classList.toggle('is-correct', !!ok);
+    result.classList.toggle('is-incorrect', !ok);
+    result.textContent = ok ? '正解' : '不正解　正答：' + (correct || '');
+    showInlineToast(ok, correct);
+  }
+  function showInlineToast(ok, correct){
+    var toast = document.querySelector('.tx-inline-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'tx-inline-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      document.body.appendChild(toast);
+    }
+    toast.hidden = false;
+    toast.classList.remove('is-visible','is-correct','is-incorrect');
+    toast.classList.add(ok ? 'is-correct' : 'is-incorrect');
+    toast.textContent = ok ? '正解 🎉' : '不正解 🫠　正答：' + (correct || '');
+    window.requestAnimationFrame(function(){ toast.classList.add('is-visible'); });
+    window.clearTimeout(showInlineToast.timer);
+    showInlineToast.timer = window.setTimeout(function(){
+      toast.classList.remove('is-visible');
+      window.setTimeout(function(){ toast.hidden = true; }, 220);
+    }, 5000);
+  }
+  function clearInlineResult(){
+    document.querySelectorAll('.tx-inline-result').forEach(function(result){
+      result.hidden = true;
+      result.classList.remove('is-correct','is-incorrect');
+      result.textContent = '';
+    });
+    document.querySelectorAll('.tx-inline-toast').forEach(function(toast){
+      toast.hidden = true;
+      toast.classList.remove('is-visible','is-correct','is-incorrect');
+      toast.textContent = '';
+    });
+  }
   function updateRevealBtnState(area){
     if (!area) return;
     var type = getAnswerType(area);
@@ -4103,6 +5270,7 @@ body.snav-on .solve-nav{display:block;}
       ready = allSel;
     }
     rb.disabled = !ready;
+    updateInlineRevealButton(area);
   }
   function handleAnswerSlot(btn){
     var area = btn.closest('.answer-area');
@@ -4139,6 +5307,157 @@ body.snav-on .solve-nav{display:block;}
     });
     btn.classList.add('selected');
     updateRevealBtnState(area);
+  }
+  function handleInlineOxBtn(btn){
+    var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+    if (!area || area.classList.contains('answered')) return;
+    var stmt = btn.getAttribute('data-stmt');
+    var val = btn.getAttribute('data-value');
+    if (!stmt || !val) return;
+    var gridBtn = area.querySelector('.ox-row[data-stmt="' + stmt + '"] .ox-btn[data-value="' + val + '"]');
+    if (gridBtn) gridBtn.click();
+    document.querySelectorAll('.tx-inline-ox[data-stmt="' + stmt + '"]').forEach(function(b){
+      b.classList.remove('selected');
+    });
+    btn.classList.add('selected');
+    updateInlineRevealButton(area);
+  }
+  function revealInlineExplanations(area){
+    if (!area) return;
+    var correct = (readCorrect(area) || '').replace(/[^○×]/g, '');
+    var rows = Array.prototype.slice.call(area.querySelectorAll('.ox-row'));
+    document.querySelectorAll('.tx-inline-card[data-stmt]').forEach(function(card){
+      var stmt = card.getAttribute('data-stmt');
+      var row = area.querySelector('.ox-row[data-stmt="' + stmt + '"]');
+      var rowIndex = rows.indexOf(row);
+      var correctChar = rowIndex >= 0 ? correct.charAt(rowIndex) : '';
+      var selected = row ? row.querySelector('.ox-btn.selected') : null;
+      var userVal = selected ? readUserVal(selected) : '';
+      var explain = card.querySelector('.tx-inline-explain');
+      var verdict = card.querySelector('.tx-inline-verdict');
+      card.classList.add('revealed');
+      card.classList.toggle('is-correct', correctChar === '○');
+      card.classList.toggle('is-incorrect', correctChar === '×');
+      if (verdict) verdict.textContent = correctChar === '○' ? '○ 正しい' : '× 誤り';
+      if (explain) {
+        explain.hidden = false;
+        explain.removeAttribute('hidden');
+      }
+      card.querySelectorAll('.tx-inline-ox').forEach(function(b){
+        var bv = b.getAttribute('data-value');
+        b.disabled = true;
+        if (bv === userVal) b.classList.add('selected');
+        if (bv === correctChar) b.classList.add('correct-mark');
+        else if (bv === userVal) b.classList.add('incorrect-mark');
+      });
+    });
+    updateInlineRevealButton(area);
+  }
+  function setInlineBrowseState(open){
+    var host = document.getElementById('tx-inline-judge-list');
+    if (host) host.setAttribute('data-browse-open', open ? 'true' : 'false');
+    document.querySelectorAll('.tx-inline-browse-btn').forEach(function(btn){
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.textContent = open ? '解説を閉じる' : '解説だけ閲覧';
+    });
+  }
+  function browseInlineExplanations(area){
+    if (!area) return;
+    var correct = (readCorrect(area) || '').replace(/[^○×]/g, '');
+    var rows = Array.prototype.slice.call(area.querySelectorAll('.ox-row'));
+    document.querySelectorAll('.tx-inline-card[data-stmt]').forEach(function(card){
+      var stmt = card.getAttribute('data-stmt');
+      var row = area.querySelector('.ox-row[data-stmt="' + stmt + '"]');
+      var rowIndex = rows.indexOf(row);
+      var correctChar = rowIndex >= 0 ? correct.charAt(rowIndex) : '';
+      var explain = card.querySelector('.tx-inline-explain');
+      var verdict = card.querySelector('.tx-inline-verdict');
+      card.classList.add('revealed');
+      card.classList.toggle('is-correct', correctChar === '○');
+      card.classList.toggle('is-incorrect', correctChar === '×');
+      if (verdict) verdict.textContent = correctChar === '○' ? '○ 正しい' : '× 誤り';
+      if (explain) {
+        explain.hidden = false;
+        explain.removeAttribute('hidden');
+      }
+      card.querySelectorAll('.tx-inline-ox').forEach(function(b){
+        var bv = b.getAttribute('data-value');
+        b.classList.remove('incorrect-mark');
+        if (bv === correctChar) b.classList.add('correct-mark');
+      });
+    });
+    revealFinalAnswer();
+    setInlineBrowseState(true);
+  }
+  function closeInlineBrowse(area){
+    var answered = area && area.classList.contains('answered');
+    document.querySelectorAll('.tx-inline-card[data-stmt]').forEach(function(card){
+      var explain = card.querySelector('.tx-inline-explain');
+      var verdict = card.querySelector('.tx-inline-verdict');
+      if (explain) explain.hidden = true;
+      if (verdict) verdict.textContent = '';
+      card.classList.remove('revealed','is-correct','is-incorrect');
+      card.querySelectorAll('.tx-inline-ox').forEach(function(b){
+        if (!answered) b.disabled = false;
+        b.classList.remove('correct-mark','incorrect-mark');
+      });
+    });
+    if (!answered) {
+      var fa = document.querySelector('.final-answer');
+      if (fa) {
+        fa.hidden = true;
+        fa.setAttribute('hidden','');
+        fa.classList.remove('revealed');
+      }
+      clearInlineResult();
+    }
+    setInlineBrowseState(false);
+  }
+  function getHashTarget(hash){
+    if (!hash || hash.length <= 1) return null;
+    var rawId = hash.slice(1);
+    var inlineTarget = document.getElementById(rawId + '-inline');
+    if (inlineTarget) return inlineTarget;
+    var choiceMatch = hash.match(/^#choice-([1-5])$/);
+    if (choiceMatch) return document.querySelector('#stmt-' + choiceMatch[1]);
+    return document.getElementById(rawId);
+  }
+  function revealTargetContext(tgt){
+    if (!tgt || !tgt.closest) return;
+    var explain = tgt.closest('.tx-inline-explain');
+    if (explain) {
+      explain.hidden = false;
+      explain.removeAttribute('hidden');
+      var card = explain.closest('.tx-inline-card');
+      if (card) card.classList.add('revealed');
+    }
+    var detail = tgt.closest('details');
+    if (detail) detail.open = true;
+  }
+  function clonePartBBlock(node){
+    var clone = node.cloneNode(true);
+    clone.querySelectorAll('[id]').forEach(function(el){
+      el.id = el.id + '-inline';
+    });
+    clone.querySelectorAll('.sec-nav,.choice-header-block,.back-to-top').forEach(function(el){ el.remove(); });
+    return clone;
+  }
+  function hydrateInlinePartBDetails(){
+    document.querySelectorAll('.tx-detail-panel[data-partb-source]').forEach(function(panel){
+      if (panel.getAttribute('data-partb-hydrated') === 'true') return;
+      var no = panel.getAttribute('data-partb-source');
+      var source = document.getElementById('choice-' + no);
+      if (!source) return;
+      var blocks = Array.prototype.slice.call(source.children).filter(function(child){
+        return child.matches('.sub-card.synthesis,.choice-points,.sub-card.basis-link');
+      });
+      if (!blocks.length) return;
+      panel.textContent = '';
+      blocks.forEach(function(block){
+        panel.appendChild(clonePartBBlock(block));
+      });
+      panel.setAttribute('data-partb-hydrated', 'true');
+    });
   }
   function handleRevealAnswerBtn(btn){
     var area = btn.closest('.answer-area');
@@ -4216,7 +5535,9 @@ body.snav-on .solve-nav{display:block;}
         fb.innerHTML = '<strong class="fb-verdict fb-incorrect">✗ 不正解</strong>　正解は<span class="fb-answer">' + escapeHTML(correct) + '</span>';
       }
     }
+    setInlineResult(ok, correct);
     revealFinalAnswer();
+    revealInlineExplanations(area);
     area.classList.add('answered');
   }
 
@@ -4393,6 +5714,28 @@ body.snav-on .solve-nav{display:block;}
   document.addEventListener('click', function(e){
     var t = e.target;
     if (!t || !t.closest) return;
+    var iox  = t.closest('.tx-inline-ox');        if (iox)      { handleInlineOxBtn(iox); return; }
+    var irb  = t.closest('.tx-inline-reveal-btn'); if (irb)      {
+      var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+      var rb = area && area.querySelector('.reveal-answer-btn');
+      if (rb && !rb.disabled) rb.click();
+      return;
+    }
+    var ibb  = t.closest('.tx-inline-browse-btn'); if (ibb)      {
+      var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
+      var host = document.getElementById('tx-inline-judge-list');
+      var isOpen = host && host.getAttribute('data-browse-open') === 'true';
+      if (isOpen) {
+        closeInlineBrowse(area);
+        var panel = document.querySelector('.tx-inline-reveal-panel');
+        if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        browseInlineExplanations(area);
+        var firstExplain = document.querySelector('.tx-inline-card[data-stmt="1"] .tx-inline-explain');
+        if (firstExplain) firstExplain.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      return;
+    }
     var ox   = t.closest('.ox-btn');             if (ox)       { handleOxBtn(ox); return; }
     var slot = t.closest('.answer-slot');       if (slot)     { handleAnswerSlot(slot); return; }
     var rb   = t.closest('.reveal-answer-btn');  if (rb)       { handleRevealAnswerBtn(rb); return; }
@@ -4412,8 +5755,9 @@ body.snav-on .solve-nav{display:block;}
     a.addEventListener('click', function(e){
       var id = a.getAttribute('href');
       if (id.length <= 1) return;
-      var tgt = document.querySelector(id);
+      var tgt = getHashTarget(id);
       if (tgt){
+        revealTargetContext(tgt);
         e.preventDefault();
         tgt.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -4421,7 +5765,13 @@ body.snav-on .solve-nav{display:block;}
   });
 
   function init(){
+    hydrateInlinePartBDetails();
     applyVerdictClasses();
+    updateRevealBtnState(document.querySelector('.answer-area'));
+    if (location.hash){
+      var hashTarget = getHashTarget(location.hash);
+      revealTargetContext(hashTarget);
+    }
     updateArenaCounter();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
@@ -4432,45 +5782,155 @@ body.snav-on .solve-nav{display:block;}
 
 
 <script>
-/* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
-   1つずつ回答するよう誘導し、要所で💡コツと論点のコア（実体命題）を提示する。
-   採点は下の ox-grid 一本（記録は ox-grid＝Lexia 復習プール）。エンジンは問題横断で固定。 */
+/* 解法ナビ（○×型・両モード）：各記述を順に○×判定 → 5択から外れて残った番号へ。
+   mode=correct=「正しいものはどれか」／incorrect=「誤っているものはどれか」。
+   最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
 (function(){
+  var MODE = 'incorrect';               // 'correct' | 'incorrect'
+  var STMT = {
+    "1": {
+      "q": "「建造物」とは土地に定着し人の起居出入りに適する構造を有する工作物で、毀損しなければ取り外せない雨戸はその一部に当たる、というのは正しい？",
+      "tip": "従物は、付属しているかではなく<b>毀損しなければ取り外せないか</b>で建造物の一部かを切る。",
+      "note": "○ 定義（大判大13.5.31）も従物の毀損取外し要件（最判昭25.12.14）も判例どおりで正しい。→ 誤りではないので候補から外す。"
+    },
+    "2": {
+      "q": "「放火」は目的物の焼損を惹起させる行為で、媒介物への点火でも継続して目的物に延焼し得る場合は放火に当たる、というのは正しい？",
+      "tip": "直接火をつけたかではなく、<b>継続して目的物へ延焼し得る経路</b>があるかで放火かを切る。",
+      "note": "○ 媒介物点火でも継続延焼し得れば放火（大判大3.10.13）で判例どおり。→ 誤りではないので候補から外す。"
+    },
+    "3": {
+      "q": "「焼損」を重要部分焼失・効用喪失とし、不燃性のコンクリート壁が火力で崩落した場合も焼損に当たる、というのは正しい？",
+      "tip": "判例は<b>独立燃焼説</b>。設問が「判例の立場」なら定義の段階から独立燃焼説で測る。",
+      "note": "× 判例＝独立燃焼説では不燃性壁の崩落は焼損に当たらず、効用喪失説的定義も判例とずれる。記述は誤り。→ 答えの候補（誤り）。"
+    },
+    "4": {
+      "q": "建造物等以外放火罪の「公共の危険」は建造物等への延焼危険に限られず、不特定多数の人の生命・身体・財産への危険も含む、というのは正しい？",
+      "tip": "公共の危険は「建物延焼の危険」だけに絞らず、<b>周囲一帯の人・身体・財産</b>へ広げて読む。",
+      "note": "○ 非限定説（最決平15.4.14・百選Ⅱ85）どおりで正しい。→ 誤りではないので候補から外す。"
+    },
+    "5": {
+      "q": "現住建造物等放火罪の「現に人が住居に使用し」の「人」には犯人が含まれるが、「現に人がいる」の「人」には含まれない、というのは正しい？",
+      "tip": "108条の「人」は、住居使用も現在も<b>区別せず一律に犯人を除く</b>。前段の区別が判例にあるかを見る。",
+      "note": "× 最判昭32.6.21は両者を区別せず「人」＝犯人以外とする。住居使用の人に犯人を含む前段が誤りで記述全体が誤り。→ 答えの候補（誤り）。残る誤りは3と5。"
+    }
+  };
+  var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = ["1", "2", "3", "4", "5"];   // ['1'..'N'] positional row numbers
+  var KEYS = ["1", "2", "3", "4", "5"];   // actual data-stmt keys in order (ア..オ or 1..5)
   var root = document.getElementById('solve-nav');
   var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
   if (!root || !area) return;
+  var combosBox = document.getElementById('sn-combos');
   var remainBox = document.getElementById('sn-remain');
   var stage = document.getElementById('sn-stage');
-  /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
-  var ORDER = ["1", "2", "3", "4", "5"];   // 検討順（ox-row の data-stmt 値の配列）
-  var STEP  = {"1": {"label": "1", "q": "『建造物＝土地定着＋起居出入適合の工作物で、毀損しなければ取り外せない雨戸は建造物の一部に当たる』──正しい（○）か誤り（×）か？", "tip": "建造物＝定着＋起居出入適合（大判大13.5.31）。従物の一部性は<b>『毀損しなければ取り外せない状態』</b>を要するか（最判昭25.12.14）。毀損を要する雨戸と取り外し可能な雨戸の区別を確認しよう。"}, "2": {"label": "2", "q": "『放火＝目的物の焼損を惹起させる行為で、媒介物への点火でも継続燃焼で延焼し得るなら放火に当たる』──正しい（○）か誤り（×）か？", "tip": "放火は<b>媒介物への点火でも継続燃焼により目的物へ延焼し得る関係があれば『放火』</b>に当たるか（大判大3.10.13）。放火の実行行為の範囲を確認しよう。"}, "3": {"label": "3", "q": "『焼損＝重要部分焼失・効用喪失で、不燃性コンクリート壁が火力で崩落した場合も焼損に当たる』──正しい（○）か誤り（×）か？", "tip": "焼損は<b>独立燃焼説</b>（火が媒介物を離れ目的物が独立燃焼継続・大判明43.3.4）による。不燃性コンクリート壁の崩落が独立燃焼に至るか、また設問の定義が判例基準と一致するか確認しよう。"}, "4": {"label": "4", "q": "『110条1項の公共の危険は、建造物等への延焼危険に限られず、不特定多数の生命・身体・建造物等以外の財産への危険も含む』──正しい（○）か誤り（×）か？", "tip": "110条1項の『公共の危険』について<b>非限定説</b>（最決平15.4.14）は建造物等への延焼危険に限らず不特定多数の生命・身体・財産への危険も含むとする。設問の内容が判例の立場と合致するか確認しよう。"}, "5": {"label": "5", "q": "『108条「住居使用」の「人」には犯人が含まれるが、「現にいる」の「人」には犯人が含まれない』──正しい（○）か誤り（×）か？", "tip": "108条の『人』について<b>最判昭32.6.21</b>は住居使用と現在のどちらの場合にも犯人を扱うか確認しよう。住居使用の『人』と現在の『人』で犯人の扱いが異なるか判例を整理しよう。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
-  /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
-  function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
-  function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
-  function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
-  function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
-  function render(){
-    var cur = currentStep();
-    var done = doneCount();
-    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
-    area.querySelectorAll('.ox-row').forEach(function(r){
-      r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
+  var TARGET = (MODE === 'correct') ? '○' : '×';   // 答えに残る記述の判定
+  var DEAD   = (MODE === 'correct') ? '×' : '○';   // 付けると候補が消える判定
+  var CAND   = (MODE === 'correct') ? '「正しい」' : '「誤っている」';
+  var ANSLBL = (MODE === 'correct') ? '正しいのは記述 ' : '誤っているのは記述 ';
+
+  var picks = {};   // stmt -> '○'|'×'
+  var idx = 0;
+
+  function correctNum(){
+    var cv = (area.getAttribute('data-correct-value')||'').replace(/[^○×]/g,'');
+    var i = cv.indexOf(TARGET);
+    return i >= 0 ? String(i+1) : '1';
+  }
+  function liveNums(){
+    var out = [];
+    ['1','2','3','4','5'].forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    return out;
+  }
+  function renderCombos(winNum){
+    var html = '';
+    ['1','2','3','4','5'].forEach(function(n){
+      var st = picks[n]; var mark = st ? st : '？';
+      var cls = 'sn-combo ';
+      if (winNum === n) cls += 'win';
+      else if (st === DEAD) cls += 'dead';
+      else cls += 'live';
+      html += '<div class="'+cls+'"><span class="sn-cno">'+n+'</span><div class="sn-cseq">記述'+n+'<br><b>'+mark+'</b></div></div>';
     });
+    combosBox.innerHTML = html;
+  }
+  function trailHTML(){
+    if (!Object.keys(picks).length) return '';
+    var t = '<div class="sn-trail">これまでの判定：';
+    ORDER.forEach(function(b){ if (picks[b]) t += '<span class="sn-pick">記述'+b+' = '+picks[b]+'</span>'; });
+    return t + '</div>';
+  }
+  function renderStep(){
+    renderCombos(null);
+    var live = liveNums();
+    remainBox.innerHTML = CAND+'候補に残る番号：<strong>'+live.join('・')+'</strong>（'+live.length+' 件）';
+    if (idx >= ORDER.length){ return finish(); }
+    var b = ORDER[idx]; var s = STMT[b];
     var h = '';
-    if (cur){
-      var s = STEP[cur] || {};
-      h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
-      if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
-      if (s.tip) h += '<div class="sn-tip"><span class="sn-tip-h">💡 コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
-      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
-    } else {
-      h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
-    }
+    h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
+    h += '<p class="sn-step-q">'+s.q+'</p>';
+    h += '<div class="sn-tip"><span class="sn-tip-h">コツ</span><span class="sn-tip-b">'+s.tip+'</span></div>';
+    h += '<div class="sn-opts">';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
+    h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
+    h += '</div>';
+    h += trailHTML();
+    h += '<div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
     stage.innerHTML = h;
   }
-  area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
+  function onPick(b, v){
+    picks[b] = v; var note = STMT[b].note; idx += 1;
+    renderStep();
+    var fb = document.createElement('div');
+    fb.className = 'sn-feedback' + (v === DEAD ? ' miss' : '');
+    fb.innerHTML = '<strong>記述'+b+' = '+v+'</strong>　'+note;
+    stage.insertBefore(fb, stage.firstChild);
+  }
+  function finish(){
+    var live = liveNums(); var ansn = correctNum(); var h = '';
+    if (live.length === 1){
+      renderCombos(live[0]);
+      var ok = (live[0] === ansn);
+      h += '<div class="sn-result'+(ok?'':' miss')+'"><div class="sn-big">残った番号は '+live[0]+'</div>'+
+        (ok ? '番号を暗記するのではなく、いま辿った判別の筋道ごと身につけよう。'
+            : 'ただし基準では'+ANSLBL+ansn+'。下の解説と ox-grid で見直そう。')+'</div>';
+    } else {
+      h += '<div class="sn-result">候補が複数（'+live.join('・')+'）残っています。各記述の法理を確かめて１つに絞ろう。</div>';
+    }
+    h += '<div class="sn-actions"><button type="button" class="sn-btn primary" id="sn-apply">この判定で確定（採点）</button>'+
+         '<button type="button" class="sn-btn ghost" id="sn-reset">最初からやり直す</button></div>';
+    stage.innerHTML = h + trailHTML();
+  }
+  function commitAnswer(){
+    if (area.classList.contains('answered')) return;
+    ['1','2','3','4','5'].forEach(function(b){
+      var v = picks[b]; if (!v) return;
+      var row = area.querySelector('.ox-row[data-stmt="'+b+'"]');
+      if (!row) return;
+      var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
+      if (btn) btn.click();
+    });
+    var rv = area.querySelector('.reveal-answer-btn');
+    if (rv && !rv.disabled) rv.click();
+    var ansn = correctNum(); var mine = liveNums();
+    var ok = (mine.length === 1 && mine[0] === ansn);
+    var h = '<div class="sn-result'+(ok?'':' miss')+'">'+
+      (ok ? '<div class="sn-big">✓ 正解（'+ANSLBL+ansn+'）</div>下の解説で論点のコアを確認しよう。'
+          : '<div class="sn-big">✗ 不正解</div>'+ANSLBL+ansn+'。下の解説と ox-grid で外した記述を確認しよう。')+
+      '</div><div class="sn-actions"><button type="button" class="sn-btn ghost" id="sn-reset">もう一度やる</button></div>' + trailHTML();
+    stage.innerHTML = h; renderCombos(ansn);
+    var fa = area.querySelector('.final-answer');
+    if (fa) fa.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+  function restart(){ picks = {}; idx = 0; renderStep(); }
+  root.addEventListener('click', function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var opt = t.closest('.sn-opt');
+    if (opt){ onPick(opt.getAttribute('data-stmt'), opt.getAttribute('data-v')); return; }
+    if (t.closest('#sn-reset')){ restart(); return; }
+    if (t.closest('#sn-apply')){ commitAnswer(); return; }
+  }, false);
   document.body.classList.add('snav-on');
-  render();
+  renderStep();
 })();
 </script>
 
