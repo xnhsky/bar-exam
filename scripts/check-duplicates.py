@@ -11,12 +11,14 @@
                            ファイル名のコードと不一致
                            (例: 刑TX338.html の <title>、刑TX055.html の footer が
                             「刑TX311」のまま = TX311 からのコピペ残り)
-                           ※ JX1/JX001 のような 0 埋め差は数値比較で吸収し誤検出しない
+                           ※ JX1/JX001、RX001-1/RX001_01 のような表記差は
+                             数値比較で吸収し誤検出しない
                            ※ validate-jx.py は footer/header の ID を検査しないため、
                              この D80 が JX/RX/GX/PX も含め横断的にカバーする
   D81  DUP-TITLE         : 2 件以上のファイルが同一の <title> を持つ
                            (別問題が同一タイトル = Lexia の重複誤検出の源流)
-  D82  DUP-BODY          : 2 件以上のファイルが本文バイト完全一致
+  D82  DUP-BODY          : 2 件以上のファイルが本文一致
+                           (lexia-genmeta の生成日時だけは正規化)
                            (同一問題が別名で重複保存 = 例 刑JX001/刑JX002)
 
 いずれかを検出すると exit code 1 を返すので、night-batch / deploy 前の
@@ -47,18 +49,62 @@ if hasattr(sys.stdout, "reconfigure"):
         pass
 
 TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.S | re.I)
-# 既知カテゴリ + 番号のみを問題コードとして扱う (試験年度 H29 等を誤って拾わないため)
-CODE_RE = re.compile(r"(TX|JX|GX|PX|RX|TREE|MTD)0*([0-9]{1,4})", re.I)
+ROOT = Path(__file__).resolve().parents[1]
+# 既知カテゴリ + 番号のみを問題コードとして扱う (試験年度 H29 等を誤って拾わないため)。
+# KJX は JX より先に置く。そうしないと 刑KJX001 を 刑JX001 と誤読する。
+CODE_RE = re.compile(
+    r"(?<![A-Z])"
+    r"(刑訴|民訴|行政|刑|憲|民|商)?"
+    r"(KJX|TX|JX|GX|PX|RX|TREE|MTD)"
+    r"0*([0-9]{1,4})"
+    r"(?:[_-]0*([0-9]+))?"
+    r"(?![0-9A-Z])",
+    re.I,
+)
+CLASS_ATTR_RE = re.compile(
+    r"<[a-zA-Z][\w:-]*\b[^>]*\bclass\s*=\s*(['\"])(.*?)\1[^>]*>",
+    re.S | re.I,
+)
+TAG_RE = re.compile(r"<[^>]+>")
+GENMETA_RE = re.compile(
+    r"<([a-zA-Z][\w-]*)\b[^>]*\bclass\s*=\s*(['\"])[^'\"]*\blexia-genmeta\b[^'\"]*\2[^>]*>.*?</\1>",
+    re.S | re.I,
+)
+DATA_GENERATED_RE = re.compile(r"\bdata-generated\s*=\s*(['\"])(.*?)\1", re.I)
+GENERATED_DISPLAY_RE = re.compile(r"Generated:\s*\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}")
 
 
 def code_key(s):
-    """文字列から (カテゴリ大文字, 番号int) を抽出。0 埋めは無視。無ければ None。"""
+    """文字列から (科目prefix, カテゴリ大文字, 番号int, 枝番int|None) を抽出。"""
     if not s:
         return None
     m = CODE_RE.search(s)
     if not m:
         return None
-    return (m.group(1).upper(), int(m.group(2)))
+    return (m.group(1) or "", m.group(2).upper(), int(m.group(3)), int(m.group(4)) if m.group(4) else None)
+
+
+def same_code_key(a, b):
+    """0 埋め・RX 枝番 separator 差を吸収し、科目 prefix は両方ある時だけ厳密比較。"""
+    if a is None or b is None:
+        return False
+    ap, ak, an, abranch = a
+    bp, bk, bn, bbranch = b
+    if ak != bk or an != bn or abranch != bbranch:
+        return False
+    if ap and bp and ap != bp:
+        return False
+    return True
+
+
+def format_code_key(key):
+    if key is None:
+        return "?"
+    prefix, kind, num, branch = key
+    text = f"{prefix}{kind}{num}"
+    if branch is not None:
+        text += f"_{branch}"
+    return text
 
 
 # 公式 TX（outputs/000_TX/...）と Lexia 用 TX（outputs/ux/000_TX/...）は
@@ -93,12 +139,32 @@ def is_official_lexia_mirror(fs):
 MARKER_WINDOW = 300
 
 
-def code_near(html, marker):
-    idx = html.find(marker)
+def class_tag_index(html, class_name):
+    for m in CLASS_ATTR_RE.finditer(html):
+        classes = re.split(r"\s+", m.group(2).strip())
+        if class_name in classes:
+            return m.start()
+    return -1
+
+
+def code_near_class(html, class_name):
+    idx = class_tag_index(html, class_name)
     if idx < 0:
         return None
-    seg = re.sub(r"<[^>]+>", " ", html[idx: idx + MARKER_WINDOW])
+    seg = TAG_RE.sub(" ", html[idx: idx + MARKER_WINDOW])
     return code_key(seg)
+
+
+def normalize_genmeta_for_body_hash(html):
+    def normalize_block(match):
+        block = DATA_GENERATED_RE.sub(lambda m: f"data-generated={m.group(1)}<generated>{m.group(1)}", match.group(0))
+        return GENERATED_DISPLAY_RE.sub("Generated: <generated>", block)
+
+    return GENMETA_RE.sub(normalize_block, html)
+
+
+def stable_body_digest(html):
+    return hashlib.md5(normalize_genmeta_for_body_hash(html).encode("utf-8", "ignore")).hexdigest()
 
 
 # _failed / __pycache__ 等の隔離・生成物フォルダは検査対象外
@@ -107,6 +173,8 @@ SKIP_DIR_PARTS = {"_failed", "__pycache__", "_experimental", "_migration"}
 
 def collect_files(root):
     p = Path(root)
+    if not p.is_absolute():
+        p = ROOT / p
     if p.is_file() and p.suffix.lower() in (".html", ".htm"):
         return [p]
     if p.is_dir():
@@ -139,17 +207,17 @@ def check_root(root):
         title_of[f] = title
         if title:
             title_groups[title].append(f)
-        body_groups[hashlib.md5(data.encode("utf-8", "ignore")).hexdigest()].append(f)
+        body_groups[stable_body_digest(data)].append(f)
 
         # D80: ファイル名コードと title / doc-header / footer-problem の各コードを照合
         fc = code_key(f.name)
         if fc:
             locs = {
                 "title": code_key(title),
-                "doc-header": code_near(data, 'class="doc-header"'),
-                "footer": code_near(data, 'class="footer-problem"'),
+                "doc-header": code_near_class(data, "doc-header"),
+                "footer": code_near_class(data, "footer-problem"),
             }
-            bad = [(name, c) for name, c in locs.items() if c is not None and c != fc]
+            bad = [(name, c) for name, c in locs.items() if c is not None and not same_code_key(fc, c)]
             if bad:
                 mismatches.append((f, fc, bad))
 
@@ -161,9 +229,9 @@ def check_root(root):
         print("  なし ✅")
     else:
         for f, fc, bad in mismatches:
-            locs_str = ", ".join(f"{name}={c[0]}{c[1]}" for name, c in bad)
+            locs_str = ", ".join(f"{name}={format_code_key(c)}" for name, c in bad)
             print(f"  ❌ {f}")
-            print(f"       file={fc[0]}{fc[1]}  /  不一致: {locs_str}")
+            print(f"       file={format_code_key(fc)}  /  不一致: {locs_str}")
         errors += len(mismatches)
 
     print("\n[D81] DUP-TITLE (同一 <title> を持つ別ファイル)")
@@ -178,7 +246,7 @@ def check_root(root):
                 print(f"       {f}")
         errors += sum(len(set(fs)) for fs in dup_titles.values())
 
-    print("\n[D82] DUP-BODY (本文バイト完全一致の別ファイル)")
+    print("\n[D82] DUP-BODY (生成日時を除いた本文一致の別ファイル)")
     dup_bodies = {h: fs for h, fs in body_groups.items() if len(set(fs)) >= 2}
     if not dup_bodies:
         print("  なし ✅")

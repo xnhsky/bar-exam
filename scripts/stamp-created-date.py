@@ -24,14 +24,18 @@ import sys
 from datetime import datetime
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from stamp_footer import stamp_file, infer_version, JST, GENMETA_CLASS  # noqa: E402
+from stamp_footer import stamp_file, infer_version, JST, has_genmeta_stamp  # noqa: E402
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
 
 
 def _git(*args: str) -> str:
     return subprocess.run(
-        ["git", "-C", str(REPO), *args], capture_output=True, text=True
+        ["git", "-C", str(REPO), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
     ).stdout
 
 
@@ -60,11 +64,11 @@ def main() -> int:
     stamped = skipped = 0
     for f in targets():
         txt = f.read_text(encoding="utf-8")
-        # 既に英語スタンプ(genmeta)済みは触らない＝冪等。未スタンプ(新規生成・旧TX native)は刻む。
-        if GENMETA_CLASS in txt:
+        # 既に英語スタンプ(genmeta)済みは触らない＝冪等。コメント/script 内の文字列は除外する。
+        if has_genmeta_stamp(txt):
             skipped += 1
             continue
-        rel = str(f.relative_to(REPO))
+        rel = f.relative_to(REPO).as_posix()
         # 再生成/新規（dirty）は現在時刻、未変更の既存は初出コミット日時。
         dt = now if is_dirty(rel) else (first_commit_dt(rel) or now)
         stamp_file(str(f), dt, infer_version(rel, txt))

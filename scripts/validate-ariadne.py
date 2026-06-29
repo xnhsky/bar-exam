@@ -17,13 +17,131 @@ except Exception:
 
 # Lexia のメタ問題除去 regex（App.jsx:1401 と一致）。当たると周回プールから削除される。
 META_RE = re.compile(r'(本問|本設問)[^。\n]{0,20}正解|正解は肢|正解はどれ|正解の組(合せ|み合わせ)')
+ATTR_RE_TEMPLATE = r'\b{name}\s*=\s*([\'"])(.*?)\1'
+CLASS_RE = re.compile(ATTR_RE_TEMPLATE.format(name='class'), re.I | re.S)
+DATA_RX_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-rx'), re.I | re.S)
+DATA_ATHENA_CODE_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-athena-code'), re.I | re.S)
+DATA_ARENA_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-arena'), re.I | re.S)
+DATA_CORRECT_VALUE_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-correct-value'), re.I | re.S)
+DATA_EXPLANATION_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-explanation'), re.I | re.S)
+DATA_VALUE_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-value'), re.I | re.S)
+DATA_RECALL_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-recall'), re.I | re.S)
+ID_RE = re.compile(ATTR_RE_TEMPLATE.format(name='id'), re.I | re.S)
+OPEN_TAG_RE = re.compile(r'<[a-zA-Z][\w:-]*\b[^>]*>', re.I | re.S)
+DIV_OPEN_RE = re.compile(r'<div\b[^>]*>', re.I | re.S)
+
+def first_attr_value(pattern, text):
+    m = pattern.search(text)
+    return m.group(2).strip() if m and m.group(2) is not None else ''
+
+def has_class(open_tag, cls):
+    classes = first_attr_value(CLASS_RE, open_tag)
+    return bool(classes and cls in re.split(r'\s+', classes))
+
+def html_has_class(html, cls):
+    return any(has_class(m.group(0), cls) for m in OPEN_TAG_RE.finditer(html))
+
+def has_id(open_tag, expected):
+    return first_attr_value(ID_RE, open_tag) == expected
+
+def html_has_id(html, expected):
+    return any(has_id(m.group(0), expected) for m in OPEN_TAG_RE.finditer(html))
+
+def id_prefix_count(html, prefix):
+    count = 0
+    for m in OPEN_TAG_RE.finditer(html):
+        value = first_attr_value(ID_RE, m.group(0))
+        if value.startswith(prefix):
+            count += 1
+    return count
+
+def html_has_id_prefix(html, prefix):
+    return id_prefix_count(html, prefix) > 0
+
+def class_count(html, cls):
+    return sum(1 for m in OPEN_TAG_RE.finditer(html) if has_class(m.group(0), cls))
+
+def first_element_text_by_class(html, tag_name, cls):
+    open_re = re.compile(r'<' + re.escape(tag_name) + r'\b[^>]*>', re.I | re.S)
+    close_re = re.compile(r'</' + re.escape(tag_name) + r'>', re.I)
+    for m in open_re.finditer(html):
+        if not has_class(m.group(0), cls):
+            continue
+        close = close_re.search(html, m.end())
+        if close:
+            return text_only(html[m.end():close.start()])
+    return ''
+
+def element_texts_by_class(html, tag_name, cls):
+    texts = []
+    open_re = re.compile(r'<' + re.escape(tag_name) + r'\b[^>]*>', re.I | re.S)
+    close_re = re.compile(r'</' + re.escape(tag_name) + r'>', re.I)
+    for m in open_re.finditer(html):
+        if not has_class(m.group(0), cls):
+            continue
+        close = close_re.search(html, m.end())
+        if close:
+            texts.append(text_only(html[m.end():close.start()]))
+    return texts
+
+def extract_tag_blocks_by_class(html, tag_name, cls):
+    blocks = []
+    open_re = re.compile(r'<' + re.escape(tag_name) + r'\b[^>]*>', re.I | re.S)
+    close_re = re.compile(r'</' + re.escape(tag_name) + r'>', re.I)
+    for m in open_re.finditer(html):
+        if not has_class(m.group(0), cls):
+            continue
+        close = close_re.search(html, m.end())
+        if close:
+            blocks.append((m.group(0), html[m.end():close.start()]))
+    return blocks
+
+def extract_tag_block_by_id(html, tag_name, expected_id):
+    open_re = re.compile(r'<' + re.escape(tag_name) + r'\b[^>]*>', re.I | re.S)
+    close_re = re.compile(r'</' + re.escape(tag_name) + r'>', re.I)
+    for m in open_re.finditer(html):
+        if not has_id(m.group(0), expected_id):
+            continue
+        close = close_re.search(html, m.end())
+        if close:
+            return html[m.start():close.end()]
+    return ''
+
+def class_prefix_count(html, tag_name, prefixes):
+    count = 0
+    open_re = re.compile(r'<' + re.escape(tag_name) + r'\b[^>]*>', re.I | re.S)
+    for m in open_re.finditer(html):
+        classes = first_attr_value(CLASS_RE, m.group(0))
+        if any(c.startswith(prefixes) for c in re.split(r'\s+', classes) if c):
+            count += 1
+    return count
+
+def attr_values_on_classed_tags(html, cls, pattern):
+    vals = []
+    for m in OPEN_TAG_RE.finditer(html):
+        tag = m.group(0)
+        if has_class(tag, cls):
+            value = first_attr_value(pattern, tag)
+            if value:
+                vals.append(value)
+    return vals
+
+def go_athena_target(html):
+    for m in OPEN_TAG_RE.finditer(html):
+        tag = m.group(0)
+        if has_class(tag, 'go-athena'):
+            target = first_attr_value(DATA_ATHENA_CODE_RE, tag)
+            if target:
+                return target
+    return ''
 
 def extract_divs(html, cls):
     """class に cls を含む <div> を深さ計数で抽出 → [(open_tag, inner_html)]。"""
     blocks = []
-    open_re = re.compile(r'<div\b[^>]*\bclass="[^"]*\b' + re.escape(cls) + r'\b[^"]*"[^>]*>', re.I)
     tag_re = re.compile(r'<(/?)div\b', re.I)
-    for m in open_re.finditer(html):
+    for m in DIV_OPEN_RE.finditer(html):
+        if not has_class(m.group(0), cls):
+            continue
         start = m.end(); depth = 1
         for t in tag_re.finditer(html, start):
             depth += 1 if t.group(1) == '' else -1
@@ -51,9 +169,9 @@ def main():
     else: E('A1', 'lang="ja" がない')
     if re.search(r'<title>.+?</title>', html): P('A2', 'title あり')
     else: E('A2', '<title> がない')
-    if 'class="masthead"' in html: P('A3', 'マストヘッドあり')
+    if html_has_class(html, 'masthead'): P('A3', 'マストヘッドあり')
     else: E('A3', 'マストヘッド(.masthead)がない')
-    if 'class="foot"' in html: P('A4', 'フッターあり')
+    if html_has_class(html, 'foot'): P('A4', 'フッターあり')
     else: W('A4', 'フッター(.foot)がない')
     prob = extract_divs(html, 'problem')
     if prob and text_only(prob[0][1]): P('A5', '問題文あり')
@@ -61,16 +179,16 @@ def main():
     steps = extract_divs(html, 'step')
     if len(steps) >= 6: P('A6', f'解法ナビ STEP {len(steps)} 個')
     else: E('A6', f'解法ナビの STEP が少なすぎ（{len(steps)}個・7ステップ想定）')
-    if 'class="steps-rail"' in html: P('A7', 'ステッパーあり')
+    if html_has_class(html, 'steps-rail'): P('A7', 'ステッパーあり')
     else: W('A7', 'ステッパー(.steps-rail)がない')
     bone = extract_divs(html, 'bone')
     if bone and text_only(bone[0][1]): P('A8', '骨子あり')
     else: E('A8', '骨子(.bone)が空/なし')
-    if re.search(r'class="rubric"|class="collate"', html): P('A9', '自己採点チェックあり')
+    if html_has_class(html, 'rubric') or html_has_class(html, 'collate'): P('A9', '自己採点チェックあり')
     else: W('A9', '照合/自己採点(.rubric)がない')
-    if 'reveal-answer' in html and 'model-answer' in html: P('A10', '模範答案(reveal)あり')
+    if html_has_class(html, 'reveal-answer') and html_has_class(html, 'model-answer'): P('A10', '模範答案(reveal)あり')
     else: E('A10', '模範答案(details.reveal-answer > .model-answer)がない')
-    if 'id="deep-dive"' in html: P('A11', '深掘り層あり')
+    if html_has_id(html, 'deep-dive'): P('A11', '深掘り層あり')
     else: W('A11', '深掘り層(details#deep-dive)がない')
 
     # ---- Lexia 周回契約 A12〜A18（自己完結○×が復習プールに乗るか） ----
@@ -81,15 +199,13 @@ def main():
 
     bad_arena = bad_dcv = bad_q = bad_a = bad_btn = meta_hit = 0
     for tag, inner in cards:
-        if 'data-arena="1"' not in tag: bad_arena += 1
-        mdcv = re.search(r'data-correct-value="(.)"', tag)
-        dcv = mdcv.group(1) if mdcv else ''
+        if first_attr_value(DATA_ARENA_RE, tag) != '1': bad_arena += 1
+        dcv = first_attr_value(DATA_CORRECT_VALUE_RE, tag)
         if dcv not in ('○', '×'): bad_dcv += 1
-        qm = re.search(r'class="quiz-question"[^>]*>(.*?)</p>', inner, re.S)
-        qtext = text_only(qm.group(1)) if qm else ''
+        qtext = first_element_text_by_class(inner, 'p', 'quiz-question')
         if not qtext: bad_q += 1
-        if not (re.search(r'class="quiz-answer"', inner) or 'data-explanation=' in tag): bad_a += 1
-        vals = re.findall(r'class="quiz-btn"[^>]*data-value="(.)"', inner)
+        if not (html_has_class(inner, 'quiz-answer') or DATA_EXPLANATION_RE.search(tag)): bad_a += 1
+        vals = attr_values_on_classed_tags(inner, 'quiz-btn', DATA_VALUE_RE)
         if set(vals) != {'○', '×'} or (dcv and dcv not in vals): bad_btn += 1
         if qtext and META_RE.search(qtext): meta_hit += 1
 
@@ -127,7 +243,7 @@ def main():
     NUMRE = r'[0-9０-９①-⑳]+'
     bone_tag = bone[0][0] if bone else ''
     bone_inner = bone[0][1] if bone else ''
-    numbered_iss = re.findall(r'class="iss">【論点' + NUMRE + r'】', bone_inner)
+    numbered_iss = [t for t in element_texts_by_class(bone_inner, 'span', 'iss') if re.match(r'【論点' + NUMRE + r'】', t)]
     numbered_dcv = re.findall(r'iss:【論点' + NUMRE + r'】', bone_tag)
     nbad = len(numbered_iss) + len(numbered_dcv)
     if nbad:
@@ -148,19 +264,16 @@ def main():
     overlap_hits = []  # (step_title, drill_idx, ratio)
     for stag, sinner in extract_divs(html, 'step'):
         instr = ''
-        for dm in re.finditer(r'class="do"[^>]*>(.*?)</p>', sinner, re.S):
-            instr += ' ' + text_only(dm.group(1))
-        for pm in re.finditer(r'class="peek".*?class="body"[^>]*>(.*?)</details>', sinner, re.S):
-            instr += ' ' + text_only(pm.group(1))
+        for text in element_texts_by_class(sinner, 'p', 'do'):
+            instr += ' ' + text
+        for _peek_tag, peek_inner in extract_tag_blocks_by_class(sinner, 'details', 'peek'):
+            instr += ' ' + first_element_text_by_class(peek_inner, 'div', 'body')
         instr_ng = _ngrams(instr)
         if not instr_ng:
             continue
-        ttl_m = re.search(r'class="ttl"[^>]*>(.*?)</div>', sinner, re.S)
-        stitle = text_only(ttl_m.group(1)) if ttl_m else '(無題の手)'
+        stitle = first_element_text_by_class(sinner, 'div', 'ttl') or '(無題の手)'
         for di, (qtag, qinner) in enumerate(extract_divs(sinner, 'self-check-quiz'), 1):
-            qm = re.search(r'class="quiz-question"[^>]*>(.*?)</p>', qinner, re.S)
-            am = re.search(r'class="quiz-answer"[^>]*>(.*?)</div>', qinner, re.S)
-            drill = (text_only(qm.group(1)) if qm else '') + ' ' + (text_only(am.group(1)) if am else '')
+            drill = first_element_text_by_class(qinner, 'p', 'quiz-question') + ' ' + first_element_text_by_class(qinner, 'div', 'quiz-answer')
             d_ng = _ngrams(drill)
             if not d_ng:
                 continue
@@ -177,27 +290,26 @@ def main():
     ma = extract_divs(html, 'model-answer')
     if ma:
         inner = ma[0][1]
-        role_ps = re.findall(r'<p[^>]*class="[^"]*\br-(?:issue|norm|apply|concl)\b', inner)
+        role_ps = class_prefix_count(inner, 'p', ('r-issue', 'r-norm', 'r-apply', 'r-concl'))
         total_ps = re.findall(r'<p\b(?![^>]*\bma-h\b)', inner)
         has_css = 'MA-ROLE-RESTYLE' in html
         if not has_css:
             W('A24', '模範答案リスキンCSS未注入（scripts/ariadne-ma-restyle.py で付与）')
-        elif len(role_ps) == 0:
+        elif role_ps == 0:
             W('A24', f'模範答案の問規当結カード未適用（役割クラス r-issue/r-norm/r-apply/r-concl が0・段落{len(total_ps)}個）')
         else:
-            fe = '＋事実/評価語' if ('class="fact"' in inner or 'class="eval"' in inner) else '（事実/評価語スパン未付与）'
-            P('A24', f'模範答案 問規当結カード {len(role_ps)} 段落{fe}')
+            fe = '＋事実/評価語' if (html_has_class(inner, 'fact') or html_has_class(inner, 'eval')) else '（事実/評価語スパン未付与）'
+            P('A24', f'模範答案 問規当結カード {role_ps} 段落{fe}')
 
     # ---- A25 深掘り層をアテナ級に（TX 参考条文判例書式 or アテナ移植・spec §2-7／§11・当面 WARNING）----
-    deep = re.search(r'<details id="deep-dive".*?</details>', html, re.S)
-    deep_inner = deep.group(0) if deep else ''
+    deep_inner = extract_tag_block_by_id(html, 'details', 'deep-dive')
     if deep_inner:
-        has_case = 'case-card' in deep_inner
-        has_stat = 'statute-card' in deep_inner
+        has_case = html_has_class(deep_inner, 'case-card')
+        has_stat = html_has_class(deep_inner, 'statute-card')
         # アテナ移植(graft)形式：athena-graft 内に条文/判例 ref-entry がある
-        has_graft = 'athena-graft' in deep_inner and 'id="ref-stat' in deep_inner and 'id="ref-case' in deep_inner
+        has_graft = html_has_class(deep_inner, 'athena-graft') and html_has_id_prefix(deep_inner, 'ref-stat') and html_has_id_prefix(deep_inner, 'ref-case')
         if has_graft:
-            ns = len(re.findall(r'id="ref-stat', deep_inner)); nc = len(re.findall(r'id="ref-case', deep_inner)); nd = len(re.findall(r'id="ref-doctrine', deep_inner))
+            ns = id_prefix_count(deep_inner, 'ref-stat'); nc = id_prefix_count(deep_inner, 'ref-case'); nd = id_prefix_count(deep_inner, 'ref-doctrine')
             P('A25', f'深掘り層がアテナ移植（条文{ns}・判例{nc}・学説{nd}の完全プロファイル）でアテナ級')
         elif has_case and has_stat:
             P('A25', '深掘り層がTX参考条文判例書式（判例case-card＋条文statute-card）でアテナ級')
@@ -208,11 +320,9 @@ def main():
             W('A25', f'深掘り層がアテナ級でない（不足: {"／".join(miss)}・TX書式 or アテナ移植へ・spec §2-7／§11）')
 
     # ---- A26 アテナで詳しく（百科事典版へのジャンプ・spec §11）----
-    ga = re.search(r'class="go-athena"[^>]*data-athena-code="([^"]*)"', html)
-    if not ga:
-        ga = re.search(r'data-athena-code="([^"]*)"[^>]*class="go-athena"', html)
-    if ga and ga.group(1).strip():
-        P('A26', f'アテナ版ジャンプボタンあり（targetCode={ga.group(1)}）')
+    ga = go_athena_target(html)
+    if ga:
+        P('A26', f'アテナ版ジャンプボタンあり（targetCode={ga}）')
     else:
         E('A26', 'アテナ版ジャンプボタン(.go-athena data-athena-code)がない（postMessage lexia:navigate 連携・spec §11）')
 
@@ -220,8 +330,8 @@ def main():
     bc = extract_divs(html, 'bc-wrap')
     if bc:
         body = bc[0][1]
-        cols = body.count('class="bc-col"')          # 🎓 教授のひとこと（5ステップ）
-        quizzes = body.count('self-check-quiz')        # ステップ別 周回ドリル
+        cols = class_count(body, 'bc-col')          # 🎓 教授のひとこと（5ステップ）
+        quizzes = class_count(body, 'self-check-quiz')        # ステップ別 周回ドリル
         if cols >= 5 and quizzes >= 5:
             P('A27', f'答案構成の作法あり（🎓教授のひとこと {cols}・周回ドリル {quizzes}）')
         else:
@@ -235,7 +345,7 @@ def main():
     # 移行期は欠落=WARN。値の科目/JX不整合・参照先RX不在=ERROR（誤リンク＝別論点RXを注入する事故を防ぐ）。
     abase = os.path.basename(norm)
     mfile = re.match(r'^(.+?)JX(\d{3})_ARIADNE\.html$', abase)
-    recall_cards = [(t, i) for (t, i) in cards if 'data-recall' in t]
+    recall_cards = [(t, i) for (t, i) in cards if first_attr_value(DATA_RECALL_RE, t)]
     if mfile and recall_cards:
         subj, num = mfile.group(1), mfile.group(2)        # 例 ('刑','004')
         rx_pat = re.compile(r'^' + re.escape(subj) + r'RX' + num + r'_\d+$')
@@ -247,8 +357,7 @@ def main():
                 rx_dir = cand
         miss, badfmt, notfound = 0, [], []
         for tag, _inner in recall_cards:
-            mrx = re.search(r'data-rx="([^"]*)"', tag)
-            rxv = mrx.group(1).strip() if mrx else ''
+            rxv = first_attr_value(DATA_RX_RE, tag)
             if not rxv:
                 miss += 1
             elif not rx_pat.match(rxv):

@@ -43,6 +43,21 @@ python scripts/validate-tx.py outputs/000_TX/001_刑法/刑TX299.html
 python scripts/validate-jx.py outputs/001_JX/003_民法/民JX015.html
 ```
 
+Lexia 同期前の横断確認:
+
+```bash
+python scripts/check-lexia-preflight.py --root-only
+python scripts/check-lexia-preflight.py --tooling-only
+python scripts/check-lexia-preflight.py --allow-untracked-sync-artifacts
+python scripts/check-lexia-sync-contract.py --summary --thin-report 20 --allow-untracked-sync-artifacts
+```
+
+`--root-only` は監査スクリプト/README など root 改善だけを切り出す時、`--tooling-only` は
+root tooling と生成 validator 改善を同じ作業単位で見る時に使う。最終同期前は
+`python scripts/check-lexia-preflight.py --final --bundle-dir deploy/lexia-preflight` を使う。
+
+同期マニフェストは `fileName` / `code` / `title` / `subject` / `category` / `sourcePath` / `generated` に加え、HTML サイズの `bytes`、タグ除去後の `textLength`、生成日時フッターだけを無視した `stableSha256` を記録する。`textLength` は見た目の HTML サイズだけでは拾いにくい本文不足の検出に、`stableSha256` は「生成日時だけ変わって毎回更新扱いになる」原因の切り分けに使う。
+
 ## ディレクトリ構成
 
 ```

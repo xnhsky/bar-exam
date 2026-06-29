@@ -37,6 +37,24 @@ errors = []
 warnings = []
 
 
+def attr_value(tag: str, name: str) -> str | None:
+    m = re.search(rf"\b{re.escape(name)}\s*=\s*(['\"])(.*?)\1", tag, re.I | re.S)
+    return m.group(2) if m else None
+
+
+def has_class(tag: str, class_name: str) -> bool:
+    value = attr_value(tag, "class")
+    return bool(value and class_name in value.split())
+
+
+def class_count(html: str, class_name: str) -> int:
+    return sum(
+        1
+        for m in re.finditer(r"<[a-zA-Z][\w:-]*\b[^>]*>", html, re.I | re.S)
+        if has_class(m.group(0), class_name)
+    )
+
+
 def err(msg):
     errors.append(msg)
     print(f"[ERROR] {msg}")
@@ -64,7 +82,7 @@ def main():
         return 1
 
     # T2: <title> 非空かつ ARBOR を含む
-    m = re.search(r"<title>(.*?)</title>", html, re.S)
+    m = re.search(r"<title>(.*?)</title>", html, re.S | re.I)
     title = (m.group(1).strip() if m else "")
     if not title:
         err("T2: <title> が空")
@@ -76,19 +94,19 @@ def main():
         err(f"T3: ファイル名が *_TREE.html でない: {path.name} (Lexia の TREE カテゴリ判定に必須)")
 
     # T4: 13 分枝
-    n_name = len(re.findall(r'class="mm-name"', html))
+    n_name = class_count(html, "mm-name")
     if n_name == 0:
         err("T4: class=\"mm-name\" が 0 個 (ARBOR 樹形構造が無い・素材取り違え疑い)")
     elif n_name != 13:
         warn(f"T4: 幹分枝 mm-name が 13 本でない (実際 {n_name} 本・ARBOR 標準は 13)")
 
     # T5: 葉
-    n_leaf = len(re.findall(r'class="mm-leaf"', html))
+    n_leaf = class_count(html, "mm-leaf")
     if n_leaf < 40:
         warn(f"T5: 葉 mm-leaf が {n_leaf} 個 (標準密度 57・40 未満は薄い)")
 
     # T6: 問題ノード
-    n_q = len(re.findall(r'class="mm-q"', html))
+    n_q = class_count(html, "mm-q")
     if n_q < 10:
         warn(f"T6: 問題ノード mm-q が {n_q} 個 (標準 15・10 未満は薄い)")
 

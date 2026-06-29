@@ -35,6 +35,34 @@ errors = []
 warnings = []
 
 
+def attr_value(tag: str, name: str) -> str | None:
+    m = re.search(rf"\b{re.escape(name)}\s*=\s*(['\"])(.*?)\1", tag, re.I | re.S)
+    return m.group(2) if m else None
+
+
+def has_class(tag: str, class_name: str) -> bool:
+    value = attr_value(tag, "class")
+    return bool(value and class_name in value.split())
+
+
+def tags_with_class(html: str, tag_name: str, class_name: str) -> list[str]:
+    tags = re.findall(rf"<{re.escape(tag_name)}\b[^>]*>", html, re.I | re.S)
+    return [tag for tag in tags if has_class(tag, class_name)]
+
+
+def non_empty_text_after_class_tag(html: str, class_name: str) -> list[str]:
+    texts: list[str] = []
+    for m in re.finditer(r"<[a-zA-Z][\w:-]*\b[^>]*>", html, re.I | re.S):
+        tag = m.group(0)
+        if not has_class(tag, class_name):
+            continue
+        end = html.find("<", m.end())
+        text = html[m.end() : end if end != -1 else len(html)]
+        if text.strip():
+            texts.append(text.strip())
+    return texts
+
+
 def err(msg):
     errors.append(msg)
     print(f"[ERROR] {msg}")
@@ -87,8 +115,7 @@ def main():
             err(f"R3: <title> がプレースホルダ ('{title}'): {tag}")
 
         # R4: quiz count
-        quizzes = re.findall(
-            r'<div[^>]*class="[^"]*self-check-quiz[^"]*"[^>]*>', html)
+        quizzes = tags_with_class(html, "div", "self-check-quiz")
         n = len(quizzes)
         if n == 0:
             err(f"R4: self-check-quiz が無い: {tag}")
@@ -97,21 +124,19 @@ def main():
 
         # R5: data-correct-value (全角 ○/×)
         for q in quizzes:
-            m = re.search(r'data-correct-value="([^"]*)"', q)
-            if not m:
+            correct = attr_value(q, "data-correct-value")
+            if correct is None:
                 err(f"R5: data-correct-value 欠落クイズあり: {tag}")
-            elif m.group(1) not in ("○", "×"):
-                err(f"R5: data-correct-value が全角 ○/× でない ('{m.group(1)}'): {tag}")
+            elif correct not in ("○", "×"):
+                err(f"R5: data-correct-value が全角 ○/× でない ('{correct}'): {tag}")
 
         # R6: quiz-question 非空 (個数で近似チェック)
-        qq = re.findall(
-            r'class="[^"]*quiz-question[^"]*"[^>]*>\s*([^<]+)', html)
+        qq = non_empty_text_after_class_tag(html, "quiz-question")
         if len([t for t in qq if t.strip()]) < n:
             err(f"R6: 非空の .quiz-question がクイズ数より少ない: {tag}")
 
         # R7: data-explanation
-        n_expl = len([1 for q in quizzes
-                      if re.search(r'data-explanation="[^"]+?"', q)])
+        n_expl = len([1 for q in quizzes if (attr_value(q, "data-explanation") or "").strip()])
         if n_expl < n:
             warn(f"R7: data-explanation 欠落 {n - n_expl} 問 (弱点克服帳で解説が出ない): {tag}")
 
@@ -126,7 +151,10 @@ def main():
             err(f"R9: ファイルが小さすぎる ({size}B < 4KB) — 内容欠落の疑い: {tag}")
         elif size > 300 * 1024:
             err(f"R9: ファイルが大きすぎる ({size // 1024}KB > 300KB): {tag}")
-        ext = re.findall(r'(?:src|href)="(https?://[^"]+)"', html)
+        ext = [
+            m.group(2)
+            for m in re.finditer(r"\b(?:src|href)\s*=\s*(['\"])(https?://.*?)\1", html, re.I | re.S)
+        ]
         # 作り込みフォント（Google Fonts）の link は正典仕様なので許容。それ以外を WARNING。
         non_font = [u for u in ext if not re.search(r'fonts\.(?:googleapis|gstatic)\.com', u)]
         if non_font:

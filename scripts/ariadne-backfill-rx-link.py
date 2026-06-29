@@ -96,7 +96,46 @@ MAP = {
  "刑JX070_ARIADNE.html": ["刑RX070_2", "刑RX070_1", None],
 }
 
-OPEN_RE = re.compile(r'<div\b[^>]*\bclass="[^"]*\bself-check-quiz\b[^"]*"[^>]*>', re.I)
+ATTR_RE_TEMPLATE = r'\b{name}\s*=\s*([\'"])(.*?)\1'
+CLASS_RE = re.compile(ATTR_RE_TEMPLATE.format(name='class'), re.I | re.S)
+DATA_RECALL_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-recall'), re.I | re.S)
+DATA_RX_RE = re.compile(ATTR_RE_TEMPLATE.format(name='data-rx'), re.I | re.S)
+OPEN_RE = re.compile(r'<div\b[^>]*>', re.I | re.S)
+
+
+def first_attr_value(pattern, text):
+    m = pattern.search(text)
+    return m.group(2).strip() if m and m.group(2) is not None else ''
+
+
+def has_class(open_tag, cls):
+    classes = first_attr_value(CLASS_RE, open_tag)
+    return bool(classes and cls in re.split(r'\s+', classes))
+
+
+def is_recall_tag(tag):
+    return has_class(tag, "self-check-quiz") and DATA_RECALL_RE.search(tag) is not None
+
+
+def recall_tags_in_html(html):
+    return [m.group(0) for m in OPEN_RE.finditer(html) if is_recall_tag(m.group(0))]
+
+
+def stamp_data_rx(tag, code):
+    if DATA_RX_RE.search(tag):
+        return tag, False
+    m = DATA_RECALL_RE.search(tag)
+    if not m:
+        return tag, False
+    return tag[:m.end()] + f' data-rx="{code}"' + tag[m.end():], True
+
+
+def unmapped_rx_status(path):
+    with open(path, encoding="utf-8", newline="") as f:
+        html = f.read()
+    recall_tags = recall_tags_in_html(html)
+    missing = [tag for tag in recall_tags if not DATA_RX_RE.search(tag)]
+    return len(recall_tags), len(missing)
 
 
 def rx_exists(num, code):
@@ -106,9 +145,15 @@ def rx_exists(num, code):
 def main():
     files_on_disk = {os.path.basename(p) for p in glob.glob(os.path.join(ARI_DIR, "*_ARIADNE.html"))}
     errors = []
+    direct_ready = []
     unmapped = files_on_disk - set(MAP)
-    if unmapped:
-        errors.append(f"MAP未登録のARIADNE: {sorted(unmapped)}")
+    for fname in sorted(unmapped):
+        path = os.path.join(ARI_DIR, fname)
+        recall_count, missing_count = unmapped_rx_status(path)
+        if recall_count and missing_count == 0:
+            direct_ready.append(fname)
+        else:
+            errors.append(f"{fname}: MAP未登録かつ data-rx 欠落 {missing_count}/{recall_count}")
 
     plans = []  # (path, new_html, nstamp, nnull, nskip)
     tot_recall = 0
@@ -118,7 +163,7 @@ def main():
             errors.append(f"{fname}: ファイル無し"); continue
         num = re.match(r'^刑JX(\d{3})_', fname).group(1)
         html = open(path, encoding="utf-8", newline="").read()
-        recall_tags = [m.group(0) for m in OPEN_RE.finditer(html) if "data-recall" in m.group(0)]
+        recall_tags = recall_tags_in_html(html)
         tot_recall += len(recall_tags)
         if len(recall_tags) != len(codes):
             errors.append(f"{fname}: 想起カード数 {len(recall_tags)} != MAP長 {len(codes)}"); continue
@@ -129,16 +174,17 @@ def main():
 
         def repl(m):
             tag = m.group(0)
-            if "data-recall" not in tag:
+            if not is_recall_tag(tag):
                 return tag
             i = idx[0]; idx[0] += 1
             code = codes[i] if i < len(codes) else None
             if not code:
                 n["null"] += 1; return tag
-            if "data-rx=" in tag:
+            stamped, changed = stamp_data_rx(tag, code)
+            if not changed:
                 n["skip"] += 1; return tag
             n["stamp"] += 1
-            return re.sub(r'(data-recall="1")', r'\1 data-rx="' + code + '"', tag, count=1)
+            return stamped
 
         new_html = OPEN_RE.sub(repl, html)
         plans.append((path, new_html, n["stamp"], n["null"], n["skip"]))
@@ -149,6 +195,8 @@ def main():
     mode = "APPLY" if APPLY else "DRY-RUN"
     print(f"=== {mode} === 対象 {len(plans)}/{len(MAP)} ファイル・想起カード {tot_recall} / "
           f"新規刻む {tot_stamp} / 既存 data-rx skip {tot_skip} / null(省略) {tot_null}")
+    if direct_ready:
+        print(f"MAP外だが直接 data-rx 済みのため skip: {direct_ready}")
     if errors:
         print(f"!!! 安全検査 NG（{len(errors)}件）→ 一切書き込まず中止 !!!")
         for e in errors:

@@ -3,10 +3,10 @@
 """フッターに「生成日時＋バージョン」を機械可読で刻むコアモジュール。
 
 Lexia は問題HTML本文を raw.githubusercontent.com (GitHub API レート制限の対象外) で
-取得し、フッターの「作成日：YYYY-MM-DD HH:MM ／ <version>」を読む。これにより Commits
+取得し、フッターの data-generated と "Generated: YYYY-MM-DD HH:MM / <version>" を読む。これにより Commits
 API を1件も叩かずに各ファイルの生成日時・最新版を取得できる (レート制限の根本回避)。
 
-刻印は冪等: 既存の <... class="lexia-genmeta">...</...> を必ず置換し、旧来の
+刻印は冪等: 既存の <... class="lexia-genmeta">...</...> を必ず 1 件へ正規化し、旧来の
 <!-- 作成日：YYYY-MM-DD --> 固定コメントも除去する。再生成・再スタンプで二重化しない。
 
 CLI:
@@ -28,14 +28,26 @@ GENMETA_CLASS = "lexia-genmeta"
 
 # 既存の刻印 (どんなタグでも class に lexia-genmeta を含むもの) を丸ごと掴む。
 _GENMETA_RE = re.compile(
-    r'[ \t]*<([a-zA-Z][\w-]*)\b[^>]*\bclass="[^"]*\blexia-genmeta\b[^"]*"[^>]*>.*?</\1>[ \t]*\n?',
-    re.DOTALL,
+    r'[ \t]*<([a-zA-Z][\w-]*)\b'
+    r'(?=[^>]*\bclass\s*=\s*([\'"])[^\'"]*\blexia-genmeta\b[^\'"]*\2)'
+    r'[^>]*>.*?</\1>[ \t]*\n?',
+    re.DOTALL | re.I,
 )
 # 旧来の固定コメント <!-- 作成日：2026-06-20 --> (日付のみ・テンプレ複製) を除去。
 _LEGACY_COMMENT_RE = re.compile(r'[ \t]*<!--\s*作成日：[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}\s*-->[ \t]*\n?')
 # TX 既存の日本語フッター行 <p class="footer-date">作成日：…</p> (genmeta 無し)。英語統一で置換する。
 _NATIVE_FOOTERDATE_RE = re.compile(
-    r'[ \t]*<p class="footer-date">作成日：.*?</p>[ \t]*\n?', re.DOTALL
+    r'[ \t]*<p\b'
+    r'(?=[^>]*\bclass\s*=\s*([\'"])[^\'"]*\bfooter-date\b[^\'"]*\1)'
+    r'[^>]*>作成日：.*?</p>[ \t]*\n?',
+    re.DOTALL | re.I,
+)
+_FOOTER_SPEC_RE = re.compile(r'\bclass\s*=\s*([\'"])[^\'"]*\bfooter-spec\b[^\'"]*\1', re.I)
+_FOOTER_SPEC_OPEN_RE = re.compile(
+    r'<[a-zA-Z][\w-]*\b'
+    r'(?=[^>]*\bclass\s*=\s*([\'"])[^\'"]*\bfooter-spec\b[^\'"]*\1)'
+    r'[^>]*>',
+    re.I,
 )
 
 
@@ -85,7 +97,12 @@ def _build_line(dt: datetime, version: str, centered: bool = False) -> str:
 
 def _has_footer_container(html: str) -> bool:
     """フッターのコンテナ（JX/TREE=<footer> / TX=footer-spec）を持つか。"""
-    return "</footer>" in html or 'class="footer-spec"' in html
+    return "</footer>" in html.lower() or _FOOTER_SPEC_RE.search(html) is not None
+
+
+def has_genmeta_stamp(html: str) -> bool:
+    """実体のある lexia-genmeta スタンプ行を持つか。単なる文字列出現は除外する。"""
+    return _GENMETA_RE.search(html) is not None
 
 
 def stamp_html(html: str, dt: datetime, version: str) -> str:
@@ -98,17 +115,30 @@ def stamp_html(html: str, dt: datetime, version: str) -> str:
     centered = not _has_footer_container(html)
     line = _build_line(dt, version, centered=centered)
     html = _LEGACY_COMMENT_RE.sub("", html)
-    # 1) 既存 genmeta をその場置換（先頭1件）。
+    # 1) 既存 genmeta を先頭位置で置換し、重複分は削除する。
     if _GENMETA_RE.search(html):
-        return _GENMETA_RE.sub(lambda _m: line + "\n", html, count=1)
+        replaced = False
+
+        def replace_first_remove_rest(_m: re.Match) -> str:
+            nonlocal replaced
+            if replaced:
+                return ""
+            replaced = True
+            return line + "\n"
+
+        return _GENMETA_RE.sub(replace_first_remove_rest, html)
     # 2) TX 既存の日本語 footer-date をその場で英語置換（footer-spec コンテナ内を維持）。
     if _NATIVE_FOOTERDATE_RE.search(html):
         return _NATIVE_FOOTERDATE_RE.sub(line + "\n", html, count=1)
-    # 3) </footer> 直前（footer コンテナ内）に挿入。
+    # 3) TX footer-spec コンテナ内に挿入。
+    m = _FOOTER_SPEC_OPEN_RE.search(html)
+    if m:
+        return html[:m.end()] + "\n" + line + html[m.end():]
+    # 4) </footer> 直前（footer コンテナ内）に挿入。
     idx = html.rfind("</footer>")
     if idx != -1:
         return html[:idx] + line + "\n" + html[idx:]
-    # 4) コンテナ無し → フッター情報の最下部（</body> 直前）に中央揃えで置く。
+    # 5) コンテナ無し → フッター情報の最下部（</body> 直前）に中央揃えで置く。
     idx = html.rfind("</body>")
     if idx != -1:
         return html[:idx] + line + "\n" + html[idx:]

@@ -25,8 +25,18 @@ from stamp_footer import stamp_file, infer_version, JST  # noqa: E402
 REPO = pathlib.Path(__file__).resolve().parent.parent
 DIRS = ("outputs/000_TX", "outputs/001_JX", "outputs/ux", "references")
 
-_DATA_GEN_RE = re.compile(r'lexia-genmeta[^>]*data-generated="([^"]+)"')
-_NATIVE_DATE_RE = re.compile(r'<p class="footer-date">作成日：(\d{4})-(\d{1,2})-(\d{1,2})')
+_DATA_GEN_RE = re.compile(
+    r'<[a-zA-Z][\w-]*\b'
+    r'(?=[^>]*\bclass\s*=\s*([\'"])[^\'"]*\blexia-genmeta\b[^\'"]*\1)'
+    r'(?=[^>]*\bdata-generated\s*=\s*([\'"])(.*?)\2)'
+    r'[^>]*>',
+    re.I | re.S,
+)
+_NATIVE_DATE_RE = re.compile(
+    r'<p\b(?=[^>]*\bclass\s*=\s*([\'"])[^\'"]*\bfooter-date\b[^\'"]*\1)[^>]*>'
+    r'作成日：(\d{4})-(\d{1,2})-(\d{1,2})',
+    re.I | re.S,
+)
 
 
 def build_add_date_map() -> dict[str, datetime]:
@@ -34,7 +44,7 @@ def build_add_date_map() -> dict[str, datetime]:
     out = subprocess.run(
         ["git", "-C", str(REPO), "-c", "core.quotepath=false", "log",
          "--diff-filter=A", "--name-only", "--format=@%cI", "--", "*.html"],
-        capture_output=True, text=True,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
     ).stdout
     m: dict[str, datetime] = {}
     cur: datetime | None = None
@@ -55,7 +65,7 @@ def determine_dt(rel: str, txt: str, add_map: dict[str, datetime]) -> datetime:
     mm = _DATA_GEN_RE.search(txt)
     if mm:
         try:
-            return datetime.fromisoformat(mm.group(1)).astimezone(JST)
+            return datetime.fromisoformat(mm.group(3)).astimezone(JST)
         except ValueError:
             pass
     # 2) TX 既存(native): git 初出日時(時刻つき)、無ければ表示日付の正午。
@@ -64,7 +74,7 @@ def determine_dt(rel: str, txt: str, add_map: dict[str, datetime]) -> datetime:
         return g
     nm = _NATIVE_DATE_RE.search(txt)
     if nm:
-        return datetime(int(nm[1]), int(nm[2]), int(nm[3]), 12, 0, tzinfo=JST)
+        return datetime(int(nm[2]), int(nm[3]), int(nm[4]), 12, 0, tzinfo=JST)
     return datetime.now(JST)
 
 
