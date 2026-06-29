@@ -6,13 +6,27 @@
 # is being pushed, so failed pushes do not update the target folder.
 set -uo pipefail
 
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+to_windows_path() {
+  if command -v cygpath >/dev/null 2>&1; then
+    cygpath -w "$1"
+  elif command -v wslpath >/dev/null 2>&1; then
+    wslpath -w "$1"
+  else
+    printf '%s\n' "$1"
+  fi
+}
+
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)" || exit 0
+ROOT_POSIX="$(cd "$HOOK_DIR/../.." && pwd)" || exit 0
+ROOT="$(to_windows_path "$ROOT_POSIX")"
 TARGET="${BAREXAM_CODEX_ROOT:-C:/Users/xnrg2.DESKTOP-5664QR6/bar-exam-codex}"
-SCRIPT="$ROOT/scripts/sync-repo-from-master.ps1"
-LAUNCHER="$ROOT/scripts/start-repo-sync.ps1"
+SCRIPT_POSIX="$ROOT_POSIX/scripts/sync-repo-from-master.ps1"
+LAUNCHER_POSIX="$ROOT_POSIX/scripts/start-repo-sync.ps1"
+SCRIPT="$(to_windows_path "$SCRIPT_POSIX")"
+LAUNCHER="$(to_windows_path "$LAUNCHER_POSIX")"
 
 powershell_bin="$(command -v powershell.exe || command -v powershell || true)"
-if [[ -z "$powershell_bin" || ! -f "$SCRIPT" || ! -f "$LAUNCHER" ]]; then
+if [[ -z "$powershell_bin" || ! -f "$SCRIPT_POSIX" || ! -f "$LAUNCHER_POSIX" ]]; then
   exit 0
 fi
 
