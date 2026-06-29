@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Start a background local sync after pushes to origin/master.
+#
+# Git has no post-push hook. This hook launches a detached PowerShell helper
+# before the push; the helper waits until origin/master contains the commit that
+# is being pushed, so failed pushes do not update the target folder.
+set -uo pipefail
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
+TARGET="${BAREXAM_CODEX_ROOT:-C:/Users/xnrg2.DESKTOP-5664QR6/bar-exam-codex}"
+SCRIPT="$ROOT/scripts/sync-repo-from-master.ps1"
+LOGDIR="$ROOT/logs"
+
+pwsh_bin="$(command -v pwsh || command -v powershell.exe || command -v powershell || true)"
+if [[ -z "$pwsh_bin" || ! -f "$SCRIPT" ]]; then
+  exit 0
+fi
+
+mkdir -p "$LOGDIR" 2>/dev/null || true
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ "$remote_ref" == "refs/heads/master" && "$local_sha" != "0000000000000000000000000000000000000000" ]]; then
+    nohup "$pwsh_bin" -NoProfile -ExecutionPolicy Bypass \
+      -File "$SCRIPT" \
+      -ProjectRoot "$TARGET" \
+      -Remote origin \
+      -Branch master \
+      -WaitForSha "$local_sha" \
+      -TimeoutSec 240 \
+      >> "$LOGDIR/post-push-sync-codex.log" 2>&1 &
+  fi
+done
+
+exit 0
