@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刑JX019 早すぎた・遅すぎた構成要件の実現 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Crimson+Pro:wght@400;500;600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f4edd8;--ink:#1f1b16;--soft:#4a4338;--rule:#c8b894;--ox:#6b2436;--sage:#5a6b4a;--clay:#8b5a3c;--gold:#9c7c2d;--leaf:#f9f4e8;--f-jp:'Noto Serif JP','Yu Mincho',serif;--f-body:'Crimson Pro','Noto Serif JP',serif;--f-it:'Cormorant Garamond','Noto Serif JP',serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:14.5px;line-height:1.85;letter-spacing:.03em}
+.topbar{position:sticky;top:0;z-index:4;background:rgba(244,237,216,.94);border-bottom:1px solid var(--rule);padding:14px 26px;display:flex;gap:18px;align-items:baseline;flex-wrap:wrap}.topbar-vol{font-family:var(--f-it);font-style:italic;color:var(--ox);letter-spacing:.12em}.topbar-title{font-family:var(--f-jp);font-weight:700;font-size:18px}.topbar-stats{margin-left:auto;color:var(--soft);font-style:italic}
+.mm-canvas{width:100%;overflow-x:auto;padding:48px 0 80px}.mindmap{display:flex;align-items:flex-start;width:max-content;min-width:100%;padding:0 30px}.mm-root{position:sticky;left:22px;top:86px;flex:0 0 250px;background:var(--ox);color:#f4edd8;border-radius:8px;padding:28px 24px;box-shadow:0 16px 38px rgba(80,30,45,.28)}.mm-root-title{font-family:var(--f-jp);font-size:25px;line-height:1.22;font-weight:700}.mm-root-en{font-family:var(--f-it);font-style:italic;opacity:.72;margin-top:10px}
+.mm-trunk{display:flex;gap:0;align-items:flex-start}.mm-branch{display:grid;grid-template-columns:230px 360px;gap:34px;min-height:160px;margin:0 0 16px 52px;position:relative}.mm-branch::before{content:'';position:absolute;left:-52px;top:31px;width:52px;height:1px;background:var(--rule)}.mm-trunk-node{height:max-content;border-radius:7px;padding:13px 15px;background:#e8d4d8;color:var(--ox);box-shadow:0 3px 12px rgba(31,27,22,.08)}.mm-name{font-family:var(--f-jp);font-weight:700;font-size:14.5px;letter-spacing:.08em}.mm-name-en{display:block;font-family:var(--f-it);font-style:italic;font-size:11px;opacity:.68;margin-top:2px}.mm-leaves{display:flex;flex-direction:column;gap:8px;position:relative}.mm-leaves::before{content:'';position:absolute;left:-17px;top:18px;bottom:18px;width:1px;background:var(--rule)}
+.mm-leaf{position:relative}.mm-leaf::before{content:'';position:absolute;left:-17px;top:18px;width:17px;height:1px;background:var(--rule)}.mm-leaf>summary{list-style:none;cursor:pointer;background:var(--leaf);border:1px solid rgba(31,27,22,.13);border-radius:6px;padding:9px 12px;display:flex;align-items:center;gap:8px}.mm-leaf>summary::-webkit-details-marker{display:none}.mm-leaf-name{font-family:var(--f-jp);font-weight:700}.mm-leaf-sub{display:block;color:var(--soft);font-size:12px}.mm-leaf-chev{margin-left:auto;color:var(--ox)}.mm-leaf-chev::before{content:'+'}.mm-leaf[open] .mm-leaf-chev{transform:rotate(45deg)}.mm-leaf-body{background:rgba(255,253,247,.75);border-left:3px solid var(--ox);border-radius:0 0 6px 6px;margin:0 8px 4px;padding:10px 13px;color:var(--soft)}.mm-leaf-body .norm{background:#fff7d0;border:1px solid #d9c274;border-radius:5px;padding:8px 10px;color:#5f4615}.mm-q{margin-top:8px;background:#eef5e8;border:1px solid #b8caa6;border-radius:5px;padding:6px 9px;color:#3d4a30;font-family:var(--f-jp);font-size:12.5px}
+.mm-c2 .mm-trunk-node,.mm-c5 .mm-trunk-node,.mm-c10 .mm-trunk-node{background:#e0cbb8;color:var(--clay)}.mm-c3 .mm-trunk-node,.mm-c8 .mm-trunk-node,.mm-c13 .mm-trunk-node{background:#c5cfb4;color:#3d4a30}.mm-c4 .mm-trunk-node,.mm-c9 .mm-trunk-node{background:#d4b0b8;color:var(--ox)}.mm-c6 .mm-trunk-node,.mm-c11 .mm-trunk-node,.mm-c12 .mm-trunk-node{background:#e8dcb4;color:#6b5530}.foot{max-width:980px;margin:18px auto 42px;color:var(--soft);padding:0 24px}.lexia-genmeta{text-align:center;font-family:monospace;font-size:12px;color:#756b60}
+@media(max-width:760px){.mm-root{position:relative;left:auto;top:auto}.mindmap{padding:0 16px}.mm-branch{grid-template-columns:210px 330px;margin-left:34px}.topbar-stats{margin-left:0}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-vol">刑JX019 <em>ARBOR</em></div><div class="topbar-title">早すぎた・遅すぎた構成要件の実現</div><div class="topbar-stats">13 branches / 52 leaves / 52 questions</div></div>
+<main class="mm-canvas">
+<div class="mindmap">
+<section class="mm-root"><div class="mm-root-title">刑JX019<br>因果経過の食い違い</div><div class="mm-root-en">early and late realization of actus reus</div></section>
+<div class="mm-trunk">
+<div>
+<section class="mm-branch mm-c1">
+  <div class="mm-trunk-node"><span class="mm-name">事案構造</span><span class="mm-name-en">case architecture</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">二段階行為</span><span class="mm-leaf-sub">事案構造 / node 1-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>事案構造の枝では「二段階行為」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 二段階行為を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">計画と現実</span><span class="mm-leaf-sub">事案構造 / node 1-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>事案構造の枝では「計画と現実」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 計画と現実を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">甲乙の鏡像</span><span class="mm-leaf-sub">事案構造 / node 1-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>事案構造の枝では「甲乙の鏡像」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 甲乙の鏡像を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">設問順序</span><span class="mm-leaf-sub">事案構造 / node 1-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>事案構造の枝では「設問順序」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 設問順序を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c2">
+  <div class="mm-trunk-node"><span class="mm-name">小問(1)入口</span><span class="mm-name-en">first count</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">強盗殺人の誘い</span><span class="mm-leaf-sub">小問(1)入口 / node 2-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(1)入口の枝では「強盗殺人の誘い」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 強盗殺人の誘いを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">相続目的</span><span class="mm-leaf-sub">小問(1)入口 / node 2-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(1)入口の枝では「相続目的」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 相続目的を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">殺人罪への切替</span><span class="mm-leaf-sub">小問(1)入口 / node 2-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(1)入口の枝では「殺人罪への切替」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 殺人罪への切替を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">客観構成要件</span><span class="mm-leaf-sub">小問(1)入口 / node 2-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(1)入口の枝では「客観構成要件」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 客観構成要件を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c3">
+  <div class="mm-trunk-node"><span class="mm-name">財産上の利益</span><span class="mm-name-en">benefit</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">具体性</span><span class="mm-leaf-sub">財産上の利益 / node 3-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>財産上の利益の枝では「具体性」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 具体性を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">直接性</span><span class="mm-leaf-sub">財産上の利益 / node 3-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>財産上の利益の枝では「直接性」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 直接性を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">相続手続</span><span class="mm-leaf-sub">財産上の利益 / node 3-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>財産上の利益の枝では「相続手続」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 相続手続を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">結論否定</span><span class="mm-leaf-sub">財産上の利益 / node 3-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>財産上の利益の枝では「結論否定」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 結論否定を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c4">
+  <div class="mm-trunk-node"><span class="mm-name">実行の着手</span><span class="mm-name-en">attempt threshold</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">密接性</span><span class="mm-leaf-sub">実行の着手 / node 4-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>実行の着手の枝では「密接性」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 密接性を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">危険性</span><span class="mm-leaf-sub">実行の着手 / node 4-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>実行の着手の枝では「危険性」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 危険性を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">三要素</span><span class="mm-leaf-sub">実行の着手 / node 4-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>実行の着手の枝では「三要素」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 三要素を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">クロロホルム射程</span><span class="mm-leaf-sub">実行の着手 / node 4-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>実行の着手の枝では「クロロホルム射程」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. クロロホルム射程を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c5">
+  <div class="mm-trunk-node"><span class="mm-name">甲の故意</span><span class="mm-name-en">mens rea</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">一連の認識</span><span class="mm-leaf-sub">甲の故意 / node 5-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の故意の枝では「一連の認識」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 一連の認識を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">因果関係の錯誤</span><span class="mm-leaf-sub">甲の故意 / node 5-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の故意の枝では「因果関係の錯誤」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 因果関係の錯誤を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">法定的符合</span><span class="mm-leaf-sub">甲の故意 / node 5-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の故意の枝では「法定的符合」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 法定的符合を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">殺人既遂</span><span class="mm-leaf-sub">甲の故意 / node 5-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の故意の枝では「殺人既遂」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 殺人既遂を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c6">
+  <div class="mm-trunk-node"><span class="mm-name">甲の結論</span><span class="mm-name-en">conclusion A</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">強盗殺人なし</span><span class="mm-leaf-sub">甲の結論 / node 6-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の結論の枝では「強盗殺人なし」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 強盗殺人なしを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">殺人既遂</span><span class="mm-leaf-sub">甲の結論 / node 6-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の結論の枝では「殺人既遂」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 殺人既遂を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">未遂過失説排斥</span><span class="mm-leaf-sub">甲の結論 / node 6-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の結論の枝では「未遂過失説排斥」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 未遂過失説排斥を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">答案配点</span><span class="mm-leaf-sub">甲の結論 / node 6-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>甲の結論の枝では「答案配点」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 答案配点を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c7">
+  <div class="mm-trunk-node"><span class="mm-name">小問(2)入口</span><span class="mm-name-en">second count</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">絞首行為</span><span class="mm-leaf-sub">小問(2)入口 / node 7-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(2)入口の枝では「絞首行為」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 絞首行為を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">投棄行為</span><span class="mm-leaf-sub">小問(2)入口 / node 7-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(2)入口の枝では「投棄行為」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 投棄行為を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">客観面先行</span><span class="mm-leaf-sub">小問(2)入口 / node 7-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(2)入口の枝では「客観面先行」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 客観面先行を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">砂末吸引</span><span class="mm-leaf-sub">小問(2)入口 / node 7-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>小問(2)入口の枝では「砂末吸引」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 砂末吸引を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c8">
+  <div class="mm-trunk-node"><span class="mm-name">因果関係</span><span class="mm-name-en">causation</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">危険の現実化</span><span class="mm-leaf-sub">因果関係 / node 8-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>因果関係の枝では「危険の現実化」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 危険の現実化を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">介在事情</span><span class="mm-leaf-sub">因果関係 / node 8-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>因果関係の枝では「介在事情」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 介在事情を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">非異常性</span><span class="mm-leaf-sub">因果関係 / node 8-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>因果関係の枝では「非異常性」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 非異常性を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">寄与度</span><span class="mm-leaf-sub">因果関係 / node 8-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>因果関係の枝では「寄与度」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 寄与度を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c9">
+  <div class="mm-trunk-node"><span class="mm-name">概括的故意</span><span class="mm-name-en">dolus generalis</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">認識と現実</span><span class="mm-leaf-sub">概括的故意 / node 9-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>概括的故意の枝では「認識と現実」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 認識と現実を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">因果経過のズレ</span><span class="mm-leaf-sub">概括的故意 / node 9-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>概括的故意の枝では「因果経過のズレ」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 因果経過のズレを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">故意阻却なし</span><span class="mm-leaf-sub">概括的故意 / node 9-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>概括的故意の枝では「故意阻却なし」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 故意阻却なしを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">同一結果</span><span class="mm-leaf-sub">概括的故意 / node 9-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>概括的故意の枝では「同一結果」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 同一結果を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c10">
+  <div class="mm-trunk-node"><span class="mm-name">過失致死吸収</span><span class="mm-name-en">absorption</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">投棄の評価</span><span class="mm-leaf-sub">過失致死吸収 / node 10-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>過失致死吸収の枝では「投棄の評価」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 投棄の評価を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">一個の死</span><span class="mm-leaf-sub">過失致死吸収 / node 10-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>過失致死吸収の枝では「一個の死」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 一個の死を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">二重評価回避</span><span class="mm-leaf-sub">過失致死吸収 / node 10-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>過失致死吸収の枝では「二重評価回避」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 二重評価回避を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">殺人一罪</span><span class="mm-leaf-sub">過失致死吸収 / node 10-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>過失致死吸収の枝では「殺人一罪」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 殺人一罪を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c11">
+  <div class="mm-trunk-node"><span class="mm-name">判例対応</span><span class="mm-name-en">authorities</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">クロロホルム</span><span class="mm-leaf-sub">判例対応 / node 11-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>判例対応の枝では「クロロホルム」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. クロロホルムを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">砂末吸引</span><span class="mm-leaf-sub">判例対応 / node 11-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>判例対応の枝では「砂末吸引」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 砂末吸引を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">大阪南港</span><span class="mm-leaf-sub">判例対応 / node 11-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>判例対応の枝では「大阪南港」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 大阪南港を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">相続利益</span><span class="mm-leaf-sub">判例対応 / node 11-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>判例対応の枝では「相続利益」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 相続利益を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c12">
+  <div class="mm-trunk-node"><span class="mm-name">答案順序</span><span class="mm-name-en">writing order</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">甲から乙へ</span><span class="mm-leaf-sub">答案順序 / node 12-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>答案順序の枝では「甲から乙へ」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 甲から乙へを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">規範短く</span><span class="mm-leaf-sub">答案順序 / node 12-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>答案順序の枝では「規範短く」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 規範短くを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">あてはめ厚く</span><span class="mm-leaf-sub">答案順序 / node 12-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>答案順序の枝では「あてはめ厚く」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. あてはめ厚くを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">結論明示</span><span class="mm-leaf-sub">答案順序 / node 12-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>答案順序の枝では「結論明示」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 結論明示を答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+<section class="mm-branch mm-c13">
+  <div class="mm-trunk-node"><span class="mm-name">失点回避</span><span class="mm-name-en">risk control</span></div>
+  <div class="mm-leaves">
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">相続を成立させない</span><span class="mm-leaf-sub">失点回避 / node 13-1</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>失点回避の枝では「相続を成立させない」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 相続を成立させないを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">因果と故意を分ける</span><span class="mm-leaf-sub">失点回避 / node 13-2</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>失点回避の枝では「因果と故意を分ける」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 因果と故意を分けるを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">吸収を忘れない</span><span class="mm-leaf-sub">失点回避 / node 13-3</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>失点回避の枝では「吸収を忘れない」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 吸収を忘れないを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+<details class="mm-leaf">
+  <summary><span><span class="mm-leaf-name">判例名を添える</span><span class="mm-leaf-sub">失点回避 / node 13-4</span></span><span class="mm-leaf-chev"></span></summary>
+  <div class="mm-leaf-body"><p>失点回避の枝では「判例名を添える」を、答案上の処理順序と結論に結び付けて確認する。本問は二段階行為と因果経過の食い違いを扱うため、客観面と主観面を混ぜずに配置することが重要である。</p><p class="norm">規範は短く、あてはめは事実語で厚く書く。甲では着手の三要素、乙では危険の現実化の三視点を使い、最後に因果関係の錯誤が故意を阻却しないと結論へ接続する。</p><div class="mm-q">Q. 判例名を添えるを答案で落とすと、どの構成要件要素または罪数処理が不安定になるか。</div></div>
+</details>
+  </div>
+</section>
+</div>
+</div>
+</div>
+</main>
+<div class="foot">
+<p>甲は「予定より前」に結果が発生したため、実行の着手を前倒しして一連の殺人行為と評価する。乙は「予定より後」に結果が発生したため、危険の現実化で因果関係を肯定し、因果関係の錯誤を故意阻却なしで処理する。</p>
+<p class="lexia-genmeta" data-generated="2026-06-28T22:10+09:00">Generated: 2026-06-28 22:10 / ARBOR v5.0</p>
+</div>
+</body>
+</html>
