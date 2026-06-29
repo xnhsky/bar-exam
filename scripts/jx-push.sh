@@ -7,13 +7,14 @@
 #   本スクリプトは「ファイルを回収して push する」一連の動線を1コマンドにまとめる。
 #
 # 動作：
-#   1) 対象（既定 outputs/001_JX ＋ outputs/ux 配下の追加/変更/未追跡 HTML）を git add
+#   1) Lexia preflight（重複/同期契約/ARIADNE正典/RX到達性）を通す
+#   2) 対象（既定 outputs/001_JX ＋ outputs/ux 配下の追加/変更/未追跡 HTML）を git add
 #      （ux = リモート生成の副産物 RX/TREE/ARIADNE。本体 JX と一緒に永続化する）
-#   2) 差分が無ければ何もしない
-#   3) commit（メッセージは引数 or 既定）
-#   4) git push -u origin <現ブランチ> をネットワークエラー時に指数バックオフ再試行
+#   3) 差分が無ければ何もしない
+#   4) commit（メッセージは引数 or 既定）
+#   5) git push -u origin <現ブランチ> をネットワークエラー時に指数バックオフ再試行
 #      （2s, 4s, 8s, 16s／最大4回）
-#   5) 回収マニフェスト（scripts/jx-retrieval-manifest.py）を表示
+#   6) 回収マニフェスト（scripts/jx-retrieval-manifest.py）を表示
 #
 # 使い方：
 #   scripts/jx-push.sh "feat(jx): 刑JX028 を生成保存（J1〜J21 PASS）"
@@ -44,6 +45,17 @@ echo "=== JX push 動線（branch=$BRANCH）==="
 #    新規生成分は未コミットなので stamp 側が今日の日付を採用する。
 if [ "$DRY" -eq 0 ]; then
   python3 scripts/stamp-created-date.py 2>/dev/null || true
+fi
+
+# 0.5) 配布前ゲート（read-only）
+# JX 本体だけでなく RX/TREE/ARIADNE も一緒に回収する入口なので、commit 前に
+# Lexia 同期契約・ARIADNE v1.1.0 正典ガード・RX到達性をまとめて通す。
+if [ "$DRY" -eq 0 ]; then
+  echo "--- preflight: scripts/check-lexia-preflight.py --skip-self-test ---"
+  if ! python3 scripts/check-lexia-preflight.py --skip-self-test; then
+    echo "[FATAL] preflight 失敗。commit/push を中止します。"
+    exit 1
+  fi
 fi
 
 # 1) stage

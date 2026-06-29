@@ -116,6 +116,21 @@ if (-not $NoGate) {
     Write-Host "[GATE PASS] Lexia 同期契約の致命的不整合なし。finalize を続行します。" -ForegroundColor Green
 }
 
+# === 配布前ゲート: ARIADNE 正典（v1.1.0 MATRIX-THREAD）チェック ===
+# canonical/ARIADNE.html と生成済み ARIADNE 全体を validate-ariadne.py で横断検証する。
+# 問題文1字下げ・拾う文言近接2カラム・data-rx など、ARIADNE 正典化後の退行を
+# commit/push 前に止める。※ DryRun でも実行（事前確認になる）。緊急回避は -NoGate。
+if (-not $NoGate) {
+    Write-Host "`n--- 配布前ゲート: scripts/check-ariadne-canonical.py ---" -ForegroundColor Cyan
+    python -X utf8 (Join-Path $ProjectRoot 'scripts/check-ariadne-canonical.py')
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[ABORT] ARIADNE 正典ガードで不整合を検出。修正するまで finalize（commit/push）を中止します。" -ForegroundColor Red
+        Write-Host "        （緊急時のみ -NoGate で回避可能。原因は上記 check-ariadne-canonical の出力を参照）" -ForegroundColor DarkGray
+        exit 1
+    }
+    Write-Host "[GATE PASS] ARIADNE 正典ガード PASS。finalize を続行します。" -ForegroundColor Green
+}
+
 # === 配布前ゲート: RX カバレッジ（dangling / UNREACHABLE 参照）チェック ===
 # RX 論証カードの参照が dangling（リンク先なし）／UNREACHABLE（到達不能）になっていないかを
 # 検査し、見つかれば commit/push せず中止する。直上の check-duplicates と同じ関門。
