@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-TX v11.0.0 LOOP-CORE 自己検証スクリプト（コア＝メイン HTML 用）
+TX v11/v12 LOOP-CORE 自己検証スクリプト（コア＝メイン HTML 用）
 
 spec: spec/tx-v11.0.0-core.md 第7項
 
@@ -13,7 +13,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
     G9  → SVG はコアに体系ツリー＋放射マップの2枚。フローチャートは別冊専用＝不在を要求
     G10 → AABB 衝突（tree+radial の2枚）
     G11 → viewBox 余白（tree+radial の2枚）
-    G15 → feature-tag 先頭が "TX v11.x.x LOOP-CORE"（v11.0.0／v11.1.0 等）
+    G15 → feature-tag 先頭が "TX v11.x.x LOOP-CORE" または "TX v12.x.x LOOP-CORE"
   新設（v11 中核）：
     G20 記述単位検査：choice-section の見出しバッジが単一記述（ア〜オ）。組合せ見出しを禁止
     G21 禁止句検査：組合せ導出・選択戦略語彙が body に出現しない
@@ -463,9 +463,10 @@ class Validator:
             self.err("G15", "footer-spec に feature-tag が一つもない")
             return
         first = tags[0].get_text().strip()
-        # v11.x.x LOOP-CORE を許容（v11.0.0 既存／v11.1.0 誌面・配色進化版・後方互換）
-        if not (first.startswith("TX v11.") and "LOOP-CORE" in first):
-            self.err("G15", f"feature-tag 先頭が 'TX v11.x.x LOOP-CORE' でない: '{first}'")
+        # v11/v12.x.x LOOP-CORE を許容。
+        # v12.1.0 はインライン肢カードを主導線にした正典化版（v11 系とは後方互換）。
+        if not (first.startswith(("TX v11.", "TX v12.")) and "LOOP-CORE" in first):
+            self.err("G15", f"feature-tag 先頭が 'TX v11/v12.x.x LOOP-CORE' でない: '{first}'")
 
     # --- G16：SVG class 整合性 ---
 
@@ -590,7 +591,7 @@ class Validator:
         if not area:
             return  # G3 で報告済
         atype = area.get("data-answer-type", "")
-        # 二系統化（v11.1.0）：Lexia 用 _lex（outputs/ux/000_TX/..._lex.html）は ox-grid 必須
+        # 二系統化（v11.1.0 継承／v12.1.0 active）：Lexia 用 _lex（outputs/ux/000_TX/..._lex.html）は ox-grid 必須
         # ＝記述単位○×が Lexia 復習プールの肢データ源。一方、公式（outputs/000_TX/...）は
         # 過去問そのままの「本物の5択」＝ single / multi を許容する（解法ナビは _lex のみ）。
         is_lex = self.html_path.stem.endswith("_lex")
@@ -934,7 +935,7 @@ def main():
         print(f"❌ ファイルが見つからない: {html_path}")
         sys.exit(2)
 
-    print(f"\n=== TX v11.0.0 LOOP-CORE 検証: {html_path.name} ===\n")
+    print(f"\n=== TX v11/v12 LOOP-CORE 検証: {html_path.name} ===\n")
     v = Validator(html_path)
     v.run()
 

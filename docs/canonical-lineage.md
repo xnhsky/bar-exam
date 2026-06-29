@@ -39,9 +39,9 @@
 > **「GENESIS」名の整理**：無印 `GENESIS.html` ＝ **v10 凍結**。新規生成の起点は **`GENESIS-CORE`／`GENESIS-DEEP`**。
 > 改名はしない（spec・validator・commands・CLAUDE.md に配線済みで churn のみ）。曖昧さは本表で解消する。
 
-### 既存 v10 問題の v11 化について
+### 既存 v10/v11 問題の v12 化について
 
-既存197問は **v10 のまま温存**（spec/CLAUDE.md §3 既定）。v11 は機械置換では適用できない構造改訂のため、
+既存197問は **v10 のまま温存**（spec/CLAUDE.md §3 既定）。v12 は機械置換では適用できない構造改訂のため、
 必要分を `/rb 範囲` で **1問ずつ再生成**（PDF から）するのが gold 品質。一括全変換は費用対効果が低い。
 
 ---
@@ -55,7 +55,7 @@
 | 現行 | **`canonical/ATHENA.html`**（v4 再編済み） | 構造骨子 **`spec/jx-v4.0.0-core.md`**（v0.2）／基盤規律 `spec/jx-v3.2-master.md`（タイポ11役割・5コンポ・配色V3 等を v4 が継承） | `scripts/validate-jx.py`（J1〜J21＋v4 判定で **JC1〜JD1＋JSB**・`--core-only`/`--deep-only`） |
 
 - 設計の核：**1枚もの維持・前半コア／後半 deep（第4-5部）デフォルト折りたたみ・exec-summary 削除・模範答案+採点講評は reveal・照合ナビ・各 H 口頭骨格**。用語集5-5/略語5-6は折りたたみ外。
-- TX v11 と**意図的に分岐**：物理2ファイル分割しない（副産物 RX/TREE/TTS が第4部に依存し deep を別生成できないため＝**(A) 一括生成＋順序再編**を採用）。
+- TX v12 と**意図的に分岐**：物理2ファイル分割しない（副産物 RX/TREE/TTS が第4部に依存し deep を別生成できないため＝**(A) 一括生成＋順序再編**を採用）。
 - 生成：`new-jx`／`prompts/new-jx-headless.md`（v4 ガードレール）／`JX.ps1`。ATHENA 複製で v4 構造を自動継承。
 - 実証：**刑JX044 を v4 で生成・validate-jx 全件通過（2026-06-13）**。詳細は `spec/jx-v4.0.0-core.md`・memory `[[tx-jx-structure-review-pending]]`。
 
