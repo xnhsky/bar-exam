@@ -19,8 +19,13 @@ param(
 
 $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $script = Join-Path $ProjectRoot 'scripts\sync-repo-from-master.ps1'
+$cmdScript = Join-Path $ProjectRoot 'scripts\codex-auto-sync.cmd'
 if (-not (Test-Path -LiteralPath $script)) {
   Write-Host "[FAIL] sync script not found in target: $script" -ForegroundColor Red
+  exit 1
+}
+if (-not (Test-Path -LiteralPath $cmdScript)) {
+  Write-Host "[FAIL] sync cmd not found in target: $cmdScript" -ForegroundColor Red
   exit 1
 }
 
@@ -32,10 +37,7 @@ if ($exists -and -not $Force) {
   exit 0
 }
 
-$runner = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
-if (-not $runner) { $runner = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" }
-
-$taskRun = "`"$runner`" -NoProfile -ExecutionPolicy Bypass -File `"$script`" -ProjectRoot `"$ProjectRoot`" -Remote origin -Branch master -Quiet"
+$taskRun = "`"$cmdScript`""
 
 schtasks.exe /Delete /TN $TaskName /F 2>$null | Out-Null
 $out = schtasks.exe /Create /TN $TaskName /TR $taskRun /SC MINUTE /MO $IntervalMinutes /RL LIMITED /IT /F /RU $env:USERNAME 2>&1
