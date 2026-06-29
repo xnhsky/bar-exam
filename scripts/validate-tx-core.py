@@ -33,6 +33,8 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G35 物語解説タイポグラフィ：.fa-narrative の強調太字を過剰に太くしない
   G36 TX360テンプレート固定：本文ラベルは 文言/趣旨/射程/転用（字間スペースなし）
   G37 TX360テンプレート固定：5点ラベルは長方形CSS、H1は No.NNN ── 形式
+  G38 正典プレースホルダー契約：生成済み _lex に {{...}} を残さない
+  G39 記憶フック/答案圧縮：2カラム中央寄せのTX360テンプレートCSSを要求
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -973,6 +975,60 @@ class Validator:
             self.err("G37", f"5点ラベルCSSがTX360長方形テンプレートからずれている: {', '.join(best_lacks)}。"
                             "丸型・6.4em系へ戻さず、TX360の `.tx-article-flow .tx-flow-label` を使う。")
 
+    def g38_placeholder_contract(self):
+        unresolved = re.findall(r"\{\{[^{}]{1,120}\}\}", self.html)
+        if self.html_path.stem.endswith("_lex") and unresolved:
+            sample = " / ".join(unresolved[:8])
+            more = f" 他 {len(unresolved)-8} 件" if len(unresolved) > 8 else ""
+            self.err("G38", f"未置換プレースホルダーが残っている: {sample}{more}。"
+                            "正典HTMLは {{...}} 部分だけを置換し、生成済み _lex には残さない。")
+
+        if self.html_path.name == "GENESIS-CORE.html":
+            required = [
+                "{{問題コード}}", "{{問題番号}}", "{{テーマ}}", "{{出典}}",
+                "{{記述1本文}}", "{{記述1文言本文}}", "{{記述1切断点本文}}",
+                "{{記述1記憶フック本文}}", "{{記述1答案圧縮本文}}",
+                "{{記述2記憶フック本文}}", "{{記述2答案圧縮本文}}",
+                "{{記述3記憶フック本文}}", "{{記述3答案圧縮本文}}",
+                "{{記述4記憶フック本文}}", "{{記述4答案圧縮本文}}",
+            ]
+            missing = [token for token in required if token not in self.html]
+            if missing:
+                self.err("G38", f"正典プレースホルダー契約の必須変数が無い: {', '.join(missing)}")
+            if "TX360 PLACEHOLDER TEMPLATE CONTRACT" not in self.html:
+                self.err("G38", "正典HTMLにプレースホルダー運用契約コメントが無い。")
+            if "配色パレット選定はAI判断" not in self.html:
+                self.err("G38", "正典HTMLに配色パレット選定はAI判断とする例外契約が無い。")
+
+    def g39_tx360_cycle_aids_center_contract(self):
+        if not self.html_path.stem.endswith("_lex"):
+            return
+
+        css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+        matches = list(re.finditer(r"\.tx-cycle-aids\s*\{(?P<body>[^}]*)\}", css, re.S))
+        if not matches:
+            self.err("G39", ".tx-cycle-aids のCSSが無い。記憶フック/答案圧縮の2カラム中央寄せテンプレートを入れる。")
+            return
+
+        required = {
+            "2-column": r"grid-template-columns\s*:\s*repeat\(2\s*,\s*minmax\(0\s*,\s*1fr\)\)",
+            "center-width": r"width\s*:\s*min\(92%\s*,\s*1120px\)",
+            "center-margin": r"margin\s*:\s*24px\s+auto\s+0",
+        }
+        ok = False
+        best_lacks = list(required)
+        for m in matches:
+            body = m.group("body")
+            lacks = [name for name, pat in required.items() if not re.search(pat, body)]
+            if len(lacks) < len(best_lacks):
+                best_lacks = lacks
+            if not lacks:
+                ok = True
+                break
+        if not ok:
+            self.err("G39", f"記憶フック/答案圧縮CSSがTX360中央寄せテンプレートからずれている: {', '.join(best_lacks)}。"
+                            "`width:min(92%,1120px); margin:24px auto 0;` を持つ .tx-cycle-aids を正典にする。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1009,6 +1065,8 @@ class Validator:
         self.g35_fa_narrative_emphasis_weight()
         self.g36_tx360_template_flow_label_text()
         self.g37_tx360_template_visual_contract()
+        self.g38_placeholder_contract()
+        self.g39_tx360_cycle_aids_center_contract()
 
 
 def main():
@@ -1040,7 +1098,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G37, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G39, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
