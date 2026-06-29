@@ -83,6 +83,7 @@ Forbidden AI judgment:
 - inventing new cards or wrappers,
 - changing label/body two-column structure,
 - changing `.facts li` grid values,
+- changing the draft-card layout: relation/timeline on the top two columns and facts as bottom full-width `span2`,
 - changing Mildliner functional colors,
 - changing puzzle engine structure,
 - changing model-answer card structure.
@@ -131,6 +132,8 @@ Text rules:
 - `.problem .pq` must keep `text-indent:1em`.
 - `.facts li` two-column canonical form is:
   `grid-template-columns:minmax(18em,32em) minmax(16em,28em); column-gap:18px; justify-content:start`
+- Draft structure is fixed: relationship map and timeline are the top two columns; facts is the bottom full-width `draft-card span2`.
+- `.cue` text must not start with `...` or `…`; those are visual separators leaking into body text.
 - The old wide facts form is forbidden:
   `minmax(24em,1.35fr) minmax(18em,1fr); column-gap:24px`
 
@@ -140,7 +143,7 @@ Text rules:
 
 - A29: recall-card `data-rx` format and RX existence.
 - A30: `.problem .pq` indentation guard.
-- A31: facts two-column compact-layout guard.
+- A31: facts compact columns, draft-card full-width placement, and no leading ellipsis in facts cue text.
 
 `scripts/check-ariadne-canonical.py`:
 

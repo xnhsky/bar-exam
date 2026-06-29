@@ -289,17 +289,18 @@ def main():
     else:
         W('A30', '問題文CSS(.problem .pq)が見つからない（本文字下げの自動確認不可）')
 
-    # ---- A31 正典CSS回帰防止（拾う文言2カラム・2026-06-29）----
-    # 新正典の「拾う文言」は、左右が離れすぎない近接2カラムにする。
-    # 旧ワイド指定や、display:grid なのに近接型でない指定は ERROR。
+    # ---- A31 正典回帰防止（拾う文言2カラム＋下書きカード構造・2026-06-30）----
+    # 新正典は「人物関係図・時系列＝上段2カラム／拾う文言＝全幅」。
+    # cue の先頭に装飾記号を本文として出す退行も ERROR。
     compact_html = re.sub(r'\s+', '', html)
     old_wide_facts = (
         'grid-template-columns:minmax(24em,1.35fr)minmax(18em,1fr);column-gap:24px'
         in compact_html
     )
     facts_grid = re.search(r'\.facts li\{[^}]*display:grid[^}]*\}', html)
+    a31_errors = []
     if old_wide_facts:
-        E('A31', '拾う文言(.facts li)が旧ワイド2カラム（右余白過多・左右が離れすぎ）')
+        a31_errors.append('拾う文言(.facts li)が旧ワイド2カラム（右余白過多・左右が離れすぎ）')
     elif facts_grid:
         facts_css = re.sub(r'\s+', '', facts_grid.group(0))
         has_compact_cols = (
@@ -307,12 +308,41 @@ def main():
             and 'column-gap:18px' in facts_css
             and 'justify-content:start' in facts_css
         )
-        if has_compact_cols:
-            P('A31', '拾う文言2カラムは正典近接型')
-        else:
-            E('A31', '拾う文言2カラムが正典近接型でない（列幅・間隔・左寄せを確認）')
+        if not has_compact_cols:
+            a31_errors.append('拾う文言2カラムが正典近接型でない（列幅・間隔・左寄せを確認）')
+
+    draft_cards = re.findall(
+        r'<div\s+class="draft-card([^"]*)">\s*<(?:p|div)\s+class="ct">([^<]*)',
+        html,
+        flags=re.S,
+    )
+    has_relation_card = False
+    has_facts_card = False
+    for class_suffix, title in draft_cards:
+        classes = set(class_suffix.split())
+        is_relation_card = (
+            '①' in title
+            or ('関係' in title and '拾う文言' not in title and '時系列' not in title)
+        )
+        is_facts_card = '③' in title or '拾う文言' in title
+        if is_relation_card:
+            has_relation_card = True
+            if 'span2' in classes:
+                a31_errors.append('①関係図カードが全幅(span2)になっている（正典は時系列との2カラム）')
+        if is_facts_card:
+            has_facts_card = True
+            if 'span2' not in classes:
+                a31_errors.append('拾う文言カードが全幅(span2)でない（正典は下段全幅）')
+    if draft_cards and (has_relation_card or has_facts_card) and (not has_relation_card or not has_facts_card):
+        a31_errors.append('下書きカード（人物関係図／拾う文言）の正典構造を確認できない')
+
+    if re.search(r'<span\s+class="cue">\s*(?:\.{3}|…)', html):
+        a31_errors.append('拾う文言の理由(cue)先頭に「...」または「…」が本文として出ている')
+
+    if a31_errors:
+        E('A31', ' / '.join(a31_errors))
     else:
-        P('A31', '拾う文言は単列 facts（2カラム離れすぎなし）')
+        P('A31', '拾う文言2カラムは正典近接型＋下書き構造固定')
 
     for line in passes + warns + errors:
         print(line)

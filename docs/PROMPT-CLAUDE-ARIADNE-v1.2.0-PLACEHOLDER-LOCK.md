@@ -47,15 +47,17 @@ C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-codex で作業してください。
 - `.problem .pq` は `text-indent:1em` を維持する。
 - `.facts li` の2カラム正典は以下:
   `grid-template-columns:minmax(18em,32em) minmax(16em,28em); column-gap:18px; justify-content:start`
+- 下書き構造は固定: 人物関係図と時系列を上段2カラム、拾う文言を下段の全幅 `.draft-card span2` に置く。人物関係図を `span2` にしない。
+- `.cue` の先頭に `...` / `…` を置かない。これは本文ではなく、過去生成で漏れた区切り記号なので禁止。
 - 旧ワイド2カラムは禁止:
   `grid-template-columns:minmax(24em,1.35fr) minmax(18em,1fr); column-gap:24px`
 - 骨子の `.mline + .mline` と拾う文言の項目間には点線区切りを入れる。
-- ラベル色は正典のマイルドライナー系を使う。個別生成で濃淡や色相を変更しない。
+- ラベル色は正典のマイルドライナー系を使う。難易度に応じた既存 ACTIVE ベースカラー（EASY/STD/HARD）の選択だけAI判断可。機能色や新色の創作は禁止。
 
 恒久対策:
 - validate-ariadne.py A29: `data-rx` の科目/JX整合と参照先RX実在を確認。
 - validate-ariadne.py A30: `.problem .pq` の `text-indent:0` 退行を ERROR。
-- validate-ariadne.py A31: `.facts li` の旧ワイド2カラム・非正典2カラムを ERROR。
+- validate-ariadne.py A31: `.facts li` の旧ワイド2カラム・非正典2カラム、人物関係図/拾う文言の全幅配置ミス、`.cue` 先頭の `...` / `…` を ERROR。
 - check-ariadne-canonical.py は canonical、slot contract、全 ARIADNE 出力を横断検証する。
 - check-lexia-preflight.py は ARIADNE canonical guard と RX coverage を含む。
 - jx-finalize.ps1 / jx-push.sh は commit/push 前に ARIADNE 正典ガードを通す。
