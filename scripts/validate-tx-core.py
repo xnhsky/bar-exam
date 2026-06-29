@@ -28,6 +28,8 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G33 TX-LEX最終表5点セット：_lex の .statement-verdict-table 最終列に
       文言・趣旨・射程・切断点・転用の reflex core を要求（移行期 WARNING）。
         問題ローカル記号（A説・①・記述ア・事例Ⅰ等）が残らない
+  G34 TX360 SM2 payload 契約：inline _lex の .ox-row 直下に .ox-pool-explain があり、
+      通常 SM2 カード本文へ fa-narrative / 詳説 / 問題ローカル記号を混ぜない
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -106,7 +108,7 @@ POOL_LABEL_PATTERNS = [
     (r"第\s*[1-5１-５一二三四五]\s*説", "第N説ラベル＝実体の学説名で主語化する"),
     (r"[①-⑩]", "空欄記号（丸数字）の残留＝命題本文に置換する"),
     (r"[（(][a-jａ-ｊ][）)]", "選択肢記号（a〜j）の残留＝語句本文に置換する"),
-    (r"記述[アイウエオ]", "他記述の相互参照＝各記述を自己完結させる"),
+    (r"記述[アイウエオ1-9１-９]", "他記述の相互参照＝各記述を自己完結させる"),
     (r"肢[アイウエオ1-5１-５]", "肢番号への参照＝命題本文で書く"),
     (r"上記(?:の)?見解", "『上記見解』依存＝前提を命題内に含めて自己完結させる"),
     (r"本問", "『本問』依存＝問題非依存の命題として書く"),
@@ -843,6 +845,51 @@ class Validator:
             self.warn("G33", f"_lex 最終表の論点コアが5点セット化されていない: {head}{more}。"
                              "各行を .tx-reflex-core 内の 文言・趣旨・射程・切断点・転用 に分解する。")
 
+    def g34_tx360_sm2_payload_contract(self):
+        # TX360 inline 正典では、Lexia の通常 SM2 カード本文は `.ox-stmt` と
+        # `.ox-pool-explain`（= tx-reflex-core + cycle aids）で自己完結させる。
+        # `.fa-narrative` は初回理解用の読み物、`.tx-inline-detail` / PART B は詳説アーカイブなので、
+        # 通常カード本文へ混ぜない。
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        area = self.soup.select_one('.answer-area.inline-prototype-mode[data-answer-type="ox-grid"]')
+        cards = self.soup.select(".tx-inline-card[data-stmt]")
+        if not area or not cards:
+            return
+
+        missing = []
+        polluted = []
+        label_hits = []
+        for row in area.select(".answer-ox-grid .ox-row"):
+            stmt = (row.get("data-stmt") or "").strip() or "?"
+            pe = row.select_one(".ox-pool-explain")
+            if not pe:
+                missing.append(stmt)
+                continue
+            if pe.select_one(".fa-narrative, .tx-inline-detail, .sub-card.synthesis, .sub-card.explanation"):
+                polluted.append(stmt)
+            txt = pe.get_text(" ", strip=True)
+            for pat, reason in POOL_LABEL_PATTERNS:
+                m = re.search(pat, txt)
+                if m:
+                    label_hits.append((stmt, m.group(0).strip(), reason))
+                    break
+
+        if missing:
+            self.err("G34", f"TX360 inline _lex の ox-row に .ox-pool-explain が無い: {missing[:8]}"
+                            f"{' 他 '+str(len(missing)-8)+' 件' if len(missing)>8 else ''}。"
+                            "Lexia の SM2 GIST/POINT が PART B 長文へフォールバックする。"
+                            "scripts/tx-sm2-payload-backfill.py で tx-reflex-core を注入する。")
+        if polluted:
+            self.err("G34", f".ox-pool-explain に fa-narrative / 詳説カードが混入: {polluted[:8]}。"
+                            "SM2 は読む場所ではなく誤答肢を再判定する場所なので、"
+                            "tx-reflex-core と短い cycle aids だけにする。")
+        if label_hits:
+            head = "; ".join(f"stmt{stmt}:{tok}({why})" for stmt, tok, why in label_hits[:5])
+            more = f" 他 {len(label_hits)-5} 件" if len(label_hits) > 5 else ""
+            self.err("G34", f".ox-pool-explain に問題都合ラベルが残留: {head}{more}。"
+                            "SM2 payload は論点コア・テーゼへ置換する。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -875,6 +922,7 @@ class Validator:
         self.g30_pool_self_contained()
         self.g32_pool_review_text_symbol_free()
         self.g33_tx_lex_reflex_core_five_tags()
+        self.g34_tx360_sm2_payload_contract()
 
 
 def main():
@@ -906,7 +954,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G33, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G34, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
