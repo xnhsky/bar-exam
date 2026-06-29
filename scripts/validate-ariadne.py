@@ -274,6 +274,46 @@ def main():
             P('A29', f'全想起カード({len(recall_cards)}枚)に対応RX data-rx あり'
                      + ('＋参照先実在' if rx_dir else ''))
 
+    # ---- A30 正典CSS回帰防止（問題文字下げ・2026-06-29）----
+    # CASE/問題本文は、バッジや見出し以外の本文として1字下げを維持する。
+    # text-indent:0 への退行は、正典指定後の読みづらさ再発として ERROR にする。
+    pq_rule = re.search(r'\.problem \.pq\{[^}]*\}', html)
+    if pq_rule:
+        pq_css = re.sub(r'\s+', '', pq_rule.group(0))
+        if 'text-indent:0' in pq_css:
+            E('A30', '問題文(.problem .pq)が text-indent:0（本文字下げの正典から退行）')
+        elif 'text-indent:1em' in pq_css:
+            P('A30', '問題文(.problem .pq)は1字下げ')
+        else:
+            W('A30', '問題文(.problem .pq)の字下げ指定が非標準（正典は text-indent:1em）')
+    else:
+        W('A30', '問題文CSS(.problem .pq)が見つからない（本文字下げの自動確認不可）')
+
+    # ---- A31 正典CSS回帰防止（拾う文言2カラム・2026-06-29）----
+    # 新正典の「拾う文言」は、左右が離れすぎない近接2カラムにする。
+    # 旧ワイド指定や、display:grid なのに近接型でない指定は ERROR。
+    compact_html = re.sub(r'\s+', '', html)
+    old_wide_facts = (
+        'grid-template-columns:minmax(24em,1.35fr)minmax(18em,1fr);column-gap:24px'
+        in compact_html
+    )
+    facts_grid = re.search(r'\.facts li\{[^}]*display:grid[^}]*\}', html)
+    if old_wide_facts:
+        E('A31', '拾う文言(.facts li)が旧ワイド2カラム（右余白過多・左右が離れすぎ）')
+    elif facts_grid:
+        facts_css = re.sub(r'\s+', '', facts_grid.group(0))
+        has_compact_cols = (
+            'grid-template-columns:minmax(18em,32em)minmax(16em,28em)' in facts_css
+            and 'column-gap:18px' in facts_css
+            and 'justify-content:start' in facts_css
+        )
+        if has_compact_cols:
+            P('A31', '拾う文言2カラムは正典近接型')
+        else:
+            E('A31', '拾う文言2カラムが正典近接型でない（列幅・間隔・左寄せを確認）')
+    else:
+        P('A31', '拾う文言は単列 facts（2カラム離れすぎなし）')
+
     for line in passes + warns + errors:
         print(line)
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")
