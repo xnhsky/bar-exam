@@ -1169,9 +1169,23 @@ section[id^="c-"] > h3{
   column-gap:16px;
   align-items:start;
   margin:0;
-  padding:3px 0;
+  padding:8px 12px 8px 0;
   padding-left:0 !important;
+  border-top:1px dotted #d8dde5;
+  border-bottom:1px dotted rgba(216,221,229,.55);
+  border-radius:6px;
+  background:
+    linear-gradient(90deg,rgba(254,234,132,.18) 0,rgba(254,234,132,.08) 6.4em,rgba(255,255,255,.74) 6.4em,rgba(247,249,252,.86) 100%),
+    repeating-linear-gradient(0deg,rgba(40,70,122,.018) 0,rgba(40,70,122,.018) 1px,transparent 1px,transparent 7px);
+  box-shadow:0 1px 0 rgba(255,255,255,.82) inset;
   text-indent:0 !important;
+}
+.tx-article-flow > p:nth-child(4){
+  border-top-color:#e6c8c8;
+  border-bottom-color:rgba(230,200,200,.62);
+  background:
+    linear-gradient(90deg,rgba(246,213,213,.48) 0,rgba(246,213,213,.18) 6.4em,rgba(255,255,255,.76) 6.4em,rgba(252,247,247,.90) 100%),
+    repeating-linear-gradient(0deg,rgba(138,31,31,.016) 0,rgba(138,31,31,.016) 1px,transparent 1px,transparent 7px);
 }
 .tx-article-flow .tx-flow-label{
   display:inline-flex;
@@ -4218,7 +4232,7 @@ body.snav-on .solve-nav{display:block;}
         <p data-fa-label="まとめ：放火各罪を分ける線">本問の幹は一つ——<b>放火の各罪は、客体が「自己所有か他人所有か」「前段階（未遂・予備）処罰の対象か」「火災の前か最中か」「保険等で他人物に擬制されるか」という条文上の限定文言で射程が決まる</b>、ということです。一つひとつの記述は、この限定文言のどこかを正確に区切れるかを試しているだけ。だから<b>正解の番号は、各記述が条文の線をなぞれているかを順に判定した結果にすぎず、覚えるべきは番号ではなく、それぞれの「境界線がどこに引かれているか」という理由づけ</b>です。</p>
         </div>
         <p class="fa-summary"><strong>正解</strong>　各記述の○×は1×・2×・3○・4×・5×。組合せ番号を覚えるのではなく、各カードの文言・趣旨・射程・切断点・転用で正誤を判定する。</p>
-        <details class="tx-core-ledger">
+        <details class="tx-core-ledger" hidden>
           <summary>正誤一覧</summary>
         <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:x,5:x">
           <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
@@ -4961,13 +4975,30 @@ body.snav-on .solve-nav{display:block;}
   }
   function getHashTarget(hash){
     if (!hash || hash.length <= 1) return null;
+    var rawId = hash.slice(1);
+    var inlineTarget = document.getElementById(rawId + '-inline');
+    if (inlineTarget) return inlineTarget;
     var choiceMatch = hash.match(/^#choice-([1-5])$/);
     if (choiceMatch) return document.querySelector('#stmt-' + choiceMatch[1]);
-    return document.querySelector(hash);
+    return document.getElementById(rawId);
+  }
+  function revealTargetContext(tgt){
+    if (!tgt || !tgt.closest) return;
+    var explain = tgt.closest('.tx-inline-explain');
+    if (explain) {
+      explain.hidden = false;
+      explain.removeAttribute('hidden');
+      var card = explain.closest('.tx-inline-card');
+      if (card) card.classList.add('revealed');
+    }
+    var detail = tgt.closest('details');
+    if (detail) detail.open = true;
   }
   function clonePartBBlock(node){
     var clone = node.cloneNode(true);
-    clone.querySelectorAll('[id]').forEach(function(el){ el.removeAttribute('id'); });
+    clone.querySelectorAll('[id]').forEach(function(el){
+      el.id = el.id + '-inline';
+    });
     clone.querySelectorAll('.sec-nav,.choice-header-block,.back-to-top').forEach(function(el){ el.remove(); });
     return clone;
   }
@@ -5270,8 +5301,7 @@ body.snav-on .solve-nav{display:block;}
       if (id.length <= 1) return;
       var tgt = getHashTarget(id);
       if (tgt){
-        var detail = tgt.closest && tgt.closest('details');
-        if (detail) detail.open = true;
+        revealTargetContext(tgt);
         e.preventDefault();
         tgt.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -5284,8 +5314,7 @@ body.snav-on .solve-nav{display:block;}
     updateRevealBtnState(document.querySelector('.answer-area'));
     if (location.hash){
       var hashTarget = getHashTarget(location.hash);
-      var detail = hashTarget && hashTarget.closest && hashTarget.closest('details');
-      if (detail) detail.open = true;
+      revealTargetContext(hashTarget);
     }
     updateArenaCounter();
   }
