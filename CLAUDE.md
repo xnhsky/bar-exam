@@ -138,6 +138,14 @@
 > 素材抽出＝`scripts/tx-extract-source.py`。`new-tx` Phase 4i で標準搭載・CSS は `canonical/GENESIS-CORE.html` 同梱。
 > 刑法 362問は展開済み（Type A 22＋Type B 340・gold＝刑TX311/刑TX351）。
 >
+> **【TX360 インライン周回正典・2026-06-29】** `_lex` の通常周回は、問題文各肢に OX と逐条解説を対応させる
+> `.tx-inline-card` を主導線にする。裏の `.answer-ox-grid` は Lexia/SM2 記録・answer-key・検証の単一情報源として
+> DOM に残し、インラインの ○× ボタンから同期する。各肢解説は、登場条文本文 → 文言・趣旨・射程・切断点・転用 →
+> 記憶フック/答案圧縮 → 詳説トグル（対応 PART B）の順。`解説だけ閲覧` は answered を付けず記録しない。
+> 記号問題・組合せ・見解A/B・事例Ⅰ/Ⅱ等の問題都合ラベルは、SM2に残さず **論点コア・テーゼ** に置換する。
+> SM2 解説は `.ox-stmt`＋`.tx-reflex-core`＋必要最小限の記憶フック/答案圧縮を中心にし、`.fa-narrative` は初回理解用の
+> 参照テキストとして通常カード本文に載せない。
+>
 > **下記 §3-1〜§3-6 は旧 v10.0.0 GOLD-SKELETON の記述で、既存197問（v10）の保守用。** 新規生成では
 > v11 を使う（GENESIS.html／PART C/D／12問ドリル規律／validate-tx-gold.py は v10 legacy 専用）。
 
