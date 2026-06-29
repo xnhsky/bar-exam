@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不能犯と未遂の幇助 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XX <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">不能犯と未遂の幇助 <em>— On Impossible Attempts and Complicity in Attempt</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">不能犯と<br>未遂の幇助</h2>
+      <div class="mm-root-en">Impossible Attempt &amp; Complicity</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑法<br>
+        <em>Origin</em>重要問題 第20問 · 睡眠薬10錠投与事案<br>
+        <em>Form</em>正犯・共犯／規範定立型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑法総論・未遂論と共犯論の交差点。<strong>不能犯と未遂犯の区別（甲）</strong>と<strong>結果発生を認識しない幇助者の故意（乙）</strong>を一問で問う。生命に対する罪（殺人・傷害）の各論知識を土台に、危険性判断の学説と共犯の処罰根拠という総論の難所を同時に試す複合問題。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>司法・予備頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>不能犯は学説が入り乱れ判例も不明確な総論最難所の一つ。未遂の教唆・幇助も論文頻出。いずれも「自分の立場を決めて当てはめ、落としどころで何かしら成立させる」処理力で差がつく。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「高難 × 高重要」象限の TARGET 領域。素直に殺人未遂・殺人未遂幇助と書くと両方とも失点する罠型。<strong>不能犯の疑い</strong>と<strong>結果発生の認識の欠如</strong>を正面から立て、それでもなお傷害罪・傷害幇助に落とす二段構えが要求される。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>不能犯の3類型（方法・客体・主体の不能）／迷信犯／実行の着手（43条本文）／中止未遂／傷害＝生理的機能障害／共犯の処罰根拠（因果的共犯論⇔責任共犯論）／未遂の教唆・幇助／共犯の従属性／罪名従属性。とりわけ<strong>「殺意の中に傷害の故意が含まれる（大は小を兼ねる）」</strong>が傷害落とし込みの理論的支柱。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲はA（28歳・男）を恨み、殺意をもって<strong>睡眠薬10錠</strong>をAに飲ませた。この睡眠薬は過剰投与なら死亡しうるが、<strong>健康な成人男性が10錠飲んだだけでは死亡確率は皆無</strong>。Aは深い眠りにつき、起きた後も数日間<strong>意識朦朧</strong>が続いたが回復した。薬を交付したのは乙で、乙は<strong>10錠では殺害できないと認識</strong>しつつ「恨みも晴れるだろう」と渡した。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲（正犯・殺意あり・睡眠薬を実際に飲ませた者）／乙（幇助・睡眠薬10錠の交付者・殺害不能を認識）／A（28歳・男・健康な成人男性・被害者）。甲乙は犯行を相談した関係。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 睡眠薬10錠投与に殺人の<strong>客観的危険性</strong>があるか（不能犯か未遂か）。<br>② 危険性をいかなる<strong>基準</strong>で判断するか（具体的危険説／修正客観的危険説／純客観説）。<br>③ 不能犯としても<strong>傷害罪</strong>は成立するか。<br>④ 結果発生を認識しない乙に<strong>幇助の故意</strong>を認めてよいか（未遂の幇助）。<br>⑤ 甲＝殺人未遂／乙＝傷害幇助の<strong>罪名相違</strong>は許されるか。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 正犯（甲）から検討</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>共犯の罪責は正犯の成否を前提とするから、<strong>正犯である甲から書く</strong>のがセオリー。立て付けは「甲の罪責 → 乙の罪責 → 罪名従属性」。甲は睡眠薬10錠を飲ませた行為につき殺人未遂罪（199条・203条）の成否を立てる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 不能犯の問題提起と基準選択</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>健康な成人男性が10錠飲んでも死亡確率は皆無 → <strong>客観的危険性がなく不能犯ではないか</strong>を必ず提起する。危険性判断の基準として<strong>具体的危険説</strong>を採用（行為時に一般人が認識しえた事情＋行為者が特に認識した事情を基礎に、一般人基準で判断）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · あてはめ→殺人未遂・傷害落とし込み</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>10錠は多量・過剰投与なら死にうる → <strong>一般人の危惧感</strong>から危険性発生を肯定し不能犯を否定。確定的殺意あり・結果不発生で<strong>殺人未遂罪</strong>。仮に不能犯としても、数日間の意識朦朧は生理的機能の障害＝<strong>傷害罪（204条）</strong>に落とす（必須級の予備的処理）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 乙の幇助の故意→傷害幇助</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙の睡眠薬交付は幇助行為だが、乙は結果（死）を認識しない。<strong>因果的共犯論</strong>から共犯にも結果発生の認識を要するので<strong>殺人未遂幇助の故意なし</strong>。もっとも意識障害の発生は認識 → <strong>傷害罪の幇助（204条・62条1項）</strong>が成立。最後に罪名従属性に一言（小論点・省略可）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 甲・不能犯と危険性判断
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Impossible Attempt</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 不能犯と未遂犯の区別</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>結果発生の現実的危険性を欠く行為は<strong>不能犯</strong>として不可罰となる。未遂犯が処罰されるのは構成要件的結果発生の現実的危険性を生じさせた点にある。したがって両者は<strong>結果発生の現実的危険性の有無</strong>で区別される。</p><div class="norm">およそ結果発生の現実的危険性を欠く行為は不能犯として不可罰であり、不能犯と未遂犯は結果発生の現実的危険性の有無により区別される。<span class="norm-cite">— 区別基準の出発点</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 具体的危険説（本問採用）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>危険性は行為の規範違反性に着目し、<strong>行為時に一般人が認識しえた事情＋行為者が特に認識していた事情</strong>を基礎として、<strong>一般人を基準</strong>に判断する。刑法の行為規範は一般人に向けられており、一般人が危険を感じる行為こそ規範に違反するからである。</p><div class="norm">その危険性は、行為時に一般人が認識しえた事情および行為者が特に認識していた事情を基礎として、一般人を基準に判断すべきである。<span class="norm-cite">— 具体的危険説（本問採用）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · あてはめ→殺人未遂</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一般人が認識しえた事情は「健康な成人男性に睡眠薬を10錠飲ませる」というもの。10錠は睡眠薬として<strong>多量</strong>で、過剰投与なら死亡しうる以上、死の危険を惹起する可能性は皆無とはいえない。よって危険性発生を肯定し不能犯を否定。「10錠で死亡すると信じた」＝<strong>確定的殺意</strong>あり・結果不発生で<strong>殺人未遂罪</strong>（199条・203条・43条本文）が成立。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-D · 不能犯時の傷害罪（落としどころ）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>仮に危険性発生を否定（不能犯）しても、Aは深い眠りにつき数日間意識が朦朧とした＝<strong>生理的機能の障害</strong>。傷害（204条）は人の生理的機能を害することをいうから<strong>傷害罪</strong>が成立する。なお殺意の中には傷害の故意も含まれる（大は小を兼ねる）から故意の点で支障はない。必須級の予備的処理。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 乙・幇助の故意（未遂の幇助）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Complicity Intent</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 幇助行為と因果性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>幇助とは正犯の実行行為を<strong>物理的または心理的に容易にすること</strong>をいう。乙は甲に睡眠薬10錠を交付し、甲の投与行為を物理的に容易にしているから、客観的には<strong>殺人未遂幇助</strong>（199条・203条・62条1項）が成立しそうである。</p><div class="norm">幇助とは、正犯の実行行為を物理的または心理的に容易にすることをいう。<span class="norm-cite">— 幇助行為の意義</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 因果的共犯論→結果認識必要</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>共犯の処罰根拠は、共犯が正犯を通じて<strong>間接的に法益侵害結果を惹起する</strong>点にあり、正犯と共犯とで基本的に同一である（<strong>因果的共犯論・惹起説</strong>）。そうだとすれば、正犯において結果発生の認識が要求される以上、共犯においても<strong>結果発生の認識を要する</strong>。</p><div class="norm">共犯の処罰根拠は正犯を通じた法益侵害結果の間接的惹起にあり正犯と同一であるから、正犯に結果発生の認識が要求される以上、共犯においても結果発生の認識を要する。<span class="norm-cite">— 因果的共犯論（本問採用）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · あてはめ→傷害幇助</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙は「10錠では健康なAを殺害できない」と認識し、<strong>死の結果発生を認識していない</strong> → 殺人未遂幇助の故意を欠き同罪は不成立。もっとも、睡眠薬10錠で眠気・意識障害が生じる程度は認識しうる → その限度で傷害の故意があり、<strong>傷害罪の幇助（204条・62条1項）</strong>が成立する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 不能犯と未遂犯の区別（具体的危険説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">未遂犯が処罰される根拠は構成要件的結果発生の現実的危険性を生じさせた点にある。したがって、不能犯と未遂犯は結果発生の現実的危険性の有無によって区別される。そして、刑法の行為規範は一般人に向けられている以上、その危険性は、行為時に一般人が認識しえた事情および行為者が特に認識していた事情を基礎として、一般人を基準に判断すべきである。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 危険性発生のあてはめ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">本件で一般人が認識しえた事情は、健康な成人男性であるAに睡眠薬を10錠飲ませるというものである。一般人からすれば、10錠という服用数は睡眠薬として多量であり、過剰に投与されれば死亡しうる以上、死の危険を惹起する可能性が皆無とはいえない。よって、結果発生の現実的危険性が認められ、甲は不能犯とならない。<span class="norm-cite">— あてはめ核心</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 幇助犯の故意（因果的共犯論）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">共犯の処罰根拠は、共犯が正犯を通じて間接的に法益侵害結果を惹起する点にあり、正犯と共犯とで基本的に同一である。そうだとすれば、正犯において結果発生の認識が要求される以上、共犯においても結果発生の認識を要すると解する。よって乙には殺人未遂罪の幇助犯の故意が認められない。<span class="norm-cite">— 因果的共犯論型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 傷害幇助への切替え</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">もっとも、乙は、睡眠薬10錠を飲ませればAに眠気や意識障害等の生理的機能の障害が生じることは認識していたといえる。傷害とは人の生理的機能を害することをいうから、乙にはこの限度で傷害の故意が認められ、傷害罪の幇助犯（204条・62条1項）が成立する。<span class="norm-cite">— 落としどころ標準形</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 危険性発生（肯定材料・具体的危険説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>睡眠薬を「10錠」も飲ませた＝睡眠薬として多量・服用量として異常／過剰投与なら重篤な症状・死亡可能性がある手段／甲は「10錠で死亡すると信じた」＝確定的殺意。<br>──一般人の危惧感を基礎づけ、危険性発生を肯定する材料。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 危険性否定（純客観説の材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aは<strong>健康な成人男性</strong>／現に服用したのは10錠のみ／健康な成人が10錠飲んだだけでは死亡確率は皆無。<br>──純客観説では科学的に死亡しえず危険性発生を否定（不能犯）。両論併記の対比材料として整理する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 傷害結果（傷害肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aは深い眠りにつき、起きた後も<strong>眠気により意識が朦朧</strong>とすることが数日間続いた。<br>──生理的機能の障害＝傷害（204条）にあたる。不能犯時の落としどころ、かつ乙の傷害幇助の客観的結果を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 乙の認識（幇助の故意材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙は「10錠では健康なAを<strong>殺害できない</strong>」と認識＝死の結果の認識なし（殺人未遂幇助の故意否定）。他方「甲が飲ませれば<strong>恨みも晴れるだろう</strong>」と考えて交付＝加功意思はあり、意識障害程度の生理的障害は認識しうる（傷害幇助の故意肯定）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>不能犯</strong> — 結果発生の現実的危険性の有無で未遂と区別（具体的危険説：一般人が認識しえた事情＋行為者が特に認識した事情・一般人基準）<br>② <strong>傷害</strong> — 人の生理的機能を害すること（不能犯時の落としどころ）<br>③ <strong>幇助の故意</strong> — 因果的共犯論より共犯にも結果発生の認識を要する</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判昭37.3.23</span> — 空気注射事件・致死量以下でも危険は絶対にないとはいえず殺人未遂（百選Ⅰ66）<br>② <span class="case-name">不能犯の一般傾向</span> — 絶対的不能/相対的不能の区別・客観的事情を広く取り込み危険を肯定<br>③ <span class="case-name">傷害＝生理的機能障害</span> — 意識障害も傷害にあたる</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 殺人 — 199条（死刑・無期・5年以上の懲役）<br>· 未遂 — 203条・着手は43条本文<br>· 傷害 — 204条（15年以下の懲役等）<br>· 幇助（従犯） — 62条1項／処断は63条（正犯の刑を減軽）<br>· 故意 — 38条1項<br>· 凶器なし — 睡眠薬「10錠」（致死量以下）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「結果発生の現実的危険性の有無」<br>· 「一般人が認識しえた事情＋行為者が特に認識した事情」<br>· 「死の危険が絶対にないとはいえない」<br>· 「人の生理的機能を害する」＝傷害<br>· 「正犯を通じた法益侵害結果の間接的惹起」＝因果的共犯論</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 不能犯の3類型</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>方法（手段）の不能</strong>（用いた手段が結果を生じえない・本問の睡眠薬10錠／空気注射）／<strong>客体の不能</strong>（客体が存在しない・死体への発砲）／<strong>主体の不能</strong>（身分なき者の身分犯）。本問は方法の不能の典型で、空気注射事件と同じ構造（致死量未満の手段）で論じる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 迷信犯との区別</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>丑の刻参り等、およそ科学的因果を欠く手段は全説一致で不能犯（不可罰）。本問の睡眠薬は<strong>現実の薬理作用がある</strong>点で迷信犯とは異なり、危険性を肯定する余地がある。両者の線引きを意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 共犯の処罰根拠（因果的共犯論⇔責任共犯論）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>因果的共犯論（惹起説）</strong>＝正犯を通じた法益侵害結果の間接的惹起に処罰根拠（通説）。<strong>責任共犯論</strong>＝正犯者を堕落させた点に処罰根拠（現在は支持を失う）。前者からは未遂の幇助は故意を欠き不可罰、後者からは可罰となりうる。本問の故意論の出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 未遂の教唆との比較</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>はじめから既遂に至らせる意思なく教唆する「未遂の教唆」は、本問の「未遂の幇助」と<strong>同じ構造</strong>。いずれも結果発生の認識を欠く共犯の可罰性の問題で、因果的共犯論からは故意を欠き不可罰。本問は幇助だが教唆の議論枠組みをそのまま用いてよい。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 共犯の従属性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>正犯（甲）に殺人未遂が成立する以上、<strong>制限従属性説</strong>のもとでも共犯成立の客観的前提（正犯の構成要件該当・違法な実行行為）は満たされる。乙が傷害幇助にとどまるのは従属性の問題ではなく<strong>乙自身の故意</strong>の問題である点に注意。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 不能犯を素通りして殺人未遂</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「死亡確率皆無」を見落として漫然と殺人未遂を認めるのが最大の失点。<strong>不能犯の疑い</strong>を正面から問題提起し、危険性判断を経て未遂を導く過程こそ配点の山。素直に書くと論点が一段つぶれる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 判断基準（学説）を示さず当てはめ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>危険性の判断基準（具体的危険説等）を提示せず事実だけ並べると規範なき答案になる。<strong>採用説の規範を明示</strong>し、立場により結論が変わる（純客観説なら不能犯）ことに自覚的であるべき。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 傷害罪・傷害幇助の落とし込みを落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲を不能犯としたら傷害罪を、乙を殺人未遂幇助否定で打ち切ったら傷害幇助を、<strong>必ず拾う</strong>。「最後は何かしら成立させる」のが本問の発想。意識朦朧＝生理的機能障害の認定を忘れない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 乙に漫然と殺人未遂幇助を認める</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙の客観的幇助だけ見て殺人未遂幇助を認めると、<strong>結果発生の認識の欠如</strong>を見落とす。共犯の処罰根拠（因果的共犯論）から故意の要件を立て、乙が死を認識していない点を必ず検討する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 故意・罪数の処理ミス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲の殺意を「未必の故意」と誤認定しない（「死亡すると信じた」＝<strong>確定的故意</strong>）。教唆（61条）と幇助（62条）を混同しない（道具提供＝幇助）。罪名従属性は<strong>深入りせず</strong>端的に罪名相違が許される旨を指摘して終える。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じておく。甲（不能犯→殺人未遂/傷害）→乙（幇助の故意→傷害幇助）→罪名従属性の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。不能犯の区別基準と具体的危険説の規範を固める。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。具体的危険説・純客観説の<strong>結論差</strong>と、因果的共犯論からの幇助の故意を意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。肯定材料（危惧感）と否定材料（純客観）の両論併記、傷害・傷害幇助の落とし込みを訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。具体的危険説・因果的共犯論・傷害概念の規範を声に出す。未遂の教唆との架橋も。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。3 規範・空気注射事件・条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和37年3月23日（空気注射事件）</span><span class="mm-leaf-sub"><em>Impossible Attempt · Air Injection</em> · 百選Ⅰ66</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>不能犯の代表判例</strong>。致死量以下の空気を静脈に注射した事案で、「被注射者の身体的条件その他の事情の如何によっては死の結果発生の危険が絶対にないとはいえない」として殺人未遂を肯定（刑集16巻3号305頁）。<em>射程</em> — 致死量未満の手段（方法の不能）でも付随事情により危険を肯定しうる。本問の睡眠薬10錠投与で危険性発生を肯定する方向の有力な手がかり。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">不能犯に関する判例の一般傾向</span><span class="mm-leaf-sub"><em>Absolute v. Relative Impossibility</em> · 短答★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>絶対的不能・相対的不能の区別</strong>を用いつつ、行為時の客観的事情を比較的広く取り込み危険性を肯定する傾向。絶対的不能＝およそ結果発生が不可能（不能犯）／相対的不能＝特定の事情でたまたま不発生（未遂）。<em>射程</em> — 具体的基準は必ずしも明確でないとの批判があるが、本問の方法の不能で危険肯定の方向を支持する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">傷害＝生理的機能障害説</span><span class="mm-leaf-sub"><em>Injury · Impairment of Physiological Function</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>判例・通説は傷害（204条）を<strong>人の生理的機能を害すること</strong>と解する。一時的な意識障害・失神等も傷害にあたる。<em>射程</em> — 本問でAの深い眠り・数日間の意識朦朧が傷害にあたることを基礎づけ、甲の傷害罪・乙の傷害幇助の落としどころを支える。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法199条</span><span class="mm-leaf-sub"><em>Penal Code, art. 199 · Homicide</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「人を殺した者は、死刑又は無期若しくは五年以上の懲役に処する」。<em>射程</em> — 「殺した」＝実行の着手（殺人の客観的危険性＝実行行為性）が不能犯論の核心。本問では危険性を肯定し未遂（203条）として処理する起点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法203条</span><span class="mm-leaf-sub"><em>art. 203 · Attempted Homicide</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>殺人罪（199条）の未遂を処罰する根拠条文。死亡結果不発生の本問では「殺人未遂罪（199条・203条）」と併記して引用する。実行の着手は43条本文・睡眠薬投与開始時。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法204条</span><span class="mm-leaf-sub"><em>art. 204 · Injury</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「人の身体を傷害した者は、十五年以下の懲役又は五十万円以下の罰金に処する」。傷害＝人の生理的機能を害すること。本問の落としどころで、甲を不能犯とした場合の傷害罪、乙の傷害罪の幇助の根拠条文となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法62条1項</span><span class="mm-leaf-sub"><em>art. 62(1) · Accessory / Aiding</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「正犯を幇助した者は、従犯とする」。乙の睡眠薬交付＝正犯（甲）の実行を物理的に容易にする幇助行為。本問では幇助の故意（結果発生の認識の要否）が論点。傷害罪の幇助の成立根拠条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法63条</span><span class="mm-leaf-sub"><em>art. 63 · Penalty for Accessory</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「従犯の刑は、正犯の刑を減軽する」。幇助犯（従犯）の処断を定める。乙が傷害罪の幇助で処断される際の刑の減軽根拠。教唆犯（61条・正犯の刑を科す）との処断の差を意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法43条本文</span><span class="mm-leaf-sub"><em>art. 43 · Commencement / Attempt</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「犯罪の実行に着手してこれを遂げなかった者は、その刑を減軽することができる」。実行の着手と未遂減軽の根拠。睡眠薬投与に殺人の実行の着手（客観的危険性）を認め、結果不発生で殺人未遂を基礎づける。中止未遂（ただし書）は本問で問題とならない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法38条1項</span><span class="mm-leaf-sub"><em>art. 38(1) · Intent</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「罪を犯す意思がない行為は、罰しない」。故意＝構成要件該当事実の認識・認容。甲の確定的殺意（「死亡すると信じた」）、乙の結果発生の認識の欠如（殺人未遂幇助の故意なし）／意識障害の認識（傷害の故意あり）の判断根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">具体的危険説</span><span class="mm-leaf-sub"><em>Concrete Danger Theory</em> · 有力説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>危険性判断の基底を<strong>行為時に一般人が認識しえた事情＋行為者が特に認識していた事情</strong>とし、<strong>一般人</strong>を基準に判断する。修正された客観的危険説（結果不発生原因を事後的・科学的に解明）・純客観説（裁判時判明の全事情・科学的知識）と対立。本問では具体的危険説を採り危険性を肯定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">因果的共犯論（惹起説）</span><span class="mm-leaf-sub"><em>Causal Complicity Theory</em> · 通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>共犯の処罰根拠を、共犯が正犯を通じて<strong>間接的に法益侵害結果を惹起した</strong>点に求める通説。正犯・共犯の処罰根拠を統一的に説明でき、共犯にも結果発生の認識を要すると導く。責任共犯論（正犯者を堕落させた点に処罰根拠・現在は支持を失う）と対立。乙の故意否定の理論的支柱。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">不能犯と未遂犯は何によって区別されるか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">結果発生の現実的危険性</span>の有無によって区別される。およそ危険性を欠く行為は不能犯として不可罰となる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">具体的危険説の判断基底と判断基準は？</span></summary>
+                  <div class="mm-q-answer">基底＝行為時に<span class="kw">一般人が認識しえた事情＋行為者が特に認識していた事情</span>。基準＝<span class="kw">一般人</span>。刑法の行為規範は一般人に向けられているからである。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">傷害（204条）の意義は？甲を不能犯とした場合に何が残るか？</span></summary>
+                  <div class="mm-q-answer">傷害＝<span class="kw">人の生理的機能を害すること</span>。意識障害も含む。仮に不能犯としても、数日間の意識朦朧は生理的機能の障害＝<span class="verb">傷害罪</span>が残る。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">共犯（幇助）に結果発生の認識を要すると導く理論は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">因果的共犯論（惹起説）</span>。共犯の処罰根拠は正犯を通じた法益侵害結果の間接的惹起にあり正犯と同一だから、正犯と同じく結果発生の認識を要する。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">純客観説を採ると本問の甲の結論はどうなり、なぜ批判されるか？</span></summary>
+                  <div class="mm-q-answer">Aは健康で現に10錠のみ服用＝科学的には死亡しえず<span class="kw">不能犯</span>。しかしそれでは結果不発生事案が常に不能犯となり<span class="kw">未遂処罰が空洞化</span>するため批判される。本問は具体的危険説で危険性を肯定。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">空気注射事件（最判昭37.3.23）はどう使うか？</span></summary>
+                  <div class="mm-q-answer">致死量以下の手段でも「<span class="kw">身体的条件その他の事情の如何によっては死の危険が絶対にないとはいえない</span>」とした。本問の睡眠薬10錠（致死量未満）でも過剰投与の可能性を踏まえ危険性発生を肯定する方向の手がかりに引用。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">「未遂の教唆」と本問の「未遂の幇助」の関係は？</span></summary>
+                  <div class="mm-q-answer">いずれも<span class="kw">結果発生の認識を欠く共犯</span>の可罰性の問題で同じ構造。因果的共犯論からはともに故意を欠き不可罰。本問は幇助だが、教唆の議論枠組みをそのまま用いてよい。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">不能犯と未遂犯の区別（具体的危険説）の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">未遂犯が処罰される根拠は結果発生の現実的危険性を生じさせた点にあり、不能犯と未遂犯は結果発生の現実的危険性の有無によって区別される。その危険性は、行為時に一般人が認識しえた事情および行為者が特に認識していた事情を基礎として、一般人を基準に判断する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">幇助犯の故意（因果的共犯論）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">共犯の処罰根拠は共犯が正犯を通じて間接的に法益侵害結果を惹起する点にあり正犯と共犯とで基本的に同一であるから、正犯において結果発生の認識が要求される以上、共犯においても結果発生の認識を要する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">傷害の意義と傷害幇助への切替えの規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">傷害とは人の生理的機能を害することをいう。乙は睡眠薬10錠で眠気や意識障害等の生理的機能の障害が生じることは認識していたから、その限度で傷害の故意が認められ、傷害罪の幇助犯が成立する。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・どんな配点配分で構成する？</span></summary>
+                  <div class="mm-q-answer">正犯から：<span class="kw">甲（不能犯の提起・危険性判断 30%／殺人未遂・傷害落とし込み 25%）→ 乙（幇助の故意・傷害幇助 35%）→ 罪名従属性 10%</span>。不能犯の危険性判断と乙の故意論が二大配点。落としどころ（傷害・傷害幇助）を必ず拾う。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">甲が殺人未遂・乙が傷害幇助で罪名が食い違うが問題ないか？</span></summary>
+                  <div class="mm-q-answer">問題ない。<span class="kw">共犯従属性は共犯者が正犯と同一の罪名を負うことまで要求しない</span>。狭義の共犯（教唆・幇助）では共犯者自身の故意の限度で罪責を負えば足り、罪名相違は許容される（小論点・端的に指摘）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">睡眠薬10錠・死亡確率皆無 → 具体的危険説 → ？</span></summary>
+                  <div class="mm-q-answer">危惧感で危険性肯定→殺人未遂。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">不能犯としても意識朦朧数日 → ？</span></summary>
+                  <div class="mm-q-answer">生理的機能障害＝傷害罪。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">乙は死を認識せず・意識障害は認識 → ？</span></summary>
+                  <div class="mm-q-answer">殺人未遂幇助否定→傷害幇助。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XX — 不能犯と未遂の幇助 · 13 chapters · 3 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-06-29T21:42+09:00">Generated: 2026-06-29 21:42 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
