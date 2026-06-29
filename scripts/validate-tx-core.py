@@ -24,7 +24,9 @@ spec: spec/tx-v11.0.0-core.md 第7項
     G26 PART D 不在：drill-block / recall-arena / #part-d / flow-svg が無い
     G29 答え整合：data-correct-value（位置）と data-answer-key（ラベル）が記述ごとに一致し、
         各文字が全角○/×（半角 x/o 混入＝Lexia で判定不能を検出）
-    G32 復習プール本文の記号フリー化：_lex の .syn-lead / .choice-points li に
+  G32 復習プール本文の記号フリー化：_lex の .syn-lead / .choice-points li に
+  G33 TX-LEX最終表5点セット：_lex の .statement-verdict-table 最終列に
+      文言・趣旨・射程・切断点・転用の reflex core を要求（移行期 WARNING）。
         問題ローカル記号（A説・①・記述ア・事例Ⅰ等）が残らない
   廃止：G17・G18（PART D 関連）
 
@@ -801,6 +803,39 @@ class Validator:
             self.err("G32", f"復習プール併載テキスト {len(hits)} 件に問題ローカル記号が残留: "
                             f"{head}{more}（.syn-lead / .choice-points li は実体名・概念名で自己完結させる）")
 
+    def g33_tx_lex_reflex_core_five_tags(self):
+        # TX-LEX の reveal 最終表は Lexia/SM2 で単独カード化されるため、単なる長文説明ではなく
+        # 文言・趣旨・射程・切断点・転用の5点セットを要求する。既存在庫の移行期なので WARNING。
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        tbl = self.soup.find("table", class_="statement-verdict-table")
+        if not tbl:
+            return
+
+        required = {"文言", "趣旨", "射程", "切断点", "転用"}
+        misses = []
+        ths = tbl.find_all("th")
+        header_text = ths[-1].get_text(" ", strip=True) if ths else ""
+        if "文言・趣旨・射程・切断点・転用" not in header_text:
+            misses.append("見出し")
+
+        for idx, tr in enumerate(tbl.find_all("tr"), 1):
+            tds = tr.find_all("td")
+            if not tds:
+                continue
+            cell = tds[-1]
+            tags = {el.get_text(" ", strip=True) for el in cell.select(".tx-reflex-tag")}
+            if not required.issubset(tags):
+                label = tds[0].get_text(" ", strip=True) if tds else str(idx)
+                lacks = "・".join(tag for tag in ("文言", "趣旨", "射程", "切断点", "転用") if tag not in tags)
+                misses.append(f"{label}:{lacks}")
+
+        if misses:
+            head = " / ".join(misses[:8])
+            more = f" 他 {len(misses)-8} 件" if len(misses) > 8 else ""
+            self.warn("G33", f"_lex 最終表の論点コアが5点セット化されていない: {head}{more}。"
+                             "各行を .tx-reflex-core 内の 文言・趣旨・射程・切断点・転用 に分解する。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -832,6 +867,7 @@ class Validator:
         self.g30_no_symbol_only_stmt()
         self.g30_pool_self_contained()
         self.g32_pool_review_text_symbol_free()
+        self.g33_tx_lex_reflex_core_five_tags()
 
 
 def main():
@@ -863,7 +899,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G32, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G33, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

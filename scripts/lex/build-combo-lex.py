@@ -140,6 +140,40 @@ ROW_TMPL = ('        <div class="ox-row mc" data-stmt="__B__">\n'
 OPT_TMPL = ('            <button class="answer-slot ox-btn" type="button" data-value="__K__"><span class="mc-key">__K__</span>__T__</button>\n')
 
 CIRC = {'1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥','7':'⑦','8':'⑧','9':'⑨'}
+REFLEX_HEADER = '登場した論点のコア（文言・趣旨・射程・切断点・転用）'
+REFLEX_TAGS = ('文言', '趣旨', '射程', '切断点', '転用')
+REFLEX_CSS = '''/* TX-LEX short-answer reflex core: 文言・趣旨・射程・切断点・転用 */
+.tx-reflex-core{display:grid;gap:6px;margin:0;font-size:.94em;line-height:1.7;}
+.tx-reflex-line{margin:0;padding-left:5.4em;text-indent:-5.4em;}
+.tx-reflex-tag{display:inline-block;min-width:4.2em;margin-right:.55em;padding:.12em .48em;border-radius:999px;border:1px solid #d7cfa8;background:#efe7cb;color:#65581d;font-weight:800;text-align:center;text-indent:0;}
+.tx-reflex-cut .tx-reflex-tag{border-color:#dba9b2;background:#ffefe7;color:#774252;}
+'''
+
+
+def reflex_core_html(core):
+    if isinstance(core, dict):
+        fallback = core.get('text') or core.get('core') or ''
+        values = {tag: core.get(tag, fallback) for tag in REFLEX_TAGS}
+    else:
+        fallback = str(core)
+        values = {
+            '文言': fallback,
+            '趣旨': '制度趣旨・保護法益から、この命題がなぜ問題になるかを確認する。',
+            '射程': fallback,
+            '切断点': '誤答を切る条件・危険語を、問題ローカル記号ではなく実体概念で押さえる。',
+            '転用': '類似肢では、同じ要件・事実・判例射程を先に確認する。',
+        }
+    lines = []
+    for tag in REFLEX_TAGS:
+        cls = ' tx-reflex-cut' if tag == '切断点' else ''
+        lines.append(f'<p class="tx-reflex-line{cls}"><span class="tx-reflex-tag">{tag}</span>{values[tag]}</p>')
+    return '<div class="tx-reflex-core">' + ''.join(lines) + '</div>'
+
+
+def core_text(core):
+    if isinstance(core, dict):
+        return core.get('text') or core.get('core') or core.get('射程') or ''
+    return str(core)
 
 def find_block(html, start_tag='<div class="answer-area"'):
     i = html.find(start_tag)
@@ -198,7 +232,7 @@ def build(num, spec):
         bl = blanks[b]
         opts = ''.join(OPT_TMPL.replace('__K__', o['k']).replace('__T__', o['t']) for o in bl['opts'])
         rows += (ROW_TMPL.replace('__B__', b).replace('__CIRC__', CIRC[b])
-                 .replace('__Q__', bl['q']).replace('__OPTS__', opts).replace('__CORE__', bl['core']))
+                 .replace('__Q__', bl['q']).replace('__OPTS__', opts).replace('__CORE__', core_text(bl['core'])))
     # 1d. ox-grid 内容（answer-instruction 〜 answer-ox-grid 〜 final-answer）を再構築
     cv = ''.join(official[b] for b in blank_ids)
     akey = ','.join(f"{b}:{official[b]}" for b in blank_ids)
@@ -206,7 +240,7 @@ def build(num, spec):
     for b in blank_ids:
         bl = blanks[b]
         verdict_rows += (f'            <tr data-stmt="{b}"><td style="text-align:center;font-weight:700;">{CIRC[b]}</td>'
-            f'<td style="text-align:center;font-weight:700;">{bl["label"]}</td><td>{bl["core"]}</td></tr>\n')
+            f'<td style="text-align:center;font-weight:700;">{bl["label"]}</td><td>{reflex_core_html(bl["core"])}</td></tr>\n')
     lex_area = (
       f'<div class="answer-area" id="answer-area" data-correct-value="{cv}" data-answer-type="ox-grid" data-explanation="{expl}">\n'
       f'      <p class="answer-instruction">上の解法ナビが示す順に、各空欄{CIRC[blank_ids[0]]}〜{CIRC[blank_ids[-1]]}の語句を1つずつ選んでください（選ぶたびに上の組合せ候補が絞られます）。全空欄を選んだら「解答を表示」で採点。採点後、各行に<strong>論点のコア（転用可能な法理）</strong>が展開されます。復習プールにはこの法理命題だけが入ります。</p>\n\n'
@@ -214,9 +248,9 @@ def build(num, spec):
       '      <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>\n'
       '      <div id="answer-feedback" hidden=""></div>\n\n'
       '      <div class="final-answer" hidden="">\n'
-      f'        <p class="fa-summary"><strong>正解</strong>　各空欄の正解と<strong>論点のコア（転用可能な法理）</strong>は下表のとおり。組合せ番号でなく、各空欄の法理で判定する。下表が学習資産。</p>\n'
+      f'        <p class="fa-summary"><strong>正解</strong>　各空欄の正解と<strong>論点のコア</strong>は下表のとおり。組合せ番号でなく、各空欄の法理で判定する。下表が学習資産。</p>\n'
       f'        <table class="statement-verdict-table" data-answer-key="{akey}">\n'
-      '          <thead><tr><th style="width:3em;">空欄</th><th style="width:8em;">正解</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>\n'
+      f'          <thead><tr><th style="width:3em;">空欄</th><th style="width:8em;">正解</th><th>{REFLEX_HEADER}</th></tr></thead>\n'
       f'          <tbody>\n{verdict_rows}          </tbody>\n'
       '        </table>\n'
       '      </div>')
@@ -230,7 +264,7 @@ def build(num, spec):
     lex = lex[:cut0] + shell + head_new + lex_area + lex[la1:]
     # 1a. CSS 注入（</style> 直前）
     k = lex.rfind('</style>')
-    lex = lex[:k] + "\n/* === 解法ナビ（Lexia用・常時表示） === */\n" + CSS + "\n" + lex[k:]
+    lex = lex[:k] + "\n/* === 解法ナビ（Lexia用・常時表示） === */\n" + CSS + "\n" + REFLEX_CSS + "\n" + lex[k:]
     # 1e. SCRIPT-COMBO（ガイド専念型）を </body> 直前へ
     js = (NAV_JS_TMPL.replace('__COMBOS__', json.dumps(combos, ensure_ascii=False))
                      .replace('__ORDER__', json.dumps(order, ensure_ascii=False))

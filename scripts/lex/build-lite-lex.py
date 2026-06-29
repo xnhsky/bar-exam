@@ -29,6 +29,34 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SUBJ = "outputs/000_TX/001_刑法"
 UXD  = "outputs/ux/000_TX/001_刑法"
 NAV_TEMPLATE = os.path.join(ROOT, UXD, "刑TX350_lex.html")
+REFLEX_HEADER = '登場した論点のコア（文言・趣旨・射程・切断点・転用）'
+REFLEX_TAGS = ('文言', '趣旨', '射程', '切断点', '転用')
+REFLEX_CSS = '''/* TX-LEX short-answer reflex core: 文言・趣旨・射程・切断点・転用 */
+.tx-reflex-core{display:grid;gap:6px;margin:0;font-size:.94em;line-height:1.7;}
+.tx-reflex-line{margin:0;padding-left:5.4em;text-indent:-5.4em;}
+.tx-reflex-tag{display:inline-block;min-width:4.2em;margin-right:.55em;padding:.12em .48em;border-radius:999px;border:1px solid #d7cfa8;background:#efe7cb;color:#65581d;font-weight:800;text-align:center;text-indent:0;}
+.tx-reflex-cut .tx-reflex-tag{border-color:#dba9b2;background:#ffefe7;color:#774252;}
+'''
+
+
+def reflex_core_html(core):
+    if isinstance(core, dict):
+        fallback = core.get('text') or core.get('core') or ''
+        values = {tag: core.get(tag, fallback) for tag in REFLEX_TAGS}
+    else:
+        fallback = str(core)
+        values = {
+            '文言': fallback,
+            '趣旨': '制度趣旨・保護法益から、この命題がなぜ問題になるかを確認する。',
+            '射程': fallback,
+            '切断点': '誤答を切る条件・危険語を、問題ローカル記号ではなく実体概念で押さえる。',
+            '転用': '類似肢では、同じ要件・事実・判例射程を先に確認する。',
+        }
+    lines = []
+    for tag in REFLEX_TAGS:
+        cls = ' tx-reflex-cut' if tag == '切断点' else ''
+        lines.append(f'<p class="tx-reflex-line{cls}"><span class="tx-reflex-tag">{tag}</span>{values[tag]}</p>')
+    return '<div class="tx-reflex-core">' + ''.join(lines) + '</div>'
 
 # ---- 解法ナビ CSS（350_lex から逐語抽出：sn-* と ox-row.mc 等の見栄え定義を流用） ----
 _nav_src = open(NAV_TEMPLATE, encoding="utf-8").read()
@@ -130,7 +158,7 @@ def inject_lex(lex, spec):
     """_lex に CSS／SHELL／軽量ナビ JS を注入（answer-area 改変は呼び出し側で済ませた lex を受ける）。"""
     # CSS（</style> 直前）
     k = lex.rfind('</style>')
-    lex = lex[:k] + "\n/* === 解法ナビ（Lexia用・軽量版・常時表示） === */\n" + CSS + "\n" + lex[k:]
+    lex = lex[:k] + "\n/* === 解法ナビ（Lexia用・軽量版・常時表示） === */\n" + CSS + "\n" + REFLEX_CSS + "\n" + lex[k:]
     # SHELL ＋ 新【解答】h3 を answer-area 直前へ（旧【解答】h3 は除去）
     la0, la1 = find_block(lex)
     lhead = re.search(r'<h3[^>]*>【解答】[^<]*</h3>\s*$', lex[:la0])
@@ -198,7 +226,7 @@ def build(num, spec):
             vrows += (f'            <tr data-stmt="{r["s"]}" data-verdict="{("o" if r["verdict"]=="○" else "x")}">'
                 f'<td style="text-align:center;font-weight:700;">{r["label"]}</td>'
                 f'<td style="text-align:center;font-weight:800;color:{color};">{r["verdict"]}</td>'
-                f'<td>{r["core"]}</td></tr>\n')
+                f'<td>{reflex_core_html(r["core"])}</td></tr>\n')
         lex_area = (
           f'<div class="answer-area" id="answer-area" data-correct-value="{cv}" data-answer-type="ox-grid" data-explanation="{expl}">\n'
           f'      <p class="answer-instruction">各組合せ（肢1〜{nopt}）に ○（①〜の対応がすべて正しい組合せ）／×（いずれかが誤り）を付けてから「解答を表示」を押してください。下表「論点のコア」が学習資産です。</p>\n\n'
@@ -208,7 +236,7 @@ def build(num, spec):
           '      <div class="final-answer" hidden="">\n'
           '        <p class="fa-summary"><strong>正解</strong>　各組合せの○×は下表のとおり。組合せ番号を覚えるのではなく、各組合せが主張する<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>\n'
           f'        <table class="statement-verdict-table" data-answer-key="{akey}">\n'
-          '          <thead><tr><th style="width:3em;">組合せ</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>\n'
+          f'          <thead><tr><th style="width:3em;">組合せ</th><th style="width:3.5em;">正誤</th><th>{REFLEX_HEADER}</th></tr></thead>\n'
           f'          <tbody>\n{vrows}          </tbody>\n'
           '        </table>\n'
           '      </div>')
