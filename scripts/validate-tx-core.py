@@ -31,6 +31,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G34 TX360 SM2 payload 契約：inline _lex の .ox-row 直下に .ox-pool-explain があり、
       通常 SM2 カード本文へ fa-narrative / 詳説 / 問題ローカル記号を混ぜない
   G35 物語解説タイポグラフィ：.fa-narrative の強調太字を過剰に太くしない
+  G36 TX360テンプレート固定：本文ラベルは 文言/趣旨/射程/転用（字間スペースなし）
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -909,6 +910,28 @@ class Validator:
                             "v12.1.1 では物語解説の強調は 560 以下にして、"
                             "モバイルで潰れる太字へ戻さない。")
 
+    def g36_tx360_template_flow_label_text(self):
+        # TX360 is the concrete template source for inline-card flow labels.
+        # The label text itself must stay compact; spacing is handled by CSS.
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        bad = []
+        allowed = {"文言", "趣旨", "射程", "切断点", "転用"}
+        compact = {"文　言": "文言", "趣　旨": "趣旨", "射　程": "射程", "転　用": "転用"}
+        for el in self.soup.select(".tx-article-flow .tx-flow-label"):
+            txt = el.get_text("", strip=True)
+            if txt in compact:
+                bad.append(f"{txt}→{compact[txt]}")
+            elif txt not in allowed:
+                bad.append(txt)
+
+        if bad:
+            head = " / ".join(bad[:8])
+            more = f" 他 {len(bad)-8} 件" if len(bad) > 8 else ""
+            self.err("G36", f"TX360テンプレート外の本文ラベル: {head}{more}。"
+                            ".tx-flow-label は 文言/趣旨/射程/切断点/転用 に固定し、"
+                            "字間スペースはCSS側に任せる。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -943,6 +966,7 @@ class Validator:
         self.g33_tx_lex_reflex_core_five_tags()
         self.g34_tx360_sm2_payload_contract()
         self.g35_fa_narrative_emphasis_weight()
+        self.g36_tx360_template_flow_label_text()
 
 
 def main():
@@ -974,7 +998,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G35, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G36, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
