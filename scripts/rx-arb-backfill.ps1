@@ -48,6 +48,7 @@ $AriadnePromptSrc = Join-Path $ProjectRoot "prompts\new-ariadne-headless.md"
 $ValidateRx    = Join-Path $ProjectRoot "scripts\validate-rx.py"
 $ValidateAriadne = Join-Path $ProjectRoot "scripts\validate-ariadne.py"
 $CanonicalAriadne = Join-Path $ProjectRoot "canonical\ARIADNE.html"
+$CanonicalAriadneSlots = Join-Path $ProjectRoot "canonical\ARIADNE.placeholder.html"
 $ArborMaster   = Join-Path $ArborRoot "ARBOR_v5.0_master_prompt.md"
 $ArborRef      = Join-Path $ArborRoot "Reference\ARBOR_002_shucho_tekikaku.html"
 $ArborVerify   = Join-Path $ArborRoot "scripts\verify.py"
@@ -89,6 +90,7 @@ $AriadneEnabled = (-not $SkipAriadne)
 if ($AriadneEnabled -and -not (Test-Path $AriadnePromptSrc)) { Write-Host "[NOTE] ARIADNE prompt 不在 → ARIADNE スキップ" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $ValidateAriadne))  { Write-Host "[NOTE] validate-ariadne.py 不在 → ARIADNE スキップ" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE] canonical ARIADNE 不在 → ARIADNE スキップ: $CanonicalAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
+if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadneSlots)) { Write-Host "[NOTE] ARIADNE slot contract 不在 → ARIADNE スキップ: $CanonicalAriadneSlots" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if (-not ($RxEnabled -or $ArbEnabled -or $AriadneEnabled)) {
     Write-Host "[ABORT] RX/TREE/ARIADNE とも無効。やることがありません。" -ForegroundColor Red
     Stop-Transcript | Out-Null; exit 1
@@ -253,6 +255,7 @@ foreach ($t in $Targets) {
         $ariaPrompt = $ariaTemplate `
             -replace '\{JX_HTML\}',    $t.JxPath `
             -replace '\{SKELETON\}',   $CanonicalAriadne `
+            -replace '\{SLOT_CONTRACT\}', $CanonicalAriadneSlots `
             -replace '\{OUT\}',        $t.AriaPath `
             -replace '\{PROBLEM_ID\}', $t.ProblemId `
             -replace '\{SUBJECT\}',    $Subject `

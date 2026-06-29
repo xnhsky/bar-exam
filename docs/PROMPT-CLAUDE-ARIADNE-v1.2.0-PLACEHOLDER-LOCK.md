@@ -1,6 +1,4 @@
-# Copy-Paste Prompt For Claude: ARIADNE v1.1.0 MATRIX-THREAD
-
-> Superseded: 現行 active は `docs/PROMPT-CLAUDE-ARIADNE-v1.2.0-PLACEHOLDER-LOCK.md`。
+# Copy-Paste Prompt For Claude: ARIADNE v1.2.0 PLACEHOLDER-LOCK
 
 ```text
 C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-codex で作業してください。
@@ -8,17 +6,19 @@ C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-codex で作業してください。
 これは ARIADNE 正典化分だけの引継ぎです。TX v12 / GENESIS / TX360 は別引継ぎで扱うので、このプロンプトでは触らないでください。
 
 まず読むもの:
-1. docs/HANDOFF-ARIADNE-v1.1.0-MATRIX-THREAD.md
-2. spec/jx-ariadne-v1.1.0-core.md
+1. docs/HANDOFF-ARIADNE-v1.2.0-PLACEHOLDER-LOCK.md
+2. spec/jx-ariadne-v1.2.0-core.md
 3. canonical/ARIADNE.html
-4. prompts/new-ariadne-headless.md
-5. scripts/validate-ariadne.py
-6. scripts/check-ariadne-canonical.py
+4. canonical/ARIADNE.placeholder.html
+5. prompts/new-ariadne-headless.md
+6. scripts/validate-ariadne.py
+7. scripts/check-ariadne-canonical.py
 
 現行 ARIADNE 正典:
-- ARIADNE v1.1.0 MATRIX-THREAD
+- ARIADNE v1.2.0 PLACEHOLDER-LOCK
 - active canonical: canonical/ARIADNE.html
-- active spec: spec/jx-ariadne-v1.1.0-core.md
+- active slot contract: canonical/ARIADNE.placeholder.html
+- active spec: spec/jx-ariadne-v1.2.0-core.md
 - generator prompt: prompts/new-ariadne-headless.md
 - validator: scripts/validate-ariadne.py A1-A31
 
@@ -26,6 +26,9 @@ C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-codex で作業してください。
 今後の ARIADNE 生成・改修は、Claude 正典の模範答案を維持したまま、JX019 型のマトリクス答案構成を正典として使う。JX から答案構成、想起、RX 論証カード、TREE 樹形図へ自然に回れる学習導線を維持・強化する。
 
 絶対ルール:
+- v1.2.0 は PLACEHOLDER-LOCK。`canonical/ARIADNE.html` のHTML/CSS/JS・class・section順・余白・字下げ・機能色・パズルエンジンは固定。
+- `canonical/ARIADNE.placeholder.html` の `{{{...}}}` スロット契約を読み、問題ごとに変わる本文・論点・事実・答案・深掘り・属性だけを置換する。
+- AIがデザイン判断してよいのは、既存ACTIVEベースカラーの **EASY / STD / HARD** を問題難易度で1つ選ぶことだけ。新色創作、Mildliner機能色変更、レイアウト変更は禁止。
 - 模範答案は従来の Claude 正典どおり。問規当結カード、明朝、字下げ、事実/評価語マーカーを維持する。
 - 19で一度出た A/B答案分岐方針は撤回済み。採用しない。
 - 答案構成は `.bone.matrix-bone` のマトリクス型で作る。
@@ -47,13 +50,13 @@ C:\Users\xnrg2.DESKTOP-5664QR6\bar-exam-codex で作業してください。
 - 旧ワイド2カラムは禁止:
   `grid-template-columns:minmax(24em,1.35fr) minmax(18em,1fr); column-gap:24px`
 - 骨子の `.mline + .mline` と拾う文言の項目間には点線区切りを入れる。
-- ラベル色は濃すぎないマイルドライナー系を使う。
+- ラベル色は正典のマイルドライナー系を使う。個別生成で濃淡や色相を変更しない。
 
 恒久対策:
 - validate-ariadne.py A29: `data-rx` の科目/JX整合と参照先RX実在を確認。
 - validate-ariadne.py A30: `.problem .pq` の `text-indent:0` 退行を ERROR。
 - validate-ariadne.py A31: `.facts li` の旧ワイド2カラム・非正典2カラムを ERROR。
-- check-ariadne-canonical.py は canonical と全 ARIADNE 出力を横断検証する。
+- check-ariadne-canonical.py は canonical、slot contract、全 ARIADNE 出力を横断検証する。
 - check-lexia-preflight.py は ARIADNE canonical guard と RX coverage を含む。
 - jx-finalize.ps1 / jx-push.sh は commit/push 前に ARIADNE 正典ガードを通す。
 

@@ -116,9 +116,9 @@ if (-not $NoGate) {
     Write-Host "[GATE PASS] Lexia 同期契約の致命的不整合なし。finalize を続行します。" -ForegroundColor Green
 }
 
-# === 配布前ゲート: ARIADNE 正典（v1.1.0 MATRIX-THREAD）チェック ===
+# === 配布前ゲート: ARIADNE 正典（v1.2.0 PLACEHOLDER-LOCK）チェック ===
 # canonical/ARIADNE.html と生成済み ARIADNE 全体を validate-ariadne.py で横断検証する。
-# 問題文1字下げ・拾う文言近接2カラム・data-rx など、ARIADNE 正典化後の退行を
+# 問題文1字下げ・拾う文言近接2カラム・data-rx・スロット契約など、ARIADNE 正典化後の退行を
 # commit/push 前に止める。※ DryRun でも実行（事前確認になる）。緊急回避は -NoGate。
 if (-not $NoGate) {
     Write-Host "`n--- 配布前ゲート: scripts/check-ariadne-canonical.py ---" -ForegroundColor Cyan

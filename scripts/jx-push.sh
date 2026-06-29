@@ -49,7 +49,7 @@ fi
 
 # 0.5) 配布前ゲート（read-only）
 # JX 本体だけでなく RX/TREE/ARIADNE も一緒に回収する入口なので、commit 前に
-# Lexia 同期契約・ARIADNE v1.1.0 正典ガード・RX到達性をまとめて通す。
+# Lexia 同期契約・ARIADNE v1.2.0 正典ガード・RX到達性をまとめて通す。
 if [ "$DRY" -eq 0 ]; then
   echo "--- preflight: scripts/check-lexia-preflight.py --skip-self-test ---"
   if ! python3 scripts/check-lexia-preflight.py --skip-self-test; then

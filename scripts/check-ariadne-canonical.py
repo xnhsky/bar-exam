@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ARIADNE v1.1.0 canonical guard.
+"""ARIADNE v1.2.0 PLACEHOLDER-LOCK canonical guard.
 
 Run validate-ariadne.py over the active skeleton and generated ARIADNE files.
 Warnings are allowed by validate-ariadne.py; any ERROR exits non-zero.
@@ -21,7 +21,8 @@ except Exception:
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate-ariadne.py"
 DEFAULT_GLOB = "outputs/ux/001_ARIADNE/**/*_ARIADNE.html"
-CANONICAL_VERSION = "ARIADNE v1.1.0 MATRIX-THREAD"
+CANONICAL_VERSION = "ARIADNE v1.2.0 PLACEHOLDER-LOCK"
+SLOT_CONTRACT_VERSION = "ARIADNE_SLOT_CONTRACT v1.2.0 PLACEHOLDER-LOCK"
 
 
 def rel(path: Path) -> str:
@@ -88,6 +89,25 @@ def check_canonical_version() -> int:
     return 0
 
 
+def check_slot_contract() -> int:
+    slot_contract = ROOT / "canonical" / "ARIADNE.placeholder.html"
+    if not slot_contract.exists():
+        print("[ERROR] canonical/ARIADNE.placeholder.html not found")
+        return 1
+    text = slot_contract.read_text(encoding="utf-8", errors="replace")
+    if SLOT_CONTRACT_VERSION not in text:
+        print(
+            "[ERROR] canonical/ARIADNE.placeholder.html version marker missing: "
+            f"{SLOT_CONTRACT_VERSION}"
+        )
+        return 1
+    if "{{{" not in text or "}}}" not in text:
+        print("[ERROR] canonical/ARIADNE.placeholder.html has no triple-brace slots")
+        return 1
+    print(f"[OK] canonical/ARIADNE.placeholder.html slot contract: {SLOT_CONTRACT_VERSION}")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="ARIADNE canonical/preflight guard")
     ap.add_argument(
@@ -107,7 +127,10 @@ def main() -> int:
 
     print("=== ARIADNE canonical guard ===")
     print(f"targets={len(files)}")
-    failures = check_canonical_version() if not args.no_canonical else 0
+    failures = 0
+    if not args.no_canonical:
+        failures += check_canonical_version()
+        failures += check_slot_contract()
     for path in files:
         rc = run_validator(path, args.verbose)
         if rc != 0:

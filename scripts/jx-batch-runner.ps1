@@ -110,6 +110,7 @@ $ArborVerify   = Join-Path $ArborRoot "scripts\verify.py"
 $AriadnePromptSrc   = Join-Path $ProjectRoot "prompts\new-ariadne-headless.md"
 $ValidateAriadne    = Join-Path $ProjectRoot "scripts\validate-ariadne.py"
 $CanonicalAriadne   = Join-Path $ProjectRoot "canonical\ARIADNE.html"
+$CanonicalAriadneSlots = Join-Path $ProjectRoot "canonical\ARIADNE.placeholder.html"
 $AriadneOutputBase  = Join-Path $ProjectRoot "outputs\ux\001_ARIADNE"
 
 # 音声段（⑤）: 台本集約先と generate_tts.py 起動ラッパ
@@ -233,6 +234,7 @@ $AriadneEnabled = (-not $SkipAriadne)
 if ($AriadneEnabled -and -not (Test-Path $AriadnePromptSrc)) { Write-Host "[NOTE] ARIADNE prompt 不在 → ②-ariadne 自動スキップ: $AriadnePromptSrc" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $ValidateAriadne))  { Write-Host "[NOTE] validate-ariadne.py 不在 → ②-ariadne 自動スキップ: $ValidateAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE] canonical ARIADNE 不在 → ②-ariadne 自動スキップ: $CanonicalAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
+if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadneSlots)) { Write-Host "[NOTE] ARIADNE slot contract 不在 → ②-ariadne 自動スキップ: $CanonicalAriadneSlots" -ForegroundColor Yellow; $AriadneEnabled = $false }
 Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'}) / ARIADNE(解法ナビ)=$(if($AriadneEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir / $AriadneOutputDir"
 
 # === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
@@ -650,6 +652,7 @@ foreach ($t in $Targets) {
         $ariaPrompt = $ariaTemplate `
             -replace '\{JX_HTML\}',    $t.JxOutputPath `
             -replace '\{SKELETON\}',   $CanonicalAriadne `
+            -replace '\{SLOT_CONTRACT\}', $CanonicalAriadneSlots `
             -replace '\{OUT\}',        $ariaOut `
             -replace '\{PROBLEM_ID\}', $t.ProblemId `
             -replace '\{SUBJECT\}',    $Subject `

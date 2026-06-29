@@ -162,7 +162,7 @@ python scripts/check-lexia-sync-contract.py --json deploy/lexia-sync-audit.json
 
 ## ARIADNE 正典ガード: check-ariadne-canonical.py
 
-ARIADNE v1.1.0 MATRIX-THREAD（`canonical/ARIADNE.html`＋`spec/jx-ariadne-v1.1.0-core.md`）を
+ARIADNE v1.2.0 PLACEHOLDER-LOCK（`canonical/ARIADNE.html`＋`canonical/ARIADNE.placeholder.html`＋`spec/jx-ariadne-v1.2.0-core.md`）を
 横断検証する read-only ゲート。`validate-ariadne.py` を canonical と
 `outputs/ux/001_ARIADNE/**/*_ARIADNE.html` に適用し、ERROR があれば exit 1。
 
@@ -171,6 +171,7 @@ ARIADNE v1.1.0 MATRIX-THREAD（`canonical/ARIADNE.html`＋`spec/jx-ariadne-v1.1.
 - A30: 問題文 `.problem .pq` の本文1字下げ。`text-indent:0` への退行を ERROR。
 - A31: 拾う文言 `.facts li` の近接2カラム。旧ワイド2カラムや非正典2カラムを ERROR。
 - A29: 想起カード `data-rx` の科目/JX整合と参照先RX実在。
+- slot contract: `canonical/ARIADNE.placeholder.html` の v1.2.0 marker と `{{{...}}}` スロット存在。
 
 使い方:
 

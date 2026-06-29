@@ -53,7 +53,7 @@ def infer_version(path: str, html: str) -> str:
         return f"TREE ARBOR v{m.group(1)}" if m else "TREE ARBOR v5.0"
     if "/ux/001_ARIADNE/" in p:
         m = re.search(r"ARIADNE[^0-9]{0,24}v([0-9]+\.[0-9]+(?:\.[0-9]+)?)", html)
-        return f"ARIADNE v{m.group(1)}" if m else "ARIADNE v1.1.0"
+        return f"ARIADNE v{m.group(1)}" if m else "ARIADNE v1.2.0"
     # 参考資料（top-level references/ や outputs/ux/004_参考資料・ファイル名サフィックス _GDE 等）
     if "/references/" in p or "参考資料" in p or any(f"_{t}." in Path(p).name for t in _REF_LABEL):
         name = Path(p).name

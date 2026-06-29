@@ -1,7 +1,4 @@
-# Claude Handoff: ARIADNE v1.1.0 MATRIX-THREAD
-
-> Superseded: 現行 active は `docs/HANDOFF-ARIADNE-v1.2.0-PLACEHOLDER-LOCK.md` /
-> `spec/jx-ariadne-v1.2.0-core.md` / `canonical/ARIADNE.placeholder.html`。
+# Claude Handoff: ARIADNE v1.2.0 PLACEHOLDER-LOCK
 
 > Scope: **ARIADNE only**. TX v12 / GENESIS / TX360 changes are a separate handoff.
 > This file summarizes the Codex-side ARIADNE canonicalization and the rules Claude should use for future ARIADNE generation or retrofit work.
@@ -9,8 +6,9 @@
 ## Current State
 
 - Active ARIADNE canonical: `canonical/ARIADNE.html`
-- Active ARIADNE spec: `spec/jx-ariadne-v1.1.0-core.md`
-- Active version name: **ARIADNE v1.1.0 MATRIX-THREAD**
+- Active ARIADNE slot contract: `canonical/ARIADNE.placeholder.html`
+- Active ARIADNE spec: `spec/jx-ariadne-v1.2.0-core.md`
+- Active version name: **ARIADNE v1.2.0 PLACEHOLDER-LOCK**
 - Generator prompt: `prompts/new-ariadne-headless.md`
 - Primary validator: `scripts/validate-ariadne.py` A1-A31
 - Cross-file guard: `scripts/check-ariadne-canonical.py`
@@ -20,6 +18,7 @@ Recent ARIADNE commits to know:
 
 - `038c8cd0 docs(ariadne): canonize matrix thread v1.1`
 - `42731ecf fix(jx): gate ariadne canonical before persisting outputs`
+- `e5e3f15e fix(ariadne): dedupe RX links for JX020-022`
 - Earlier visual rollout/fixes:
   - `f83be72a style(ariadne): apply matrix outline canonical to JX007-015`
   - `1ac1ca91 style(ariadne): indent problem statements`
@@ -48,7 +47,7 @@ Do not collapse these roles into one UI.
 ## Version Meaning
 
 - **v1.0.0 major**: JX019 matrix-style answer outline became the official ARIADNE canonical form.
-- **v1.1.0 minor / active**: production refinements were locked in:
+- **v1.1.0 minor / historical baseline**: production refinements were locked in:
   - problem text one-character indent,
   - label/body two-column layout,
   - compact facts two-column layout,
@@ -56,6 +55,37 @@ Do not collapse these roles into one UI.
   - Mildliner-style labels,
   - strict but educationally selective RX `data-rx` wiring,
   - validator/preflight guards.
+- **v1.2.0 minor / active**: the design is locked as a placeholder-driven template:
+  - `canonical/ARIADNE.html` is the fixed DOM/CSS/JS source,
+  - `canonical/ARIADNE.placeholder.html` lists the only AI-editable `{{{...}}}` slots,
+  - AI may choose only the existing EASY/STD/HARD ACTIVE base-color preset by difficulty,
+  - AI must not redesign cards, columns, spacing, class names, functional colors, or JS.
+
+## Placeholder-Lock Rule
+
+Treat ARIADNE generation as **copy fixed canonical -> fill variable slots**.
+
+Allowed AI judgment:
+
+- problem-specific text,
+- issue selection and ordering within the canonical matrix,
+- facts/evaluation words,
+- answer-construction coaching content,
+- model-answer paragraphs in Claude canonical form,
+- deep-dive legal content grounded in the source JX,
+- selective `data-rx` wiring,
+- ACTIVE base-color preset selection: EASY / STD / HARD only.
+
+Forbidden AI judgment:
+
+- changing section order,
+- changing CSS/JS,
+- inventing new cards or wrappers,
+- changing label/body two-column structure,
+- changing `.facts li` grid values,
+- changing Mildliner functional colors,
+- changing puzzle engine structure,
+- changing model-answer card structure.
 
 ## Non-Negotiable Content Rules
 
@@ -115,8 +145,9 @@ Text rules:
 `scripts/check-ariadne-canonical.py`:
 
 - validates `canonical/ARIADNE.html`,
+- checks `canonical/ARIADNE.placeholder.html` exists and contains the v1.2.0 slot marker,
 - validates all `outputs/ux/001_ARIADNE/**/*_ARIADNE.html`,
-- checks `canonical/ARIADNE.html` contains `ARIADNE v1.1.0 MATRIX-THREAD`.
+- checks `canonical/ARIADNE.html` contains `ARIADNE v1.2.0 PLACEHOLDER-LOCK`.
 
 `scripts/check-lexia-preflight.py` now runs:
 
@@ -168,19 +199,21 @@ python scripts/validate-tree.py outputs/ux/003_TREE/001_刑法/刑JXNNN_TREE.htm
 
 When generating or regenerating ARIADNE:
 
-1. Treat `spec/jx-ariadne-v1.1.0-core.md` as the active spec.
+1. Treat `spec/jx-ariadne-v1.2.0-core.md` as the active spec.
 2. Clone from `canonical/ARIADNE.html`.
-3. Preserve the Claude canonical model-answer style.
-4. Use JX019-style matrix answer outlines.
-5. Build active-recall cards around rules, elements, definitions, and discriminations.
-6. Wire `data-rx` only to clearly matching RX論証 cards.
-7. Keep facts and outline layouts readable with the v1.1.0 two-column/indent rules.
-8. Run `validate-ariadne.py` and `check-ariadne-canonical.py`.
-9. For JX generation, make sure RX / TREE / ARIADNE are all present before persistence.
+3. Read `canonical/ARIADNE.placeholder.html` and edit only the corresponding variable content.
+4. Preserve the Claude canonical model-answer style.
+5. Use JX019-style matrix answer outlines.
+6. Build active-recall cards around rules, elements, definitions, and discriminations.
+7. Wire `data-rx` only to clearly matching RX論証 cards.
+8. Keep facts and outline layouts readable with the v1.2.0 two-column/indent rules.
+9. Choose ACTIVE base color by difficulty only from EASY / STD / HARD.
+10. Run `validate-ariadne.py` and `check-ariadne-canonical.py`.
+11. For JX generation, make sure RX / TREE / ARIADNE are all present before persistence.
 
 ## Known Acceptable Current State
 
-As of the ARIADNE v1.1.0 work:
+As of the ARIADNE v1.2.0 work:
 
 - `check-ariadne-canonical.py`: 66 targets, FAIL 0.
 - `check-lexia-preflight.py --skip-self-test`: PASS.

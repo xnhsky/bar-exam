@@ -13,7 +13,8 @@
 | `tx-v11.1.0-twotrack.md` | TX 二系統（公式5択 / Lexia `_lex`）規律 |
 | `jx-v4.0.0-core.md` | JX 現行（v4.0.0 LOOP-FOLD）構造骨子 |
 | `jx-v3.2-master.md` | JX 基盤規律（タイポ・配色等。v4 が継承） |
-| `jx-ariadne-v1.1.0-core.md` | ARIADNE 現行（v1.1.0 MATRIX-THREAD）解法ナビ＋答案構成周回正典 |
+| `jx-ariadne-v1.2.0-core.md` | ARIADNE 現行（v1.2.0 PLACEHOLDER-LOCK）解法ナビ＋答案構成周回正典 |
+| `jx-ariadne-v1.1.0-core.md` | ARIADNE 旧 active（v1.1.0 MATRIX-THREAD）。v1.2 が継承する見た目合意・恒久対策 |
 | `jx-ariadne-v0.1-core.md` | ARIADNE 旧版（履歴用）。新規生成では使わない |
 | `legacy/` | 旧 TX spec（v8.11.x・v9.x 計33点）。**read-only・新規生成では使わない**。`upgrade-tx`/`upgrade-ktx` 等が参照 |
 

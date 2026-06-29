@@ -1,20 +1,35 @@
-# ARIADNE v0.1 — JX 解法ナビ＋周回 正典（骨子）
-
-> **旧版・履歴用。現行 active は `spec/jx-ariadne-v1.2.0-core.md`。**
-> v1.0.0 で JX019 マトリクス型を major 正典化し、v1.1.0 で字下げ・2カラム・RX配線・preflight恒久対策を固定した。
+# ARIADNE v1.2.0 PLACEHOLDER-LOCK — JX 解法ナビ＋周回 正典
 
 > 初学者（白紙で論文に手が付かない）向けの「解法ナビ＋周回」専用 JX 正典。
 > 現 JX 正典 **ATHENA**（百科事典型）はそのまま。ARIADNE はそれと**役割分担**する別系統。
 > コードネーム＝アリアドネの糸（白紙の迷宮を抜ける解法導線）。
+> **ステータス：現行 active。** Claude正典の誌面・模範答案を維持し、答案構成だけを JX019 で確定した
+> マトリクス型チップ訓練へ正典化する。v1.2.0 では HTML/CSS/JS の構造をプレースホルダー方式で固定し、
+> AI は問題固有本文スロットと難易度別 ACTIVE ベースカラー選択だけを判断する。RX 配線・TTS/答案構成の作法・
+> 下書き・拾う文言を一体で回す。
 
 ---
+
+## 0-prime. バージョン系譜（2026-06-29 確定）
+
+- **v0.1（prototype）**：ARIADNE を ATHENA から分離した初期正典。解法7手・周回○×・深掘り・ATHENAジャンプを定義。
+- **v0.3（visual prototype）**：`canonical/ARIADNE.html` の誌面風スケルトン。TX v11系フォント・難易度別ベースカラー・マイルドライナー機能色を導入。
+- **v1.0.0（major / MATRIX-THREAD）**：JX019 で合意した **マトリクス型答案構成**を正式正典へ昇格。
+  旧来の `<pre>` 風・箇条書き風骨子は新規生成では使わない。模範答案は Claude 正典どおり問規当結カードを維持する。
+- **v1.1.0（minor / historical baseline）**：v1.0.0 の実運用で出た誌面調整を恒久化。
+  本文1字下げ、ラベル＋本文2カラム、拾う文言の近接2カラム、項目間点線、マイルドライナー系ラベル色、
+  RX `data-rx` 配線、`validate-ariadne.py` A30/A31 と preflight 組込みを含む。
+- **v1.2.0（minor / active / PLACEHOLDER-LOCK）**：正典デザインを「固定テンプレート＋変数スロット」方式へ昇格。
+  `canonical/ARIADNE.html` は DOM/CSS/JS の固定正典、`canonical/ARIADNE.placeholder.html` は AI が置換してよい
+  `{{{...}}}` スロット一覧を示す契約ファイルとする。AI はスロット外の構造・余白・class・JS・機能色を変更しない。
+  例外として、難易度に応じた既存 ACTIVE ベースカラー（EASY/STD/HARD）の選択だけは AI 判断可。
 
 ## 0. 役割分担
 
 | | ATHENA（既存） | ARIADNE（本spec） |
 |---|---|---|
 | 目的 | 知識の事典（条文/判例/学説/論証の網羅） | **「次に何をするか」の解法手順＋答案構成までの高速周回** |
-| 起点 | `canonical/ATHENA.html` | `canonical/ARIADNE.html`（v0.3 誌面風・刑JX001 で実証） |
+| 起点 | `canonical/ATHENA.html` | `canonical/ARIADNE.html`（v1.2.0 PLACEHOLDER-LOCK active）＋`canonical/ARIADNE.placeholder.html` |
 | 生成元 | 問題PDF＋逐語 | **検証済み JX（ATHENA HTML）から蒸留**（RX/TREE と同じ副産物パターン） |
 | Lexia | 問題本体 | 別ID の周回教材（メイン JX と衝突しない） |
 
@@ -132,7 +147,8 @@ outputs/ux/001_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
   | **HARD 難** | バイオレット | P3 Twilight Violet | 重論点・罠多・錯誤/不作為/原自行為等の難所 |
 
   3案の hex は `canonical/ARIADNE.html` の `:root` コメントに常時カタログ記載。切替は「▼ ACTIVE」直下の
-  **ラベル＋値2行**を差し替えるだけ（残り2案はコメントのまま）。
+  **ラベル＋値2行**を差し替えるだけ（残り2案はコメントのまま）。これは v1.2.0 でも AI 判断可の唯一の
+  デザイン差分であり、EASY/STD/HARD の既存プリセット以外の新色創作は禁止。
 - **機能色（意味で固定・難易度で変えない｜soft=塗り / line=罫・蛍光 / deep=文字）**：規範=ティール(`--ai`)／
   効く事実・OK=グリーン(`--gr`＝TX `recall-correct`)／罠・注意=コーラル(`--shu`)／ヒント・ゴール=ゴールド(`--gd`)。
   副アクセント＝ダスティティール `--a-mid #79a6a6`（TX `--mid`）。淡背景＋濃文字（WCAG AA）。蛍光下線 `.emb`（`.c/.g/.b`）。
@@ -144,11 +160,13 @@ outputs/ux/001_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 ## 6. 生成手順（蒸留方式）
 
 1. 入力＝**検証済み JX（ATHENA）HTML**：`outputs/001_JX/{科目}JX/{科目}JX{NNN}.html`（問題文・論点抽出・模範答案・採点講評・規範・判例を一次情報源にする）。
-2. **複製＋空化**：`canonical/ARIADNE.html` を出力先へ複製→本文を空化→各部を JX 内容から鋳造（content independence・ATHENA 本文の逐語転載はしない）。
+2. **複製＋スロット置換**：`canonical/ARIADNE.html` を出力先へ複製し、`canonical/ARIADNE.placeholder.html` の
+   `{{{...}}}` スロット契約に従って、問題固有本文・属性だけを置換する。スロット外のHTML/CSS/JS・class・section順・
+   余白・機能色は編集しない（content independence・ATHENA 本文の逐語転載はしない）。
 3. **7手・骨子・15例題**を JX の論点構造から起こす。○×は**自己完結の一般原則／例題**に変換（§4）。
    **深掘り層は §11 の TX 参考条文判例書式でアテナ級に鋳造**（規範＋学説対立＋判例完全プロファイル＋
    条文完全プロファイル）し、末尾に「アテナで詳しく」ボタン（`data-athena-code={元問題ID}`）を置く。
-4. **検証**：`python scripts/validate-ariadne.py <出力>` で **A1〜A21 ERROR 0**。
+4. **検証**：`python scripts/validate-ariadne.py <出力>` で **A1〜A31 ERROR 0**。
 5. **配置・同期**：`outputs/ux/001_ARIADNE/{00N_科目}/` に置き、**master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 
 ---
@@ -378,7 +396,7 @@ finalize 工程に組込み済み・既存 57 枚＋`canonical/ARIADNE.html` 反
 
 ---
 
-## §14. JX019 マトリクス正典化（2026-06-29・ユーザー確定）
+## §14. v1.0.0 major — JX019 マトリクス正典化（2026-06-29・ユーザー確定）
 
 JX019で仕上げた表示を、今後の ARIADNE 正典に採用する。意味は「Claude正典の誌面・模範答案の書式は維持しつつ、
 答案構成だけを、チップ配置で訓練しやすいマトリクス型にする」こと。
@@ -392,3 +410,50 @@ JX019で仕上げた表示を、今後の ARIADNE 正典に採用する。意味
 - **バックアップ**：この正典化前の比較用として、`backups/ariadne-claude-canonical-20260629-154017` に
   `canonical/ARIADNE.html` のHEAD版と、刑JX001〜019の JX/ARIADNE/RX/TREE/TTS 存在分を退避済み。
 - 閉じた深掘り層（`<details id="deep-dive">`）への TOC/相互リンクは末尾 JS が details を展開してからジャンプ。`@media print` で TOC/戻るは非表示。
+
+---
+
+## §15. v1.1.0 minor — 正典指定後の恒久対策（2026-06-29）
+
+v1.0.0 の見た目合意を、生成・検証・同期前ゲートで戻らないように固定する。
+
+- **正典スケルトン**：`canonical/ARIADNE.html` の版記載は当時 `ARIADNE v1.1.0 MATRIX-THREAD` とした。
+  現行 active は §16 の `ARIADNE v1.2.0 PLACEHOLDER-LOCK`。
+- **生成プロンプト**：`prompts/new-ariadne-headless.md` は本 spec を唯一の正典として参照する。
+- **検証 A30**：`.problem .pq` は `text-indent:1em`。`text-indent:0` への退行は ERROR。
+- **検証 A31**：`.facts li` を2カラムにする場合は
+  `grid-template-columns:minmax(18em,32em) minmax(16em,28em); column-gap:18px; justify-content:start`
+  の近接型を正典とする。旧ワイド2カラム
+  `minmax(24em,1.35fr) minmax(18em,1fr); column-gap:24px` は ERROR。
+- **preflight**：`scripts/check-lexia-preflight.py` は `scripts/check-ariadne-canonical.py` を通じて
+  `canonical/ARIADNE.html` と `outputs/ux/001_ARIADNE/**/*.html` を横断検証する。
+- **RX 配線**：想起カードの `data-rx` は「対応論点が明確なものだけ」付ける。参照先不在・科目/JX不整合は ERROR。
+  RX ファイルがあるだけで無理に紐づけることは禁止。
+- **本文レイアウト**：バッジ・ラベル・見出し以外の本文は本文カラム側に置く。ラベル横へ長文を直置きして
+  ぶら下がりを作らない。本文カラムは1字下げを標準にする。
+- **役割分担の維持**：TREE は論点構造理解、RX は答案で吐き出す論証、ARIADNE は周回導線。
+  三者を混同せず、ARIADNE は「JX → 答案構成 → 想起 → RX → TREE」へ自然に回る導線を担う。
+
+---
+
+## §16. v1.2.0 minor — PLACEHOLDER-LOCK（2026-06-29・ユーザー確定）
+
+v1.1.0 で正典化した見た目を、AI生成時に揺らさないため、ARIADNE を **固定HTML＋変数スロット**方式へ移行する。
+目的は「AIにデザイン判断の余白を渡さず、問題ごとに変わる文章・論点・事実・RX配線だけを判断させる」こと。
+
+- **固定正典**：`canonical/ARIADNE.html`。HTML/CSS/JS、class名、セクション順、余白、字下げ、点線区切り、
+  マイルドライナー機能色、パズルエンジン、Lexia連携JSは固定する。
+- **スロット契約**：`canonical/ARIADNE.placeholder.html`。AIが置換してよい箇所を `{{{SLOT_NAME}}}` で列挙する。
+  生成時はこのファイルを「編集可能箇所一覧」として読み、三重波括弧スロット外を変更しない。
+- **AI判断可**：問題文、登場人物、解法ナビ本文、peek、ドリル、答案構成の作法本文、下書き、拾う文言、骨子の
+  論点/規範/あてはめ/結論、模範答案本文、深掘り本文、`data-rx` の教育的に明確な配線。
+- **AI判断可のデザイン例外**：難易度に応じた ACTIVE ベースカラー選択のみ許す。
+  `canonical/ARIADNE.html` の既存プリセット **EASY / STD / HARD** から1つ選び、「▼ ACTIVE」直下のラベル＋値だけを
+  差し替える。新しい色の創作、機能色（問/規/当/結、事実、罠、ヒント等）の変更は禁止。
+- **AI判断不可**：カード構造、2カラム構造、ラベル/本文の配置、本文字下げ、`.facts li` のgrid値、`.mline` 構造、
+  `.bc-wrap` 構造、`.model-answer` の問規当結カード構造、`details#deep-dive` の外枠、JS、CSSセレクタ。
+- **生成プロンプト**：`prompts/new-ariadne-headless.md` は `{SKELETON}=canonical/ARIADNE.html` と
+  `{SLOT_CONTRACT}=canonical/ARIADNE.placeholder.html` を読み、固定正典を複製してスロット相当箇所だけを置換する。
+- **ガード**：`scripts/check-ariadne-canonical.py` は `canonical/ARIADNE.html` の
+  `ARIADNE v1.2.0 PLACEHOLDER-LOCK` と、`canonical/ARIADNE.placeholder.html` の
+  `ARIADNE_SLOT_CONTRACT v1.2.0 PLACEHOLDER-LOCK` を確認する。

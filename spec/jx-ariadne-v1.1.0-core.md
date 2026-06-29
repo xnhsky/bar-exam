@@ -1,5 +1,7 @@
 # ARIADNE v1.1.0 MATRIX-THREAD — JX 解法ナビ＋周回 正典
 
+> **旧 active・履歴用。現行 active は `spec/jx-ariadne-v1.2.0-core.md`（PLACEHOLDER-LOCK）。**
+
 > 初学者（白紙で論文に手が付かない）向けの「解法ナビ＋周回」専用 JX 正典。
 > 現 JX 正典 **ATHENA**（百科事典型）はそのまま。ARIADNE はそれと**役割分担**する別系統。
 > コードネーム＝アリアドネの糸（白紙の迷宮を抜ける解法導線）。
