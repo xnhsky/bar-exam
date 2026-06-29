@@ -386,6 +386,10 @@ class Validator:
     _G13_SHELL_CLASSES = (
         "sec-nav", "sec-icon", "marker-legend", "part-title",
         "answer-instruction", "reveal-answer-btn", "ox-btn", "footer-spec",
+        "back-to-top",
+    )
+    _G13_SHELL_SELECTORS = (
+        ".statement-verdict-table thead",
     )
     _G13_LEAK_THRESHOLD = 20
 
@@ -395,6 +399,9 @@ class Validator:
         body = soup.find("body") or soup
         for cls in Validator._G13_SHELL_CLASSES:
             for el in body.select("." + cls):
+                el.decompose()
+        for selector in Validator._G13_SHELL_SELECTORS:
+            for el in body.select(selector):
                 el.decompose()
         return re.findall(r"\S+", body.get_text())
 
