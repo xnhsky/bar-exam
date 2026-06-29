@@ -32,6 +32,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
       通常 SM2 カード本文へ fa-narrative / 詳説 / 問題ローカル記号を混ぜない
   G35 物語解説タイポグラフィ：.fa-narrative の強調太字を過剰に太くしない
   G36 TX360テンプレート固定：本文ラベルは 文言/趣旨/射程/転用（字間スペースなし）
+  G37 TX360テンプレート固定：5点ラベルは長方形CSS、H1は No.NNN ── 形式
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -932,6 +933,46 @@ class Validator:
                             ".tx-flow-label は 文言/趣旨/射程/切断点/転用 に固定し、"
                             "字間スペースはCSS側に任せる。")
 
+    def g37_tx360_template_visual_contract(self):
+        # TX360 is also the visual source of truth: rectangular flow labels
+        # and a title beginning with "No.NNN ──".
+        if not self.html_path.stem.endswith("_lex"):
+            return
+
+        code_m = re.match(r"(.+?)(\d+)_lex$", self.html_path.stem)
+        expected_no = code_m.group(2) if code_m else None
+        h1 = self.soup.find("h1")
+        h1_text = h1.get_text(" ", strip=True) if h1 else ""
+        if expected_no and not h1_text.startswith(f"No.{expected_no} ──"):
+            self.err("G37", f"H1 が TX360テンプレート形式ではない: {h1_text!r}。"
+                            f"`No.{expected_no} ── ...` で始める。")
+
+        css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+        matches = list(re.finditer(r"\.tx-article-flow\s+\.tx-flow-label\s*\{(?P<body>[^}]*)\}", css, re.S))
+        if not matches:
+            self.err("G37", ".tx-article-flow .tx-flow-label の長方形テンプレートCSSが無い。"
+                            "TX360の実物テンプレートを流し込む。")
+            return
+        required = {
+            "width": r"width\s*:\s*4\.4em",
+            "min-width": r"min-width\s*:\s*4\.4em",
+            "border-radius": r"border-radius\s*:\s*6px",
+            "padding": r"padding\s*:\s*2px\s+7px\s+3px",
+        }
+        ok = False
+        best_lacks = list(required)
+        for m in matches:
+            body = m.group("body")
+            lacks = [name for name, pat in required.items() if not re.search(pat, body)]
+            if len(lacks) < len(best_lacks):
+                best_lacks = lacks
+            if not lacks:
+                ok = True
+                break
+        if not ok:
+            self.err("G37", f"5点ラベルCSSがTX360長方形テンプレートからずれている: {', '.join(best_lacks)}。"
+                            "丸型・6.4em系へ戻さず、TX360の `.tx-article-flow .tx-flow-label` を使う。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -967,6 +1008,7 @@ class Validator:
         self.g34_tx360_sm2_payload_contract()
         self.g35_fa_narrative_emphasis_weight()
         self.g36_tx360_template_flow_label_text()
+        self.g37_tx360_template_visual_contract()
 
 
 def main():
@@ -998,7 +1040,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G36, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G37, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
