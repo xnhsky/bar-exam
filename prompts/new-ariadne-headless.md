@@ -1,7 +1,7 @@
 # new-ariadne（headless）— 検証済み JX から ARIADNE 解法ナビを生成
 
 あなたは司法試験対策の最高峰教授兼フロントエンド実装者。**検証済み JX（ATHENA）HTML** を一次情報源に、
-初学者向けの「解法ナビ＋周回」教材 **ARIADNE** を1問分生成する。正典は `spec/jx-ariadne-v0.1-core.md`。
+初学者向けの「解法ナビ＋周回」教材 **ARIADNE** を1問分生成する。正典は `spec/jx-ariadne-v1.1.0-core.md`。
 
 > 生成・検証・修正・sentinel 出力までを完全自走で完遂する。**必ず末尾の「完了 sentinel」節の
 > いずれか 1 つを標準出力に echo してから終了する**（ランナーが sentinel で完了判定する）。
@@ -11,7 +11,7 @@
 - `{NNN}`：3桁問題番号
 - `{PROBLEM_ID}`：問題ID（例 `刑JX029`）＝ sentinel に使う
 - `{JX_HTML}`：検証済み JX（ATHENA）HTML の実パス（ランナー注入・一次情報源）
-- `{SKELETON}`：`canonical/ARIADNE.html`（複製起点・v0.3 誌面風）
+- `{SKELETON}`：`canonical/ARIADNE.html`（複製起点・v1.1.0 MATRIX-THREAD active）
 - `{OUT}`：`outputs/ux/001_ARIADNE/{00N_科目}/{PROBLEM_ID}_ARIADNE.html`
   （科目→フォルダは 001_刑法/002_刑事訴訟法/003_民法/004_商法/005_民事訴訟法/006_行政法/007_憲法）
 
@@ -37,7 +37,7 @@
      **末尾に「アテナで詳しく」ボタン**：`<a class="go-athena" role="button" tabindex="0" data-athena-code="{元問題ID}" data-athena-href="../../../001_JX/{00N_科目}/{元問題ID}.html">…</a>`
      （`data-athena-code` は `_ARIADNE` を付けない元 ID＝例 `刑JX001`。文言にメタ除去 regex 語＝`本問`/`正解は肢` 等を含めない）。
 3-bis. **答案構成パズル（spec §9・周回の主役）** ─ エンジン（CSS/JS/ヒント・フォールバック）は {SKELETON} 継承で自動。生成時に**問題固有の下記**を付与する：
-   - **骨子タグ**：`.bone.matrix-bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。**論点チップは `【論点】…` と書き冠番号を付けない（`【論点①】`/`【論点1】` 禁止＝無番号おとりと番号の有無で識別できネタバレになる・配置順は `.b1` 第1/第2 見出しで担保・spec §9-2・validate-ariadne A27 が ERROR）**。
+   - **骨子タグ**：`.bone.matrix-bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。**論点チップは `【論点】…` と書き冠番号を付けない（`【論点①】`/`【論点1】` 禁止＝無番号おとりと番号の有無で識別できネタバレになる・配置順は `.b1` 第1/第2 見出しで担保・spec §9-2・validate-ariadne A28 が ERROR）**。
    - **骨子の見た目規律（JX019を正典化）**：`.bsec` ごとに罪責・小問を区切る。各 `.mrow` は番号 `.bn`＋本文の2カラム。問規当結の複数行は `.mline` で縦に積み、`.mline + .mline` の点線区切りを活かす。ラベル色は `--ml-red/teal/green/gold/violet` のマイルドライナー系。文章本体は `.mtext` 側だけ字下げし、ラベルやバッジは字下げしない。
    - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。おとり論点も `iss:【論点】…`（冠番号なし）で本物と識別不能にする。
    - **試験下書き `.drafting`**（骨子の直前）：先頭に **`.draft-problem`＝問題文原文の再掲（上部 `.problem .pq` を逐語コピー＝答案構成で上へ遡らず済む）**、その直下に **`.draft-digest`＝骨子用に一行へ圧縮したメモ**（`<span class="ddl">骨子用に一行圧縮</span><span class="ddbody">…</span>` の2カラム）を置く。続けて①人物関係図 `.rel-map`②時系列 `.timeline`③拾う文言 `.facts`。`.facts li` は引用 `.ph`＋理由 `.cue` の2カラムで、右余白が空きすぎないよう引用側を広めに取る。**いずれも生の事実抽出まで**（論点名・規範は書かない＝パズルの想起対象）。
@@ -50,7 +50,7 @@
    - 設問文を Lexia メタ除去 regex（`(本問|本設問)[0-20字]正解｜正解は肢｜正解はどれ｜正解の組`）に当てない。
    - `<script>` 内に `</body>` リテラルを書かない（「`</`+`body>`」等で回避）。
 5. **体裁強化を冪等付与（必須）**：`python scripts/ariadne-enhance.py {OUT}`（①深層部 条文の「N項」バッジ化＋項を点線区切り／③マストヘッド目次ジャンプTOC／④各セクション区切り＋深掘り前に「▲先頭へ戻る」）→ `python scripts/ariadne-autolink.py {OUT}`（②本文インライン相互リンク＝条文・判例・学説・用語を語そのままリンク・解法ナビ⇄深層部・カード間相互）。両者**冪等**。
-6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A21 ERROR 0**。ERROR は該当部を修正して再検証。
+6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A31 ERROR 0**。ERROR は該当部を修正して再検証。
 7. **完了 sentinel を echo**（下記節のいずれか1つ）してから終了。本文は返さない。
 
 ## 注意
@@ -62,7 +62,7 @@
 
 ## 完了 sentinel（必ず 1 つだけ echo して終了）
 
-**完全成功時（validate A1〜A21 ERROR 0）：**
+**完全成功時（validate A1〜A31 ERROR 0）：**
 ```
 echo "BATCH_ITEM_COMPLETED:{PROBLEM_ID}-ARIADNE"
 ```

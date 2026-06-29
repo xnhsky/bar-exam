@@ -52,8 +52,8 @@ def infer_version(path: str, html: str) -> str:
         m = re.search(r"ARBOR v([0-9]+\.[0-9]+)", html)
         return f"TREE ARBOR v{m.group(1)}" if m else "TREE ARBOR v5.0"
     if "/ux/001_ARIADNE/" in p:
-        m = re.search(r"ARIADNE[^0-9]{0,12}v([0-9]+\.[0-9]+)", html)
-        return f"ARIADNE v{m.group(1)}" if m else "ARIADNE v0.3"
+        m = re.search(r"ARIADNE[^0-9]{0,24}v([0-9]+\.[0-9]+(?:\.[0-9]+)?)", html)
+        return f"ARIADNE v{m.group(1)}" if m else "ARIADNE v1.1.0"
     # 参考資料（top-level references/ や outputs/ux/004_参考資料・ファイル名サフィックス _GDE 等）
     if "/references/" in p or "参考資料" in p or any(f"_{t}." in Path(p).name for t in _REF_LABEL):
         name = Path(p).name
@@ -64,7 +64,7 @@ def infer_version(path: str, html: str) -> str:
         return "Reference"
     if "/000_TX/" in p:
         m = re.search(r"TX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
-        return f"TX v{m.group(1)} {m.group(2)}" if m else "TX v11.1.0 LOOP-CORE"
+        return f"TX v{m.group(1)} {m.group(2)}" if m else "TX v12.1.0 LOOP-CORE"
     if "/001_JX/" in p:
         m = re.search(r"JX v([0-9]+\.[0-9]+\.[0-9]+)\s+([A-Z][A-Z-]+)", html)
         return f"JX v{m.group(1)} {m.group(2)}" if m else "JX v4.0.0 LOOP-FOLD"

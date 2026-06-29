@@ -1,20 +1,29 @@
-# ARIADNE v0.1 — JX 解法ナビ＋周回 正典（骨子）
-
-> **旧版・履歴用。現行 active は `spec/jx-ariadne-v1.1.0-core.md`。**
-> v1.0.0 で JX019 マトリクス型を major 正典化し、v1.1.0 で字下げ・2カラム・RX配線・preflight恒久対策を固定した。
+# ARIADNE v1.1.0 MATRIX-THREAD — JX 解法ナビ＋周回 正典
 
 > 初学者（白紙で論文に手が付かない）向けの「解法ナビ＋周回」専用 JX 正典。
 > 現 JX 正典 **ATHENA**（百科事典型）はそのまま。ARIADNE はそれと**役割分担**する別系統。
 > コードネーム＝アリアドネの糸（白紙の迷宮を抜ける解法導線）。
+> **ステータス：現行 active。** Claude正典の誌面・模範答案を維持し、答案構成だけを JX019 で確定した
+> マトリクス型チップ訓練へ正典化する。RX 配線・TTS/答案構成の作法・下書き・拾う文言を一体で回す。
 
 ---
+
+## 0-prime. バージョン系譜（2026-06-29 確定）
+
+- **v0.1（prototype）**：ARIADNE を ATHENA から分離した初期正典。解法7手・周回○×・深掘り・ATHENAジャンプを定義。
+- **v0.3（visual prototype）**：`canonical/ARIADNE.html` の誌面風スケルトン。TX v11系フォント・難易度別ベースカラー・マイルドライナー機能色を導入。
+- **v1.0.0（major / MATRIX-THREAD）**：JX019 で合意した **マトリクス型答案構成**を正式正典へ昇格。
+  旧来の `<pre>` 風・箇条書き風骨子は新規生成では使わない。模範答案は Claude 正典どおり問規当結カードを維持する。
+- **v1.1.0（minor / active）**：v1.0.0 の実運用で出た誌面調整を恒久化。
+  本文1字下げ、ラベル＋本文2カラム、拾う文言の近接2カラム、項目間点線、マイルドライナー系ラベル色、
+  RX `data-rx` 配線、`validate-ariadne.py` A30/A31 と preflight 組込みを含む。
 
 ## 0. 役割分担
 
 | | ATHENA（既存） | ARIADNE（本spec） |
 |---|---|---|
 | 目的 | 知識の事典（条文/判例/学説/論証の網羅） | **「次に何をするか」の解法手順＋答案構成までの高速周回** |
-| 起点 | `canonical/ATHENA.html` | `canonical/ARIADNE.html`（v0.3 誌面風・刑JX001 で実証） |
+| 起点 | `canonical/ATHENA.html` | `canonical/ARIADNE.html`（v1.1.0 MATRIX-THREAD active） |
 | 生成元 | 問題PDF＋逐語 | **検証済み JX（ATHENA HTML）から蒸留**（RX/TREE と同じ副産物パターン） |
 | Lexia | 問題本体 | 別ID の周回教材（メイン JX と衝突しない） |
 
@@ -148,7 +157,7 @@ outputs/ux/001_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html
 3. **7手・骨子・15例題**を JX の論点構造から起こす。○×は**自己完結の一般原則／例題**に変換（§4）。
    **深掘り層は §11 の TX 参考条文判例書式でアテナ級に鋳造**（規範＋学説対立＋判例完全プロファイル＋
    条文完全プロファイル）し、末尾に「アテナで詳しく」ボタン（`data-athena-code={元問題ID}`）を置く。
-4. **検証**：`python scripts/validate-ariadne.py <出力>` で **A1〜A21 ERROR 0**。
+4. **検証**：`python scripts/validate-ariadne.py <出力>` で **A1〜A31 ERROR 0**。
 5. **配置・同期**：`outputs/ux/001_ARIADNE/{00N_科目}/` に置き、**master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 
 ---
@@ -378,7 +387,7 @@ finalize 工程に組込み済み・既存 57 枚＋`canonical/ARIADNE.html` 反
 
 ---
 
-## §14. JX019 マトリクス正典化（2026-06-29・ユーザー確定）
+## §14. v1.0.0 major — JX019 マトリクス正典化（2026-06-29・ユーザー確定）
 
 JX019で仕上げた表示を、今後の ARIADNE 正典に採用する。意味は「Claude正典の誌面・模範答案の書式は維持しつつ、
 答案構成だけを、チップ配置で訓練しやすいマトリクス型にする」こと。
@@ -392,3 +401,25 @@ JX019で仕上げた表示を、今後の ARIADNE 正典に採用する。意味
 - **バックアップ**：この正典化前の比較用として、`backups/ariadne-claude-canonical-20260629-154017` に
   `canonical/ARIADNE.html` のHEAD版と、刑JX001〜019の JX/ARIADNE/RX/TREE/TTS 存在分を退避済み。
 - 閉じた深掘り層（`<details id="deep-dive">`）への TOC/相互リンクは末尾 JS が details を展開してからジャンプ。`@media print` で TOC/戻るは非表示。
+
+---
+
+## §15. v1.1.0 minor — 正典指定後の恒久対策（2026-06-29）
+
+v1.0.0 の見た目合意を、生成・検証・同期前ゲートで戻らないように固定する。
+
+- **正典スケルトン**：`canonical/ARIADNE.html` の版記載は `ARIADNE v1.1.0 MATRIX-THREAD` とする。
+- **生成プロンプト**：`prompts/new-ariadne-headless.md` は本 spec を唯一の正典として参照する。
+- **検証 A30**：`.problem .pq` は `text-indent:1em`。`text-indent:0` への退行は ERROR。
+- **検証 A31**：`.facts li` を2カラムにする場合は
+  `grid-template-columns:minmax(18em,32em) minmax(16em,28em); column-gap:18px; justify-content:start`
+  の近接型を正典とする。旧ワイド2カラム
+  `minmax(24em,1.35fr) minmax(18em,1fr); column-gap:24px` は ERROR。
+- **preflight**：`scripts/check-lexia-preflight.py` は `scripts/check-ariadne-canonical.py` を通じて
+  `canonical/ARIADNE.html` と `outputs/ux/001_ARIADNE/**/*.html` を横断検証する。
+- **RX 配線**：想起カードの `data-rx` は「対応論点が明確なものだけ」付ける。参照先不在・科目/JX不整合は ERROR。
+  RX ファイルがあるだけで無理に紐づけることは禁止。
+- **本文レイアウト**：バッジ・ラベル・見出し以外の本文は本文カラム側に置く。ラベル横へ長文を直置きして
+  ぶら下がりを作らない。本文カラムは1字下げを標準にする。
+- **役割分担の維持**：TREE は論点構造理解、RX は答案で吐き出す論証、ARIADNE は周回導線。
+  三者を混同せず、ARIADNE は「JX → 答案構成 → 想起 → RX → TREE」へ自然に回る導線を担う。

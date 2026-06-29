@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""validate-ariadne.py — ARIADNE（JX 解法ナビ＋周回・Lexia連携）HTML の検証。
+"""validate-ariadne.py — ARIADNE v1.1.0（JX 解法ナビ＋周回・Lexia連携）HTML の検証。
 
 ARIADNE は ATHENA（百科事典型 JX 正典）と役割分担する別正典。
 本検証器は「構造（誌面の骨格）」「Lexia 周回契約（自己完結○×が復習プールに乗るか）」

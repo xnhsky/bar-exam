@@ -17,6 +17,8 @@
 > **現行版・旧版・コードネームの一覧は `docs/canonical-lineage.md`（系譜・早見表）が正典**
 > （`spec/README.md` はそこへの入口）。旧 spec（TX v8.x/v9.x は `spec/legacy/`・GENESIS.html 等）は
 > legacy アップグレードツールが依存するため残置するが、新規生成では現行版のみを使う。
+> ARIADNE は **v1.1.0 MATRIX-THREAD**（`canonical/ARIADNE.html`／`spec/jx-ariadne-v1.1.0-core.md`）が active。
+> Claude正典の模範答案を維持し、JX019 型のマトリクス答案構成・RX配線・本文字下げ/2カラムを正典とする。
 
 ### 7 科目共通
 
@@ -451,6 +453,13 @@ TX の「抽出PDF」と同型に、**JX も入力原本（PDF＋逐語）を Dr
   役割フォント）は保持＝`validate-rx.py` 無改修 PASS。
 
 **詳細は `docs/rx-arb-byproducts.md` が正典**。
+
+- **ARIADNE v1.1.0 MATRIX-THREAD（2026-06-29・正典化）**：JX019 で合意したマトリクス型答案構成を
+  `canonical/ARIADNE.html` と `spec/jx-ariadne-v1.1.0-core.md` の active 正典に昇格。模範答案は従来の
+  Claude 正典（問規当結カード・明朝・字下げ・事実/評価語マーカー）を維持し、答案構成だけをチップ配置訓練型にする。
+  想起カードの `data-rx` は対応論点が明確なものだけ徹底配線する。恒久対策として `validate-ariadne.py` A30/A31
+  （問題文1字下げ・拾う文言近接2カラム）と `check-ariadne-canonical.py` を追加し、`check-lexia-preflight.py`
+  に組み込み済み。
 
 ---
 
