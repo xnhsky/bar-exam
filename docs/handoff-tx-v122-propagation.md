@@ -36,6 +36,7 @@
 - 旧 `FINAL ANSWER` パネルは inline 型の画面には出さない。`.final-answer` は `data-answer-key` / G23 / Lexia 抽出のため DOM に残すが、`.answer-area.inline-prototype-mode .final-answer` で非表示固定にする。
 - ANSWER 直後には必ず `tx-mini-law` を置く。条文本文・判例要旨を各肢の前面に出し、5点フローの「文言/趣旨/射程」だけで根拠を代用しない。
 - `tx-mini-law` の本文冒頭に出る `本条` / `本文` / `①` / `②` / `109②` / `判旨核心` / `判例` は `tx-mini-law-para` の小ラベルで囲む。上段の `刑法` / 条文番号 / `判例` / 判例名チップも重厚な楕円ピルを維持する。
+- `tx-mini-law-para` 付き本文は、ラベル列＋本文列の2カラムにする。折り返し本文をラベル下へぶら下げず、本文列に字下げしてそろえる。
 - 詳説の一番下にある条文・判例本文は、`sub-card basis-link` の `BASIS` ボックス内に収める。`.tx-detail-partb` のリセットで basis-link の枠・背景・`::before` タブを消さない。
 - 詳説ボタンは空展開禁止。`tx-inline-detail` には必ず `tx-detail-panel tx-detail-partb` と `data-partb-source` を置く。
 - 物語本文や強調語は太すぎるウェイトへ戻さない。特にモバイルで潰れる 700/800 系を本文強調に使わない。
