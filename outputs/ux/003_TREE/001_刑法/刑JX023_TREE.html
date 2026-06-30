@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>間接正犯と錯誤・死者の占有 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XXIII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">間接正犯と錯誤・死者の占有 <em>— On Indirect Perpetration &amp; the Possession of the Dead</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">間接正犯と<br>錯誤・死者の占有</h2>
+      <div class="mm-root-en">Indirect Perpetration v. Instigation</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑法<br>
+        <em>Origin</em>重要問題 第23問 · 最判昭41・4・8<br>
+        <em>Form</em>道具の離反・錯誤処理型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑法総論（<strong>正犯と共犯</strong>）と各論（<strong>財産犯</strong>）が交差する複合問題。総論側は間接正犯の成立要件（行為支配）と、道具が離反したときの<strong>間接正犯の故意で教唆犯を実現した錯誤</strong>。各論側は殺害後の財物奪取をめぐる<strong>死者の占有</strong>（窃盗罪か占有離脱物横領罪か）。乙の各論論点を先に確定し、甲の総論論点を後に処理する縦串型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>論文超頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>間接正犯と共犯の限界・錯誤処理は司法試験の頻出論点。死者の占有は<span class="case-name">最判昭41.4.8</span>を典拠とする定番。両者を一問で処理させる典型的な総合問題。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 最高重要」象限の TARGET 領域。乙の殺人は素直だが、<strong>甲を間接正犯のまま既遂と書くと大崩れ</strong>。道具の離反＝行為支配の喪失を見抜き、客観の教唆へ縮小する処理が分水嶺となる罠型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>正犯と共犯の区別／実行の着手時期／抽象的事実の錯誤・縮小認定／共同正犯の意思連絡／強盗罪と窃盗罪の領得意思発生時点。とりわけ<strong>「間接正犯の故意で教唆犯成立」</strong>の処理が本問の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>医師甲は患者Aの殺害を企て、新人看護師乙に<strong>毒薬を「これをAに投与して」と手渡す</strong>（乙を道具として利用する意思）。乙は準備中に<strong>毒薬であると気付く</strong>が、自らの意思でAに投与し殺害。さらに乙はA死亡直後にその場で<strong>財布から現金3万円を抜き取った</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲（医師・利用者＝主観は間接正犯）／乙（新人看護師・当初は道具→離反して直接正犯）／A（患者・被害者＝殺害され財物を奪われる）。甲乙間に<strong>意思連絡はない</strong>（共同正犯不成立の前提）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 乙の毒薬投与＝<strong>殺人罪</strong>（争いなし）。<br>② A死亡後の現金奪取は<strong>窃盗罪か占有離脱物横領罪</strong>か（死者の占有）。<br>③ 乙を道具に利用した甲に<strong>殺人の間接正犯</strong>が成立するか（行為支配性）。<br>④ 間接正犯の故意で<strong>教唆を実現した錯誤</strong>の処理。<br>⑤ 甲乙間の<strong>共同正犯</strong>の成否。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 乙の殺人＝直接正犯を端的に確定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>直接手を下した乙から検討するのがセオリー。乙は殺意をもって毒薬を投与しAを死亡させたから<strong>殺人罪（199条）</strong>が成立する。構成要件該当・違法・責任に問題なし。<strong>ここは短く処理</strong>し、勝負どころへ進む。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 現金奪取＝死者の占有（窃盗 or 占離横領）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>殺害時に領得意思がなく<strong>強盗罪（236条）は否定</strong>。「占有」＝事実的支配を要件として死者の占有を問題提起し、<strong>殺害者との関係では一連の行為を全体的に観察</strong>し生前の占有を侵害したと評価できる限度で占有を肯定（<span class="case-name">最判昭41.4.8</span>）。乙は<strong>窃盗罪</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 甲の間接正犯＝行為支配の喪失で否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲の主観は間接正犯。だが<strong>乙が毒薬と気付き自らの意思で殺害を決意した時点で、乙は道具でなくなり甲の行為支配は失われる</strong>。直接正犯（乙）が立つ以上、意思連絡なき甲を併せて間接正犯とするのは不合理。<strong>殺人既遂の間接正犯は不成立</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 着手時期から殺人未遂の間接正犯も検討</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>実行の着手＝法益侵害の<strong>現実的危険発生時</strong>と解する立場（被利用者標準説）から、毒薬交付時にはAの生命への現実的危険が生じていないとみれば<strong>殺人未遂の間接正犯も成立しない</strong>。利用者標準説なら離反前に未遂の余地がある旨を一言示すと厚い。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 5 · 客観は教唆→錯誤を重なり合いで処理</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>客観的には甲は乙に犯意を生じさせ犯罪を実行させた＝<strong>教唆（61条1項）</strong>。主観（間接正犯）と客観（教唆）のズレは<strong>抽象的事実の錯誤の一種</strong>。故意責任の本質→構成要件的重なり合い→<strong>軽い教唆犯の限度で処断</strong>。甲は<strong>殺人既遂罪の教唆犯</strong>。共同正犯は意思連絡を欠き不成立。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 死者の占有（窃盗 or 占離横領）
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Possession of Dead</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 「占有」の意義と問題の所在</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>窃盗罪（235条）は他人の「占有」する財物の占有を侵害して移転させる罪。占有とは財物に対する<strong>事実的支配</strong>をいう。被害者が既に死亡しているとき、死者に事実的支配＝占有を観念できるかが問われる。観念できなければ占有離脱物横領罪（254条）にとどまる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 占有継続説（判例・通説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>判例は<strong>自ら被害者を殺害した者との関係に限って</strong>占有侵害を肯定する。殺害と奪取を分断せず、一連の行為を全体的に観察すれば生前の占有を侵害したと評価できるからである。</p><div class="norm">被害者が生前有していた財物の所持は、その死亡直後においてもなお継続して保護に値し、これを自ら侵害した犯人との関係においては、一連の行為を全体的に観察して占有侵害を肯定すべきである。<span class="norm-cite">— 占有継続説（最判昭41.4.8）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 占有否定説・近接性説との対比</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>占有否定説は、死者には事実的支配も支配意思もなく占有を観念できない以上、誰が奪っても占有離脱物横領罪にとどまるとする。<br>近接性説は、占有の有無を問わず殺害と奪取が時間的・場所的に近接していれば全体として窃盗の違法性を肯定する。<br>本問では占有継続説（窃盗）で処理し、乙はA殺害直後その場で奪取しており規範にあてはまる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 間接正犯と錯誤
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Indirect &amp; Error</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 間接正犯の成立要件（行為支配）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>間接正犯とは、他人を道具として利用して自己の犯罪を実現すること。正犯性の根拠は、利用者が被利用者の行為を<strong>意のままに支配・操縦している（行為支配）</strong>点と、自己の犯罪として実現する<strong>正犯意思</strong>にある。</p><div class="norm">間接正犯が成立するには、利用者が被利用者を一方的に支配・利用してその行為を意のままに操縦し（行為支配性）、かつ自己の犯罪を実現する意思（正犯意思）を有することを要する。<span class="norm-cite">— 行為支配説</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 道具の離反＝行為支配の喪失</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙が毒薬であると気付き<strong>自らの意思でAの殺害を決意した時点</strong>で、乙は甲の意のままに動く道具ではなくなる。よって甲の行為支配は失われ、<strong>殺人（既遂）の間接正犯は成立しない</strong>。直接正犯たる乙が立つ以上、甲を併せて正犯とするのは正犯の二重評価で不合理。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 間接正犯の故意で教唆を実現した錯誤</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>客観的には甲は毒薬交付という働きかけで乙に犯意を生じさせており、これは<strong>教唆</strong>に当たる。主観（間接正犯）と客観（教唆）のズレは抽象的事実の錯誤の一種。故意責任の本質＝規範に直面した反対動機形成の可能性から、両者の<strong>構成要件的に重なり合う限度＝軽い教唆犯</strong>の故意を認め、甲は<strong>殺人既遂罪の教唆犯</strong>（61条1項）として処断する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 死者の占有（窃盗肯定）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">窃盗罪における「占有」とは財物に対する事実的支配をいう。被害者が死亡している場合、死者に占有を観念しえないのが原則であるが、自ら被害者を殺害した者との関係においては、被害者が生前有していた占有はなお保護に値し、殺害と奪取を一連の行為として全体的に観察すれば生前の占有を侵害したと評価できるから、窃盗罪が成立する。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 間接正犯の正犯性と離反</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">間接正犯は、利用者が被利用者を一方的に支配・操縦して自己の犯罪を実現する点に正犯性が認められる。したがって、被利用者が利用者の意図を察知し自らの意思で犯行を決意したときは、利用者の行為支配は失われ、間接正犯は成立しない。<span class="norm-cite">— 行為支配説型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 間接正犯の故意で教唆成立（重なり合い）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">客観的に教唆の事実が存在するのに行為者が間接正犯の故意を有していた場合、故意責任の本質は規範に直面しての反対動機形成の可能性にあるから、間接正犯と教唆犯の構成要件的に重なり合う限度で軽い教唆犯の故意を認め、教唆犯の限度で犯罪の成立を肯定すべきである。<span class="norm-cite">— 縮小認定型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 罪数（乙・甲）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">乙について成立する殺人罪と窃盗罪は、行為を異にし保護法益も異なるから併合罪（45条前段）となる。甲には殺人既遂罪の教唆犯が一罪として成立する。<span class="norm-cite">— 罪数処理・標準形</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 死者の占有（窃盗肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙はA殺害の<strong>直後・犯行現場で</strong>その場の財布から現金を奪取／殺害行為者本人が奪取している（殺害者との関係）／時間的・場所的に近接。<br>──一連の行為を全体的に観察して生前の占有侵害＝窃盗罪を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 強盗否定材料（領得意思の発生時点）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙は当初Aの財物を奪う意思を有していなかった／殺害は財物奪取の手段としてされたものではない／領得意思は<strong>殺害後に初めて発生</strong>。<br>──暴行が財物奪取の手段でない以上、強盗罪（236条）を否定し窃盗罪へ絞る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 行為支配喪失材料（間接正犯否定）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙が<strong>毒薬であると気付いた</strong>／その後<strong>自らの意思でAに投与し殺害</strong>を決意・遂行／甲乙間に意思連絡なし。<br>──乙が道具でなくなり甲の行為支配が失われた＝間接正犯否定／客観の教唆事実（毒薬交付の働きかけ）は残る。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>死者の占有</strong> — 殺害者との関係では一連の行為を全体的に観察し生前占有侵害＝窃盗<br>② <strong>間接正犯</strong> — 行為支配＋正犯意思／離反で支配喪失＝不成立<br>③ <strong>錯誤接続</strong> — 間接正犯の故意×客観教唆＝重なり合いで軽い教唆犯</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判昭41.4.8</span> — 死者の占有・殺害者との関係で窃盗（百選Ⅱ29・素材）<br>② 行為支配説 — 間接正犯の正犯性の根拠（通説）<br>③ 抽象的事実の錯誤・縮小認定 — 重い故意で軽い罪の限度で成立</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 殺人 — 199条<br>· 窃盗 — 235条／占有離脱物横領 — 254条<br>· 強盗（否定） — 236条<br>· 教唆 — 61条1項<br>· 罪数（乙） — 殺人罪と窃盗罪は併合罪（45条前段）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「殺害者との関係では一連の行為を全体的に観察」<br>· 「占有＝事実的支配」<br>· 「道具の離反＝行為支配の喪失」<br>· 「間接正犯と教唆の重なり合う限度」<br>· 「軽い教唆犯で処断」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 第三者による死者からの奪取</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>判例の保護は「自ら被害者を殺害した者との関係」に<strong>限定</strong>される。たまたま殺害現場を通りかかった第三者が死者の財物を持ち去った場合は生前の占有を観念できず、<strong>占有離脱物横領罪</strong>にとどまる。死者の占有を一般的に認めるものではない点が射程の核。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 強盗罪との区別（領得意思の時点）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>暴行・脅迫が<strong>財物奪取の手段</strong>として加えられたなら強盗罪（236条）。本問は殺害後に初めて領得意思が生じており、殺害は財物奪取の手段でないから強盗は否定。領得意思の発生時点が分水嶺となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 実行の着手と殺人未遂（43条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>間接正犯の実行の着手時期は<strong>利用者標準説</strong>（利用行為時）と<strong>被利用者標準説</strong>（被利用者の行為時＝結果発生の現実的危険時）が対立。本問では被利用者標準説に立てば交付時に危険なく未遂の間接正犯も不成立。利用者標準説なら離反前に未遂の余地を生じうる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 共同正犯の成否（意思連絡）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>共同正犯（60条）には<strong>意思連絡＝相互の意思の連絡</strong>が必要。甲乙間に意思連絡はないから共同正犯は成立しない。片面的共同正犯を否定する通説からも本問で共同正犯を立てるのは誤り。教唆として処理する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 甲を間接正犯のまま既遂と書く</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲の主観だけ見て<strong>殺人既遂の間接正犯</strong>と結論づけるのが最大の失点。乙の離反＝行為支配の喪失を見落とすと論点が一段つぶれる。直接正犯（乙）が立つことと併せ、間接正犯を否定する過程こそ配点の山。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 死者の占有を無限定に肯定/否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「死者にも占有がある」と<strong>一般的に肯定</strong>するのも、「死者に占有はない」と直ちに否定するのも誤り。判例は<strong>殺害者との関係に限って</strong>肯定する。限定の射程を落とすと第三者奪取との区別ができなくなる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 強盗を検討せず窃盗へ飛ぶ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>重い財産犯から検討するセオリーを無視し、いきなり窃盗・占離横領の択一に入るのは雑。<strong>まず強盗（236条）を立て、領得意思が殺害後発生で手段性を欠く</strong>として否定する一段を必ず挟む。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 錯誤処理を省き不可罰にする</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>間接正犯を否定した後、<strong>甲を無罪・不可罰</strong>で終えるのは大崩れ。客観の教唆事実が残ることを見て、間接正犯の故意との重なり合いで<strong>軽い教唆犯</strong>を導くのが到達点。甲の罪責を必ず確定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 共同正犯を安易に立てる</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲乙が同じAを殺したからと<strong>共同正犯</strong>に飛びつくのは誤り。意思連絡を欠く以上共同正犯は成立しない。意思連絡の有無を確認して共同正犯を切り、教唆へ進む一文を落とさない。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じる。乙（殺人＋死者の占有）→甲（間接正犯→錯誤）の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。死者の占有の<strong>射程</strong>と行為支配喪失の認定を意識。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。乙→甲の順序と配点設計を訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。死者の占有・行為支配・錯誤接続の規範を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。判例と条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和41年4月8日</span><span class="mm-leaf-sub"><em>Possession of the Dead</em> · 刑集20巻4号207頁 · 百選Ⅱ29</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>死者の占有のリーディングケース・本問の素材判例</strong>。被害者を殺害した者が、その死亡直後にその場で被害者の財物を奪取した場合、被害者が生前有していた占有はなお保護に値し、<strong>殺害者との関係では一連の行為を全体的に観察</strong>して占有侵害＝窃盗罪を肯定した。<em>射程</em> — 保護は「自ら被害者を殺害した者との関係」に限定。第三者奪取は占有離脱物横領にとどまる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法199条</span><span class="mm-leaf-sub"><em>Penal Code, art. 199 · Homicide</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「人を殺した者は、死刑又は無期若しくは五年以上の懲役に処する」。乙の毒薬投与によるA殺害がこれに該当し殺人罪が成立する。甲については殺人既遂罪の<strong>教唆犯</strong>の正犯結果を画する条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法235条</span><span class="mm-leaf-sub"><em>art. 235 · Theft</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「他人の財物を窃取した者は、窃盗の罪とし、十年以下の懲役……に処する」。「窃取」＝他人の占有を侵害して財物を移転すること。死者の占有を殺害者との関係で肯定し、乙の現金奪取をここに位置づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法254条</span><span class="mm-leaf-sub"><em>art. 254 · Embezzlement of Lost Property</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「遺失物、漂流物その他占有を離れた他人の物を横領した者は……処する」。占有否定説・第三者奪取の帰結条文。本問では占有継続説により窃盗を肯定するため、対比のために引く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法236条</span><span class="mm-leaf-sub"><em>art. 236 · Robbery</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「暴行又は脅迫を用いて他人の財物を強取した者は……処する」。暴行が<strong>財物奪取の手段</strong>であることを要する。本問の乙は殺害後に領得意思を生じ手段性を欠くから強盗は否定し、窃盗の検討に絞る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法61条1項</span><span class="mm-leaf-sub"><em>art. 61(1) · Instigation</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「人を教唆して犯罪を実行させた者には、正犯の刑を科する」。間接正犯の故意で客観的に教唆を実現した甲を、重なり合いの限度で<strong>殺人既遂罪の教唆犯</strong>として処断する根拠条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法43条・203条</span><span class="mm-leaf-sub"><em>art. 43 / 203 · Attempt</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>43条は実行の着手と未遂減軽の根拠、203条は殺人未遂の処罰根拠。間接正犯の着手時期（利用者標準説／被利用者標準説）を論じ、甲につき殺人未遂の間接正犯が成立しうるかを検討する場面で引く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">行為支配説</span><span class="mm-leaf-sub"><em>Tatherrschaft Doctrine</em> · 通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>間接正犯の正犯性を、利用者が被利用者の行為を意のままに支配・操縦している点（行為支配）と正犯意思に求める通説。<strong>被利用者の離反で行為支配が失われれば間接正犯は不成立</strong>となる。本問の中核規範。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">抽象的事実の錯誤・縮小認定</span><span class="mm-leaf-sub"><em>Abstract Factual Error</em> · 重なり合い</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>重い罪（間接正犯＝正犯）の故意で軽い罪（教唆）の構成要件を実現した場合、故意責任の本質（規範に直面した反対動機形成の可能性）から、<strong>構成要件が重なり合う限度で軽い罪</strong>の故意を認め成立を肯定する。包摂・縮小認定の理論的基礎。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">占有否定説</span><span class="mm-leaf-sub"><em>No-Possession View</em> · 少数説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>死者には事実的支配も支配意思もなく占有を観念できないとし、誰が奪っても<strong>占有離脱物横領罪</strong>にとどまるとする見解。理論的に明快だが、殺害者が「殺してから盗む」場合に常に軽い罪となるのは法感情に反すると批判され、判例は採らない。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">死者の占有について判例（占有継続説）はどう処理するか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">自ら被害者を殺害した者との関係</span>では、生前の占有がなお保護に値し、一連の行為を全体的に観察して占有侵害＝<span class="kw">窃盗罪</span>を肯定する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">乙の現金奪取を強盗罪としない理由は？</span></summary>
+                  <div class="mm-q-answer">乙は当初領得意思がなく、殺害は<span class="verb">財物奪取の手段</span>としてされていない。領得意思は殺害後に発生したから、強盗罪（236条）は成立せず窃盗罪を検討する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">間接正犯の正犯性の根拠と、本問で甲の間接正犯が否定される理由は？</span></summary>
+                  <div class="mm-q-answer">根拠は<span class="kw">行為支配＋正犯意思</span>。乙が毒薬と気付き自らの意思で殺害を決意した時点で道具でなくなり、甲の<span class="verb">行為支配が喪失</span>するため間接正犯は不成立。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">間接正犯を否定した後、甲の罪責はどう確定するか？</span></summary>
+                  <div class="mm-q-answer">客観の教唆事実が残るから、間接正犯と教唆の重なり合う限度で<span class="kw">殺人既遂罪の教唆犯</span>（61条1項）として処断する。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">通りすがりの第三者がA死亡後に財布を奪ったら、罪責はどう変わるか？</span></summary>
+                  <div class="mm-q-answer">第三者は生前の占有を観念できず<span class="kw">占有離脱物横領罪</span>（254条）にとどまる。判例の保護は「自ら殺害した者との関係」に限定されるからで、死者の占有を一般的に認めるものではない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">もし乙が最後まで毒薬と気付かず投与していたら、甲の罪責はどうなるか？</span></summary>
+                  <div class="mm-q-answer">乙は道具のままで甲の行為支配が維持されるから、甲に<span class="kw">殺人罪の間接正犯</span>が成立する。本問との差は「乙が離反したか＝行為支配が失われたか」の一点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">甲乙を共同正犯にできないのはなぜか？</span></summary>
+                  <div class="mm-q-answer">共同正犯（60条）には相互の<span class="kw">意思連絡</span>が必要だが、甲乙間に意思連絡はない。片面的共同正犯を否定する通説からも共同正犯は立たず、教唆で処理する。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">死者の占有（窃盗肯定）の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">窃盗罪の「占有」とは財物に対する事実的支配をいい、死者には占有を観念しえないのが原則であるが、自ら被害者を殺害した者との関係では生前の占有はなお保護に値し、殺害と奪取を一連の行為として全体的に観察すれば生前の占有を侵害したと評価できるから窃盗罪が成立する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">間接正犯の成立要件と離反の効果の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">間接正犯は、利用者が被利用者を一方的に支配・操縦して自己の犯罪を実現する点に正犯性が認められるから、被利用者が利用者の意図を察知し自らの意思で犯行を決意したときは利用者の行為支配が失われ、間接正犯は成立しない。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">間接正犯の故意で教唆を実現した錯誤の処理規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">客観的に教唆の事実が存在するのに行為者が間接正犯の故意を有していた場合、故意責任の本質は規範に直面しての反対動機形成の可能性にあるから、両者の構成要件的に重なり合う限度で軽い教唆犯の故意を認め、教唆犯の限度で犯罪の成立を肯定する。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">乙（殺人 20%・死者の占有＝窃盗 30%）→ 甲（間接正犯の否定 25%・錯誤→教唆 25%）</span>の順。乙を先に確定し直接正犯を立ててから甲の行為支配喪失を論じる。死者の占有と錯誤処理が二大配点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">乙に成立する殺人罪と窃盗罪の罪数は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">併合罪</span>（45条前段）。殺害行為と奪取行為は行為を異にし保護法益も異なるから。観念的競合や包括一罪ではない点に注意。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">殺害者が殺害直後その場で財物奪取 → ？</span></summary>
+                  <div class="mm-q-answer">死者の占有を肯定し窃盗罪。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">道具が離反して自らの意思で実行 → ？</span></summary>
+                  <div class="mm-q-answer">行為支配喪失で間接正犯不成立。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">間接正犯の故意で客観は教唆 → ？</span></summary>
+                  <div class="mm-q-answer">重なり合いで軽い教唆犯。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XXIII — 間接正犯と錯誤・死者の占有 · 13 chapters · 3 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-06-30T09:26+09:00">Generated: 2026-06-30 09:26 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
