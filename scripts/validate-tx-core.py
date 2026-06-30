@@ -1055,6 +1055,43 @@ class Validator:
                             "`.tx-cycle-label` と `.tx-cycle-title` の双方をTX360の"
                             " top:-13px / min-width:8.2em / 記・答丸バッジに固定する。")
 
+    def g40_tx360_inline_initial_state_contract(self):
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        if not self.soup.select_one(".answer-area.inline-prototype-mode[data-answer-type='ox-grid']"):
+            return
+
+        css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+        compact_css = re.sub(r"\s+", "", css)
+        has_hidden_attr = bool(self.soup.select_one(".tx-inline-explain[hidden]"))
+        has_initial_hide_css = ".tx-inline-explain{display:none" in compact_css
+        has_reveal_css = ".tx-inline-card.revealed.tx-inline-explain" in compact_css
+        if not (has_hidden_attr or has_initial_hide_css):
+            self.err("G40", "TX-LEX inline 解説が初期表示される。"
+                            "`.tx-inline-explain[hidden]` または `.tx-inline-explain{display:none}` を要求する。")
+        if has_initial_hide_css and not has_reveal_css:
+            self.err("G40", "TX-LEX inline 解説の reveal CSS が無い。"
+                            "○×選択・解説閲覧時だけ `.tx-inline-card.revealed .tx-inline-explain` で表示する。")
+
+        if "根拠条文・判例は、このカード下部の詳説および共通根拠セクションで確認する。" in self.html:
+            self.err("G40", "TX360に無い汎用文言が inline カードへ混入している。"
+                            "実条文ボックスが無い場合は `.tx-mini-law` ごと出さない。")
+
+        if self.soup.select_one(".tx-inline-explain .sub-card.synthesis, .tx-inline-explain .sub-card.explanation, .tx-inline-detail .sub-card"):
+            self.err("G40", "inline カード内に PART B/SYNTHESIS 長文が混入している。"
+                            "通常周回カードは5点フロー＋記憶フック/答案圧縮までに固定する。")
+
+        for title in self.soup.select(".part-title"):
+            text = title.get_text(" ", strip=True)
+            if text.startswith("PART B ──") and "PART B+" not in text:
+                if not title.has_attr("hidden"):
+                    self.err("G40", "PART B 詳説タイトルが通常フローに露出している。"
+                                    "TX360同様 `.partb-source-title[hidden]` にする。")
+                nxt = title.find_next_sibling()
+                if not (nxt and nxt.name == "details" and "partb-source" in nxt.get("class", []) and nxt.has_attr("hidden")):
+                    self.err("G40", "PART B 詳説本体が通常フローに露出している。"
+                                    "TX360同様 `details.partb-source[hidden][aria-hidden=true]` に格納する。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1093,6 +1130,7 @@ class Validator:
         self.g37_tx360_template_visual_contract()
         self.g38_placeholder_contract()
         self.g39_tx360_cycle_aids_center_contract()
+        self.g40_tx360_inline_initial_state_contract()
 
 
 def main():
