@@ -65,6 +65,25 @@ def main() -> int:
     print("=== TX360 inline _lex canonical engine gate (G41) ===")
     print("roots=" + ", ".join(roots))
 
+    # スロット契約の存在＋版マーカー検査（ARIADNE の check_slot_contract 相当）。
+    # 接ぎ木を「作った後に弾く」G41 の上流に、「そもそも自由編集させない」契約を据える。
+    contract_fail = 0
+    contract = ROOT / "canonical" / "GENESIS-CORE.placeholder.html"
+    MARKER = "GENESIS_CORE_SLOT_CONTRACT"
+    if not contract.exists():
+        print("[ERROR] canonical/GENESIS-CORE.placeholder.html が無い（TX _lex スロット契約）")
+        contract_fail = 1
+    else:
+        ctext = contract.read_text(encoding="utf-8", errors="replace")
+        if MARKER not in ctext:
+            print(f"[ERROR] GENESIS-CORE.placeholder.html に版マーカー {MARKER} が無い")
+            contract_fail = 1
+        elif "{{" not in ctext:
+            print("[ERROR] GENESIS-CORE.placeholder.html に {{...}} スロットが無い")
+            contract_fail = 1
+        else:
+            print(f"[OK] slot contract: {MARKER}")
+
     scanned = 0
     offenders: list[tuple[Path, list[str]]] = []
     for f in files:
@@ -97,6 +116,8 @@ def main() -> int:
         )
         return 1
 
+    if contract_fail:
+        return 1
     print("PASS ✅")
     return 0
 

@@ -149,6 +149,13 @@
 > SM2 解説は `.ox-stmt`＋`.tx-reflex-core`＋必要最小限の記憶フック/答案圧縮を中心にし、`.fa-narrative` は初回理解用の
 > 参照テキストとして通常カード本文に載せない。
 >
+> **【プレースホルダー契約・2026-06-30】TX `_lex` は ARIADNE 同型のスロット契約で接ぎ木を構造的に封じる。**
+> 正典 `canonical/GENESIS-CORE.placeholder.html`（`GENESIS_CORE_SLOT_CONTRACT v12.1.1 PLACEHOLDER-LOCK`）が
+> 「**`{{...}}` スロットだけ編集可・CSS/JS/class/DOM/節順/SVG座標/エンジンは固定・例外は配色パレット選定のみ**」を
+> 明記する。生成/更新は `canonical/GENESIS-CORE.html` を複製してスロットを埋めるだけ（自由編集・旧_lex流用・
+> band-aid 追加禁止）。**二重防御**＝上流の契約（作らせない）＋下流の G41／`check-tx-lex-engine.py`（作っても弾く・
+> preflight 常駐）。既存改定時の事故原因と恒久対処は `docs/canonical-revision-migration-playbook.md`。
+>
 > **下記 §3-1〜§3-6 は旧 v10.0.0 GOLD-SKELETON の記述で、既存197問（v10）の保守用。** 新規生成では
 > v11 を使う（GENESIS.html／PART C/D／12問ドリル規律／validate-tx-gold.py は v10 legacy 専用）。
 
