@@ -63,7 +63,7 @@ def main() -> int:
     roots = sys.argv[1:] or ["outputs"]
     files = _collect(roots)
 
-    print("=== TX _lex push-front gate (G41 engine integrity + G42 combination-verdict) ===")
+    print("=== TX _lex push-front gate (G41 engine integrity + G42 combination-verdict + G43 detail-panel) ===")
     print("roots=" + ", ".join(roots))
 
     # スロット契約の存在＋版マーカー検査（ARIADNE の check_slot_contract 相当）。
@@ -102,12 +102,22 @@ def main() -> int:
         gate_errs = [(code, msg) for code, msg in v.errors if code in ("G41", "G42")]
         if v.soup.select_one(".tx-inline-card"):
             scanned += 1
+            # G43（v12.2 PLACEHOLDER-LOCK）＝詳説 panel 欠落（空 details）を弾く。
+            # <details class="tx-inline-detail"> に data-partb-source panel が無いと
+            # エンジン hydrateInlinePartBDetails の注入先が無く、詳説が空・無装飾になる
+            # （361-385 で実際に出荷された既知事故）。インラインカードを持つ _lex のみ対象。
+            for det in v.soup.select(".tx-inline-detail"):
+                if det.select_one(".tx-detail-panel[data-partb-source]") is None:
+                    gate_errs.append(
+                        ("G43", "詳説 <details class=tx-inline-detail> に data-partb-source panel が無い（空詳説・エンジン注入先欠落）")
+                    )
+                    break
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12 inline _lex 走査={scanned} / G41(接ぎ木)+G42(組合せ当否) 検出ファイル={len(offenders)}")
+    print(f"\nv12 inline _lex 走査={scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説) 検出ファイル={len(offenders)}")
     if offenders:
-        print("\n[G41/G42] 接ぎ木 or 組合せ当否判定を検出:")
+        print("\n[G41/G42/G43] 接ぎ木 or 組合せ当否判定 or 空詳説を検出:")
         for f, errs in offenders:
             rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
             print(f"  ❌ {rel}")

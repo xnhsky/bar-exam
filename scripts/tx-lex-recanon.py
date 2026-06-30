@@ -39,9 +39,26 @@ except Exception:
 
 ROOT = Path(__file__).resolve().parents[1]
 CANON = ROOT / "canonical" / "GENESIS-CORE.html"
+SOLVE_NAV_CANON = ROOT / "canonical" / "SOLVE-NAV.html"
 
 BAND_AID = "tx-inline-v1211-upgrade-js"
 ENGINE_SIG = "hydrateInlinePartBDetails"  # canonical 単一エンジンの固有関数
+
+
+def solve_nav_css() -> str:
+    """canonical/SOLVE-NAV.html の <style id="solve-nav-style"> 内 CSS を返す。
+
+    解法ナビの CSS は GENESIS-CORE 本体には無く、各 _lex の <style> 末尾に追記されて
+    いる（生成時に SOLVE-NAV.html から注入）。restyle は <style> を GENESIS-CORE で
+    丸ごと載せ替えるため、この CSS をここで SOLVE-NAV 正典から再注入しないと
+    解法ナビが無装飾化する（過去 restyle で 366-385 の .solve-nav CSS が剥落した実害）。
+    SOLVE-NAV.html を単一情報源にすることで solve-nav 意匠も canonical 一元管理になる。"""
+    try:
+        t = SOLVE_NAV_CANON.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    m = re.search(r'<style id="solve-nav-style">(.*?)</style>', t, re.S)
+    return m.group(1).strip() if m else ""
 
 
 def split_style(text: str):
@@ -51,15 +68,31 @@ def split_style(text: str):
     return text[:s_open], text[s_open:s_close], text[s_close:]
 
 
-def palette_match(style_inner: str):
-    """style 内の AI 選定パレット :root ブロックの Match を返す。
-    `--accent:` を持つ :root だけが本物のパレット。基底 :root（構造変数のみ）や、
-    canonical のコメント内リテラル `:root{}`（"…選定して :root{} を上書きする"）に
-    誤マッチしないよう、内容で同定する。"""
+def _find_root(style_inner: str, var_re: str):
+    """style 内で `var_re`（例 r"--accent\\s*:"）を含む最初の :root ブロックの Match を返す。
+    無ければ None。基底 :root（fonts のみ）や canonical のコメント内リテラル
+    `:root{}` には誤マッチしない（内容で同定）。"""
     for m in re.finditer(r":root\s*\{[^}]*\}", style_inner, re.S):
-        if re.search(r"--accent\s*:", m.group(0)):
+        if re.search(var_re, m.group(0)):
             return m
-    raise ValueError("パレット :root（--accent を含む）が見つからない")
+    return None
+
+
+# per-file で AI 選定される「本物のパレット」:root は 2 ブロックある：
+#   block#2  --accent:        … メインパレット（5 役割 + freq/recall）
+#   block#3  --accent-light:  … 派生パレット identity（--accent-darker/--mid-* 等）
+# block#1（fonts/scale）と block#4（--ed-* editorial）は canonical 固定で per-file ではない。
+# 旧実装は block#2 しか保存せず、restyle 時に block#3 が canonical（既定 Twilight Violet）で
+# 上書きされ、--accent と --accent-darker の hue が割れる事故（header/SVG グラデ破綻）を招いた。
+PALETTE_ROOT_SIGNATURES = (r"--accent\s*:", r"--accent-light\s*:")
+
+
+def palette_match(style_inner: str):
+    """互換: メインパレット（--accent: を持つ）:root の Match を返す（必須・無ければ ValueError）。"""
+    m = _find_root(style_inner, r"--accent\s*:")
+    if m is None:
+        raise ValueError("パレット :root（--accent を含む）が見つからない")
+    return m
 
 
 def extract_scripts(text: str):
@@ -78,12 +111,30 @@ def recanon(text: str, canon: str) -> str:
     pre, style_src, _ = split_style(text)
     _, style_canon, _ = split_style(canon)
 
-    # 1) style を canonical へ。パレット :root（--accent を持つ本物）だけ元を保存。
-    #    canonical の本物パレットブロックを、元ファイルのパレットで丸ごと差し替える
-    #    （コメント内リテラル :root{} は対象外＝CSS コメント破壊を避ける）。
-    pal = palette_match(style_src).group(0)
-    can_pal = palette_match(style_canon)
-    style_new = style_canon[:can_pal.start()] + pal + style_canon[can_pal.end():]
+    # 1) style を canonical へ。per-file パレット :root（block#2 --accent: と
+    #    block#3 --accent-light:）だけ元のものを保存する。canonical の各パレット
+    #    ブロックを、元ファイルの対応ブロックで丸ごと差し替える（コメント内リテラル
+    #    :root{} や fonts/--ed-* ブロックは対象外＝誤上書きしない）。block#2 は必須、
+    #    block#3 は無ければ canonical のまま（旧式 _lex への graceful degrade）。
+    style_new = style_canon
+    palette_match(style_src)  # block#2 必須チェック（無ければ ValueError）
+    for sig in PALETTE_ROOT_SIGNATURES:
+        src_m = _find_root(style_src, sig)
+        can_m = _find_root(style_new, sig)
+        if src_m and can_m:
+            style_new = style_new.replace(can_m.group(0), src_m.group(0), 1)
+
+    # 1-bis) 解法ナビ CSS を SOLVE-NAV 正典から注入（GENESIS-CORE 本体に無いため）。
+    #    解法ナビを持つ _lex のみ。冪等（既に注入済みなら重複させない）。
+    if 'class="solve-nav"' in text or "class='solve-nav" in text:
+        sn_css = solve_nav_css()
+        if sn_css and ".solve-nav{" not in style_new:
+            style_new = (
+                style_new.rstrip()
+                + "\n\n/* === 解法ナビ CSS（canonical/SOLVE-NAV.html 正典より注入） === */\n"
+                + sn_css
+                + "\n"
+            )
 
     # 本文 = </style> 〜 最初の <script> 直前
     s_close = text.index("</style>")
