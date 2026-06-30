@@ -1029,6 +1029,32 @@ class Validator:
             self.err("G39", f"記憶フック/答案圧縮CSSがTX360中央寄せテンプレートからずれている: {', '.join(best_lacks)}。"
                             "`width:min(92%,1120px); margin:24px auto 0;` を持つ .tx-cycle-aids を正典にする。")
 
+        # The actual TX360 badge/card design is not just the two-column
+        # container.  Generated batches may emit either the placeholder shape
+        # (`p > .tx-cycle-label`) or an intermediate generated shape
+        # (`.tx-cycle-aid > .tx-cycle-title`).  Both must resolve to the same
+        # TX360 pill-tab box, otherwise a later compatibility block can silently
+        # repaint the badges with palette `--accent` and break the canonical
+        # placeholder design.
+        strict_needles = {
+            "generated-card-selector": ".tx-cycle-aids>.tx-cycle-aid",
+            "generated-title-selector": ".tx-cycle-title",
+            "pill-top": "top:-13px",
+            "pill-left": "left:18px",
+            "pill-min-width": "min-width:8.2em",
+            "pill-padding": "padding:4px 10px 5px 38px",
+            "memory-dot": "content:'記'",
+            "compress-dot": "content:'答'",
+            "compress-selector": ".tx-cycle-aid.compress .tx-cycle-title",
+        }
+        compact_css = re.sub(r"\s+", "", css)
+        missing = [name for name, needle in strict_needles.items()
+                   if re.sub(r"\s+", "", needle) not in compact_css]
+        if missing:
+            self.err("G39", f"TX360バッジ/ボックス構造CSSが不足: {', '.join(missing)}。"
+                            "`.tx-cycle-label` と `.tx-cycle-title` の双方をTX360の"
+                            " top:-13px / min-width:8.2em / 記・答丸バッジに固定する。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
