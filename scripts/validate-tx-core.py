@@ -1092,6 +1092,16 @@ class Validator:
                     self.err("G40", "PART B 詳説本体が通常フローに露出している。"
                                     "TX360同様 `details.partb-source[hidden][aria-hidden=true]` に格納する。")
 
+        forbidden_answer_heads = [
+            "上の解法ナビの順に、各設問を1つずつ判断",
+            "上の解法ナビの順に、各空欄の語句を1つずつ選ぶ",
+            "全部選んだら「解答を表示」",
+        ]
+        leaked = [phrase for phrase in forbidden_answer_heads if phrase in self.html]
+        if leaked:
+            self.err("G40", f"TX360正典に無い解答見出し文言が露出: {', '.join(leaked)}。"
+                            "解答見出しは `【解答】` など短くし、操作説明を増やさない。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
