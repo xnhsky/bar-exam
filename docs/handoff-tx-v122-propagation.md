@@ -23,6 +23,26 @@
 - 多層シャドウ＋インセット光沢＋微パレットグラデで誌面を教科書化。実効スタイルは `<style>` 末尾
   「TX360 concrete template override」層（**ここが効く**。前方の同名ルールは上書きされる）。
 
+### 2026-07-01 追補：TX355-359 実地修正で合意した恒久ルール
+
+対象コミット：
+
+- `22551584` `fix(tx-lex): promote 355-359 inline UI`
+- `c515f8bb` `fix(tx-lex): hide final answer panel inline`
+- `6cc7b1bc` `fix(tx-lex): restore basis boxes in details`
+
+合意内容：
+
+- 旧 `FINAL ANSWER` パネルは inline 型の画面には出さない。`.final-answer` は `data-answer-key` / G23 / Lexia 抽出のため DOM に残すが、`.answer-area.inline-prototype-mode .final-answer` で非表示固定にする。
+- ANSWER 直後には必ず `tx-mini-law` を置く。条文本文・判例要旨を各肢の前面に出し、5点フローの「文言/趣旨/射程」だけで根拠を代用しない。
+- 詳説の一番下にある条文・判例本文は、`sub-card basis-link` の `BASIS` ボックス内に収める。`.tx-detail-partb` のリセットで basis-link の枠・背景・`::before` タブを消さない。
+- 詳説ボタンは空展開禁止。`tx-inline-detail` には必ず `tx-detail-panel tx-detail-partb` と `data-partb-source` を置く。
+- 物語本文や強調語は太すぎるウェイトへ戻さない。特にモバイルで潰れる 700/800 系を本文強調に使わない。
+- 条文本文横の項バッジは、2項以上ある条文だけ `本文` / `①` / `②` ... として表示する。単一項条文には付けない。
+- 記憶フックはラベル列と本文列を分け、本文を字下げする。ラベルだけが左にぶら下がる表示へ戻さない。
+- 5点フロー・条文項バッジ・機能ラベルは正典の楕円ピル。長方形バッジへ退行させない。
+- 解法ナビは空枠禁止。検討順・判定コア・次操作を表示し、回答 UI の「解答を表示」導線を欠落させない。
+
 ---
 
 ## 1. セットアップ（衝突回避）
