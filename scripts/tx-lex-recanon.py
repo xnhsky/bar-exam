@@ -51,12 +51,15 @@ def split_style(text: str):
     return text[:s_open], text[s_open:s_close], text[s_close:]
 
 
-def palette_root(style_inner: str) -> str:
-    """style 内の2つ目の :root{...}（AI 選定パレット）ブロック。"""
-    roots = list(re.finditer(r":root\{[^}]*\}", style_inner, re.S))
-    if len(roots) < 2:
-        raise ValueError(f"パレット :root が見つからない (count={len(roots)})")
-    return roots[1].group(0)
+def palette_match(style_inner: str):
+    """style 内の AI 選定パレット :root ブロックの Match を返す。
+    `--accent:` を持つ :root だけが本物のパレット。基底 :root（構造変数のみ）や、
+    canonical のコメント内リテラル `:root{}`（"…選定して :root{} を上書きする"）に
+    誤マッチしないよう、内容で同定する。"""
+    for m in re.finditer(r":root\s*\{[^}]*\}", style_inner, re.S):
+        if re.search(r"--accent\s*:", m.group(0)):
+            return m
+    raise ValueError("パレット :root（--accent を含む）が見つからない")
 
 
 def extract_scripts(text: str):
@@ -75,10 +78,12 @@ def recanon(text: str, canon: str) -> str:
     pre, style_src, _ = split_style(text)
     _, style_canon, _ = split_style(canon)
 
-    # 1) style を canonical へ。パレット :root だけ元を保存。
-    pal = palette_root(style_src)
-    croots = list(re.finditer(r":root\{[^}]*\}", style_canon, re.S))
-    style_new = style_canon[:croots[1].start()] + pal + style_canon[croots[1].end():]
+    # 1) style を canonical へ。パレット :root（--accent を持つ本物）だけ元を保存。
+    #    canonical の本物パレットブロックを、元ファイルのパレットで丸ごと差し替える
+    #    （コメント内リテラル :root{} は対象外＝CSS コメント破壊を避ける）。
+    pal = palette_match(style_src).group(0)
+    can_pal = palette_match(style_canon)
+    style_new = style_canon[:can_pal.start()] + pal + style_canon[can_pal.end():]
 
     # 本文 = </style> 〜 最初の <script> 直前
     s_close = text.index("</style>")
