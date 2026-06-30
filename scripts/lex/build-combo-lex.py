@@ -260,7 +260,7 @@ def build(num, spec):
     cut0 = lhead.start() if lhead else la0
     # solve-nav SHELL ＋ 新しい【解答】h3 を answer-area の直前に置く
     shell = NAV_SHELL.replace('__SUB__', spec['sub'])
-    head_new = HEAD_NEW.replace('__TXT__', '【解答】')
+    head_new = HEAD_NEW.replace('__TXT__', '【解答】── 上の解法ナビの順に、各空欄の語句を1つずつ選ぶ（全部選んだら「解答を表示」）')
     lex = lex[:cut0] + shell + head_new + lex_area + lex[la1:]
     # 1a. CSS 注入（</style> 直前）
     k = lex.rfind('</style>')

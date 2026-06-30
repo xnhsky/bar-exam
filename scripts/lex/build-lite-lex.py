@@ -164,7 +164,7 @@ def inject_lex(lex, spec):
     lhead = re.search(r'<h3[^>]*>【解答】[^<]*</h3>\s*$', lex[:la0])
     cut0 = lhead.start() if lhead else la0
     shell = NAV_SHELL.replace('__SUB__', spec['sub'])
-    head_new = HEAD_NEW.replace('__TXT__', '【解答】')
+    head_new = HEAD_NEW.replace('__TXT__', '【解答】── 上の解法ナビの順に、各設問を1つずつ判断（全部選んだら「解答を表示」）')
     lex = lex[:cut0] + shell + head_new + lex[la0:]
     # JS（</body> 直前へ）
     js = (NAV_JS.replace('__ORDER__', json.dumps(spec['order'], ensure_ascii=False))
