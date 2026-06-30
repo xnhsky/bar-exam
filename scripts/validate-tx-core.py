@@ -1092,6 +1092,49 @@ class Validator:
                     self.err("G40", "PART B 詳説本体が通常フローに露出している。"
                                     "TX360同様 `details.partb-source[hidden][aria-hidden=true]` に格納する。")
 
+    def g41_tx360_canonical_engine_integrity(self):
+        # TX360 インライン正典は canonical/GENESIS-CORE.html の単一 JS エンジンが
+        # `.tx-inline-card` を完全自前で配線する（reveal / browse / toast / PART B 自動注入）。
+        # 旧 _lex ベース（旧 Annex C JS）を流用して後付けパッチ script で接ぎ木すると、
+        # G1〜G40 は構造要素の「存在」しか見ないため PASS してしまうが、デザイン崩れ・
+        # 機能不全・本文肥大（+30〜70K）を招く（§7「保守的書き換え」禁止）。G41 はこの
+        # 接ぎ木クラスを機械検出し、canonical エンジンから作り直させるための整合ガード。
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        # v12 インライン正典を名乗るファイル（.tx-inline-card を持つ）だけを対象にする。
+        # 旧デザイン _lex（インラインカード無し）は対象外＝温存。
+        if not self.soup.select_one(".tx-inline-card"):
+            return
+
+        scripts = self.soup.find_all("script")
+        joined = "\n".join(s.get_text() for s in scripts)
+
+        # (1) 後付けパッチ script の禁止。canonical エンジンに同等機能が内蔵されており、
+        #     band-aid を足すこと自体が「旧エンジン流用」の動かぬ証拠。
+        if self.soup.find("script", id="tx-inline-v1211-upgrade-js") or "tx-inline-v1211-upgrade-js" in self.html:
+            self.err("G41", "後付けパッチ `tx-inline-v1211-upgrade-js` が存在する。"
+                            "canonical/GENESIS-CORE.html の単一エンジンが inline カードを自前配線するので、"
+                            "band-aid を足さず canonical からエンジンごと作り直す（§7 保守的書き換え禁止）。")
+
+        # (2) canonical エンジン固有関数の必須化。これらが無い＝旧 Annex C JS を流用している。
+        ENGINE_SIGNATURES = [
+            "hydrateInlinePartBDetails",  # PART B → 詳説パネル自動注入
+            "showInlineToast",            # ○×フィードバックトースト
+            "setInlineBrowseState",       # 「解説だけ閲覧」状態管理
+            "closeInlineBrowse",
+        ]
+        missing_sig = [fn for fn in ENGINE_SIGNATURES if fn not in joined]
+        if missing_sig:
+            self.err("G41", f"canonical inline エンジンの必須関数が欠落: {', '.join(missing_sig)}。"
+                            "旧 _lex ベース（旧 Annex C JS）の流用＝接ぎ木の疑い。"
+                            "canonical/GENESIS-CORE.html の単一 <script> を逐語コピーで載せ直す。")
+
+        # (3) author script 本数の上限。canonical エンジン 1 本＋解法ナビ(SOLVE-NAV)1 本＝最大 2 本。
+        #     3 本以上＝余分なパッチ script が混入している（正実装 360〜365 は 1〜2 本）。
+        if len(scripts) > 2:
+            self.err("G41", f"<script> が {len(scripts)} 本ある（canonical エンジン＋解法ナビの最大 2 本を想定）。"
+                            "余分なパッチ script を除去し、canonical エンジンに統合する。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1131,6 +1174,7 @@ class Validator:
         self.g38_placeholder_contract()
         self.g39_tx360_cycle_aids_center_contract()
         self.g40_tx360_inline_initial_state_contract()
+        self.g41_tx360_canonical_engine_integrity()
 
 
 def main():
@@ -1162,7 +1206,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G39, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G41, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
