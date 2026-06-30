@@ -96,6 +96,13 @@ def build_steps(args: argparse.Namespace, roots: list[str]) -> list[Step]:
     ])
     if args.json:
         steps[-1].command.extend(["--json", args.json])
+    if not args.skip_tx_engine:
+        steps.append(
+            Step(
+                "TX360 inline engine integrity (G41)",
+                [sys.executable, str(SCRIPTS / "check-tx-lex-engine.py"), *roots],
+            )
+        )
     if not args.skip_ariadne:
         steps.append(
             Step(
@@ -143,6 +150,7 @@ def main() -> int:
     ap.add_argument("--keep-going", action="store_true", help="失敗後も残りの検査を続ける")
     ap.add_argument("--skip-self-test", action="store_true", help="同期契約チェッカの self-test を実行しない")
     ap.add_argument("--skip-ariadne", action="store_true", help="ARIADNE 正典横断検証を実行しない")
+    ap.add_argument("--skip-tx-engine", action="store_true", help="TX360 inline _lex の canonical エンジン整合(G41)を実行しない")
     ap.add_argument("--skip-rx", action="store_true", help="check-rx-coverage.py を実行しない")
     ap.add_argument("--no-rx-strict", action="store_true", help="RX UNREACHABLE を終了コード 1 にしない")
     ap.add_argument("--json", help="check-lexia-sync-contract.py の導出メタ JSON 出力先")
