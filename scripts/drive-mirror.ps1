@@ -78,8 +78,12 @@ Write-Host "DestRoot: $destBase"
 Write-Host "Log    : $logFile`n"
 
 # --- 共通除外 ---
-$excludeDirs  = @('.git', 'logs', '_archive', '__pycache__', '_tmp_pdf_pages', 'node_modules', '.vscode')
-$excludeFiles = @('desktop.ini', '*.pyc', '_tmp_*', '.DS_Store')
+$excludeDirs  = @(
+  '.git', '.codex', '.secrets', 'logs', '_archive', '__pycache__',
+  '_tmp_pdf_pages', '_tessdata', 'node_modules', '.vscode',
+  'output_audio', 'input_texts'
+)
+$excludeFiles = @('desktop.ini', '*.pyc', '_tmp_*', '.DS_Store', '*.key', 'account_names.json', 'fail_*.png')
 
 $overall = 0
 foreach ($src in $Sources) {
