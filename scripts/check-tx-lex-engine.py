@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""TX360 inline _lex の canonical エンジン整合ゲート（push 前・read-only）。
+"""TX _lex の push 前ゲート（canonical エンジン整合 G41 ＋ 組合せ当否判定 G42・read-only）。
 
 validate-tx-core.py の G41 を全 `*_lex.html` に横断適用し、「旧 _lex ベース流用＋
-後付けパッチ script 接ぎ木」（codex 366-385 型）を push 前に機械的に弾く。
+後付けパッチ script 接ぎ木」（codex 366-385 型）を push 前に機械的に弾く。さらに G42 で
+「答え選択肢（組合せ1〜5）の当否を ox-stmt にした組合せ当否判定」（刑TX089/174/212/218/220/256/368 型）も弾く。
 
 G1〜G40 は構造要素の存在しか見ないため、canonical/GENESIS-CORE.html の単一エンジンを
 使わず旧 Annex C JS に band-aid(tx-inline-v1211-upgrade-js)を足した接ぎ木でも 1 ファイル
@@ -62,7 +63,7 @@ def main() -> int:
     roots = sys.argv[1:] or ["outputs"]
     files = _collect(roots)
 
-    print("=== TX360 inline _lex canonical engine gate (G41) ===")
+    print("=== TX _lex push-front gate (G41 engine integrity + G42 combination-verdict) ===")
     print("roots=" + ", ".join(roots))
 
     # スロット契約の存在＋版マーカー検査（ARIADNE の check_slot_contract 相当）。
@@ -94,25 +95,27 @@ def main() -> int:
         except Exception as e:  # 読込/parse 失敗は他ゲートが拾うのでスキップ
             print(f"  読込スキップ: {f} ({e})")
             continue
-        # 対象判定（.tx-inline-card 無し＝旧デザイン）は g41 内で行われ、非対象は err を出さない
+        # G41＝接ぎ木（.tx-inline-card 無し＝旧デザインは g41 内で素通り）。
+        # G42＝組合せ当否判定（ox-grid を持つ _lex 全般・旧デザイン含む）。各 g 内で対象判定。
         v.g41_tx360_canonical_engine_integrity()
-        g41_errs = [msg for code, msg in v.errors if code == "G41"]
+        v.g42_no_combination_verdict_stmt()
+        gate_errs = [(code, msg) for code, msg in v.errors if code in ("G41", "G42")]
         if v.soup.select_one(".tx-inline-card"):
             scanned += 1
-        if g41_errs:
-            offenders.append((f, g41_errs))
+        if gate_errs:
+            offenders.append((f, gate_errs))
 
-    print(f"\nv12 inline _lex 走査={scanned} / 接ぎ木検出={len(offenders)}")
+    print(f"\nv12 inline _lex 走査={scanned} / G41(接ぎ木)+G42(組合せ当否) 検出ファイル={len(offenders)}")
     if offenders:
-        print("\n[G41] 接ぎ木（旧エンジン流用＋後付けパッチ）を検出:")
+        print("\n[G41/G42] 接ぎ木 or 組合せ当否判定を検出:")
         for f, errs in offenders:
             rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
             print(f"  ❌ {rel}")
-            for m in errs:
-                print(f"       - {m}")
+            for code, m in errs:
+                print(f"       - [{code}] {m}")
         print(
-            "\ncanonical/GENESIS-CORE.html の単一エンジンから作り直すこと。"
-            "band-aid の手直しでは直らない（§7 保守的書き換え禁止）。"
+            "\nG41＝canonical/GENESIS-CORE.html の単一エンジンから作り直す（band-aid 不可）。"
+            "G42＝組合せ当否判定を空欄/記述/事例単位の独立命題へ分解する（見本 刑TX350・§7 保守的書き換え禁止）。"
         )
         return 1
 

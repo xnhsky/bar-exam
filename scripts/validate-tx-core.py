@@ -1135,6 +1135,38 @@ class Validator:
             self.err("G41", f"<script> が {len(scripts)} 本ある（canonical エンジン＋解法ナビの最大 2 本を想定）。"
                             "余分なパッチ script を除去し、canonical エンジンに統合する。")
 
+    def g42_no_combination_verdict_stmt(self):
+        # 組合せ問題の _lex グリッドは「答え選択肢（組合せ1〜5）の当否」を ox-stmt にしてはならない。
+        # ox-row/ox-stmt は空欄・記述・事例・論点など「単独で○×判定できる最小学習単位」にし、
+        # correct-value はその単位の○×にする（正しい組合せを1つだけ選ぶ5択の○×化＝○1個 は禁止）。
+        # 「…とする組合せは正しい/誤り」で終わる ox-stmt は正解番号の暗記でしかなく転用できない。
+        # 良い例＝刑TX350（blank モード・各空欄を独立命題化・correct-value 全○）。
+        # 悪い例＝刑TX089/174/218/220/256/368（組合せ当否判定）。G30 は「記号のみ肢」を見るが、
+        # 本ゲートは「記号を消しても組合せ全体の当否を問うている」構造欠陥を検出する（G30 は素通り）。
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        area = None
+        for a in self.soup.find_all(class_="answer-area"):
+            if a.get("data-answer-type", "") == "ox-grid":
+                area = a
+                break
+        if area is None:
+            return
+        combo_re = re.compile(r"組合せ(?:は|として|を|が)?.{0,8}(?:正しい|誤り|誤っ)")
+        bad = []
+        for row in area.find_all(class_="ox-row"):
+            el = row.find(class_="ox-stmt")
+            if el and combo_re.search(el.get_text(" ", strip=True)):
+                bad.append(row.get("data-stmt") or "?")
+        if not bad:
+            return
+        cv = area.get("data-correct-value", "")
+        o_count = sum(1 for c in cv if c in "○◯")
+        self.err("G42", f"ox-stmt が組合せ全体の当否を判定している記述: {bad}"
+                        f"（correct-value='{cv}' ○={o_count}個）。"
+                        "答え選択肢（組合せ1〜5）を ox-row にしない＝組合せ当否判定は正解の暗記で転用不能。"
+                        "空欄/記述/事例単位の独立命題へ分解する（見本 刑TX350・blank モードは correct-value 全○）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1175,6 +1207,7 @@ class Validator:
         self.g39_tx360_cycle_aids_center_contract()
         self.g40_tx360_inline_initial_state_contract()
         self.g41_tx360_canonical_engine_integrity()
+        self.g42_no_combination_verdict_stmt()
 
 
 def main():
