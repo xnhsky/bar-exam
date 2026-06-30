@@ -46,13 +46,37 @@ HOOK_RE = re.compile(
     re.S,
 )
 
+PARTB_SOURCE_LABELS = {
+    "ア": "1", "イ": "2", "ウ": "3", "エ": "4", "オ": "5",
+    "カ": "6", "キ": "7", "ク": "8", "ケ": "9", "コ": "10",
+    "A": "1", "B": "2", "C": "3", "D": "4", "E": "5",
+    "F": "6", "G": "7", "H": "8", "I": "9", "J": "10",
+    "Ａ": "1", "Ｂ": "2", "Ｃ": "3", "Ｄ": "4", "Ｅ": "5",
+    "Ｆ": "6", "Ｇ": "7", "Ｈ": "8", "Ｉ": "9", "Ｊ": "10",
+}
+
+
+def partb_source_id(stmt_no: str) -> str:
+    key = (stmt_no or "").strip()
+    for prefix in ("記述", "肢", "空欄"):
+        if key.startswith(prefix):
+            key = key[len(prefix):].strip()
+            break
+    if not key:
+        return ""
+    if key.isdecimal():
+        return key
+    return PARTB_SOURCE_LABELS.get(key) or PARTB_SOURCE_LABELS.get(key.upper(), key)
+
 
 def add_detail_panel(inner: str, stmt_no: str) -> tuple[str, bool]:
     """空の <details class="tx-inline-detail">（panel 欠落）に
     <div class="tx-detail-panel tx-detail-partb" data-partb-source="N"> を補完する。
     エンジン hydrateInlinePartBDetails が #choice-N（PART B）から内容を流し込めるようにする。
-    既に panel を持つ details は無改変（冪等）。N が取れない／details 無しなら無改変。"""
-    if not stmt_no:
+    既に panel を持つ details は無改変（冪等）。N が取れない／details 無しなら無改変。
+    data-stmt がア/イ等でも choice-1/2 等へ解決できる数値IDを入れる。"""
+    source_id = partb_source_id(stmt_no)
+    if not source_id:
         return inner, False
 
     changed = False
@@ -64,7 +88,7 @@ def add_detail_panel(inner: str, stmt_no: str) -> tuple[str, bool]:
             return det  # 既に panel あり
         panel = (
             '\n<div class="tx-detail-panel tx-detail-partb" data-partb-source="'
-            + stmt_no
+            + source_id
             + '"></div>\n'
         )
         changed = True

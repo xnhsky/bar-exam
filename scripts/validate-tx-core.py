@@ -936,7 +936,7 @@ class Validator:
                             "字間スペースはCSS側に任せる。")
 
     def g37_tx360_template_visual_contract(self):
-        # TX360 is also the visual source of truth: rectangular flow labels
+        # TX360 is also the visual source of truth: compact flow-label badges
         # and a title beginning with "No.NNN ──".
         if not self.html_path.stem.endswith("_lex"):
             return
@@ -955,12 +955,13 @@ class Validator:
             self.err("G37", ".tx-article-flow .tx-flow-label の楕円ピルテンプレートCSSが無い。"
                             "canonical の実物テンプレートを流し込む。")
             return
-        # v12.2.0：5点ラベルは楕円ピル＋立体（旧 v12.1 の長方形 4.4em/6px から変更）。
+        # v12.2.0：5点ラベルは固定幅タブではなく、文字幅に縮むバッジ。
         required = {
-            "width": r"width\s*:\s*4\.9em",
-            "min-width": r"min-width\s*:\s*4\.9em",
+            "width": r"width\s*:\s*auto",
+            "min-width": r"min-width\s*:\s*0",
+            "justify-self": r"justify-self\s*:\s*start",
             "border-radius": r"border-radius\s*:\s*999px",
-            "padding": r"padding\s*:\s*6px\s+12px\s+7px",
+            "padding": r"padding\s*:\s*3px\s+9px\s+4px",
         }
         ok = False
         best_lacks = list(required)
@@ -973,8 +974,9 @@ class Validator:
                 ok = True
                 break
         if not ok:
-            self.err("G37", f"5点ラベルCSSがTX360楕円ピルテンプレート(v12.2.0)からずれている: {', '.join(best_lacks)}。"
-                            "長方形・6px へ戻さず、canonical の `.tx-article-flow .tx-flow-label`(楕円ピル 4.9em/999px/6px 12px 7px) を使う。")
+            self.err("G37", f"5点ラベルCSSがTX360バッジテンプレート(v12.2.0)からずれている: {', '.join(best_lacks)}。"
+                            "長方形・固定幅へ戻さず、canonical の `.tx-article-flow .tx-flow-label`"
+                            "(width:auto / min-width:0 / justify-self:start / 999px / 3px 9px 4px) を使う。")
 
     def g38_placeholder_contract(self):
         unresolved = re.findall(r"\{\{[^{}]{1,120}\}\}", self.html)
@@ -1168,6 +1170,38 @@ class Validator:
                         "答え選択肢（組合せ1〜5）を ox-row にしない＝組合せ当否判定は正解の暗記で転用不能。"
                         "空欄/記述/事例単位の独立命題へ分解する（見本 刑TX350・blank モードは correct-value 全○）。")
 
+    def g44_tx_inline_answer_controls_contract(self):
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        if not self.soup.select_one(".tx-inline-card"):
+            return
+
+        if self.soup.select_one(".tx-explain-only"):
+            self.err("G44", "古い単独の `tx-explain-only` ボタンが残っている。"
+                            "`.tx-inline-reveal-panel` 内の `tx-inline-browse-btn` に統一する。")
+
+        if self.soup.select_one(".tx-inline-stmt .tx-inline-label"):
+            self.err("G44", "inline 記述に旧 `tx-inline-label` が残っている。"
+                            "`choice-num-inline` + `tx-inline-stmt-text` に統一し、番号の二重表示を防ぐ。")
+
+        if self.soup.select_one(".tx-inline-stmt .tx-inline-verdict"):
+            self.err("G44", "判定表示 `tx-inline-verdict` が本文内に混入している。"
+                            "正典通り `.tx-inline-actions` の末尾へ置く。")
+
+        panel = self.soup.select_one(".tx-inline-reveal-panel")
+        if panel is None:
+            self.err("G44", "inline 回答操作パネル `.tx-inline-reveal-panel` が無い。"
+                            "`解説だけ閲覧` と `解答を表示` を同じパネルに置く。")
+        else:
+            if panel.select_one(".tx-inline-browse-btn") is None:
+                self.err("G44", "`.tx-inline-reveal-panel` 内に `解説だけ閲覧` ボタンが無い。")
+            if panel.select_one(".tx-inline-reveal-btn") is None:
+                self.err("G44", "`.tx-inline-reveal-panel` 内に `解答を表示` ボタンが無い。")
+
+        if self.soup.select_one(".solve-nav .sn-body") and self.soup.select_one("#sn-combos") is None:
+            self.err("G44", "解法ナビに `#sn-combos` が無い。"
+                            "候補・進捗表示の受け皿を `.sn-body` 先頭に置く。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1209,6 +1243,7 @@ class Validator:
         self.g40_tx360_inline_initial_state_contract()
         self.g41_tx360_canonical_engine_integrity()
         self.g42_no_combination_verdict_stmt()
+        self.g44_tx_inline_answer_controls_contract()
 
 
 def main():
@@ -1240,7 +1275,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G41, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G44, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
