@@ -48,7 +48,7 @@ def line_without_tag(line) -> tuple[str, str]:
     return label, body
 
 
-def extract_payloads(src: str) -> tuple[dict[str, str], list[str]]:
+def extract_payloads(src: str, source_id: str = "tx360") -> tuple[dict[str, str], list[str]]:
     soup = BeautifulSoup(src, "html.parser")
     path_errors: list[str] = []
     area = soup.select_one('.answer-area.inline-prototype-mode[data-answer-type="ox-grid"]')
@@ -78,11 +78,17 @@ def extract_payloads(src: str) -> tuple[dict[str, str], list[str]]:
 
         card = soup.select_one(f'.tx-inline-card[data-stmt="{stmt}"]')
         if card:
-            for p in card.select(".tx-cycle-aids p"):
-                label_el = p.select_one(".tx-cycle-label")
+            # v12.1.2 permanent contract: generated inline cards may use either
+            # <p><span class="tx-cycle-label">...</span>...</p> (canonical
+            # placeholder) or <div class="tx-cycle-aid"><span
+            # class="tx-cycle-title">...</span>...</div> (batch output).  Treat
+            # both as first-class sources so future TX-LEX batches do not need
+            # one-off CSS/SM2 backfills.
+            for aid in card.select(".tx-cycle-aids p, .tx-cycle-aids .tx-cycle-aid"):
+                label_el = aid.select_one(".tx-cycle-label, .tx-cycle-title")
                 label = text_of(label_el)
-                clone = BeautifulSoup(str(p), "html.parser")
-                for t in clone.select(".tx-cycle-label"):
+                clone = BeautifulSoup(str(aid), "html.parser")
+                for t in clone.select(".tx-cycle-label, .tx-cycle-title"):
                     t.decompose()
                 body = text_of(clone)
                 if label and body:
@@ -106,7 +112,7 @@ def extract_payloads(src: str) -> tuple[dict[str, str], list[str]]:
             for label, body in points
         )
         payloads[stmt] = (
-            '        <div class="ox-pool-explain" data-source="tx360-inline">\n'
+            f'        <div class="ox-pool-explain" data-source="{source_id}-inline">\n'
             f'          <p class="ox-pool-gist">{html.escape(gist, quote=False)}</p>\n'
             '          <ul class="ox-pool-points">\n'
             f"{lis}\n"
@@ -147,7 +153,10 @@ def process(path: Path, dry_run: bool = False) -> tuple[int, list[str]]:
     if not path.name.endswith("_lex.html"):
         return 0, [f"{rel}: skip (not *_lex.html)"]
     src = path.read_text(encoding="utf-8", errors="replace")
-    payloads, errors = extract_payloads(src)
+    stem = path.stem.replace("_lex", "")
+    m = re.search(r"TX(\d{3,})", stem, re.I)
+    source_id = f"tx{m.group(1)}" if m else stem.lower()
+    payloads, errors = extract_payloads(src, source_id)
     if errors and not payloads:
         return 0, [f"{rel}: " + "; ".join(errors)]
     out, changed = inject(src, payloads)
