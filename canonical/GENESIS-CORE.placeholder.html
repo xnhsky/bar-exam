@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ja" data-canonical="GENESIS_CORE_SLOT_CONTRACT v12.1.1 PLACEHOLDER-LOCK">
+<html lang="ja" data-canonical="GENESIS_CORE_SLOT_CONTRACT v12.2.0 PLACEHOLDER-LOCK">
 <head>
 <meta charset="UTF-8">
 <title>{{問題コード}}｜{{テーマ}}</title>
 <!--
-GENESIS_CORE_SLOT_CONTRACT v12.1.1 PLACEHOLDER-LOCK  （TX _lex 生成用スロット契約）
+GENESIS_CORE_SLOT_CONTRACT v12.2.0 PLACEHOLDER-LOCK  （TX _lex 生成用スロット契約）
 
 Purpose:
   This file is the editable-slot contract for TX _lex (ox-grid + 解法ナビ) generation.
@@ -12,13 +12,23 @@ Purpose:
   （本体は同名 .html・既に {{...}} 入りのフルテンプレート）。本ファイルは「触ってよい所」
   だけを抜き出したスロット地図＋固定ルールである（ARIADNE.placeholder.html と同じ役割）。
 
+v12.2.0 で確定した誌面（重厚感・教科書化リデザイン・LOCKED）:
+  - インライン解説の物理順序＝① ANSWER 箱（答案圧縮・問題文直下）→ ② 条文判例ボックス
+    → ③ 5点フロー（文言/趣旨/射程/切断点/転用）→ ④ 記憶フック ワンポイント → ⑤ 詳説。
+  - 条文判例ボックス＝条文ブルー系（is-main/support/context の濃淡）／判例ピンク系（is-case）。
+  - 5点フローのラベル＝楕円ピル＋立体（光沢/底陰/ドロップ）。問題文原文＝1字下げ。読み幅は
+    container 1080px。凡例＝「論」=「論文と重複」のみ（旧「条/条文」「判/裁判例」は廃止）。
+  - これらは <style>（特に末尾「TX360 concrete template override」層が実効）＋ DOM 構造で固定。
+
 Hard rule（接ぎ木の根絶＝§7「保守的書き換え」禁止の構造的担保）:
   AI が置換してよいのは二重波括弧プレースホルダー {{LIKE_THIS}} の中身だけ。
   以下は一切編集してはならない（逐語コピー＝byte-level lock）:
-    - <style> 全 CSS／末尾 <script> エンジン全 JS
+    - <style> 全 CSS（「TX360 concrete template override」層＝実効スタイルも含む）／末尾 <script> エンジン全 JS
     - class 名・id 名・属性キー・DOM ラッパー・ネスト順序・節順
-    - inline カード／ox-grid／final-answer／PART B／参考条文判例／SVG 座標・凡例
-    - marker-legend 凡例本文・PART タイトル・sec-nav 航行ラベル・footer feature-tag
+    - inline カード（ANSWER 箱／条文判例ボックス／5点フロー／記憶フック ワンポイント／詳説）の
+      物理順序・class・::before バッジ（✍ ANSWER／💡／文言…楕円ピル）
+    - ox-grid／final-answer／PART B／参考条文判例／SVG 座標・凡例
+    - marker-legend 凡例本文（「論＝論文と重複」のみ・条/判は出さない）・PART タイトル・sec-nav 航行ラベル・footer feature-tag
   例外（AI 判断が許される唯一の差分）:
     - 正答率帯（P1/P2/P3）に応じた配色パレットの選定。:root{} の2つ目のブロック
       （AI 選定パレット）の hex/役割割当てのみ更新してよい（§3-4）。基底 :root（1つ目）は固定。
@@ -35,6 +45,12 @@ Slot types:
   - <script> を 3 本以上にする（canonical エンジン1本＋解法ナビ(SOLVE-NAV)1本＝最大2本）。
   - .tx-inline-explain から初期 hidden を外す（初期表示禁止・G40）。
   - canonical 以外の既存 _lex を template にコピーする。
+  - 詳説 <details class="tx-inline-detail"> を summary だけの空にする（必ず
+    <div class="tx-detail-panel tx-detail-partb" data-partb-source="N">…</div> を入れる。N=data-stmt。
+    欠落するとエンジンが #choice-N から注入できず詳説が空・無装飾になる＝v12.1 系の既知事故）。
+  - 答案圧縮/記憶フックを旧 .tx-cycle-aids（2カラム末尾）構造へ戻す（v12.2 は ANSWER 箱＝冒頭・
+    記憶フック＝ワンポイント末尾に確定。.tx-answer-box / .tx-onepoint を使う）。
+  - 判例ボックスを is-case 以外（is-main/support）に入れて青系で出す（判例は必ず is-case＝ピンク系）。
 
 Generation method:
   1. canonical/GENESIS-CORE.html を出力パスへ複製（cp）。公式5択は別途 000_TX（二系統・spec twotrack）。
@@ -79,6 +95,9 @@ Generation method:
         </div>
       </div>
       <div class="tx-inline-explain" hidden>
+        <!-- ① ANSWER 箱＝答案圧縮（問題文直下・解説の最上部）。英語食み出しタブ「✍ ANSWER」は CSS ::before で固定（LOCKED）。 -->
+        <div class="tx-answer-box"><span class="tx-answer-body">{{記述1答案圧縮本文}}</span></div>
+        <!-- ② 条文判例ボックス＝条文ブルー系（is-main/support/context）／判例ピンク系（is-case）。型は code 語（{{法令名}}=刑法 / 判例 / 本問）と整合させる。色は CSS 固定（LOCKED）。 -->
         <div class="tx-mini-law">
           <div class="tx-law-item is-main">
             <span class="tx-mini-law-title"><span class="tx-mini-law-code">{{法令名}}</span><span class="tx-mini-law-article">{{条文番号}}</span></span>
@@ -89,20 +108,24 @@ Generation method:
             <span class="tx-mini-law-title"><span class="tx-mini-law-code">{{法令名}}</span><span class="tx-mini-law-article">{{補助条文番号}}</span></span>
             <span class="tx-mini-law-text">{{補助条文原文}}</span>
           </div>
+          <!-- 判例を挙げる記述だけ is-case（ピンク系）。code は「判例」、article は判例略名（例 最判昭60.3.28）。無ければ出さない。 -->
+          <div class="tx-law-item is-case">
+            <span class="tx-mini-law-title"><span class="tx-mini-law-code">判例</span><span class="tx-mini-law-article">{{判例略名}}</span></span>
+            <span class="tx-mini-law-text">{{判例要旨}}</span>
+          </div>
         </div>
+        <!-- ③ 5点フロー＝文言/趣旨/射程/切断点/転用。ラベルは楕円ピル＋立体（CSS 固定・LOCKED）。順序・ラベル語・is-cut 位置は固定。 -->
         <div class="tx-article-flow">
           <p><span class="tx-flow-label">文言</span><span class="tx-flow-body">{{記述1文言本文}}</span></p>
           <p><span class="tx-flow-label">趣旨</span><span class="tx-flow-body">{{記述1趣旨本文}}</span></p>
           <p><span class="tx-flow-label">射程</span><span class="tx-flow-body">{{記述1射程本文}}</span></p>
           <p><span class="tx-flow-label is-cut">切断点</span><span class="tx-flow-body">{{記述1切断点本文}}</span></p>
           <p><span class="tx-flow-label">転用</span><span class="tx-flow-body">{{記述1転用本文}}</span></p>
-          <div class="tx-cycle-aids">
-            <p><span class="tx-cycle-label">記憶フック</span><span class="tx-cycle-body">{{記述1記憶フック本文}}</span></p>
-            <p><span class="tx-cycle-label is-compress">答案圧縮</span><span class="tx-cycle-body">{{記述1答案圧縮本文}}</span></p>
-          </div>
+          <!-- ④ 記憶フック＝ワンポイント（解説末尾・💡 ラベルは CSS ::before で固定・LOCKED）。 -->
+          <div class="tx-onepoint"><span class="tx-op-label">記憶フック</span><span class="tx-op-body">{{記述1記憶フック本文}}</span></div>
+          <!-- ⑤ 詳説＝必ず data-partb-source="N" 付き panel を置く（N=data-stmt）。空 details 禁止＝エンジンが #choice-N から自動注入（欠落で詳説が無装飾・空になる既知事故）。 -->
           <details class="tx-inline-detail">
             <summary><span class="tx-detail-open-label">詳説を開く</span><span class="tx-detail-close-label">詳説を閉じる</span></summary>
-            <!-- data-partb-source は同記述の PART B #choice-N と一致させる（JS が自動注入）。 -->
             <div class="tx-detail-panel tx-detail-partb" data-partb-source="1">
               <p><span class="tx-detail-kicker">詳説</span>{{記述1詳説本文}}</p>
             </div>

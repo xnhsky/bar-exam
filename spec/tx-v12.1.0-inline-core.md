@@ -1,12 +1,20 @@
-# TX v12.1.1 LOOP-CORE inline canon（2026-06-29）
+# TX v12.2.0 LOOP-CORE inline canon（2026-06-30 重厚感・教科書化リデザイン）
 
-> **ステータス：現行 active。** ファイル名は `tx-v12.1.0-inline-core.md` のまま維持するが、現行運用は **v12.1.1 typography patch** を含む。v11.0.0 の肢単位管理、v11.1.0 の誌面リスキン、v11.1.0-twotrack の公式/ Lexia 二系統を継承したうえで、Lexia 用 `_lex` の周回導線を **インライン肢カード中心**に正典化する。
+> **ステータス：現行 active（v12.2.0）。** ファイル名は `tx-v12.1.0-inline-core.md` のまま維持する。v11.0.0 の肢単位管理、v11.1.0 の誌面リスキン、v11.1.0-twotrack の公式/ Lexia 二系統を継承したうえで、Lexia 用 `_lex` の周回導線を **インライン肢カード中心**に正典化する。
 
 ## バージョン規律
 
 - **v12.0.0（major）**：周回の主導線を、下部 ox-grid から問題文直後の `.tx-inline-card` へ移す。PART B は独立巡回先ではなく、各肢カードの「詳説を開く」に吸収される。
 - **v12.1.0（minor）**：TX360 試作で合意した誌面仕上げを正典へ固定する。上部5秒トースト、iPhone向け余白、条文原文カード、文言/趣旨/射程/切断点/転用、記憶フック、答案圧縮、SM2 用ミラーを含む。
-- **v12.1.1（patch / active）**：物語解説のタイポグラフィを固定する。`.fa-narrative` 本文は読み物として軽く、強調語 `.fa-narrative b` は `font-weight:560` 以下に抑え、700系の太字へ戻さない。
+- **v12.1.1（patch）**：物語解説のタイポグラフィを固定する。`.fa-narrative` 本文は読み物として軽く、強調語 `.fa-narrative b` は `font-weight:560` 以下に抑え、700系の太字へ戻さない。
+- **v12.2.0（minor / active・重厚感・教科書化リデザイン）**：誌面全体の質感・重厚感を上げる。
+  (1) **インライン解説の物理順序を再編**：答案圧縮を解説冒頭（問題文直下）の **ANSWER 箱**（英語食み出しタブ `✍ ANSWER`）へ移し、記憶フックを解説末尾の **💡 ワンポイント**（`.tx-onepoint`）にする（旧 `.tx-cycle-aids` 2カラム末尾は廃止）。
+  (2) **条文判例ボックス**＝条文ブルー系（is-main/support/context の濃淡）／判例ピンク系（is-case）。判例は必ず is-case に入れる。
+  (3) **5点フローのラベルを楕円ピル＋立体**（光沢/底陰/ドロップ）。問題文原文は1字下げ。
+  (4) **読み幅 = container 1080px**（63→約48〜52字/行）。多層シャドウ＋インセット光沢＋微パレットグラデで誌面を教科書化。
+  (5) **凡例**＝「論」＝「論文と重複」のみ（旧「条/条文」「判/裁判例」マーカーは廃止）。
+  (6) **詳説は必ず `data-partb-source="N"` panel を持つ**（空 details 禁止・G43）。エンジンが `#choice-N` から自動注入。
+  実効スタイルは `<style>` 末尾「TX360 concrete template override」層。意匠伝播＝`scripts/tx-lex-restyle.py`、DOM 移設＝`scripts/tx-lex-answerbox.py`（ANSWER/ワンポイント/詳説 panel 補完・冪等）。
 
 ## v12 の主導線
 
@@ -24,22 +32,21 @@ article.tx-inline-card[data-stmt]
     .tx-inline-stmt
     .tx-inline-actions (.tx-inline-ox ○ / ×)
   .tx-inline-explain
+    .tx-answer-box           # ① 答案圧縮＝ANSWER 箱（問題文直下・英語食み出しタブ ✍ ANSWER）
     .tx-mini-law
-      .tx-law-item.is-main     # 主条文。ブルー系。
-      .tx-law-item.is-support  # 補助条文。グレー系。
-      .tx-law-item.is-context  # 文脈条文。薄グレー系。
-      .tx-law-item.is-case     # 判例。ピンク系。
+      .tx-law-item.is-main     # 主条文。ブルー系（濃）。
+      .tx-law-item.is-support  # 補助条文。ブルー系（中）。
+      .tx-law-item.is-context  # 文脈条文。ブルー系（淡）。
+      .tx-law-item.is-case     # 判例。ピンク系（必ず is-case）。
     .tx-article-flow
-      文言
-      趣旨
-      射程
-      切断点
-      転用
-      .tx-cycle-aids
-        記憶フック
-        答案圧縮
-      details.tx-inline-detail
+      文言 / 趣旨 / 射程 / 切断点 / 転用   # ラベルは楕円ピル＋立体（重厚感）
+      .tx-onepoint             # ② 記憶フック＝💡 ワンポイント（解説末尾）
+      details.tx-inline-detail # ③ 詳説。必ず .tx-detail-panel[data-partb-source="N"]（N=data-stmt）。空 details 禁止＝G43。
 ```
+
+> **v12.2.0 で物理順序を変更**：旧 `.tx-cycle-aids`（記憶フック＋答案圧縮を末尾2カラム）は廃止。
+> 答案圧縮→冒頭 `.tx-answer-box`、記憶フック→末尾 `.tx-onepoint`。`scripts/tx-lex-answerbox.py` が
+> 既存物を冪等に移設し、空 `<details>` には `data-partb-source` panel を補完する。
 
 ## 条文・判例カード
 
@@ -48,11 +55,14 @@ article.tx-inline-card[data-stmt]
 - 主条文はブルー系、判例はピンク系、補助条文・文脈条文はグレー系で、重要度の濃淡を視覚化する。
 - 試験慣れのため、条文番号は漢数字表記を標準とする。
 
-## 記憶フック・答案圧縮
+## 答案圧縮（ANSWER 箱）・記憶フック（ワンポイント）　※v12.2.0 で配置変更
 
-- 記憶フックは紫系、答案圧縮はピンク系のバッジ/ボックスに入れる。
+- **答案圧縮＝解説冒頭（問題文直下）の `.tx-answer-box`**。英語食み出しタブ `✍ ANSWER`（CSS `::before` 固定）。
+  「要件/条文 → 本件 → 結論」の形で、論証や短文答案へ転用できるテーゼにする。解説は既定 hidden なので、
+  冒頭に置いても周回前のネタバレにはならない（○×後の確認で最初に結論の型を見せる導線）。
+- **記憶フック＝解説末尾の `.tx-onepoint`**（💡 ラベル・CSS `::before` 固定）。一文のワンポイント。
 - どちらも周回出口の一文であり、正解番号だけを示すネタバレ文にしない。
-- 答案圧縮は「要件/条文 → 本件 → 結論」の形で、論証や短文答案へ転用できるテーゼにする。
+- 旧 `.tx-cycle-aids`（紫＝記憶フック／ピンク＝答案圧縮の末尾2カラム）は v12.2.0 で廃止。
 
 ## 物語解説のタイポグラフィ
 

@@ -32,7 +32,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
       通常 SM2 カード本文へ fa-narrative / 詳説 / 問題ローカル記号を混ぜない
   G35 物語解説タイポグラフィ：.fa-narrative の強調太字を過剰に太くしない
   G36 TX360テンプレート固定：本文ラベルは 文言/趣旨/射程/転用（字間スペースなし）
-  G37 TX360テンプレート固定：5点ラベルは長方形CSS、H1は No.NNN ── 形式
+  G37 canonicalテンプレート固定：5点ラベルは楕円ピルCSS(v12.2.0)、H1は No.NNN ── 形式
   G38 正典プレースホルダー契約：生成済み _lex に {{...}} を残さない
   G39 記憶フック/答案圧縮：2カラム中央寄せのTX360テンプレートCSSを要求
   廃止：G17・G18（PART D 関連）
@@ -952,14 +952,15 @@ class Validator:
         css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
         matches = list(re.finditer(r"\.tx-article-flow\s+\.tx-flow-label\s*\{(?P<body>[^}]*)\}", css, re.S))
         if not matches:
-            self.err("G37", ".tx-article-flow .tx-flow-label の長方形テンプレートCSSが無い。"
-                            "TX360の実物テンプレートを流し込む。")
+            self.err("G37", ".tx-article-flow .tx-flow-label の楕円ピルテンプレートCSSが無い。"
+                            "canonical の実物テンプレートを流し込む。")
             return
+        # v12.2.0：5点ラベルは楕円ピル＋立体（旧 v12.1 の長方形 4.4em/6px から変更）。
         required = {
-            "width": r"width\s*:\s*4\.4em",
-            "min-width": r"min-width\s*:\s*4\.4em",
-            "border-radius": r"border-radius\s*:\s*6px",
-            "padding": r"padding\s*:\s*2px\s+7px\s+3px",
+            "width": r"width\s*:\s*4\.9em",
+            "min-width": r"min-width\s*:\s*4\.9em",
+            "border-radius": r"border-radius\s*:\s*999px",
+            "padding": r"padding\s*:\s*6px\s+12px\s+7px",
         }
         ok = False
         best_lacks = list(required)
@@ -972,8 +973,8 @@ class Validator:
                 ok = True
                 break
         if not ok:
-            self.err("G37", f"5点ラベルCSSがTX360長方形テンプレートからずれている: {', '.join(best_lacks)}。"
-                            "丸型・6.4em系へ戻さず、TX360の `.tx-article-flow .tx-flow-label` を使う。")
+            self.err("G37", f"5点ラベルCSSがTX360楕円ピルテンプレート(v12.2.0)からずれている: {', '.join(best_lacks)}。"
+                            "長方形・6px へ戻さず、canonical の `.tx-article-flow .tx-flow-label`(楕円ピル 4.9em/999px/6px 12px 7px) を使う。")
 
     def g38_placeholder_contract(self):
         unresolved = re.findall(r"\{\{[^{}]{1,120}\}\}", self.html)

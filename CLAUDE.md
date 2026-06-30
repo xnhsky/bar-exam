@@ -150,11 +150,20 @@
 > 参照テキストとして通常カード本文に載せない。
 >
 > **【プレースホルダー契約・2026-06-30】TX `_lex` は ARIADNE 同型のスロット契約で接ぎ木を構造的に封じる。**
-> 正典 `canonical/GENESIS-CORE.placeholder.html`（`GENESIS_CORE_SLOT_CONTRACT v12.1.1 PLACEHOLDER-LOCK`）が
+> 正典 `canonical/GENESIS-CORE.placeholder.html`（`GENESIS_CORE_SLOT_CONTRACT v12.2.0 PLACEHOLDER-LOCK`）が
 > 「**`{{...}}` スロットだけ編集可・CSS/JS/class/DOM/節順/SVG座標/エンジンは固定・例外は配色パレット選定のみ**」を
 > 明記する。生成/更新は `canonical/GENESIS-CORE.html` を複製してスロットを埋めるだけ（自由編集・旧_lex流用・
-> band-aid 追加禁止）。**二重防御**＝上流の契約（作らせない）＋下流の G41／`check-tx-lex-engine.py`（作っても弾く・
+> band-aid 追加禁止）。**二重防御**＝上流の契約（作らせない）＋下流の G41/G43／`check-tx-lex-engine.py`（作っても弾く・
 > preflight 常駐）。既存改定時の事故原因と恒久対処は `docs/canonical-revision-migration-playbook.md`。
+>
+> **【v12.2.0 重厚感・教科書化リデザイン・2026-06-30】** 誌面の質感・重厚感を上げる正典改定（spec 第12.2.0項）。
+> インライン解説の物理順序を **① 答案圧縮＝冒頭の ANSWER 箱（✍ ANSWER 食み出しタブ）→ ② 条文判例ボックス
+> （条文=ブルー系/判例=is-case ピンク系）→ ③ 5点フロー（ラベル＝楕円ピル＋立体）→ ④ 記憶フック＝💡ワンポイント
+> → ⑤ 詳説（必ず `data-partb-source="N"` panel・空 details 禁止＝G43）** に再編。問題文原文は1字下げ、読み幅は
+> container 1080px、凡例は「論＝論文と重複」のみ（条/判マーカー廃止）。実効スタイルは `<style>` 末尾「TX360
+> concrete template override」層。伝播ツール＝意匠 `scripts/tx-lex-restyle.py`（block#2+#3 パレット保全＋
+> solve-nav CSS を SOLVE-NAV 正典から注入の二重バグ修正済み）＋DOM 移設 `scripts/tx-lex-answerbox.py`
+> （ANSWER/ワンポイント/詳説 panel 補完・冪等・本文不変）。旧 v12.1 系 _lex は restyle＋answerbox で移行。
 >
 > **下記 §3-1〜§3-6 は旧 v10.0.0 GOLD-SKELETON の記述で、既存197問（v10）の保守用。** 新規生成では
 > v11 を使う（GENESIS.html／PART C/D／12問ドリル規律／validate-tx-gold.py は v10 legacy 専用）。
