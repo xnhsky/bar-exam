@@ -99,6 +99,7 @@ article.tx-inline-card[data-stmt]
 - `<b>` は色で目を止める。太さで押し切らない。正典値は `.fa-narrative b{ font-weight:560; }`。
 - iPhone では濃い明朝太字が潰れて見えるため、`600` 超や `700` 系の太字へ戻さない。
 - inline 型では reveal / browse 前に物語解説を表示しない。表示後の `data-fa-label` は通常フロー内の左寄せラベルにし、絶対配置で本文に被せない。
+- `data-fa-label` 段落の本文は `.fa-narrative-body` で包み、本文先頭だけ `text-indent:1em` にする。ラベル・見出し・バッジには字下げを掛けない。
 
 ## 問題都合ラベルの扱い
 

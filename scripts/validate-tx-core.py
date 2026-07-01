@@ -1267,6 +1267,15 @@ class Validator:
                 self.err("G45", "物語解説ラベルに absolute/left 指定が残っている。"
                                 "右寄り・本文被りの再発を防ぐため禁止。")
 
+        if not re.search(r"\.fa-narrative-body\s*\{[^}]*text-indent\s*:\s*1em", css, re.S):
+            self.err("G45", "物語解説本文 `.fa-narrative-body` の1字下げCSSが無い。"
+                            "ラベルではなく本文側だけを包み、段落先頭を1字分空ける。")
+
+        for i, p in enumerate(self.soup.select(".fa-narrative > p[data-fa-label]"), start=1):
+            if not p.select_one(".fa-narrative-body"):
+                self.err("G45", f"物語解説ラベル付き段落 {i} に `.fa-narrative-body` が無い。"
+                                "本文を直書きせず、本文側だけを包んで1字下げにする。")
+
         flow_blocks = list(re.finditer(r"\.tx-article-flow\s*>\s*p\s*\{(?P<body>[^}]*)\}", css, re.S))
         if flow_blocks:
             last = flow_blocks[-1].group("body")
