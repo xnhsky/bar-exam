@@ -1219,6 +1219,16 @@ class Validator:
         compact_css = re.sub(r"\s+", "", css)
         scripts = "\n".join(s.get_text() for s in self.soup.find_all("script"))
 
+        legend = self.soup.select_one(".marker-legend")
+        if legend:
+            legend_text = legend.get_text(" ", strip=True)
+            if "論文と重複" not in legend_text or re.search(r"\b論\s*論点\b|論点", legend_text):
+                self.err("G45", "マーカー凡例の `論` が `論点` 表記になっている。"
+                                "`論` は論文試験と短答試験が重複する箇所のロンマークであり、凡例は `論文と重複` に固定する。")
+            if "条文" in legend_text or "裁判例" in legend_text:
+                self.err("G45", "マーカー凡例に旧 `条/判` が残っている。"
+                                "v12.2 系の凡例は `論＝論文と重複` と頻度（高/中/低）だけにする。")
+
         if "題名：" in self.html or "テーマ：" in self.html:
             self.err("G45", "条文/判例チップに `題名：` / `テーマ：` の説明文字が残っている。"
                             "表示は basis 由来の題名と法理テーマだけにする。")
