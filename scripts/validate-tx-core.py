@@ -1276,6 +1276,31 @@ class Validator:
                 self.err("G45", f"物語解説ラベル付き段落 {i} に `.fa-narrative-body` が無い。"
                                 "本文を直書きせず、本文側だけを包んで1字下げにする。")
 
+        onepoint_blocks = list(re.finditer(r"\.tx-onepoint\s+\.tx-op-body\s*\{(?P<body>[^}]*)\}", css, re.S))
+        if not onepoint_blocks:
+            self.err("G45", "記憶フック本文 `.tx-onepoint .tx-op-body` のCSSが無い。")
+        else:
+            body = onepoint_blocks[-1].group("body")
+            if not re.search(r"text-indent\s*:\s*1em", body):
+                self.err("G45", "記憶フック本文 `.tx-op-body` の1字下げが無い。"
+                                "本文列全体ではなく、本文先頭だけ1字分空ける。")
+            if re.search(r"padding-left\s*:\s*1em", body):
+                self.err("G45", "記憶フック本文 `.tx-op-body` に `padding-left:1em` が残っている。"
+                                "予約スペースではなく `text-indent:1em` で本文先頭だけ字下げする。")
+
+        answer_review_required = [
+            "buildAnswerReview",
+            "あなたの答え",
+            "tx-result-miss",
+            "tx-toast-body",
+            "setInlineResult(area, ok, correct)",
+            "}, 10000);",
+        ]
+        missing_review = [sig for sig in answer_review_required if sig not in scripts and sig not in self.html]
+        if missing_review:
+            self.err("G45", f"回答後レビュー/トーストの正典JSが不足: {', '.join(missing_review)}。"
+                            "回答後に「あなたの答え・正解・相違」を表示し、トーストは10秒維持する。")
+
         flow_blocks = list(re.finditer(r"\.tx-article-flow\s*>\s*p\s*\{(?P<body>[^}]*)\}", css, re.S))
         if flow_blocks:
             last = flow_blocks[-1].group("body")

@@ -173,6 +173,8 @@
 > `.tx-mini-law-para`、本文は `.tx-mini-law-body` に入れ、2カラム＋本文先頭1字下げにする。判例も同じ。
 > 物語解説は reveal / browse 前に露出させず、露出後はラベル＋題名カードで左寄せ・非重畳表示。
 > ラベル付き段落の本文は `.fa-narrative-body` に包み、本文側だけ `text-indent:1em` で1字下げにする。
+> 記憶フック本文 `.tx-onepoint .tx-op-body` も `padding-left` で押し込まず、本文先頭だけ `text-indent:1em` で字下げする。
+> `解答を表示` 後は、回答操作パネルとトーストに「あなたの答え／正解／相違」を出し、トーストは10秒表示する。
 > 回帰防止は `validate-tx-core.py` G45 と `check-tx-lex-engine.py`。更新・新規生成後は G45 を通す。
 >
 > **【解説品質レビュー・必須】** 解説は TX の命であり、機械整形・一括置換・テンプレ埋めだけで確定しない。
