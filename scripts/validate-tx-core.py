@@ -1123,7 +1123,7 @@ class Validator:
         # (2) canonical エンジン固有関数の必須化。これらが無い＝旧 Annex C JS を流用している。
         ENGINE_SIGNATURES = [
             "hydrateInlinePartBDetails",  # PART B → 詳説パネル自動注入
-            "showInlineToast",            # ○×フィードバックトースト
+            "syncStatementVerdictTable",  # 正誤表へユーザー回答を同期
             "setInlineBrowseState",       # 「解説だけ閲覧」状態管理
             "closeInlineBrowse",
         ]
@@ -1296,17 +1296,17 @@ class Validator:
             "あなたの答え",
             "review.comparison",
             "tx-result-miss",
-            "tx-toast-body",
+            "tx-user-answer-cell",
+            "tx-inline-answer-table-panel",
             "setInlineResult(area, ok, correct)",
-            "}, 10000);",
         ]
         missing_review = [sig for sig in answer_review_required if sig not in scripts and sig not in self.html]
         if missing_review:
-            self.err("G45", f"回答後レビュー/トーストの正典JSが不足: {', '.join(missing_review)}。"
-                            "回答後はカード内にユーザー選択と正解を表示し、トーストは比較一覧だけを10秒維持する。")
-        if "tx-toast-title" in self.html:
-            self.err("G45", "トースト用の `tx-toast-title` が残っている。"
-                            "トーストは正解/不正解タイトルを出さず、比較一覧だけにする。")
+            self.err("G45", f"回答後レビュー/正誤表同期の正典JS/CSSが不足: {', '.join(missing_review)}。"
+                            "回答後は解説冒頭の正誤表にユーザー回答を追加し、カード内判定はボタン下2行で表示する。")
+        if "tx-inline-toast" in self.html or "tx-toast" in self.html or "showInlineToast" in scripts:
+            self.err("G45", "トースト実装が残っている。"
+                            "回答後フィードバックは解説冒頭の正誤表とカード内2行判定に集約する。")
 
         flow_blocks = list(re.finditer(r"\.tx-article-flow\s*>\s*p\s*\{(?P<body>[^}]*)\}", css, re.S))
         if flow_blocks:
