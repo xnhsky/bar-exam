@@ -1735,21 +1735,21 @@ blockquote{
 .tx-inline-ox.incorrect-mark{ background:#b56763; border-color:#b56763; color:#fff; }
 .tx-inline-verdict{
   display:none; grid-column:1 / -1; width:100%; min-width:0; max-width:100%;
-  padding:5px 8px 6px; border:1px solid rgba(146,116,86,.28); border-radius:999px;
-  background:linear-gradient(180deg,#fffdf8 0%,#fff5e8 100%);
-  color:#5b4737; font-family:var(--font-soft); font-size:.82em; font-weight:900;
+  padding:6px 8px 7px; border:1.8px solid rgba(115,84,54,.34); border-radius:999px;
+  background:linear-gradient(180deg,#fffefa 0%,#fff1df 100%);
+  color:#563d2f; font-family:var(--font-soft); font-size:.80em; font-weight:900;
   line-height:1.35; text-align:center; text-indent:0; white-space:normal;
-  box-shadow:0 2px 7px rgba(70,47,30,.10), inset 0 1px 0 rgba(255,255,255,.82);
+  box-shadow:0 4px 10px rgba(70,47,30,.16), inset 0 1px 0 rgba(255,255,255,.88);
 }
 .tx-inline-verdict span{ display:block; white-space:nowrap; }
 .tx-inline-verdict.is-user-correct{
-  border-color:#8fca98; background:linear-gradient(180deg,#f3fbf4 0%,#e7f5ea 100%); color:#2f7440;
+  border-color:#72b981; background:linear-gradient(180deg,#f7fff8 0%,#e1f2e5 100%); color:#236836;
 }
 .tx-inline-verdict.is-user-incorrect{
-  border-color:#e3a1ae; background:linear-gradient(180deg,#fff7f8 0%,#fff0f3 100%); color:#954151;
+  border-color:#d58d9c; background:linear-gradient(180deg,#fff8fa 0%,#ffe9ef 100%); color:#8b3448;
 }
 .tx-inline-verdict.is-browse-only{
-  border-color:#c5d8ee; background:linear-gradient(180deg,#f8fbff 0%,#edf5ff 100%); color:#29496d;
+  border-color:#aac6e2; background:linear-gradient(180deg,#f9fcff 0%,#e7f2ff 100%); color:#284c73;
 }
 .tx-inline-card.revealed .tx-inline-verdict{ display:grid; gap:1px; }
 .tx-inline-explain{
@@ -1882,7 +1882,7 @@ blockquote{
 .tx-inline-browse-btn[aria-expanded="true"]{ background:#fff1f1; }
 .tx-inline-reveal-btn:disabled{ opacity:.45; cursor:not-allowed; }
 .tx-inline-result{
-  display:grid; flex:1 1 100%; width:100%;
+  display:none !important; flex:1 1 100%; width:100%;
   gap:5px; min-height:36px;
   padding:10px 14px; border:1px solid transparent; border-radius:10px;
   font-family:var(--font-soft); font-weight:800; letter-spacing:.02em; text-indent:0;
@@ -5283,7 +5283,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     if (!correct) return '';
     var correctLine = '<span>正解 ' + escapeHTML(answerToken(correct)) + '</span>';
     if (browseOnly) return correctLine;
-    return '<span>自分 ' + escapeHTML(user ? answerToken(user) : '-') + '</span>' + correctLine;
+    return '<span>あなた ' + escapeHTML(user ? answerToken(user) : '-') + '</span>' + correctLine;
   }
   function setInlineVerdict(verdict, user, correct, browseOnly){
     if (!verdict) return;
@@ -5548,23 +5548,12 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     inlineBtn.disabled = !rb || rb.disabled || area.classList.contains('answered');
   }
   function setInlineResult(area, ok, correct){
-    var panel = document.querySelector('.tx-inline-reveal-panel');
-    if (!panel) return;
-    var result = panel.querySelector('.tx-inline-result');
-    if (!result) {
-      result = document.createElement('span');
-      result.className = 'tx-inline-result';
-      panel.appendChild(result);
-    }
-    result.hidden = false;
-    result.classList.toggle('is-correct', !!ok);
-    result.classList.toggle('is-incorrect', !ok);
-    var review = buildAnswerReview(area, correct);
-    result.innerHTML =
-      '<span class="tx-result-title">' + (ok ? '正解' : '不正解') + '</span>' +
-      '<span class="tx-result-row"><span class="tx-result-label">あなたの答え</span>' + escapeHTML(review.user) + '</span>' +
-      '<span class="tx-result-row"><span class="tx-result-label">正解</span>' + escapeHTML(review.correct) + '</span>' +
-      '<span class="tx-result-miss"><span class="tx-result-label">相違</span>' + escapeHTML(review.miss) + '</span>';
+    document.querySelectorAll('.tx-inline-result').forEach(function(result){
+      result.hidden = true;
+      result.setAttribute('hidden', '');
+      result.classList.remove('is-correct','is-incorrect');
+      result.textContent = '';
+    });
     syncStatementVerdictTable(area, correct, false);
   }
   function clearInlineResult(){

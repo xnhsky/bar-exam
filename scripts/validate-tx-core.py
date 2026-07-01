@@ -1295,9 +1295,6 @@ class Validator:
             "setInlineVerdict",
             "compactReviewTableClone",
             "extractReviewCoreSummary",
-            "あなたの答え",
-            "review.comparison",
-            "tx-result-miss",
             "tx-user-answer-cell",
             "tx-inline-answer-table-panel",
             "tx-review-core-summary",
@@ -1310,6 +1307,9 @@ class Validator:
         if "tx-inline-toast" in self.html or "tx-toast" in self.html or "showInlineToast" in scripts:
             self.err("G45", "トースト実装が残っている。"
                             "回答後フィードバックは解説冒頭の正誤表とカード内2行判定に集約する。")
+        if "あなたの答え" in self.html or re.search(r"function\s+setInlineResult\s*\([^)]*\)\s*\{.*?tx-result-miss", scripts, re.S):
+            self.err("G45", "回答操作パネル内の大きな回答サマリー箱が残っている。"
+                            "`setInlineResult` はサマリーを描画せず、正誤表同期だけを行う。")
 
         flow_blocks = list(re.finditer(r"\.tx-article-flow\s*>\s*p\s*\{(?P<body>[^}]*)\}", css, re.S))
         if flow_blocks:
