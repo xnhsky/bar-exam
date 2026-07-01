@@ -1349,8 +1349,8 @@ class Validator:
                 self.err("G45", "5点フローの実効CSSがラベル列＋本文列の2カラムではない。"
                                 "モバイルでもラベル下へ本文をぶら下げない。")
 
-        matrix_enabled = bool(self.soup.select_one(".tx-logic-matrix"))
-        if matrix_enabled:
+        matrix_required = bool(self.soup.select_one(".tx-inline-card .tx-article-flow"))
+        if matrix_required:
             if ".tx-logic-matrix{" not in compact_css:
                 self.err("G45", "論点処理マトリクス `.tx-logic-matrix` のCSSが無い。")
             if not re.search(r"\.tx-matrix-grid\s*\{[^}]*display\s*:\s*grid", css, re.S):
@@ -1408,7 +1408,7 @@ class Validator:
                     self.err("G45", f"inlineカード {i} の条文/判例本文に `tx-mini-law-body` が無い。"
                                     "ラベル横本文を包んで2カラム字下げにする。")
             matrix = ex.select_one(".tx-logic-matrix")
-            if matrix_enabled:
+            if matrix_required:
                 if not matrix:
                     self.err("G45", f"inlineカード {i} に論点処理マトリクスが無い。"
                                     "条文判例の直下、5点フローの直上に置く。")

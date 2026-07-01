@@ -103,7 +103,7 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
         if "下の一問一答" in html and "このナビ内" not in html:
             issues.append(Issue(path, "TX-NAV", "解法ナビが下の一問一答へ誘導するだけになっている"))
 
-    matrix_enabled = bool(soup.select_one(".tx-logic-matrix"))
+    matrix_required = bool(soup.select_one(".tx-inline-card .tx-article-flow"))
 
     for i, card in enumerate(soup.select(".tx-inline-card"), 1):
         explain = card.select_one(".tx-inline-explain")
@@ -134,7 +134,7 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
                 issues.append(Issue(path, "TX-LAW", f"カード{i}: 条文/判例本文に tx-mini-law-body がない"))
 
         matrix = explain.select_one(".tx-logic-matrix")
-        if matrix_enabled:
+        if matrix_required:
             if not matrix:
                 issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスがない"))
             else:
