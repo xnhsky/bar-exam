@@ -1290,7 +1290,11 @@ class Validator:
 
         answer_review_required = [
             "buildAnswerReview",
+            "compactAnswerComparison",
+            "formatInlineVerdict",
+            "setInlineVerdict",
             "あなたの答え",
+            "review.comparison",
             "tx-result-miss",
             "tx-toast-body",
             "setInlineResult(area, ok, correct)",
@@ -1299,7 +1303,10 @@ class Validator:
         missing_review = [sig for sig in answer_review_required if sig not in scripts and sig not in self.html]
         if missing_review:
             self.err("G45", f"回答後レビュー/トーストの正典JSが不足: {', '.join(missing_review)}。"
-                            "回答後に「あなたの答え・正解・相違」を表示し、トーストは10秒維持する。")
+                            "回答後はカード内にユーザー選択と正解を表示し、トーストは比較一覧だけを10秒維持する。")
+        if "tx-toast-title" in self.html:
+            self.err("G45", "トースト用の `tx-toast-title` が残っている。"
+                            "トーストは正解/不正解タイトルを出さず、比較一覧だけにする。")
 
         flow_blocks = list(re.finditer(r"\.tx-article-flow\s*>\s*p\s*\{(?P<body>[^}]*)\}", css, re.S))
         if flow_blocks:

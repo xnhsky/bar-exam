@@ -1729,7 +1729,23 @@ blockquote{
 .tx-inline-ox.selected{ background:#efe7cb; box-shadow:0 0 0 3px rgba(220,203,103,.28); }
 .tx-inline-ox.correct-mark{ background:#5ea66a; border-color:#5ea66a; color:#fff; }
 .tx-inline-ox.incorrect-mark{ background:#b56763; border-color:#b56763; color:#fff; }
-.tx-inline-verdict{ display:none; min-width:4.8em; font-weight:800; font-family:var(--ed-serif); }
+.tx-inline-verdict{
+  display:none; flex:0 1 13em; min-width:8.6em; max-width:18em;
+  padding:5px 10px 6px; border:1px solid rgba(146,116,86,.28); border-radius:999px;
+  background:linear-gradient(180deg,#fffdf8 0%,#fff5e8 100%);
+  color:#5b4737; font-family:var(--font-soft); font-size:.88em; font-weight:900;
+  line-height:1.35; text-align:center; text-indent:0; white-space:normal;
+  box-shadow:0 2px 7px rgba(70,47,30,.10), inset 0 1px 0 rgba(255,255,255,.82);
+}
+.tx-inline-verdict.is-user-correct{
+  border-color:#8fca98; background:linear-gradient(180deg,#f3fbf4 0%,#e7f5ea 100%); color:#2f7440;
+}
+.tx-inline-verdict.is-user-incorrect{
+  border-color:#e3a1ae; background:linear-gradient(180deg,#fff7f8 0%,#fff0f3 100%); color:#954151;
+}
+.tx-inline-verdict.is-browse-only{
+  border-color:#c5d8ee; background:linear-gradient(180deg,#f8fbff 0%,#edf5ff 100%); color:#29496d;
+}
 .tx-inline-card.revealed .tx-inline-verdict{ display:inline-block; }
 .tx-inline-explain{
   margin:18px 0 0; padding:16px 18px; border:1px solid rgba(226,210,193,.62); border-radius:10px;
@@ -1888,7 +1904,6 @@ blockquote{
 .tx-inline-toast.is-visible{ opacity:1; transform:translate(-50%,0) scale(1); }
 .tx-inline-toast.is-correct{ background:#edf8ef; border-color:#8fca98; color:#2f7440; }
 .tx-inline-toast.is-incorrect{ background:#fff4f6; border-color:#e7a5b1; color:#9a4655; }
-.tx-toast-title{ display:block; font-weight:900; }
 .tx-toast-body{ display:block; font-size:.92em; }
 /* 2026-07-01 LOCK: final-answer は answer-key 用に DOM 保持、inline UI では旧 FINAL ANSWER パネルを表示しない。 */
 .answer-area.inline-prototype-mode .answer-instruction,
@@ -5219,15 +5234,40 @@ body.snav-on .solve-nav{display:block;}
   function labelStatement(label){
     return label ? '記述' + label : '記述';
   }
+  function compactAnswerComparison(user, correct){
+    var u = answerToken(user);
+    var c = answerToken(correct);
+    return user === correct ? u + '=' + c : u + '→' + c;
+  }
+  function verdictMeaning(v){
+    if (v === '○') return '○ 正しい';
+    if (v === '×') return '× 誤り';
+    return answerToken(v);
+  }
+  function formatInlineVerdict(user, correct, browseOnly){
+    if (!correct) return '';
+    if (browseOnly) return '正解：' + verdictMeaning(correct);
+    if (!user) return '未回答 → 正解：' + verdictMeaning(correct);
+    if (user === correct) return 'あなた：' + user + '＝正解';
+    return 'あなた：' + answerToken(user) + ' → 正解：' + verdictMeaning(correct);
+  }
+  function setInlineVerdict(verdict, user, correct, browseOnly){
+    if (!verdict) return;
+    verdict.textContent = formatInlineVerdict(user, correct, browseOnly);
+    verdict.classList.toggle('is-user-correct', !!user && user === correct && !browseOnly);
+    verdict.classList.toggle('is-user-incorrect', !!user && user !== correct && !browseOnly);
+    verdict.classList.toggle('is-browse-only', !!browseOnly || !user);
+  }
   function buildAnswerReview(area, correct){
     var type = getAnswerType(area);
-    var review = { user:'未選択', correct:correct || '', miss:'なし', toastMiss:'なし' };
+    var review = { user:'未選択', correct:correct || '', miss:'なし', toastMiss:'なし', comparison:'' };
     if (!area) return review;
     if (type === 'single') {
       var selected = area.querySelector('.answer-slot.selected');
       var user = selected ? readUserVal(selected) : '';
       review.user = answerToken(user);
       review.correct = answerToken(correct);
+      review.comparison = 'あなた：' + compactAnswerComparison(user, correct);
       if (user !== correct) {
         review.miss = 'あなた ' + answerToken(user) + ' ／ 正解 ' + answerToken(correct);
         review.toastMiss = review.miss;
@@ -5240,6 +5280,7 @@ body.snav-on .solve-nav{display:block;}
       var userArr = selectedSlots.map(function(s){ return readUserVal(s); }).filter(Boolean);
       review.user = joinAnswerTokens(userArr);
       review.correct = joinAnswerTokens(correctArr);
+      review.comparison = 'あなた：' + review.user + ' ／ 正解：' + review.correct;
       var correctSet = {};
       correctArr.forEach(function(v){ correctSet[v] = true; });
       var userSet = {};
@@ -5261,6 +5302,7 @@ body.snav-on .solve-nav{display:block;}
       var userPairs = [];
       var correctPairs = [];
       var misses = [];
+      var comparisons = [];
       rows.forEach(function(row, idx){
         var label = row.getAttribute('data-stmt') || String(idx + 1);
         var selected = row.querySelector('.ox-btn.selected');
@@ -5268,12 +5310,14 @@ body.snav-on .solve-nav{display:block;}
         var ans = correctStr.charAt(idx) || '';
         userPairs.push(label + ':' + answerToken(user));
         correctPairs.push(label + ':' + answerToken(ans));
+        comparisons.push(label + '：' + compactAnswerComparison(user, ans));
         if (user !== ans) {
           misses.push(labelStatement(label) + '（あなた ' + answerToken(user) + ' ／ 正解 ' + answerToken(ans) + '）');
         }
       });
       review.user = userPairs.join('　');
       review.correct = correctPairs.join('　');
+      review.comparison = comparisons.join(' / ');
       if (misses.length) {
         review.miss = misses.join('、');
         review.toastMiss = misses.join('、');
@@ -5345,10 +5389,7 @@ body.snav-on .solve-nav{display:block;}
     toast.classList.remove('is-visible','is-correct','is-incorrect');
     toast.classList.add(ok ? 'is-correct' : 'is-incorrect');
     review = review || buildAnswerReview(area, correct);
-    toast.innerHTML =
-      '<span class="tx-toast-title">' + (ok ? '正解' : '不正解') + '</span>' +
-      '<span class="tx-toast-body">あなた：' + escapeHTML(review.user) + ' ／ 正解：' + escapeHTML(review.correct) + '</span>' +
-      '<span class="tx-toast-body">相違：' + escapeHTML(review.miss) + '</span>';
+    toast.innerHTML = '<span class="tx-toast-body">' + escapeHTML(review.comparison || review.toastMiss || review.miss) + '</span>';
     window.requestAnimationFrame(function(){ toast.classList.add('is-visible'); });
     window.clearTimeout(showInlineToast.timer);
     showInlineToast.timer = window.setTimeout(function(){
@@ -5676,7 +5717,7 @@ body.snav-on .solve-nav{display:block;}
       card.classList.add('revealed');
       card.classList.toggle('is-correct', correctChar === '○');
       card.classList.toggle('is-incorrect', correctChar === '×');
-      if (verdict) verdict.textContent = correctChar === '○' ? '○ 正しい' : '× 誤り';
+      setInlineVerdict(verdict, userVal, correctChar, false);
       if (explain) {
         explain.hidden = false;
         explain.removeAttribute('hidden');
@@ -5713,7 +5754,7 @@ body.snav-on .solve-nav{display:block;}
       card.classList.add('revealed');
       card.classList.toggle('is-correct', correctChar === '○');
       card.classList.toggle('is-incorrect', correctChar === '×');
-      if (verdict) verdict.textContent = correctChar === '○' ? '○ 正しい' : '× 誤り';
+      setInlineVerdict(verdict, '', correctChar, true);
       if (explain) {
         explain.hidden = false;
         explain.removeAttribute('hidden');
@@ -5733,7 +5774,10 @@ body.snav-on .solve-nav{display:block;}
       var explain = card.querySelector('.tx-inline-explain');
       var verdict = card.querySelector('.tx-inline-verdict');
       if (explain) explain.hidden = true;
-      if (verdict) verdict.textContent = '';
+      if (verdict) {
+        verdict.textContent = '';
+        verdict.classList.remove('is-user-correct','is-user-incorrect','is-browse-only');
+      }
       card.classList.remove('revealed','is-correct','is-incorrect');
       card.querySelectorAll('.tx-inline-ox').forEach(function(b){
         if (!answered) b.disabled = false;
