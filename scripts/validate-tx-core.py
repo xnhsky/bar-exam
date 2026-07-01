@@ -35,7 +35,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G37 canonicalテンプレート固定：5点ラベルは楕円ピルCSS(v12.2.0)、H1は No.NNN ── 形式
   G38 正典プレースホルダー契約：生成済み _lex に {{...}} を残さない
   G39 記憶フック/答案圧縮：2カラム中央寄せのTX360テンプレートCSSを要求
-  G45 v12.2.1 表示LOCK：条文/判例の題名・法理テーマ、条文本文2カラム、物語ラベル非重畳を要求
+  G45 v12.2.1 表示LOCK：条文/判例の題名・法理テーマ、条文本文2カラム、物語ラベル非重畳、解説役割の混入禁止を要求
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -1320,6 +1320,16 @@ class Validator:
         if "あなたの答え" in self.html or re.search(r"function\s+setInlineResult\s*\([^)]*\)\s*\{.*?tx-result-miss", scripts, re.S):
             self.err("G45", "回答操作パネル内の大きな回答サマリー箱が残っている。"
                             "`setInlineResult` はサマリーを描画せず、正誤表同期だけを行う。")
+        bad_hint_phrases = [
+            "問題文のキーワードを拾い、条文・判例の要件",
+            "客体・危険・焼損・故意",
+            "結論と個別のコアは採点後に確認できます",
+        ]
+        leaked_hints = [p for p in bad_hint_phrases if p in self.html]
+        if leaked_hints:
+            self.err("G45", "解法ナビに汎用・分野ズレのヒント文が残っている: "
+                            + " / ".join(leaked_hints)
+                            + "。ヒントは具体的な条文要件・判例基準・例外規定へ誘導する。")
 
         flow_blocks = list(re.finditer(r"\.tx-article-flow\s*>\s*p\s*\{(?P<body>[^}]*)\}", css, re.S))
         if flow_blocks:
@@ -1332,6 +1342,39 @@ class Validator:
             if ex.select_one(".tx-answer-box") and not ex.select_one(".tx-mini-law"):
                 self.err("G45", f"inlineカード {i} に `tx-mini-law` が無い。"
                                 "ANSWER直後に条文/判例ボックスを置き、文言/趣旨/射程だけで根拠を代用しない。")
+            answer_text = ""
+            answer = ex.select_one(".tx-answer-box .tx-answer-body")
+            if answer:
+                answer_text = answer.get_text(" ", strip=True)
+                if re.match(r"^(文言|趣旨|射程|切断点|転用)\b", answer_text):
+                    self.err("G45", f"inlineカード {i} の ANSWER が分析ラベル始まり。"
+                                    "ANSWER は `条文・判例 → 本件事実 → 成否` の到達形にし、文言/趣旨等の役割名を入れない。")
+                if not re.search(r"(成立|不成立|当たる|当たらない|肯定|否定|可罰|不可罰|既遂|未遂|客体外|含まれない|含む|足りる|足りない|阻却|処罰|非ず|ではない|なし|あり|○|×)", answer_text):
+                    self.err("G45", f"inlineカード {i} の ANSWER に結論語が不足。"
+                                    "短答周回で使うため、成否・該当性・限界を必ず明示する。")
+            hook = ex.select_one(".tx-onepoint .tx-op-body")
+            if hook:
+                hook_text = hook.get_text(" ", strip=True)
+                if re.search(r"(成立するか|当たるか|どれか|正しいか|誤りか)\s*$", hook_text):
+                    self.err("G45", f"inlineカード {i} の記憶フックが問題文の焼き直し。"
+                                    "1秒で思い出す要件・条文列挙・分岐の合図にする。")
+                if re.search(r"→\s*.*成立しない", hook_text) and re.search(r"(成立する|成立し得る|当たる|偽造となる)", answer_text):
+                    self.err("G45", f"inlineカード {i} の記憶フックが ANSWER と逆結論に読める。"
+                                    "正誤結論は ANSWER・フロー・記憶フックで必ず一致させる。")
+                if re.search(r"→\s*.*成立する", hook_text) and re.search(r"(成立しない|客体外|当たらない|含まれない)", answer_text):
+                    self.err("G45", f"inlineカード {i} の記憶フックが ANSWER と逆結論に読める。"
+                                    "正誤結論は ANSWER・フロー・記憶フックで必ず一致させる。")
+            mini = ex.select_one(".tx-mini-law")
+            if mini:
+                mini_text = mini.get_text(" ", strip=True)
+                if re.search(r"\bBASIS\b", mini_text):
+                    self.err("G45", f"inlineカード {i} の条文/判例ボックスに BASIS 要約が混入。"
+                                    "選択肢判断に実際に使う条文・項・判例だけを載せる。")
+                for code in mini.select(".tx-mini-law-code, .tx-mini-law-article"):
+                    code_text = code.get_text(" ", strip=True)
+                    if code_text in {"根拠", "条文・判例"}:
+                        self.err("G45", f"inlineカード {i} の条文/判例チップが汎用名 `{code_text}`。"
+                                        "`刑法 / 112条`、`判例 / 最決...` のように根拠そのものを表示する。")
             for text in ex.select(".tx-mini-law-text.has-label, .tx-mini-law-text"):
                 if text.select_one(".tx-mini-law-para") and not text.select_one(".tx-mini-law-body"):
                     self.err("G45", f"inlineカード {i} の条文/判例本文に `tx-mini-law-body` が無い。"

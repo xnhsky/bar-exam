@@ -384,6 +384,68 @@ def main():
     else:
         P('A32', '照合・模範答案・深掘りは骨子コンテナ内に固定')
 
+    # ---- A33 役割別品質ゲート（2026-07-01）----
+    # ARIADNE は「次に何をするか」を再現する教材なので、汎用誘導・薄い解説・骨子欠落を ERROR にする。
+    a33_errors = []
+    bad_generic = [
+        '問題文のキーワード',
+        'まず考えよう',
+        '重要です。',
+        '確認しましょう。',
+    ]
+    leaked = [p for p in bad_generic if p in html]
+    if leaked:
+        a33_errors.append('汎用誘導文が残存: ' + '／'.join(leaked))
+
+    for si, (stag, sinner) in enumerate(extract_divs(html, 'step'), 1):
+        do_texts = [text_only(m.group(1)) for m in re.finditer(r'class="do"[^>]*>(.*?)</p>', sinner, re.S)]
+        for di, dt in enumerate(do_texts, 1):
+            if len(dt) < 18:
+                a33_errors.append(f'STEP{si} .do {di} が短すぎる（切断軸不足）')
+            if re.fullmatch(r'.*(確認する|考える|整理する)[。.]?', dt) and not re.search(r'条|罪|規範|要件|事実|結論|違法|責任|故意|因果|共犯|罪数', dt):
+                a33_errors.append(f'STEP{si} .do {di} が汎用作業指示のみ')
+
+    for ci, (_tag, inner) in enumerate(cards, 1):
+        qm = re.search(r'class="quiz-question"[^>]*>(.*?)</p>', inner, re.S)
+        am = re.search(r'class="quiz-answer"[^>]*>(.*?)</div>', inner, re.S)
+        qtext = text_only(qm.group(1)) if qm else ''
+        atext = text_only(am.group(1)) if am else ''
+        if re.search(r'正解はどれ|本問の正解|正解の組', qtext):
+            a33_errors.append(f'周回ドリル{ci} が正解再問型')
+        if len(atext) < 18:
+            a33_errors.append(f'周回ドリル{ci} の解説が短すぎる')
+        if atext and not re.search(r'から|ため|ので|要件|条|判例|規範|結論|成立|不成立|故意|違法|責任|因果|客体|射程|区別|限ら|正当防衛|緊急避難|阻却|否定|肯定|対象外|無効|有効|減点|条文|主体|過失|未遂|既遂|法益|補充性|相当性|公共|評価|検討対象|実益|配点|自殺|承諾|共犯|急迫|不正|侵害|継続|終了|加害|意思|可能性|時間的|場所的|接着|総合|判断|失点|罪名|行為|検討|漏れ|起動|詐欺|傷害|殺人|正犯|道具|利用|定義|形態', atext):
+            a33_errors.append(f'周回ドリル{ci} の解説に理由・要件・結論の手掛かりが不足')
+
+    if bone_inner and 'matrix-bone' in bone_tag + bone_inner:
+        for marker, label in [
+            ('class="iss"', '論点'),
+            ('class="krule"', '規範'),
+            ('class="kfact"', 'あてはめキー事実'),
+            ('<u>', '結論'),
+        ]:
+            if marker not in bone_inner:
+                a33_errors.append(f'答案構成骨子に {label} マーカーが不足')
+
+    if ma:
+        inner = ma[0][1]
+        role_count = len(re.findall(r'<p[^>]*class="[^"]*\br-(?:issue|norm|apply|concl)\b', inner))
+        apply_blocks = re.findall(r'<p[^>]*class="[^"]*\br-apply\b[^"]*"[^>]*>(.*?)</p>', inner, re.S)
+        if role_count == 0:
+            a33_errors.append('模範答案に問規当結の役割クラスがない')
+        if apply_blocks:
+            thin_apply = 0
+            for block in apply_blocks:
+                if 'class="fact"' not in block and 'class="eval"' not in block:
+                    thin_apply += 1
+            if thin_apply == len(apply_blocks):
+                a33_errors.append('模範答案のあてはめ段落に fact/eval マーカーがない')
+
+    if a33_errors:
+        E('A33', ' / '.join(a33_errors[:12]) + (f' / 他{len(a33_errors)-12}件' if len(a33_errors) > 12 else ''))
+    else:
+        P('A33', '役割別品質ゲート通過（汎用誘導・薄いドリル・骨子欠落なし）')
+
     for line in passes + warns + errors:
         print(line)
     print("NOTE: PASS は構造・表示ゲートの通過です。最新法令・判例・学説（新旧差分時の立法経緯・改正経緯を含む）は spec/jx-ariadne-v1.2.0-core.md の最高エフォートレビューを別途必須とします。")
