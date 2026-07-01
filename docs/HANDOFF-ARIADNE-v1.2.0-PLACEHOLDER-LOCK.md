@@ -112,6 +112,12 @@ Forbidden AI judgment:
   The `.bc-col` / 教授のひとこと / answer-construction coaching should correspond to the TTS side's answer-construction, case-analysis, and "difference-making point" content.
   Do not add generic coaching that contradicts or bypasses the JX/TTS theory.
 
+- **Current law / precedent / doctrine review is mandatory.**
+  ARIADNE is bar-exam material. For every generation or update, verify current statutes, recent precedents, and major doctrine.
+  If old law / old precedent / old doctrine differs from current law / latest precedent / current major doctrine, add `.ariadne-current-law-note`
+  near the relevant deep-dive card. The note must include confirmation date, sources, old treatment, current treatment, legislative history,
+  amendment history, amendment purpose, and exam handling. Do not mark ARIADNE complete if this review is unfinished.
+
 ## Layout Rules To Preserve
 
 Bad pattern to avoid: a badge/label followed by a long sentence on the same line, causing the text to hang awkwardly.

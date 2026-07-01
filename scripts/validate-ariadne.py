@@ -386,6 +386,7 @@ def main():
 
     for line in passes + warns + errors:
         print(line)
+    print("NOTE: PASS は構造・表示ゲートの通過です。最新法令・判例・学説（新旧差分時の立法経緯・改正経緯を含む）は spec/jx-ariadne-v1.2.0-core.md の最高エフォートレビューを別途必須とします。")
     print(f"\n=== ARIADNE 検証: PASS {len(passes)} / WARN {len(warns)} / ERROR {len(errors)} ===")
     sys.exit(1 if errors else 0)
 

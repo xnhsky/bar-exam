@@ -27,7 +27,7 @@
 - **v12.1.0 minor（2026-06-29）**：TX360 試作で確定した誌面仕上げを正典化。上部5秒トースト、iPhone向け余白、Mildliner 系配色、条文=ブルー/判例=ピンク/補助根拠=グレー、SM2 用 `.ox-pool-explain` ミラー、問題都合ラベルを論点コア・テーゼへ置換する運用を固定。
 - **v12.1.1 patch（2026-06-29）**：ストーリー/物語解説の強調太字を軽量化。`.fa-narrative b` は `font-weight:560` 以下を正典化し、モバイルで潰れる700系の太字へ戻さない。validator G35 で回帰を止める。
 - **v12.2.0 minor（2026-06-30）**：重厚感・教科書化リデザイン。ANSWER 箱、条文/判例ボックス、5点フロー、ワンポイント、詳説 panel の順序を固定し、G37/G43 で回帰を止める。
-- **v12.2.1 patch（2026-07-01・active）**：TX355-359 実地修正を表示LOCK化。問題文と○×の一体表示、解法ナビ位置と非ネタバレヒント、条文/判例の題名・法理テーマチップ、ラベル付き本文2カラム字下げ、物語解説の reveal 後表示・ラベル非重畳を固定。validator G45 と `check-tx-lex-engine.py` で回帰を止める。
+- **v12.2.1 patch（2026-07-01・active）**：TX355-359 実地修正を表示LOCK化。問題文と○×の一体表示、解法ナビ位置と非ネタバレヒント、条文/判例の題名・法理テーマチップ、ラベル付き本文2カラム字下げ、物語解説の reveal 後表示・ラベル非重畳を固定。最新法令・判例・学説レビューでは、新旧差分時に立法経緯/改正経緯・改正趣旨を `tx-current-law-note` へ残す。validator G45 と `check-tx-lex-engine.py` で回帰を止める。
 - Lexia 連携：間違えた肢を `{問題ID}#stmt-{記述}` で要復習プール＋弱点克服帳へ。
 
 ### 世代の系譜（frozen / legacy）
@@ -83,7 +83,8 @@
   DOM/CSS/JS/余白/機能色の固定正典、`canonical/ARIADNE.placeholder.html` は AI が置換してよい `{{{...}}}`
   スロット契約。模範答案は Claude 正典の問規当結カードを維持する。AI判断可のデザイン差分は既存
   ACTIVE ベースカラー（EASY/STD/HARD）の難易度選択のみ。恒久対策は `validate-ariadne.py` A30/A31/A32 と
-  `check-ariadne-canonical.py`、同期前 `check-lexia-preflight.py` に組込み済み。
+  `check-ariadne-canonical.py`、同期前 `check-lexia-preflight.py` に組込み済み。最新法令・判例・学説レビューも必須で、
+  新旧差分時は `ariadne-current-law-note` に立法経緯/改正経緯・改正趣旨を含める。
 - 詳細は **`docs/rx-arb-byproducts.md`**（副産物の正典）。
 
 ---
@@ -98,7 +99,7 @@
 | `validate-tx.py` | TX v8.x〜v9.x | S1〜S91（legacy） |
 | `validate-jx.py` | JX | J1〜J21＋JC1〜JD1(v4)＋JSB（タグ均衡） |
 | `validate-rx.py` / `validate-tts.py` | RX論証 / TTS台本 | 各系 |
-| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A32／canonical＋全出力横断 |
+| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A32／canonical＋全出力横断（`.ariadne-current-law-note` 正典CSS/slot allowance 含む） |
 
 ---
 

@@ -85,6 +85,9 @@ def check_canonical_version() -> int:
     if CANONICAL_VERSION not in text:
         print(f"[ERROR] canonical/ARIADNE.html version marker missing: {CANONICAL_VERSION}")
         return 1
+    if "ariadne-current-law-note" not in text:
+        print("[ERROR] canonical/ARIADNE.html missing .ariadne-current-law-note CSS")
+        return 1
     print(f"[OK] canonical/ARIADNE.html version marker: {CANONICAL_VERSION}")
     return 0
 
@@ -103,6 +106,9 @@ def check_slot_contract() -> int:
         return 1
     if "{{{" not in text or "}}}" not in text:
         print("[ERROR] canonical/ARIADNE.placeholder.html has no triple-brace slots")
+        return 1
+    if "ariadne-current-law-note" not in text:
+        print("[ERROR] canonical/ARIADNE.placeholder.html missing .ariadne-current-law-note slot allowance")
         return 1
     print(f"[OK] canonical/ARIADNE.placeholder.html slot contract: {SLOT_CONTRACT_VERSION}")
     return 0
