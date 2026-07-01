@@ -165,6 +165,15 @@
 > solve-nav CSS を SOLVE-NAV 正典から注入の二重バグ修正済み）＋DOM 移設 `scripts/tx-lex-answerbox.py`
 > （ANSWER/ワンポイント/詳説 panel 補完・冪等・本文不変）。旧 v12.1 系 _lex は restyle＋answerbox で移行。
 >
+> **【v12.2.1 表示LOCK・2026-07-01】** TX355-359 実地修正を正典化。詳細は
+> `docs/tx-v12.2.1-inline-lock.md`。問題文と○×は `.tx-inline-card` で一体化し、○/×は右端配置。
+> 解法ナビは問題文直下・インラインカード前に置き、正誤/正解番号を出さない「どこを見るか」のヒントにする。
+> 条文/判例カードは `題名：` / `テーマ：` を表示せず、下部 `basis-card-header` 由来の題名＋法理テーマだけを
+> 重厚な楕円ピルで出す。`本条` / `本文` / `①` / `②` / `判旨核心` / `判例` は
+> `.tx-mini-law-para`、本文は `.tx-mini-law-body` に入れ、2カラム＋本文先頭1字下げにする。判例も同じ。
+> 物語解説は reveal / browse 前に露出させず、露出後はラベル＋題名カードで左寄せ・非重畳表示。
+> 回帰防止は `validate-tx-core.py` G45 と `check-tx-lex-engine.py`。更新・新規生成後は G45 を通す。
+>
 > **下記 §3-1〜§3-6 は旧 v10.0.0 GOLD-SKELETON の記述で、既存197問（v10）の保守用。** 新規生成では
 > v11 を使う（GENESIS.html／PART C/D／12問ドリル規律／validate-tx-gold.py は v10 legacy 専用）。
 

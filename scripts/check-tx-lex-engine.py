@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""TX _lex の push 前ゲート（canonical エンジン整合 G41 ＋ 組合せ当否判定 G42・read-only）。
+"""TX _lex の push 前ゲート（G41/G42/G43/G44/G45・read-only）。
 
-validate-tx-core.py の G41 を全 `*_lex.html` に横断適用し、「旧 _lex ベース流用＋
+validate-tx-core.py の G41/G42/G44 を全 `*_lex.html` に横断適用し、「旧 _lex ベース流用＋
 後付けパッチ script 接ぎ木」（codex 366-385 型）を push 前に機械的に弾く。さらに G42 で
 「答え選択肢（組合せ1〜5）の当否を ox-stmt にした組合せ当否判定」（刑TX089/174/212/218/220/256/368 型）も弾く。
+G45 は v12.2.1 マーカーを持つファイル、またはコマンドで明示指定されたファイルに適用し、
+TX355-359 実地修正後の表示LOCK（条文/判例ラベル、2カラム字下げ、物語ラベル非重畳）を弾く。
 
 G1〜G40 は構造要素の存在しか見ないため、canonical/GENESIS-CORE.html の単一エンジンを
 使わず旧 Annex C JS に band-aid(tx-inline-v1211-upgrade-js)を足した接ぎ木でも 1 ファイル
@@ -80,8 +82,13 @@ def main() -> int:
     Validator = _load_validator()
     roots = sys.argv[1:] or ["outputs"]
     files = _collect(roots)
+    explicit_files = {
+        (Path(root) if Path(root).is_absolute() else ROOT / root).resolve()
+        for root in roots
+        if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
+    }
 
-    print("=== TX _lex push-front gate (G41 engine integrity + G42 combination-verdict + G43 detail-panel + G44 inline controls) ===")
+    print("=== TX _lex push-front gate (G41 engine + G42 combination + G43 detail + G44 controls + G45 presentation) ===")
     print("roots=" + ", ".join(roots))
 
     # スロット契約の存在＋版マーカー検査（ARIADNE の check_slot_contract 相当）。
@@ -104,6 +111,7 @@ def main() -> int:
             print(f"[OK] slot contract: {MARKER}")
 
     scanned = 0
+    g45_scanned = 0
     offenders: list[tuple[Path, list[str]]] = []
     for f in files:
         if f.stem.endswith("_lex") is False:
@@ -120,6 +128,18 @@ def main() -> int:
         v.g42_no_combination_verdict_stmt()
         v.g44_tx_inline_answer_controls_contract()
         gate_errs = [(code, msg) for code, msg in v.errors if code in ("G41", "G42", "G44")]
+        # G45＝v12.2.1 表示LOCK。既存の未移行 v12.1.1 を全件落とさないため、
+        # v12.2.1 として生成・更新済みのファイルか、明示指定ファイルだけに適用する。
+        g45_required = (
+            f.resolve() in explicit_files
+            or "TX v12.2.1 LOOP-CORE" in v.html
+            or "v12.2.1 LOOP-CORE" in v.html
+        )
+        if g45_required:
+            g45_scanned += 1
+            before = len(v.errors)
+            v.g45_tx_v1221_presentation_lock()
+            gate_errs.extend((code, msg) for code, msg in v.errors[before:] if code == "G45")
         if v.soup.select_one(".tx-inline-card"):
             scanned += 1
             # G43（v12.2 PLACEHOLDER-LOCK）＝詳説 panel 欠落（空 details）を弾く。
@@ -148,9 +168,9 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12 inline _lex 走査={scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI) 検出ファイル={len(offenders)}")
+    print(f"\nv12 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK) 検出ファイル={len(offenders)}")
     if offenders:
-        print("\n[G41/G42/G43/G44] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れを検出:")
+        print("\n[G41/G42/G43/G44/G45] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れを検出:")
         for f, errs in offenders:
             rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
             print(f"  ❌ {rel}")
@@ -160,6 +180,7 @@ def main() -> int:
             "\nG41＝canonical/GENESIS-CORE.html の単一エンジンから作り直す（band-aid 不可）。"
             "G42＝組合せ当否判定を空欄/記述/事例単位の独立命題へ分解する（見本 刑TX350・§7 保守的書き換え禁止）。"
             "G44＝inline カードの操作UIを正典型（reveal-panel＋choice-num-inline＋sn-combos）へ戻す。"
+            "G45＝条文/判例ラベル・2カラム字下げ・物語ラベルを v12.2.1 正典へ戻す。"
         )
         return 1
 

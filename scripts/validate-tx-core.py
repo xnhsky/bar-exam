@@ -35,6 +35,7 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G37 canonicalテンプレート固定：5点ラベルは楕円ピルCSS(v12.2.0)、H1は No.NNN ── 形式
   G38 正典プレースホルダー契約：生成済み _lex に {{...}} を残さない
   G39 記憶フック/答案圧縮：2カラム中央寄せのTX360テンプレートCSSを要求
+  G45 v12.2.1 表示LOCK：条文/判例の題名・法理テーマ、条文本文2カラム、物語ラベル非重畳を要求
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -1202,6 +1203,86 @@ class Validator:
             self.err("G44", "解法ナビに `#sn-combos` が無い。"
                             "候補・進捗表示の受け皿を `.sn-body` 先頭に置く。")
 
+    def g45_tx_v1221_presentation_lock(self):
+        # v12.2.1（2026-07-01 実地合意）：
+        # 条文/判例の上段ラベルは「題名：」「テーマ：」という説明語を出さず、
+        # 下部 basis-card 由来の題名＋法理的テーマだけを表示する。
+        # また、ストーリー解説のラベルは本文に重ならない通常フロー配置、
+        # 条文/判例本文はラベル列＋本文列の2カラムを正典とする。
+        target = self.html_path.stem.endswith("_lex") or self.html_path.name == "GENESIS-CORE.html"
+        if not target:
+            return
+        if self.html_path.stem.endswith("_lex") and not self.soup.select_one(".tx-inline-card"):
+            return
+
+        css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+        compact_css = re.sub(r"\s+", "", css)
+        scripts = "\n".join(s.get_text() for s in self.soup.find_all("script"))
+
+        if "題名：" in self.html or "テーマ：" in self.html:
+            self.err("G45", "条文/判例チップに `題名：` / `テーマ：` の説明文字が残っている。"
+                            "表示は basis 由来の題名と法理テーマだけにする。")
+
+        required_script = [
+            "findMiniLawBasisCard",
+            "extractMiniLawBasisHeading",
+            "deriveMiniLawHeading",
+            "deriveMiniLawTheme",
+            "headingSpan.textContent = heading",
+            "span.textContent = theme",
+        ]
+        missing_script = [sig for sig in required_script if sig not in scripts]
+        if missing_script:
+            self.err("G45", f"条文/判例チップの v12.2.1 JS が不足: {', '.join(missing_script)}。"
+                            "basis-card 見出しから題名を取り、テーマは法理名として出す canonical エンジンを使う。")
+
+        if ".tx-mini-law-title{" not in compact_css or "flex-wrap:wrap" not in compact_css:
+            self.err("G45", "`.tx-mini-law-title` が折返し可能な wrap 構造ではない。"
+                            "条文/判例/題名/法理テーマのチップ列は横幅に応じて折り返す。")
+
+        for selector in (".tx-mini-law-heading", ".tx-mini-law-theme"):
+            if selector not in css:
+                self.err("G45", f"{selector} のCSSが無い。"
+                                "条文・判例カード上段に題名チップと法理テーマチップを出す。")
+
+        if not re.search(r"\.tx-mini-law-text(?:\.has-label|:has\(\.tx-mini-law-para\))[^{}]*\{[^}]*grid-template-columns\s*:\s*max-content\s+minmax\(0\s*,\s*1fr\)", css, re.S):
+            self.err("G45", "条文/判例本文ラベル付き行が2カラムではない。"
+                            "`tx-mini-law-para` 列と `tx-mini-law-body` 本文列を分ける。")
+
+        if not re.search(r"\.tx-mini-law-body\s*\{[^}]*text-indent\s*:\s*1em", css, re.S):
+            self.err("G45", "`.tx-mini-law-body` の1字下げが無い。"
+                            "本文の先頭だけ1字分空け、折返しは本文列に揃える。")
+
+        story_label_blocks = list(re.finditer(r"\.fa-narrative\s*>\s*p\[data-fa-label\]::before\s*\{(?P<body>[^}]*)\}", css, re.S))
+        if not story_label_blocks:
+            self.err("G45", "物語解説ラベル `.fa-narrative > p[data-fa-label]::before` のCSSが無い。")
+        else:
+            body = story_label_blocks[-1].group("body")
+            if not re.search(r"position\s*:\s*static", body):
+                self.err("G45", "物語解説ラベルが `position:static` ではない。"
+                                "絶対配置へ戻すと本文に被るため、通常フロー内の左寄せラベルに固定する。")
+            if not re.search(r"text-align\s*:\s*left", body):
+                self.err("G45", "物語解説ラベルが左寄せではない。")
+            if re.search(r"position\s*:\s*absolute", body) or re.search(r"\bleft\s*:", body):
+                self.err("G45", "物語解説ラベルに absolute/left 指定が残っている。"
+                                "右寄り・本文被りの再発を防ぐため禁止。")
+
+        flow_blocks = list(re.finditer(r"\.tx-article-flow\s*>\s*p\s*\{(?P<body>[^}]*)\}", css, re.S))
+        if flow_blocks:
+            last = flow_blocks[-1].group("body")
+            if not re.search(r"grid-template-columns\s*:\s*max-content\s+minmax\(0\s*,\s*1fr\)", last):
+                self.err("G45", "5点フローの実効CSSがラベル列＋本文列の2カラムではない。"
+                                "モバイルでもラベル下へ本文をぶら下げない。")
+
+        for i, ex in enumerate(self.soup.select(".tx-inline-card .tx-inline-explain"), start=1):
+            if ex.select_one(".tx-answer-box") and not ex.select_one(".tx-mini-law"):
+                self.err("G45", f"inlineカード {i} に `tx-mini-law` が無い。"
+                                "ANSWER直後に条文/判例ボックスを置き、文言/趣旨/射程だけで根拠を代用しない。")
+            for text in ex.select(".tx-mini-law-text.has-label, .tx-mini-law-text"):
+                if text.select_one(".tx-mini-law-para") and not text.select_one(".tx-mini-law-body"):
+                    self.err("G45", f"inlineカード {i} の条文/判例本文に `tx-mini-law-body` が無い。"
+                                    "ラベル横本文を包んで2カラム字下げにする。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1244,6 +1325,7 @@ class Validator:
         self.g41_tx360_canonical_engine_integrity()
         self.g42_no_combination_verdict_stmt()
         self.g44_tx_inline_answer_controls_contract()
+        self.g45_tx_v1221_presentation_lock()
 
 
 def main():
@@ -1275,7 +1357,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G44, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G45, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
