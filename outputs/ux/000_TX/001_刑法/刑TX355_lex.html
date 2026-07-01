@@ -1735,9 +1735,9 @@ blockquote{
 .tx-inline-ox.incorrect-mark{ background:#b56763; border-color:#b56763; color:#fff; }
 .tx-inline-verdict{
   display:none; grid-column:1 / -1; width:100%; min-width:0; max-width:100%;
-  padding:5px 10px 6px; border:1px solid rgba(146,116,86,.28); border-radius:999px;
+  padding:5px 8px 6px; border:1px solid rgba(146,116,86,.28); border-radius:999px;
   background:linear-gradient(180deg,#fffdf8 0%,#fff5e8 100%);
-  color:#5b4737; font-family:var(--font-soft); font-size:.88em; font-weight:900;
+  color:#5b4737; font-family:var(--font-soft); font-size:.82em; font-weight:900;
   line-height:1.35; text-align:center; text-indent:0; white-space:normal;
   box-shadow:0 2px 7px rgba(70,47,30,.10), inset 0 1px 0 rgba(255,255,255,.82);
 }
@@ -5269,9 +5269,9 @@ body.snav-on .solve-nav{display:block;}
   }
   function formatInlineVerdict(user, correct, browseOnly){
     if (!correct) return '';
-    var correctLine = '<span>正解：' + escapeHTML(verdictMeaning(correct)) + '</span>';
+    var correctLine = '<span>正解 ' + escapeHTML(answerToken(correct)) + '</span>';
     if (browseOnly) return correctLine;
-    return '<span>あなた：' + escapeHTML(answerToken(user)) + '</span>' + correctLine;
+    return '<span>自分 ' + escapeHTML(user ? answerToken(user) : '-') + '</span>' + correctLine;
   }
   function setInlineVerdict(verdict, user, correct, browseOnly){
     if (!verdict) return;
@@ -5330,6 +5330,54 @@ body.snav-on .solve-nav{display:block;}
     }
     return panel;
   }
+  function compactReviewText(node){
+    return String(node && node.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+  function textWithoutReviewTag(line){
+    if (!line) return '';
+    var clone = line.cloneNode(true);
+    var tag = clone.querySelector('.tx-reflex-tag');
+    if (tag) tag.remove();
+    return compactReviewText(clone);
+  }
+  function findReviewLineByTag(lines, label){
+    for (var i = 0; i < lines.length; i += 1) {
+      var tag = compactReviewText(lines[i].querySelector('.tx-reflex-tag'));
+      if (tag === label) return lines[i];
+    }
+    return null;
+  }
+  function extractReviewCoreSummary(cell){
+    if (!cell) return '';
+    var lines = Array.prototype.slice.call(cell.querySelectorAll('.tx-reflex-line'));
+    if (lines.length) {
+      var preferred = findReviewLineByTag(lines, '射程') ||
+        findReviewLineByTag(lines, '切断点') ||
+        findReviewLineByTag(lines, '文言') ||
+        lines[0];
+      var text = textWithoutReviewTag(preferred);
+      if (text) return text;
+    }
+    return compactReviewText(cell);
+  }
+  function compactReviewTableClone(table){
+    var clone = table.cloneNode(true);
+    var headRow = clone.tHead && clone.tHead.rows && clone.tHead.rows[0];
+    if (headRow && headRow.cells.length) {
+      headRow.cells[headRow.cells.length - 1].textContent = '登場した論点のコア（転用可能な法理）';
+    }
+    Array.prototype.slice.call(clone.querySelectorAll('tbody tr')).forEach(function(row){
+      if (!row.cells.length) return;
+      var coreCell = row.cells[row.cells.length - 1];
+      var summary = extractReviewCoreSummary(coreCell);
+      coreCell.textContent = '';
+      var p = document.createElement('p');
+      p.className = 'tx-review-core-summary';
+      p.textContent = summary;
+      coreCell.appendChild(p);
+    });
+    return clone;
+  }
   function renderInlineAnswerTablePanel(table, open){
     var panel = getInlineAnswerTablePanel(!!open);
     if (!panel || !table) return;
@@ -5338,7 +5386,7 @@ body.snav-on .solve-nav{display:block;}
     title.className = 'tx-inline-answer-table-title';
     title.textContent = '正誤表';
     panel.appendChild(title);
-    panel.appendChild(table.cloneNode(true));
+    panel.appendChild(compactReviewTableClone(table));
     if (open) {
       panel.hidden = false;
       panel.removeAttribute('hidden');

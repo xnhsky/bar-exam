@@ -1293,11 +1293,14 @@ class Validator:
             "compactAnswerComparison",
             "formatInlineVerdict",
             "setInlineVerdict",
+            "compactReviewTableClone",
+            "extractReviewCoreSummary",
             "あなたの答え",
             "review.comparison",
             "tx-result-miss",
             "tx-user-answer-cell",
             "tx-inline-answer-table-panel",
+            "tx-review-core-summary",
             "setInlineResult(area, ok, correct)",
         ]
         missing_review = [sig for sig in answer_review_required if sig not in scripts and sig not in self.html]
