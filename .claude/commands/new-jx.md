@@ -1,8 +1,11 @@
 ---
-description: 新規 JX ファイルを問題 PDF から生成（v3.2）
+description: 新規 JX ファイルを問題 PDF から生成（active v4.0.0 LOOP-FOLD：ATHENA baseline）
 ---
 
 新規 JX ファイル（事例問題型 HTML 教材）を問題 PDF から生成する。
+
+> **active v4.0.0 LOOP-FOLD 経路**：最初に `docs/canonical-lineage.md` を読み、active JX 正典を確認する。現行は `canonical/ATHENA.html` と `spec/jx-v4.0.0-core.md`（基盤規律 `spec/jx-v3.2-master.md` を継承）。旧 v3.2 への単純アップグレードではなく、ATHENA 複製による v4 構造で生成する。
+> 既存番号の「アップデート」は、旧ファイルへの局所パッチではなく、PDF・逐語・既存内容を照合して active v4 正典へ移行/再生成する。
 
 引数：問題 PDF のパス（例：`inputs/001_JX/{00N_科目}/重問PDF/15.pdf`）
 

@@ -4,6 +4,8 @@ description: 既存 JX HTML を v3.2 にアップグレード
 
 既存の JX ファイル（v3.1 以下）を JX v3.2 にアップグレードする。
 
+> **注意：このコマンドは legacy 保守専用。** ユーザーが「既存JXをアップデート」「最新版にして」と依頼した場合は、この v3.2 upgrade ではなく、`docs/canonical-lineage.md` の active JX 正典（現行 v4.0.0 LOOP-FOLD）を確認し、`canonical/ATHENA.html` から最新版構造へ移行/再生成する。
+
 引数：対象 HTML ファイルのパス（例：`inputs/jx-legacy/民JX001.html` または `outputs/001_JX/003_民法/民JX001.html`）
 
 ## 必須手順

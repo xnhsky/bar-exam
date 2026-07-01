@@ -4,6 +4,8 @@ description: 既存 TX HTML を v8.11.1 にアップグレード
 
 既存の TX ファイル（v8.10.2 以下、または v8.11.x の旧 minor）を v8.11.1 にアップグレードする。
 
+> **注意：このコマンドは legacy 保守専用。** ユーザーが「既存TX355をアップデート」「最新版にして」と依頼した場合は、この v8 系 upgrade ではなく、`docs/canonical-lineage.md` の active TX 正典（現行 v12.2.1）を確認し、`canonical/GENESIS-CORE.html` から最新版構造へ移行/再生成する。
+
 > **🚫 v9.2.0 への upgrade パスは提供しない（§34-decies 由来）**
 >
 > v9.2.0 DEEP-DIVE は新規生成専用であり、v9.1.0 以下既存ファイルへのインプレース minor
