@@ -4509,6 +4509,45 @@ body.snav-on .solve-nav{display:block;}
 .sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
 .sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
 .sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-answer-choices{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  margin:12px 0 14px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.62);
+  border-radius:10px;
+  background:rgba(255,255,255,.54);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
+}
+.sn-answer-choices .sn-answer-label{
+  flex:1 1 170px;
+  color:var(--bg-dark,#333);
+  font-weight:800;
+  font-size:.9em;
+}
+.sn-answer-choices .sn-nav-ox{
+  width:58px;
+  min-width:58px;
+  height:42px;
+  font-size:1.05em;
+  background:#fff;
+  border:2px solid var(--border-mid,#ccc);
+  border-radius:10px;
+  color:var(--accent);
+  font-weight:900;
+  cursor:pointer;
+}
+.sn-answer-choices .sn-nav-ox:hover{
+  border-color:var(--accent);
+  background:#fff9df;
+}
+.sn-answer-choices .sn-nav-ox.selected{
+  background:#fff0a9;
+  border-color:#c49643;
+  box-shadow:0 0 0 3px rgba(196,150,67,.22), inset 0 1px 0 rgba(255,255,255,.82);
+}
 .sn-tip{display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:8px; align-items:start;
   margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
   border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
@@ -6409,7 +6448,7 @@ body.snav-on .solve-nav{display:block;}
   function render(){
     var cur = currentStep();
     var done = doneCount();
-    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、このナビ内で1つずつ判断しよう。';
     area.querySelectorAll('.ox-row').forEach(function(r){
       r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
     });
@@ -6420,12 +6459,26 @@ body.snav-on .solve-nav{display:block;}
       if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
       var tip = s.hint || 'この記述では、条文要件・判例基準・例外規定のうち、どこで結論が分かれるかを一つに絞る。次に、その要件と問題文の具体的事実を対応させる。';
       h += '<div class="sn-tip sn-tip-safe"><span class="sn-tip-h">💡 ヒント</span><span class="sn-tip-b">'+tip+'</span></div>';
-      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+      h += '<div class="sn-answer-choices" aria-label="記述'+(s.label||cur)+'の正誤を選ぶ">';
+      h += '<span class="sn-answer-label">ここで回答</span>';
+      h += '<button class="sn-nav-ox" data-stmt="'+cur+'" data-value="○" type="button">○</button>';
+      h += '<button class="sn-nav-ox" data-stmt="'+cur+'" data-value="×" type="button">×</button>';
+      h += '</div>';
+      h += '<p class="sn-step-loc">上の○／×を選ぶと、下の一問一答にも同期して次の設問へ進みます。</p>';
     } else {
       h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
     }
     stage.innerHTML = h;
   }
+  root.addEventListener('click', function(e){
+    var btn = e.target.closest('.sn-nav-ox');
+    if (!btn) return;
+    var stmt = btn.getAttribute('data-stmt');
+    var val = btn.getAttribute('data-value');
+    var gridBtn = area.querySelector('.ox-row[data-stmt="'+stmt+'"] .ox-btn[data-value="'+val+'"]');
+    if (gridBtn) gridBtn.click();
+    setTimeout(render, 0);
+  }, false);
   area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
   document.body.classList.add('snav-on');
   render();
