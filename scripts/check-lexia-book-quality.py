@@ -140,6 +140,10 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
                 issues.append(Issue(path, "TX-HOOK", f"カード{i}: 記憶フックが問題文の焼き直し"))
             if len(hook) < 10:
                 issues.append(Issue(path, "TX-HOOK", f"カード{i}: 記憶フックが短すぎる"))
+            if len(hook) > 55:
+                issues.append(Issue(path, "TX-HOOK", f"カード{i}: 記憶フックが長すぎる。論点のコア・テーゼを一言で残す"))
+            if "／" in hook and len(hook) > 40:
+                issues.append(Issue(path, "TX-HOOK", f"カード{i}: 記憶フックが説明の連結になっている"))
             if "→" in hook and "成立しない" in hook and re.search(r"(成立する|成立し得る|当たる|偽造となる)", answer):
                 issues.append(Issue(path, "TX-HOOK", f"カード{i}: 記憶フックがANSWERと逆結論に読める"))
             if "→" in hook and "成立する" in hook and re.search(r"(成立しない|客体外|当たらない|含まれない)", answer):

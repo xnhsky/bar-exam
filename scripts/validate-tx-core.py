@@ -1358,6 +1358,12 @@ class Validator:
                 if re.search(r"(成立するか|当たるか|どれか|正しいか|誤りか)\s*$", hook_text):
                     self.err("G45", f"inlineカード {i} の記憶フックが問題文の焼き直し。"
                                     "1秒で思い出す要件・条文列挙・分岐の合図にする。")
+                if len(hook_text) > 55:
+                    self.err("G45", f"inlineカード {i} の記憶フックが長すぎる。"
+                                    "論点のコア・テーゼを一言の記憶標語にする。")
+                if "／" in hook_text and len(hook_text) > 40:
+                    self.err("G45", f"inlineカード {i} の記憶フックが説明の連結になっている。"
+                                    "判例名・要件・結論を並べるのではなく、1秒で思い出す言葉に圧縮する。")
                 if re.search(r"→\s*.*成立しない", hook_text) and re.search(r"(成立する|成立し得る|当たる|偽造となる)", answer_text):
                     self.err("G45", f"inlineカード {i} の記憶フックが ANSWER と逆結論に読める。"
                                     "正誤結論は ANSWER・フロー・記憶フックで必ず一致させる。")
