@@ -80,7 +80,8 @@ NAV_JS_TMPL = r'''<script>
     var h = '';
     h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
     h += '<p class="sn-step-q">'+s.q+'</p>';
-    h += '<div class="sn-tip"><span class="sn-tip-h">\U0001F4A1 コツ</span>'+s.tip+'</div>';
+    var tip = s.hint || '先に結論を見ず、問題文のキーワードと条文・判例の要件を照合して○×を決めよう。個別のコアは採点後に確認できます。';
+    h += '<div class="sn-tip sn-tip-safe"><span class="sn-tip-h">\U0001F4A1 コツ</span><span class="sn-tip-b">'+tip+'</span></div>';
     h += '<div class="sn-opts">';
     h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
     h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="×"><span class="sn-key">×</span><span>誤り</span></button>';
