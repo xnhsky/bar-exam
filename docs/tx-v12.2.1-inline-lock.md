@@ -1,6 +1,6 @@
 # TX v12.2.1 inline 表示LOCK 正典（2026-07-01）
 
-この文書は、TX355-359 の実地修正で合意した `_lex` 表示・操作・解説構造を、今後の既存ファイル更新と新規 TX 生成に必ず継承させるための正典である。
+この文書は、TX355-360 の実地修正で合意した `_lex` 表示・操作・解説構造を、今後の既存ファイル更新と新規 TX 生成に必ず継承させるための正典である。
 
 ## 適用範囲
 
@@ -8,6 +8,23 @@
 - 起点：`canonical/GENESIS-CORE.html`。
 - 検証：`scripts/validate-tx-core.py` G45 と `scripts/check-tx-lex-engine.py`。
 - 関連正典：`spec/tx-v12.1.0-inline-core.md`、`docs/tx-lex-two-track.md`、`docs/canonical-lineage.md`。
+
+## 最終合意チェックリスト
+
+更新・新規生成では、少なくとも次の状態を満たすこと。
+
+- 問題文と○×ボタンは `.tx-inline-card` 内で一体化する。○/×ボタンは右端に寄せ、本文を不自然に圧迫しない。
+- カード内の回答比較バッジは、○×ボタンの下に `あなた ×` / `正解 ○` の2行で表示する。`自分` 表記にはしない。バッジは薄い枠だけにせず、重厚な枠・影・背景を持たせる。
+- 回答操作パネル内に大きな `正解/不正解`、`あなたの答え`、`正解`、`相違` のサマリー箱を出さない。
+- トーストは使わない。回答後フィードバックは、カード内バッジと解説冒頭の比較用正誤表に集約する。
+- 解説冒頭の比較用正誤表は、`あなた` 列を持たせる。ただし詳細解説表ではなく、各肢1文の「登場した論点のコア（転用可能な法理）」だけに圧縮する。
+- 詳しい `文言・趣旨・射程・切断点・転用` は、表に詰め込まず、各設問の解説本文側に残す。
+- 解法ナビは問題文直下、インラインカード前に置く。ヒントは結論・正誤・正解番号を漏らさず、「どこを見るか」を示す。
+- 条文・判例ボックスは、見出しチップ、項ラベル、本文2カラム、本文先頭1字下げを維持する。判例も同じ扱いにする。
+- 物語解説は、`解答を表示` または `解説だけ閲覧` の前に露出させない。表示後はラベル＋題名カードで、本文と被らない通常フローに置く。
+- 文章本文の段落先頭は1字分空ける。ラベルやバッジに字下げを掛けず、本文列全体を余白で押し込まない。
+- 詳説最下部の条文・判例本文は `BASIS` ボックスに収める。
+- 解説内容は機械的に確定しない。最新法令・判例・学説と、事案対応・条文番号・項・判例射程を最高エフォートで確認する。
 
 ## 画面導線
 
@@ -99,7 +116,13 @@
 ```powershell
 python -X utf8 scripts/validate-tx-core.py canonical/GENESIS-CORE.html
 python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX355_lex.html
+python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX356_lex.html
+python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX357_lex.html
+python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX358_lex.html
+python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX359_lex.html
+python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX360_lex.html
 python -X utf8 scripts/check-tx-lex-engine.py outputs/ux/000_TX/001_刑法
+python -X utf8 -m py_compile scripts/validate-tx-core.py scripts/check-tx-lex-engine.py
 ```
 
 `check-tx-lex-engine.py` は G41/G42/G43/G44 を横断実行し、v12.2.1 マーカー付きまたは明示指定ファイルには G45 も適用する。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れを push 前に止める。
