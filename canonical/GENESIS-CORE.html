@@ -2412,6 +2412,9 @@ blockquote{
   border-radius:8px;
 }
 .tx-inline-reveal-panel p{ flex:1 1 260px; margin:0; font-family:var(--font-note); line-height:1.75; }
+.tx-inline-story-panel{ margin:16px 0 22px; }
+.tx-inline-story-panel[hidden]{ display:none !important; }
+.tx-inline-story-panel .fa-narrative{ margin:0; }
 .tx-inline-browse-btn{
   border:1px solid #b9d1e9;
   background:linear-gradient(180deg,#f8fcff 0%,#e9f4ff 100%);
@@ -5160,6 +5163,36 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
       toast.textContent = '';
     });
   }
+  function getInlineStoryPanel(create){
+    var source = document.querySelector('.answer-area.inline-prototype-mode .final-answer .fa-narrative');
+    if (!source) return null;
+    var panel = document.querySelector('.tx-inline-story-panel');
+    if (!panel && create) {
+      panel = document.createElement('div');
+      panel.className = 'tx-inline-story-panel';
+      panel.hidden = true;
+      var anchor = document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
+    }
+    if (!panel) return null;
+    if (panel.getAttribute('data-story-hydrated') !== 'true') {
+      panel.textContent = '';
+      panel.appendChild(source.cloneNode(true));
+      panel.setAttribute('data-story-hydrated', 'true');
+    }
+    return panel;
+  }
+  function setInlineStoryVisible(open){
+    var panel = getInlineStoryPanel(open);
+    if (!panel) return;
+    if (open) {
+      panel.hidden = false;
+      panel.removeAttribute('hidden');
+    } else {
+      panel.hidden = true;
+      panel.setAttribute('hidden', '');
+    }
+  }
   function updateRevealBtnState(area){
     if (!area) return;
     var type = getAnswerType(area);
@@ -5324,7 +5357,10 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
         fa.setAttribute('hidden','');
         fa.classList.remove('revealed');
       }
+      setInlineStoryVisible(false);
       clearInlineResult();
+    } else {
+      setInlineStoryVisible(true);
     }
     setInlineBrowseState(false);
   }
@@ -5519,6 +5555,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     fa.hidden = false;
     fa.removeAttribute('hidden');
     fa.classList.add('revealed');
+    setInlineStoryVisible(true);
   }
 
   // ========================================================
