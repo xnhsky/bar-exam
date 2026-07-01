@@ -16,31 +16,33 @@ REPO_ROOT = os.path.abspath(os.environ.get(
     os.path.join(os.path.dirname(__file__), '..')
 ))
 
-NARR_CSS = '''/* Type A/B 物語解説（読み物）：問題の流れを一連の文章でコア／テーゼ中心に読ませる */
-.fa-narrative{ margin:0 0 18px; padding:16px 18px; border-radius:12px;
-  background:var(--light,#fafafa); border:1px solid var(--soft,#e8e8e8); border-left:5px solid var(--accent);
+NARR_CSS = '''/* Type A/B 物語解説（読み物）：問題の流れを、配色連動のラベル付きカードで読ませる */
+.fa-narrative{ margin:0 0 18px; padding:18px; border-radius:12px;
+  background:var(--light,#fafafa); border:1.5px solid var(--soft,#e8e8e8); border-left:5px solid var(--accent);
   counter-reset:tx-fa; }
-.fa-narrative-title{ margin:0 0 16px; padding-bottom:9px; border-bottom:2px dotted rgba(120,90,40,.32);
-  font-weight:800; font-size:1.02em; color:var(--accent); letter-spacing:.02em; }
-.fa-narrative p{ margin:0 0 .7em; line-height:1.95; font-size:1.0em; text-align:justify; }
-.fa-narrative > p:not(.fa-narrative-title){ position:relative; counter-increment:tx-fa; margin:20px 0 0 0;
-  padding:16px 15px 14px 16px; border:1px solid rgba(120,90,40,.16); border-left:3px solid rgba(193,124,42,.62);
-  border-radius:12px; box-shadow:0 1px 3px rgba(80,60,20,.06), inset 0 1px 0 rgba(255,255,255,.55); }
-.fa-narrative > p:not(.fa-narrative-title):nth-of-type(even){ background:rgba(255,255,255,.66); }
-.fa-narrative > p:not(.fa-narrative-title):nth-of-type(odd){ background:rgba(201,140,58,.085); }
-.fa-narrative > p:not(.fa-narrative-title):not([data-fa-label])::before{ content:counter(tx-fa); position:absolute; top:-11px; left:14px;
-  display:inline-flex; align-items:center; justify-content:center; width:23px; height:23px; text-indent:0;
-  color:#fff; background:linear-gradient(180deg,#c8843a,#a8692a); border:1.5px solid rgba(255,255,255,.72);
-  border-radius:999px; box-shadow:0 1px 3px rgba(120,80,20,.35); font-size:12px; font-weight:800; line-height:1; }
-.fa-narrative > p[data-fa-label]::before{ content:attr(data-fa-label); position:relative; top:-31px;
-  display:block; box-sizing:border-box; width:fit-content; max-width:min(38em, calc(100% - 8px));
-  margin:0 0 -18px 0; padding:5px 15px 6px; text-align:center; text-indent:0;
-  color:#fff; background:linear-gradient(180deg,#c8843a,#a8692a); border:1.5px solid rgba(255,255,255,.72);
-  border-radius:999px; box-shadow:0 1px 3px rgba(120,80,20,.35); font-size:12.5px; font-weight:500; line-height:1.45;
+.fa-narrative-title{ margin:0 0 16px; padding-bottom:9px; border-bottom:2px dotted var(--mid,#d8c28a);
+  font-weight:700; font-size:1.02em; color:var(--accent); letter-spacing:.02em; }
+.fa-narrative p{ margin:0 0 .7em; line-height:1.95; font-size:1.0em; font-weight:500; text-align:justify; }
+.fa-narrative > p:not(.fa-narrative-title){ position:relative; counter-increment:tx-fa; margin:14px 0 0 0;
+  padding:52px 18px 16px; border:1.5px solid var(--mid,#d8c28a); border-left:4px solid var(--accent);
+  border-radius:12px; background:var(--mid-soft,#fff7e6);
+  box-shadow:0 2px 8px rgba(60,45,18,.08), inset 0 1px 0 rgba(255,255,255,.65); }
+.fa-narrative > p:not(.fa-narrative-title):nth-of-type(even){ background:var(--light,#fafafa); }
+.fa-narrative > p:not(.fa-narrative-title):not([data-fa-label])::before{ content:counter(tx-fa); position:absolute; top:15px; left:16px;
+  display:inline-flex; align-items:center; justify-content:center; min-width:24px; height:24px; padding:0 7px; text-indent:0;
+  color:#fff; background:linear-gradient(180deg,var(--mid,#d8a13b),var(--accent,#9b6b2f));
+  border:1.5px solid rgba(255,255,255,.78); border-radius:999px; box-shadow:0 2px 5px rgba(80,55,20,.26);
+  font-size:12px; font-weight:800; line-height:1; }
+.fa-narrative > p[data-fa-label]::before{ content:attr(data-fa-label); position:absolute; top:16px; left:18px;
+  display:block; box-sizing:border-box; width:fit-content; max-width:min(42em, calc(100% - 36px));
+  margin:0; padding:6px 16px 7px; text-align:center; text-indent:0;
+  color:#fff; background:linear-gradient(180deg,var(--mid,#d8a13b),var(--accent,#9b6b2f));
+  border:1.5px solid rgba(255,255,255,.78); border-radius:999px; box-shadow:0 2px 6px rgba(80,55,20,.28);
+  font-size:12.5px; font-weight:700; line-height:1.45;
   letter-spacing:.025em; font-feature-settings:"palt" 0; font-stretch:normal; transform:none;
   white-space:normal; overflow-wrap:break-word; word-break:normal; }
 .fa-narrative p:last-child{ margin-bottom:0; }
-.fa-narrative b{ color:var(--accent-darker,var(--accent)); font-weight:700; }
+.fa-narrative b{ color:var(--accent-darker,var(--accent)); font-weight:560; }
 '''
 
 INTENT_CSS = '''/* Type A/B 出題趣旨サマリー：出題者視点でコア・命題／角度／ねらいを俯瞰する */
@@ -84,7 +86,20 @@ def build_blocks(data):
                            '          </ul>\n'
                            '        </div>\n')
     ntitle = data.get('title', 'この問題を物語で読む')
-    paras = ''.join(f'        <p>{p}</p>\n' for p in data.get('paras', []))
+    labels = data.get('labels') or []
+    raw_paras = data.get('paras', [])
+    paras = ''
+    total = len(raw_paras)
+    for i, p in enumerate(raw_paras, start=1):
+        if i <= len(labels) and labels[i - 1]:
+            label = labels[i - 1]
+        elif i == 1:
+            label = '導入：問題の見取り図'
+        elif i == total:
+            label = 'まとめ：持ち帰る判断順'
+        else:
+            label = f'論点{i - 1}：記述{i - 1}の判断軸'
+        paras += f'        <p data-fa-label="{label}">{p}</p>\n'
     narrative_html = ('        <div class="fa-narrative">\n'
                       f'          <p class="fa-narrative-title">📖 {ntitle}</p>\n'
                       f'{paras}'
