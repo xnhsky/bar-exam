@@ -97,6 +97,12 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
         if phrase in html:
             issues.append(Issue(path, "TX-HINT", f"汎用・分野ズレの解法ナビヒントが残存: {phrase}"))
 
+    if soup.select_one(".solve-nav"):
+        if "sn-answer-choices" not in html or "sn-nav-ox" not in html:
+            issues.append(Issue(path, "TX-NAV", "解法ナビ内に回答用○×ボタンがない"))
+        if "下の一問一答" in html and "このナビ内" not in html:
+            issues.append(Issue(path, "TX-NAV", "解法ナビが下の一問一答へ誘導するだけになっている"))
+
     matrix_enabled = bool(soup.select_one(".tx-logic-matrix"))
 
     for i, card in enumerate(soup.select(".tx-inline-card"), 1):

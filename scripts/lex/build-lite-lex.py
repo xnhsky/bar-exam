@@ -150,7 +150,7 @@ NAV_JS = r'''<script>
   function render(){
     var cur = currentStep();
     var done = doneCount();
-    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、下の一問一答で1つずつ判断しよう。';
+    remainBox.innerHTML = '回答済み：<strong>'+done+' / '+ORDER.length+'</strong>　─　各設問を検討順に、このナビ内で1つずつ判断しよう。';
     area.querySelectorAll('.ox-row').forEach(function(r){
       r.classList.toggle('sn-current', !!cur && r.getAttribute('data-stmt') === cur);
     });
@@ -161,12 +161,26 @@ NAV_JS = r'''<script>
       if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
       var tip = safeHint(s);
       h += '<div class="sn-tip sn-tip-safe"><span class="sn-tip-h">💡 ヒント</span><span class="sn-tip-b">'+tip+'</span></div>';
-      h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
+      h += '<div class="sn-answer-choices" aria-label="記述'+(s.label||cur)+'の正誤を選ぶ">';
+      h += '<span class="sn-answer-label">ここで回答</span>';
+      h += '<button class="sn-nav-ox" data-stmt="'+cur+'" data-value="○" type="button">○</button>';
+      h += '<button class="sn-nav-ox" data-stmt="'+cur+'" data-value="×" type="button">×</button>';
+      h += '</div>';
+      h += '<p class="sn-step-loc">上の○／×を選ぶと、下の一問一答にも同期して次の設問へ進みます。</p>';
     } else {
       h += '<div class="sn-result"><div class="sn-big">全部そろいました</div>下の「解答を表示」で採点。番号でなく、いま辿った各設問の判別の筋道（論点のコア）ごと身につけよう。採点後、各行に論点のコアが展開されます。</div>';
     }
     stage.innerHTML = h;
   }
+  root.addEventListener('click', function(e){
+    var btn = e.target.closest('.sn-nav-ox');
+    if (!btn) return;
+    var stmt = btn.getAttribute('data-stmt');
+    var val = btn.getAttribute('data-value');
+    var gridBtn = area.querySelector('.ox-row[data-stmt="'+stmt+'"] .ox-btn[data-value="'+val+'"]');
+    if (gridBtn) gridBtn.click();
+    setTimeout(render, 0);
+  }, false);
   area.addEventListener('click', function(e){ if (e.target.closest('.ox-btn') || e.target.closest('.reveal-answer-btn')) setTimeout(render, 0); }, false);
   document.body.classList.add('snav-on');
   render();

@@ -1206,6 +1206,13 @@ class Validator:
         if self.soup.select_one(".solve-nav .sn-body") and self.soup.select_one("#sn-combos") is None:
             self.err("G44", "解法ナビに `#sn-combos` が無い。"
                             "候補・進捗表示の受け皿を `.sn-body` 先頭に置く。")
+        if self.soup.select_one(".solve-nav"):
+            if "sn-answer-choices" not in self.html or "sn-nav-ox" not in self.html:
+                self.err("G44", "解法ナビ内に回答用○×ボタンが無い。"
+                                "現在STEPの `.sn-answer-choices` / `.sn-nav-ox` を表示し、裏の ox-grid と同期する。")
+            if "下の一問一答" in self.html and "このナビ内" not in self.html:
+                self.err("G44", "解法ナビが下の一問一答へ誘導するだけになっている。"
+                                "ナビ内でその場回答できる導線にする。")
 
     def g45_tx_v1221_presentation_lock(self):
         # v12.2.1（2026-07-01 実地合意）：
