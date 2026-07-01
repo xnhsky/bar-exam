@@ -186,6 +186,7 @@ def main() -> int:
 
     if contract_fail:
         return 1
+    print("NOTE: PASS は構造・表示ゲートの通過です。解説内容は docs/tx-v12.2.1-inline-lock.md の最高エフォートレビューを別途必須とします。")
     print("PASS ✅")
     return 0
 
