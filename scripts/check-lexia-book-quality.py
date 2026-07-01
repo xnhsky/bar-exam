@@ -97,6 +97,8 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
         if phrase in html:
             issues.append(Issue(path, "TX-HINT", f"汎用・分野ズレの解法ナビヒントが残存: {phrase}"))
 
+    matrix_enabled = bool(soup.select_one(".tx-logic-matrix"))
+
     for i, card in enumerate(soup.select(".tx-inline-card"), 1):
         explain = card.select_one(".tx-inline-explain")
         if not explain:
@@ -124,6 +126,24 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
                     issues.append(Issue(path, "TX-LAW", f"カード{i}: 汎用チップ `{chip_text}` が残存"))
             if mini.select_one(".tx-mini-law-para") and not mini.select_one(".tx-mini-law-body"):
                 issues.append(Issue(path, "TX-LAW", f"カード{i}: 条文/判例本文に tx-mini-law-body がない"))
+
+        matrix = explain.select_one(".tx-logic-matrix")
+        if matrix_enabled:
+            if not matrix:
+                issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスがない"))
+            else:
+                cells = matrix.select(".tx-matrix-cell")
+                if len(cells) < 4:
+                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスが4セル未満"))
+                if len(text_of(matrix.select_one(".tx-matrix-verdict"))) < 8:
+                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスの判断式が不足"))
+                flow = explain.select_one(".tx-article-flow")
+                direct = list(explain.find_all(recursive=False))
+                if mini and flow and matrix in direct and mini in direct and flow in direct:
+                    if not (direct.index(mini) < direct.index(matrix) < direct.index(flow)):
+                        issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスの配置順が違う"))
+                else:
+                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスが条文判例と5点フローの間にない"))
 
         flow_labels = [text_of(x) for x in explain.select(".tx-article-flow .tx-flow-label")]
         if flow_labels:
