@@ -1699,7 +1699,14 @@ blockquote{
 
 /* TX-LEX inline review canon: 問題文各肢に OX＋逐条解説を対応させる周回導線。
    裏の .answer-ox-grid は Lexia/SM2 記録の単一情報源として残し、このインライン面から同期する。 */
-.tx-inline-judge-list{ margin:24px 0 18px; display:grid; gap:16px; }
+.tx-inline-judge-list,
+.tx-inline-list{ margin:24px 0 18px; display:grid; gap:16px; }
+#part-a:has(.tx-inline-card) > .problem-text,
+#part-a:has(.tx-inline-card) > h3:has(+ .problem-text),
+#part-a.tx-inline-integrated > .problem-text,
+#part-a.tx-inline-integrated > .tx-legacy-statement-heading{
+  display:none !important;
+}
 .tx-inline-card{
   position:relative; padding:20px 20px 18px; border:1.5px solid #e5d7c8;
   border-left:5px solid #c9945f; border-radius:12px;
@@ -5212,6 +5219,25 @@ body.snav-on .solve-nav{display:block;}
       toast.textContent = '';
     });
   }
+  function normalizeInlineJudgeList(){
+    var part = document.getElementById('part-a');
+    if (!part) return;
+    var list = part.querySelector('.tx-inline-judge-list, .tx-inline-list');
+    if (!list || !part.querySelector('.tx-inline-card')) return;
+    part.classList.add('tx-inline-integrated');
+    list.classList.add('tx-inline-judge-list');
+    if (!list.id) list.id = 'tx-inline-judge-list';
+    var children = Array.prototype.slice.call(part.children);
+    for (var i = 0; i < children.length; i++){
+      var child = children[i];
+      if (!child.classList || !child.classList.contains('problem-text')) continue;
+      var prev = children[i - 1];
+      if (prev && /^H[1-6]$/.test(prev.tagName || '')) {
+        prev.classList.add('tx-legacy-statement-heading');
+      }
+      break;
+    }
+  }
   function getInlineStoryPanel(create){
     var source = document.querySelector('.answer-area.inline-prototype-mode .final-answer .fa-narrative');
     if (!source) return null;
@@ -5351,7 +5377,7 @@ body.snav-on .solve-nav{display:block;}
     updateInlineRevealButton(area);
   }
   function setInlineBrowseState(open){
-    var host = document.getElementById('tx-inline-judge-list');
+    var host = document.getElementById('tx-inline-judge-list') || document.querySelector('.tx-inline-judge-list, .tx-inline-list');
     if (host) host.setAttribute('data-browse-open', open ? 'true' : 'false');
     document.querySelectorAll('.tx-inline-browse-btn').forEach(function(btn){
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -5725,6 +5751,7 @@ body.snav-on .solve-nav{display:block;}
   // ========================================================
   // 単一クリック委譲
   // ========================================================
+  normalizeInlineJudgeList();
   document.addEventListener('click', function(e){
     var t = e.target;
     if (!t || !t.closest) return;
@@ -5737,7 +5764,7 @@ body.snav-on .solve-nav{display:block;}
     }
     var ibb  = t.closest('.tx-inline-browse-btn'); if (ibb)      {
       var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
-      var host = document.getElementById('tx-inline-judge-list');
+      var host = document.getElementById('tx-inline-judge-list') || document.querySelector('.tx-inline-judge-list, .tx-inline-list');
       var isOpen = host && host.getAttribute('data-browse-open') === 'true';
       if (isOpen) {
         closeInlineBrowse(area);
