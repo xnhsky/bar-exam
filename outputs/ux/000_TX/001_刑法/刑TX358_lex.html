@@ -4449,16 +4449,7 @@ body.snav-on .solve-nav{display:block;}
 <p class="case-paragraph">放火罪にいう「焼損」とは、目的物の重要部分が燃焼し、本来の効用を喪失した状態を意味する。</p>
 </div>
 </div>
-<div class="solve-nav" id="solve-nav">
-<div class="sn-head">📐 解法ナビ
-        <span class="sn-sub">記述を上から順に○×判定し、正しい記述が消えて残った番号へたどり着きます。</span>
-</div>
-<div class="sn-body">
-<div class="sn-combos" id="sn-combos"></div>
-<p class="sn-remain" id="sn-remain"></p>
-<div id="sn-stage"></div>
-</div>
-</div>
+
 <div class="tx-inline-list">
 <article class="tx-inline-card" data-stmt="ア" id="stmt-ア">
 <div class="tx-inline-head">
@@ -4570,6 +4561,16 @@ body.snav-on .solve-nav{display:block;}
 </div>
 </div>
 </article>
+</div>
+<div class="solve-nav" id="solve-nav">
+<div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述を上から順に○×判定し、正しい記述が消えて残った番号へたどり着きます。</span>
+</div>
+<div class="sn-body">
+<div class="sn-combos" id="sn-combos"></div>
+<p class="sn-remain" id="sn-remain"></p>
+<div id="sn-stage"></div>
+</div>
 </div>
 <div class="tx-inline-reveal-panel">
 <p>各記述の○×をこの場で選ぶと、裏側の Lexia 用 OX グリッドにも同じ回答が入ります。全記述を選ぶと採点できます。周回確認だけなら、全選択せずに解説だけ閲覧できます。</p>
@@ -5236,6 +5237,16 @@ body.snav-on .solve-nav{display:block;}
       break;
     }
   }
+  function normalizeSolveNavPlacement(){
+    var part = document.getElementById('part-a');
+    if (!part) return;
+    var nav = part.querySelector('.solve-nav');
+    var list = part.querySelector('.tx-inline-judge-list, .tx-inline-list');
+    if (!nav || !list || !list.parentNode) return;
+    if (nav.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      list.parentNode.insertBefore(nav, list.nextSibling);
+    }
+  }
   function getInlineStoryPanel(create){
     var source = document.querySelector('.answer-area.inline-prototype-mode .final-answer .fa-narrative');
     if (!source) return null;
@@ -5243,8 +5254,7 @@ body.snav-on .solve-nav{display:block;}
     if (!panel && create) {
       panel = document.createElement('div');
       panel.className = 'tx-inline-story-panel';
-      panel.hidden = true;
-      var anchor = document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
+      var anchor = document.querySelector('.solve-nav') || document.querySelector('.tx-inline-judge-list, .tx-inline-list') || document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
       if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
     }
     if (!panel) return null;
@@ -5253,18 +5263,15 @@ body.snav-on .solve-nav{display:block;}
       panel.appendChild(source.cloneNode(true));
       panel.setAttribute('data-story-hydrated', 'true');
     }
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
     return panel;
   }
   function setInlineStoryVisible(open){
-    var panel = getInlineStoryPanel(open);
+    var panel = getInlineStoryPanel(true);
     if (!panel) return;
-    if (open) {
-      panel.hidden = false;
-      panel.removeAttribute('hidden');
-    } else {
-      panel.hidden = true;
-      panel.setAttribute('hidden', '');
-    }
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
   }
   function updateRevealBtnState(area){
     if (!area) return;
@@ -5750,6 +5757,8 @@ body.snav-on .solve-nav{display:block;}
   // 単一クリック委譲
   // ========================================================
   normalizeInlineJudgeList();
+  normalizeSolveNavPlacement();
+  getInlineStoryPanel(true);
   document.addEventListener('click', function(e){
     var t = e.target;
     if (!t || !t.closest) return;
@@ -5819,7 +5828,7 @@ body.snav-on .solve-nav{display:block;}
    最後に「確定」で ox-grid を裏で記入して採点（記録は ox-grid 一本）。 */
 (function(){
   var MODE = 'incorrect';                 // 'correct' | 'incorrect'
-  var STMT = {"1": {"q": "Aの見解（独立燃焼説）に対しては、Bの見解（効用喪失説）から放火罪が公共危険罪であることを軽視しているとの批判が可能である、というのは正しい？", "tip": "決め手は<b>批判の向き</b>。公共危険罪性を軽視するのは効用喪失説の側で、早期既遂の独立燃焼説へ向けるのは名宛先が逆。", "note": "× 公共危険罪性を軽視するのはB説で、批判の向きが逆転している。記述が誤り。→ これが『誤っている記述』＝答え。"}, "2": {"q": "Aの見解（独立燃焼説）に対しては、Bの見解よりも中止犯が成立する範囲が狭くなり刑事政策的に望ましくないとの批判が可能である、というのは正しい？", "tip": "決め手は<b>既遂時期と中止犯の反比例</b>。既遂が早い独立燃焼説ほど未遂区間が短く中止犯の余地が狭く、消火奨励の政策に反する。", "note": "○ 早期既遂のA説は未遂区間が短く中止犯の余地が狭いとの批判が成立する。記述は正しい。→ 選択肢2は消える。"}, "3": {"q": "Bの見解（効用喪失説）に対しては、109条2項・110条2項が自己所有物への放火を処罰することから、既遂時期を財産犯的側面から決するのは妥当でないとの批判が可能である、というのは正しい？", "tip": "決め手は<b>放火罪の罪質</b>。自己所有物放火を罰する109条2項・110条2項は公共危険罪性を示し、財産的効用で既遂を画す効用喪失説は罪質に合わない。", "note": "○ 自己所有物処罰が示す公共危険罪性ゆえ財産的発想のB説への批判が成立する。記述は正しい。→ 選択肢3は消える。"}, "4": {"q": "Bの見解（効用喪失説）に対しては、建造物の場合に全焼又は半焼に至らない限り既遂に達せず既遂時期が遅きに失するとの批判が可能である、というのは正しい？", "tip": "決め手は<b>既遂時期の遅速</b>。効用喪失説では建造物で全焼・半焼級の燃焼まで既遂にならず、危険が現実化した後も既遂が遅きに失する。", "note": "○ B説は建造物で全焼・半焼級まで既遂が遅れ既遂時期が遅きに失するとの批判が成立する。記述は正しい。→ 選択肢4は消える。"}, "5": {"q": "A・Bいずれの見解に対しても、不燃性建造物の放火で有毒ガスにより生命・身体に危険が生じても建造物が燃焼しない限り既遂犯が成立せず処罰範囲が狭すぎるとの批判が可能である、というのは正しい？", "tip": "決め手は<b>両説共通の前提</b>。独立燃焼説も効用喪失説も建造物の燃焼を要するため、不燃性建造物の有毒ガス危険を捕捉できず処罰範囲が狭い。", "note": "○ 両説とも建造物の燃焼を前提とし不燃性建造物の危険を捕捉できないとの批判が成立する。記述は正しい。→ 選択肢5は消える。残るは1。"}};
+  var STMT = {"1": {"q": "Aの見解（独立燃焼説）に対しては、Bの見解（効用喪失説）から放火罪が公共危険罪であることを軽視しているとの批判が可能である、というのは正しい？", "tip": "決め手は<b>批判の向き</b>。公共危険罪性を軽視するのは効用喪失説の側で、早期既遂の独立燃焼説へ向けるのは名宛先が逆。", "note": "× 公共危険罪性を軽視するのはB説で、批判の向きが逆転している。記述が誤り。→ これが『誤っている記述』＝答え。", "hint": "まず「批判の向き」が、問題文中のどの具体的事実に対応するかを見る。結論を先に出さず、客体・危険・焼損・故意のどの軸で切るかを決める。"}, "2": {"q": "Aの見解（独立燃焼説）に対しては、Bの見解よりも中止犯が成立する範囲が狭くなり刑事政策的に望ましくないとの批判が可能である、というのは正しい？", "tip": "決め手は<b>既遂時期と中止犯の反比例</b>。既遂が早い独立燃焼説ほど未遂区間が短く中止犯の余地が狭く、消火奨励の政策に反する。", "note": "○ 早期既遂のA説は未遂区間が短く中止犯の余地が狭いとの批判が成立する。記述は正しい。→ 選択肢2は消える。", "hint": "まず「既遂時期と中止犯の反比例」が、問題文中のどの具体的事実に対応するかを見る。結論を先に出さず、客体・危険・焼損・故意のどの軸で切るかを決める。"}, "3": {"q": "Bの見解（効用喪失説）に対しては、109条2項・110条2項が自己所有物への放火を処罰することから、既遂時期を財産犯的側面から決するのは妥当でないとの批判が可能である、というのは正しい？", "tip": "決め手は<b>放火罪の罪質</b>。自己所有物放火を罰する109条2項・110条2項は公共危険罪性を示し、財産的効用で既遂を画す効用喪失説は罪質に合わない。", "note": "○ 自己所有物処罰が示す公共危険罪性ゆえ財産的発想のB説への批判が成立する。記述は正しい。→ 選択肢3は消える。", "hint": "まず「放火罪の罪質」が、問題文中のどの具体的事実に対応するかを見る。結論を先に出さず、客体・危険・焼損・故意のどの軸で切るかを決める。"}, "4": {"q": "Bの見解（効用喪失説）に対しては、建造物の場合に全焼又は半焼に至らない限り既遂に達せず既遂時期が遅きに失するとの批判が可能である、というのは正しい？", "tip": "決め手は<b>既遂時期の遅速</b>。効用喪失説では建造物で全焼・半焼級の燃焼まで既遂にならず、危険が現実化した後も既遂が遅きに失する。", "note": "○ B説は建造物で全焼・半焼級まで既遂が遅れ既遂時期が遅きに失するとの批判が成立する。記述は正しい。→ 選択肢4は消える。", "hint": "まず「既遂時期の遅速」が、問題文中のどの具体的事実に対応するかを見る。結論を先に出さず、客体・危険・焼損・故意のどの軸で切るかを決める。"}, "5": {"q": "A・Bいずれの見解に対しても、不燃性建造物の放火で有毒ガスにより生命・身体に危険が生じても建造物が燃焼しない限り既遂犯が成立せず処罰範囲が狭すぎるとの批判が可能である、というのは正しい？", "tip": "決め手は<b>両説共通の前提</b>。独立燃焼説も効用喪失説も建造物の燃焼を要するため、不燃性建造物の有毒ガス危険を捕捉できず処罰範囲が狭い。", "note": "○ 両説とも建造物の燃焼を前提とし不燃性建造物の危険を捕捉できないとの批判が成立する。記述は正しい。→ 選択肢5は消える。残るは1。", "hint": "まず「両説共通の前提」が、問題文中のどの具体的事実に対応するかを見る。結論を先に出さず、客体・危険・焼損・故意のどの軸で切るかを決める。"}};
   var ORDER = ["1", "2", "3", "4", "5"];
   var NUMS = ["1", "2", "3", "4", "5"];                    // ['1'..'N'] positional row numbers
   var KEYS = ["ア", "イ", "ウ", "エ", "オ"];                    // actual data-stmt keys in order (ア..オ or 1..5)

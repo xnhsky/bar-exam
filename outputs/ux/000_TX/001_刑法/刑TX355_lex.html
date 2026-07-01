@@ -4448,16 +4448,7 @@ body.snav-on .solve-nav{display:block;}
 <p class="case-paragraph">甲は、乙が所有し単身で居住している木造家屋の玄関前において、同所に駐車中の乙所有の自動二輪車の車体にガソリンをまいた上、新聞紙にライターで点火し、これを同車に投げ付け、同車を炎上させたところ、火が上記家屋に燃え移って全焼した。</p>
 </div>
 </div>
-<div class="solve-nav" id="solve-nav">
-<div class="sn-head">📐 解法ナビ
-        <span class="sn-sub">記述1〜5を順に、下の一問一答で 正しい(○)／誤り(×) を判定しよう。延焼罪の起点・抽象的事実の錯誤と重なり合い・『人』の意義・現住性と故意の認識対象・放火と殺人の罪数がコアです。</span>
-</div>
-<div class="sn-body">
-<div class="sn-combos" id="sn-combos"></div>
-<p class="sn-remain" id="sn-remain"></p>
-<div id="sn-stage"></div>
-</div>
-</div>
+
 <div class="tx-inline-list">
 <article class="tx-inline-card" data-stmt="1" id="stmt-1">
 <div class="tx-inline-head">
@@ -4569,6 +4560,16 @@ body.snav-on .solve-nav{display:block;}
 </div>
 </div>
 </article>
+</div>
+<div class="solve-nav" id="solve-nav">
+<div class="sn-head">📐 解法ナビ
+        <span class="sn-sub">記述1〜5を順に、下の一問一答で 正しい(○)／誤り(×) を判定しよう。延焼罪の起点・抽象的事実の錯誤と重なり合い・『人』の意義・現住性と故意の認識対象・放火と殺人の罪数がコアです。</span>
+</div>
+<div class="sn-body">
+<div class="sn-combos" id="sn-combos"></div>
+<p class="sn-remain" id="sn-remain"></p>
+<div id="sn-stage"></div>
+</div>
 </div>
 <div class="tx-inline-reveal-panel">
 <p>各記述の○×をこの場で選ぶと、裏側の Lexia 用 OX グリッドにも同じ回答が入ります。全記述を選ぶと採点できます。周回確認だけなら、全選択せずに解説だけ閲覧できます。</p>
@@ -5262,6 +5263,16 @@ body.snav-on .solve-nav{display:block;}
       break;
     }
   }
+  function normalizeSolveNavPlacement(){
+    var part = document.getElementById('part-a');
+    if (!part) return;
+    var nav = part.querySelector('.solve-nav');
+    var list = part.querySelector('.tx-inline-judge-list, .tx-inline-list');
+    if (!nav || !list || !list.parentNode) return;
+    if (nav.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      list.parentNode.insertBefore(nav, list.nextSibling);
+    }
+  }
   function getInlineStoryPanel(create){
     var source = document.querySelector('.answer-area.inline-prototype-mode .final-answer .fa-narrative');
     if (!source) return null;
@@ -5269,8 +5280,7 @@ body.snav-on .solve-nav{display:block;}
     if (!panel && create) {
       panel = document.createElement('div');
       panel.className = 'tx-inline-story-panel';
-      panel.hidden = true;
-      var anchor = document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
+      var anchor = document.querySelector('.solve-nav') || document.querySelector('.tx-inline-judge-list, .tx-inline-list') || document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
       if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
     }
     if (!panel) return null;
@@ -5279,18 +5289,15 @@ body.snav-on .solve-nav{display:block;}
       panel.appendChild(source.cloneNode(true));
       panel.setAttribute('data-story-hydrated', 'true');
     }
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
     return panel;
   }
   function setInlineStoryVisible(open){
-    var panel = getInlineStoryPanel(open);
+    var panel = getInlineStoryPanel(true);
     if (!panel) return;
-    if (open) {
-      panel.hidden = false;
-      panel.removeAttribute('hidden');
-    } else {
-      panel.hidden = true;
-      panel.setAttribute('hidden', '');
-    }
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
   }
   function updateRevealBtnState(area){
     if (!area) return;
@@ -5776,6 +5783,8 @@ body.snav-on .solve-nav{display:block;}
   // 単一クリック委譲
   // ========================================================
   normalizeInlineJudgeList();
+  normalizeSolveNavPlacement();
+  getInlineStoryPanel(true);
   document.addEventListener('click', function(e){
     var t = e.target;
     if (!t || !t.closest) return;

@@ -58,6 +58,39 @@ def reflex_core_html(core):
         lines.append(f'<p class="tx-reflex-line{cls}"><span class="tx-reflex-tag">{tag}</span>{values[tag]}</p>')
     return '<div class="tx-reflex-core">' + ''.join(lines) + '</div>'
 
+
+def narrative_html(spec):
+    """final-answer 内へ置くストーリー解説。無い問題では空文字。"""
+    items = spec.get('narrative') or []
+    if not items:
+        return ''
+    title = spec.get('narrative_title', '📖 この問題を物語で読む')
+    out = [
+        '        <div class="fa-narrative">\n',
+        f'          <p class="fa-narrative-title">{title}</p>\n',
+    ]
+    for item in items:
+        if isinstance(item, dict):
+            label = item.get('label', '')
+            text = item.get('text', '')
+        else:
+            label = ''
+            text = str(item)
+        if label:
+            out.append(f'          <p data-fa-label="{label}">{text}</p>\n')
+        else:
+            out.append(f'          <p>{text}</p>\n')
+    out.append('        </div>\n')
+    return ''.join(out)
+
+
+def insert_narrative(lex, spec):
+    """既存 final-answer の先頭に narrative を追加する（reuse 型用）。"""
+    story = narrative_html(spec)
+    if not story or 'class="fa-narrative"' in lex:
+        return lex
+    return re.sub(r'(<div class="final-answer"[^>]*>\s*)', r'\1' + story, lex, count=1)
+
 # ---- 解法ナビ CSS（350_lex から逐語抽出：sn-* と ox-row.mc 等の見栄え定義を流用） ----
 _nav_src = open(NAV_TEMPLATE, encoding="utf-8").read()
 _css_m = re.search(
@@ -98,6 +131,22 @@ NAV_JS = r'''<script>
   function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
   function currentStep(){ for (var i=0;i<ORDER.length;i++){ if(!answered(ORDER[i])) return ORDER[i]; } return null; }
   function doneCount(){ var n=0; ORDER.forEach(function(s){ if(answered(s)) n++; }); return n; }
+  function stripHTML(v){ return String(v || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); }
+  function safeHint(s){
+    if (s.hint) return s.hint;
+    var src = String(s.tip || '');
+    var m = src.match(/<b>(.*?)<\/b>/i);
+    var focus = m ? stripHTML(m[1]) : '';
+    if (!focus) {
+      var q = String(s.q || '');
+      ['公共の危険','建造物の一部','毀損','焼損','一体性','現住','犯人以外','延焼罪','未遂','失火','艦船','媒介物','独立燃焼','建造物'].some(function(k){
+        if (src.indexOf(k) >= 0 || q.indexOf(k) >= 0) { focus = k; return true; }
+        return false;
+      });
+    }
+    if (focus) return 'まず「'+focus+'」が、問題文中のどの具体的事実に対応するかを見る。結論を先に出さず、客体・危険・焼損・故意のどの軸で切るかを決める。';
+    return 'まず問題文の具体的事実を一つ拾い、その事実が条文要件・判例基準のどこに当たるかを確認する。結論は採点後に見る。';
+  }
   function render(){
     var cur = currentStep();
     var done = doneCount();
@@ -110,7 +159,7 @@ NAV_JS = r'''<script>
       var s = STEP[cur] || {};
       h += '<p class="sn-progress">STEP '+(done+1)+' / '+ORDER.length+'　─　'+(s.label||'')+' を検討</p>';
       if (s.q)   h += '<p class="sn-step-q">'+s.q+'</p>';
-      var tip = s.hint || '問題文のキーワードを拾い、条文・判例の要件のどこに当てるかを先に決めよう。結論と個別のコアは採点後に確認できます。';
+      var tip = safeHint(s);
       h += '<div class="sn-tip sn-tip-safe"><span class="sn-tip-h">💡 ヒント</span><span class="sn-tip-b">'+tip+'</span></div>';
       h += '<p class="sn-step-loc">↓ 下の一問一答の '+(s.label||'当該設問')+' で語句を選ぶと、次の設問へ進みます。</p>';
     } else {
@@ -235,6 +284,7 @@ def build(num, spec):
           '      <button class="reveal-answer-btn" type="button" disabled="">解答を表示</button>\n'
           '      <div id="answer-feedback" hidden=""></div>\n\n'
           '      <div class="final-answer" hidden="">\n'
+          f'{narrative_html(spec)}'
           '        <p class="fa-summary"><strong>正解</strong>　各組合せの○×は下表のとおり。組合せ番号を覚えるのではなく、各組合せが主張する<strong>法理</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>\n'
           f'        <table class="statement-verdict-table" data-answer-key="{akey}">\n'
           f'          <thead><tr><th style="width:3em;">組合せ</th><th style="width:3.5em;">正誤</th><th>{REFLEX_HEADER}</th></tr></thead>\n'
@@ -247,6 +297,7 @@ def build(num, spec):
         for rep in spec.get('replacements', []):
             assert rep['old'] in lex, f"{num}: 置換対象が無い: {rep['old'][:40]}"
             lex = lex.replace(rep['old'], rep['new'], 1)
+        lex = insert_narrative(lex, spec)
 
     lex = inject_lex(lex, spec)
     open(lex_path, "w", encoding="utf-8").write(lex)

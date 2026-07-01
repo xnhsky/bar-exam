@@ -5183,6 +5183,16 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
       break;
     }
   }
+  function normalizeSolveNavPlacement(){
+    var part = document.getElementById('part-a');
+    if (!part) return;
+    var nav = part.querySelector('.solve-nav');
+    var list = part.querySelector('.tx-inline-judge-list, .tx-inline-list');
+    if (!nav || !list || !list.parentNode) return;
+    if (nav.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING) {
+      list.parentNode.insertBefore(nav, list.nextSibling);
+    }
+  }
   function getInlineStoryPanel(create){
     var source = document.querySelector('.answer-area.inline-prototype-mode .final-answer .fa-narrative');
     if (!source) return null;
@@ -5190,8 +5200,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     if (!panel && create) {
       panel = document.createElement('div');
       panel.className = 'tx-inline-story-panel';
-      panel.hidden = true;
-      var anchor = document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
+      var anchor = document.querySelector('.solve-nav') || document.querySelector('.tx-inline-judge-list, .tx-inline-list') || document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
       if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
     }
     if (!panel) return null;
@@ -5200,18 +5209,15 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
       panel.appendChild(source.cloneNode(true));
       panel.setAttribute('data-story-hydrated', 'true');
     }
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
     return panel;
   }
   function setInlineStoryVisible(open){
-    var panel = getInlineStoryPanel(open);
+    var panel = getInlineStoryPanel(true);
     if (!panel) return;
-    if (open) {
-      panel.hidden = false;
-      panel.removeAttribute('hidden');
-    } else {
-      panel.hidden = true;
-      panel.setAttribute('hidden', '');
-    }
+    panel.hidden = false;
+    panel.removeAttribute('hidden');
   }
   function updateRevealBtnState(area){
     if (!area) return;
@@ -5697,6 +5703,8 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
   // 単一クリック委譲
   // ========================================================
   normalizeInlineJudgeList();
+  normalizeSolveNavPlacement();
+  getInlineStoryPanel(true);
   document.addEventListener('click', function(e){
     var t = e.target;
     if (!t || !t.closest) return;

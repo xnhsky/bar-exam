@@ -53,6 +53,22 @@ NAV_JS_TMPL = r'''<script>
     NUMS.forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
     return out;
   }
+  function stripHTML(v){ return String(v || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(); }
+  function safeHint(s){
+    if (s.hint) return s.hint;
+    var src = String(s.tip || '');
+    var m = src.match(/<b>(.*?)<\/b>/i);
+    var focus = m ? stripHTML(m[1]) : '';
+    if (!focus) {
+      var q = String(s.q || '');
+      ['公共の危険','建造物の一部','毀損','焼損','一体性','現住','犯人以外','延焼罪','未遂','失火','艦船','媒介物','独立燃焼','建造物'].some(function(k){
+        if (src.indexOf(k) >= 0 || q.indexOf(k) >= 0) { focus = k; return true; }
+        return false;
+      });
+    }
+    if (focus) return 'まず「'+focus+'」が、問題文中のどの具体的事実に対応するかを見る。結論を先に出さず、客体・危険・焼損・故意のどの軸で切るかを決める。';
+    return 'まず問題文の具体的事実を一つ拾い、その事実が条文要件・判例基準のどこに当たるかを確認する。結論は採点後に見る。';
+  }
   function renderCombos(winNum){
     var html = '';
     NUMS.forEach(function(n){
@@ -80,7 +96,7 @@ NAV_JS_TMPL = r'''<script>
     var h = '';
     h += '<p class="sn-progress">STEP '+(idx+1)+' / '+ORDER.length+'　─　記述 '+b+' を判定</p>';
     h += '<p class="sn-step-q">'+s.q+'</p>';
-    var tip = s.hint || '問題文のキーワードを拾い、条文・判例の要件のどこに当てるかを先に決めよう。結論と個別のコアは採点後に確認できます。';
+    var tip = safeHint(s);
     h += '<div class="sn-tip sn-tip-safe"><span class="sn-tip-h">\U0001F4A1 ヒント</span><span class="sn-tip-b">'+tip+'</span></div>';
     h += '<div class="sn-opts">';
     h += '<button type="button" class="sn-opt" data-stmt="'+b+'" data-v="○"><span class="sn-key">○</span><span>正しい</span></button>';
