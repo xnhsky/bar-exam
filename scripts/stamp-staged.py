@@ -24,6 +24,14 @@ from datetime import datetime
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from stamp_footer import stamp_file, infer_version, JST, GENMETA_CLASS  # noqa: E402
 
+# pre-commit フックの stdout はパイプ＝Windows だと cp932。日本語パスを print すると
+# UnicodeEncodeError で落ちるため UTF-8 に張り替える（reconfigure 不可の環境は無視）。
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="backslashreplace")
+    except Exception:
+        pass
+
 REPO = pathlib.Path(__file__).resolve().parent.parent
 # Lexia が取り込むカテゴリのみ対象（それ以外の HTML はスタンプしない）。
 PREFIXES = ("outputs/000_TX/", "outputs/001_JX/", "outputs/ux/", "references/")
@@ -31,11 +39,14 @@ PREFIXES = ("outputs/000_TX/", "outputs/001_JX/", "outputs/ux/", "references/")
 
 def staged_html() -> list[str]:
     # -z で NUL 区切り＝日本語ファイル名の quotepath エスケープを回避（刑JX 等）。
-    out = subprocess.run(
+    # git のパス出力は生 UTF-8 バイト。text=True だと locale(cp932) で復号し日本語で
+    # 落ちるため、bytes で受けて明示 UTF-8 復号する（呼び出し側の -X utf8 に依存しない）。
+    raw = subprocess.run(
         ["git", "-C", str(REPO), "diff", "--cached", "--name-only",
          "--diff-filter=ACM", "-z"],
-        capture_output=True, text=True,
-    ).stdout
+        capture_output=True,
+    ).stdout or b""
+    out = raw.decode("utf-8", "surrogateescape")
     files = []
     for rel in out.split("\x00"):
         rel = rel.strip()
