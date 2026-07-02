@@ -41,6 +41,9 @@ def main():
     if not os.path.isfile(path):
         print(f"[ERROR] file not found: {path}"); sys.exit(2)
     html = open(path, encoding='utf-8', newline='').read()
+    # 改行非依存化（2026-07-02）：Windows 生成 ARIADNE は CRLF が混ざり、A32 等の
+    # LF 固定文字列照合が誤検出する。全チェック前に LF へ正規化する（\r 非依存の検査は無害）。
+    html = html.replace('\r\n', '\n').replace('\r', '\n')
     errors, warns, passes = [], [], []
     def E(c, m): errors.append(f"[ERROR] {c}: {m}")
     def W(c, m): warns.append(f"[WARN]  {c}: {m}")
