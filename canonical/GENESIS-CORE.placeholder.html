@@ -28,6 +28,13 @@ v12.2.0 で確定した誌面（重厚感・教科書化リデザイン・LOCKED
     * 複数項条文だけ、条文本文横に 本文 / ① / ② ... の項バッジを付ける。単一項条文は項バッジなし。
     * 記憶フックはラベル列＋本文列で字下げし、ラベルだけをぶら下げない。
     * 解法ナビは空枠禁止。検討順と判定コアを持ち、下の回答 UI と連動する。
+  - 2026-07-02 v12.2.2 追加 LOCK（体系マップ／ASCII条番号／逐語コピー禁止／全体重厚化）:
+    * 条番号チップ {{条文番号}} / {{補助条文番号}} は ASCII 短縮形にする（例 `112条` / `109条1項・2項`、判例は `最決平元.7.14`）。
+      漢数字（第百十二条）は禁止＝エンジンの題名・法理テーマ導出が全滅し、本文16字切りのゴミチップ（例「第百八条及び第百九条第一項の罪の」）が出る（G45検出）。本文 tx-mini-law-text は正式な漢数字でよい。
+    * 論点の「整理図」は、各肢の .tx-logic-matrix か、問題単位の .tx-sysmap（体系マップ）の どちらか一方。5記述が同一体系（限定列挙・所有区分等）を突く問題は体系マップ1枚が推奨（各肢マトリクスの逐語重複を避ける）。独立論点は各肢マトリクス。
+    * 整理図の焼き直し禁止＝.tx-matrix-body を .tx-flow-body（5点フロー本文）の逐語コピーにしない（24字連続一致で G45 ERROR）。判断式 .tx-matrix-verdict と記憶フック .tx-op-body を同一文にしない。役割＝マトリクスは上位地図、判断式は決定式、記憶フックは標語。gold=刑TX366。
+    * 体系マップ .tx-sysmap は記述リストの一番上（解説の先頭・#stmt-1 の直前）に置き、解く間は非表示。表示は CSS #part-a:has(.tx-inline-explain:not([hidden])) .tx-sysmap で「解答を表示／解説だけ閲覧」時に露出（エンジンJS無改変＝接ぎ木禁止）。各記述タグ a.tx-sysmap-probe→#stmt-N、各解説末尾 .tx-sysmap-back→#tx-sysmap でハブ往復。見出しラベル（.tx-sysmap-section-label＋番号バッジ）・ノードヘッダー帯・付属犯リスト交互背景・テーマ色（--accent/--mid）で重厚に。gold=刑TX360。
+    * 全体の重厚感 override（<style> 末尾「GENESIS-CORE 重厚感・質感 override」層）＝カード/ANSWER/条文判例/5点フロー/記憶フック/詳説/回答パネル/正誤表の影・境界・立体を底上げ。LOCKED（編集不可）。
 
 Hard rule（接ぎ木の根絶＝§7「保守的書き換え」禁止の構造的担保）:
   AI が置換してよいのは二重波括弧プレースホルダー {{LIKE_THIS}} の中身だけ。
@@ -95,6 +102,32 @@ Generation method:
 
   <div class="part-title">PART A ── 問題情報</div>
   <section class="section" id="part-a">
+
+    <!-- ▼ 整理図オプションA＝体系マップ（.tx-sysmap・問題単位・記述の最上部）。5記述が同一体系を突く問題で推奨。
+         オプションB＝各肢 .tx-logic-matrix（下記③）。どちらか一方だけを置く。フル構造は canonical/GENESIS-CORE.html。
+         解く間は非表示（CSS #part-a:has(...) で解説表示時に露出）。ノード数・付属犯リスト行数は問題ごとに増減。 -->
+    <div class="tx-sysmap" id="tx-sysmap" aria-label="{{体系マップ見出し}}">
+      <div class="tx-sysmap-head">
+        <span class="tx-sysmap-kicker">体系マップ</span>
+        <span class="tx-sysmap-title">{{体系マップ題名}}</span>
+      </div>
+      <p class="tx-sysmap-lead">{{体系マップ・リード文}}</p>
+      <div class="tx-sysmap-section-label"><span class="tx-sysmap-secnum">1</span>{{第1セクション見出し}}</div>
+      <div class="tx-sysmap-objects">
+        <div class="tx-sysmap-node">
+          <div class="tx-sysmap-node-head"><span class="tx-sysmap-code">{{ノード1コード}}</span><span class="tx-sysmap-name">{{ノード1名}}</span></div>
+          <div class="tx-sysmap-node-body"><span class="tx-sysmap-branch">{{ノード1・分岐/説明}}</span></div>
+        </div>
+        <!-- .tx-sysmap-node を複製して増減。擬制等は .tx-sysmap-graft、補足は .tx-sysmap-note。 -->
+      </div>
+      <div class="tx-sysmap-attached">
+        <div class="tx-sysmap-section-label"><span class="tx-sysmap-secnum">2</span>{{第2セクション見出し}}</div>
+        <ul class="tx-sysmap-list">
+          <li><span class="tx-sysmap-art">{{行1ラベル}}</span><span class="tx-sysmap-scope">{{行1・入口の限定説明}}</span><a class="tx-sysmap-probe" href="#stmt-1">記述1 ↗</a></li>
+          <!-- 記述数だけ li を追加。probe href は #stmt-N に対応。 -->
+        </ul>
+      </div>
+    </div>
 
     <!-- ▼ インラインカード = 記述ごと（通常 ア〜オ＝5）。
          v12 inline では問題文本文と○×をこのカードに一体化し、

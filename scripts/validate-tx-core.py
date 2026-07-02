@@ -1349,14 +1349,51 @@ class Validator:
                 self.err("G45", "5点フローの実効CSSがラベル列＋本文列の2カラムではない。"
                                 "モバイルでもラベル下へ本文をぶら下げない。")
 
-        matrix_required = bool(self.soup.select_one(".tx-inline-card .tx-article-flow"))
-        if matrix_required:
+        flow_exists = bool(self.soup.select_one(".tx-inline-card .tx-article-flow"))
+        has_sysmap = bool(self.soup.select_one(".tx-sysmap"))
+        # 整理図は「各肢の論点処理マトリクス」か「問題単位の体系マップ(.tx-sysmap)」のどちらかでよい（v12.2.2）
+        matrix_required = flow_exists and not has_sysmap
+        if flow_exists and self.soup.select_one(".tx-inline-card .tx-logic-matrix"):
             if ".tx-logic-matrix{" not in compact_css:
                 self.err("G45", "論点処理マトリクス `.tx-logic-matrix` のCSSが無い。")
             if not re.search(r"\.tx-matrix-grid\s*\{[^}]*display\s*:\s*grid", css, re.S):
                 self.err("G45", "論点処理マトリクス `.tx-matrix-grid` がgrid表示ではない。")
             if ".tx-matrix-verdict{" not in compact_css:
                 self.err("G45", "論点処理マトリクスの判断式 `.tx-matrix-verdict` のCSSが無い。")
+        if has_sysmap:
+            if ".tx-sysmap{" not in compact_css:
+                self.err("G45", "体系マップ `.tx-sysmap` のCSSが無い。")
+            if not re.search(r"#part-a:has\([^)]*\)\s*\.tx-sysmap", css):
+                self.err("G45", "体系マップの表示フック `#part-a:has(...) .tx-sysmap` が無い。"
+                                "解説表示（解答を表示／解説だけ閲覧）で現れるようにする。")
+
+        def _norm45(s):
+            return re.sub(r"\s+", "", s or "")
+
+        def _lcs45(a, b):
+            if not a or not b:
+                return 0
+            prev = [0] * (len(b) + 1)
+            best = 0
+            for ca in a:
+                cur = [0] * (len(b) + 1)
+                for j, cb in enumerate(b, 1):
+                    if ca == cb:
+                        cur[j] = prev[j - 1] + 1
+                        if cur[j] > best:
+                            best = cur[j]
+                prev = cur
+            return best
+
+        # 条番号チップは ASCII 短縮形（例 112条 / 109条1項・2項）。エンジンの題名・法理テーマ
+        # 導出は ASCII 条番号前提で、漢数字（第百十二条）だと導出が全滅し本文16字切りのゴミが出る。
+        for _art in self.soup.select(".tx-inline-card .tx-mini-law-article"):
+            _at = _art.get_text(strip=True)
+            if "{{" in _at:
+                continue
+            if re.search(r"第[一二三四五六七八九十百千]", _at):
+                self.err("G45", f"条番号チップ『{_at}』が漢数字。ASCII短縮形（例 112条 / 109条1項・2項）にする。"
+                                "エンジンの題名・法理テーマ導出は ASCII 条番号前提。")
 
         for i, ex in enumerate(self.soup.select(".tx-inline-card .tx-inline-explain"), start=1):
             if ex.select_one(".tx-answer-box") and not ex.select_one(".tx-mini-law"):
@@ -1408,28 +1445,52 @@ class Validator:
                     self.err("G45", f"inlineカード {i} の条文/判例本文に `tx-mini-law-body` が無い。"
                                     "ラベル横本文を包んで2カラム字下げにする。")
             matrix = ex.select_one(".tx-logic-matrix")
-            if matrix_required:
-                if not matrix:
-                    self.err("G45", f"inlineカード {i} に論点処理マトリクスが無い。"
-                                    "条文判例の直下、5点フローの直上に置く。")
+            if matrix_required and not matrix:
+                self.err("G45", f"inlineカード {i} に整理図が無い。各肢の論点処理マトリクス、"
+                                "または問題単位の体系マップ `.tx-sysmap` を置く。")
+            if matrix:
+                cells = matrix.select(".tx-matrix-cell")
+                if len(cells) < 4:
+                    self.err("G45", f"inlineカード {i} の論点処理マトリクスが4セル未満。"
+                                    "体系的処理手順を01〜04で図解する。")
+                verdict_el = matrix.select_one(".tx-matrix-verdict")
+                if not verdict_el or len(verdict_el.get_text(" ", strip=True)) < 8:
+                    self.err("G45", f"inlineカード {i} の論点処理マトリクスに判断式が不足。"
+                                    "最後に結論到達の式を置く。")
+                flow = ex.select_one(".tx-article-flow")
+                direct = list(ex.find_all(recursive=False))
+                if mini and flow and matrix in direct and mini in direct and flow in direct:
+                    if not (direct.index(mini) < direct.index(matrix) < direct.index(flow)):
+                        self.err("G45", f"inlineカード {i} の論点処理マトリクスの配置順が違う。"
+                                        "条文判例の下、5点フローの上に置く。")
                 else:
-                    cells = matrix.select(".tx-matrix-cell")
-                    if len(cells) < 4:
-                        self.err("G45", f"inlineカード {i} の論点処理マトリクスが4セル未満。"
-                                        "体系的処理手順を01〜04で図解する。")
-                    verdict_text = matrix.select_one(".tx-matrix-verdict")
-                    if not verdict_text or len(verdict_text.get_text(" ", strip=True)) < 8:
-                        self.err("G45", f"inlineカード {i} の論点処理マトリクスに判断式が不足。"
-                                        "最後に結論到達の式を置く。")
-                    flow = ex.select_one(".tx-article-flow")
-                    direct = list(ex.find_all(recursive=False))
-                    if mini and flow and matrix in direct and mini in direct and flow in direct:
-                        if not (direct.index(mini) < direct.index(matrix) < direct.index(flow)):
-                            self.err("G45", f"inlineカード {i} の論点処理マトリクスの配置順が違う。"
-                                            "条文判例の下、5点フローの上に置く。")
-                    else:
-                        self.err("G45", f"inlineカード {i} の論点処理マトリクスが条文判例と5点フローの間にない。"
-                                        "同じ階層の直列要素として配置する。")
+                    self.err("G45", f"inlineカード {i} の論点処理マトリクスが条文判例と5点フローの間にない。"
+                                    "同じ階層の直列要素として配置する。")
+                # 逐語コピー禁止（spec 58行）：マトリクスは5点フロー/記憶フックの焼き直しにしない
+                flow_bodies = [_norm45(b.get_text(" ", strip=True))
+                               for b in (flow.select(".tx-flow-body") if flow else [])]
+                rehashed = 0
+                for cell in cells:
+                    be = cell.select_one(".tx-matrix-body")
+                    if not be:
+                        continue
+                    bt = _norm45(be.get_text(" ", strip=True))
+                    if not bt or "{{" in bt:
+                        continue
+                    if any(_lcs45(bt, fb) >= 24 for fb in flow_bodies):
+                        rehashed += 1
+                if rehashed:
+                    self.err("G45", f"inlineカード {i} のマトリクスが5点フローの焼き直し"
+                                    f"（{rehashed}セルが本文逐語重複）。マトリクスは"
+                                    "『見る軸→確認事実→切る場所→結論到達』の上位地図にし、"
+                                    "文言/趣旨/射程/切断点の文をコピーしない。")
+                hook_el = ex.select_one(".tx-onepoint .tx-op-body")
+                if verdict_el and hook_el:
+                    vt = re.sub(r"^判断式", "", _norm45(verdict_el.get_text(" ", strip=True)))
+                    ht = _norm45(hook_el.get_text(" ", strip=True))
+                    if vt and ht and vt == ht and "{{" not in vt:
+                        self.err("G45", f"inlineカード {i} の判断式が記憶フックと同一。"
+                                        "判断式は結論到達の決定式、記憶フックは1秒で思い出す標語に役割分離する。")
 
     def run(self):
         self.g1_head()

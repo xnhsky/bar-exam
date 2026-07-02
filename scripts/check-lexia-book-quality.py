@@ -68,6 +68,27 @@ def text_of(node) -> str:
     return re.sub(r"\s+", " ", node.get_text(" ", strip=True)).strip() if node else ""
 
 
+def _norm_lex(s: str) -> str:
+    return re.sub(r"\s+", "", s or "")
+
+
+def _lcs_lex(a: str, b: str) -> int:
+    """最長共通部分文字列の長さ（逐語コピー検出用）。"""
+    if not a or not b:
+        return 0
+    prev = [0] * (len(b) + 1)
+    best = 0
+    for ca in a:
+        cur = [0] * (len(b) + 1)
+        for j, cb in enumerate(b, 1):
+            if ca == cb:
+                cur[j] = prev[j - 1] + 1
+                if cur[j] > best:
+                    best = cur[j]
+        prev = cur
+    return best
+
+
 def discover(paths: list[Path]) -> list[Path]:
     files: list[Path] = []
     for path in paths:
@@ -103,7 +124,17 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
         if "下の一問一答" in html and "このナビ内" not in html:
             issues.append(Issue(path, "TX-NAV", "解法ナビが下の一問一答へ誘導するだけになっている"))
 
-    matrix_required = bool(soup.select_one(".tx-inline-card .tx-article-flow"))
+    flow_exists = bool(soup.select_one(".tx-inline-card .tx-article-flow"))
+    has_sysmap = bool(soup.select_one(".tx-sysmap"))
+    # 整理図は各肢マトリクスか問題単位の体系マップ(.tx-sysmap)のどちらかでよい
+    matrix_required = flow_exists and not has_sysmap
+    # 条番号チップは ASCII 短縮形（漢数字はエンジンの題名/法理テーマ導出を壊す）
+    for art in soup.select(".tx-inline-card .tx-mini-law-article"):
+        at = text_of(art)
+        if "{{" in at:
+            continue
+        if re.search(r"第[一二三四五六七八九十百千]", at):
+            issues.append(Issue(path, "TX-LAW", f"条番号チップ『{at}』が漢数字。ASCII短縮形（例 112条 / 109条1項・2項）にする"))
 
     for i, card in enumerate(soup.select(".tx-inline-card"), 1):
         explain = card.select_one(".tx-inline-explain")
@@ -134,22 +165,39 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
                 issues.append(Issue(path, "TX-LAW", f"カード{i}: 条文/判例本文に tx-mini-law-body がない"))
 
         matrix = explain.select_one(".tx-logic-matrix")
-        if matrix_required:
-            if not matrix:
-                issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスがない"))
+        if matrix_required and not matrix:
+            issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 整理図（マトリクス or 体系マップ）がない"))
+        if matrix:
+            cells = matrix.select(".tx-matrix-cell")
+            if len(cells) < 4:
+                issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスが4セル未満"))
+            verdict_el = matrix.select_one(".tx-matrix-verdict")
+            if len(text_of(verdict_el)) < 8:
+                issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスの判断式が不足"))
+            flow = explain.select_one(".tx-article-flow")
+            direct = list(explain.find_all(recursive=False))
+            if mini and flow and matrix in direct and mini in direct and flow in direct:
+                if not (direct.index(mini) < direct.index(matrix) < direct.index(flow)):
+                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスの配置順が違う"))
             else:
-                cells = matrix.select(".tx-matrix-cell")
-                if len(cells) < 4:
-                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスが4セル未満"))
-                if len(text_of(matrix.select_one(".tx-matrix-verdict"))) < 8:
-                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスの判断式が不足"))
-                flow = explain.select_one(".tx-article-flow")
-                direct = list(explain.find_all(recursive=False))
-                if mini and flow and matrix in direct and mini in direct and flow in direct:
-                    if not (direct.index(mini) < direct.index(matrix) < direct.index(flow)):
-                        issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスの配置順が違う"))
-                else:
-                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスが条文判例と5点フローの間にない"))
+                issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 論点処理マトリクスが条文判例と5点フローの間にない"))
+            # 逐語コピー禁止：マトリクスは5点フロー/記憶フックの焼き直しにしない
+            flow_bodies = [_norm_lex(text_of(b)) for b in (flow.select(".tx-flow-body") if flow else [])]
+            rehashed = 0
+            for cell in cells:
+                bt = _norm_lex(text_of(cell.select_one(".tx-matrix-body")))
+                if not bt or "{{" in bt:
+                    continue
+                if any(_lcs_lex(bt, fb) >= 24 for fb in flow_bodies):
+                    rehashed += 1
+            if rehashed:
+                issues.append(Issue(path, "TX-MATRIX", f"カード{i}: マトリクスが5点フローの焼き直し（{rehashed}セル逐語重複）"))
+            hook_el = explain.select_one(".tx-onepoint .tx-op-body")
+            if verdict_el and hook_el:
+                vt = re.sub(r"^判断式", "", _norm_lex(text_of(verdict_el)))
+                ht = _norm_lex(text_of(hook_el))
+                if vt and ht and vt == ht and "{{" not in vt:
+                    issues.append(Issue(path, "TX-MATRIX", f"カード{i}: 判断式が記憶フックと同一（役割分離せよ）"))
 
         flow_labels = [text_of(x) for x in explain.select(".tx-article-flow .tx-flow-label")]
         if flow_labels:
