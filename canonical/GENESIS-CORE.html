@@ -4895,6 +4895,17 @@ a.tx-sysmap-probe:hover{ filter:brightness(1.1); transform:translateY(-1px); }
 .radial-svg .tx-center{ fill:var(--paper)!important; }
 .radial-svg .tx-branch{ fill:var(--paper)!important; }
 .radial-svg ellipse{ fill:var(--accent-darker)!important; }
+
+/* === 問題文原文の交互背景（ゼブラ）: 記述カードを1つおきに淡く染め、記述の切れ目を目で追える ===
+   pale bg + dark text を維持（WCAG）。偶数カードだけ暖色クリームへ。テクスチャ線は踏襲。 */
+.tx-inline-judge-list .tx-inline-card:nth-child(even){
+  background:
+    linear-gradient(180deg,rgba(250,240,226,.96) 0%,rgba(247,235,220,.98) 100%),
+    repeating-linear-gradient(0deg,rgba(80,55,35,.032) 0,rgba(80,55,35,.032) 1px,transparent 1px,transparent 7px);
+}
+/* === 正誤表を体系マップの上へ持ち上げたとき（露出順: 正誤表 → 体系マップ → 肢カード）の体裁 ===
+   final-answer から出るため、単独ブロックとして上下余白を確保する。 */
+.statement-verdict-table.tx-verdict-hoisted{ margin:6px 0 22px; }
 </style>
 </head>
 <body id="top">
@@ -5789,9 +5800,22 @@ a.tx-sysmap-probe:hover{ filter:brightness(1.1); transform:translateY(-1px); }
   function moveStatementVerdictTableToTop(){
     var fa = document.querySelector('.final-answer');
     if (!fa) return null;
-    var table = fa.querySelector('.statement-verdict-table');
+    // 一度持ち上げると fa 外へ出るため、2回目以降は文書全体から拾う（冪等）。
+    var table = fa.querySelector('.statement-verdict-table')
+             || document.querySelector('.statement-verdict-table');
     if (!table) return null;
-    if (fa.firstElementChild !== table) fa.insertBefore(table, fa.firstElementChild);
+    // 正誤表は体系マップ(.tx-sysmap)の直前へ持ち上げる（露出順: 正誤表 → 体系マップ → 肢カード）。
+    // 体系マップの無い問題（各肢マトリクス型）は従来どおり final-answer 冒頭に置く。
+    var partA = document.getElementById('part-a');
+    var sysmap = partA ? partA.querySelector('.tx-sysmap') : null;
+    if (sysmap && sysmap.parentNode) {
+      if (table.nextElementSibling !== sysmap || table.parentNode !== sysmap.parentNode) {
+        sysmap.parentNode.insertBefore(table, sysmap);
+      }
+      table.classList.add('tx-verdict-hoisted');
+    } else if (fa.firstElementChild !== table) {
+      fa.insertBefore(table, fa.firstElementChild);
+    }
     return table;
   }
   function ensureUserAnswerColumn(table){

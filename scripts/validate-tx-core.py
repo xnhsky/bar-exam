@@ -1385,6 +1385,13 @@ class Validator:
                 prev = cur
             return best
 
+        def _dupnorm(s):
+            # 重複判定用の正規化：正誤プレフィックス・フローラベル・記号/空白を除去して
+            # 「実体の言い回し」だけを残す。記憶フックが ANSWER の言い換えかを見るため。
+            s = re.sub(r"^\s*[アイウエオカキクケコサシスセソタチツテトナ\dA-Za-z①-⑳（(]{1,6}は[○×]。?\s*", "", s or "")
+            s = re.sub(r"^(文言|趣旨|射程|切断点|転用|本質|原則|定義)\s*", "", s)
+            return re.sub(r"[\s。、「」『』（）()・：:；;／/…\.\,]", "", s)
+
         # 条番号チップは ASCII 短縮形（例 112条 / 109条1項・2項）。エンジンの題名・法理テーマ
         # 導出は ASCII 条番号前提で、漢数字（第百十二条）だと導出が全滅し本文16字切りのゴミが出る。
         for _art in self.soup.select(".tx-inline-card .tx-mini-law-article"):
@@ -1403,9 +1410,14 @@ class Validator:
             answer = ex.select_one(".tx-answer-box .tx-answer-body")
             if answer:
                 answer_text = answer.get_text(" ", strip=True)
+                # 正誤プレフィックス（例「アは×。」「1は○。」）を剥がしてからラベル漏れを見る。
+                # プレフィックス裏に隠れた「アは×。文言 …」型のフロー行丸写しも検出する。
+                answer_head = re.sub(
+                    r"^\s*[アイウエオカキクケコサシスセソタチツテトナ\dA-Za-z①-⑳（(]{1,6}は[○×]。?\s*",
+                    "", answer_text)
                 if "{{" in answer_text:
                     pass
-                elif re.match(r"^(文言|趣旨|射程|切断点|転用)\b", answer_text):
+                elif re.match(r"^(文言|趣旨|射程|切断点|転用|本質|原則|定義)\b", answer_head):
                     self.err("G45", f"inlineカード {i} の ANSWER が分析ラベル始まり。"
                                     "ANSWER は `条文・判例 → 本件事実 → 成否` の到達形にし、文言/趣旨等の役割名を入れない。")
                 elif not re.search(r"(成立|不成立|当たる|当たらない|肯定|否定|可罰|不可罰|既遂|未遂|客体外|含まれない|含む|足りる|足りない|阻却|処罰|非ず|ではない|なし|あり|○|×)", answer_text):
@@ -1423,6 +1435,14 @@ class Validator:
                 if "／" in hook_text and len(hook_text) > 40:
                     self.err("G45", f"inlineカード {i} の記憶フックが説明の連結になっている。"
                                     "判例名・要件・結論を並べるのではなく、1秒で思い出す言葉に圧縮する。")
+                # 記憶フックが ANSWER の言い換え（重複）になっていないか（LCS 被覆率で判定）。
+                # 較正: 重複問(357/358/359)は 0.85〜1.0、健全な標語は ≤0.48。閾値 0.65 で分離。
+                if answer_text:
+                    hn, an = _dupnorm(hook_text), _dupnorm(answer_text)
+                    if hn and _lcs45(hn, an) / len(hn) >= 0.65:
+                        self.err("G45", f"inlineカード {i} の記憶フックが ANSWER の言い換え（重複）。"
+                                        "ANSWER とは別の言葉で、短く・イメージしやすく・記憶に刺さる標語にする"
+                                        "（結論の再掲でなく、想起の引き金にする）。")
                 if re.search(r"→\s*.*成立しない", hook_text) and re.search(r"(成立する|成立し得る|当たる|偽造となる)", answer_text):
                     self.err("G45", f"inlineカード {i} の記憶フックが ANSWER と逆結論に読める。"
                                     "正誤結論は ANSWER・フロー・記憶フックで必ず一致させる。")
