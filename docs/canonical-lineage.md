@@ -109,7 +109,7 @@
 | `validate-tx.py` | TX v8.x〜v9.x | S1〜S91（legacy） |
 | `validate-jx.py` | JX | J1〜J21＋JC1〜JD1(v4)＋JSB（タグ均衡） |
 | `validate-rx.py` / `validate-tts.py` | RX論証 / TTS台本 | 各系 |
-| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A32／canonical＋全出力横断（`.ariadne-current-law-note` 正典CSS/slot allowance 含む） |
+| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A39／canonical＋全出力横断（A34 骨子 SIMPLE-BONE・**A35 深掘りテンプレ流用 ERROR**・A36-A39 版/未定義box/draft逐語/bc-inst 2カラム・`.ariadne-current-law-note` 正典CSS/slot allowance 含む） |
 
 ---
 

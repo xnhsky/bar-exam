@@ -31,7 +31,7 @@
    - **解法ナビ7ステップ**（SCAN/AIM/ORDER/MARCH/BREAK(＋5′)/BRIDGE/BUILD）を、抽出した論点構造から起こす。
      各ステップ＝`.do`（次にやること）＋`details.peek`（▶自分で1つ→確認）＋周回ドリル○×。**ORDER・BRIDGE を含め各ステップに `💡 box-tip` のコツ箱を1つ**（凸凹なく）。
      チェックポイント＝論点には `.tag-issue`＋1行の超短定義を併記（初学者が deep を開かず1周できるよう）。
-   - **骨子**（`.bone.matrix-bone`）＝第1/第2/…の番号＋見出しを、JX019正典の**マトリクス型**で作る。各行は `.mrow`、本文は `.mcell`、中身は `.mline` に分け、ラベルは `.mstage q/r/a/c/cut`（問・論・規・当・結・削）、本文は `.mtext`。違法性・責任は必要な場合だけ一言で通過し、無理に独立行を作らない。**構造は {SLOT_CONTRACT} の許容断片から外れないこと。**
+   - **骨子**（`.bone`・シンプル型／§17）＝第1/第2/…を `.bsec > span.b1` 見出しで束ね、各項目を **inline の `.bn` 連番＋一行本文**（`white-space:pre-wrap`）で並べる。論点=`<span class="iss">【論点】…</span>`／規範=`<span class="krule">…</span>`／あてはめキー事実=`<span class="kfact">…</span>`／結論=`<u>…</u>`。補足は行頭 `└ ` サブ行、締めは `→ 結論：… ＝ <u>…</u>`。違法性・責任は必要な場合だけ一言で通過。**問規当結を各行に色ラベルする旧 `.bone.matrix-bone`（`.mrow/.mline/.mstage`）は使わない（legacy・§17）。構造は {SLOT_CONTRACT} の許容断片から外れないこと。** gold 参照＝`刑JX001_ARIADNE.html`。
    - **照合・自己採点**（`.rubric`）＝採点講評の減点ポイントを☐リスト化（**AI採点に依存しない**）。`.collate`、`details.reveal-answer`、`details#deep-dive` は骨子コンテナ `.skeleton` の内側に置く。背景上へ外置きしない。
    - **模範答案**（`details.reveal-answer`）＝JX 模範を簡潔化して収録（字下げ・明朝）。**各段落 `<p>` に問規当結の役割クラスを付与**（spec §10）：問題提起=`class="role r-issue"`／規範=`class="role r-norm"`（説名は `<b class="rule">`）／あてはめ=`class="role r-apply"`／結論=`class="role r-concl"`（`.ma-h` 見出しには付けない）。あてはめ段落では **事実=`<span class="fact">`（生の事実）／評価語=`<span class="eval">`（「現実的危険を有する」等の橋渡し評価）** を括る。CSS は canonical 継承。
    - **深掘り層**（`details#deep-dive`）＝**アテナ級**に鋳造（spec §11）。判例・学説・条文は **TX 参考条文判例書式**で：
@@ -44,8 +44,8 @@
      **末尾に「アテナで詳しく」ボタン**：`<a class="go-athena" role="button" tabindex="0" data-athena-code="{元問題ID}" data-athena-href="../../../001_JX/{00N_科目}/{元問題ID}.html">…</a>`
      （`data-athena-code` は `_ARIADNE` を付けない元 ID＝例 `刑JX001`。文言にメタ除去 regex 語＝`本問`/`正解は肢` 等を含めない）。
 3-bis. **答案構成パズル（spec §9・周回の主役）** ─ エンジン（CSS/JS/ヒント・フォールバック）は {SKELETON} 継承で自動。生成時に**問題固有の下記**を付与する：
-   - **骨子タグ**：`.bone.matrix-bone` 内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。**論点チップは `【論点】…` と書き冠番号を付けない（`【論点①】`/`【論点1】` 禁止＝無番号おとりと番号の有無で識別できネタバレになる・配置順は `.b1` 第1/第2 見出しで担保・spec §9-2・validate-ariadne A28 が ERROR）**。
-   - **骨子の見た目規律（JX019を正典化）**：`.bsec` ごとに罪責・小問を区切る。各 `.mrow` は番号 `.bn`＋本文の2カラム。問規当結の複数行は `.mline` で縦に積み、`.mline + .mline` の点線区切りを活かす。ラベル色は `--ml-red/teal/green/gold/violet` のマイルドライナー系。文章本体は `.mtext` 側だけ字下げし、ラベルやバッジは字下げしない。
+   - **骨子タグ**：`.bone`（simple 型・§17）内で 論点=`<span class="iss">`／結論=`<u>`／見出し=`<span class="b1">` に加え、**規範=`<span class="krule">`／あてはめキー事実=`<span class="kfact">`** を付ける（Lv2 用）。**論点チップは `【論点】…` と書き冠番号を付けない（`【論点①】`/`【論点1】` 禁止＝無番号おとりと番号の有無で識別できネタバレになる・配置順は `.b1` 第1/第2 見出しで担保・spec §9-2・validate-ariadne A28 が ERROR）**。
+   - **骨子の見た目規律（simple 型・§17）**：`.bsec` ごとに罪責・小問を区切る。各項目は行頭 2 space ＋ `<span class="bn">N</span>` ＋一行本文（見出し直後の第1項目は `.b1` と同じ行に続ける）。補足は行頭 `└ `（6 space）サブ行、締めは `→ 結論：… ＝ <u>…</u>`。本文が長くなりすぎたら要点だけの一行に圧縮する（フル文は模範答案側に置く）。**旧 matrix（`.mrow/.mline/.mstage` の問規当結色ラベル）は使わない。**
    - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。おとり論点も `iss:【論点】…`（冠番号なし）で本物と識別不能にする。
    - **試験下書き `.drafting`**（骨子の直前）：先頭に **`.draft-problem`＝問題文原文の再掲（上部 `.problem .pq` を逐語コピー＝答案構成で上へ遡らず済む）**、その直下に **`.draft-digest`＝骨子用に一行へ圧縮したメモ**（`<span class="ddl">骨子用に一行圧縮</span><span class="ddbody">…</span>` の2カラム）を置く。続けて `.draft-grid` 上段に①人物関係図 `.rel-map` と②時系列 `.timeline` を2カラム、下段に③拾う文言 `.facts` を `.draft-card span2` で全幅に置く。人物関係図を `span2` にしない。`.facts li` は引用 `.ph`＋理由 `.cue` の2カラムで、右余白が空きすぎないよう引用側を広めに取る。`.cue` の先頭に `...` / `…` を置かない。**いずれも生の事実抽出まで**（論点名・規範は書かない＝パズルの想起対象）。
    - **想起カード**：○×のうち**規範名・要件・定義を問える3枚前後**を `class="self-check-quiz recall" data-recall="1" data-rx="{SUBJECT}RX{NNN}_{論点序号}" data-correct-value="○"`＋`.recall-reveal`（onclick で `.quiz-answer` 開示）＋`.recall-grade` に「書けた○/書けなかった×」へ格上げ。**`data-rx`＝その想起が問う論点に対応する RX 論証カードのコード**（同JX配下 `outputs/ux/002_RX/{00N_科目}/{SUBJECT}JX{NNN}/` の `_1/_2/_3`＝論点①②③順。手順1で抽出した論点と RX タイトルを突合し1枚ずつ確定。1カード=1RX・多対一可・対応RX無しは省略）。Lexia は誤答時その RX を復習プールへ注入（LXA_FEAT_008）。**同じJX内の重複 data-rx は、教育上同じ論証を2枚で問う意図が明確な場合だけ許す。迷う場合は1枚だけに配線する。**
@@ -57,7 +57,7 @@
    - 設問文を Lexia メタ除去 regex（`(本問|本設問)[0-20字]正解｜正解は肢｜正解はどれ｜正解の組`）に当てない。
    - `<script>` 内に `</body>` リテラルを書かない（「`</`+`body>`」等で回避）。
 5. **体裁強化を冪等付与（必須）**：`python scripts/ariadne-enhance.py {OUT}`（①深層部 条文の「N項」バッジ化＋項を点線区切り／③マストヘッド目次ジャンプTOC／④各セクション区切り＋深掘り前に「▲先頭へ戻る」）→ `python scripts/ariadne-autolink.py {OUT}`（②本文インライン相互リンク＝条文・判例・学説・用語を語そのままリンク・解法ナビ⇄深層部・カード間相互）。両者**冪等**。
-6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A32 ERROR 0**。ERROR は該当部を修正して再検証。
+6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A39 ERROR 0**（A34＝骨子 SIMPLE-BONE・matrix 使用時のみ WARN／**A35＝深掘りテンプレ流用は ERROR**＝本問に無い人物記号が深掘りに出たら別問題流用として落とす／A36-A39＝版スタンプ・未定義box・draft逐語・bc-inst 2カラムは WARN・§17）。ERROR は該当部を修正して再検証。
 7. **完了 sentinel を echo**（下記節のいずれか1つ）してから終了。本文は返さない。
 
 ## 注意
@@ -65,7 +65,7 @@
 - 最新法令・判例・学説レビューは内容品質の必須工程。新旧差分があるのに `.ariadne-current-law-note` が無い、または立法経緯・改正経緯・改正趣旨が無い場合は未完了。
 - 巨大 Edit を避け、部ごとに鋳造（1メッセージ 50KB 超の出力禁止）。
 - 配色・フォント・誌面骨格は {SKELETON} を継承（TX v11 V3 Twilight Violet 見本＝spec §5。フォント＝Shippori Mincho B1／Zen Kaku Gothic Antique／Zen Maru Gothic／Source Code Pro、機能色＝規範ティール/事実グリーン/罠コーラル/ヒント金）。
-- 体裁は **Claude正典＋JX019マトリクス正典**を継承する。バッジ・ラベル・見出し以外の本文は本文カラム側で字下げし、ラベル横に長文を直置きしてぶら下げない。ラベル＋本文は原則2カラム（`.pq-grid`/`.dp-row`/`.draft-digest`/`.bc-inst`/`.mline`）。
+- 体裁は **Claude正典（誌面・模範答案）** を継承する。バッジ・ラベル・見出し以外の本文は本文カラム側で字下げし、ラベル横に長文を直置きしてぶら下げない。ラベル＋本文は原則2カラム（`.pq-grid`/`.dp-row`/`.draft-digest`/`.bc-inst`）。**骨子はシンプル型 `.bone`（§17）＝2カラムにしない。**
 - **★ ベースカラーは難易度別にAI判断可**：{SKELETON} 継承の `:root` 「▼ ACTIVE」プリセットを、問題の難易度で **EASY=ローズ(P1)／STD=クリスタルブルー(P2)／HARD=バイオレット(P3)** から1つ選び、ラベル＋値2行だけを差し替える（3案 hex は `:root` コメントにカタログ常時記載）。基礎・典型→EASY／中堅・頻出（正当防衛・過失共犯等）→STD／重論点・罠多・錯誤や不作為や原自行為等の難所→HARD。**AIがデザイン判断してよいのはこのACTIVEプリセット選択だけ。新色創作、機能色変更、余白・構造変更は禁止。** ○×ボタンはコンパクト固定（`flex:1` にしない）。
 
 ## 完了 sentinel（必ず 1 つだけ echo して終了）

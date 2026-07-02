@@ -417,15 +417,25 @@ def main():
         if atext and not re.search(r'から|ため|ので|要件|条|判例|規範|結論|成立|不成立|故意|違法|責任|因果|客体|射程|区別|限ら|正当防衛|緊急避難|阻却|否定|肯定|対象外|無効|有効|減点|条文|主体|過失|未遂|既遂|法益|補充性|相当性|公共|評価|検討対象|実益|配点|自殺|承諾|共犯|急迫|不正|侵害|継続|終了|加害|意思|可能性|時間的|場所的|接着|総合|判断|失点|罪名|行為|検討|漏れ|起動|詐欺|傷害|殺人|正犯|道具|利用|定義|形態', atext):
             a33_errors.append(f'周回ドリル{ci} の解説に理由・要件・結論の手掛かりが不足')
 
-    if bone_inner and 'matrix-bone' in bone_tag + bone_inner:
-        for marker, label in [
-            ('class="iss"', '論点'),
-            ('class="krule"', '規範'),
-            ('class="kfact"', 'あてはめキー事実'),
-            ('<u>', '結論'),
-        ]:
-            if marker not in bone_inner:
-                a33_errors.append(f'答案構成骨子に {label} マーカーが不足')
+    if bone_inner:
+        if 'matrix-bone' in bone_tag:
+            # legacy matrix-bone（§9-2・§17 で旧型指定）：問規当結の4マーカーを確認
+            for marker, label in [
+                ('class="iss"', '論点'),
+                ('class="krule"', '規範'),
+                ('class="kfact"', 'あてはめキー事実'),
+                ('<u>', '結論'),
+            ]:
+                if marker not in bone_inner:
+                    a33_errors.append(f'答案構成骨子に {label} マーカーが不足')
+        else:
+            # simple-bone（§17 正典）：論点＋結論を最低要件
+            for marker, label in [
+                ('class="iss"', '論点'),
+                ('<u>', '結論'),
+            ]:
+                if marker not in bone_inner:
+                    a33_errors.append(f'答案構成骨子（simple-bone）に {label} マーカーが不足')
 
     if ma:
         inner = ma[0][1]
@@ -445,6 +455,76 @@ def main():
         E('A33', ' / '.join(a33_errors[:12]) + (f' / 他{len(a33_errors)-12}件' if len(a33_errors) > 12 else ''))
     else:
         P('A33', '役割別品質ゲート通過（汎用誘導・薄いドリル・骨子欠落なし）')
+
+    # ---- A34 骨子 SIMPLE-BONE 正典・matrix-bone 旧型検出（§17・2026-07-02）----
+    # 骨子は simple 型 .bone が正典（刑JX001 型）。旧 .bone.matrix-bone（問規当結グリッド）は
+    # WARNING で移行残を可視化する（既存出力は順次移行のため ERROR にしない）。
+    if 'matrix-bone' in bone_tag:
+        W('A34', '骨子が旧型 .bone.matrix-bone（問規当結グリッド）＝§17 で simple 型 .bone へ差し戻し済み。内容保持のまま simple `.bone`（刑JX001 型）へ要移行')
+    elif bone_inner:
+        P('A34', '骨子は simple 型 .bone（§17 正典）')
+
+    # ---- A35 深掘りテンプレ流用検出（別問題の人物記号混入＝018型・§11/§4・2026-07-02）----
+    # 深掘り層に、本問（.cast/問題文/模範答案/骨子/解法ナビ）に一切登場しない人物記号が
+    # 「本問の◯」「◯：」等の強い文脈で使われていたら、別問題からの深掘り丸ごと流用の疑い＝ERROR。
+    deep = extract_divs(html, 'deep-body')
+    if deep:
+        deep_full = deep[0][0] + deep[0][1] + '</div>'
+        rest_text = text_only(html.replace(deep_full, ''))
+        deep_text = text_only(deep[0][1])
+        PERSON = ['甲', '乙', '丙', '丁', '戊', 'Ｘ', 'Ｙ', 'Ｚ', 'Ｖ', 'Ｗ', 'X', 'Y', 'Z', 'V', 'W']
+        leaked = []
+        for p in PERSON:
+            if p in rest_text:
+                continue  # 本問に登場する人物は流用でない
+            ctx = re.findall(re.escape(p) + r'(?:は|が|を|に|の|も|へ|と|、|：)', deep_text)
+            strong = ('本問の' + p) in deep_text or (p + '：') in deep_text or len(ctx) >= 3
+            if strong:
+                leaked.append(f'{p}(深掘り{len(ctx)}箇所)')
+        if leaked:
+            E('A35', '深掘り層に本問(.cast/問題文/模範答案)へ一切出ない人物記号が強い文脈で出現＝別問題の深掘り流用の疑い: ' + '／'.join(leaked) + '（元JXから本問論点で再鋳造すること）')
+        else:
+            P('A35', '深掘り層に本問外の人物記号なし（テンプレ流用の兆候なし）')
+
+    # ---- A36 版スタンプ整合（旧版残置検出・§17・2026-07-02・WARN）----
+    old_ver = sorted(set(re.findall(r'ARIADNE v(?:0\.\d+|1\.0\.\d+|1\.1\.\d+)[0-9A-Za-z .\-]*', html)))
+    if old_ver:
+        W('A36', '旧版スタンプ残置（現行は ARIADNE v1.2.0 PLACEHOLDER-LOCK・CSS先頭/フッター/lexia-genmeta を更新）: ' + '／'.join(v.strip() for v in old_ver[:5]))
+    elif 'ARIADNE v1.2.0' not in html:
+        W('A36', '版スタンプに ARIADNE v1.2.0 が見当たらない（genmeta/フッター/CSS へ現行版を刻む）')
+    else:
+        P('A36', '版スタンプは現行 ARIADNE v1.2.0')
+
+    # ---- A37 未定義 box/card クラス（.warn-box 等の素描画検出・2026-07-02・WARN）----
+    style_css = ''.join(re.findall(r'<style[^>]*>(.*?)</style>', html, re.S))
+    body_html = re.sub(r'<style[^>]*>.*?</style>', '', html, flags=re.S)
+    SUSPECT = ['warn-box', 'note-box', 'danger-box', 'success-box', 'info-box', 'tip-box', 'caution-box']
+    undef = [c for c in SUSPECT if re.search(r'class="[^"]*\b' + c + r'\b', body_html) and ('.' + c) not in style_css]
+    if undef:
+        W('A37', 'body で使う box クラスが <style> 未定義＝枠なし素描画: ' + '／'.join(undef) + '（.key-box/.note 等へ寄せる）')
+    else:
+        P('A37', '未定義の box/card クラスなし')
+
+    # ---- A38 下書き問題文の逐語（§9-4・.draft-problem ≒ .problem .pq）----
+    dp = extract_divs(html, 'draft-problem')
+    if dp and prob:
+        pq_matches = re.findall(r'<p class="pq"[^>]*>(.*?)</p>', prob[0][1], re.S)
+        pq_text = text_only(' '.join(pq_matches))
+        dp_text = text_only(dp[0][1])
+        if pq_text and dp_text and len(dp_text) < 0.85 * len(pq_text):
+            W('A38', f'.draft-problem が .problem .pq より圧縮（{len(dp_text)}字<{len(pq_text)}字）＝原文逐語でない（§9-4・一行圧縮は .draft-digest 側へ）')
+        elif pq_text and dp_text:
+            P('A38', '.draft-problem は .problem .pq の逐語相当')
+
+    # ---- A39 答案構成の作法 bc-inst の2カラム（.bi ラッパ・§12-1・WARN）----
+    bcinst = extract_divs(html, 'bc-inst')
+    p_bcinst = len(re.findall(r'<p[^>]*class="[^"]*\bbc-inst\b', html))
+    if bcinst or p_bcinst:
+        nobi = sum(1 for _t, inner in bcinst if 'class="bi"' not in inner) + p_bcinst
+        if nobi:
+            W('A39', f'.bc-inst が .bi 2カラム未実装（{nobi}箇所）＝ラベル横に本文直置き（§12-1・<div class="bi">本文</div> で包む）')
+        else:
+            P('A39', f'.bc-inst {len(bcinst)}件すべて .bi 2カラム')
 
     for line in passes + warns + errors:
         print(line)
