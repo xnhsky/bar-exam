@@ -258,10 +258,14 @@ class Validator:
             self.err("G4", f"記述別 choice-section が {len(choice_sections)} 個（記述ア〜オで通常 5 を期待）")
         if not self.soup.find(id="basis"):
             self.err("G4", "参考条文・判例セクション（#basis）が存在しない")
-        if not self.soup.find(id="mindmap-tree"):
-            self.err("G4", "体系ツリー（#mindmap-tree）が存在しない")
-        if not self.soup.find(id="mindmap-radial"):
-            self.err("G4", "放射マップ（#mindmap-radial）が存在しない")
+        # 体系マップ内に SVG ツリー（ハイブリッド新設計）があれば、下部の体系ツリー／
+        # 放射マップセクションは不要（廃止）。旧設計は従来どおり両セクションを要求する。
+        hybrid_sysmap = self.soup.select_one(".tx-sysmap svg.tree-svg") is not None
+        if not hybrid_sysmap:
+            if not self.soup.find(id="mindmap-tree"):
+                self.err("G4", "体系ツリー（#mindmap-tree）が存在しない")
+            if not self.soup.find(id="mindmap-radial"):
+                self.err("G4", "放射マップ（#mindmap-radial）が存在しない")
 
     def g5_footer(self):
         footer = self.soup.find("div", class_="footer-spec")
@@ -332,9 +336,11 @@ class Validator:
         self.tree_svg = self.soup.find("svg", class_="tree-svg")
         self.radial_svg = self.soup.find("svg", class_="radial-svg")
         self.flow_svg = self.soup.find("svg", class_="flow-svg")
+        # ハイブリッド新設計（体系マップ内 SVG ツリー）では放射マップは廃止。
+        hybrid_sysmap = self.soup.select_one(".tx-sysmap svg.tree-svg") is not None
         if not self.tree_svg:
             self.err("G9", "tree-svg（体系ツリー）が存在しない")
-        if not self.radial_svg:
+        if not self.radial_svg and not hybrid_sysmap:
             self.err("G9", "radial-svg（放射マップ）が存在しない")
         if self.flow_svg:
             self.err("G9", "flow-svg（フローチャート）が core に存在する（別冊 -deep 専用・spec 第2項）")
