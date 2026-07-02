@@ -114,6 +114,11 @@ def check_tx(path: Path, soup: BeautifulSoup, html: str) -> list[Issue]:
     if ".tx-inline-card" not in html:
         return issues
 
+    # 未置換スロット（{{...}}/TODO/PLACEHOLDER）残存＝機械注入の型枠埋め忘れ。
+    # validate-tx-core は {{}} を正典スロットとしてスキップするため、生成物の埋め忘れをここで塞ぐ。
+    if PLACEHOLDER_RE.search(html):
+        issues.append(Issue(path, "TX-PLACEHOLDER", "TODO/PLACEHOLDER/未置換スロット {{...}} が残存（生成物に型枠が残っている）"))
+
     for phrase in BAD_HINT_PHRASES:
         if phrase in html:
             issues.append(Issue(path, "TX-HINT", f"汎用・分野ズレの解法ナビヒントが残存: {phrase}"))
