@@ -14,7 +14,12 @@
 # =============================================================================
 set -uo pipefail
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0
-py="$(command -v python3 || command -v python)" || exit 0
+# 実際に動く python を選ぶ（Windows の python3=MS Store スタブを弾く／Linux は python3 を拾う）
+py=""
+for _c in python python3 py; do
+  if command -v "$_c" >/dev/null 2>&1 && "$_c" -c "import sys" >/dev/null 2>&1; then py="$_c"; break; fi
+done
+[ -z "$py" ] && exit 0
 "$py" "$ROOT/scripts/stamp-staged.py" || true
 "$py" -X utf8 "$ROOT/scripts/validate-staged.py"; vc=$?
 if [ "${vc:-0}" -ne 0 ]; then exit "$vc"; fi
