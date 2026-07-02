@@ -4951,8 +4951,8 @@ body.snav-on .solve-nav{display:block;}
     linear-gradient(180deg,rgba(250,240,226,.96) 0%,rgba(247,235,220,.98) 100%),
     repeating-linear-gradient(0deg,rgba(80,55,35,.032) 0,rgba(80,55,35,.032) 1px,transparent 1px,transparent 7px);
 }
-/* === 正誤表を体系マップの上へ持ち上げたとき（露出順: 正誤表 → 体系マップ → 肢カード）の体裁 === */
-.statement-verdict-table.tx-verdict-hoisted{ margin:6px 0 22px; }
+/* === 正誤表（テーゼ版パネル）を体系マップの上に置いたときの体裁 === */
+.tx-inline-answer-table-panel{ margin:6px 0 22px; }
 </style>
 </head>
 <body id="top">
@@ -5801,22 +5801,11 @@ body.snav-on .solve-nav{display:block;}
   function moveStatementVerdictTableToTop(){
     var fa = document.querySelector('.final-answer');
     if (!fa) return null;
-    // 一度持ち上げると fa 外へ出るため、2回目以降は文書全体から拾う（冪等）。
-    var table = fa.querySelector('.statement-verdict-table')
-             || document.querySelector('.statement-verdict-table');
+    var table = fa.querySelector('.statement-verdict-table');
     if (!table) return null;
-    // 正誤表は体系マップ(.tx-sysmap)の直前へ持ち上げる（露出順: 正誤表 → 体系マップ → 肢カード）。
-    // 体系マップの無い問題（各肢マトリクス型）は従来どおり final-answer 冒頭に置く。
-    var partA = document.getElementById('part-a');
-    var sysmap = partA ? partA.querySelector('.tx-sysmap') : null;
-    if (sysmap && sysmap.parentNode) {
-      if (table.nextElementSibling !== sysmap || table.parentNode !== sysmap.parentNode) {
-        sysmap.parentNode.insertBefore(table, sysmap);
-      }
-      table.classList.add('tx-verdict-hoisted');
-    } else if (fa.firstElementChild !== table) {
-      fa.insertBefore(table, fa.firstElementChild);
-    }
+    // 元の5点表は inline モードでは final-answer 内に隠して置く（answer-key/データ源）。
+    // 露出面は下の renderInlineAnswerTablePanel が作る「テーゼ版クローン」。
+    if (fa.firstElementChild !== table) fa.insertBefore(table, fa.firstElementChild);
     return table;
   }
   function ensureUserAnswerColumn(table){
@@ -5845,8 +5834,12 @@ body.snav-on .solve-nav{display:block;}
       panel.className = 'tx-inline-answer-table-panel';
       panel.hidden = true;
       panel.setAttribute('hidden', '');
+      // 正誤表（テーゼ版）は体系マップ(.tx-sysmap)の直前へ置く（露出順: 正誤表 → 体系マップ → 肢カード）。
+      var sysmap = document.querySelector('.tx-sysmap');
       var story = document.querySelector('.tx-inline-story-panel');
-      if (story && story.parentNode) {
+      if (sysmap && sysmap.parentNode) {
+        sysmap.parentNode.insertBefore(panel, sysmap);
+      } else if (story && story.parentNode) {
         story.parentNode.insertBefore(panel, story);
       } else {
         var anchor = document.querySelector('.solve-nav') || document.querySelector('.tx-inline-judge-list, .tx-inline-list') || document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
