@@ -1546,6 +1546,15 @@ class Validator:
             self.err("G50", "v13 の体系マップ SVG（.tx-sysmap svg.tree-svg）が無い。")
         if self.soup.find(id="mindmap-radial"):
             self.err("G50", "v13 で廃止のはずの #mindmap-radial（放射マップ）が残っている。")
+        # Lexia 復習プールは v13 の THE GIST/POINT と同期する（旧5点フローラベルを残さない・第5-bis項）。
+        _old5 = ("文言", "趣旨", "射程", "切断点", "転用")
+        for li in self.soup.select(".ox-pool-points li"):
+            lt = li.get_text(" ", strip=True)
+            head = re.split(r"[：:]", lt, 1)[0].strip()
+            if head in _old5:
+                self.err("G50", "v13 の Lexia プール（.ox-pool-points）に旧5点フローラベル"
+                                f"『{head}：』が残っている。💡THE GIST→gist・📌POINT→points へ再配線する（第5-bis項）。")
+                break
 
     def run(self):
         self.g1_head()
