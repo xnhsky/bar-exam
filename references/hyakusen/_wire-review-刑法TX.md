@@ -1,9 +1,14 @@
-# 刑法 TX _lex 判例百選 配線レビュー（要一次資料是正）
+# 刑法 TX _lex 判例百選 配線レビュー（✅ 全件是正済 2026-07-04）
 
-`scripts/hyakusen-wire-ariadne.py --subject 刑 --series tx` が保留した CONFLICT/REVIEW。
-CONFIDENT 309 件は配線済み。以下は**明記百選番号と索引日付が矛盾**＝既存カードの誤引用/日付誤記/
-陳腐化 id の疑いがあり、百選PDF・`_index-刑法.md` で照合して番号訂正・未収録明記・id修正してから配線する。
-（ARIADNE 側 刑JX010/038 で確認した edition-error と同型が多い。方針＝[[feedback_pdf_is_primary_cite_source]]）
+`scripts/hyakusen-wire-ariadne.py --subject 刑 --series tx` が保留した CONFLICT 13＋REVIEW 1 を
+`_index-刑法.md`（第8版全目次＝一次資料）で照合し**全件是正済**。最終監査＝CONFLICT 0・REVIEW 0・
+TX _lex data-hyakusen 計 **313**。是正の内訳は下表の「実施」列。（ARIADNE 側 刑JX010/038 と同型。
+方針＝[[feedback_pdf_is_primary_cite_source]]）
+
+- **A 第8版未収録**（索引に日付なし）→ 誤った百選番号を見出しから除去し「第8版百選未収録」と明記。
+- **B 番号訂正**（平28.3.24＝II-6 同時傷害の特例）→ 見出しを Ⅰ82→Ⅱ6 に訂正し data-hyakusen 付与。
+- **C 日付誤記**（平7.7.7→平元.7.7／平5.1.1→平元.5.1）→ 見出し日付を訂正し data-hyakusen 付与。
+- **D 陳腐化 id**（対物防衛 doctrine が II-63 と誤マージ）→ id を `case-taibutsu-boei-doctrine` へ改名。
 
 ## CONFLICT（13件）＝明記番号の索引日付がカード内のどの日付とも不一致
 
