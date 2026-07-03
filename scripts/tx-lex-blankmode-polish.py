@@ -7,11 +7,27 @@
    立体感（影/グラデ/枠）、連番バッジ、選択肢ボタンの質感を付与。
 使い方: python scripts/tx-lex-blankmode-polish.py <_lex.html> [...]
 """
-import re, sys, io
+import re, sys, io, os
 try:
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 except Exception:
     pass
+
+
+def atomic_write(path, data):
+    """一時ファイルに書いてから os.replace で原子的に差し替える。
+    途中で kill(exit143) されても対象ファイルが 0 バイト空化しない安全策。
+    さらに元の 50% 未満に縮む結果は破損とみなし書き込まない（サニティ）。
+    """
+    orig = os.path.getsize(path) if os.path.exists(path) else 0
+    if orig and len(data.encode('utf-8')) < orig * 0.5:
+        raise RuntimeError('refuse to write: result <50%% of original (%s)' % path)
+    tmp = path + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        f.write(data)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp, path)
 
 GOLD = 'outputs/ux/000_TX/001_刑法/刑TX359_lex.html'
 MARK = '/* === blank-mode polish (恒久) === */'
@@ -55,7 +71,9 @@ ENHANCE_CSS = r"""
 """
 
 
-def polish(h, gold):
+def polish(h, gold, gcss=None):
+    if gcss is None:
+        gcss = gate_css(gold)
     # 1. 潰れ修正：非○×の選択肢ボタンを持つファイルは、ox-btn-group/ox-row を mc 化
     #    （選択肢ボタンは長ラベル→.ox-row.mc .ox-btn-group.mc .ox-btn{width:100%} で full-width 化）
     has_choice_btn = re.search(r'answer-slot[^>]*data-value="[A-Za-zＡ-Ｚぁ-んァ-ヶ0-9０-９]', h) is not None
@@ -82,7 +100,7 @@ def polish(h, gold):
     h = re.sub(r'(<h1[^>]*>\s*No\.)(\d{1,2})(\s*──)', pad_h1, h, count=1)
 
     if MARK not in h:
-        css = '\n' + MARK + '\n' + '\n'.join(gate_css(gold)) + '\n' + ENHANCE_CSS + '\n'
+        css = '\n' + MARK + '\n' + '\n'.join(gcss) + '\n' + ENHANCE_CSS + '\n'
         si = h.rfind('</style>')
         h = h[:si] + css + h[si:]
         # G35: 既存 .fa-narrative b の 700 を 560 に
@@ -92,11 +110,15 @@ def polish(h, gold):
 
 def main():
     gold = open(GOLD, encoding='utf-8').read()
+    gcss = gate_css(gold)  # gold から一度だけ抽出（毎ファイル再計算しない）
     for p in sys.argv[1:]:
         h = open(p, encoding='utf-8').read()
         if 'answer-ox-grid' not in h:
             print('[SKIP] %s' % p); continue
-        open(p, 'w', encoding='utf-8').write(polish(h, gold))
+        out = polish(h, gold, gcss)
+        if out == h:
+            print('[--] %s (変更なし)' % p); continue
+        atomic_write(p, out)
         print('[OK] %s' % p)
 
 
