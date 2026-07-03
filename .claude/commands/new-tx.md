@@ -1,10 +1,32 @@
 ---
-description: 新規 TX コア（メイン）を問題 PDF から生成（active v12.2.1 LOOP-CORE：GENESIS-CORE baseline + インライン肢カード + 解法ナビ + 条文/判例2カラム + 物語解説 reveal + 回答比較表 + ox-grid/SM2 肢単位管理）
+description: 新規 TX を問題 PDF から生成。_lex は active v13.0.0 LOOP-CARD（GENESIS-CARD baseline：統合解説昇格＋📚BASISトグル＋体系マップSVGハイブリッド＋正誤マーキング＋相互リンク往復）。公式版は本物5択。
 ---
 
-新規 TX コア HTML（短答式・周回＋誤答修正が単体で完結するメイン）を問題 PDF から生成する。
+新規 TX HTML（短答式・二系統＝公式 `000_TX`＋Lexia `_lex`）を問題 PDF から生成する。
 
-> **active v12.2.1 LOOP-CORE 経路（2026-07-01 表示LOCK）**：最初に `docs/canonical-lineage.md` を読み、active TX 正典を確認する。現行は `canonical/GENESIS-CORE.html`、`spec/tx-v12.1.0-inline-core.md`、`docs/tx-v12.2.1-inline-lock.md`。基盤として `spec/tx-v11.0.0-core.md`（肢単位管理）と `spec/tx-v11.1.0-twotrack.md`（公式/ Lexia 二系統）を継承する。
+> **【active＝v13.0.0 LOOP-CARD・2026-07-03】_lex の新規生成・v13 化はこの経路が唯一起点。** 最初に
+> `docs/canonical-lineage.md` の active 行を読む。v13 の byte 正典は **`canonical/GENESIS-CARD.html`（gold=刑TX359）**＋
+> **`canonical/GENESIS-CARD.placeholder.html`（スロット契約）**＋**`spec/tx-v13.0.0-loopcard-core.md`（構造 spec）**。
+> 生成は GENESIS-CARD を複製し、placeholder のスロットだけを問題固有に埋める（CSS/JS/class/DOM/節順は固定・接ぎ木禁止）。
+> - **設計の核**：v12.2.1 の「肢を解く UI（ANSWER箱＋5点フロー＋記憶フック）」を廃し、**旧 PART B の統合解説プロースを
+>   記述カード本文へ昇格**。条文・判例は各カードの **「📚 BASIS」ボックス**（条文＝本文表示/解説トグル・判例＝判旨表示/以下トグル）へ集約。
+> - **縦順**：正誤表(テーゼ・エンジン自動圧縮)→**体系マップ(SVGハイブリッド・下部旧SVG2枚は廃止)**→横断(3軸マトリクス)→
+>   肢カード→物語(カード直後)→#basis(現行法note のみ)。
+> - **カード物理順**：判定バッジ→📜記述原文(正誤マーキング)→🎯統合解説(THE GIST/段階/INTUITION)→📌POINT→📚BASIS→
+>   ⚠️間違いやすいポイント→🔗他科目横断(重要接点のある記述のみ・無理に足さない)。
+> - **相互リンク往復**（条文参照→同カードBASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合＝script2本）、
+>   **正誤マーキング**（分かれ目を×赤波線/○緑下線）、**使い方説明は載せない**、タブラベル字下げ無効・本文1字下げ。
+> - **検証**：`scripts/validate-tx-core.py`（G1〜G45＋**G50 v13構造**）＋`check-tx-lex-engine.py`（G41/script2本）＋
+>   `check-duplicates.py`。レンダリング実測（playwright）で往復リンク・トグル・マーキング・pageerror0 を確認。
+> - **v13 は当面 gold（刑TX359）のみ。既存 355-358・360-385 は v12.2.1（下記）のまま保守**。公式版（本物5択）は
+>   `spec/tx-v11.1.0-twotrack.md` の二系統を継承。最新法令・判例・学説レビューと省エネ検証は v12 と同じ。
+>
+> ---
+> **【以下は frozen＝v12.2.1 LOOP-CORE の記述（既存 355-358・360-385 の保守用・新規 _lex では使わない）】**
+>
+> active v12.2.1 LOOP-CORE 経路（2026-07-01 表示LOCK）：既存 v12 資産の保守時は
+> `canonical/GENESIS-CORE.html`、`spec/tx-v12.1.0-inline-core.md`、`docs/tx-v12.2.1-inline-lock.md`。基盤として
+> `spec/tx-v11.0.0-core.md`（肢単位管理）と `spec/tx-v11.1.0-twotrack.md`（公式/ Lexia 二系統）を継承する。
 > 過去問を**問題単位でなく記述（肢）単位で管理**する設計に対応。
 > - **誌面リスキン**：明朝（Shippori Mincho B1）＋極細罫の編集デザイン（CSS 変数 `--ed-*`・`<style>` §1〜§17）。
 > - **PART A は ox-grid（5記述の○×収集）＋機械可読 answer-key**（Lexia 肢キー記録の一次情報源）。

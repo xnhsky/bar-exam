@@ -1,8 +1,12 @@
 ---
-description: 5 問バッチで TX を連続生成（v11.0.0 LOOP-CORE：GENESIS baseline + 配色 V3 + SVG 重なり検査・new-tx の全規律を継承）
+description: 5 問バッチで TX を連続生成（new-tx の active 規律を継承。_lex は v13.0.0 LOOP-CARD＝GENESIS-CARD baseline）
 ---
 
 # batch-tx：5 問バッチ生成コマンド
+
+> **active＝v13.0.0 LOOP-CARD（2026-07-03）**：`_lex` の新規生成は `new-tx` の v13 経路を継承する
+> （唯一起点＝`canonical/GENESIS-CARD.html`＋`spec/tx-v13.0.0-loopcard-core.md`）。既存 v12 資産の保守は
+> `GENESIS-CORE`。まず `docs/canonical-lineage.md` の active 行を確認する。
 
 ## 概要
 

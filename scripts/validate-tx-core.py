@@ -1522,6 +1522,31 @@ class Validator:
                         self.err("G45", f"inlineカード {i} の判断式が記憶フックと同一。"
                                         "判断式は結論到達の決定式、記憶フックは1秒で思い出す標語に役割分離する。")
 
+    def g50_v13_loopcard_structure(self):
+        """v13.0.0 LOOP-CARD 構造検証（.tx-v13-verdict 検出時のみ・spec tx-v13.0.0-loopcard-core.md）。"""
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        if not self.soup.select_one(".tx-inline-card .tx-v13-verdict"):
+            return  # v13 でなければスキップ（v12 は非退行）
+        for i, card in enumerate(self.soup.select(".tx-inline-card"), start=1):
+            ex = card.select_one(".tx-inline-explain")
+            if not ex:
+                continue
+            if not ex.select_one(".sub-card.synthesis"):
+                self.err("G50", f"v13 カード{i}に統合解説（.sub-card.synthesis）が無い。旧PART Bプロースを本文位置へ昇格する。")
+            if not ex.select_one(".choice-points"):
+                self.err("G50", f"v13 カード{i}に📌POINT（.choice-points）が無い。")
+            if not ex.select_one(".sub-card.basis-link"):
+                self.err("G50", f"v13 カード{i}に📚BASIS（.sub-card.basis-link）が無い。条文/判例を箱内トグルで置く。")
+            for cls, label in ((".tx-answer-box", "ANSWER箱"), (".tx-onepoint", "記憶フック"),
+                               (".tx-article-flow", "5点フロー"), (".tx-mini-law", "条文判例チップ")):
+                if ex.select_one(cls):
+                    self.err("G50", f"v13 カード{i}に廃止要素 {label}（{cls}）が残っている。v13 では削除する。")
+        if not self.soup.select_one(".tx-sysmap svg.tree-svg"):
+            self.err("G50", "v13 の体系マップ SVG（.tx-sysmap svg.tree-svg）が無い。")
+        if self.soup.find(id="mindmap-radial"):
+            self.err("G50", "v13 で廃止のはずの #mindmap-radial（放射マップ）が残っている。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1565,6 +1590,7 @@ class Validator:
         self.g42_no_combination_verdict_stmt()
         self.g44_tx_inline_answer_controls_contract()
         self.g45_tx_v1221_presentation_lock()
+        self.g50_v13_loopcard_structure()
 
 
 def main():

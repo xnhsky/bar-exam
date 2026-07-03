@@ -18,14 +18,23 @@
 
 ## TX（短答式）
 
-### 現行 active ＝ **v12.2.1 LOOP-CORE**（2026-07-01・inline 表示LOCK）
+### 現行 active ＝ **v13.0.0 LOOP-CARD**（2026-07-03・刑TX359 gold・「読む解説」再編）
 
 | 役割 | canonical | 生成コマンド | validator |
 |---|---|---|---|
-| **コア**（全問生成・周回＋誤答修正が単体完結） | **`canonical/GENESIS-CORE.html`**（v12.2.1） | `/new-tx`（batch-tx・rb 継承） | `scripts/validate-tx-core.py`（G1〜G45） |
-| **別冊**（深掘り・誤答データ解禁時のみ） | **`canonical/GENESIS-DEEP.html`** | `/deepen-tx` | `scripts/validate-tx-deep.py`（D1〜D13） |
+| **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.0.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G45＋**G50 v13構造**）＋`check-tx-lex-engine.py`（G41/script2本）＋`check-duplicates.py` |
+| 公式版（本物5択・`000_TX`） | — | `/new-tx` 二系統出力 | `validate-tx-core.py`（single/multi） |
 
-- 構造正典 spec：**`spec/tx-v12.1.0-inline-core.md`**（active。v12.2.1 表示LOCKを含む）。基盤は `spec/tx-v11.0.0-core.md`（肢単位管理）と `spec/tx-v11.1.0-twotrack.md`（公式/ Lexia 二系統）。表示LOCK詳細は `docs/tx-v12.2.1-inline-lock.md`。
+- 構造正典 spec：**`spec/tx-v13.0.0-loopcard-core.md`**（active・byte 正典）。二系統は `spec/tx-v11.1.0-twotrack.md` を継承。
+- **v13.0.0 LOOP-CARD（2026-07-03・active）**：v12.2.1 の「肢を解く UI（ANSWER箱＋5点フロー＋記憶フック）」を廃し、
+  **旧 PART B の統合解説プロースを記述カード本文へ昇格**、条文・判例は各カードの **「📚 BASIS」ボックス**（条文＝本文表示/
+  解説トグル・判例＝判旨表示/以下トグル）へ集約。縦順＝正誤表(テーゼ)→**体系マップ(SVGハイブリッド・下部旧SVG2枚は廃止)**→
+  横断(3軸マトリクス)→肢カード→物語→#basis(現行法note のみ)。**正誤マーキング**（記述原文の分かれ目を×赤波線/○緑下線）、
+  **相互リンク往復**（条文参照→BASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合）、**他科目横断は重要接点のみ**（放火では
+  失火→民法失火責任法）。使い方説明は載せない。validator G50 と placeholder 契約で回帰を止める。
+- **v13 は当面 gold（刑TX359）のみ。既存 355-358・360-385 は v12.2.1（GENESIS-CORE）のまま保守**（下記 v12 行）。
+- 旧 active（v12.2.1 LOOP-CORE）の構造正典：`spec/tx-v12.1.0-inline-core.md`＋`docs/tx-v12.2.1-inline-lock.md`。既存 v12 資産は
+  `canonical/GENESIS-CORE.html`（v12.2.1）＋`GENESIS-DEEP.html`（`/deepen-tx`・`validate-tx-deep.py`）で保守。
 - 設計の核（v11.0.0 から継承）：肢（記述）単位管理／PART A=ox-grid 5記述○×＋answer-key／記述単位 PART B／参考条文判例
   （保護法益・制度趣旨・判例濃淡）／体系ツリー＋放射マップ2枚／PART C・PART D（12問ドリル）は廃止。
 - **v11.1.0 デザイン進化（刑TX327 昇格・2026-06-15）**：①誌面リスキン（明朝＋極細罫・`--ed-*`・`<style>` §1〜§17）／
@@ -47,9 +56,11 @@
 | v8/v9 | `canonical/KTX301.html` | v8.11.x／v9.0.0-genkei／v9.1.0-mindmap／v9.2.0-deepdive | **legacy** | 構造参考のみ。本文流用は AP-42 違反 |
 | v10 | `canonical/GENESIS.html` | v10.0.0 GOLD-SKELETON | **凍結** | 刑TX311 ベース。既存197問（v10）の保守用。`validate-tx-gold.py`(G1〜G19)・`validate-tx.py`(legacy S1〜S91) |
 | **v11** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v11.1.0 LOOP-CORE**（v11.0.0→2026-06-15 刑TX327 昇格） | **frozen** | GENESIS を再編して CORE/DEEP に分割。v11.1.0 で誌面リスキン＋3層配色＋SYNTHESIS子カード＋PART B+ |
-| **v12** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v12.2.1 LOOP-CORE**（v12.0.0 major→v12.1.0 TX360 polish→v12.1.1 typography→v12.2.0 redesign→v12.2.1 display lock） | **active** | 問題文直後のインライン肢カードを主導線にし、PART B を詳説トグルへ吸収。条文/判例ラベル・解法ナビ・物語解説の表示LOCKを G45 で固定する |
+| **v12** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v12.2.1 LOOP-CORE**（v12.0.0 major→v12.1.0 TX360 polish→v12.1.1 typography→v12.2.0 redesign→v12.2.1 display lock） | **frozen（既存355-358・360-385の保守用）** | 問題文直後のインライン肢カードを主導線にし、PART B を詳説トグルへ吸収。条文/判例ラベル・解法ナビ・物語解説の表示LOCKを G45 で固定する |
+| **v13** | **`GENESIS-CARD` ＋ `GENESIS-CARD.placeholder`** | **v13.0.0 LOOP-CARD**（2026-07-03・gold=刑TX359） | **active** | 「肢を解く UI」を廃し「読む解説」中心へ。統合解説をカード本文へ昇格、条文/判例は📚BASISトグルへ集約、体系マップSVGハイブリッド、正誤マーキング、相互リンク往復。G50＋placeholder契約で固定 |
 
-> **「GENESIS」名の整理**：無印 `GENESIS.html` ＝ **v10 凍結**。新規生成の起点は **`GENESIS-CORE`／`GENESIS-DEEP`**。
+> **「GENESIS」名の整理**：無印 `GENESIS.html` ＝ **v10 凍結**。v11/v12 の起点＝`GENESIS-CORE`／`GENESIS-DEEP`（frozen・保守）。
+> **v13 新規生成の唯一起点＝`GENESIS-CARD`（＋`.placeholder`）**。
 > 改名はしない（spec・validator・commands・CLAUDE.md に配線済みで churn のみ）。曖昧さは本表で解消する。
 
 ### 既存 v10/v11 問題の v12 化について
