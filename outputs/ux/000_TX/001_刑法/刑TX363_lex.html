@@ -4998,6 +4998,15 @@ a.tx-sysmap-probe:hover{ filter:brightness(1.1); transform:translateY(-1px); }
 .radial-svg .tx-center{ fill:var(--paper)!important; }
 .radial-svg .tx-branch{ fill:var(--paper)!important; }
 .radial-svg ellipse{ fill:var(--accent-darker)!important; }
+/* === 問題文原文の交互背景（ゼブラ）: 記述カードを1つおきに淡く染め、記述の切れ目を目で追える ===
+   pale bg + dark text を維持（WCAG）。偶数カードだけ暖色クリームへ。テクスチャ線は踏襲。 */
+.tx-inline-judge-list .tx-inline-card:nth-of-type(even){
+  background:
+    linear-gradient(180deg,rgba(250,240,226,.96) 0%,rgba(247,235,220,.98) 100%),
+    repeating-linear-gradient(0deg,rgba(80,55,35,.032) 0,rgba(80,55,35,.032) 1px,transparent 1px,transparent 7px);
+}
+.tx-sysmap-figure{ margin-top:14px; overflow-x:auto; }
+.tx-sysmap-figure svg.tx-sysmap-svg{ width:100%; height:auto; display:block; min-width:640px; }
 
 /* === v13b: 平坦化＋食み出しタブ＋重厚感 === */
 /* ① 入れ子解消：SYNTHESIS の外箱を外して平坦化（内側の THE GIST/INTUITION は残す） */
@@ -5778,8 +5787,12 @@ a.ref-stat[href]{ cursor:pointer; }
       panel.className = 'tx-inline-answer-table-panel';
       panel.hidden = true;
       panel.setAttribute('hidden', '');
+      // 正誤表（テーゼ版）は体系マップ(.tx-sysmap)の直前へ置く（露出順: 正誤表 → 体系マップ → 肢カード）。
+      var sysmap = document.querySelector('.tx-sysmap');
       var story = document.querySelector('.tx-inline-story-panel');
-      if (story && story.parentNode) {
+      if (sysmap && sysmap.parentNode) {
+        sysmap.parentNode.insertBefore(panel, sysmap);
+      } else if (story && story.parentNode) {
         story.parentNode.insertBefore(panel, story);
       } else {
         var anchor = document.querySelector('.solve-nav') || document.querySelector('.tx-inline-judge-list, .tx-inline-list') || document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
@@ -6203,9 +6216,9 @@ a.ref-stat[href]{ cursor:pointer; }
       panel.className = 'tx-inline-story-panel';
       panel.hidden = true;
       panel.setAttribute('hidden', '');
-      var reviewPanel = document.querySelector('.tx-inline-answer-table-panel');
-      if (reviewPanel && reviewPanel.parentNode) {
-        reviewPanel.parentNode.insertBefore(panel, reviewPanel.nextSibling);
+      var judge = document.querySelector('.tx-inline-judge-list, .tx-inline-list');
+      if (judge && judge.parentNode) {
+        judge.parentNode.insertBefore(panel, judge.nextSibling);
       } else {
         var anchor = document.querySelector('.solve-nav') || document.querySelector('.tx-inline-judge-list, .tx-inline-list') || document.querySelector('.tx-inline-reveal-panel') || document.querySelector('.answer-area.inline-prototype-mode');
         if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(panel, anchor.nextSibling);
