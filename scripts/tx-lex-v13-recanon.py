@@ -133,6 +133,17 @@ def build_cross(cr):
     return '\n'.join(h)
 
 
+# 📌POINT の先頭ラベルが v13 禁止の旧5点フロー語（G50/第5-bis）と衝突する場合の改名表
+_POINT_RENAME = {'文言': '条文の文言', '趣旨': '制度趣旨', '射程': '及ぶ範囲', '切断点': '分かれ目', '転用': '応用の型'}
+
+
+def sanitize_point_labels(cp_html):
+    """<li>（任意の先頭タグ）文言|趣旨|射程|切断点|転用：… を非衝突ラベルへ改名する。"""
+    def rep(m):
+        return m.group(1) + _POINT_RENAME[m.group(2)] + m.group(3)
+    return re.sub(r'(<li>\s*(?:<[^>]+>\s*)?)(文言|趣旨|射程|切断点|転用)([：:])', rep, cp_html)
+
+
 def balanced_div(s, start):
     open_end = s.index('>', start) + 1
     depth = 1
@@ -150,8 +161,20 @@ def build(path, slots, out=None, gold_path=GOLD):
     log = []
 
     MARK = {int(k): v for k, v in slots['mark'].items()}
+    LBL = r'[0-9０-９ア-ンA-Za-z]'   # 記述ラベル1文字（1..5 または ア..オ 等）
 
-    # 1. choice-section 抽出
+    # 0. 記述ラベル（数字/カナ非依存）と各記述の stmt-text を position(1..5) へ正規化
+    LABELS = re.findall(r'<article class="tx-inline-card"[^>]*data-stmt="([^"]*)"', h)
+    if len(LABELS) < 5:
+        raise RuntimeError('inline cards < 5 (%d) in %s' % (len(LABELS), path))
+    LABELS = LABELS[:5]
+    label2pos = {lab: i + 1 for i, lab in enumerate(LABELS)}
+    STMT = {}   # label -> stmt-text innerHTML（syn-orig 再構築用）
+    for m in re.finditer(r'<article class="tx-inline-card"[^>]*data-stmt="([^"]*)"[^>]*>(.*?)</article>', h, re.S):
+        st = re.search(r'<span class="tx-inline-stmt-text">(.*?)</span>', m.group(2), re.S)
+        STMT[m.group(1)] = st.group(1).strip() if st else ''
+
+    # 1. choice-section 抽出（choice-1..5 は数字・位置対応）
     choice = {}
     for n in range(1, 6):
         m = re.search(r'<section class="choice-section \w+" id="choice-%d">(.*?)</section>' % n, h, re.S)
@@ -161,9 +184,12 @@ def build(path, slots, out=None, gold_path=GOLD):
         verdict = re.search(r'(<span class="verdict verdict-\w+">.*?</span>)', seg, re.S).group(1)
         syn = re.search(r'<div class="sub-card synthesis">(.*)</div>\s*(?=<div class="choice-points">)', seg, re.S).group(0)
         cp = re.search(r'<div class="choice-points">.*?</ol>\s*</div>', seg, re.S).group(0)
+        cp = sanitize_point_labels(cp)   # 📌POINT の先頭ラベルが旧5点語（趣旨等）と衝突する場合に改名（G50）
         choice[n] = dict(verdict=verdict, syn=syn, cp=cp)
-    traps = {int(s): t.strip() for s, t in
-             re.findall(r'<p class="col-warn"><strong>TRAP \d+（記述(\d+)）</strong>(.*?)</p>', h, re.S)}
+    traps = {}
+    for lab, t in re.findall(r'<p class="col-warn"><strong>TRAP \d+（記述(%s+)）</strong>(.*?)</p>' % LBL, h, re.S):
+        if lab in label2pos:
+            traps[label2pos[lab]] = t.strip()
 
     # 2. #basis 抽出
     bs_sec = re.search(r'<section class="section" id="basis">(.*?)</section>', h, re.S).group(1)
@@ -183,13 +209,13 @@ def build(path, slots, out=None, gold_path=GOLD):
         sp_body = re.split(r'(<div class="note">)', body, 1)
         honbun = sp_body[0].strip()
         note = (''.join(sp_body[1:])).strip() if len(sp_body) > 1 else ''
-        refs = sorted(set(re.findall(r'記述(\d)', rest)))
+        refs = sorted(set(l for l in re.findall(r'記述(%s)' % LBL, rest) if l in label2pos))
         cardmap[cid] = dict(cls=cls.strip(), hdr=hdr, honbun=honbun, note=note, refs=refs, is_case=('case-card' in cls))
         order.append(cid)
-    by_stmt = {str(n): [] for n in range(1, 6)}
+    by_pos = {n: [] for n in range(1, 6)}   # position -> [basis cid]
     for cid in order:
-        for n in cardmap[cid]['refs']:
-            by_stmt[n].append(cid)
+        for lab in cardmap[cid]['refs']:
+            by_pos[label2pos[lab]].append(cid)
 
     def head_codes(head_html):
         t = re.sub(r'<[^>]+>', '', head_html)
@@ -198,11 +224,12 @@ def build(path, slots, out=None, gold_path=GOLD):
         return re.findall(r'(\d+)条', t)
 
     def basis_items(n):
+        label = LABELS[n - 1]
         out_ = []; codemap = {}
-        for cid in by_stmt[str(n)]:
+        for cid in by_pos[n]:
             c = cardmap[cid]
             codes = head_codes(c['hdr']) or ['x']
-            iid = 'bref-%d-%s' % (n, codes[0])
+            iid = 'bref-%s-%s' % (label, codes[0])
             for cc in codes:
                 codemap.setdefault(cc, iid)
             sumlabel = '射程・本問への帰結を開く' if c['is_case'] else '要件・保護法益・本問への帰結を開く'
@@ -214,6 +241,20 @@ def build(path, slots, out=None, gold_path=GOLD):
                 '<div class="tx-basis-honbun">%s</div>%s</div>'
                 % (iid, 'is-case' if c['is_case'] else '', c['hdr'], c['honbun'], more))
         return '\n'.join(out_), codemap
+
+    def rebuild_synorig(syn, label):
+        """syn-orig（📜記述原文）を stmt-text の逐語で作り直す（gold v13e と同じ）。
+        既存 syn-orig が要約でも逐語に統一され、stmt-text 由来のマーク語句が必ず一致する。"""
+        stmt_html = STMT.get(label, '')
+        fresh = ('<p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>%s</p>' % stmt_html)
+        syn2 = re.sub(r'<p class="syn-orig">.*?</p>\s*', '', syn, count=1, flags=re.S)
+        if re.search(r'<div class="sub-card synthesis">\s*<h4>[^<]*</h4>', syn2, re.S):
+            syn2 = re.sub(r'(<div class="sub-card synthesis">\s*<h4>[^<]*</h4>)',
+                          lambda mm: mm.group(1) + '\n' + fresh, syn2, count=1, flags=re.S)
+        else:
+            syn2 = re.sub(r'(<div class="sub-card synthesis">)',
+                          lambda mm: mm.group(1) + '\n' + fresh, syn2, count=1, flags=re.S)
+        return syn2
 
     def apply_mark(syn, n):
         if n not in MARK:
@@ -248,7 +289,9 @@ def build(path, slots, out=None, gold_path=GOLD):
 
     def build_inner(n):
         c = choice[n]
-        syn = apply_mark(c['syn'], n)
+        label = LABELS[n - 1]
+        syn = rebuild_synorig(c['syn'], label)   # syn-orig を stmt-text 逐語に統一（Bug2対策）
+        syn = apply_mark(syn, n)
         items, codemap = basis_items(n)
         basis = ('<div class="sub-card basis-link"><span class="tx-v13-basis-label">📚 BASIS</span>'
                  '<div class="tx-basis-items">%s</div></div>' % items)
@@ -263,11 +306,14 @@ def build(path, slots, out=None, gold_path=GOLD):
                  % (c['verdict'], syn, c['cp'], basis, trap, cross_sub))
         return rewire_refstat(inner, codemap)
 
-    # 3. カード explain 差し替え
+    # 3. カード explain 差し替え（ラベル→position）
     def replace_cards(html):
         out_ = []; pos = 0
-        for m in re.finditer(r'<article class="tx-inline-card"[^>]*data-stmt="(\d)"[^>]*>', html):
-            n = int(m.group(1))
+        for m in re.finditer(r'<article class="tx-inline-card"[^>]*data-stmt="([^"]*)"[^>]*>', html):
+            lab = m.group(1)
+            if lab not in label2pos:
+                continue
+            n = label2pos[lab]
             art_start = m.start(); art_end = html.index('</article>', art_start)
             ex = re.search(r'<div class="tx-inline-explain"[^>]*>', html[art_start:art_end])
             if not ex:
@@ -282,6 +328,9 @@ def build(path, slots, out=None, gold_path=GOLD):
     log.append('cards replaced; v13-verdict=%d href-bref=%d' % (h.count('tx-v13-verdict'), h.count('href="#bref-')))
 
     # 4. 旧DIV体系マップ → SVG（無ければ フォールバック挿入）
+    # panels の stmt を実ラベル（ア..オ 等）へ正規化＝#stmt-{label} アンカーと一致させる
+    for i, pn in enumerate(slots['panels'][:5]):
+        pn['stmt'] = LABELS[i]
     svg_html = build_svg(slots)
     if '<div class="tx-sysmap"' in h:
         i = h.index('<div class="tx-sysmap"')
@@ -289,11 +338,14 @@ def build(path, slots, out=None, gold_path=GOLD):
         h = h[:i] + svg_html + h[after:]
         log.append('DIV sysmap -> SVG')
     else:
-        # part-a 開始直後（problem-text の後）に挿入
-        pa = re.search(r'<section class="section" id="part-a">', h)
-        anchor = h.index('</div>', h.index('problem-text', pa.start())) if 'problem-text' in h[pa.start():pa.start()+4000] else pa.end()
+        # DIV体系マップ非所持問：最初の inline カード直前（part-a 直下の full-width sibling 位置）へ挿入。
+        # 体系マップ縦順（正誤表→体系マップ→肢カード）を保ちつつ、狭い問題文コンテナ内に紛れ込ませない。
+        m2 = re.search(r'\s*<div class="problem-text">\s*<span class="choice-num-inline">\s*1\s*</span>', h)
+        if not m2:
+            m2 = re.search(r'<article class="tx-inline-card"', h)
+        anchor = m2.start()
         h = h[:anchor] + '\n' + svg_html + '\n' + h[anchor:]
-        log.append('SVG inserted (no DIV sysmap / fallback)')
+        log.append('SVG inserted before first inline card (no DIV sysmap / fallback)')
 
     # 5. #mindmap-tree / #mindmap-radial 削除・目次リンク無効化
     for sid in ('mindmap-tree', 'mindmap-radial'):
@@ -329,30 +381,50 @@ def build(path, slots, out=None, gold_path=GOLD):
     # 8. Lexia プール再配線
     def plain(s):
         return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', s)).strip()
+    def sanitize_plain_label(t):
+        m = re.match(r'^(文言|趣旨|射程|切断点|転用)([：:])(.*)$', t, re.S)
+        return (_POINT_RENAME[m.group(1)] + m.group(2) + m.group(3)) if m else t
     pool = {}
     for n in range(1, 6):
         sl = re.search(r'<p class="syn-lead">(.*?)</p>', choice[n]['syn'], re.S)
         gist = plain(re.sub(r'<span class="syn-tag">.*?</span>', '', sl.group(1), count=1, flags=re.S)) if sl else ''
-        pts = [plain(x) for x in re.findall(r'<li>(.*?)</li>', choice[n]['cp'], re.S)]
+        pts = [sanitize_plain_label(plain(x)) for x in re.findall(r'<li>(.*?)</li>', choice[n]['cp'], re.S)]
         pool[n] = (gist, pts)
 
-    def repl_pool(m):
-        row = m.group(0)
-        ds = re.search(r'data-stmt="(\d)"', row)
-        if not ds or int(ds.group(1)) not in pool:
-            return row
-        gist, pts = pool[int(ds.group(1))]
-        gist_html = '<p class="ox-pool-gist">%s</p>' % gist
-        pts_html = '<ul class="ox-pool-points">' + ''.join('<li>%s</li>' % p for p in pts) + '</ul>'
-        return re.sub(r'(<div class="ox-pool-explain"[^>]*>).*?(</div>)',
-                      lambda mm: mm.group(1) + gist_html + pts_html + mm.group(2), row, count=1, flags=re.S)
-    h = re.sub(r'<div class="ox-row"[^>]*>.*?</div>\s*</div>(?=\s*(?:<div class="ox-row"|</div>|<))', repl_pool, h, flags=re.S)
+    def rewire_pool(html):
+        # ox-row 開始位置で区切り、各行の ox-pool-explain 内を THE GIST/POINT へ置換（入れ子に強い）
+        starts = [m.start() for m in re.finditer(r'<div class="ox-row"', html)]
+        if not starts:
+            return html
+        bounds = starts + [len(html)]
+        out_ = []; prev = 0
+        for i in range(len(starts)):
+            s, e = bounds[i], bounds[i + 1]
+            seg = html[s:e]
+            ds = re.search(r'data-stmt="([^"]*)"', seg)
+            if ds and ds.group(1) in label2pos:
+                gist, pts = pool[label2pos[ds.group(1)]]
+                gist_html = '<p class="ox-pool-gist">%s</p>' % gist
+                pts_html = '<ul class="ox-pool-points">' + ''.join('<li>%s</li>' % p for p in pts) + '</ul>'
+                seg = re.sub(r'(<div class="ox-pool-explain"[^>]*>).*?(</div>)',
+                             lambda mm: mm.group(1) + gist_html + pts_html + mm.group(2), seg, count=1, flags=re.S)
+            out_.append(html[prev:s]); out_.append(seg); prev = e
+        out_.append(html[prev:])
+        return ''.join(out_)
+    h = rewire_pool(h)
     stem = Path(path).stem
     h = re.sub(r'data-source="[^"]*"', 'data-source="%s-v13-gist-point"' % stem, h, count=1)
 
     # 9. gold から v13 差分 CSS/JS 移植
     c0 = gold.index('/* === v13b:'); c1 = gold.index('</style>', c0)
     css_delta = '\n' + gold[c0:c1].rstrip() + '\n'
+    # 体系マップのベースCSS（.tx-sysmap 一式＋表示フック）が無い問（旧DIV体系マップ非所持・366型）へ注入
+    gold_style = gold[gold.find('<style'):gold.rfind('</style>')]
+    h_style = h[h.find('<style'):h.rfind('</style>')]
+    if h_style.count('.tx-sysmap') < 5:
+        rules = re.findall(r'[^{}]*tx-sysmap[^{}]*\{[^{}]*\}', gold_style)
+        css_delta += '\n/* tx-sysmap base CSS (injected: file had no DIV sysmap) */\n' + '\n'.join(rules) + '\n'
+        log.append('injected tx-sysmap base CSS (%d rules)' % len(rules))
     si = h.rfind('</style>'); h = h[:si] + css_delta + h[si:]
     jm = re.search(r'/\* v14b: カード内相互リンク.*?\}\)\(\);', gold, re.S)
     js_block = '\n' + jm.group(0) + '\n'
