@@ -25,6 +25,12 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
    （`.go-athena data-athena-code="{元問題ID}"`＝postMessage `lexia:navigate` で本物のアテナ版へジャンプ）。
    後追いは `scripts/ariadne-graft-athena-deep.py`（移植）／`ariadne-athena-deep-backfill.py`（ジャンプ＋CSS）。
 4. **体裁強化を冪等付与（必須・2点）**：`python scripts/ariadne-enhance.py {OUT}`（①深層部 条文の「N項」をバッジ化＋項を点線区切り／③マストヘッドに目次ジャンプTOC／④各セクション区切り＋深掘り前に「▲先頭へ戻る」）→ `python scripts/ariadne-autolink.py {OUT}`（②本文インライン相互リンク＝条文・判例・学説・用語をその語のままリンクし、解法ナビ⇄深層部・カード間を相互リンク）。両スクリプトとも**冪等**（再実行安全）。
+4-ter. **判例百選 配線（必須・spec §11-1-ter）**：深掘り層の各 `.case-card` に、その判例が判例百選収録なら
+   開始タグへ `data-hyakusen="{科目}百選{巻}-{番号}"` を付す（`references/hyakusen/_index-{科目}.md` で判決日→番号を逆引き）。
+   ARIADNE は百選フル深度で鋳造。id は `ref-case-{裁判所略号}-{元号1字}{年}-{月}-{日}`（Lexia の caseId 結合キー）。
+   既存後追い・一括は `python scripts/hyakusen-wire-ariadne.py --file {科目}JX{NNN} --apply`（明記番号＋判決日→索引の
+   二系統・CONFIDENT のみ・冪等・LF保持）。CONFLICT（明記番号と索引日付の矛盾）は一次資料で番号是正・未収録明記・
+   陳腐化 id 修正してから配信。**百選未収録の判例には付さない**（旧版番号の流用は Lexia で誤バッジ・誤マージ）。
 5. `validate-ariadne.py` で A1〜A21 ERROR 0 を確認。
 6. **master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 
