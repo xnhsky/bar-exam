@@ -37,7 +37,10 @@
    - **深掘り層**（`details#deep-dive`）＝**アテナ級**に鋳造（spec §11）。判例・学説・条文は **TX 参考条文判例書式**で：
      ①規範（`.box-norm`）②学説対立（`.gakusetsu > .gk`・本問採用説に `.gk.adopt`）③**判例 完全プロファイル**
      （`.basis-card.case-card`：ヘッダ `⚖ 判例名`＋`.freq-badge` ★、本文は **【事案】【判旨】【補足】** を
-     `<p class="hanging"><strong>…</strong><span class="hang-body">…`、【判旨】は `.judgment-text`）④**条文 完全プロファイル**
+     `<p class="hanging"><strong>…</strong><span class="hang-body">…`、【判旨】は `.judgment-text`。
+     **判例百選 配線（必須・spec §11-1-ter）**：判例百選収録なら開始タグに `data-hyakusen="{科目}百選{巻}-{番号}"`
+     を付す（`references/hyakusen/_index-{科目}.md` で判決日・裁判所種別から逆引き）。id は
+     `ref-case-{裁判所略号}-{元号1字}{年}-{月}-{日}`（Lexia caseId 結合キー）。未収録判例・索引未整備科目には付さない＝旧版番号流用禁止）④**条文 完全プロファイル**
      （`.basis-card.statute-card`：`.para-num` 項番号＋条文文言、`.note>.note-body` に制度趣旨/保護法益/要件/射程を
      `.kd-label.r-shushi/r-hogo/r-youken/r-shatei` で整理。周辺条文は `.kd-item` 一覧）。相互参照は `a.ref-stat`/`a.ref-case`。
      CSS は {SKELETON} 継承。**法的正確性は {JX_HTML} に厳密準拠**（無い判例・規範を創作しない）。
