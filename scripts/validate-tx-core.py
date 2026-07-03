@@ -253,8 +253,10 @@ class Validator:
     # --- G4：コア構造（記述単位 PART B＋参考条文判例＋2 マインドマップ）---
 
     def g4_core_structure(self):
+        # v13 LOOP-CARD 新設計は PART B（choice-section）を各カードへ昇格し廃止する。
+        is_v13 = self.soup.select_one(".tx-inline-card .tx-v13-verdict") is not None
         choice_sections = self.soup.find_all("section", class_="choice-section")
-        if len(choice_sections) < 2:
+        if not is_v13 and len(choice_sections) < 2:
             self.err("G4", f"記述別 choice-section が {len(choice_sections)} 個（記述ア〜オで通常 5 を期待）")
         if not self.soup.find(id="basis"):
             self.err("G4", "参考条文・判例セクション（#basis）が存在しない")
@@ -1091,7 +1093,9 @@ class Validator:
             self.err("G40", "TX360に無い汎用文言が inline カードへ混入している。"
                             "実条文ボックスが無い場合は `.tx-mini-law` ごと出さない。")
 
-        if self.soup.select_one(".tx-inline-explain .sub-card.synthesis, .tx-inline-explain .sub-card.explanation, .tx-inline-detail .sub-card"):
+        # v13 LOOP-CARD 新設計（カードに旧正典プロースを昇格）では SYNTHESIS 混入を許容する。
+        is_v13 = self.soup.select_one(".tx-inline-card .tx-v13-verdict") is not None
+        if not is_v13 and self.soup.select_one(".tx-inline-explain .sub-card.synthesis, .tx-inline-explain .sub-card.explanation, .tx-inline-detail .sub-card"):
             self.err("G40", "inline カード内に PART B/SYNTHESIS 長文が混入している。"
                             "通常周回カードは5点フロー＋記憶フック/答案圧縮までに固定する。")
 
