@@ -153,11 +153,13 @@ def parse_index(idx_path):
     if not idx_path.exists():
         raise SystemExit(f"索引が無い: {idx_path}（目次画像 Read で作成してください）")
     for line in idx_path.read_text(encoding="utf-8").splitlines():
-        # 巻は行ラベル（I-6 / II-124 / III-3 …）から直接取る＝科目非依存
-        m = re.match(r"\|\s*(I{1,3}|IV|V)-(\d+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(\d+)\s*\|", line)
+        # 巻は行ラベル（I-6 / II-124 / III-3 …）から取る＝科目非依存。
+        # 単巻科目（商法/民訴/刑訴）は巻記号なし `| 1 |`＝巻を空にする。A付き補遺行(A1等)は対象外。
+        m = re.match(r"\|\s*(?:(I{1,3}|IV|V)-)?(\d+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(\d+)\s*\|", line)
         if not m:
             continue
         v, num, ronten, court, ymd, page = m.groups()
+        v = v or ""  # 単巻科目は巻記号なし
         # ymd 例: 平成17・7・4 / 大正12・4・30 / 平成元・12・15
         dm = re.match(r"(明治|大正|昭和|平成|令和)(元|\d+)・(\d+)・(\d+)", ymd)
         key = date_key(ERA[dm.group(1)], dm.group(2), dm.group(3), dm.group(4)) if dm else None
@@ -289,7 +291,8 @@ def main():
     if args.subject not in SUBJECTS:
         raise SystemExit(f"未知の科目コード: {args.subject}（{'/'.join(SUBJECTS)}）")
     subject_name, subdir = SUBJECTS[args.subject]
-    hy_prefix = f"{subject_name}百選"
+    # 実物の百選名が科目名と異なる科目の接頭辞オーバーライド（商法＝会社法判例百選）
+    hy_prefix = {"商": "会社法百選"}.get(args.subject, f"{subject_name}百選")
     _, by_key, by_volnum = parse_index(index_path(subject_name))
     files = series_files(args.series, subdir)
     if args.file:
