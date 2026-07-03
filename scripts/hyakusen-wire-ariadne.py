@@ -25,10 +25,32 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-INDEX = ROOT / "references" / "hyakusen" / "_index-刑法.md"
-ARIADNE_DIR = ROOT / "outputs" / "ux" / "001_ARIADNE" / "001_刑法"
+# 科目コード → (科目名＝百選/索引の接頭辞, outputs のサブフォルダ名)
+SUBJECTS = {
+    "刑":   ("刑法", "001_刑法"),
+    "刑訴": ("刑事訴訟法", "002_刑事訴訟法"),
+    "民":   ("民法", "003_民法"),
+    "商":   ("商法", "004_商法"),
+    "民訴": ("民事訴訟法", "005_民事訴訟法"),
+    "行政": ("行政法", "006_行政法"),
+    "憲":   ("憲法", "007_憲法"),
+}
+
+
+def index_path(subject_name):
+    return ROOT / "references" / "hyakusen" / f"_index-{subject_name}.md"
+
+
+def series_files(series, subdir):
+    """series= ariadne | tx → 対象 HTML の一覧。"""
+    if series == "ariadne":
+        return sorted((ROOT / "outputs" / "ux" / "001_ARIADNE" / subdir).glob("*_ARIADNE.html"))
+    if series == "tx":  # 短答 Lexia 用 _lex（番号アンカーのみ）
+        return sorted((ROOT / "outputs" / "ux" / "000_TX" / subdir).glob("*_lex.html"))
+    raise SystemExit(f"unknown series: {series}")
 
 ERA = {"明治": "M", "大正": "T", "昭和": "S", "平成": "H", "令和": "R",
+       "明": "M", "大": "T", "昭": "S", "平": "H", "令": "R",  # TX 見出しの略字（昭60.10.21 等）
        "m": "M", "t": "T", "s": "S", "h": "H", "r": "R"}
 ZEN2HAN = str.maketrans("０１２３４５６７８９", "0123456789")
 ROMAN = {"Ⅰ": "I", "Ⅱ": "II", "Ⅲ": "III", "Ⅰ".lower(): "I"}
@@ -52,12 +74,27 @@ def date_key(era_letter, y, m, d):
     return f"{era_letter}{y}.{int(norm_num(str(m)))}.{int(norm_num(str(d)))}"
 
 
+# 完全形（昭和60年10月21日）と TX 略記形（昭60.10.21 / 平7・7・7）の双方を拾う。
+_WAREKI_RE = re.compile(
+    r"(明治|大正|昭和|平成|令和|明|大|昭|平|令)\s*(元|[0-9０-９]+)\s*[年\.．・]\s*([0-9０-９]+)\s*[月\.．・]\s*([0-9０-９]+)\s*日?")
+
+
 def wareki_to_key(text):
-    """本文中の「平成17年7月4日」「昭和63年2月29日」「平成元年…」を date_key へ。"""
-    m = re.search(r"(明治|大正|昭和|平成|令和)\s*(元|[0-9０-９]+)\s*年\s*([0-9０-９]+)\s*月\s*([0-9０-９]+)\s*日", text)
+    """本文中の「平成17年7月4日」「昭和63年2月29日」「平成元年…」の最初の一致を date_key へ。"""
+    m = _WAREKI_RE.search(text or "")
     if not m:
         return None
     return date_key(ERA[m.group(1)], m.group(2), m.group(3), m.group(4))
+
+
+def all_wareki_keys(text):
+    """テキスト中の全ての和暦日付を date_key の集合で返す（見出しに複数判例が並ぶ TX 対策）。"""
+    out = set()
+    for m in _WAREKI_RE.finditer(text or ""):
+        k = date_key(ERA[m.group(1)], m.group(2), m.group(3), m.group(4))
+        if k:
+            out.add(k)
+    return out
 
 
 def id_to_key(card_id):
@@ -109,17 +146,15 @@ def court_class_index(court):
     return None
 
 
-def parse_index():
+def parse_index(idx_path):
     entries = []          # {vol,num,court,cc,key,ronten}
     by_key = {}           # date_key -> [entry]
     by_volnum = {}        # (vol,num) -> entry
-    vol = None
-    for line in INDEX.read_text(encoding="utf-8").splitlines():
-        if line.startswith("## 刑法I "):
-            vol = "I"
-        elif line.startswith("## 刑法II "):
-            vol = "II"
-        m = re.match(r"\|\s*(I{1,2})-(\d+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(\d+)\s*\|", line)
+    if not idx_path.exists():
+        raise SystemExit(f"索引が無い: {idx_path}（目次画像 Read で作成してください）")
+    for line in idx_path.read_text(encoding="utf-8").splitlines():
+        # 巻は行ラベル（I-6 / II-124 / III-3 …）から直接取る＝科目非依存
+        m = re.match(r"\|\s*(I{1,3}|IV|V)-(\d+)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(\d+)\s*\|", line)
         if not m:
             continue
         v, num, ronten, court, ymd, page = m.groups()
@@ -150,7 +185,7 @@ def extract_explicit(header, shutten):
     return None
 
 
-def process(html, by_key, by_volnum):
+def process(html, by_key, by_volnum, hy_prefix="刑法百選"):
     """1ファイル分。カードごとの判定リストと、apply 用の書換え済み html を返す。"""
     results = []
     edits = []  # (insert_pos, text)
@@ -176,6 +211,10 @@ def process(html, by_key, by_volnum):
         text_key = wareki_to_key(header) or (wareki_to_key(fld_m.group(1)) if fld_m else None)
         id_key = id_to_key(cid)
         key = text_key or id_key           # 明記番号の日付照合はベストエフォートで id も使う
+        # 見出し＋本文冒頭に並ぶ全和暦日付（TX は「A判・B決」と複数判例を1見出しに書く）。
+        card_keys = all_wareki_keys(header + " " + block[:1500])
+        if id_key:
+            card_keys.add(id_key)
         cc = court_class_from_text(header) or court_class_from_id(cid)
         explicit = extract_explicit(header, shutten)
 
@@ -189,17 +228,18 @@ def process(html, by_key, by_volnum):
             if e is None:
                 rec["status"] = "REVIEW"
                 rec["note"] = f"明記 {explicit[0]}-{explicit[1]} が索引に無い（要確認）"
-            elif key is None or e["key"] is None:
+            elif e["key"] is None or not card_keys:
                 rec["status"] = "CONFIDENT"
                 rec["hy"] = explicit
                 rec["note"] = "明記番号（日付照合不可・author信頼）"
-            elif e["key"] == key:
+            elif e["key"] in card_keys:
+                # 明記番号の索引日付がカード内のいずれかの日付に一致（複数判例見出しでも可）
                 rec["status"] = "CONFIDENT"
                 rec["hy"] = explicit
                 rec["note"] = "明記番号＝索引日付一致（検証済）"
             else:
                 rec["status"] = "CONFLICT"
-                rec["note"] = f"明記 {explicit[0]}-{explicit[1]}(索引日{e['key']}) vs カード日{key}"
+                rec["note"] = f"明記 {explicit[0]}-{explicit[1]}(索引日{e['key']}) がカード内日付{sorted(card_keys)} と不一致"
         else:
             # 自動確定は text 由来の日付のみを根拠にする（id 由来は REVIEW 送り）。
             cands = by_key.get(text_key, []) if text_key else []
@@ -225,7 +265,7 @@ def process(html, by_key, by_volnum):
                 rec["note"] = "百選日付に不一致（未収録/下級審)" if text_key else "日付・明記なし"
 
         if rec["status"] == "CONFIDENT" and rec["hy"]:
-            ins = f' data-hyakusen="刑法百選{rec["hy"][0]}-{rec["hy"][1]}"'
+            ins = f' data-hyakusen="{hy_prefix}{rec["hy"][0]}-{rec["hy"][1]}"'
             edits.append((tag_end - 1, ins))  # '>' の直前へ
         results.append(rec)
 
@@ -237,16 +277,24 @@ def process(html, by_key, by_volnum):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--subject", default="刑", help="科目コード（刑/憲/民/商/民訴/刑訴/行政）既定=刑")
+    ap.add_argument("--series", default="ariadne", choices=["ariadne", "tx"],
+                    help="ariadne=論文(百選フル深度)／tx=短答_lex(番号アンカーのみ) 既定=ariadne")
     ap.add_argument("--apply", action="store_true", help="CONFIDENT を書き込む")
-    ap.add_argument("--file", help="対象を1問に絞る（例 刑JX003）")
+    ap.add_argument("--file", help="対象を1問に絞る（例 刑JX003／刑TX066）")
     ap.add_argument("--verbose", action="store_true", help="CONFIDENT の割当を全件表示")
     ap.add_argument("--date-only", action="store_true", help="日付根拠(明記なし)の CONFIDENT だけ表示")
     args = ap.parse_args()
 
-    _, by_key, by_volnum = parse_index()
-    files = sorted(ARIADNE_DIR.glob("刑JX*_ARIADNE.html"))
+    if args.subject not in SUBJECTS:
+        raise SystemExit(f"未知の科目コード: {args.subject}（{'/'.join(SUBJECTS)}）")
+    subject_name, subdir = SUBJECTS[args.subject]
+    hy_prefix = f"{subject_name}百選"
+    _, by_key, by_volnum = parse_index(index_path(subject_name))
+    files = series_files(args.series, subdir)
     if args.file:
         files = [f for f in files if args.file in f.name]
+    print(f"[対象] {subject_name}／{args.series}／{len(files)} ファイル（接頭辞 {hy_prefix}）")
 
     tally = {"CONFIDENT": 0, "REVIEW": 0, "CONFLICT": 0, "NONE": 0, "ALREADY": 0}
     applied = 0
@@ -254,7 +302,7 @@ def main():
     for f in files:
         # 改行はファイル原状を保つ（ARIADNE は LF・text mode 書込は CRLF 化する）ため bytes I/O。
         html = f.read_bytes().decode("utf-8")
-        results, new_html = process(html, by_key, by_volnum)
+        results, new_html = process(html, by_key, by_volnum, hy_prefix)
         for r in results:
             tally[r["status"]] += 1
             if r["status"] == "REVIEW":
@@ -265,7 +313,7 @@ def main():
                 date_only = r["note"].startswith("日付一意")
                 if (not args.date_only) or date_only:
                     confident_lines.append(
-                        f"  [{f.stem[:6]}] 刑法百選{r['hy'][0]}-{r['hy'][1]}"
+                        f"  [{f.stem[:8]}] {hy_prefix}{r['hy'][0]}-{r['hy'][1]}"
                         f"{'（日付）' if date_only else '（明記）'}｜{r['cid']}｜{r['header']}｜{r['note']}")
         if args.apply and new_html != html:
             f.write_bytes(new_html.encode("utf-8"))
