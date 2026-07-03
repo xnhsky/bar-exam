@@ -42,6 +42,19 @@ DEFAULT_HOUKA_NODES = [
          lines=['車両など建物以外の物。公共の危険の', '発生が成立要件＝具体的危険犯。', '火元が他人物なら延焼罪の起点でない。'],
          fill='#e9f0f5', stroke='#5a86a8', headfill='#4d7391'),
 ]
+# 文書偽造の罪 三分ツリー（有形偽造/無形偽造/行使）の既定ノード。slots['subject']='gizou' で選択。
+DEFAULT_GIZOU_NODES = [
+    dict(x=265, code='有形偽造', label='名義を偽る（155・159）',
+         lines=['名義人と作成者の人格の同一性を', '偽る＝作成名義の冒用。公文書155/', '私文書159。原則、公私とも処罰。'],
+         fill='#fbeae8', stroke='#b0635c', headfill='#b0635c'),
+    dict(x=750, code='無形偽造', label='内容を偽る（156・160）',
+         lines=['作成権限者が真実に反する内容を', '記載。公文書は広く処罰（156/157）、', '私文書は虚偽診断書160のみ例外。'],
+         fill='#f9f0dc', stroke='#c99a3a', headfill='#b58a2e'),
+    dict(x=1235, code='行使', label='真正として使用（158・161）',
+         lines=['偽造・虚偽文書を真正な物として', '使用。偽造罪と牽連犯。通貨148・', '有価証券162の偽造・行使も同型。'],
+         fill='#e9f0f5', stroke='#5a86a8', headfill='#4d7391'),
+]
+SUBJECT_NODES = {'houka': None, 'gizou': DEFAULT_GIZOU_NODES}   # houka は DEFAULT_HOUKA_NODES を使う
 COLOR = {'red': '#b0635c', 'amber': '#c99a3a', 'blue': '#5a86a8'}
 PANEL_X = [165, 463, 761, 1059, 1357]
 
@@ -52,7 +65,7 @@ def esc(s):
 
 def build_svg(slots):
     """slots: top_title, top_subtitle, nodes, panels[5]{title,sub,color,stmt}, ox_line, aria."""
-    nodes = slots.get('nodes', DEFAULT_HOUKA_NODES)
+    nodes = slots.get('nodes') or SUBJECT_NODES.get(slots.get('subject', 'houka')) or DEFAULT_HOUKA_NODES
     top_title = slots['top_title']            # 例: 放火の罪 ── まず焼いた物の「客体」で条文を選ぶ
     head_sub = slots['head_subtitle']         # 体系マップ head の説明
     aria = slots.get('aria', top_title)
@@ -377,6 +390,20 @@ def build(path, slots, out=None, gold_path=GOLD):
 
     # dangling href 無効化
     h = re.sub(r'(<a\b[^>]*?)\shref="#(?:law-|ref-law-|case-|basis)[^"]*"([^>]*>)', r'\1\2', h)
+
+    # 7-bis. 物語解説ラベル段落の本文を .fa-narrative-body で包む（v12.2.1 表示LOCK・G45／冪等）
+    def wrap_narr(m):
+        inner = m.group(2)
+        if 'fa-narrative-body' in inner:
+            return m.group(0)
+        return m.group(1) + '<span class="fa-narrative-body">' + inner + '</span></p>'
+    h = re.sub(r'(<p[^>]*\bdata-fa-label="[^"]*"[^>]*>)(.*?)</p>', wrap_narr, h, flags=re.S)
+
+    # 7-ter. solve-nav「○×型・両モード」変種の未置換テンプレ __NUMS__/__KEYS__ を実値へ（pageerror防止・冪等）
+    if '__NUMS__' in h or '__KEYS__' in h:
+        nums = '[' + ','.join('"%d"' % i for i in range(1, len(LABELS) + 1)) + ']'
+        keys = '[' + ','.join('"%s"' % l for l in LABELS) + ']'
+        h = h.replace('__NUMS__', nums).replace('__KEYS__', keys)
 
     # 8. Lexia プール再配線
     def plain(s):
