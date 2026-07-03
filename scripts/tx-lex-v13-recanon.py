@@ -168,6 +168,18 @@ def balanced_div(s, start):
     raise RuntimeError('unbalanced div at %d' % start)
 
 
+def _apply_gold_parity(h):
+    """gold-sync(tx-lex-sysmap-gold-sync.py) の fix() を再利用して縞CSS/SVG寸法/正誤表・
+    ストーリー挿入JSを冪等補完する。修正ロジックの二重管理を避けるため import 経由で共有。"""
+    import importlib.util
+    p = Path(__file__).with_name('tx-lex-sysmap-gold-sync.py')
+    spec = importlib.util.spec_from_file_location('tx_sysmap_gold_sync', p)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    new, changes, _skips = mod.fix(h)
+    return new, changes
+
+
 def build(path, slots, out=None, gold_path=GOLD):
     h = Path(path).read_text(encoding='utf-8')
     gold = Path(gold_path).read_text(encoding='utf-8')
@@ -458,6 +470,14 @@ def build(path, slots, out=None, gold_path=GOLD):
     eng = re.search(r'(getInlineAnswerTablePanel|moveStatementVerdictTableToTop)', h)
     close = h.index('</' + 'script>', eng.start() if eng else 0)
     h = h[:close] + js_block + h[close:]
+
+    # --- gold-parity 最終正規化（抽出漏れの恒久封じ・単一の真実 = tx-lex-sysmap-gold-sync）---
+    # v13差分CSS抽出（/* === v13b: */ 起点）は縞背景CSS・体系マップSVG寸法規則を範囲外に取りこぼす。
+    # また移行元(v12)由来の getInlineAnswerTablePanel/StoryPanel は正誤表を冒頭へ挿さない旧JS。
+    # ここで gold-sync の fix() を冪等適用し、どの入力から移行しても3点が必ず揃うようにする。
+    h, _gp_changes = _apply_gold_parity(h)
+    if _gp_changes:
+        log.append('gold-parity normalize: ' + ', '.join(_gp_changes))
 
     outp = out or path
     Path(outp).write_text(h, encoding='utf-8')
