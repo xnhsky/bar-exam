@@ -32,7 +32,7 @@
   横断(3軸マトリクス)→肢カード→物語→#basis(現行法note のみ)。**正誤マーキング**（記述原文の分かれ目を×赤波線/○緑下線）、
   **相互リンク往復**（条文参照→BASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合）、**他科目横断は重要接点のみ**（放火では
   失火→民法失火責任法）。使い方説明は載せない。validator G50 と placeholder 契約で回帰を止める。
-- **v13 は当面 gold（刑TX359）のみ。既存 355-358・360-385 は v12.2.1（GENESIS-CORE）のまま保守**（下記 v12 行）。
+- **v13 本文（`<div class="tx-v13-verdict">`）は既に 36 本へ展開済**（`089 125 174 218 256 355-385[381除く] 420`・gold=刑TX359）。2026-07-04 に版スタンプを `TX v13.0.0 LOOP-CARD` へ正規化（`scripts/tx-lex-v13-stamp.py`・本文不変・冪等）。**版はスタンプ文字列でなく本文タグで判定すること**（v13 ビルド連鎖がスタンプを更新せず旧版名が残っていた経緯あり）。**未移行＝純 v11 の 326 本＋381**（v12.2.1/GENESIS-CORE 保守のまま）。
 - 旧 active（v12.2.1 LOOP-CORE）の構造正典：`spec/tx-v12.1.0-inline-core.md`＋`docs/tx-v12.2.1-inline-lock.md`。既存 v12 資産は
   `canonical/GENESIS-CORE.html`（v12.2.1）＋`GENESIS-DEEP.html`（`/deepen-tx`・`validate-tx-deep.py`）で保守。
 - 設計の核（v11.0.0 から継承）：肢（記述）単位管理／PART A=ox-grid 5記述○×＋answer-key／記述単位 PART B／参考条文判例
@@ -56,7 +56,7 @@
 | v8/v9 | `canonical/KTX301.html` | v8.11.x／v9.0.0-genkei／v9.1.0-mindmap／v9.2.0-deepdive | **legacy** | 構造参考のみ。本文流用は AP-42 違反 |
 | v10 | `canonical/GENESIS.html` | v10.0.0 GOLD-SKELETON | **凍結** | 刑TX311 ベース。既存197問（v10）の保守用。`validate-tx-gold.py`(G1〜G19)・`validate-tx.py`(legacy S1〜S91) |
 | **v11** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v11.1.0 LOOP-CORE**（v11.0.0→2026-06-15 刑TX327 昇格） | **frozen** | GENESIS を再編して CORE/DEEP に分割。v11.1.0 で誌面リスキン＋3層配色＋SYNTHESIS子カード＋PART B+ |
-| **v12** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v12.2.1 LOOP-CORE**（v12.0.0 major→v12.1.0 TX360 polish→v12.1.1 typography→v12.2.0 redesign→v12.2.1 display lock） | **frozen（既存355-358・360-385の保守用）** | 問題文直後のインライン肢カードを主導線にし、PART B を詳説トグルへ吸収。条文/判例ラベル・解法ナビ・物語解説の表示LOCKを G45 で固定する |
+| **v12** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v12.2.1 LOOP-CORE**（v12.0.0 major→v12.1.0 TX360 polish→v12.1.1 typography→v12.2.0 redesign→v12.2.1 display lock） | **frozen（純v11 326本＋381 の保守用。355-385[381除く]は既に v13 本文へ移行済）** | 問題文直後のインライン肢カードを主導線にし、PART B を詳説トグルへ吸収。条文/判例ラベル・解法ナビ・物語解説の表示LOCKを G45 で固定する |
 | **v13** | **`GENESIS-CARD` ＋ `GENESIS-CARD.placeholder`** | **v13.0.0 LOOP-CARD**（2026-07-03・gold=刑TX359） | **active** | 「肢を解く UI」を廃し「読む解説」中心へ。統合解説をカード本文へ昇格、条文/判例は📚BASISトグルへ集約、体系マップSVGハイブリッド、正誤マーキング、相互リンク往復。G50＋placeholder契約で固定 |
 
 > **「GENESIS」名の整理**：無印 `GENESIS.html` ＝ **v10 凍結**。v11/v12 の起点＝`GENESIS-CORE`／`GENESIS-DEEP`（frozen・保守）。
