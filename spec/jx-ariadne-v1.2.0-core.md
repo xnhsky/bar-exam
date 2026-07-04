@@ -616,3 +616,39 @@ v1.1.0 で正典化した見た目を、AI生成時に揺らさないため、AR
 既存 matrix-bone 出力（刑JX007-008・010-015・019-024・071-074 等 18 問）は**内容保持のまま simple 型へ蒸留変換**して順次差し替える。
 各ファイルの模範答案・自己採点を一次情報にし、`.mline` のフル文を骨子用の一行フレーズへ圧縮する（`.iss/.krule/.kfact/<u>` は温存）。
 gold 参照＝`刑JX001_ARIADNE.html`（元設計）と `刑JX009_ARIADNE.html`（2026-07-02 変換済み見本）。
+
+---
+
+## §18. 正典・検査ゲート運用原則（TX `_lex` と共有・2026-07-04 確定・ユーザー指示）
+
+TX `_lex` で確立した運用をそのまま ARIADNE にも適用する。要は **「正典通りに作り、新しい CSS 定義が
+出たら〈共通＋特異〉として正典へ記録し、ゲート化して全問へ決定論展開する」**。上流（作らせない契約）＋
+下流（作っても弾く検査）の二重防御は §0-prime・§14・§22 で既に敷いてあり、本項はその**運用の回し方**を固定する。
+
+### 18-1. ①正典通り（slot contract 遵守・接ぎ木禁止）
+- 編集は `canonical/ARIADNE.placeholder.html`（`ARIADNE_SLOT_CONTRACT`）が許す **`{{...}}` スロット＋難易度
+  ACTIVE ベースカラー選択だけ**。HTML/CSS/JS・class・余白・機能色・パズルエンジンは固定＝触らない。
+- **接ぎ木禁止**：旧カードに後付けパッチを継ぎ足さない。既存への一括反映は LLM 手編集ではなく
+  **決定論スクリプト**（`scripts/hyakusen-apply-ariadne.py`／`scripts/rx-arb-backfill.ps1` 系）で土台へ流す
+  （本文不変・冪等・CRLF 保存）。百選 case-card は `_draft-rules-ariadne.md` の起草ルール＝スロット内容だけを埋める。
+
+### 18-2. ②新しい CSS 定義は〈共通＋特異〉で記録
+CSS を新しく決めたら、必ず 2 層に仕分けて記録する（TX の「共通 CSS＝正典／特異＝パレット」と同型）：
+- **共通 CSS（全 ARIADNE 共通の意匠・表示規律）** … `canonical/ARIADNE.html`（gold）＋
+  `canonical/ARIADNE.placeholder.html` に焼く。全問で byte 同一であるべき（複製で自動継承）。
+- **特異 CSS（問題固有）** … スロット内だけ。ARIADNE の現状の唯一の特異点は
+  **難易度別 ACTIVE ベースカラー（EASY/STD/HARD）の選択**（§5）。ここ以外に問題ごとの CSS 差を作らない。
+- 例：TX で確立した **「太字＝ゴシック体（Zen Kaku Gothic Antique）＋ font-weight 700」**（明朝は 700 で密漢字が
+  潰れるため、強調・判例名見出しだけゴシック 700）を ARIADNE でも採るなら、**共通 CSS** として gold＋placeholder に
+  記録し、`validate-ariadne.py` に A-check を 1 本追加し、決定論スクリプトで全カードへ冪等展開する（模範答案は明朝
+  維持・強調と題名見出しだけゴシック）。
+
+### 18-3. ③各訂正のループ（正典→ゲート→全展開→preflight）
+訂正が出るたびに次を回す（TX の `太字＝ゴシック700` や `v13k 表見出し中央` と同じ回し方）：
+1. **正典を最新化** … `ARIADNE.html`＋`ARIADNE.placeholder.html`（＋必要なら本 spec）を直す。
+2. **ゲートを最新化** … `validate-ariadne.py` に A-check を追加し、その崩れを機械的に弾けるようにする。
+3. **全展開** … 決定論スクリプトで既存全カードへ冪等・本文不変・CRLF 保存で反映。
+4. **push 前ゲート** … `python scripts/check-lexia-preflight.py`（重複→同期契約→**ariadne-canonical**→RX 到達性）で
+   ERROR 0 を確認してから push。これが ARIADNE の配信可判定。
+- 参照（同運用の TX 側実装）：`docs/tx-v12.2.1-inline-lock.md`（表示 LOCK＋太字定義）／
+  `docs/canonical-revision-migration-playbook.md`（決定論 recanon・整合ガード・接ぎ木の恒久対処）。
