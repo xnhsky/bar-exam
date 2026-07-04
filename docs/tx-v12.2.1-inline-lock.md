@@ -163,3 +163,20 @@ python -X utf8 -m py_compile scripts/validate-tx-core.py scripts/check-tx-lex-en
   （① を `.tx-sysmap-cross` アンカー越しに v13 sysmap 問へ、② を裸コツを持つ全 `_lex` 世代へ）。
 - **回帰ゲート**：`check-tx-lex-engine.py` に `SNTIP` 検出を追加（`sn-tip-h">💡 コツ</span>'+s.tip+'</div>`
   の未包みを弾く）／`tx-lex-css-canonize.py --check`（v13k を含む共通 CSS 一致）。
+
+---
+
+## v13k-bis 体系マップSVGのラベル見出し中央化＋本文初行字下げ（2026-07-04・420で合意→全35問展開）
+
+体系マップ（`.tx-sysmap-svg`）の各カテゴリ箱（職権/濫用/権利妨害 等）は色帯ヘッダーが左寄せ・
+本文も字下げ無しだった。これを表見出し（v13k）と同概念で整える：
+
+- **ラベル見出し中央化**：category(`font-size 18`)＋sublabel(`font-size 16`)の隣接ペアを
+  1つの `<text x="0" text-anchor="middle">`＋`<tspan>` に統合＝**箱幅に依らず確実に中央**。
+  サブラベルの無い単独 category（256型）は単独で `x=0 text-anchor=middle` に中央化。
+- **本文初行字下げ**：各箱の本文初行（`y="58" fill="#493730" font-size="14.5"`）の**本文頭へ
+  全角スペースを1つ**挿入（x座標に依存しない＝箱幅が違う089型 x=-283 でも効く・二重挿入しない）。
+
+伝播ツール＝`scripts/tx-lex-sysmap-center.py --apply`（決定論・冪等・CRLF保存・SVG座標と本文以外は不変）。
+SVGは問題固有の作画のため CSS 一括では効かず、本ツールで全35問へ展開した（089=2箱・174=見出しのみ・
+256=lone・420=既編集を全角スペース方式へ統一）。検証は `validate-tx-core.py`（G45含む）＋`check-duplicates.py`。
