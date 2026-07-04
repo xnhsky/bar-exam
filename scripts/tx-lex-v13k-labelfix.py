@@ -31,18 +31,18 @@ CSS_BLOCK = """
 #   ※ v13l（本文強調全体を細く）はユーザー撤回。既存問からは V13L_OLD で除去し、本文強調は元の太さへ戻す。
 CSS2_ANCHOR = ".freq-badge{ text-align:center; }"
 V13M_LINE = ".tx-sysmap-svg g > rect:first-of-type{ filter:drop-shadow(0 5px 8px rgba(60,40,30,.32)); }"
-V13N_LINE = "a.ref-case, a.ref-stat{ font-weight:500; }"
-# v13o: 本文の太字(<b>/<strong>)を実在ウェイト 500(medium)へ統一（見出しバッジは据え置き）。
-#   ※ 読込フォント(Shippori/Zen/Noto系)は 400/500/700 のみ実装＝600 は 700 に丸められ潰れる。
-#      真に軽い中太は 500 なので、つぶれ回避には 500 を使う（チップも 500 で揃える）。
+V13N_LINE = "a.ref-case, a.ref-stat{ font-family:var(--font-note); font-weight:700; }"
+# v13o: 本文の太字(<b>/<strong>)は明朝(Shippori Antique)だと 700 で潰れるため、太字箇所だけ
+#   ゴシック(--font-note=Zen Kaku Gothic Antique)へ替えて font-weight:700。明朝本文の中で
+#   ゴシック太字が明快に立つ（ユーザー指示：太字は全箇所この定義で統一）。
 V13O_BLOCK = """
-/* === v13o: 本文の太字(<b>/<strong>)を実在ウェイト500(medium)へ統一。見出しバッジ(.syn-step+strong)・表・ラベルは据え置き === */
+/* === v13o: 本文の太字(<b>/<strong>)はゴシック(--font-note)＋700で明快に。明朝だと700で潰れるため。見出しバッジ(.syn-step+strong)・表・ラベルは据え置き === */
 .tx-inline-explain .syn-lead strong, .tx-inline-explain .syn-lead b,
 .tx-inline-explain .syn-image strong, .tx-inline-explain .syn-image b,
 .tx-inline-explain .syn-orig strong, .tx-inline-explain .syn-orig b,
 .tx-inline-explain .syn-body strong, .tx-inline-explain .syn-body b,
 .tx-mini-law-body b, .tx-mini-law-body strong, .basis-card-body b, .basis-card-body strong,
-.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-weight:500 !important; }"""
+.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-family:var(--font-note) !important; font-weight:700 !important; }"""
 CSS2_BLOCK = """
 /* === v13m: 体系マップSVGの重厚感・立体感（各箱の主 rect にドロップシャドウ／ヘッダー帯・文字は据え置き）=== */
 """ + V13M_LINE + """
@@ -88,16 +88,17 @@ def fix(text):
     if "v13o:" not in text and V13N_LINE in text:
         text = text.replace(V13N_LINE, V13N_LINE + V13O_BLOCK, 1)
         changes.append("css:v13o-bodybold")
-    # 微調整：600(→700に丸められ潰れる)を実在ウェイト500へ。本文太字＋判例チップとも。
+    # 太字の定義を「ゴシック(--font-note)＋700」へ統一（明朝700の潰れ回避）。本文太字＋判例チップとも。
     for old, new in (
-        (".tx-answer-box .tx-answer-body b{ font-weight:600 !important; }",
-         ".tx-answer-box .tx-answer-body b{ font-weight:500 !important; }"),
-        ("a.ref-case, a.ref-stat{ font-weight:600; }", "a.ref-case, a.ref-stat{ font-weight:500; }"),
+        (".tx-answer-box .tx-answer-body b{ font-weight:500 !important; }",
+         ".tx-answer-box .tx-answer-body b{ font-family:var(--font-note) !important; font-weight:700 !important; }"),
+        ("a.ref-case, a.ref-stat{ font-weight:500; }",
+         "a.ref-case, a.ref-stat{ font-family:var(--font-note); font-weight:700; }"),
     ):
         if old in text:
             text = text.replace(old, new, 1)
-            if "css:v13-w500" not in changes:
-                changes.append("css:v13-w500")
+            if "css:v13-gothic700" not in changes:
+                changes.append("css:v13-gothic700")
     if SNTIP_OLD in text:
         text = text.replace(SNTIP_OLD, SNTIP_NEW)
         changes.append("js:sntip-b-wrap")
