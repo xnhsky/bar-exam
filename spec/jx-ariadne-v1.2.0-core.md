@@ -1,3 +1,37 @@
+# ARIADNE v1.3.0 TXLEX-UNIFY — JX 解法ナビ＋周回 正典（現行 active）
+
+> **【最新版・2026-07-04 確定】ARIADNE v1.3.0 TXLEX-UNIFY が active。** 版マーカー＝`ARIADNE v1.3.0 TXLEX-UNIFY`／
+> 契約＝`ARIADNE_SLOT_CONTRACT v1.3.0 TXLEX-UNIFY`。v1.2.0 の placeholder 契約（HTML/CSS/JS 固定・スロットのみ編集）は
+> 継承しつつ、**深掘り層（条文/判例/学説）の誌面を TX_lex（`outputs/ux/000_TX/001_刑法/刑TX420_lex.html`）の配色・
+> 意匠に統一し、判例カードの構成を完全1本化**した major 改定。以下 v1.3.0 の確定事項（下記 v1.2.0 本文はこれで上書き）：
+>
+> 1. **全判例カードを `cx-sec` 形式に1本化**：節＝`<div class="cx-sec cr-{role}"><span class="cx-lab">{ラベル}</span>
+>    <div class="cx-body">{本文}</div></div>`。ラベルは食み出し無しの**パステル薄チップ**。旧 h5(kd-label)・百選 hy-sec・
+>    `<table>`(th/td)・`<p><strong>ラベル</strong>：本文`・plain hanging の全様式を吸収（残 non-cx-sec = 0）。
+> 2. **構成は判例百選スキーム**：`事件情報／事案／判旨／解説／射程／百選／本問での使い方`。旧分析節（審級経過→事件情報、
+>    学説評価・意義・先例との関係→解説、答案での使い方・本問への射程→本問での使い方）を統合。**事件情報は複数行ラベル**
+>    （`裁判所：／判決日：／出典：／事件番号：／事件名：`）＝1行完全引用を解析分解して揃える。射程・本問での使い方は独立節で厚く。
+> 3. **配色（TX_lex 準拠）**：条文カード=ブルー／判例カード=ピンク／学説(doctrine)=ラベンダー／用語(term)=スレートの淡カード。
+>    役割チップ6色＝事案=シアン`#e3f6fb`／判旨=ローズ`#fde7ee`／解説・学説・先例=黄緑`#eef6d4`／射程=茶`#f6ece4`／
+>    本問・答案=マリーゴールド`#fdeede`／事件情報・審級・百選=ラベンダー`#ece9fb`。★★★重要度=violet`#8E6E9A`。
+>    緑`hl-high`/紫マーカー・判旨内キーワードの緑強調・xref は violet ピル。
+> 4. **重厚感・質感**：カード=深い影`0 8px 19px -10px`＋内側ハイライト、役割チップ=drop＋inset で立体、見出し=リッチ。
+>    **本文書き出しは全節1字下げ**（`.stat-para` 項番号 flex・表・ラベルは除外）。**セクション見出し(.sec-h)/導入文(.lead)は
+>    帯＋左アクセント／白カードで背景から分離**（コントラスト確保・ACTIVE 難易度色で自動整合）。
+> 5. **Lexia 連携**：`extractReferencesFromHtml` を `.cx-sec`（`.cx-lab`＝ラベル／`.cx-body`＝本文）の構造抽出対応に更新済
+>    （Lexia main・`REF_INDEX_VERSION 4`・`.hanging` 形式も併存）。判例部門は caseId マージで最も濃い1件を表示。
+> 6. **伝播ツール（全て冪等・本文/内容不変・LF保持）**：`scripts/ariadne-txlex-theme.py`（配色/意匠/重厚感/字下げ・上書きCSSブロック）／
+>    `ariadne-case-unify.py`＋`ariadne-hy-to-cx.py`＋`ariadne-convert-residual.py`＋`ariadne-convert-compact.py`（全様式→cx-sec）／
+>    `ariadne-unify-case-structure.py`（百選スキーム統合）／`ariadne-jiken-to-labeled.py`（事件情報ラベル化）／
+>    `ariadne-problem-restyle.py`（番号付き問題文2カラム）／`ariadne-sechead-contrast.py`（見出しコントラスト）。
+>    正典改定→既存一括反映はこれらスクリプトで土台を載せ替える（LLM 手編集の接ぎ木禁止）。
+> 7. **検証**：`validate-ariadne.py`（A1〜A36・A36 は版スタンプ整合＝現行 `ARIADNE v1.3.0`）＋`check-ariadne-canonical.py`
+>    （canonical/placeholder の版マーカー＋全出力を validate）。既存 v3.2 生成物は cx-sec 非対象で温存。
+>
+> 以下は v1.2.0 の記述（構造契約・答案構成・RX/下書き・チェックリスト等は継続。誌面/判例カードの表示は上記 v1.3.0 が優先）。
+
+---
+
 # ARIADNE v1.2.0 PLACEHOLDER-LOCK — JX 解法ナビ＋周回 正典
 
 > 初学者（白紙で論文に手が付かない）向けの「解法ナビ＋周回」専用 JX 正典。

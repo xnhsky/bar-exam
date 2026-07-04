@@ -93,7 +93,7 @@
 |---|---|---|---|
 | **RX**（論証カード・1論点1HTML） | **`canonical/AXIOM.html`**（v1.0・2026-06-20 新設） | `prompts/new-rx-headless.md`（複製方式） | `scripts/validate-rx.py`（R1〜R10） |
 | **TREE**（樹形図・ARBOR 仕様） | `canonical/ARBOR.html`（gold TREE 複製） | `prompts/new-arb-headless.md` | `scripts/validate-tree.py`（T1〜T9） |
-| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（v1.2.0 PLACEHOLDER-LOCK・2026-06-29 active） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A32）＋`scripts/check-ariadne-canonical.py` |
+| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（**v1.3.0 TXLEX-UNIFY・2026-07-04 active**／旧 v1.2.0 PLACEHOLDER-LOCK は系譜） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A36）＋`scripts/check-ariadne-canonical.py` |
 
 - **AXIOM（RX 正典・2026-06-20）**：従来 RX は正典を持たず自由生成で CSS が 58 種に割れていた。
   gold 刑RX001_1 を基に AXIOM を新設し、**作り込みフォント（TX/JX と同一 Google Fonts）・規範レモン
@@ -106,6 +106,21 @@
   ACTIVE ベースカラー（EASY/STD/HARD）の難易度選択のみ。恒久対策は `validate-ariadne.py` A30/A31/A32 と
   `check-ariadne-canonical.py`、同期前 `check-lexia-preflight.py` に組込み済み。最新法令・判例・学説レビューも必須で、
   新旧差分時は `ariadne-current-law-note` に立法経緯/改正経緯・改正趣旨を含める。
+- **ARIADNE v1.3.0 TXLEX-UNIFY（2026-07-04・現行 active）**：v1.2.0 の placeholder 契約を継承しつつ、
+  深掘り層（条文/判例/学説）の**誌面を TX_lex（刑TX420_lex）の配色・意匠に統一**し、**判例カードの構成を
+  完全1本化**した major 改定。要点：①**全判例カードを `cx-sec` 形式に統一**（旧 h5・百選 hy-sec・table・
+  `<p><strong>ラベル</strong>：`・plain hanging の全様式を吸収）＝節＝`<div class="cx-sec cr-{role}">`＋
+  食み出し無しの**パステル薄チップ** `.cx-lab`＋本文 `.cx-body`。②**構成は判例百選スキーム**（事件情報/事案/
+  判旨/解説/射程/百選/本問での使い方）に統一し、**事件情報は複数行ラベル**（裁判所：/判決日：/出典：/事件番号：/
+  事件名：）に。③**配色＝条文ブルー/判例ピンク/学説ラベンダー/用語スレート＋6色チップ**（事案=シアン/判旨=
+  ローズ/解説=黄緑/射程=茶/本問=マリーゴールド/事件情報・百選=ラベンダー）・★★★=violet・緑/紫マーカー。
+  ④**重厚感**（深い影＋内側ハイライト＋チップ立体）・**本文1字下げ徹底**・**セクション見出し/導入文を帯＋
+  白カードで背景から分離**。Lexia は `extractReferencesFromHtml` を `.cx-sec` 構造抽出対応に更新（main）。
+  伝播ツール（全て冪等・本文/内容不変・LF保持）：`ariadne-txlex-theme.py`（配色/意匠/重厚感/字下げ）・
+  `ariadne-case-unify.py`＋`ariadne-hy-to-cx.py`＋`ariadne-convert-residual.py`＋`ariadne-convert-compact.py`
+  （全様式→cx-sec）・`ariadne-unify-case-structure.py`（百選スキーム統合）・`ariadne-jiken-to-labeled.py`
+  （事件情報をラベル化）・`ariadne-problem-restyle.py`（番号付き問題文2カラム）・`ariadne-sechead-contrast.py`。
+  版マーカー＝`ARIADNE v1.3.0 TXLEX-UNIFY`／契約＝`ARIADNE_SLOT_CONTRACT v1.3.0 TXLEX-UNIFY`。
 - 詳細は **`docs/rx-arb-byproducts.md`**（副産物の正典）。
 
 ---

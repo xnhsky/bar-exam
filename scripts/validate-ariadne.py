@@ -490,13 +490,13 @@ def main():
             P('A35', '深掘り層に本問外の人物記号なし（テンプレ流用の兆候なし）')
 
     # ---- A36 版スタンプ整合（旧版残置検出・§17・2026-07-02・WARN）----
-    old_ver = sorted(set(re.findall(r'ARIADNE v(?:0\.\d+|1\.0\.\d+|1\.1\.\d+)[0-9A-Za-z .\-]*', html)))
+    old_ver = sorted(set(re.findall(r'ARIADNE v(?:0\.\d+|1\.0\.\d+|1\.1\.\d+|1\.2\.\d+)[0-9A-Za-z .\-]*', html)))
     if old_ver:
-        W('A36', '旧版スタンプ残置（現行は ARIADNE v1.2.0 PLACEHOLDER-LOCK・CSS先頭/フッター/lexia-genmeta を更新）: ' + '／'.join(v.strip() for v in old_ver[:5]))
-    elif 'ARIADNE v1.2.0' not in html:
-        W('A36', '版スタンプに ARIADNE v1.2.0 が見当たらない（genmeta/フッター/CSS へ現行版を刻む）')
+        W('A36', '旧版スタンプ残置（現行は ARIADNE v1.3.0 TXLEX-UNIFY・CSS先頭/フッター/lexia-genmeta を更新）: ' + '／'.join(v.strip() for v in old_ver[:5]))
+    elif 'ARIADNE v1.3.0' not in html:
+        W('A36', '版スタンプに ARIADNE v1.3.0 が見当たらない（genmeta/フッター/CSS へ現行版を刻む）')
     else:
-        P('A36', '版スタンプは現行 ARIADNE v1.2.0')
+        P('A36', '版スタンプは現行 ARIADNE v1.3.0')
 
     # ---- A37 未定義 box/card クラス（.warn-box 等の素描画検出・2026-07-02・WARN）----
     style_css = ''.join(re.findall(r'<style[^>]*>(.*?)</style>', html, re.S))

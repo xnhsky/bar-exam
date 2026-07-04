@@ -3,6 +3,16 @@
 **用途**：既存の検証済み JX（ATHENA）から、初学者向けの「解法ナビ＋周回」教材 ARIADNE を1問生成する。
 ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/TREE と同じく検証済み JX から蒸留）。
 
+> **【現行版 ARIADNE v1.3.0 TXLEX-UNIFY・2026-07-04】正典は `canonical/ARIADNE.html`（複製起点）＋
+> `spec/jx-ariadne-v1.2.0-core.md` 冒頭の v1.3.0 節。判例カードは **`cx-sec` 形式**（`<div class="cx-sec cr-{role}">`
+> ＋パステル薄チップ `.cx-lab`＋`.cx-body`）で、構成＝**判例百選スキーム**（事件情報/事案/判旨/解説/射程/百選/
+> 本問での使い方・**事件情報は 裁判所：/判決日：/出典：… の複数行ラベル**）、配色＝TX_lex（条文ブルー/判例ピンク/
+> 学説ラベンダー＋6色チップ・★=violet）。canonical を複製すれば CSS/意匠は継承する。**生成後、既存様式が混ざったら
+> 一括反映ツールで v1.3.0 に揃える**（`python scripts/ariadne-txlex-theme.py --apply {file}` ＋ 必要に応じ
+> `ariadne-case-unify.py`/`ariadne-hy-to-cx.py`/`ariadne-convert-compact.py`/`ariadne-convert-residual.py`/
+> `ariadne-unify-case-structure.py`/`ariadne-jiken-to-labeled.py`/`ariadne-problem-restyle.py`/`ariadne-sechead-contrast.py`・
+> 全て冪等・本文不変・LF保持）。検証は `check-ariadne-canonical.py`（版マーカー `ARIADNE v1.3.0 TXLEX-UNIFY`）。
+
 ## 使い方
 ```
 /new-ariadne 刑 001          # 科目＋番号
