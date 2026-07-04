@@ -34,9 +34,9 @@ CSS2_BLOCK = """
 .tx-inline-explain .syn-lead strong, .tx-inline-explain .syn-lead b,
 .tx-inline-explain .syn-image strong, .tx-inline-explain .syn-image b,
 .tx-inline-explain .syn-orig strong, .tx-inline-explain .syn-orig b,
-.tx-inline-explain .syn-body strong, .tx-inline-explain .syn-body b{ font-weight:600 !important; }
-.tx-mini-law-body b, .tx-mini-law-body strong, .basis-card-body b, .basis-card-body strong{ font-weight:640 !important; }
-.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-weight:680 !important; }
+.tx-inline-explain .syn-body strong, .tx-inline-explain .syn-body b{ font-weight:540 !important; }
+.tx-mini-law-body b, .tx-mini-law-body strong, .basis-card-body b, .basis-card-body strong{ font-weight:580 !important; }
+.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-weight:620 !important; }
 /* === v13m: 体系マップSVGの重厚感・立体感（各箱の主 rect にドロップシャドウ／ヘッダー帯・文字は据え置き）=== */
 .tx-sysmap-svg g > rect:first-of-type{ filter:drop-shadow(0 5px 8px rgba(60,40,30,.32)); }"""
 
@@ -53,6 +53,16 @@ def fix(text):
     if "v13l:" not in text and CSS2_ANCHOR in text:
         text = text.replace(CSS2_ANCHOR, CSS2_ANCHOR + CSS2_BLOCK, 1)
         changes.append("css:v13l-thinbold+v13m-svg3d")
+    # v13l 太字 weight の微調整（旧値→新値・冪等）。既に v13l を持つ既存問を更新する。
+    for old, new in (
+        (".syn-body b{ font-weight:600 !important; }", ".syn-body b{ font-weight:540 !important; }"),
+        ("basis-card-body strong{ font-weight:640 !important; }", "basis-card-body strong{ font-weight:580 !important; }"),
+        ("tx-answer-body b{ font-weight:680 !important; }", "tx-answer-body b{ font-weight:620 !important; }"),
+    ):
+        if old in text:
+            text = text.replace(old, new, 1)
+            if "css:v13l-thinner" not in changes:
+                changes.append("css:v13l-thinner")
     if SNTIP_OLD in text:
         text = text.replace(SNTIP_OLD, SNTIP_NEW)
         changes.append("js:sntip-b-wrap")
