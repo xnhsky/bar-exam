@@ -477,10 +477,13 @@ class Validator:
             self.err("G15", "footer-spec に feature-tag が一つもない")
             return
         first = tags[0].get_text().strip()
-        # v11/v12.x.x LOOP-CORE を許容。
+        # v11/v12.x.x LOOP-CORE または v13.x.x LOOP-CARD（active）を許容。
         # v12.1.1 は v12.1.0 inline canon に narrative typography patch を重ねた版。
-        if not (first.startswith(("TX v11.", "TX v12.")) and "LOOP-CORE" in first):
-            self.err("G15", f"feature-tag 先頭が 'TX v11/v12.x.x LOOP-CORE' でない: '{first}'")
+        # v13.0.0 LOOP-CARD は「読む解説」再編（gold=刑TX359・lineage active）。
+        ok_core = first.startswith(("TX v11.", "TX v12.")) and "LOOP-CORE" in first
+        ok_card = first.startswith("TX v13.") and "LOOP-CARD" in first
+        if not (ok_core or ok_card):
+            self.err("G15", f"feature-tag 先頭が 'TX v11/v12.x.x LOOP-CORE' または 'TX v13.x.x LOOP-CARD' でない: '{first}'")
 
     # --- G16：SVG class 整合性 ---
 
