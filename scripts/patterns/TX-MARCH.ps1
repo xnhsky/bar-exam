@@ -1,26 +1,17 @@
-# TX-MARCH — TX 連番 NBR パターン①（最若番から順に生成）
-#
-# inputs/000_TX/001_刑法 の未生成 PDF を最若番から MaxProblems 問、GENESIS 経路で
-# 生成→validate-tx-core→各問 commit/push（night-batch-runner の既定動線）。
-#
-# 使い方:
-#   pwsh -NoProfile -File scripts/patterns/TX-MARCH.ps1                # 最若番から5問
-#   pwsh -NoProfile -File scripts/patterns/TX-MARCH.ps1 -MaxProblems 3
-#   pwsh -NoProfile -File scripts/patterns/TX-MARCH.ps1 -DryRun        # 検出のみ
+# TX-MARCH — 【廃止・2026-07-04】TJR に統合。本ファイルは後方互換の転送スタブ。
+# 旧：inputs/000_TX/001_刑法 最若番から N 問を night-batch-runner(v10) で生成。
+# 現：TJR の T ストリーム（v13 二系統）へ転送する。今後は「TJR処理 {科目}」を使うこと。
 param(
     [int]$MaxProblems = 5,
-    [string]$ProjectRoot = '',  # 別 clone/root で生成する場合に指定（未指定はこの repo）
+    [ValidateSet('刑','刑訴','民','商','民訴','憲','行政')]
+    [string]$Subject = '刑',
+    [string]$ProjectRoot = '',
     [switch]$DryRun
 )
-$DefaultProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
-if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
-$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
-$Runner = Join-Path $ProjectRoot 'scripts\night-batch-runner.ps1'
-
-$params = @{ MaxProblems = $MaxProblems; ProjectRoot = $ProjectRoot }
-if ($DryRun) { $params.DryRun = $true }
-
-Write-Host "[TX-MARCH] 連番NBR・最若番から最大 $MaxProblems 問" -ForegroundColor Cyan
-& $Runner @params
+Write-Host "[DEPRECATED] TX-MARCH は廃止。TJR の T ストリームへ転送します（現行 v13 二系統）。" -ForegroundColor Yellow
+$TJR = Join-Path $PSScriptRoot 'TJR.ps1'
+$p = @{ Subject = $Subject; Only = 'T'; MaxTX = $MaxProblems }
+if ($ProjectRoot) { $p.ProjectRoot = $ProjectRoot }
+if ($DryRun)      { $p.DryRun = $true }
+& $TJR @p
 exit $LASTEXITCODE

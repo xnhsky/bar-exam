@@ -1,54 +1,25 @@
-# JX — JX 一気通貫パターン（JX HTML → TTS 台本 まで・既定 3 問ずつ）
-#
-# 何をするか: inputs/001_JX/{科目} の最若番から MaxProblems 問を
-#   ① JX HTML 生成 → ② validate-jx → ③ TTS 台本 → ④ validate-tts → ⑥ 配置（Drive＋repoミラー）
-# まで通す。
-#
-# ※ 音声生成（⑤）は行わない。音声は台本（outputs/002_TTS/{問題ID}/ ＝ 配置先 TTSファイル原本\）から
-#    AI Studio で手動生成する（2026-06-06〜手動運用。Pro TTS 課金見送り＝FULL 版はお蔵入り）。
-#
-# ※ 旧 JX-MAIN / JX-SUB を本パターンに統合（2026-06-08）。鍵（main/sub）区別の撤去で両者は
-#    中身同一になったため 1 本化。二台運用は各 PC で番号帯を分けて並行実行する：
-#      PC-A: pwsh ... JX.ps1 -FromNumber 1  -ToNumber 20
-#      PC-B: pwsh ... JX.ps1 -FromNumber 21 -ToNumber 40
-#
-# 使い方:
-#   pwsh -NoProfile -File scripts/patterns/JX.ps1                 # 刑・3問・台本まで
-#   pwsh -NoProfile -File scripts/patterns/JX.ps1 -Subject 民 -MaxProblems 3
-#   pwsh -NoProfile -File scripts/patterns/JX.ps1 -DryRun         # 検出のみ
-#   pwsh -NoProfile -File scripts/patterns/JX.ps1 -FromNumber 25 -ToNumber 27   # 25〜27 だけ（catch-up）
-#   pwsh -NoProfile -File scripts/patterns/JX.ps1 -Number 25      # 25 を1問だけ
+# JX — 【廃止・2026-07-04】TJR に統合。本ファイルは後方互換の転送スタブ。
+# 旧：inputs/001_JX/{科目} 最若番から N 問を JX→台本まで生成。
+# 現：TJR の J ストリーム（JX＋副産物 RX/TREE/ARIADNE＋台本）へ転送。今後は「TJR処理 {科目}」or「JX {N}-{M} 処理」。
 param(
     [ValidateSet('刑','刑訴','民','商','民訴','憲','行政')]
     [string]$Subject = '刑',
     [int]$MaxProblems = 3,
-    [int]$Number = 0,           # 単一番号（指定時は From/To をこの番号に固定・MaxProblems=1）
-    [int]$FromNumber = 0,       # 任意レンジの下限（最若番優先の既定に対し特定番号帯のみ対象に）
-    [int]$ToNumber = 0,         # 任意レンジの上限
-    [switch]$NoFinalize,        # 指定時は⑦永続化＋入力削除を行わない（既定は実行）
-    [switch]$NoPush,            # ⑦で push 抑止（commit のみ）
-    [string]$ProjectRoot = '',  # 別 clone/root で生成する場合に指定（未指定はこの repo）
+    [int]$Number = 0,
+    [int]$FromNumber = 0,
+    [int]$ToNumber = 0,
+    [switch]$NoPush,
+    [string]$ProjectRoot = '',
     [switch]$DryRun
 )
-if ($Number -gt 0) { $FromNumber = $Number; $ToNumber = $Number; $MaxProblems = 1 }
-$DefaultProjectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
-if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
-$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
-$Runner = Join-Path $ProjectRoot 'scripts\jx-batch-runner.ps1'
-
-# 音声(⑤)は行わない。-SkipAudio で台本集約まで（音声は AI Studio で手動）。
-# 既定で ⑦Finalize（HTML＋TTS を git commit/push＝GitHub バックアップ → Drive バックアップ確認後に
-# 入力 PDF＋逐語を git rm）まで通す。バックアップ無しでの削除は finalize 側のガードで防止。
-$params = @{ Subject = $Subject; MaxProblems = $MaxProblems; SkipAudio = $true }
-$params.ProjectRoot = $ProjectRoot
-if (-not $NoFinalize) { $params.Finalize = $true }
-if ($NoPush)    { $params.NoPush = $true }
-if ($FromNumber -gt 0) { $params.FromNumber = $FromNumber }
-if ($ToNumber   -gt 0) { $params.ToNumber   = $ToNumber }
-if ($DryRun)    { $params.DryRun = $true }
-
-$rangeText = if ($FromNumber -gt 0 -or $ToNumber -gt 0) { "・範囲 $FromNumber〜$ToNumber" } else { "" }
-Write-Host "[JX] JX→台本まで（音声は AI Studio で手動）・$Subject・最大 $MaxProblems 問$rangeText" -ForegroundColor Cyan
-& $Runner @params
+if ($Number -gt 0) { $FromNumber = $Number; $ToNumber = $Number }
+Write-Host "[DEPRECATED] JX パターンは廃止。TJR の J ストリームへ転送します。" -ForegroundColor Yellow
+$TJR = Join-Path $PSScriptRoot 'TJR.ps1'
+$useRange = ($FromNumber -gt 0 -or $ToNumber -gt 0)
+$p = @{ Subject = $Subject; Only = 'J'; MaxJX = $MaxProblems }
+if ($useRange)    { $p.JxFrom = $FromNumber; $p.JxTo = $ToNumber }
+if ($NoPush)      { $p.NoPush = $true }
+if ($ProjectRoot) { $p.ProjectRoot = $ProjectRoot }
+if ($DryRun)      { $p.DryRun = $true }
+& $TJR @p
 exit $LASTEXITCODE
