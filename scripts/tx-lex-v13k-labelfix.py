@@ -42,7 +42,8 @@ V13O_BLOCK = """
 .tx-inline-explain .syn-orig strong, .tx-inline-explain .syn-orig b,
 .tx-inline-explain .syn-body strong, .tx-inline-explain .syn-body b,
 .tx-mini-law-body b, .tx-mini-law-body strong, .basis-card-body b, .basis-card-body strong,
-.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-family:var(--font-note) !important; font-weight:700 !important; }"""
+.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b,
+.tx-basis-head{ font-family:var(--font-note) !important; font-weight:700 !important; }"""
 CSS2_BLOCK = """
 /* === v13m: 体系マップSVGの重厚感・立体感（各箱の主 rect にドロップシャドウ／ヘッダー帯・文字は据え置き）=== */
 """ + V13M_LINE + """
@@ -88,12 +89,16 @@ def fix(text):
     if "v13o:" not in text and V13N_LINE in text:
         text = text.replace(V13N_LINE, V13N_LINE + V13O_BLOCK, 1)
         changes.append("css:v13o-bodybold")
-    # 太字の定義を「ゴシック(--font-note)＋700」へ統一（明朝700の潰れ回避）。本文太字＋判例チップとも。
+    # 太字の定義を「ゴシック(--font-note)＋700」へ統一（明朝700の潰れ回避）。本文太字＋判例チップ＋題名見出しとも。
     for old, new in (
+        # 500 版からの移行（旧世代）
         (".tx-answer-box .tx-answer-body b{ font-weight:500 !important; }",
-         ".tx-answer-box .tx-answer-body b{ font-family:var(--font-note) !important; font-weight:700 !important; }"),
+         ".tx-answer-box .tx-answer-body b, .tx-basis-head{ font-family:var(--font-note) !important; font-weight:700 !important; }"),
         ("a.ref-case, a.ref-stat{ font-weight:500; }",
          "a.ref-case, a.ref-stat{ font-family:var(--font-note); font-weight:700; }"),
+        # ゴシック700(題名見出し未追加)版からの移行＝.tx-basis-head を対象へ追加
+        (".tx-answer-box .tx-answer-body b{ font-family:var(--font-note) !important; font-weight:700 !important; }",
+         ".tx-answer-box .tx-answer-body b, .tx-basis-head{ font-family:var(--font-note) !important; font-weight:700 !important; }"),
     ):
         if old in text:
             text = text.replace(old, new, 1)
