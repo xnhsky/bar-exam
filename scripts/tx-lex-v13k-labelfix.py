@@ -27,18 +27,28 @@ CSS_BLOCK = """
 .statement-verdict-table thead th{ text-align:center; }
 .freq-badge{ text-align:center; }"""
 
-# --- ③ 本文強調を一段細く(v13l)＋体系マップSVGの立体感(v13m)。v13k ブロック末尾へ続けて挿入 ---
+# --- ③ 体系マップSVGの立体感(v13m)＋判例/条文チップだけ少し細く(v13n)。v13k ブロック末尾へ続けて挿入 ---
+#   ※ v13l（本文強調全体を細く）はユーザー撤回。既存問からは V13L_OLD で除去し、本文強調は元の太さへ戻す。
 CSS2_ANCHOR = ".freq-badge{ text-align:center; }"
+V13M_LINE = ".tx-sysmap-svg g > rect:first-of-type{ filter:drop-shadow(0 5px 8px rgba(60,40,30,.32)); }"
 CSS2_BLOCK = """
+/* === v13m: 体系マップSVGの重厚感・立体感（各箱の主 rect にドロップシャドウ／ヘッダー帯・文字は据え置き）=== */
+""" + V13M_LINE + """
+/* === v13n: 判例/条文チップ(最決平元.3.14 等)だけ少し細く（本文強調は据え置き）=== */
+a.ref-case, a.ref-stat{ font-weight:600; }"""
+
+# 撤回対象：既存問に載っている v13l 本文強調ブロック（540/580/620 版）を丸ごと除去する。
+V13L_OLD = """
 /* === v13l: 本文中の強調(<b>/<strong>)を一段細く。見出しバッジ(.syn-step+strong)・ラベル・表は据え置き === */
 .tx-inline-explain .syn-lead strong, .tx-inline-explain .syn-lead b,
 .tx-inline-explain .syn-image strong, .tx-inline-explain .syn-image b,
 .tx-inline-explain .syn-orig strong, .tx-inline-explain .syn-orig b,
 .tx-inline-explain .syn-body strong, .tx-inline-explain .syn-body b{ font-weight:540 !important; }
 .tx-mini-law-body b, .tx-mini-law-body strong, .basis-card-body b, .basis-card-body strong{ font-weight:580 !important; }
-.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-weight:620 !important; }
-/* === v13m: 体系マップSVGの重厚感・立体感（各箱の主 rect にドロップシャドウ／ヘッダー帯・文字は据え置き）=== */
-.tx-sysmap-svg g > rect:first-of-type{ filter:drop-shadow(0 5px 8px rgba(60,40,30,.32)); }"""
+.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-weight:620 !important; }"""
+V13N_BLOCK = """
+/* === v13n: 判例/条文チップ(最決平元.3.14 等)だけ少し細く（本文強調は据え置き）=== */
+a.ref-case, a.ref-stat{ font-weight:600; }"""
 
 # --- ④ コツ箱の本文を .sn-tip-b で包む（renderStep の生挿入を正典形へ） ---
 SNTIP_OLD = "<span class=\"sn-tip-h\">💡 コツ</span>'+s.tip+'</div>"
@@ -50,19 +60,18 @@ def fix(text):
     if "v13k:" not in text and CSS_ANCHOR in text:
         text = text.replace(CSS_ANCHOR, CSS_ANCHOR + CSS_BLOCK, 1)
         changes.append("css:v13k-center")
-    if "v13l:" not in text and CSS2_ANCHOR in text:
+    # 新規問向け：v13m(SVG立体)＋v13n(判例チップ細く) を挿入（v13l は入れない）。
+    if "v13m:" not in text and CSS2_ANCHOR in text:
         text = text.replace(CSS2_ANCHOR, CSS2_ANCHOR + CSS2_BLOCK, 1)
-        changes.append("css:v13l-thinbold+v13m-svg3d")
-    # v13l 太字 weight の微調整（旧値→新値・冪等）。既に v13l を持つ既存問を更新する。
-    for old, new in (
-        (".syn-body b{ font-weight:600 !important; }", ".syn-body b{ font-weight:540 !important; }"),
-        ("basis-card-body strong{ font-weight:640 !important; }", "basis-card-body strong{ font-weight:580 !important; }"),
-        ("tx-answer-body b{ font-weight:680 !important; }", "tx-answer-body b{ font-weight:620 !important; }"),
-    ):
-        if old in text:
-            text = text.replace(old, new, 1)
-            if "css:v13l-thinner" not in changes:
-                changes.append("css:v13l-thinner")
+        changes.append("css:v13m-svg3d+v13n-refchip")
+    # 撤回：既存問に載っている v13l 本文強調ブロックを除去（本文強調を元の太さへ戻す）。
+    if V13L_OLD in text:
+        text = text.replace(V13L_OLD, "", 1)
+        changes.append("css:v13l-revert")
+    # 既存問（v13m は在るが v13n が無い）へ判例チップ細くを追加。
+    if "v13n:" not in text and V13M_LINE in text:
+        text = text.replace(V13M_LINE, V13M_LINE + V13N_BLOCK, 1)
+        changes.append("css:v13n-refchip")
     if SNTIP_OLD in text:
         text = text.replace(SNTIP_OLD, SNTIP_NEW)
         changes.append("js:sntip-b-wrap")
