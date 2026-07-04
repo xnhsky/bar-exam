@@ -22,7 +22,9 @@ param(
     [switch]$DryRun,                   # 実 claude -p 呼ばずパス解決確認のみ
     [string]$ProjectRoot = '',         # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [ValidateSet('v13','v10.0.0','v9.2.0','v9.1.0')]
-    [string]$SpecVersion = 'v10.0.0'   # 既定 v10.0.0 GOLD-SKELETON（GENESIS baseline）／v13 で LOOP-CARD 二系統
+    [string]$SpecVersion = 'v10.0.0',  # 既定 v10.0.0 GOLD-SKELETON（GENESIS baseline）／v13 で LOOP-CARD 二系統
+    [ValidateSet('刑','刑訴','民','商','民訴','行政','憲')]
+    [string]$Subject = '刑'            # 科目接頭辞。入力=inputs/000_TX/{科目}/・出力=科目別サブフォルダ
 )
 
 # === spec ファイル・プロンプト・検証スクリプトの選択 ===
@@ -69,7 +71,10 @@ $DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
 if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
 $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
-$PdfDir      = Join-Path $ProjectRoot "inputs\000_TX\001_刑法"
+# 科目解決（-Subject で切替・既定 刑）。接頭辞→科目フォルダ（inputs/outputs 共通の 00N_科目）。
+$SubjectPrefix = $Subject
+$SubjectFolder = switch ($SubjectPrefix) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"${SubjectPrefix}TX"} }
+$PdfDir      = Join-Path $ProjectRoot (Join-Path "inputs\000_TX" $SubjectFolder)
 $OutputBase  = Join-Path $ProjectRoot "outputs\000_TX"
 $LogsDir     = Join-Path $ProjectRoot "logs"
 $PromptSource= Join-Path $ProjectRoot ($PromptFile -replace '/', '\')
@@ -101,17 +106,12 @@ if (-not $DryRun) {
 
 Write-Host "=== night-batch-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "MaxProblems: $MaxProblems / MaxConsecutiveFailures: $MaxConsecutiveFailures / DryRun: $DryRun"
-Write-Host "SpecVersion: $SpecVersion / SpecFile: $SpecFile"
+Write-Host "SpecVersion: $SpecVersion / Subject: $Subject / SpecFile: $SpecFile"
 Write-Host "NumberRange: From=$FromNumber To=$ToNumber (0 = 無制限)"
 
-# === 科目接頭辞マップ ===
-# PDF は inputs/000_TX/001_刑法/{NNN}.pdf 形式だが、生成出力は {科目接頭辞}TX{NNN}.html。
-# 現状は刑のみ運用想定（306-315 は全て刑法 PDF）。将来拡張時に番号レンジ判定を追加予定。
-$SubjectPrefix = "刑"
-# 2026-05-25: local-first write flow に復帰（validate-tx S81 規律維持のため）
-# 生成は local outputs/000_TX/{Prefix}TX/ へ。validate PASS 後に Drive と backup へ配信。
-# 旧 DriveFS 直書き ($env:USERPROFILE\マイドライブ\...) は廃止。
-$SubjectFolder = switch ($SubjectPrefix) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"${SubjectPrefix}TX"} }
+# === 科目接頭辞・出力先（$SubjectPrefix/$SubjectFolder は上部で -Subject から解決済み）===
+# PDF は inputs/000_TX/{科目}/{NNN}.pdf、生成出力は {科目接頭辞}TX{NNN}.html。
+# 生成は local outputs/000_TX/{科目}/ へ。validate PASS 後に Drive と backup へ配信。
 $OutputDir = Join-Path $OutputBase $SubjectFolder
 # v13 二系統：Lexia 用 _lex の出力先 outputs\ux\000_TX\{科目}（移行 pending 判定に使う）。
 $LexOutputDir = Join-Path (Join-Path $ProjectRoot "outputs\ux\000_TX") $SubjectFolder

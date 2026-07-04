@@ -16,6 +16,8 @@ param(
     [string]$ProjectRoot = '',  # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [ValidateSet('v13','v10.0.0','v9.2.0','v9.1.0')]
     [string]$SpecVersion = 'v10.0.0',   # v13＝旧レイアウト _lex を LOOP-CARD 二系統へ移行
+    [ValidateSet('刑','刑訴','民','商','民訴','行政','憲')]
+    [string]$Subject = '刑',            # 科目接頭辞（刑訴の新規生成は -Subject 刑訴 -SpecVersion v13）
     [switch]$DryRun
 )
 if ($Number -gt 0) { $FromNumber = $Number; $ToNumber = $Number; $MaxProblems = 1 }
@@ -29,9 +31,9 @@ if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProject
 $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $Runner = Join-Path $ProjectRoot 'scripts\night-batch-runner.ps1'
 
-$params = @{ FromNumber = $FromNumber; ToNumber = $ToNumber; MaxProblems = $MaxProblems; ProjectRoot = $ProjectRoot; SpecVersion = $SpecVersion }
+$params = @{ FromNumber = $FromNumber; ToNumber = $ToNumber; MaxProblems = $MaxProblems; ProjectRoot = $ProjectRoot; SpecVersion = $SpecVersion; Subject = $Subject }
 if ($DryRun) { $params.DryRun = $true }
 
-Write-Host "[TX-PICK] 任意NBR・範囲 $FromNumber〜$ToNumber・最大 $MaxProblems 問・spec=$SpecVersion" -ForegroundColor Cyan
+Write-Host "[TX-PICK] $Subject・任意NBR・範囲 $FromNumber〜$ToNumber・最大 $MaxProblems 問・spec=$SpecVersion" -ForegroundColor Cyan
 & $Runner @params
 exit $LASTEXITCODE
