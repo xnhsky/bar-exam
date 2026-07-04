@@ -27,7 +27,20 @@ CSS_BLOCK = """
 .statement-verdict-table thead th{ text-align:center; }
 .freq-badge{ text-align:center; }"""
 
-# --- ② コツ箱の本文を .sn-tip-b で包む（renderStep の生挿入を正典形へ） ---
+# --- ③ 本文強調を一段細く(v13l)＋体系マップSVGの立体感(v13m)。v13k ブロック末尾へ続けて挿入 ---
+CSS2_ANCHOR = ".freq-badge{ text-align:center; }"
+CSS2_BLOCK = """
+/* === v13l: 本文中の強調(<b>/<strong>)を一段細く。見出しバッジ(.syn-step+strong)・ラベル・表は据え置き === */
+.tx-inline-explain .syn-lead strong, .tx-inline-explain .syn-lead b,
+.tx-inline-explain .syn-image strong, .tx-inline-explain .syn-image b,
+.tx-inline-explain .syn-orig strong, .tx-inline-explain .syn-orig b,
+.tx-inline-explain .syn-body strong, .tx-inline-explain .syn-body b{ font-weight:600 !important; }
+.tx-mini-law-body b, .tx-mini-law-body strong, .basis-card-body b, .basis-card-body strong{ font-weight:640 !important; }
+.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-weight:680 !important; }
+/* === v13m: 体系マップSVGの重厚感・立体感（各箱の主 rect にドロップシャドウ／ヘッダー帯・文字は据え置き）=== */
+.tx-sysmap-svg g > rect:first-of-type{ filter:drop-shadow(0 5px 8px rgba(60,40,30,.32)); }"""
+
+# --- ④ コツ箱の本文を .sn-tip-b で包む（renderStep の生挿入を正典形へ） ---
 SNTIP_OLD = "<span class=\"sn-tip-h\">💡 コツ</span>'+s.tip+'</div>"
 SNTIP_NEW = "<span class=\"sn-tip-h\">💡 コツ</span><span class=\"sn-tip-b\">'+s.tip+'</span></div>"
 
@@ -37,6 +50,9 @@ def fix(text):
     if "v13k:" not in text and CSS_ANCHOR in text:
         text = text.replace(CSS_ANCHOR, CSS_ANCHOR + CSS_BLOCK, 1)
         changes.append("css:v13k-center")
+    if "v13l:" not in text and CSS2_ANCHOR in text:
+        text = text.replace(CSS2_ANCHOR, CSS2_ANCHOR + CSS2_BLOCK, 1)
+        changes.append("css:v13l-thinbold+v13m-svg3d")
     if SNTIP_OLD in text:
         text = text.replace(SNTIP_OLD, SNTIP_NEW)
         changes.append("js:sntip-b-wrap")
