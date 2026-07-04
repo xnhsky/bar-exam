@@ -191,6 +191,7 @@ foreach ($pdf in $AllPdfs) {
                 Number  = $num
                 ProblemId = "${SubjectPrefix}TX${num}"
                 OutputPath = $expectedHtml
+                LexPath = $lexPath
             }
         }
     } elseif (-not (Test-Path $expectedHtml)) {
@@ -342,11 +343,30 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
 
     Write-Host "[DONE] $($target.ProblemId): elapsed=$([math]::Round($elapsed/60,1))min, html=$htmlBytes bytes, sentinel=$sentinel, exit=$exitCode" -ForegroundColor Green
 
+    # === v13 移行実測ガード（サイレント no-op 検知）===
+    # v13 は「旧レイアウト _lex → LOOP-CARD」への移行。完了後の validate は公式ファイルにしか
+    # 走らず、公式は v13 で構造不変なので必ず PASS する。よって claude が旧 _lex を検証しただけで
+    # 実移行せず exit0/errors0 を返す no-op（例：会話穴埋め型 刑TX381）を「PASS」と誤報告しうる。
+    # そこで完了後に _lex が v13 マーカー（getInlineAnswerTablePanel）を実際に獲得したか確認し、
+    # 未獲得なら FAIL 扱いにして成功計上・PDF 保持完了報告を止める（特殊型は個別対応へ回す）。
+    $v13NoOp = $false
+    if ($SpecVersion -eq 'v13') {
+        $lexOk = $false
+        if ($target.LexPath -and (Test-Path $target.LexPath)) {
+            $lexNow = Get-Content -LiteralPath $target.LexPath -Raw -Encoding utf8 -ErrorAction SilentlyContinue
+            if ($lexNow -and $lexNow.Contains('getInlineAnswerTablePanel')) { $lexOk = $true }
+        }
+        if (-not $lexOk) {
+            $v13NoOp = $true
+            Write-Host "[V13-NOOP] $($target.ProblemId): _lex が v13 化されていない（未移行の空振り）。FAIL 扱い・要個別対応（特殊型の可能性）。" -ForegroundColor Red
+        }
+    }
+
     # === 自動クリーンアップ：成功時のみ PDF を削除 ===
     $cleanupTriggered = $false
     $validateStatus = "skipped"
 
-    if ($htmlBytes -gt 0 -and $exitCode -eq 0 -and $sentinel -ne "FAILED") {
+    if ($htmlBytes -gt 0 -and $exitCode -eq 0 -and $sentinel -ne "FAILED" -and -not $v13NoOp) {
         try {
             $ValidateScriptAbs = Join-Path $ProjectRoot ($ValidateScript -replace '/', '\')
             $validateOutput = & python $ValidateScriptAbs $target.OutputPath 2>&1
@@ -395,7 +415,7 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
     Add-Content -Path $CostCsv -Value $csvLine -Encoding utf8
 
     # === 連続失敗判定 ===
-    if ($sentinel -eq "FAILED" -or $exitCode -ne 0 -or $htmlBytes -eq 0) {
+    if ($sentinel -eq "FAILED" -or $exitCode -ne 0 -or $htmlBytes -eq 0 -or $v13NoOp) {
         $ConsecutiveFailures++
         Write-Host "[WARN] 連続失敗: $ConsecutiveFailures / $MaxConsecutiveFailures" -ForegroundColor Yellow
         if ($ConsecutiveFailures -ge $MaxConsecutiveFailures) {
