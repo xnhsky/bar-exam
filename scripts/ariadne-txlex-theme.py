@@ -117,6 +117,10 @@ CSS = BEGIN + r"""
 .athena-graft .basis-card-body p.r-hyakusen > .hang-body{text-indent:0 !important}
 .athena-graft .basis-card-body .cx-sec blockquote.case p,.athena-graft blockquote.case p{text-indent:1em !important}
 .athena-graft .basis-card.statute-card .basis-card-body > p:not(.hanging){text-indent:1em}
+/* 条文プロファイル以降の取りこぼし：statute内のプレーン条文段落・issueカードのnote も1字下げ */
+.athena-graft blockquote.statute > p:not(.stat-para){text-indent:1em !important}
+.athena-graft .card > p.note,.athena-graft .card > .note > p{text-indent:1em}
+.athena-graft .basis-card-body .cx-sec > .cx-body > blockquote.statute > p:not(.stat-para){text-indent:1em !important}
 """ + END
 
 def inject_css(html):
