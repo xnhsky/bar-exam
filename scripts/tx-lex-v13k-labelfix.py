@@ -31,11 +31,21 @@ CSS_BLOCK = """
 #   ※ v13l（本文強調全体を細く）はユーザー撤回。既存問からは V13L_OLD で除去し、本文強調は元の太さへ戻す。
 CSS2_ANCHOR = ".freq-badge{ text-align:center; }"
 V13M_LINE = ".tx-sysmap-svg g > rect:first-of-type{ filter:drop-shadow(0 5px 8px rgba(60,40,30,.32)); }"
+V13N_LINE = "a.ref-case, a.ref-stat{ font-weight:600; }"
+# v13o: 本文の太字(<b>/<strong>)を判例チップと同比率(600)へ統一（見出しバッジは据え置き）。
+V13O_BLOCK = """
+/* === v13o: 本文の太字(<b>/<strong>)を判例チップと同比率(600)へ統一。見出しバッジ(.syn-step+strong)・表・ラベルは据え置き === */
+.tx-inline-explain .syn-lead strong, .tx-inline-explain .syn-lead b,
+.tx-inline-explain .syn-image strong, .tx-inline-explain .syn-image b,
+.tx-inline-explain .syn-orig strong, .tx-inline-explain .syn-orig b,
+.tx-inline-explain .syn-body strong, .tx-inline-explain .syn-body b,
+.tx-mini-law-body b, .tx-mini-law-body strong, .basis-card-body b, .basis-card-body strong,
+.tx-answer-box .tx-answer-body strong, .tx-answer-box .tx-answer-body b{ font-weight:600 !important; }"""
 CSS2_BLOCK = """
 /* === v13m: 体系マップSVGの重厚感・立体感（各箱の主 rect にドロップシャドウ／ヘッダー帯・文字は据え置き）=== */
 """ + V13M_LINE + """
 /* === v13n: 判例/条文チップ(最決平元.3.14 等)だけ少し細く（本文強調は据え置き）=== */
-a.ref-case, a.ref-stat{ font-weight:600; }"""
+""" + V13N_LINE + V13O_BLOCK
 
 # 撤回対象：既存問に載っている v13l 本文強調ブロック（540/580/620 版）を丸ごと除去する。
 V13L_OLD = """
@@ -72,6 +82,10 @@ def fix(text):
     if "v13n:" not in text and V13M_LINE in text:
         text = text.replace(V13M_LINE, V13M_LINE + V13N_BLOCK, 1)
         changes.append("css:v13n-refchip")
+    # 既存問（v13n は在るが v13o が無い）へ本文太字600統一を追加。
+    if "v13o:" not in text and V13N_LINE in text:
+        text = text.replace(V13N_LINE, V13N_LINE + V13O_BLOCK, 1)
+        changes.append("css:v13o-bodybold600")
     if SNTIP_OLD in text:
         text = text.replace(SNTIP_OLD, SNTIP_NEW)
         changes.append("js:sntip-b-wrap")
