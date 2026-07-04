@@ -136,3 +136,30 @@ python -X utf8 -m py_compile scripts/validate-tx-core.py scripts/check-tx-lex-en
 ```
 
 `check-tx-lex-engine.py` は G41/G42/G43/G44 を横断実行し、v12.2.1 マーカー付きまたは明示指定ファイルには G45 も適用する。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れを push 前に止める。
+
+---
+
+## v13k 表見出し中央揃え＋コツ箱ぶら下がり修正（2026-07-04・ユーザー訂正の正典化）
+
+実地レビューで判明した v13 LOOP-CARD `_lex` の 2 表示欠落を正典化した。伝播・回帰防止まで
+含めて 1 セット（正典 CSS／エンジン＝作らせない、ゲート＝作っても弾く）。
+
+1. **表の見出しセルは中央揃え（本文データ td は左のまま）＝ `.cross-column th` と同概念。**
+   静的正誤表 `.tx-sysmap-cross` の `thead th`（記述／問われた軸／結論・決め手）と `tbody th`
+   （記述番号）に `text-align:center; vertical-align:middle` を与える。JS 正誤表
+   `.statement-verdict-table thead th`・`.freq-badge` も中央。字間は `letter-spacing:normal`
+   で均等（cramped な独自トラッキングを置かない）。CSS ブロックは `<style>` の v13g 表節直後に
+   `/* === v13k: 表の見出しセル… === */` として置く（gold 刑TX359／`canonical/GENESIS-CARD.html`
+   に実装。`tx-lex-css-canonize.py --check` が 35 問の共通 CSS 一致で回帰を弾く）。
+
+2. **解法ナビ『💡 コツ』箱の本文は `.sn-tip-b` で包む（ぶら下がり禁止）。**
+   旧世代の solve-nav `renderStep()` は本文 `s.tip` を生挿入していたため、`.sn-tip{display:grid}`
+   の子が `<b>` 等のインライン断片ごとに分裂し、強調語が左端へ落ちる「ぶら下がり」が出た。
+   正典 `canonical/SOLVE-NAV.html`／`GENESIS-CARD.html` は既に `<span class="sn-tip-b">…</span>`
+   で包む形。既存 `_lex` を同形へ揃えると、本文が 1 個の grid 子（2 列目）に収まり、
+   `.sn-tip .sn-tip-b{text-indent:1em}` で本文頭 1 字下げも効く。
+
+- **伝播ツール（決定論・冪等・CRLF保存・本文不変）**：`scripts/tx-lex-v13k-labelfix.py --apply`
+  （① を `.tx-sysmap-cross` アンカー越しに v13 sysmap 問へ、② を裸コツを持つ全 `_lex` 世代へ）。
+- **回帰ゲート**：`check-tx-lex-engine.py` に `SNTIP` 検出を追加（`sn-tip-h">💡 コツ</span>'+s.tip+'</div>`
+  の未包みを弾く）／`tx-lex-css-canonize.py --check`（v13k を含む共通 CSS 一致）。

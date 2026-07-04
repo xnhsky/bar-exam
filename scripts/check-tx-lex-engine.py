@@ -128,7 +128,7 @@ def main() -> int:
         v.g41_tx360_canonical_engine_integrity()
         v.g42_no_combination_verdict_stmt()
         v.g44_tx_inline_answer_controls_contract()
-        gate_errs = [(code, msg) for code, msg in v.errors if code in ("G41", "G42", "G44")]
+        gate_errs: list[tuple[str, str]] = [(code, msg) for code, msg in v.errors if code in ("G41", "G42", "G44")]
         # G45＝v12.2.1 表示LOCK。既存の未移行 v12.1.1 を全件落とさないため、
         # v12.2.1 として生成・更新済みのファイルか、明示指定ファイルだけに適用する。
         g45_required = (
@@ -141,6 +141,11 @@ def main() -> int:
             before = len(v.errors)
             v.g45_tx_v1221_presentation_lock()
             gate_errs.extend((code, msg) for code, msg in v.errors[before:] if code == "G45")
+        # SNTIP＝解法ナビ『コツ』箱の本文が .sn-tip-b で包まれず生挿入されている（grid の子が
+        # インライン断片に分裂＝<b>語が左端へ落ちるぶら下がり）。正典 SOLVE-NAV/GENESIS-CARD は
+        # <span class="sn-tip-b"> で包む。旧世代エンジン流用の回帰を弾く（修正＝tx-lex-v13k-labelfix.py）。
+        if "sn-tip-h\">💡 コツ</span>'+s.tip+'</div>" in v.html:
+            gate_errs.append(("SNTIP", "解法ナビ『コツ』本文が .sn-tip-b で未包み（grid崩れ・ぶら下がり）→ tx-lex-v13k-labelfix.py --apply"))
         if v.soup.select_one(".tx-inline-card"):
             scanned += 1
             # G43（v12.2 PLACEHOLDER-LOCK）＝詳説 panel 欠落（空 details）を弾く。
