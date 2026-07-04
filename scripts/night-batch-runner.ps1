@@ -21,36 +21,43 @@ param(
     [int]$ToNumber = 0,                # 処理対象の最大問題番号 (0 = 上限なし)
     [switch]$DryRun,                   # 実 claude -p 呼ばずパス解決確認のみ
     [string]$ProjectRoot = '',         # 別 clone/root で生成する場合に指定（未指定はこの repo）
-    [ValidateSet('v10.0.0','v9.2.0','v9.1.0')]
-    [string]$SpecVersion = 'v10.0.0'   # 既定 v10.0.0 GOLD-SKELETON（GENESIS baseline）
+    [ValidateSet('v13','v10.0.0','v9.2.0','v9.1.0')]
+    [string]$SpecVersion = 'v10.0.0'   # 既定 v10.0.0 GOLD-SKELETON（GENESIS baseline）／v13 で LOOP-CARD 二系統
 )
 
 # === spec ファイル・プロンプト・検証スクリプトの選択 ===
+# v13：canonical/GENESIS-CARD.html を起点とした LOOP-CARD 二系統経路（公式＋_lex・旧レイアウト移行）
 # v10.0.0：canonical/GENESIS.html を起点としたスケルトン経路（spec md は持たず new-tx.md が正典）
 # v9.2.0：旧 DEEP-DIVE 経路（spec md + render.py 想定）
 # v9.1.0：旧 MINDMAP 経路
 $SpecFile = switch ($SpecVersion) {
+    'v13'     { '.claude/commands/new-tx.md' }
     'v10.0.0' { '.claude/commands/new-tx.md' }
     'v9.2.0'  { 'spec/legacy/tx-v9.2.0-deepdive-core.md' }
     'v9.1.0'  { 'spec/legacy/tx-v9.1.0-mindmap-core.md' }
     default   { throw "Unknown spec version: $SpecVersion" }
 }
 $SpecVersionTag = switch ($SpecVersion) {
+    'v13'     { 'TX v13.0.0 LOOP-CARD' }
     'v10.0.0' { 'TX v10.0.0 GOLD-SKELETON' }
     'v9.2.0'  { 'TX v9.2.0 DEEP-DIVE' }
     'v9.1.0'  { 'TX v9.1.0 MINDMAP' }
 }
 $PromptFile = switch ($SpecVersion) {
+    'v13'     { 'prompts/new-tx-headless-v13.md' }
     'v10.0.0' { 'prompts/new-tx-headless-v10.md' }
     default   { 'prompts/new-tx-headless-v0.md' }
 }
 $ValidateScript = switch ($SpecVersion) {
+    'v13'     { 'scripts/validate-tx-core.py' }
     'v10.0.0' { 'scripts/validate-tx-gold.py' }
     default   { 'scripts/validate-tx.py' }
 }
+# v13：core validator PASS 判定の regex（"Errors: 0"）
 # v10.0.0：gold validator PASS 判定の regex（"Errors: 0" or "ALL G1〜G16 PASS"）
 # v9.x：従来 validator PASS 判定（"ERROR 0 /"）
 $ValidatePassRegex = switch ($SpecVersion) {
+    'v13'     { 'Errors:\s*0\b' }
     'v10.0.0' { 'Errors:\s*0\b' }
     default   { 'ERROR\s*0\s*/' }
 }
@@ -106,6 +113,8 @@ $SubjectPrefix = "刑"
 # 旧 DriveFS 直書き ($env:USERPROFILE\マイドライブ\...) は廃止。
 $SubjectFolder = switch ($SubjectPrefix) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"${SubjectPrefix}TX"} }
 $OutputDir = Join-Path $OutputBase $SubjectFolder
+# v13 二系統：Lexia 用 _lex の出力先 outputs\ux\000_TX\{科目}（移行 pending 判定に使う）。
+$LexOutputDir = Join-Path (Join-Path $ProjectRoot "outputs\ux\000_TX") $SubjectFolder
 # Drive 配信先：マイドライブのマウント先(C:/G:/H: 等)とフォルダ改名に強いよう、
 # CATALINA＿G共有 を含むマイドライブを自動検出し、科目フォルダ直下をパターン解決する。
 # 配信規律(2026-06-01 ユーザー指示)：HTML は各科目フォルダ「直下」に置く
@@ -165,7 +174,26 @@ foreach ($pdf in $AllPdfs) {
     # CLAUDE.md §2-3: 3 桁未満は前ゼロで 0 埋め (45 → 045)。4 桁以上は ToString('000') が保持。
     $num = if ($isNumeric) { ([int]$rawNum).ToString('000') } else { $rawNum }
     $expectedHtml = Join-Path $OutputDir "${SubjectPrefix}TX${num}.html"
-    if (-not (Test-Path $expectedHtml)) {
+    if ($SpecVersion -eq 'v13') {
+        # v13 は「旧レイアウト _lex の移行」なので公式 HTML の有無では判定できない
+        # （移行対象は公式・_lex が既に存在する）。判定は _lex が v13 エンジン
+        # （getInlineAnswerTablePanel）を持つか＝未移行なら pending。再実行は冪等
+        # （移行済み v13 は素通り）。_lex 不在（未 _lex 化）も pending 扱いで拾う。
+        $lexPath = Join-Path $LexOutputDir "${SubjectPrefix}TX${num}_lex.html"
+        $needsMigration = $true
+        if (Test-Path $lexPath) {
+            $lexHead = Get-Content -LiteralPath $lexPath -Raw -Encoding utf8 -ErrorAction SilentlyContinue
+            if ($lexHead -and $lexHead.Contains('getInlineAnswerTablePanel')) { $needsMigration = $false }
+        }
+        if ($needsMigration) {
+            $Pending += [PSCustomObject]@{
+                PdfPath = $pdf.FullName
+                Number  = $num
+                ProblemId = "${SubjectPrefix}TX${num}"
+                OutputPath = $expectedHtml
+            }
+        }
+    } elseif (-not (Test-Path $expectedHtml)) {
         $Pending += [PSCustomObject]@{
             PdfPath = $pdf.FullName
             Number  = $num
@@ -229,10 +257,11 @@ foreach ($target in $Targets) {
     # 生プロンプトは冒頭が説明文（"# new-tx-headless-v10.md ..."）のため、claude -p が
     # 仕様書（参照資料）と解釈して「依頼内容が分かりません」と挨拶で終了する事故が発生。
     # 先頭に強い実行命令を前置し、参照資料ではなく実行指示であることを明示する。
+    $promptName = [System.IO.Path]::GetFileNameWithoutExtension($PromptFile)
     $execDirective = @"
 【最優先・実行指示 / headless】これは参照資料ではなく実行命令である。あなたは今すぐ
 TX 問題 $($target.ProblemId) を生成するタスクを実行せよ。挨拶・確認・「依頼内容を
-教えてください」「内容が表示されているだけ」等の応答は禁止。下記手順書（new-tx-headless-v10）に
+教えてください」「内容が表示されているだけ」等の応答は禁止。下記手順書（$promptName）に
 従い、対象 PDF を読解して直ちに着手し、最後に必ず Section 9/10/11 の
 sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出力=$($target.OutputPath)
 
@@ -282,7 +311,7 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
     # === 生成時間異常検知（version-aware）===
     # v10.0.0：想定 20-30 min（baseline clone + section-by-section 鋳造）→ 上限 40 min (2400 秒)
     # v9.x：想定 4-7 min（旧 6 段階 Write）→ 上限 20 min (1200 秒)
-    $ElapsedUpperLimit = if ($SpecVersion -eq 'v10.0.0') { 2400 } else { 1200 }
+    $ElapsedUpperLimit = if ($SpecVersion -eq 'v10.0.0' -or $SpecVersion -eq 'v13') { 2400 } else { 1200 }
     if ($elapsed -gt $ElapsedUpperLimit) {
         Write-Warning "生成時間異常: ${elapsed}秒（上限 ${ElapsedUpperLimit}秒）- claude -p 不完全出力警戒"
         if ($SpecVersion -eq 'v10.0.0') {
@@ -324,23 +353,29 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
             $validateText = $validateOutput -join "`n"
             # PASS 判定（v10.0.0：Errors: 0、v9.x：ERROR 0 /）
             if ($validateText -match $ValidatePassRegex) {
-                Remove-Item -Path $target.PdfPath -Force
-                $cleanupTriggered = $true
                 $validateStatus = "PASS"
-                Write-Host "[CLEANUP] $($target.ProblemId): PDF auto-deleted (validate-tx PASS)" -ForegroundColor Green
+                if ($SpecVersion -eq 'v13') {
+                    # v13 は「旧レイアウトの移行」。入力 PDF は消さない（再移行のため保持・
+                    # PDF は Drive バックアップ済み）。永続化は prompt Section 8 の git commit/push。
+                    Write-Host "[KEEP-PDF] $($target.ProblemId): v13 移行のため入力 PDF を保持（validate PASS）" -ForegroundColor Green
+                } else {
+                    Remove-Item -Path $target.PdfPath -Force
+                    $cleanupTriggered = $true
+                    Write-Host "[CLEANUP] $($target.ProblemId): PDF auto-deleted (validate-tx PASS)" -ForegroundColor Green
 
-                # === Deliver to Drive + Backup (validate PASS 時のみ) ===
-                try {
-                    Copy-Item -Path $target.OutputPath -Destination $DriveDir -Force -ErrorAction Stop
-                    Write-Host "[DELIVER] Drive OK: $($target.ProblemId)" -ForegroundColor Green
-                } catch {
-                    Write-Host "[DELIVER FAIL] Drive: $_" -ForegroundColor Yellow
-                }
-                try {
-                    Copy-Item -Path $target.OutputPath -Destination $BackupDir -Force -ErrorAction Stop
-                    Write-Host "[BACKUP]  OK: $($target.ProblemId)" -ForegroundColor Green
-                } catch {
-                    Write-Host "[BACKUP FAIL] $_" -ForegroundColor Yellow
+                    # === Deliver to Drive + Backup (validate PASS 時のみ) ===
+                    try {
+                        Copy-Item -Path $target.OutputPath -Destination $DriveDir -Force -ErrorAction Stop
+                        Write-Host "[DELIVER] Drive OK: $($target.ProblemId)" -ForegroundColor Green
+                    } catch {
+                        Write-Host "[DELIVER FAIL] Drive: $_" -ForegroundColor Yellow
+                    }
+                    try {
+                        Copy-Item -Path $target.OutputPath -Destination $BackupDir -Force -ErrorAction Stop
+                        Write-Host "[BACKUP]  OK: $($target.ProblemId)" -ForegroundColor Green
+                    } catch {
+                        Write-Host "[BACKUP FAIL] $_" -ForegroundColor Yellow
+                    }
                 }
             } else {
                 $validateStatus = "ERROR_detected"
@@ -383,8 +418,10 @@ Write-Host "コストログ: $CostCsv"
 # 同一 title・同一本文・footer/title の ID コピペ残り(例 刑TX055←刑TX311)は
 # ファイル間でしか分からないため、バッチ終了時に outputs/000_TX 全体を横断チェックする。
 # 検出時は exit 1（push 前に気付けるように）。配信自体は per-item で既に済んでいる点に注意。
-Write-Host "`n--- バッチ後監査: scripts/check-duplicates.py outputs/000_TX ---" -ForegroundColor Cyan
-& python (Join-Path $ProjectRoot 'scripts/check-duplicates.py') (Join-Path $ProjectRoot 'outputs\000_TX')
+# v13 は二系統（公式＋ux/000_TX/_lex）を出すため outputs 全体を監査（ミラー除外は check 側）。
+$AuditRoot = if ($SpecVersion -eq 'v13') { Join-Path $ProjectRoot 'outputs' } else { Join-Path $ProjectRoot 'outputs\000_TX' }
+Write-Host "`n--- バッチ後監査: scripts/check-duplicates.py $AuditRoot ---" -ForegroundColor Cyan
+& python (Join-Path $ProjectRoot 'scripts/check-duplicates.py') $AuditRoot
 $dupExit = $LASTEXITCODE
 if ($dupExit -ne 0) {
     Write-Host "[AUDIT FAIL] 重複/ID 不整合を検出。push 前に上記 D80/D81/D82 を修正してください。" -ForegroundColor Red
