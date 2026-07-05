@@ -1,4 +1,4 @@
-# TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ 旧版TXLEX再生成＝R を1本で束ねる指揮者）
+﻿# TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ 旧版TXLEX再生成＝R を1本で束ねる指揮者）
 #
 # 【位置づけ】2026-07-04 確定・ユーザー指示で旧パターン（TX-MARCH / TX-PICK / JX）を廃止し、
 #   本 TJR を現行版の唯一の入口にする。TJR は「指揮者」であり、重い生成ロジックは持たない。
@@ -54,6 +54,20 @@ $JxRunner = Join-Path $ProjectRoot 'scripts\jx-batch-runner.ps1'
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
+
+# === スリープ抑止（DryRun 以外・feedback_nbr_keep_awake）===
+# TJR は指揮者。各エンジン(tx-v13-runner/jx-batch-runner)も同一プロセス内(& 呼び)で
+# keep-awake を立てるが、①最初のエンジン起動前の窓 ②全ストリーム skip 時 を取りこぼす。
+# NBR として夜間無人で回す前提上、指揮者自身が冒頭で抑止を立てて全 T→J→R を確実にカバーする
+# （ES_CONTINUOUS はスレッド継続＝プロセス終了で自動復帰）。
+if (-not $DryRun) {
+    try {
+        $sig = '[DllImport("kernel32.dll", SetLastError=true)] public static extern uint SetThreadExecutionState(uint esFlags);'
+        $PW = Add-Type -MemberDefinition $sig -Name PW -Namespace Win32 -PassThru -ErrorAction Stop
+        [void]$PW::SetThreadExecutionState([uint32]2147483651)  # ES_CONTINUOUS|ES_SYSTEM_REQUIRED|ES_DISPLAY_REQUIRED
+        Write-Host "[KEEP-AWAKE] スリープ抑止 ON（プロセス終了で自動復帰）" -ForegroundColor DarkGray
+    } catch { Write-Host "[KEEP-AWAKE] 抑止設定に失敗（続行）: $($_.Exception.Message)" -ForegroundColor Yellow }
+}
 
 # === 科目優先順（ユーザー指示・フォルダ番号順とは別）===
 #   ①刑法 ②刑事訴訟法 ③民法 ④民事訴訟法 ⑤商法 ⑥憲法 ⑦行政法
