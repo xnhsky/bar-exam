@@ -1,11 +1,11 @@
 ---
-description: 5 問バッチで TX を連続生成（new-tx の active 規律を継承。_lex は v13.0.0 LOOP-CARD＝GENESIS-CARD baseline）
+description: 5 問バッチで TX を連続生成（new-tx の active 規律を継承。_lex は v13.1.0 LOOP-CARD＝GENESIS-CARD baseline）
 ---
 
 # batch-tx：5 問バッチ生成コマンド
 
-> **active＝v13.0.0 LOOP-CARD（2026-07-03）**：`_lex` の新規生成は `new-tx` の v13 経路を継承する
-> （唯一起点＝`canonical/GENESIS-CARD.html`＋`spec/tx-v13.0.0-loopcard-core.md`）。既存 v12 資産の保守は
+> **active＝v13.1.0 LOOP-CARD（2026-07-03）**：`_lex` の新規生成は `new-tx` の v13 経路を継承する
+> （唯一起点＝`canonical/GENESIS-CARD.html`＋`spec/tx-v13.1.0-loopcard-core.md`）。既存 v12 資産の保守は
 > `GENESIS-CORE`。まず `docs/canonical-lineage.md` の active 行を確認する。
 
 ## 概要

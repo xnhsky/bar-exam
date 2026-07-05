@@ -479,7 +479,7 @@ class Validator:
         first = tags[0].get_text().strip()
         # v11/v12.x.x LOOP-CORE または v13.x.x LOOP-CARD（active）を許容。
         # v12.1.1 は v12.1.0 inline canon に narrative typography patch を重ねた版。
-        # v13.0.0 LOOP-CARD は「読む解説」再編（gold=刑TX359・lineage active）。
+        # v13.x LOOP-CARD（v13.0.0 基盤＋v13.1.0 正誤表リデザイン）は「読む解説」再編（gold=刑TX359・lineage active）。
         ok_core = first.startswith(("TX v11.", "TX v12.")) and "LOOP-CORE" in first
         ok_card = first.startswith("TX v13.") and "LOOP-CARD" in first
         if not (ok_core or ok_card):
@@ -1526,7 +1526,7 @@ class Validator:
                                         "判断式は結論到達の決定式、記憶フックは1秒で思い出す標語に役割分離する。")
 
     def g50_v13_loopcard_structure(self):
-        """v13.0.0 LOOP-CARD 構造検証（.tx-v13-verdict 検出時のみ・spec tx-v13.0.0-loopcard-core.md）。"""
+        """v13.x LOOP-CARD 構造検証（.tx-v13-verdict 検出時のみ・spec tx-v13.1.0-loopcard-core.md）。"""
         if not self.html_path.stem.endswith("_lex"):
             return
         if not self.soup.select_one(".tx-inline-card .tx-v13-verdict"):
@@ -1554,7 +1554,7 @@ class Validator:
             self.err("G50", "v13 で廃止のはずの #mindmap-radial（放射マップ）が残っている。")
         if self.soup.select_one(".tx-sysmap-back") and not self.soup.find(id="tx-sysmap"):
             self.err("G50", "体系マップ復路リンク（.tx-sysmap-back）の戻り先 id=tx-sysmap が .tx-sysmap に無い（往復が切れる）。")
-        # --- v13.0.0 正誤表リデザイン（体系マップ規範核バッジ／正誤表 印付き原文＋成績／重厚感）。
+        # --- v13.1.0 正誤表リデザイン（体系マップ規範核バッジ／正誤表 印付き原文＋成績／重厚感）。
         #     既存 v13 は未移行のため当面 WARNING（tx-lex-verdict-redesign.py＋data-brief-mark/規範核の鋳造で移行後 ERROR 化）。
         if "本問の帰結" in self.html:
             self.warn("G50", "体系マップに旧『本問の帰結（○×）』ネタバレ箱が残っている（答え先出し。v13 リデザインで廃止）。")

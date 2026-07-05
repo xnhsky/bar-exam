@@ -33,8 +33,19 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = Path(__file__).resolve().parent.parent
 LEX_DIR = ROOT / "outputs" / "ux" / "000_TX" / "001_刑法"
 
-V13 = "TX v13.0.0 LOOP-CARD"
+V13_0 = "TX v13.0.0 LOOP-CARD"      # 旧 v13（正誤表リデザイン未適用）
+V13_1 = "TX v13.1.0 LOOP-CARD"      # 最新 v13.1.0（正誤表リデザイン適用済＝規範核バッジ＋印付き原文）
 V13_MARKER = '<div class="tx-v13-verdict'
+
+
+def target_version(html):
+    """版判定：規範核バッジ(.nb-badge)＋印付き原文(data-brief-mark="…")の両方があれば v13.1.0、無ければ v13.0.0。"""
+    redesigned = ('class="nb-badge"' in html) and ('data-brief-mark="' in html)
+    return V13_1 if redesigned else V13_0
+
+
+FOOTER_DESC_0 = "v13.0.0 LOOP-CARD（記述カード＝統合解説＋📚BASIS／正誤表＋体系マップSVG＋物語・PART A ox-grid）"
+FOOTER_DESC_1 = "v13.1.0 LOOP-CARD（記述カード＝統合解説＋📚BASIS／正誤表(印付き原文＋法理コア＋成績)＋体系マップSVG(規範核バッジ)＋物語・PART A ox-grid）"
 
 # 先頭版 feature-tag（版名のみ・他タグは "TX v" で始まらないので不一致＝安全）
 P_TAG = re.compile(
@@ -45,13 +56,9 @@ P_GENMETA = re.compile(
     r'(class="footer-date lexia-genmeta"[^>]*>Generated:[^<]*/ )'
     r'TX v\d+\.\d+\.\d+ [A-Z][A-Z0-9-]*(</p>)'
 )
-# footer-problem の版説明行（v12.x LOOP-CORE ＋旧構造＝放射SVG 等）→ v13 汎用説明へ。
-# LOOP-CORE を持つ＝旧版のみ対象（LOOP-CARD は不一致＝冪等）。ID・科目・出典は温存。
-V13_FOOTER_DESC = (
-    "v13.0.0 LOOP-CARD（記述カード＝統合解説＋📚BASIS／正誤表＋体系マップSVG＋物語・PART A ox-grid）"
-)
+# footer-problem の版説明行（旧 vX.Y.Z LOOP-CORE も既存 LOOP-CARD も対象＝ファイルの版へ揃える。ID/科目/出典は温存）
 P_FOOTER = re.compile(
-    r'(<p class="footer-problem">[^\n]*?)v\d+\.\d+\.\d+ LOOP-CORE[^<]*(</p>)'
+    r'(<p class="footer-problem">[^\n]*?)v\d+\.\d+\.\d+ LOOP-C(?:ORE|ARD)[^<]*(</p>)'
 )
 
 
@@ -59,24 +66,25 @@ def process(path: Path, apply: bool):
     html = path.read_text(encoding="utf-8")
     if V13_MARKER not in html:
         return None  # v13 本文でない＝対象外
+    ver = target_version(html)
+    footer_desc = FOOTER_DESC_1 if ver == V13_1 else FOOTER_DESC_0
     before_tag = P_TAG.search(html)
-    before_gm = P_GENMETA.search(html)
-    new = P_TAG.sub(rf'\g<1>{V13}\g<2>', html)
-    new = P_GENMETA.sub(rf'\g<1>{V13}\g<2>', new)
-    new = P_FOOTER.sub(rf'\g<1>{V13_FOOTER_DESC}\g<2>', new)
+    new = P_TAG.sub(rf'\g<1>{ver}\g<2>', html)
+    new = P_GENMETA.sub(rf'\g<1>{ver}\g<2>', new)
+    new = P_FOOTER.sub(rf'\g<1>{footer_desc}\g<2>', new)
     changed = new != html
     old_ver = "?"
     if before_tag:
         m = re.search(r'TX v\d+\.\d+\.\d+ [A-Z][A-Z0-9-]*', before_tag.group(0))
         old_ver = m.group(0) if m else "?"
-    status = "CHANGED" if changed else "already-v13"
-    # 検算: 変更後に版が feature-tag・genmeta・footer-problem の3箇所とも v13 になっているか
-    ok_tag = bool(re.search(re.escape(V13) + r'</span>', new))
-    ok_gm = bool(re.search(r'/ ' + re.escape(V13) + r'</p>', new))
-    ok_footer = not P_FOOTER.search(new)  # 旧 LOOP-CORE の footer が残っていない
+    status = "CHANGED" if changed else "already-uptodate"
+    # 検算: 変更後に版が feature-tag・genmeta・footer-problem の3箇所ともファイルの版で揃っているか
+    ok_tag = bool(re.search(re.escape(ver) + r'</span>', new))
+    ok_gm = bool(re.search(r'/ ' + re.escape(ver) + r'</p>', new))
+    ok_footer = (footer_desc in new) or ('class="footer-problem"' not in new)
     if apply and changed:
         path.write_text(new, encoding="utf-8")
-    return (path.name, status, old_ver, ok_tag, ok_gm, ok_footer)
+    return (path.name, status, old_ver, ok_tag, ok_gm, ok_footer, ver)
 
 
 def main():
@@ -84,10 +92,11 @@ def main():
     files = sorted((ROOT / "outputs" / "ux" / "000_TX").glob("**/*_lex.html"))
     results = [r for r in (process(f, apply) for f in files) if r]
     changed = [r for r in results if r[1] == "CHANGED"]
-    print(f"{'[APPLY]' if apply else '[DRY-RUN]'} v13 本文ファイル: {len(results)} 本 / 変更対象: {len(changed)} 本")
-    for name, status, old, ok_tag, ok_gm, ok_footer in results:
+    n_v131 = sum(1 for r in results if r[6] == V13_1)
+    print(f"{'[APPLY]' if apply else '[DRY-RUN]'} v13 本文: {len(results)} 本（v13.1.0={n_v131} / v13.0.0={len(results)-n_v131}）/ 変更: {len(changed)} 本")
+    for name, status, old, ok_tag, ok_gm, ok_footer, ver in results:
         flag = "" if (ok_tag and ok_gm and ok_footer) else "  <<< 検算NG（tag={} gm={} footer={}）".format(ok_tag, ok_gm, ok_footer)
-        print(f"  {status:12} {old:22} -> {V13}  {name}{flag}")
+        print(f"  {status:14} {old:22} -> {ver}  {name}{flag}")
     bad = [r for r in results if not (r[3] and r[4] and r[5])]
     if bad:
         print(f"\n!! 検算NG {len(bad)} 本（版が3箇所そろっていない）")

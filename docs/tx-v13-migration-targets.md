@@ -1,4 +1,4 @@
-# TX v13 移行対象（旧レイアウト→v13.0.0 LOOP-CARD・刑法）
+# TX v13 移行対象（旧レイアウト→v13.1.0 LOOP-CARD・刑法）
 
 > 旧レイアウト `_lex`（`getInlineAnswerTablePanel` 無し）でPDFが `inputs/000_TX/001_刑法/` にある問題。
 > ローカルバッチ（`TX-PICK -SpecVersion v13`）の対象。gold見本＝刑TX125（2026-07-04 パイロット確定）。

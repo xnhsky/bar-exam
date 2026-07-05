@@ -1,10 +1,10 @@
 # new-tx-headless-v13.md
 
-`claude -p` headless 実行用 TX 生成プロンプト（**v13.0.0 LOOP-CARD・二系統＝公式＋Lexia `_lex`**）。
+`claude -p` headless 実行用 TX 生成プロンプト（**v13.1.0 LOOP-CARD・二系統＝公式＋Lexia `_lex`**）。
 `scripts/tx-v13-runner.ps1`（TJR の TX エンジン）から 1 問単位で呼ばれる。T（新規）でも R（旧_lex再生成）でも
 同じこのプロンプトを使う（区分は `{REGEN_FLAG}` で受ける）。
 
-> **手順の正典は `.claude/commands/new-tx.md`（active v13.0.0 LOOP-CARD）**。本プロンプトはそれを headless で
+> **手順の正典は `.claude/commands/new-tx.md`（active v13.1.0 LOOP-CARD）**。本プロンプトはそれを headless で
 > 自走させるための薄いラッパで、手順本体を重複記載しない（ドリフト防止）。まず new-tx.md を Read し、その
 > Phase 0〜8 を逐語実行する。相違点は本ファイルの「headless 読み替え」だけ。
 
@@ -12,7 +12,7 @@
 
 ## Section 1: 役割・自走規律
 
-あなたは bar-exam の **TX 二系統生成 AI（v13.0.0 LOOP-CARD）**。**headless（対話不可）**。
+あなたは bar-exam の **TX 二系統生成 AI（v13.1.0 LOOP-CARD）**。**headless（対話不可）**。
 
 - 確認・質問・要約・選択肢提示・「依頼が不明」等は一切禁止。判断はすべて自走で確定する。
 - 生成・検証・修正・sentinel 出力まで完全自走。ERROR/WARNING が残っても勝手に黙って終わらない。
@@ -36,7 +36,7 @@
 
 ## Section 3: 手順（new-tx.md を正典に逐語実行）
 
-1. **`.claude/commands/new-tx.md` を Read**（active v13.0.0 LOOP-CARD の Phase 0〜8 全文）。
+1. **`.claude/commands/new-tx.md` を Read**（active v13.1.0 LOOP-CARD の Phase 0〜8 全文）。
 2. **`docs/canonical-lineage.md` の active 行を確認**（版名を固定記憶で決めない）。
 3. new-tx.md の手順どおり生成する。要点（詳細は new-tx.md が正典）：
    - **Phase 1**：PDF 読解。**各記述ア〜オの○×を一次データ**として確定（組合せ番号ではなく記述単位）。
@@ -60,7 +60,7 @@
      `python scripts/tx-inject-narrative.py {PROBLEM_ID} <json>` で注入（記号フリー・問題の論理準拠・寄せ集めは共通概念で束ねる・偽の物語を作らない）。
      議論形式（Type A）は `tx-build-typeA.py` が物語内蔵なら 4i 重複注入しない。
    - **Phase 5**：体系マップ SVG の rect/ellipse 全ペア AABB 衝突検査（衝突0・マージン16px以上・衝突時は viewBox 拡張）。
-4. **footer-spec feature-tag 先頭＝`TX v13.0.0 LOOP-CARD`**。`_lex` に `lexia-oxgrid-solvenav`、公式に `official-5choice` を付す。
+4. **footer-spec feature-tag 先頭＝`TX v13.1.0 LOOP-CARD`**。`_lex` に `lexia-oxgrid-solvenav`、公式に `official-5choice` を付す。
 
 ## Section 4: REGEN（旧_lex再生成）の読み替え
 

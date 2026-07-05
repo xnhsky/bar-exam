@@ -1,10 +1,17 @@
-# TX v13.0.0 LOOP-CARD — 構造正典（core spec）
+# TX v13.1.0 LOOP-CARD — 構造正典（core spec）
 
 > TX 短答 `_lex`（Lexia 取込用）の第2世代フォーマット。**gold＝`canonical/GENESIS-CARD.html`（刑TX359）**。
 > スロット契約＝`canonical/GENESIS-CARD.placeholder.html`。系譜の active 判定は `docs/canonical-lineage.md`。
 > v12.2.1 LOOP-CORE（`GENESIS-CORE.html`）を凍結せず**並存**させる（既存 v12 資産の保守のため）。
 > **新規生成・v13 化は本 spec と GENESIS-CARD を唯一の起点にする。** 二系統（公式 `000_TX` ＋ Lexia `_lex`）は
 > `spec/tx-v11.1.0-twotrack.md` を継承（v13 の対象は `_lex`）。
+>
+> **版（LOCKED・2026-07-06）：v13.1.0＝最新（active）。** v13.0.0 LOOP-CARD（読む解説昇格＋📚BASIS＋テーゼ正誤表）を
+> 基盤に、**v13.1.0 で正誤表を「印付き記述原文＋法理コア＋成績表示＋重厚感」へ再設計、体系マップに ✍規範核バッジを追加、
+> 『本問の帰結』箱を廃止、各カード末尾に体系マップ復路リンクを追加**（第2・3・5項）。**完全リデザイン済み**（規範核バッジ
+> ＋印付き原文の両方を持つ）の `_lex` が v13.1.0、未適用の v13 本文は v13.0.0（`scripts/tx-lex-verdict-redesign.py` で土台注入
+> ＋各問で規範核・印付き原文を執筆して移行）。版は `scripts/tx-lex-v13-stamp.py` が実体から自動判定して feature-tag/genmeta/
+> footer の3箇所を揃える。**以後の設計変更は大小を判断して版を整理し、取り残し・漏れを出さない（feedback: バージョン整理）。**
 
 ---
 

@@ -1,12 +1,12 @@
 ---
-description: 新規 TX を問題 PDF から生成。_lex は active v13.0.0 LOOP-CARD（GENESIS-CARD baseline：統合解説昇格＋📚BASISトグル＋体系マップSVGハイブリッド＋正誤マーキング＋相互リンク往復）。公式版は本物5択。
+description: 新規 TX を問題 PDF から生成。_lex は active v13.1.0 LOOP-CARD（GENESIS-CARD baseline：統合解説昇格＋📚BASISトグル＋体系マップSVGハイブリッド＋正誤マーキング＋相互リンク往復）。公式版は本物5択。
 ---
 
 新規 TX HTML（短答式・二系統＝公式 `000_TX`＋Lexia `_lex`）を問題 PDF から生成する。
 
-> **【active＝v13.0.0 LOOP-CARD・2026-07-03】_lex の新規生成・v13 化はこの経路が唯一起点。** 最初に
+> **【active＝v13.1.0 LOOP-CARD・2026-07-03】_lex の新規生成・v13 化はこの経路が唯一起点。** 最初に
 > `docs/canonical-lineage.md` の active 行を読む。v13 の byte 正典は **`canonical/GENESIS-CARD.html`（gold=刑TX359）**＋
-> **`canonical/GENESIS-CARD.placeholder.html`（スロット契約）**＋**`spec/tx-v13.0.0-loopcard-core.md`（構造 spec）**。
+> **`canonical/GENESIS-CARD.placeholder.html`（スロット契約）**＋**`spec/tx-v13.1.0-loopcard-core.md`（構造 spec）**。
 > 生成は GENESIS-CARD を複製し、placeholder のスロットだけを問題固有に埋める（CSS/JS/class/DOM/節順は固定・接ぎ木禁止）。
 > - **設計の核**：v12.2.1 の「肢を解く UI（ANSWER箱＋5点フロー＋記憶フック）」を廃し、**旧 PART B の統合解説プロースを
 >   記述カード本文へ昇格**。条文・判例は各カードの **「📚 BASIS」ボックス**（条文＝本文表示/解説トグル・判例＝判旨表示/以下トグル）へ集約。

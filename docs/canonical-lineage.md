@@ -18,21 +18,21 @@
 
 ## TX（短答式）
 
-### 現行 active ＝ **v13.0.0 LOOP-CARD**（2026-07-03・刑TX359 gold・「読む解説」再編）
+### 現行 active ＝ **v13.1.0 LOOP-CARD**（2026-07-06・刑TX359 gold・正誤表リデザイン。基盤 v13.0.0=2026-07-03）
 
 | 役割 | canonical | 生成コマンド | validator |
 |---|---|---|---|
-| **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.0.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G45＋**G50 v13構造**）＋`check-tx-lex-engine.py`（G41/script2本）＋`check-duplicates.py` |
+| **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.1.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G45＋**G50 v13構造**）＋`check-tx-lex-engine.py`（G41/script2本）＋`check-duplicates.py` |
 | 公式版（本物5択・`000_TX`） | — | `/new-tx` 二系統出力 | `validate-tx-core.py`（single/multi） |
 
-- 構造正典 spec：**`spec/tx-v13.0.0-loopcard-core.md`**（active・byte 正典）。二系統は `spec/tx-v11.1.0-twotrack.md` を継承。
-- **v13.0.0 LOOP-CARD（2026-07-03・active）**：v12.2.1 の「肢を解く UI（ANSWER箱＋5点フロー＋記憶フック）」を廃し、
+- 構造正典 spec：**`spec/tx-v13.1.0-loopcard-core.md`**（active・byte 正典）。二系統は `spec/tx-v11.1.0-twotrack.md` を継承。
+- **v13.1.0 LOOP-CARD（2026-07-06・active＝最新）／基盤 v13.0.0（2026-07-03）**：v12.2.1 の「肢を解く UI（ANSWER箱＋5点フロー＋記憶フック）」を廃し、
   **旧 PART B の統合解説プロースを記述カード本文へ昇格**、条文・判例は各カードの **「📚 BASIS」ボックス**（条文＝本文表示/
   解説トグル・判例＝判旨表示/以下トグル）へ集約。縦順＝正誤表(印付き原文＋法理コア＋成績)→**体系マップ(SVGハイブリッド・規範核バッジ・帰结箱なし)**→
   横断(3軸マトリクス)→肢カード→物語→#basis(現行法note のみ)。**正誤表リデザイン（2026-07-06）**＝各行に印付き記述原文(`data-brief-mark`)＋法理コア(転用タグ)＋成績表示(🎉)＋重厚感、体系マップ各札に✍規範核バッジ、`▼本問の帰結`箱は廃止。gold=刑TX359 適用済／既存は `scripts/tx-lex-verdict-redesign.py`（土台）＋各問執筆で移行。**正誤マーキング**（記述原文の分かれ目を×赤波線/○緑下線）、
   **相互リンク往復**（条文参照→BASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合）、**他科目横断は重要接点のみ**（放火では
   失火→民法失火責任法）。使い方説明は載せない。validator G50 と placeholder 契約で回帰を止める。
-- **v13 本文（`<div class="tx-v13-verdict">`）は既に 36 本へ展開済**（`089 125 174 218 256 355-385[381除く] 420`・gold=刑TX359）。2026-07-04 に版スタンプを `TX v13.0.0 LOOP-CARD` へ正規化（`scripts/tx-lex-v13-stamp.py`・本文不変・冪等）。**版はスタンプ文字列でなく本文タグで判定すること**（v13 ビルド連鎖がスタンプを更新せず旧版名が残っていた経緯あり）。**未移行＝純 v11 の 326 本＋381**（v12.2.1/GENESIS-CORE 保守のまま）。
+- **v13 本文（`<div class="tx-v13-verdict">`）は 50 本**（刑法49＋刑訴1・`089 125 174 218 256 290-302 355-385[381除く] 420` 等・gold=刑TX359）。**版は `scripts/tx-lex-v13-stamp.py` が実体から自動判定**して feature-tag/genmeta/footer の3箇所を揃える＝**規範核バッジ＋印付き原文の両方**を持てば **v13.1.0**、無ければ **v13.0.0**。現状 **v13.1.0＝刑TX371 の1本**（正誤表リデザイン適用済）、残り 49 本は **v13.0.0**（`scripts/tx-lex-verdict-redesign.py` で土台注入＋各問で規範核・印付き原文を執筆して移行）。**版はスタンプ文字列でなく本文タグで実体判定**（v13 ビルド連鎖がスタンプを更新せず旧版名が残っていた経緯あり）。**未移行＝純 v11 の 326 本＋381**（v12.2.1/GENESIS-CORE 保守のまま）。
 - 旧 active（v12.2.1 LOOP-CORE）の構造正典：`spec/tx-v12.1.0-inline-core.md`＋`docs/tx-v12.2.1-inline-lock.md`。既存 v12 資産は
   `canonical/GENESIS-CORE.html`（v12.2.1）＋`GENESIS-DEEP.html`（`/deepen-tx`・`validate-tx-deep.py`）で保守。
 - 設計の核（v11.0.0 から継承）：肢（記述）単位管理／PART A=ox-grid 5記述○×＋answer-key／記述単位 PART B／参考条文判例
@@ -57,7 +57,7 @@
 | v10 | `canonical/GENESIS.html` | v10.0.0 GOLD-SKELETON | **凍結** | 刑TX311 ベース。既存197問（v10）の保守用。`validate-tx-gold.py`(G1〜G19)・`validate-tx.py`(legacy S1〜S91) |
 | **v11** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v11.1.0 LOOP-CORE**（v11.0.0→2026-06-15 刑TX327 昇格） | **frozen** | GENESIS を再編して CORE/DEEP に分割。v11.1.0 で誌面リスキン＋3層配色＋SYNTHESIS子カード＋PART B+ |
 | **v12** | **`GENESIS-CORE` ＋ `GENESIS-DEEP`** | **v12.2.1 LOOP-CORE**（v12.0.0 major→v12.1.0 TX360 polish→v12.1.1 typography→v12.2.0 redesign→v12.2.1 display lock） | **frozen（純v11 326本＋381 の保守用。355-385[381除く]は既に v13 本文へ移行済）** | 問題文直後のインライン肢カードを主導線にし、PART B を詳説トグルへ吸収。条文/判例ラベル・解法ナビ・物語解説の表示LOCKを G45 で固定する |
-| **v13** | **`GENESIS-CARD` ＋ `GENESIS-CARD.placeholder`** | **v13.0.0 LOOP-CARD**（2026-07-03・gold=刑TX359） | **active** | 「肢を解く UI」を廃し「読む解説」中心へ。統合解説をカード本文へ昇格、条文/判例は📚BASISトグルへ集約、体系マップSVGハイブリッド、正誤マーキング、相互リンク往復。G50＋placeholder契約で固定 |
+| **v13** | **`GENESIS-CARD` ＋ `GENESIS-CARD.placeholder`** | **v13.1.0 LOOP-CARD**（2026-07-06・gold=刑TX359・正誤表リデザイン。基盤 v13.0.0） | **active** | 「肢を解く UI」を廃し「読む解説」中心へ。統合解説をカード本文へ昇格、条文/判例は📚BASISトグルへ集約、体系マップSVGハイブリッド、正誤マーキング、相互リンク往復。G50＋placeholder契約で固定 |
 
 > **「GENESIS」名の整理**：無印 `GENESIS.html` ＝ **v10 凍結**。v11/v12 の起点＝`GENESIS-CORE`／`GENESIS-DEEP`（frozen・保守）。
 > **v13 新規生成の唯一起点＝`GENESIS-CARD`（＋`.placeholder`）**。

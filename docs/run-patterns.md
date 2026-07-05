@@ -69,7 +69,7 @@ pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑訴 -DryRun     # 各
 
 ## R（旧版TXLEX再生成）の対象判定
 
-- 対象＝`outputs/ux/000_TX/{科目}/*_lex.html` のうち **版マーカーが v13 でない**（`v13.0.0`/`LOOP-CARD`/`GENESIS-CARD` を
+- 対象＝`outputs/ux/000_TX/{科目}/*_lex.html` のうち **版マーカーが v13 でない**（`v13.`/`LOOP-CARD`/`GENESIS-CARD` を
   含まない）もの、**かつ** `inputs/000_TX/{科目}/{番号}.pdf` が残っているもの。
 - PDF が既に削除された旧_lex は **再生成不能**＝`[R-SKIP-NOPDF]` を出してスキップ（Drive の抽出PDFバックアップから
   復元後に再対象化）。R は全件 v13 化で対象が尽きて自然消滅する。
