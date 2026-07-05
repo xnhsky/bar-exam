@@ -1,5 +1,9 @@
 # jx-batch-runner.ps1
 #
+# 【2026-07-04・TJR 内部エンジン】号令は TJR（scripts/patterns/TJR.ps1）に一元化した。本 runner は
+#   TJR の J ストリームが呼ぶ内部エンジンであり、通常は直接叩かない（「TJR処理 {科目}」を使う）。
+#   多数の常駐スクリプト（rx-arb-autofill/backfill 等）が依存するため物理削除せず温存する。
+#
 # JX→TTS→音声 一気通貫バッチランナー（v2: 逐語入力＋PDF削除＋音声全自動）。
 # inputs/jx-pdfs/ の「PDF＋同番号の講義逐語(.txt/.md)」を最若番から処理し、
 # 1 問あたり以下の段で通す：

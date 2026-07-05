@@ -1,5 +1,10 @@
 ﻿# night-batch-runner.ps1
 #
+# 【2026-07-04・引退＝v10 GOLD-SKELETON 専用】TX 新規/再生成の現行経路は TJR（T/R）＝
+#   scripts/tx-v13-runner.ps1（v13 二系統）に移行した。本 runner は旧 v10（単一ファイル・GENESIS.html・
+#   validate-tx-gold）を出すため、新規生成には使わない。既存 v10 資産の保守と、まだ貼り替えていない
+#   Windows スケジュールタスク（register-night-batch-tasks.ps1）向けに残置。スケジュールは順次 TJR へ貼り替える。
+#
 # Phase D: 夜間自動運用バッチランナー。
 # タスクスケジューラから 21:00 / 23:00 / 01:00 / 03:00 / 05:00 の
 # 2 時間ごとに起動され、各起動で未生成 PDF を最若番から 5 問処理する。
