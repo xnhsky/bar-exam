@@ -48,6 +48,8 @@
    - **Phase 4a〜4g**：v13 LOOP-CARD の縦順・カード物理順で section-by-section 鋳造
      （正誤表→体系マップ(SVGハイブリッド)→横断→肢カード→物語→#basis。カード＝判定バッジ→記述原文(正誤マーキング)
      →統合解説→POINT→📚BASIS→間違いやすいポイント→他科目横断）。相互リンク往復・正誤マーキングを配線。
+     **正誤表(spec第2項)＝各行に印付き原文スロット `data-brief-mark`（各肢 `.syn-orig` と同じ marking の要約版・×赤波下線+✕+「→正解」/○緑下線+✓・属性は二重引用/内側classは単引用）を必ず鋳造**（法理コアは転用タグをエンジンが抽出・成績と重厚感はエンジン/CSSが自動）。
+     **体系マップ(spec第3項)＝各記述札に ✍規範核バッジ `.nb-badge`＋`.nb-badge-text`（転用可能な規範核1文・ノード高さ118）を必ず鋳造し、`▼本問の帰結（○×）`箱は置かない**（未鋳造は Phase 6 の validate-tx-core G50 が WARN で検出）。
    - **Phase 4h（二系統・必須）**：`{OFFICIAL_PATH}` を **`_lex` に切り出し**てから公式を de-grid：
      1. `cp {OFFICIAL_PATH} {LEX_PATH}`
      2. `{LEX_PATH}` に `{SOLVENAV_PATH}` の解法ナビ3ブロックを注入（**エンジンJSは逐語コピー・問題固有データのみ本問値**）。

@@ -1541,6 +1541,9 @@ class Validator:
                 self.err("G50", f"v13 カード{i}に📌POINT（.choice-points）が無い。")
             if not ex.select_one(".sub-card.basis-link"):
                 self.err("G50", f"v13 カード{i}に📚BASIS（.sub-card.basis-link）が無い。条文/判例を箱内トグルで置く。")
+            if not ex.select_one(".tx-sysmap-back"):
+                self.err("G50", f"v13 カード{i}に体系マップ復路リンク .tx-sysmap-back（↑体系マップに戻る・"
+                                "href=#tx-sysmap）が無い。解説末尾に置いてハブ往復させる（第5項7・往路 #stmt-N と対）。")
             for cls, label in ((".tx-answer-box", "ANSWER箱"), (".tx-onepoint", "記憶フック"),
                                (".tx-article-flow", "5点フロー"), (".tx-mini-law", "条文判例チップ")):
                 if ex.select_one(cls):
@@ -1549,6 +1552,18 @@ class Validator:
             self.err("G50", "v13 の体系マップ SVG（.tx-sysmap svg.tree-svg）が無い。")
         if self.soup.find(id="mindmap-radial"):
             self.err("G50", "v13 で廃止のはずの #mindmap-radial（放射マップ）が残っている。")
+        if self.soup.select_one(".tx-sysmap-back") and not self.soup.find(id="tx-sysmap"):
+            self.err("G50", "体系マップ復路リンク（.tx-sysmap-back）の戻り先 id=tx-sysmap が .tx-sysmap に無い（往復が切れる）。")
+        # --- v13.0.0 正誤表リデザイン（体系マップ規範核バッジ／正誤表 印付き原文＋成績／重厚感）。
+        #     既存 v13 は未移行のため当面 WARNING（tx-lex-verdict-redesign.py＋data-brief-mark/規範核の鋳造で移行後 ERROR 化）。
+        if "本問の帰結" in self.html:
+            self.warn("G50", "体系マップに旧『本問の帰結（○×）』ネタバレ箱が残っている（答え先出し。v13 リデザインで廃止）。")
+        if not self.soup.select_one(".tx-sysmap-svg .nb-badge"):
+            self.warn("G50", "体系マップ各札の✍規範核バッジ（.nb-badge）が無い（v13 リデザインの転用可能な規範核）。")
+        if "function computeInlineScore(" not in self.html:
+            self.warn("G50", "正誤表の成績エンジン computeInlineScore が未導入（tx-lex-verdict-redesign.py で土台注入する）。")
+        if not self.soup.select_one("[data-brief-mark]"):
+            self.warn("G50", "正誤表行に印付き原文スロット data-brief-mark が無い（v13 リデザイン＝誤り箇所に下線＋正解）。")
         # Lexia 復習プールは v13 の THE GIST/POINT と同期する（旧5点フローラベルを残さない・第5-bis項）。
         _old5 = ("文言", "趣旨", "射程", "切断点", "転用")
         for li in self.soup.select(".ox-pool-points li"):
