@@ -81,7 +81,8 @@ def main():
         if '.tx-inline-card' not in h:
             print('[SKIP] %s (v13 inline でない)' % p); continue
         h2 = polish(h)
-        open(p, 'w', encoding='utf-8').write(h2)
+        # write_bytes で LF 固定（Windows text-mode 書込みの CRLF 変換＝全行偽差分を防ぐ）。
+        open(p, 'wb').write(h2.encode('utf-8'))
         print('[OK] %s polished' % p)
 
 

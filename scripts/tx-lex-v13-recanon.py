@@ -504,7 +504,10 @@ def build(path, slots, out=None, gold_path=GOLD):
         log.append('v13 polish applied (review 6pt)')
 
     outp = out or path
-    Path(outp).write_text(h, encoding='utf-8')
+    # write_bytes で LF 固定（read_text の universal-newline で h は必ず \n）。
+    # Windows の write_text は os.linesep=CRLF へ変換し、LF 統一のリポで全行が
+    # 偽差分化する（fix-heian-jingu-date で実証）。R バッチ 326 本の巨大偽 diff を防ぐ。
+    Path(outp).write_bytes(h.encode('utf-8'))
     log.append('WROTE %s | scripts=%d styles=%d v13-verdict=%d basis-items=%d bref=%d marks=%d svg=%s mindmap=%d'
                % (outp, h.count('<script'), h.count('<style'), h.count('tx-v13-verdict'),
                   h.count('class="tx-basis-item '), h.count('id="bref-'),
