@@ -9,7 +9,7 @@ description: 新規 TX を問題 PDF から生成。_lex は active v13.1.0 LOOP
 > **`canonical/GENESIS-CARD.placeholder.html`（スロット契約）**＋**`spec/tx-v13.1.0-loopcard-core.md`（構造 spec）**。
 > 生成は GENESIS-CARD を複製し、placeholder のスロットだけを問題固有に埋める（CSS/JS/class/DOM/節順は固定・接ぎ木禁止）。
 > - **設計の核**：v12.2.1 の「肢を解く UI（ANSWER箱＋5点フロー＋記憶フック）」を廃し、**旧 PART B の統合解説プロースを
->   記述カード本文へ昇格**。条文・判例は各カードの **「📚 BASIS」ボックス**（条文＝本文表示/解説トグル・判例＝判旨表示/以下トグル）へ集約。
+>   記述カード本文へ昇格**。条文・判例は各カードの **「📚 BASIS」ボックス**（条文＝本文表示/解説トグル・判例＝判旨表示/以下トグル・**学説＝ラベンダー/任意項目**＝重要な学説対立の記述だけ `.tx-basis-item.is-theory`）へ集約。
 > - **縦順**：正誤表→**体系マップ(SVGハイブリッド・下部旧SVG2枚は廃止)**→横断(3軸マトリクス)→肢カード→物語(カード直後)→#basis(現行法note のみ)。
 > - **正誤表(LOCKED・spec第2項)**：各行＝①**印付き記述原文**（`.tx-vb-orig-mark`＝各行`<tr>`の **`data-brief-mark`** にHTML。各肢カード `.syn-orig` と同じ marking の**要約版**。×=誤り核に赤波下線`.tx-stmt-x`+✕+`.tx-stmt-fix`「→正解」／○=緑下線`.tx-stmt-o`+✓。属性は二重引用・内側classは単引用`'…'`）＋②**法理コア**（`.tx-vb-core`＝`extractReviewCoreSummary` が **転用タグ**を1文抽出）。見出し行右に**成績**（`computeInlineScore`→`.tx-inline-answer-score`＝🎉全問正解！N/N ／ n/N 正解）。**重厚感**（額装フレーム・金プレート見出し📋・立体ヘッダー・正誤行の左アクセント帯・押し出しチップ）。**data-brief-mark は問題固有スロット＝各記述で必ず執筆**（未鋳造は validate-tx-core G50 が WARN）。
 > - **体系マップ(LOCKED・spec第3項)**：客体三分ツリー＋本問N局面の記述札（`#stmt-N`）。各札に **✍規範核バッジ**（`.nb-badge`＋`.nb-badge-text`＝転用可能な**規範核1文**・ノード accent の暗色で白抜き11〜14字・ノード高さ118）。**`▼ 本問の帰結（○×）`箱は置かない**（答え先出し禁止）。帰結箱を除いた分 viewBox 下端を詰める。往路=`#stmt-N`／復路=各カード末尾 `.tx-sysmap-back`（`#tx-sysmap`）。**規範核バッジ文言は問題固有スロット＝必ず執筆**（未鋳造は G50 が WARN）。
