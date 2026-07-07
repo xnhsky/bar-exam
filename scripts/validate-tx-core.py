@@ -1591,8 +1591,19 @@ class Validator:
                 self.err("G50", f"v13 カード{i}に統合解説（.sub-card.synthesis）が無い。旧PART Bプロースを本文位置へ昇格する。")
             if not ex.select_one(".choice-points"):
                 self.err("G50", f"v13 カード{i}に📌POINT（.choice-points）が無い。")
-            if not ex.select_one(".sub-card.basis-link"):
+            basis = ex.select_one(".sub-card.basis-link")
+            if not basis:
                 self.err("G50", f"v13 カード{i}に📚BASIS（.sub-card.basis-link）が無い。条文/判例を箱内トグルで置く。")
+            elif not basis.select_one(".tx-basis-item"):
+                # 箱シェルだけで条文/判例が空＝合意（各カードに BASIS）に反する。中身が正典（第6項）。
+                self.err("G51", f"v13 カード{i}の📚BASIS（.sub-card.basis-link）に条文/判例（.tx-basis-item）が"
+                                "1件も無い＝空箱。旧#basis の ref-backlinks 配分に従い条文/判例を鋳造する（spec 第6項）。")
+            # 各記述に⚠️間違いやすいポイント（.tx-v13-trap）＝横串・誤解の罠を積極投入（spec 第5項5・§v13m③）。
+            #     trap 無し記述は同型で1枠新設する規約。corpus 全体で未充足が残るため当面 WARNING（充足後 ERROR 化）。
+            trap = ex.select_one(".tx-v13-trap")
+            if not trap or not trap.get_text(strip=True):
+                self.warn("G52", f"v13 カード{i}に⚠️間違いやすいポイント（.tx-v13-trap＝横串解説）が無い/空。"
+                                "似た論点の混同・差がつくひっかけを先回りする横串を1枠置く（spec 第5項5・§v13m③）。")
             if not ex.select_one(".tx-sysmap-back"):
                 self.err("G50", f"v13 カード{i}に体系マップ復路リンク .tx-sysmap-back（↑体系マップに戻る・"
                                 "href=#tx-sysmap）が無い。解説末尾に置いてハブ往復させる（第5項7・往路 #stmt-N と対）。")
@@ -1616,6 +1627,14 @@ class Validator:
             self.warn("G50", "正誤表の成績エンジン computeInlineScore が未導入（tx-lex-verdict-redesign.py で土台注入する）。")
         if not self.soup.select_one("[data-brief-mark]"):
             self.warn("G50", "正誤表行に印付き原文スロット data-brief-mark が無い（v13 リデザイン＝誤り箇所に下線＋正解）。")
+        # 第7項 相互リンク往復＝解説内 a.ref-stat[href="#bref-…"] は同カードの BASIS 条文 id に解決する。
+        #     配線切れ（存在しない bref-… を指す）は往復ハブが黙って壊れる（174/218 で実害）。当面 WARNING。
+        _ids = {e.get("id") for e in self.soup.select("[id]")}
+        _broken = [a.get("href") for a in self.soup.select('a.ref-stat[href^="#bref-"]')
+                   if a.get("href", "")[1:] not in _ids]
+        if _broken:
+            self.warn("G53", f"相互リンク（a.ref-stat）が存在しない条文 id を指す配線切れ {len(_broken)}件"
+                            f"（例 {_broken[0]}）。同カード BASIS の #bref-{{記述}}-{{条番号}} へ配線する（第7項）。")
         # Lexia 復習プールは v13 の THE GIST/POINT と同期する（旧5点フローラベルを残さない・第5-bis項）。
         _old5 = ("文言", "趣旨", "射程", "切断点", "転用")
         for li in self.soup.select(".ox-pool-points li"):
