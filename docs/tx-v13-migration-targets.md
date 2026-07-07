@@ -35,3 +35,23 @@
   横串・誤解の罠が未執筆。**執筆時に v13m 規約（§v13m C）で埋める**か、ローカル再生成に載せる。
   G52 で機械可視化済み（`validate-tx-core.py` が各カードの `.tx-v13-trap` 欠落を報告）。
 - 良好（trap 5/5・BASIS 充実）：361, 363-365, 386-400。
+
+---
+
+## 第2-3項 正誤表リデザイン 未移行ワークリスト（2026-07-07・v13m完遂時に確定）
+
+v13m の合意（横串trap・BASIS中身・相互リンク・🗝記憶のフック）は全 corpus 完遂＋ERROR ゲート化済み。
+残るのは **v13.1.0 第2-3項（正誤表リデザイン）＝旧 v13.0.0 の 26本**（`validate-tx-core` の G50 WARNING
+＝nb-badge／computeInlineScore／data-brief-mark 欠で毎回可視化される）。**当面 WARNING**（spec §10）。
+
+- **対象26本**：刑TX089 125 174 218 256 290 291 292 293 294 295 296 297 298 299 300 301 302 355 356 357 358 359 360 420 ／ 刑訴TX001
+- **なぜローカル別作業か**：決定論ツール `scripts/tx-lex-verdict-redesign.py` は CSS＋エンジン（成績 computeInlineScore）
+  までしか自動注入できず、**nb-badge（体系マップ各ノードの✍規範核1文）と data-brief-mark（正誤表各行の印付き原文要約）は
+  問題ごとの手執筆**（26本×約10項目＝約260項目）。土台だけ流すと印付き原文が空で正誤表が劣化するため、
+  **ツール注入＋規範核/印付き原文の執筆をセットで**行う。
+- **手順（1本ずつ）**：
+  1. `python -X utf8 scripts/tx-lex-verdict-redesign.py <target_lex>`（CSS＋成績エンジン注入・冪等）。
+  2. 体系マップ各ノードに `.nb-badge`＋規範核1文（転用可能な規範の核・11〜14字）を鋳造（`tx-lex-v131-author.py` 併用可）。
+  3. 正誤表各行に `data-brief-mark`（誤り核語句に下線＋→正解／正しさの決め手に緑下線の要約版）を鋳造。
+  4. `validate-tx-core.py` の G50 WARNING（nb-badge/score/brief-mark）が消えたことを確認。
+- 完了本は上記リストから消し込む。全26本完了で第2-3項も ERROR 化できる（G54 と同じ昇格手順）。
