@@ -1539,8 +1539,19 @@ class Validator:
                 self.err("G50", f"v13 カード{i}に統合解説（.sub-card.synthesis）が無い。旧PART Bプロースを本文位置へ昇格する。")
             if not ex.select_one(".choice-points"):
                 self.err("G50", f"v13 カード{i}に📌POINT（.choice-points）が無い。")
-            if not ex.select_one(".sub-card.basis-link"):
+            basis = ex.select_one(".sub-card.basis-link")
+            if not basis:
                 self.err("G50", f"v13 カード{i}に📚BASIS（.sub-card.basis-link）が無い。条文/判例を箱内トグルで置く。")
+            elif not basis.select_one(".tx-basis-item"):
+                # 箱シェルだけで条文/判例が空＝合意（各カードに BASIS）に反する。中身が正典（第6項）。
+                self.err("G51", f"v13 カード{i}の📚BASIS（.sub-card.basis-link）に条文/判例（.tx-basis-item）が"
+                                "1件も無い＝空箱。旧#basis の ref-backlinks 配分に従い条文/判例を鋳造する（spec 第6項）。")
+            # 各記述に⚠️間違いやすいポイント（.tx-v13-trap）＝横串・誤解の罠を積極投入（spec 第5項5・§v13m③）。
+            #     trap 無し記述は同型で1枠新設する規約。corpus 全体で未充足が残るため当面 WARNING（充足後 ERROR 化）。
+            trap = ex.select_one(".tx-v13-trap")
+            if not trap or not trap.get_text(strip=True):
+                self.warn("G52", f"v13 カード{i}に⚠️間違いやすいポイント（.tx-v13-trap＝横串解説）が無い/空。"
+                                "似た論点の混同・差がつくひっかけを先回りする横串を1枠置く（spec 第5項5・§v13m③）。")
             if not ex.select_one(".tx-sysmap-back"):
                 self.err("G50", f"v13 カード{i}に体系マップ復路リンク .tx-sysmap-back（↑体系マップに戻る・"
                                 "href=#tx-sysmap）が無い。解説末尾に置いてハブ往復させる（第5項7・往路 #stmt-N と対）。")

@@ -206,6 +206,14 @@ Lexia は `_lex` を取り込み、間違えた記述を **肢キー `{問題ID}
 - `python scripts/validate-tx-core.py <_lex>`：**v13 判定＝`.tx-v13-verdict` 検出**。v13 では
   choice-section / ANSWER 箱 / 5点フロー / 記憶フックの旧必須を解除し、v13 構造（synthesis 昇格・BASIS
   トグル・体系マップ SVG・#basis 現行法note）を検査。旧 v12 ファイルは従来どおり検証（非退行）。
+  - **G51（ERROR・2026-07-07）＝BASIS 空箱禁止**：`.sub-card.basis-link` に `.tx-basis-item`（条文/判例）が
+    1件も無い空シェルを弾く。「箱があるか」だけでなく「中身があるか」を見る（G50 は箱の存在のみ検査していた穴を塞ぐ）。
+  - **G52（WARNING・2026-07-07）＝横串解説の充足**：各記述カードに `.tx-v13-trap`（⚠️間違いやすいポイント＝横串）が
+    無い/空を検出（第5項5・§v13m③）。corpus 全体に未充足が残るため当面 WARNING、全 v13 の trap 執筆完了後に ERROR 化。
+  - **背景（2026-07-07・恒久正典化の完成）**：v13m の合意（各カードに横串 trap・BASIS 中身）は spec/CLAUDE.md には
+    書いたが**下流ゲートが空白**で、再生成バッチが trap 抜け・BASIS 空箱を出しても検証を素通りし push された
+    （361-400 で実害・18本 trap 欠・368 は BASIS 全空）。G51/G52 で「作らせない上流契約＋作っても弾く下流ゲート」の
+    二重防御を trap/BASIS にも適用する。
 - `python scripts/check-tx-lex-engine.py`：G41 単一エンジン＋script 最大2本。
 - `python scripts/check-duplicates.py outputs`：他ファイルとの重複・ID 不整合。
 - レンダリング実測（playwright）で、正誤表テーゼ／体系マップ／相互リンク往復／トグル／マーキングの
