@@ -1575,6 +1575,14 @@ class Validator:
             self.warn("G50", "正誤表の成績エンジン computeInlineScore が未導入（tx-lex-verdict-redesign.py で土台注入する）。")
         if not self.soup.select_one("[data-brief-mark]"):
             self.warn("G50", "正誤表行に印付き原文スロット data-brief-mark が無い（v13 リデザイン＝誤り箇所に下線＋正解）。")
+        # 第7項 相互リンク往復＝解説内 a.ref-stat[href="#bref-…"] は同カードの BASIS 条文 id に解決する。
+        #     配線切れ（存在しない bref-… を指す）は往復ハブが黙って壊れる（174/218 で実害）。当面 WARNING。
+        _ids = {e.get("id") for e in self.soup.select("[id]")}
+        _broken = [a.get("href") for a in self.soup.select('a.ref-stat[href^="#bref-"]')
+                   if a.get("href", "")[1:] not in _ids]
+        if _broken:
+            self.warn("G53", f"相互リンク（a.ref-stat）が存在しない条文 id を指す配線切れ {len(_broken)}件"
+                            f"（例 {_broken[0]}）。同カード BASIS の #bref-{{記述}}-{{条番号}} へ配線する（第7項）。")
         # Lexia 復習プールは v13 の THE GIST/POINT と同期する（旧5点フローラベルを残さない・第5-bis項）。
         _old5 = ("文言", "趣旨", "射程", "切断点", "転用")
         for li in self.soup.select(".ox-pool-points li"):
