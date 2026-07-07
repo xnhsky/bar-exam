@@ -1188,6 +1188,58 @@ class Validator:
                         "答え選択肢（組合せ1〜5）を ox-row にしない＝組合せ当否判定は正解の暗記で転用不能。"
                         "空欄/記述/事例単位の独立命題へ分解する（見本 刑TX350・blank モードは correct-value 全○）。")
 
+    def g46_no_self_verdict_stmt(self):
+        # ox-stmt は「○×判定の対象になる素の命題」であり、命題自身の当否評価
+        # （「…は誤り」「…は正しい」、括弧内の（…誤り）、前段/後段の当否メタ言及）を
+        # 含んではならない。含めると、正しい命題を述べているのに answer-key が × 等になり、
+        # 肢文の字義上の真偽と正解番号が矛盾して学習者を混乱させる。
+        #   実害：刑TX363 記述3・記述5 で「（判例の）正しい命題＋『（…は誤り）』注記」が
+        #   × 判定と噛み合わず、「合っている命題なのに×？」という誤解を生んだ（2026-07-07）。
+        # 原因：ox-stmt の記号フリー正規化時に、元の誤った命題を書く代わりに「正しい見解＋
+        # 誤りである旨の解説」を肢文へ書いてしまう癖（LLM の“親切な補足”）。
+        # 対処：評価語は解説（.ox-pool-explain）に置き、ox-stmt は元の（＝×になる）素の主張だけにする。
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        area = None
+        for a in self.soup.find_all(class_="answer-area"):
+            if a.get("data-answer-type", "") == "ox-grid":
+                area = a
+                break
+        if area is None:
+            return
+        # 括弧内で「別案は誤り／正しい」と編集的に訂正する注記：（…は誤り）（…は正しい）等。
+        #   判定語が括弧の末尾（は/が/も＋誤り/正しい…で閉じる）にある場合だけを見る。
+        #   これで「（正しい語句はc）」＝先頭が形容詞の空欄補充（刑TX405 型）は除外できる。
+        paren_verdict = re.compile(
+            r"[（(][^）)]*(?:は|が|も)(?:誤り|誤って(?:いる)?|正しい|妥当でない|妥当でなく|"
+            r"判例に反する|判例と矛盾する|判旨に反する)(?:である)?[）)]")
+        # 前段/後段など自らの節の当否をメタ言及（複合肢を「片方は誤り」と自己解説する癖）。
+        clause_verdict = re.compile(
+            r"(?:前段|後段|前半|後半)(?:は|が|の\S{0,10})?(?:誤り|正しい|矛盾|齟齬|反する|妥当でない)")
+        # 注：文末の裸の「…は正しい／…は妥当でない」は、座談会型・空欄補充型・見解評価型の
+        #   正当な素命題（刑TX090/010/290）なので検出対象にしない（擬陽性回避）。判定語が
+        #   「別案への編集的訂正」として括弧内 or 前段/後段に付く形だけを 363 型欠陥として弾く。
+        bad = []
+        for row in area.find_all(class_="ox-row"):
+            el = row.find(class_="ox-stmt")
+            if not el:
+                continue
+            t = el.get_text(" ", strip=True)
+            why = None
+            if paren_verdict.search(t):
+                why = "括弧内で別案の当否を編集的に評価"
+            elif clause_verdict.search(t):
+                why = "前段/後段の当否をメタ言及"
+            if why:
+                bad.append((row.get("data-stmt") or "?", why, t[:52]))
+        if bad:
+            head = "; ".join(f"記述{s}（{why}）『{frag}…』" for s, why, frag in bad[:4])
+            more = f" 他 {len(bad)-4} 件" if len(bad) > 4 else ""
+            self.err("G46", f"ox-stmt に命題自身の当否評価が混入: {head}{more}。"
+                            "ox-stmt は○×の対象になる素の命題だけにし、評価語（誤り/正しい・"
+                            "前段後段の当否・括弧注記）は .ox-pool-explain へ移す。"
+                            "正しい命題を述べつつ×判定＝字義と正解の矛盾（実害 刑TX363）。")
+
     def g44_tx_inline_answer_controls_contract(self):
         if not self.html_path.stem.endswith("_lex"):
             return
@@ -1634,6 +1686,7 @@ class Validator:
         self.g40_tx360_inline_initial_state_contract()
         self.g41_tx360_canonical_engine_integrity()
         self.g42_no_combination_verdict_stmt()
+        self.g46_no_self_verdict_stmt()
         self.g44_tx_inline_answer_controls_contract()
         self.g45_tx_v1221_presentation_lock()
         self.g50_v13_loopcard_structure()
