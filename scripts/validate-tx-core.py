@@ -1604,6 +1604,12 @@ class Validator:
             if not trap or not trap.get_text(strip=True):
                 self.warn("G52", f"v13 カード{i}に⚠️間違いやすいポイント（.tx-v13-trap＝横串解説）が無い/空。"
                                 "似た論点の混同・差がつくひっかけを先回りする横串を1枠置く（spec 第5項5・§v13m③）。")
+            # v13m規約B（§v13m B）：.syn-image は💭INTUITION（2〜3文の比喩）→🗝記憶のフック（締めの一行標語）へ。
+            #     旧v13.0.0 は未変換で💭INTUITIONラベル＋多文のまま。内容品質の合意未達。当面 WARNING（充足後 ERROR 化）。
+            si = ex.select_one(".syn-image .syn-tag")
+            if si and ("INTUITION" in si.get_text() or "💭" in si.get_text()):
+                self.warn("G54", f"v13 カード{i}の.syn-imageが旧『💭 INTUITION』のまま（🗝記憶のフック未変換）。"
+                                "2〜3文の比喩を締めの一行標語（鉤括弧の一言）へ圧縮しラベルを🗝記憶のフックにする（§v13m B）。")
             if not ex.select_one(".tx-sysmap-back"):
                 self.err("G50", f"v13 カード{i}に体系マップ復路リンク .tx-sysmap-back（↑体系マップに戻る・"
                                 "href=#tx-sysmap）が無い。解説末尾に置いてハブ往復させる（第5項7・往路 #stmt-N と対）。")
