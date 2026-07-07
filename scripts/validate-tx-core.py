@@ -1651,6 +1651,42 @@ class Validator:
                                 f"『{head}：』が残っている。💡THE GIST→gist・📌POINT→points へ再配線する（第5-bis項）。")
                 break
 
+    def g55_basis_article_number_label(self):
+        """G55 参考条文カードの条番号ラベル整合（2026-07-07・刑TX365/351 の①誤ラベル恒久対策）。
+
+        BASIS 条文カード（.tx-basis-honbun）で、見出しが複数の別条を列挙し各条を1行で並べる型は、
+        各行の `.para-num` を条番号（110/112/113…）で揃える。ある条を条番号ではなく項マーカー
+        （①〜⑳）でラベルすると、兄弟行（112・113 等）と不整合になり、その条が「前条の一項」に
+        見えてしまう（実害：刑TX365/351 の 111条＝延焼罪が①表示）。
+        検出条件（誤検出ゼロで真の誤りだけを弾く精密条件）：
+          同一 honbun 内に **別条の条番号行が2つ以上** あり、かつ **本文が「第<数字>条」で始まる
+          （＝別条を主語にした条文丸ごとの書き出し＝独立の条）行が項マーカーでラベルされている。
+        単独条カード（見出しが1条のみで①②が正規の項＝刑TX355/360/364 等）は兄弟条番号が無いので
+        非該当＝温存する。
+        """
+        maru = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
+        lead = re.compile(r"^第[0-9０-９]+条")
+        for honbun in self.soup.select(".tx-basis-honbun"):
+            rows = honbun.select("p.hanging")
+            jouban = set()
+            for p in rows:
+                pn = p.select_one(".para-num")
+                if pn and re.match(r"^\s*\d+\s*$", pn.get_text(strip=True)):
+                    jouban.add(pn.get_text(strip=True))
+            if len(jouban) < 2:
+                continue  # 別条を並べる列挙型カードでなければ対象外（単独条の項①②は正規）
+            for p in rows:
+                pn = p.select_one(".para-num")
+                body = p.select_one(".hang-body")
+                if not pn or not body:
+                    continue
+                if pn.get_text(strip=True) in maru and lead.match(body.get_text(strip=True)):
+                    self.err("G55", "参考条文カードで別条を列挙しているのに、条『"
+                                    f"{body.get_text(strip=True)[:14]}…』の行が条番号ではなく項マーカー"
+                                    f"『{pn.get_text(strip=True)}』でラベルされている。兄弟行（"
+                                    f"{'・'.join(sorted(jouban))}）と揃えて条番号にする（刑TX365/351 の"
+                                    "111条＝延焼罪 ①誤ラベル恒久対策）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1696,6 +1732,7 @@ class Validator:
         self.g44_tx_inline_answer_controls_contract()
         self.g45_tx_v1221_presentation_lock()
         self.g50_v13_loopcard_structure()
+        self.g55_basis_article_number_label()
 
 
 def main():

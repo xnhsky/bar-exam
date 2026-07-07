@@ -132,9 +132,11 @@ def main() -> int:
         #     g50 は .tx-v13-verdict 検出時のみ ERROR を出す（v11/v12 は素通り）。ERROR 級だけ push を止める
         #     （nb-badge/brief-mark 等の移行 WARNING は v.warnings なのでブロックしない）。2026-07-07 追加。
         v.g50_v13_loopcard_structure()
+        # G55＝参考条文カードの条番号ラベル整合（別条列挙型で①誤ラベルを弾く・刑TX365/351 恒久対策）。
+        v.g55_basis_article_number_label()
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55")
         ]
         # G45＝v12.2.1 表示LOCK。既存の未移行 v12.1.1 を全件落とさないため、
         # v12.2.1 として生成・更新済みのファイルか、明示指定ファイルだけに適用する。
