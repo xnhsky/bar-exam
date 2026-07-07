@@ -112,7 +112,11 @@ def process(html):
         return html, 'SKIP(非標準マップ)'
     if STD_START not in html or STD_CONNECT not in html:
         return html, 'NO-MATCH(標準骨格なし)'
-    if 'pbox-chip' in html:
+    # 冪等ガードは chip 実体（class="pbox-chip" 要素）で判定する。
+    # 生の 'pbox-chip' で見ると、verdict-redesign が 371 の <style> ごとコピーして
+    # 漏入する CSS ルール `.tx-sysmap-svg .pbox-chip{…}` に誤マッチし、親箱未標準化でも
+    # NOCHANGE で誤スキップする（redesign→pbox の順で昇格する全ファイルで再現するバグ）。
+    if 'class="pbox-chip"' in html:
         return html, 'NOCHANGE(既に改善済)'
     block = FANG_BLOCK if subj == 'fang' else BUNSHO_BLOCK
     new, cnt = REGION_RE.subn(block, html, count=1)
