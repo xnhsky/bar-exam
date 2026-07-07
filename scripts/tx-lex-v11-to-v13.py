@@ -42,6 +42,15 @@ GOLD = 'canonical/GENESIS-CARD.html'
 SCRIPTS = Path(__file__).parent
 
 
+class SpecialTypeError(RuntimeError):
+    """5記述前提に乗らない特殊型を掛けられた時に投げる（クラッシュではなく誘導つき停止）。"""
+    def __init__(self, path, reasons):
+        self.path = path
+        self.reasons = reasons
+        super().__init__('SPECIAL_TYPE: %s は特殊型のため本ラッパー非対応（%s）'
+                         % (path, ' / '.join(reasons)))
+
+
 def load_mod(fname, modname):
     saved = sys.stdout
     spec = importlib.util.spec_from_file_location(modname, SCRIPTS / fname)
@@ -57,6 +66,23 @@ def load_mod(fname, modname):
             pass
         sys.stdout = saved
     return mod
+
+
+def special_reasons(h):
+    """このラッパーが扱えない特殊型かを判定して理由リストを返す（空＝単純5記述で処理可）。
+    本ラッパーは 5記述・客体三分の体系マップ前提なので、記述数≠5／組合せ／穴埋めは構造的に非互換。
+    そういう問題は PDF からの R 再生成（tx-v13-runner.ps1 -Regen）へ回すのが正しい（docs/tx-v13-migration-targets.md）。"""
+    labels = re.findall(r'<div class="ox-row" data-stmt="([^"]*)"', h)
+    if len(labels) < 5:
+        labels = re.findall(r'<div class="problem-text"><span class="choice-num-inline">([^<]+)</span>', h)
+    reasons = []
+    if len(labels) != 5:
+        reasons.append('記述数=%d（≠5・体系マップが5節客体モデルに乗らない）' % len(labels))
+    if 'ものの組合せ' in h:
+        reasons.append('組合せ型（ものの組合せ）')
+    if ('穴埋め' in h) or ('に当てはまる' in h):
+        reasons.append('穴埋め型')
+    return reasons
 
 
 def dedup_bref_ids(h):
@@ -78,7 +104,9 @@ def prep(h, slots):
     if len(labels) < 5:
         # ox-row が無い型は problem-text の choice-num-inline から
         labels = re.findall(r'<div class="problem-text"><span class="choice-num-inline">([^<]+)</span>', h)[:5]
-    assert len(labels) == 5, 'labels != 5: %r' % labels
+    # ここに到達する時点で run() の特殊型ガードを通過済み（＝5記述のはず）。保険として明示メッセージで停止。
+    assert len(labels) == 5, ('SPECIAL_TYPE: 記述数=%d ≠5。この決定論ラッパーは5記述専用。'
+                              'tx-v13-runner.ps1 -Regen（PDF→v13）へ回すこと。labels=%r' % (len(labels), labels))
 
     # stmt-text 抽出（problem-text 原文）。<strong>/emphasis span 等のインライン markup は除去して
     # プレーン化する（recanon の apply_mark はフレーズ完全一致で syn-orig をマークするため、
@@ -237,7 +265,7 @@ def is_v131(h):
     return ('class="pbox-chip"' in h and 'class="nb-badge"' in h and '<article class="tx-inline-card"' in h)
 
 
-def run(path, slots, data, out=None, gold_path=GOLD):
+def run(path, slots, data, out=None, gold_path=GOLD, force=False):
     raw = Path(path).read_bytes()
     crlf = b'\r\n' in raw[:9000]
     h = raw.decode('utf-8').replace('\r\n', '\n')
@@ -245,6 +273,10 @@ def run(path, slots, data, out=None, gold_path=GOLD):
     if is_v131(h):
         log.append('NOCHANGE (already v13.1.0)')
         return h, log, crlf
+    # 特殊型ガード：5記述前提が崩れる問題はここで明示停止し、正しい経路（PDF→R再生成）へ誘導する。
+    reasons = special_reasons(h)
+    if reasons and not force:
+        raise SpecialTypeError(path, reasons)
 
     gold = Path(gold_path).read_text(encoding='utf-8')
     recanon = load_mod('tx-lex-v13-recanon.py', 'tx_lex_v13_recanon')
@@ -291,10 +323,23 @@ def main():
     ap.add_argument('data')
     ap.add_argument('--out', default=None)
     ap.add_argument('--gold', default=GOLD)
+    ap.add_argument('--force', action='store_true',
+                    help='特殊型ガードを無視して強行（体系マップ破綻の恐れ・非推奨）')
     a = ap.parse_args()
     slots = json.loads(Path(a.slots).read_text(encoding='utf-8'))
     data = json.loads(Path(a.data).read_text(encoding='utf-8'))
-    h, log, crlf = run(a.html, slots, data, out=a.out, gold_path=a.gold)
+    try:
+        h, log, crlf = run(a.html, slots, data, out=a.out, gold_path=a.gold, force=a.force)
+    except SpecialTypeError as e:
+        sys.stderr.write(
+            '[SKIP-SPECIAL] %s\n'
+            '  理由: %s\n'
+            '  → この決定論ラッパーは5記述・客体三分モデル専用です。特殊型は PDF から\n'
+            '     `pwsh scripts/tx-v13-runner.ps1 -Subject 刑 -Regen -FromNumber N -ToNumber N` で最新v13へ再生成し、\n'
+            '     構造は近い合格実例（穴埋め=刑TX368 / 組合せ=刑TX089・174・218・256 / 見解=刑TX290）に倣ってください。\n'
+            '     どうしても強行するなら --force（体系マップが破綻し得ます）。\n'
+            % (a.html, ' / '.join(e.reasons)))
+        sys.exit(3)
     outp = a.out or a.html
     # CRLF 保持（元が CRLF なら CRLF で書き戻す）
     data_out = (h.replace('\n', '\r\n') if crlf else h).encode('utf-8')

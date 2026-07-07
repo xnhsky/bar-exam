@@ -121,10 +121,17 @@ if ($Regen) {
         if ($stem -notmatch '(\d+)_lex$') { continue }
         $n = [int]$Matches[1]
         if (-not (Test-InRange $n)) { continue }
-        # 版判定：v13 マーカー（footer feature-tag 'TX v13.0.0 LOOP-CARD'＝ファイル末尾）を全文走査。
-        # 先頭だけ見ると footer を読めず旧版誤判定するため Select-String で全文一致にする。
-        $isV13 = [bool](Select-String -LiteralPath $lex.FullName -Pattern 'v13\.0\.0' -Quiet -ErrorAction SilentlyContinue)
-        if ($isV13) { continue }
+        # 版判定：footer feature-tag 'TX v13.<minor>.<patch> LOOP-CARD' を全文走査（先頭だけ見ると
+        # footer を読めず旧版誤判定するため Select-String で全文一致）。
+        # R（PDF→再生成）が作り直すのは「まだ v13 世代でない」旧版（v11.x / タグ無し）だけ。
+        # 既に v13 世代なら SKIP：
+        #   - v13.1.0（最新）    ＝ 何もしない（再生成すると査読済み内容を捨てて金を溶かす）。
+        #   - v13.0.0（1つ前）   ＝ v13.0.0→v13.1.0 は内容保存の verdict-redesign 経路（別作業・
+        #                          docs/tx-v13-migration-targets.md）で上げる。PDF から作り直さない。
+        # 旧マーカー 'v13\.0\.0' だけを見る実装は v13.1.0（'v13.0.0' 文字列を含まない）を旧版扱いして
+        # 再生成する重大バグだったため、v13 世代全体を一致させる形へ修正（版が上がっても耐える）。
+        $alreadyV13 = [bool](Select-String -LiteralPath $lex.FullName -Pattern 'TX v13\.\d+\.\d+ LOOP-CARD' -Quiet -ErrorAction SilentlyContinue)
+        if ($alreadyV13) { continue }
         if (-not $PdfMap.ContainsKey($n)) {
             Write-Host "[R-SKIP-NOPDF] ${Prefix}TX$($n.ToString('000'))：旧版だが入力PDFが無く再生成不能（Drive復元後に再対象化）" -ForegroundColor Magenta
             continue

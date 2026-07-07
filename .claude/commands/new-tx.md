@@ -148,7 +148,8 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
   残す・無ければ削除＝GENESIS-CORE baseline は 0 個）。G27 が出たら PDF 原文を必ず確認すること。
 - A-2 `.answer-area`：
   - `data-answer-type="ox-grid"`／`data-correct-value="××○×○"`（記述ア〜オの正誤を○×で連結）
-  - 5 `.ox-row`（`data-stmt="ア"…`）。各行 `.ox-label`＋**`.ox-main`**＋`.ox-btn`（○/×・`data-value`）。
+  - **記述数 N 個の `.ox-row`**（単純5択＝5個・`data-stmt="ア"…`。**特殊型は N が5でないので上記「特殊型の構造・
+    作図ガイド」に従って N 個にし、`data-correct-value` も N 文字にする**）。各行 `.ox-label`＋**`.ox-main`**＋`.ox-btn`（○/×・`data-value`）。
     **`.ox-main` は「要点先頭・全文折りたたみ」の2段**（移動中の高速判定用・2026-06-25 ユーザー指示）：
     - **`<p class="ox-gist">`（必須・要点一行）**：その記述/組合せの肝を **記号フリー（①②/a〜j を使わない）** で
       30〜50字に凝縮。立場・規範・結論を `／` で区切り、キーワードを `<b>` で太字（例：
@@ -191,6 +192,24 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
 過去問原文には残してよいが、`.ox-stmt`・`.tx-reflex-core`・`.tx-cycle-aids`・`.tx-inline-explain` では、
 必ず **論点コア・テーゼ** に置換する。見解は学説名または定義内容、記号は語句・制度・要件の実体へ置換する。
 「本問」「上記」「記述ア」「肢3」依存は残さない。
+
+**【特殊型（非単純5択）の構造・作図ガイド・最重要】** GENESIS-CARD の gold（刑TX359）は**単純5記述**なので、
+特殊型はそのまま複製すると崩れる。canonical だけを見ず、**型が最も近い合格実例（下表）を Read して構造を写す**。
+検証（G50/G51/G52）は記述数を数えないので、**要素数を記述数 N に合わせて増減してよい**（5固定ではない）：
+- **記述数 N が5でない**（穴埋め8個・命題3個など）：`.ox-row`・`.tx-inline-card`（`#stmt-N`）・体系マップの記述札
+  `#stmt-N` ノードを**すべて N 個**にする。体系マップ SVG は N ノードに合わせて x 座標を**再配置**し、Phase 4f の
+  AABB 衝突検査で重なりゼロ＋viewBox 余白を確認する。裏 `.answer-ox-grid` の `data-correct-value` も **N 文字**。
+- **組合せ・穴埋め型**：各空欄／各命題を**独立した1つの○×命題に分解**し、`data-correct-value` は**全○**にする
+  （「組合せ番号#3は正しいか」型の行は G42/G46 違反）。刑TX350 の blank-mode が原型。解法ナビは Phase 4h の
+  `[SCRIPT-COMBO]`（COMBOS/OFFICIAL/ORDER/STEP）を使う。
+- **見解A/B・学説適用型**：Phase 4d-1bis の `.choice-premise`（🔎 前提見解）で A説/B説 定義を原文再掲（遡読防止）。
+- **合格実例（型別テンプレ・複製起点ではなく“構造の写経元”）**：
+  | 型 | 実例 _lex | 版 | 何を写すか |
+  |---|---|---|---|
+  | 穴埋め・N=5・redesign完 | `刑TX368_lex` | v13.1.0 | v13.1.0 の全レイヤー（nb-badge✍規範核・data-brief-mark・trap）。**redesign層の第一参照**。 |
+  | 組合せ・N≠5・COMBOエンジン | `刑TX089`(4)/`刑TX174`(6)/`刑TX218`(4)/`刑TX256`(6)`_lex` | v13.0.0 | N≠5 の記述札／ox-row／`#stmt-N` 配置と `[SCRIPT-COMBO]` の COMBOS/OFFICIAL/ORDER/STEP 配線。 |
+  | 見解適用 | `刑TX290_lex` | v13.0.0 | `.choice-premise` の見解再掲と論点コア置換。 |
+  ※ v13.0.0 実例は nb-badge/brief-mark を欠くので、**redesign層は必ず刑TX368＋GENESIS-CARD に合わせる**（構造だけ v13.0.0 実例から借りる）。
 
 #### 4d. PART B 差替（記述ア〜オ・記述単位・v12.1.1 詳説ソース）
 各 choice-section（choice-1=記述ア…）の**バッジは単一記述**（組合せ見出し禁止・G20）。GENESIS-CORE の
