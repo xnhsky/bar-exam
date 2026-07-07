@@ -128,7 +128,14 @@ def main() -> int:
         v.g41_tx360_canonical_engine_integrity()
         v.g42_no_combination_verdict_stmt()
         v.g44_tx_inline_answer_controls_contract()
-        gate_errs: list[tuple[str, str]] = [(code, msg) for code, msg in v.errors if code in ("G41", "G42", "G44")]
+        # v13 LOOP-CARD 完全性（G50 構造／G51 BASIS中身／G52 横串trap／G53 相互リンク／G54 記憶のフック）。
+        #     g50 は .tx-v13-verdict 検出時のみ ERROR を出す（v11/v12 は素通り）。ERROR 級だけ push を止める
+        #     （nb-badge/brief-mark 等の移行 WARNING は v.warnings なのでブロックしない）。2026-07-07 追加。
+        v.g50_v13_loopcard_structure()
+        gate_errs: list[tuple[str, str]] = [
+            (code, msg) for code, msg in v.errors
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54")
+        ]
         # G45＝v12.2.1 表示LOCK。既存の未移行 v12.1.1 を全件落とさないため、
         # v12.2.1 として生成・更新済みのファイルか、明示指定ファイルだけに適用する。
         g45_required = (

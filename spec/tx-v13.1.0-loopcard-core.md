@@ -208,15 +208,19 @@ Lexia は `_lex` を取り込み、間違えた記述を **肢キー `{問題ID}
   トグル・体系マップ SVG・#basis 現行法note）を検査。旧 v12 ファイルは従来どおり検証（非退行）。
   - **G51（ERROR・2026-07-07）＝BASIS 空箱禁止**：`.sub-card.basis-link` に `.tx-basis-item`（条文/判例）が
     1件も無い空シェルを弾く。「箱があるか」だけでなく「中身があるか」を見る（G50 は箱の存在のみ検査していた穴を塞ぐ）。
-  - **G52（WARNING・2026-07-07）＝横串解説の充足**：各記述カードに `.tx-v13-trap`（⚠️間違いやすいポイント＝横串）が
-    無い/空を検出（第5項5・§v13m③）。corpus 全体に未充足が残るため当面 WARNING、全 v13 の trap 執筆完了後に ERROR 化。
-  - **G53（WARNING・2026-07-07）＝相互リンク配線切れ**：解説内 `a.ref-stat[href="#bref-…"]` が存在しない条文 id を
-    指す往復ハブ切れを検出（第7項）。旧 v13.0.0 の 174/218 で実害。決定論配線ツールで解消後 ERROR 化。
-  - **背景（2026-07-07・恒久正典化の完成）**：v13m の合意（各カードに横串 trap・BASIS 中身）は spec/CLAUDE.md には
-    書いたが**下流ゲートが空白**で、再生成バッチが trap 抜け・BASIS 空箱を出しても検証を素通りし push された
-    （361-400 で実害・18本 trap 欠・368 は BASIS 全空）。G51/G52 で「作らせない上流契約＋作っても弾く下流ゲート」の
-    二重防御を trap/BASIS にも適用する。
-- `python scripts/check-tx-lex-engine.py`：G41 単一エンジン＋script 最大2本。
+  - **G52（ERROR・2026-07-07 昇格）＝横串解説の充足**：各記述カードに `.tx-v13-trap`（⚠️間違いやすいポイント＝横串）が
+    無い/空を弾く（第5項5・§v13m③）。刑法 v13 corpus＋canonical 全充足につき WARNING→ERROR 化。
+  - **G53（ERROR・2026-07-07 昇格）＝相互リンク配線切れ**：解説内 `a.ref-stat[href="#bref-…"]` が存在しない条文 id を
+    指す往復ハブ切れを弾く（第7項）。174/218 解消につき ERROR 化。
+  - **G54（ERROR・2026-07-07 昇格）＝記憶のフック未変換**：`.syn-image` が旧『💭 INTUITION』（2〜3文の比喩）のままを弾く
+    ＝v13m規約B（🗝記憶のフックの締めの一行標語）を強制（§v13m B）。corpus＋canonical の全220カード変換完了につき ERROR 化。
+  - **恒久対策（2026-07-07・もぐら叩きの終息）**：v13m の合意（横串 trap・BASIS 中身・相互リンク・🗝記憶のフック）は
+    spec には書いたが①**起点 canonical 自体が未準拠**（GENESIS-CARD.html が C2/C5 trap 欠・全 syn-image 💭）で新規生成が
+    欠陥を継承し、②**下流ゲートが WARNING 止まり**で push を止めなかった。恒久対策は三層：**(1) 起点＝canonical/GENESIS-CARD.html を
+    完全準拠化**（作らせない）、**(2) validate-tx-core G51-G54 を ERROR 化**（作っても弾く）、**(3) push 前ゲート
+    `check-tx-lex-engine.py` に G50-G54 を組み込み**（全 _lex 横断で push を止める）。以後、trap 抜け・BASIS 空箱・
+    配線切れ・💭残存のいずれも機械的に弾かれる。
+- `python scripts/check-tx-lex-engine.py`：G41 単一エンジン＋script 最大2本＋**v13 完全性 G50-G54（ERROR級のみ push ブロック）**。
 - `python scripts/check-duplicates.py outputs`：他ファイルとの重複・ID 不整合。
 - レンダリング実測（playwright）で、正誤表テーゼ／体系マップ／相互リンク往復／トグル／マーキングの
   表示と pageerror 0 を確認する（省エネ検証は執筆者本人が丁寧に1回＋自己照合＋的絞りWeb一次確認）。

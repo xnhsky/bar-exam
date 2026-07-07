@@ -1599,11 +1599,17 @@ class Validator:
                 self.err("G51", f"v13 カード{i}の📚BASIS（.sub-card.basis-link）に条文/判例（.tx-basis-item）が"
                                 "1件も無い＝空箱。旧#basis の ref-backlinks 配分に従い条文/判例を鋳造する（spec 第6項）。")
             # 各記述に⚠️間違いやすいポイント（.tx-v13-trap）＝横串・誤解の罠を積極投入（spec 第5項5・§v13m③）。
-            #     trap 無し記述は同型で1枠新設する規約。corpus 全体で未充足が残るため当面 WARNING（充足後 ERROR 化）。
+            #     trap 無し記述は同型で1枠新設する規約。刑法v13 corpus＋canonical 全充足につき 2026-07-07 ERROR 化。
             trap = ex.select_one(".tx-v13-trap")
             if not trap or not trap.get_text(strip=True):
-                self.warn("G52", f"v13 カード{i}に⚠️間違いやすいポイント（.tx-v13-trap＝横串解説）が無い/空。"
+                self.err("G52", f"v13 カード{i}に⚠️間違いやすいポイント（.tx-v13-trap＝横串解説）が無い/空。"
                                 "似た論点の混同・差がつくひっかけを先回りする横串を1枠置く（spec 第5項5・§v13m③）。")
+            # v13m規約B（§v13m B）：.syn-image は💭INTUITION（2〜3文の比喩）→🗝記憶のフック（締めの一行標語）へ。
+            #     corpus＋canonical 全変換完了につき 2026-07-07 ERROR 化（新規生成で💭のまま出せば弾く）。
+            si = ex.select_one(".syn-image .syn-tag")
+            if si and ("INTUITION" in si.get_text() or "💭" in si.get_text()):
+                self.err("G54", f"v13 カード{i}の.syn-imageが旧『💭 INTUITION』のまま（🗝記憶のフック未変換）。"
+                                "2〜3文の比喩を締めの一行標語（鉤括弧の一言）へ圧縮しラベルを🗝記憶のフックにする（§v13m B）。")
             if not ex.select_one(".tx-sysmap-back"):
                 self.err("G50", f"v13 カード{i}に体系マップ復路リンク .tx-sysmap-back（↑体系マップに戻る・"
                                 "href=#tx-sysmap）が無い。解説末尾に置いてハブ往復させる（第5項7・往路 #stmt-N と対）。")
@@ -1633,7 +1639,7 @@ class Validator:
         _broken = [a.get("href") for a in self.soup.select('a.ref-stat[href^="#bref-"]')
                    if a.get("href", "")[1:] not in _ids]
         if _broken:
-            self.warn("G53", f"相互リンク（a.ref-stat）が存在しない条文 id を指す配線切れ {len(_broken)}件"
+            self.err("G53", f"相互リンク（a.ref-stat）が存在しない条文 id を指す配線切れ {len(_broken)}件"
                             f"（例 {_broken[0]}）。同カード BASIS の #bref-{{記述}}-{{条番号}} へ配線する（第7項）。")
         # Lexia 復習プールは v13 の THE GIST/POINT と同期する（旧5点フローラベルを残さない・第5-bis項）。
         _old5 = ("文言", "趣旨", "射程", "切断点", "転用")

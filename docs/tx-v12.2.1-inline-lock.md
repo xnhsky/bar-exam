@@ -219,7 +219,9 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
 **D. マップ短縮版は作らない**——テキストの論点マップは体系マップ SVG（`.tx-sysmap-svg`）と重複するため新設しない。
 
 **検証・展開**
-- 構造不変なので既存ゲートで回帰検知：`validate-tx-core.py`（G45含む）＋`check-tx-lex-engine.py`（G41〜G45）＋
-  `check-duplicates.py`。内容の正確性は執筆者本人の自己照合＋的絞りWeb確認（§省エネ規律・author-once）。
-- **他 `_lex` への一括反映は保留**（本セッションでは刑TX362_lex のみ実装）。決定論的な伝播ツールは未整備のため、
-  当面は**新規生成・更新の執筆時に本規約（A〜D）で書く**。一括最新化は制限リセット後に別途着手する。
+- 構造不変なので既存ゲートで回帰検知：`validate-tx-core.py`（G45＋**G51-G54＝BASIS中身/横串trap/相互リンク/🗝記憶のフック**）＋
+  `check-tx-lex-engine.py`（G41〜G45＋**G50-G54 を push 前に横断検査**）＋`check-duplicates.py`。
+  内容の正確性（THE GIST＝やさしい版・§v13m A）は機械化困難のため執筆者本人の自己照合＋的絞りWeb確認（§省エネ規律・author-once）。
+- **【2026-07-07 完遂】B（🗝記憶のフック）・C（横串trap）は刑法 v13 全 corpus（44本220カード）へ展開完了し、
+  起点 `canonical/GENESIS-CARD.html` も完全準拠化済み**。G52/G53/G54 は WARNING→**ERROR 化**したので、以後は
+  💭のまま・trap 欠・配線切れの `_lex` を生成・push できない（三層防御＝canonical／validate／push前ゲート）。
