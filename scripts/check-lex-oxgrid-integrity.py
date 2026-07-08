@@ -129,8 +129,11 @@ def check(path):
     # L4 degenerate fill/conversation grid
     #   全同一キー（全○/全×）× 3行以上 × 穴埋め/会話/組合せ由来マーカー。
     #   genuine 5択（マーカー無し）や 2行以下の小グリッドは除外。
+    #   blank-mode（data-oxgrid-mode="blank"＝各空欄を2択で選ばせる誘導型）は、
+    #   2択そのものが判別性を担い全○の裏グリッドは意図的な設計なので L4 から除外。
     vals = [v for v in (key[k] for k in key) if v]
-    if len(vals) >= 3 and len(set(vals)) == 1:
+    blank_mode = bool(soup.select_one('.answer-area[data-oxgrid-mode="blank"]'))
+    if len(vals) >= 3 and len(set(vals)) == 1 and not blank_mode:
         has_fill = bool(_FILL_MARKERS.search(html) or _CONV_MARKERS.search(html))
         if has_fill:
             findings.append(('L4-DEGENERATE-FILL',

@@ -206,8 +206,13 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
   誤解を×命題として作る。**全○＝「正しい語句を並べて全部○と確認するだけ」は判別性ゼロの退化グリッドで禁止
   （L4 違反・`check-lex-oxgrid-integrity.py` が検出）。** 「組合せ番号#3は正しいか」型の行も禁止（G42/G46 違反）。
   問題文（会話・語句群・組合せ）は過去問 verbatim を保持し、○×へ作り替えるのは ox-stmt／記述カードだけ。
-  判別性ある○×の実例＝**刑TX368_lex（組合せ・××○○○）・刑TX381_lex（会話穴埋め・×○○×○○○×）**。
+  判別性ある○×の実例＝**刑TX368_lex（組合せ・××○○○）・刑TX381_lex（会話穴埋め・×○○×○○○×）・刑TX428_lex（会話穴埋め・○×○×○）**。
   解法ナビは Phase 4h の `[SCRIPT-COMBO]`（COMBOS/OFFICIAL/ORDER/STEP）を使う。
+  **許容される2方式のどちらかで作る**：(1) 上記の**判別性ある○×混在**（一部を distractor に差し替え×）、
+  または (2) **blank-mode 2択誘導**（`data-oxgrid-mode="blank"`＝各空欄を正解語句と distractor の2択で選ばせる・
+  `var B{loc,frag,q,tip,opts,ans,core}` 型・刑TX350/刑TX418 が原型）。**blank-mode は2択が判別性を担うので裏 ox-grid の
+  data-correct-value は全○でよい**（`check-lex-oxgrid-integrity` が blank-mode を L4 から自動免除）。
+  **禁止されるのは「素の○× ox-grid（blank-mode でない）を全○にする」＝判別性ゼロの退化グリッドだけ**（L4）。
 - **見解A/B・学説適用型**：Phase 4d-1bis の `.choice-premise`（🔎 前提見解）で A説/B説 定義を原文再掲（遡読防止）。
 - **合格実例（型別テンプレ・複製起点ではなく“構造の写経元”）**：
   | 型 | 実例 _lex | 版 | 何を写すか |
