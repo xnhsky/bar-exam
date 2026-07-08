@@ -69,15 +69,16 @@ def load_mod(fname, modname):
 
 
 def special_reasons(h):
-    """このラッパーが扱えない特殊型かを判定して理由リストを返す（空＝単純5記述で処理可）。
-    本ラッパーは 5記述・客体三分の体系マップ前提なので、記述数≠5／組合せ／穴埋めは構造的に非互換。
-    そういう問題は PDF からの R 再生成（tx-v13-runner.ps1 -Regen）へ回すのが正しい（docs/tx-v13-migration-targets.md）。"""
+    """このラッパーが扱えない特殊型かを判定して理由リストを返す（空＝N記述の単純型で処理可）。
+    本ラッパーは N記述（2以上）・体系マップ前提（recanon/build_svg が panels 数 N に追従）。
+    組合せ／穴埋めは ox-stmt が自己完結でない懸念があり flag するが、5記述クリーン等は --force で強行可。
+    記述数が構造的に扱えない（<2）ものは PDF からの R 再生成へ（docs/tx-v13-migration-targets.md）。"""
     labels = re.findall(r'<div class="ox-row" data-stmt="([^"]*)"', h)
-    if len(labels) < 5:
+    if not labels:
         labels = re.findall(r'<div class="problem-text"><span class="choice-num-inline">([^<]+)</span>', h)
     reasons = []
-    if len(labels) != 5:
-        reasons.append('記述数=%d（≠5・体系マップが5節客体モデルに乗らない）' % len(labels))
+    if len(labels) < 2:
+        reasons.append('記述数=%d（<2・記述カードを構成できない）' % len(labels))
     if 'ものの組合せ' in h:
         reasons.append('組合せ型（ものの組合せ）')
     if ('穴埋め' in h) or ('に当てはまる' in h):
@@ -100,12 +101,12 @@ def dedup_bref_ids(h):
 def prep(h, slots):
     """v11 に inline-card シェル／ox-pool-explain／tx-sysmap placeholder を注入し、
     syn-lead/syn-image を v13m へ移送、cross-column に col-warn TRAP を足す。"""
-    labels = re.findall(r'<div class="ox-row" data-stmt="([^"]*)"', h)[:5]
-    if len(labels) < 5:
+    labels = re.findall(r'<div class="ox-row" data-stmt="([^"]*)"', h)
+    if not labels:
         # ox-row が無い型は problem-text の choice-num-inline から
-        labels = re.findall(r'<div class="problem-text"><span class="choice-num-inline">([^<]+)</span>', h)[:5]
-    # ここに到達する時点で run() の特殊型ガードを通過済み（＝5記述のはず）。保険として明示メッセージで停止。
-    assert len(labels) == 5, ('SPECIAL_TYPE: 記述数=%d ≠5。この決定論ラッパーは5記述専用。'
+        labels = re.findall(r'<div class="problem-text"><span class="choice-num-inline">([^<]+)</span>', h)
+    # N記述汎用（recanon/build_svg が panels 数 N に追従）。構成不能な <2 だけ停止。
+    assert len(labels) >= 2, ('SPECIAL_TYPE: 記述数=%d（<2）。記述カードを構成できない。'
                               'tx-v13-runner.ps1 -Regen（PDF→v13）へ回すこと。labels=%r' % (len(labels), labels))
 
     # stmt-text 抽出（problem-text 原文）。<strong>/emphasis span 等のインライン markup は除去して

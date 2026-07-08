@@ -66,29 +66,43 @@ def esc(s):
 
 
 def build_svg(slots):
-    """slots: top_title, top_subtitle, nodes, panels[5]{title,sub,color,stmt}, ox_line, aria."""
+    """slots: top_title, top_subtitle, nodes, panels[N]{title,sub,color,stmt}, ox_line, aria.
+    N記述汎用：panels 数 N から panel_x／viewBox 幅 W／中心 CX を動的算出（N=5 は従来値と完全一致＝回帰なし）。"""
     nodes = slots.get('nodes') or SUBJECT_NODES.get(slots.get('subject', 'houka')) or DEFAULT_HOUKA_NODES
     top_title = slots['top_title']            # 例: 放火の罪 ── まず焼いた物の「客体」で条文を選ぶ
     head_sub = slots['head_subtitle']         # 体系マップ head の説明
     aria = slots.get('aria', top_title)
+    panels = slots['panels']
+    N = len(panels)
+    LEFT = 165
+    if N <= 5:
+        W = 1500; SPAN = 1192            # N=5: panel_x=[165,463,761,1059,1357]＝従来と一致
+    else:
+        SPAN = 290 * (N - 1); W = SPAN + 2 * LEFT   # パネル幅260＋余白で重なり防止・幅拡張
+    CX = W // 2
+    OFF = CX - 750                       # 中央シフト（N<=5 は 0＝ノード/接続線 従来位置）
+    panel_x = [LEFT + (SPAN * i // (N - 1) if N > 1 else 0) for i in range(N)]
     parts = []
     parts.append('<div class="tx-sysmap" id="tx-sysmap" aria-label="%s">' % esc(aria))
     parts.append('<div class="tx-sysmap-head">')
     parts.append('        <span class="tx-sysmap-kicker">体系マップ</span>')
     parts.append('        <span class="tx-sysmap-title">%s</span>' % esc(head_sub))
     parts.append('      </div>')
-    parts.append('<div class="tx-sysmap-figure"><svg class="tree-svg tx-sysmap-svg" viewBox="0 0 1500 720" '
-                 'xmlns="http://www.w3.org/2000/svg" role="img" aria-label="%s">' % esc(aria))
+    parts.append('<div class="tx-sysmap-figure"><svg class="tree-svg tx-sysmap-svg" viewBox="0 0 %d 720" '
+                 'xmlns="http://www.w3.org/2000/svg" role="img" aria-label="%s">' % (W, esc(aria)))
     # top title bar
-    parts.append('<g transform="translate(750,68)"><rect x="-320" y="-26" width="640" height="52" rx="13" fill="#7a3f38"/>'
-                 '<text x="0" y="6" text-anchor="middle" fill="#fff" font-weight="800" font-size="21">%s</text></g>' % esc(top_title))
-    # connectors top->3 nodes
-    parts.append('<path d="M750 94 V128 H265 V150" fill="none" stroke="#94504a" stroke-width="2"/>')
-    parts.append('<path d="M750 94 V150" fill="none" stroke="#94504a" stroke-width="2"/>')
-    parts.append('<path d="M750 94 V128 H1235 V150" fill="none" stroke="#94504a" stroke-width="2"/>')
+    parts.append('<g transform="translate(%d,68)"><rect x="-320" y="-26" width="640" height="52" rx="13" fill="#7a3f38"/>'
+                 '<text x="0" y="6" text-anchor="middle" fill="#fff" font-weight="800" font-size="21">%s</text></g>' % (CX, esc(top_title)))
+    # connectors top->nodes（ノード毎生成＝ノード数/中心非依存。N<=5 の3ノードは従来と同一出力）
+    for _nd in nodes:
+        _nx = _nd['x'] + OFF
+        if _nx == CX:
+            parts.append('<path d="M%d 94 V150" fill="none" stroke="#94504a" stroke-width="2"/>' % CX)
+        else:
+            parts.append('<path d="M%d 94 V128 H%d V150" fill="none" stroke="#94504a" stroke-width="2"/>' % (CX, _nx))
     # 3 nodes
     for nd in nodes:
-        x = nd['x']
+        x = nd['x'] + OFF
         parts.append('<g transform="translate(%d,150)">' % x)
         parts.append('<rect x="-215" y="0" width="430" height="150" rx="12" fill="%s" stroke="%s" stroke-width="2"/>' % (nd['fill'], nd['stroke']))
         parts.append('<rect x="-215" y="0" width="430" height="34" rx="12" fill="%s"/>' % nd['headfill'])
@@ -99,17 +113,17 @@ def build_svg(slots):
         for k, ln in enumerate(nd['lines'][:3]):
             parts.append('<text x="-198" y="%d" fill="#493730" font-size="14.5">%s</text>' % (ys[k], esc(ln)))
         parts.append('</g>')
-    # divider to 5 panels
-    parts.append('<path d="M750 300 V336" fill="none" stroke="#94504a" stroke-width="2"/>')
-    parts.append('<path d="M165 360 H1357" fill="none" stroke="#94504a" stroke-width="2" opacity="0.7"/>')
-    parts.append('<path d="M750 336 V360" fill="none" stroke="#94504a" stroke-width="2"/>')
-    parts.append('<text x="750" y="352" text-anchor="middle" fill="#7a3f38" font-weight="800" font-size="15">%s</text>'
-                 % esc(slots.get('panels_caption', '本問が突く5局面')))
-    for px in PANEL_X:
+    # divider to panels
+    parts.append('<path d="M%d 300 V336" fill="none" stroke="#94504a" stroke-width="2"/>' % CX)
+    parts.append('<path d="M%d 360 H%d" fill="none" stroke="#94504a" stroke-width="2" opacity="0.7"/>' % (LEFT, LEFT + SPAN))
+    parts.append('<path d="M%d 336 V360" fill="none" stroke="#94504a" stroke-width="2"/>' % CX)
+    parts.append('<text x="%d" y="352" text-anchor="middle" fill="#7a3f38" font-weight="800" font-size="15">%s</text>'
+                 % (CX, esc(slots.get('panels_caption', '本問が突く%d局面' % N))))
+    for px in panel_x:
         parts.append('<path d="M%d 360 V392" fill="none" stroke="#94504a" stroke-width="2" opacity="0.7"/>' % px)
-    # 5 panels
-    for i, pn in enumerate(slots['panels']):
-        x = PANEL_X[i]; col = COLOR.get(pn.get('color', 'red'), '#b0635c'); num = i + 1
+    # panels
+    for i, pn in enumerate(panels):
+        x = panel_x[i]; col = COLOR.get(pn.get('color', 'red'), '#b0635c'); num = i + 1
         stmt = pn.get('stmt', num)
         parts.append('<a href="#stmt-%s"><g transform="translate(%d,392)">' % (stmt, x))
         parts.append('<rect x="-130" y="0" width="260" height="92" rx="10" fill="#fffdf9" stroke="%s" stroke-width="2"/>' % col)
@@ -120,9 +134,9 @@ def build_svg(slots):
         parts.append('<text x="118" y="82" text-anchor="end" fill="%s" font-weight="700" font-size="12">記述%s ↗</text>' % (col, stmt))
         parts.append('</g></a>')
     # result box
-    parts.append('<g transform="translate(750,548)"><rect x="-330" y="0" width="660" height="92" rx="14" fill="#f3e6df" stroke="#94504a" stroke-width="1.5"/>'
+    parts.append('<g transform="translate(%d,548)"><rect x="-330" y="0" width="660" height="92" rx="14" fill="#f3e6df" stroke="#94504a" stroke-width="1.5"/>'
                  '<text x="0" y="30" text-anchor="middle" fill="#7a3f38" font-weight="800" font-size="17">▼ 本問の帰結（○×）</text>'
-                 '<text x="0" y="60" text-anchor="middle" fill="#3a2b26" font-size="15.5">%s</text></g>' % esc(slots['ox_line']))
+                 '<text x="0" y="60" text-anchor="middle" fill="#3a2b26" font-size="15.5">%s</text></g>' % (CX, esc(slots['ox_line'])))
     parts.append('</svg></div>')
     parts.append(build_cross(slots['cross']))
     parts.append('</div>')
@@ -208,18 +222,18 @@ def build(path, slots, out=None, gold_path=GOLD):
 
     # 0. 記述ラベル（数字/カナ非依存）と各記述の stmt-text を position(1..5) へ正規化
     LABELS = re.findall(r'<article class="tx-inline-card"[^>]*data-stmt="([^"]*)"', h)
-    if len(LABELS) < 5:
-        raise RuntimeError('inline cards < 5 (%d) in %s' % (len(LABELS), path))
-    LABELS = LABELS[:5]
+    if len(LABELS) < 2:
+        raise RuntimeError('inline cards < 2 (%d) in %s' % (len(LABELS), path))
+    NREC = len(LABELS)                     # N記述汎用（従来は 5 固定）
     label2pos = {lab: i + 1 for i, lab in enumerate(LABELS)}
     STMT = {}   # label -> stmt-text innerHTML（syn-orig 再構築用）
     for m in re.finditer(r'<article class="tx-inline-card"[^>]*data-stmt="([^"]*)"[^>]*>(.*?)</article>', h, re.S):
         st = re.search(r'<span class="tx-inline-stmt-text">(.*?)</span>', m.group(2), re.S)
         STMT[m.group(1)] = st.group(1).strip() if st else ''
 
-    # 1. choice-section 抽出（choice-1..5 は数字・位置対応）
+    # 1. choice-section 抽出（choice-1..N は数字・位置対応）
     choice = {}
-    for n in range(1, 6):
+    for n in range(1, NREC + 1):
         m = re.search(r'<section class="choice-section \w+" id="choice-%d">(.*?)</section>' % n, h, re.S)
         if not m:
             raise RuntimeError('choice-%d not found in %s' % (n, path))
@@ -255,7 +269,7 @@ def build(path, slots, out=None, gold_path=GOLD):
         refs = sorted(set(l for l in re.findall(r'記述(%s)' % LBL, rest) if l in label2pos))
         cardmap[cid] = dict(cls=cls.strip(), hdr=hdr, honbun=honbun, note=note, refs=refs, is_case=('case-card' in cls))
         order.append(cid)
-    by_pos = {n: [] for n in range(1, 6)}   # position -> [basis cid]
+    by_pos = {n: [] for n in range(1, NREC + 1)}   # position -> [basis cid]
     for cid in order:
         for lab in cardmap[cid]['refs']:
             by_pos[label2pos[lab]].append(cid)
@@ -372,7 +386,7 @@ def build(path, slots, out=None, gold_path=GOLD):
 
     # 4. 旧DIV体系マップ → SVG（無ければ フォールバック挿入）
     # panels の stmt を実ラベル（ア..オ 等）へ正規化＝#stmt-{label} アンカーと一致させる
-    for i, pn in enumerate(slots['panels'][:5]):
+    for i, pn in enumerate(slots['panels'][:NREC]):
         pn['stmt'] = LABELS[i]
     svg_html = build_svg(slots)
     if '<div class="tx-sysmap"' in h:
@@ -442,7 +456,7 @@ def build(path, slots, out=None, gold_path=GOLD):
         m = re.match(r'^(文言|趣旨|射程|切断点|転用)([：:])(.*)$', t, re.S)
         return (_POINT_RENAME[m.group(1)] + m.group(2) + m.group(3)) if m else t
     pool = {}
-    for n in range(1, 6):
+    for n in range(1, NREC + 1):
         sl = re.search(r'<p class="syn-lead">(.*?)</p>', choice[n]['syn'], re.S)
         gist = plain(re.sub(r'<span class="syn-tag">.*?</span>', '', sl.group(1), count=1, flags=re.S)) if sl else ''
         pts = [sanitize_plain_label(plain(x)) for x in re.findall(r'<li>(.*?)</li>', choice[n]['cp'], re.S)]
