@@ -54,6 +54,11 @@
   nb-badge・横串trap を実装。validate-tx-core（_lex/公式/engine）0 error 0 warning・check-tx-lex-engine PASS・
   check-duplicates クリーン。**教訓＝特殊型は「ラッパーで自動変換」ではなく「PDFから R 再生成」が正しい経路**。
   ラッパーは特殊型を検出したら exit 3 で R 再生成へ誘導する（`SpecialTypeError`）。
+  **【追記 2026-07-08・要注意】** R 再生成は**型の v13.1.0 化まで**で、穴埋め／会話型の
+  **`全○ 退化（○×に判別性が無い）は解消していない`**。刑TX381 は本項で「解消」としているが、
+  新ゲート `scripts/check-lex-oxgrid-integrity.py` では依然 `L4-DEGENERATE-FILL（全○8行）`＝
+  「正しい語句を埋めた文を8回○と確認するだけ」。穴埋め／会話型の○×提示方針は
+  `docs/lex-oxgrid-integrity-audit.md §4` の設計判断待ち（未解決）。
 - **横串 trap 欠落 18本・計55カード（G52 WARNING）**：362, 366, 367, 369-380, 382-385。各カードに
   横串・誤解の罠が未執筆。**執筆時に v13m 規約（§v13m C）で埋める**か、ローカル再生成に載せる。
   G52 で機械可視化済み（`validate-tx-core.py` が各カードの `.tx-v13-trap` 欠落を報告）。
