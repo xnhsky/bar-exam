@@ -254,9 +254,10 @@ def dom_fill(h, backmod):
         if m:
             h = h[:m.start()] + REVEAL_PANEL + h[m.start():]
             h = h.replace('<div class="answer-area" id="answer-area"', '<div class="answer-area inline-prototype-mode" id="answer-area"', 1)
-    # 孤立 PART B part-title 除去
-    h = re.sub(r'\s*<!--[^>]*?PART B ── 記述別解説.*?-->\s*', '\n', h, flags=re.S)
-    h = re.sub(r'\s*<div class="part-title">PART B ── 記述別解説（[^<]*）</div>\s*', '\n', h, count=1)
+    # 孤立 PART B part-title 除去（「記述別解説」「肢別解説」等の表記ゆれを一般化して除去。
+    # ただし「PART B+ ──」は G40 対象外なので巻き込まない＝"PART B ── " の空白付きだけを対象）
+    h = re.sub(r'\s*<!--[^>]*?PART B ── (?:記述別解説|肢別解説).*?-->\s*', '\n', h, flags=re.S)
+    h = re.sub(r'\s*<div class="part-title">PART B ── [^<]*</div>\s*', '\n', h, count=1)
     return h, ins
 
 
