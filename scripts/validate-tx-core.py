@@ -207,6 +207,78 @@ def boxes_overlap(b1, b2):
 
 
 # ============================================================
+# v13m 解説の「深さ」ヒューリスティック（§v13m A/③・2026-07-09 恒久対策）
+#   THE GIST が「やさしい版」か・⚠️罠が「横串」かは機械で断定できない（spec 第v13m項＝機械化困難）。
+#   そこで“薄い署名”＝下記の失敗シグネチャだけを高精度で拾い、著者の自己照合を助ける WARNING を出す
+#   （ERROR にしない＝良質だが簡潔な版〈ます形やさしい版〉を誤爆させないため）。単一情報源としてここに置き、
+#   validate-tx-core の G56 と check-tx-v13m-depth.py（corpus 一覧）の双方が本関数を使う。
+#   失敗シグネチャ（監査 2026-07-09・文書偽造帯 367-385 に集中）:
+#     ① 薄い GIST … 「×。<規範>（条文）」の verdict 直開始・要点羅列で、直感の裏切りも用語の生活語開きも無い。
+#     ② 薄い罠  … 「〜と早合点する。Yだから×」の結論言い換えで、別論点との横串（混同フラグ/対比/反転）が無い。
+#   gold 見本＝刑TX362 / 409-425 / 436-445。
+_GIST_YASASHII_HOOKS = (
+    "素直に", "と思わせる", "たくなる", "と考えたく", "早合点", "迷わせる", "誘う", "誘い",
+    "引きずら", "引っ張ら", "飛びつ", "しがち", "思い込", "と言いたく", "したくなる",
+    "と迷わせ", "と読みたく", "と決めつけ", "に見えるが", "言いたくなる", "と思える",
+    "のように見え", "と迷う", "誤らせる", "と考えがち", "と早合点",
+)
+_GIST_POLITE = ("ます。", "ます、", "ません", "ましょう", "でしょう", "のです。", "んです",
+                "います。", "います、", "きます。", "れます。")
+_GIST_ANALOGY = ("まるで", "のような", "みたいに", "ようなもの", "に例え")
+
+
+def gist_depth_flag(text):
+    """.syn-lead 本文（💡タグ除去済み）が「やさしい版」を欠く“薄い GIST 候補”なら理由文字列を返す。
+    高精度側に振る＝やさしい要素（直感の裏切り／ます形／用語の生活語グロス／比喩）が一つでもあれば None。
+    verdict 直開始の簡潔な条文羅列だけを候補にする（良質な簡潔版を誤爆させない）。"""
+    t = (text or "").strip()
+    if len(t) < 10:
+        return None  # 空は G50 が拾う
+    # 用語サンドイッチ＝専門用語の直後に「（生活語の言い換え）」を置く形。生活語グロスは丸括弧内に
+    #   ひらがなを多く含む（例「（法律が警察官に与えた仕事の範囲）」）。逆に条文/判例の引用括弧
+    #   （例「（156条）」「（最判昭27.12.15）」「（免状等不実記載罪）」）はひらがなをほぼ含まないので
+    #   誤ってグロス扱いしない＝ひらがな3字以上を含む括弧だけを生活語グロスとみなす。
+    gloss = (re.search(r"（[^）]*[ぁ-ん][^）]*[ぁ-ん][^）]*[ぁ-ん][^）]*）", t)
+             or re.search(r"「[^」]{1,16}」(とは|というのは)[、（]", t))
+    if (any(k in t for k in _GIST_YASASHII_HOOKS)
+            or any(k in t for k in _GIST_POLITE)
+            or any(k in t for k in _GIST_ANALOGY)
+            or bool(gloss)):
+        return None
+    if re.match(r"^[○×✕✓＝][。、＝（(：:　 ]", t) and len(t) < 140:
+        return "verdict直開始で条文羅列・生活語での用語開き/直感の裏切りが無い（§v13m A やさしい版でない）"
+    if len(t) < 80:
+        return "短く要点羅列のみ・やさしい版の枠組み（直感の裏切り＋用語の生活語開き）が無い（§v13m A）"
+    return None
+
+
+_TRAP_YOKO = (
+    "横串", "混同", "別の軸", "別次元", "別レイヤー", "別の論点", "別概念", "別問題",
+    "別段階", "段階を異に", "※", "取り違え", "すり替え", "逆に", "逆の", "逆向き",
+    "反転", "対で", "対に", "対の", "同じ物差し", "物差しが違う", "分水嶺", "分かれ目",
+    "で切る", "一本", "同根", "根っこ", "束ね", "と区別", "と対照", "混ぜ", "に流用",
+    "に一般化", "広げ", "狭め", "と紛らわし", "と並ぶ", "と同型", "同じ発想",
+)
+_TRAP_RESTATE = ("早合点", "短絡", "誤読", "誤解", "思い込", "即断", "直結", "反射的",
+                 "怠る", "捨象", "考えてしまう", "数えてしまう", "決めつけ")
+
+
+def trap_depth_flag(text):
+    """.tx-v13-trap-body 本文（⚠️タグ除去済み）が“横串を欠く結論言い換え候補”なら理由文字列を返す。
+    横串マーカー（別論点対比・混同フラグ・反転・で切る等）があれば None。空/欠落は G52 が ERROR で拾う。"""
+    t = (text or "").strip()
+    if len(t) < 8:
+        return None
+    if any(k in t for k in _TRAP_YOKO):
+        return None
+    if any(k in t for k in _TRAP_RESTATE) and len(t) < 105:
+        return "『〜と早合点する。Yだから×』型の結論言い換え・横串（似た別論点の混同フラグ/対比/反転）が無い（§v13m③）"
+    if len(t) < 62:
+        return "短く罠の内容が薄い・横串（似た別論点の混同フラグ）を1枠置く（§v13m③）"
+    return None
+
+
+# ============================================================
 # 検証本体
 # ============================================================
 
@@ -1687,6 +1759,38 @@ class Validator:
                                     f"{'・'.join(sorted(jouban))}）と揃えて条番号にする（刑TX365/351 の"
                                     "111条＝延焼罪 ①誤ラベル恒久対策）。")
 
+    def g56_v13m_depth_advisory(self):
+        """G56/G57（WARNING・§v13m A/③ 恒久対策 2026-07-09）＝v13 カードの解説“深さ”の助言検出。
+        THE GIST が「やさしい版」か・⚠️罠が「横串」かは機械化困難（spec 第v13m項）なので、薄さの
+        失敗シグネチャだけを WARNING で拾い、著者の自己照合1回を助ける（ERROR にしない＝良質な簡潔版を誤爆させない）。
+        v13 カード（.tx-inline-card に .tx-v13-verdict）を持つ _lex のみ対象。単一情報源＝gist_depth_flag/trap_depth_flag。"""
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        if not self.soup.select_one(".tx-inline-card .tx-v13-verdict"):
+            return
+        thin_g, thin_t = [], []
+        for i, card in enumerate(self.soup.select(".tx-inline-card"), start=1):
+            ex = card.select_one(".tx-inline-explain")
+            if not ex:
+                continue
+            lead = ex.select_one(".syn-lead")
+            if lead is not None:
+                g = re.sub(r"^\s*💡\s*THE GIST\s*", "", lead.get_text(" ", strip=True))
+                if gist_depth_flag(g):
+                    thin_g.append(str(i))
+            trap = ex.select_one(".tx-v13-trap")
+            if trap is not None:
+                tb = trap.select_one(".tx-v13-trap-body") or trap
+                t = re.sub(r"^\s*⚠️?\s*間違いやすいポイント\s*", "", tb.get_text(" ", strip=True))
+                if trap_depth_flag(t):
+                    thin_t.append(str(i))
+        if thin_g:
+            self.warn("G56", f"薄い GIST 候補 カード{','.join(thin_g)}＝💡THE GIST がやさしい版（直感の裏切り＋用語の生活語開き）"
+                             "を欠く要点羅列。gold＝刑TX362/436。機械化困難ゆえ著者が自己照合する（詳細 check-tx-v13m-depth.py）。")
+        if thin_t:
+            self.warn("G57", f"薄い罠 候補 カード{','.join(thin_t)}＝⚠️間違いやすいポイントが結論言い換えで横串（似た別論点の"
+                             "混同フラグ/対比/反転）を欠く。非空ゆえ G52 は素通り。横串を1枠投入（§v13m③・詳細 check-tx-v13m-depth.py）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1733,6 +1837,7 @@ class Validator:
         self.g45_tx_v1221_presentation_lock()
         self.g50_v13_loopcard_structure()
         self.g55_basis_article_number_label()
+        self.g56_v13m_depth_advisory()
 
 
 def main():

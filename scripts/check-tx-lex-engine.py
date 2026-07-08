@@ -114,6 +114,7 @@ def main() -> int:
     scanned = 0
     g45_scanned = 0
     offenders: list[tuple[Path, list[str]]] = []
+    depth_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G56/G57 助言（非ブロッキング・§v13m 深さ）
     for f in files:
         if f.stem.endswith("_lex") is False:
             continue
@@ -134,6 +135,11 @@ def main() -> int:
         v.g50_v13_loopcard_structure()
         # G55＝参考条文カードの条番号ラベル整合（別条列挙型で①誤ラベルを弾く・刑TX365/351 恒久対策）。
         v.g55_basis_article_number_label()
+        # G56/G57＝v13m 解説の深さ助言（薄い GIST/横串を欠く罠）。機械化困難ゆえ非ブロッキング（push は止めない）。
+        v.g56_v13m_depth_advisory()
+        _depth = [(c, m) for c, m in v.warnings if c in ("G56", "G57")]
+        if _depth:
+            depth_notes.append((f, _depth))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
             if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55")
@@ -198,6 +204,15 @@ def main() -> int:
             "G45＝条文/判例ラベル・2カラム字下げ・物語ラベルを v12.2.1 正典へ戻す。"
         )
         return 1
+
+    if depth_notes:
+        print(f"\n[G56/G57 助言・非ブロッキング] v13m 解説の深さ候補（薄い GIST / 横串を欠く罠）{len(depth_notes)} ファイル:")
+        for f, notes in depth_notes:
+            rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+            print(f"  ⚠️ {rel}")
+            for code, m in notes:
+                print(f"       - [{code}] {m}")
+        print("  → 機械化困難ゆえ push は止めない（WARNING）。著者が自己照合で解消（詳細 python -X utf8 scripts/check-tx-v13m-depth.py <file> --detail）。")
 
     if contract_fail:
         return 1
