@@ -199,9 +199,15 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
 - **記述数 N が5でない**（穴埋め8個・命題3個など）：`.ox-row`・`.tx-inline-card`（`#stmt-N`）・体系マップの記述札
   `#stmt-N` ノードを**すべて N 個**にする。体系マップ SVG は N ノードに合わせて x 座標を**再配置**し、Phase 4f の
   AABB 衝突検査で重なりゼロ＋viewBox 余白を確認する。裏 `.answer-ox-grid` の `data-correct-value` も **N 文字**。
-- **組合せ・穴埋め型**：各空欄／各命題を**独立した1つの○×命題に分解**し、`data-correct-value` は**全○**にする
-  （「組合せ番号#3は正しいか」型の行は G42/G46 違反）。刑TX350 の blank-mode が原型。解法ナビは Phase 4h の
-  `[SCRIPT-COMBO]`（COMBOS/OFFICIAL/ORDER/STEP）を使う。
+- **組合せ・穴埋め・会話型**：各空欄／各命題を**独立した1つの○×命題に分解**する。**data-correct-value は
+  判別性ある○×混在にする（全○は禁止）**：過去問の語句群がもつ**対立語（distractor：肯定/否定・同じ/異なる・
+  条件付き権限/一律否定・成立し得る/し得ない・過去/将来 等）**を使い、一部の記述を**実際の誤り（distractor 主張）
+  に差し替えて×**、他は正しい語句のまま○にする。distractor が語句群に無い型（見解対立等）は、対立説・典型的
+  誤解を×命題として作る。**全○＝「正しい語句を並べて全部○と確認するだけ」は判別性ゼロの退化グリッドで禁止
+  （L4 違反・`check-lex-oxgrid-integrity.py` が検出）。** 「組合せ番号#3は正しいか」型の行も禁止（G42/G46 違反）。
+  問題文（会話・語句群・組合せ）は過去問 verbatim を保持し、○×へ作り替えるのは ox-stmt／記述カードだけ。
+  判別性ある○×の実例＝**刑TX368_lex（組合せ・××○○○）・刑TX381_lex（会話穴埋め・×○○×○○○×）**。
+  解法ナビは Phase 4h の `[SCRIPT-COMBO]`（COMBOS/OFFICIAL/ORDER/STEP）を使う。
 - **見解A/B・学説適用型**：Phase 4d-1bis の `.choice-premise`（🔎 前提見解）で A説/B説 定義を原文再掲（遡読防止）。
 - **合格実例（型別テンプレ・複製起点ではなく“構造の写経元”）**：
   | 型 | 実例 _lex | 版 | 何を写すか |
