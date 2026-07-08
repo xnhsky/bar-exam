@@ -249,11 +249,15 @@ def dom_fill(h, backmod):
     if 'id="sn-combos"' not in h:
         h = h.replace('<div class="sn-body">', '<div class="sn-body">\n        <div class="sn-combos" id="sn-combos"></div>', 1)
     # reveal-panel＋inline-prototype-mode
+    # answer-area の属性順に依存しない（id が末尾でも一致）。刑TX415 で
+    # `class="answer-area" data-answer-type=… id="answer-area"`（id-last）型が
+    # リテラル一致に失敗し reveal-panel 未挿入→G44 ERROR を踏んだため lookahead 化。
     if 'class="tx-inline-reveal-panel"' not in re.sub(r'<style.*?</style>', '', h, flags=re.S):
-        m = re.search(r'<div class="answer-area" id="answer-area"', h)
+        _AA = re.compile(r'<div class="answer-area"(?=[^>]*\bid="answer-area")')
+        m = _AA.search(h)
         if m:
             h = h[:m.start()] + REVEAL_PANEL + h[m.start():]
-            h = h.replace('<div class="answer-area" id="answer-area"', '<div class="answer-area inline-prototype-mode" id="answer-area"', 1)
+            h = _AA.sub('<div class="answer-area inline-prototype-mode"', h, count=1)
     # 孤立 PART B part-title 除去
     h = re.sub(r'\s*<!--[^>]*?PART B ── 記述別解説.*?-->\s*', '\n', h, flags=re.S)
     h = re.sub(r'\s*<div class="part-title">PART B ── 記述別解説（[^<]*）</div>\s*', '\n', h, count=1)
