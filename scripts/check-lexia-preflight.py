@@ -16,6 +16,7 @@ outputs/ と references/ を、Lexia 同期で問題になりやすい順に横�
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -112,6 +113,16 @@ def build_steps(args: argparse.Namespace, roots: list[str]) -> list[Step]:
                  *(["--warn-only"] if not args.oxgrid_strict else []), *roots],
             )
         )
+    if not args.skip_badge_indent:
+        badge_globs = []
+        for r in roots:
+            badge_globs.append(os.path.join(r, "**", "*.html"))
+        steps.append(
+            Step(
+                "丸囲い番号バッジ字下げ (choice-num-inline text-indent:0)",
+                [sys.executable, str(SCRIPTS / "fix-choice-num-indent.py"), "--check", *badge_globs],
+            )
+        )
     if not args.skip_ariadne:
         steps.append(
             Step(
@@ -161,6 +172,7 @@ def main() -> int:
     ap.add_argument("--skip-ariadne", action="store_true", help="ARIADNE 正典横断検証を実行しない")
     ap.add_argument("--skip-tx-engine", action="store_true", help="TX360 inline _lex の canonical エンジン整合(G41)を実行しない")
     ap.add_argument("--skip-oxgrid", action="store_true", help="TX _lex の ox-grid 健全性(L1-L4：矛盾/組合せ当否/退化グリッド)を実行しない")
+    ap.add_argument("--skip-badge-indent", action="store_true", help="丸囲い番号バッジ(.choice-num-inline)の字下げ継承ガードを実行しない")
     ap.add_argument("--oxgrid-strict", action="store_true", help="ox-grid 健全性(L1-L4)を hard ERROR にする（既定は移行期の warn-only）")
     ap.add_argument("--skip-rx", action="store_true", help="check-rx-coverage.py を実行しない")
     ap.add_argument("--no-rx-strict", action="store_true", help="RX UNREACHABLE を終了コード 1 にしない")
