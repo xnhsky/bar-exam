@@ -1835,6 +1835,82 @@ class Validator:
                              "python scripts/tx-lex-inject-xnav.py <file> --apply で注入する"
                              "（canonical 由来の新規生成・TJR 再生成では自動で入る）。")
 
+    # ------------------------------------------------------------------
+    # G60（ERROR・2026-07-09）＝ox-stmt と インライン肢カードの結論極性の一致検査。
+    #
+    # 背景：同一 data-stmt について、Lexia 復習プールが読む `.ox-stmt`（全文）と、通常
+    #   周回の主UI `.tx-inline-card` の提示文は「同一命題・1つの answer-key を共有」する。
+    #   両者の結論（成立/不成立）が逆向きだと、一方の面で正答が誤答表示になる（実害：
+    #   刑TX368 記述1・2＝ox「成立しない」×inline「成立する」、刑TX362 エ・オ）。G29 は
+    #   answer-key 属性どうし（A↔C）の一致しか見ず、この「本文の言い回しの反転」は素通り
+    #   していた。G60 は本文の結論極性を直接照合してこれを止める。
+    #
+    # 誤爆ゼロ設計（意味判定はしない・内部整合のみ）：疑問文/「批判」評価文はスキップ、
+    #   1文中に成立と不成立が別罪で混在する多罪記述はスキップ、二重否定（「成立すること
+    #   はない」等）を負に正規化。残った“単一結論”どうしが逆向きの時だけ ERROR にする。
+    # ------------------------------------------------------------------
+    def _conclusion_polarity(self, text):
+        """+1(成立側)/-1(不成立側)/None(判定不能・多罪混在・疑問/批判)。内部整合のみ。"""
+        neg_tokens = ["成立することはない", "成立する余地はない", "成立の余地はない",
+                      "成立し得ない", "成立しえない", "成立しない", "不成立",
+                      "既遂ではなく", "未遂にとどまる", "認められない",
+                      "該当することはない", "該当しない", "当たらない", "負わない"]
+        pos_tokens = ["成立し得る", "成立しうる", "成立する", "が成立",
+                      "認められる", "該当する", "既遂が成立", "既遂罪が成立"]
+        t = re.sub(r"<[^>]+>", "", text or "").strip()
+        # 疑問文・「批判」評価文・「〜とする記述」問い形はスキップ（○×が命題真偽と別軸）
+        if re.search(r"(批判|か。?|妥当か。?|適切(?:である)?。?|できるか。?|得るか。?|"
+                     r"とする記述。?|という記述。?|向けることができる。?|と述べる。?)$", t):
+            return None
+        # 括弧内（別罪の傍論が多い）を除去してから走査
+        stripped = t
+        prev = None
+        while prev != stripped:
+            prev = stripped
+            stripped = re.sub(r"（[^（）]*）", "", stripped)
+            stripped = re.sub(r"\([^()]*\)", "", stripped)
+        marks = []
+        for tok in neg_tokens:
+            for m in re.finditer(re.escape(tok), stripped):
+                marks.append((m.start(), m.end(), -1))
+        for tok in pos_tokens:
+            for m in re.finditer(re.escape(tok), stripped):
+                marks.append((m.start(), m.end(), +1))
+        # NEG に内包される POS（「成立する」⊂「成立することはない」）を除去
+        negs = [(s, e) for s, e, v in marks if v == -1]
+        cleaned = [(s, v) for s, e, v in marks
+                   if not (v == +1 and any(ns <= s and e <= ne for ns, ne in negs))]
+        if not cleaned:
+            return None
+        vals = {v for _, v in cleaned}
+        if len(vals) > 1:
+            return None  # 多罪混在（成立と不成立が別罪で並ぶ）＝判定不能でスキップ
+        cleaned.sort()
+        return cleaned[-1][1]
+
+    def g60_ox_stmt_inline_polarity(self):
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        ox = {}
+        for row in self.soup.select(".ox-row[data-stmt]"):
+            st = row.find(class_="ox-stmt")
+            if st:
+                ox[(row.get("data-stmt") or "").strip()] = st.get_text(" ", strip=True)
+        inl = {}
+        for card in self.soup.select(".tx-inline-card[data-stmt]"):
+            tx = card.find(class_="tx-inline-stmt-text")
+            if tx:
+                inl[(card.get("data-stmt") or "").strip()] = tx.get_text(" ", strip=True)
+        for label in set(ox) & set(inl):
+            po = self._conclusion_polarity(ox[label])
+            pi = self._conclusion_polarity(inl[label])
+            if po and pi and po != pi:
+                self.err("G60", f"記述{label} で .ox-stmt（復習プール全文）と "
+                                f".tx-inline-card（通常周回）の結論が逆向き"
+                                f"（一方が『成立』側・他方が『不成立』側）。"
+                                "同一命題で answer-key を共有するため、片面で正答が誤答表示になる。"
+                                "ox-stmt を inline カードと同じ命題に揃える。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1884,6 +1960,7 @@ class Validator:
         self.g56_v13m_depth_advisory()
         self.g58_cross_cut_display()
         self.g59_xnav_crosslinks()
+        self.g60_ox_stmt_inline_polarity()
 
 
 def main():
