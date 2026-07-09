@@ -79,6 +79,23 @@ def _collect(roots: list[str]) -> list[Path]:
     return sorted(files)
 
 
+def _run_citation_era_gate(root: str = "outputs") -> int:
+    """判例引用・元号の割れゲート（恒久対策・2026-07-09）。
+
+    コーパス横断の不変条件（同一裁判所・数値年月日が別元号で引かれる＝OCR誤記の疑い）を
+    check-citation-era.py で走査する。allowlist 済みの正当な別判例は抑止し、未確認の割れで 1。
+    """
+    import subprocess
+
+    script = SCRIPTS / "check-citation-era.py"
+    if not script.exists():
+        return 0
+    print("\n=== 判例引用・元号割れゲート (check-citation-era) ===")
+    target = root if (ROOT / root).exists() else "outputs"
+    proc = subprocess.run([sys.executable, "-X", "utf8", str(script), target])
+    return proc.returncode
+
+
 def main() -> int:
     Validator = _load_validator()
     roots = sys.argv[1:] or ["outputs"]
@@ -91,6 +108,11 @@ def main() -> int:
 
     print("=== TX _lex push-front gate (G41 engine + G42 combination + G43 detail + G44 controls + G45 presentation) ===")
     print("roots=" + ", ".join(roots))
+
+    # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
+    # masked されないよう最初に走らせる。コーパス横断の不変条件なので常に全 outputs を検査。
+    if _run_citation_era_gate() != 0:
+        return 1
 
     # スロット契約の存在＋版マーカー検査（ARIADNE の check_slot_contract 相当）。
     # 接ぎ木を「作った後に弾く」G41 の上流に、「そもそも自由編集させない」契約を据える。
