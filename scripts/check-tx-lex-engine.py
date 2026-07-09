@@ -164,9 +164,13 @@ def main() -> int:
             depth_notes.append((f, _depth))
         # G58＝cross-cut 表示規約（助詞直付き/チップCSS欠落/字下げずれ＝ERROR）。決定論的な表示崩れなので push を止める。
         v.g58_cross_cut_display()
+        # G60＝ox-stmt（復習プール全文）と inline カード（通常周回）の結論極性の反転を弾く。
+        #     同一命題で answer-key を共有するため、逆向きだと片面で正答が誤答表示になる
+        #     （刑TX368 記述1・2／刑TX362 エ・オ の実害）。決定論的・誤爆ゼロ設計なので push を止める。
+        v.g60_ox_stmt_inline_polarity()
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60")
         ]
         # G45＝v12.2.1 表示LOCK。既存の未移行 v12.1.1 を全件落とさないため、
         # v12.2.1 として生成・更新済みのファイルか、明示指定ファイルだけに適用する。
