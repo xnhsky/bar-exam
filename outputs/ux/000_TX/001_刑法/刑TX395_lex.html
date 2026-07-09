@@ -5387,6 +5387,24 @@ a.ref-stat[href]{ cursor:pointer; }
   --text: #2B2B20;
 }
 </style>
+<style id="tx-xnav-style">
+/* TX-XNAV v1: 正誤表 ⇄ 物語(ストーリー解説) ⇄ 各肢解説 の相互リンク */
+.tx-xnav{
+  display:inline-flex; align-items:center; gap:5px; padding:5px 14px 6px;
+  border:1px solid rgba(139,121,166,.55); border-radius:999px;
+  background:linear-gradient(180deg, var(--light,#faf7ff) 0%, var(--soft,#ece4f5) 100%);
+  color:var(--accent-darker,#4f3577); font-family:var(--font-soft); font-size:.83em; font-weight:850;
+  text-decoration:none; cursor:pointer; transition:filter .15s ease;
+  box-shadow:0 2px 6px -2px rgba(90,70,130,.3), inset 0 1px 0 rgba(255,255,255,.65);
+}
+.tx-xnav:hover{ filter:brightness(1.05); }
+.tx-xnav-footer{ margin-top:16px; padding-top:13px; border-top:1px dashed rgba(139,121,166,.45); text-align:center; }
+.tx-xnav-footer .tx-xnav{ font-size:.9em; }
+.tx-story-backrow{ margin:0 0 14px; text-align:left; }
+.tx-xnav-story-fwd{ display:block; margin:8px 0 2px; text-align:right; }
+.tx-xnav-row{ margin:13px 0 2px; display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+#tx-verdict-anchor, #tx-story-anchor, [id^="tx-story-"]{ scroll-margin-top:24px; }
+</style>
 </head>
 <body id="top">
 <div class="container">
@@ -7102,6 +7120,100 @@ a.ref-stat[href]{ cursor:pointer; }
     }
   });
 })();
+
+/* TX-XNAV:BEGIN v1 ── 正誤表 ⇄ 物語(ストーリー解説) ⇄ 各肢解説 の相互リンク
+   正誤表/物語パネルは JS で遅延生成・再描画されるため MutationObserver で追随し冪等に付与する。 */
+(function(){
+  var VERDICT='.tx-inline-answer-table-panel', STORY='.tx-inline-story-panel';
+  function cardOrder(){
+    return Array.prototype.map.call(
+      document.querySelectorAll('.tx-inline-card[data-stmt]'),
+      function(c){ return c.getAttribute('data-stmt'); });
+  }
+  function labelFor(letter){
+    var card=document.getElementById('stmt-'+letter);
+    var n=card && card.querySelector('.choice-num-inline');
+    return (n && n.textContent.trim()) || letter;
+  }
+  function mkLink(cls, href, html){
+    var a=document.createElement('a');
+    a.className='tx-xnav '+cls; a.setAttribute('href', href); a.innerHTML=html;
+    return a;
+  }
+  function enhanceVerdict(){
+    var panel=document.querySelector(VERDICT);
+    if(!panel) return;
+    panel.id='tx-verdict-anchor';
+    if(!document.querySelector(STORY)) return;            // 物語が未生成ならフッターは付けない
+    if(panel.querySelector('.tx-xnav-footer')) return;    // 再描画で消えたら再付与（冪等）
+    var foot=document.createElement('div');
+    foot.className='tx-xnav-footer';
+    foot.appendChild(mkLink('tx-xnav-to-story','#tx-story-anchor','📖 この問題を物語で読む（ストーリー解説）へ ↓'));
+    panel.appendChild(foot);
+  }
+  function enhanceStory(){
+    var panel=document.querySelector(STORY);
+    if(!panel) return;
+    panel.id='tx-story-anchor';
+    if(!panel.querySelector('.tx-story-backrow')){
+      var row=document.createElement('div');
+      row.className='tx-story-backrow';
+      row.appendChild(mkLink('tx-xnav-to-verdict','#tx-verdict-anchor','↑ 正誤表に戻る'));
+      panel.insertBefore(row, panel.firstChild);
+    }
+    var order=cardOrder();
+    Array.prototype.forEach.call(panel.querySelectorAll('p[data-fa-label]'), function(p){
+      var m=(p.getAttribute('data-fa-label')||'').match(/[①-⑳]/); // ①〜⑳
+      if(!m) return;
+      var letter=order[m[0].charCodeAt(0)-0x2460];
+      if(!letter) return;
+      p.id='tx-story-'+letter;
+      if(p.querySelector('.tx-xnav-story-fwd')) return;
+      var wrap=document.createElement('span');
+      wrap.className='tx-xnav-story-fwd';
+      wrap.appendChild(mkLink('tx-xnav-to-card','#stmt-'+letter,'→ 記述'+labelFor(letter)+'の詳しい解説へ'));
+      p.appendChild(wrap);
+    });
+  }
+  function enhanceCards(){
+    if(!document.querySelector(STORY)) return;             // 物語生成後に付与
+    Array.prototype.forEach.call(document.querySelectorAll('.tx-inline-card[data-stmt]'), function(card){
+      var letter=card.getAttribute('data-stmt');
+      var explain=card.querySelector('.tx-inline-explain');
+      if(!explain || explain.querySelector('.tx-xnav-to-story-card')) return;
+      var row=document.createElement('div');
+      row.className='tx-xnav-row';
+      row.appendChild(mkLink('tx-xnav-to-story-card','#tx-story-'+letter,'📖 この記述を物語で読む'));
+      var back=explain.querySelector('.tx-sysmap-back');
+      if(back) back.parentNode.insertBefore(row, back); else explain.appendChild(row);
+    });
+  }
+  var guard=false;
+  function run(){ if(guard) return; guard=true; try{ enhanceVerdict(); enhanceStory(); enhanceCards(); }catch(e){} guard=false; }
+  document.addEventListener('click', function(e){
+    if(e.target.closest && e.target.closest('.reveal-answer-btn,.tx-inline-reveal-btn,.tx-inline-browse-btn,.peek-explain-btn,.tx-inline-ox,.ox-btn')){
+      setTimeout(run,60); setTimeout(run,300);
+    }
+  }, false);
+  try{
+    var ob=new MutationObserver(function(){ run(); });
+    var start=function(){ ob.observe(document.body,{childList:true,subtree:true}); run(); };
+    if(document.readyState!=='loading') start(); else document.addEventListener('DOMContentLoaded', start);
+  }catch(e){ run(); }
+
+  /* 動的リンクはロード時 bind の対象外なので自前でスムーズスクロール＋フラッシュ */
+  function flash(el){ if(!el) return; el.classList.add('tx-basis-flash'); setTimeout(function(){ el.classList.remove('tx-basis-flash'); },1500); }
+  document.addEventListener('click', function(e){
+    var a=e.target.closest && e.target.closest('a.tx-xnav[href^="#"]');
+    if(!a) return;
+    var tgt=document.getElementById(a.getAttribute('href').slice(1));
+    if(!tgt) return;
+    e.preventDefault();
+    tgt.scrollIntoView({behavior:'smooth', block:'start'});
+    flash(tgt);
+  }, false);
+})();
+/* TX-XNAV:END v1 */
 </script>
 
 
