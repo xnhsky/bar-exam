@@ -1816,6 +1816,25 @@ class Validator:
         if re.search(r'class="tx-v13-trap-body">\s*cross-cut', body):
             self.warn("G58", "罠 body 先頭が生 cross-cut のリード＝『🔗 CROSS-CUT（説明）：本文』チップ形に統一する（§v13m）。")
 
+    def g59_xnav_crosslinks(self):
+        """G59（WARNING・2026-07-09）＝正誤表⇄物語⇄各肢解説の相互リンク（TX-XNAV）配線の有無。
+
+        インライン肢カード＋物語（.fa-narrative）＋正誤表エンジンを持つ _lex は、v13.1.0 の
+        「相互リンク往復」として TX-XNAV ブロックを持つべき。持たない場合に助言する（非退行のため
+        WARNING）。360未満の未移行 _lex は TJR 再生成（canonical 由来）で自動的に入るため止めない。
+        伝播は scripts/tx-lex-inject-xnav.py。"""
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        has_engine = (self.soup.select_one(".tx-inline-card[data-stmt]") is not None
+                      and self.soup.select_one(".fa-narrative") is not None
+                      and "inline-prototype-mode" in self.html)
+        if not has_engine:
+            return
+        if "/* TX-XNAV:BEGIN" not in self.html:
+            self.warn("G59", "正誤表⇄物語⇄各肢解説の相互リンク（TX-XNAV）が未配線。"
+                             "python scripts/tx-lex-inject-xnav.py <file> --apply で注入する"
+                             "（canonical 由来の新規生成・TJR 再生成では自動で入る）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1864,6 +1883,7 @@ class Validator:
         self.g55_basis_article_number_label()
         self.g56_v13m_depth_advisory()
         self.g58_cross_cut_display()
+        self.g59_xnav_crosslinks()
 
 
 def main():
