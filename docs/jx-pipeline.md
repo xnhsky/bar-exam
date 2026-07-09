@@ -1,7 +1,7 @@
-# JX パイプライン補助システム（整合チェック・PDF削除・回収動線）
+# JX パイプライン補助システム（整合チェック・入力恒久保管・回収動線）
 
 > 2026-06-06 新設。JX 生成の前後を固める 3 つの補助システム。
-> ① 入力アラインメント・チェック ② 処理済 PDF の安全削除 ③ 成果物の回収動線。
+> ① 入力アラインメント・チェック ②（旧：処理済 PDF の削除→2026-07-09 恒久無効化＝入力は削除しない）③ 成果物の回収動線。
 
 ---
 
@@ -53,9 +53,15 @@ python scripts/check-jx-alignment.py 刑 --all
 
 ---
 
-## ② 処理済 PDF の安全削除（git 管理）
+## ② 入力は削除しない＝恒久保管（旧「処理済 PDF の安全削除」）
 
-### 方針（CLAUDE.md §8：PDF は重要資産・原本は Drive 常在）
+> **【2026-07-09 方針転換】入力 PDF＋逐語は削除せず `inputs` に恒久保管する。** 自動経路
+> （`jx-finalize.ps1` の②／`jx-batch-runner.ps1 ⑦`・②-bis／`night-batch-runner.ps1`）の削除は
+> **恒久無効化**した。git 肥大化は `.gitignore` で回避（`inputs/000_TX/**/*.pdf`・
+> `inputs/001_JX/**/重問PDF/*.pdf`・`…/講義逐語/*.txt|*.md`）。`jx-cleanup-pdf.sh` は
+> **手動で明示実行する時だけ**使う手動専用ツールとして残す（既定 dry-run）。以下はその手動ツールの仕様。
+
+### 方針（手動削除時のガード・CLAUDE.md §4-5-bis）
 - 削除は **「処理済のみ」**。生成 HTML が存在し **かつ git に commit 済み**であることを
   確認してからでないと削除しない（作業消失の防止）。
 - 削除は **`git rm`（履歴に残る＝復元可能）**。物理 `rm` はしない。
@@ -111,6 +117,6 @@ GitHub URL（`https://github.com/xnhsky/bar-exam/...`）を復元する。
 2. （PDF＋解決した逐語を読んで JX を生成：new-jx）
 3. python scripts/validate-jx.py <出力HTML>                # J1〜J20 ERROR 0 件
 4. scripts/jx-push.sh "feat(jx): <ID> を生成保存"          # ③ 回収＝add→commit→push（§9 永続化）
-5. scripts/jx-cleanup-pdf.sh <科目> <番号> --commit         # ② 処理済 PDF を git rm
-   scripts/jx-push.sh "chore(jx): remove processed input PDFs"   # 削除も push して回収
+# ② 入力は削除しない＝恒久保管（2026-07-09 方針転換）。標準フローに削除ステップは無い＝手順4で完了。
+#   どうしても手動で消したい時のみ scripts/jx-cleanup-pdf.sh <科目> <番号> --commit を明示実行（自動経路からは呼ばない）。
 ```

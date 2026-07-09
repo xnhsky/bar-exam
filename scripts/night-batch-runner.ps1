@@ -329,10 +329,12 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
             $validateText = $validateOutput -join "`n"
             # PASS 判定（v10.0.0：Errors: 0、v9.x：ERROR 0 /）
             if ($validateText -match $ValidatePassRegex) {
-                Remove-Item -Path $target.PdfPath -Force
-                $cleanupTriggered = $true
+                # [削除恒久無効・2026-07-09 方針転換] 入力PDFは削除せず inputs に恒久保管する。
+                # 旧v10引退ランナーだがスケジュールタスク残存に備えた安全ベルトとして削除を止める。
+                # Remove-Item -Path $target.PdfPath -Force
+                $cleanupTriggered = $false
                 $validateStatus = "PASS"
-                Write-Host "[CLEANUP] $($target.ProblemId): PDF auto-deleted (validate-tx PASS)" -ForegroundColor Green
+                Write-Host "[CLEANUP] $($target.ProblemId): PDF 保持（削除恒久無効・validate-tx PASS）" -ForegroundColor Green
 
                 # === Deliver to Drive + Backup (validate PASS 時のみ) ===
                 try {

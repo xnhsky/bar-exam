@@ -548,23 +548,12 @@ foreach ($t in $Targets) {
         Write-Host "[② validate-jx] スキップ（HTML 未生成 or FAILED）" -ForegroundColor Yellow
     }
 
-    # ----- ②-bis 入力 PDF 削除（validate PASS 時のみ・逐語は保持）-----
-    # 旧フラット運用ではテスト用の使い捨てコピーを削除していたが、新レイアウトの
-    # 重問PDF\ は恒久的な原本ストアなので削除しない（再処理は SKIP_EXISTS で防止済み）。
-    # → 削除対象はフラット {科目}\ 直下に置かれた PDF のみ。重問PDF\ 配下の原本は保持。
+    # ----- ②-bis 入力 PDF 削除：恒久無効化（2026-07-09 方針転換：入力を inputs に恒久保管）-----
+    # 旧運用ではフラット {科目}\ 直下の PDF を validate PASS 時に削除していたが、入力 PDF は
+    # 一切削除せず inputs に恒久保管する方針へ変更した（重問PDF\ 原本は元から保持）。よって
+    # フラット配置 PDF も含めて削除しない。手動削除が必要な場合のみ scripts/jx-cleanup-pdf.sh を明示実行。
     if ($jxPass) {
-        $pdfParent = Split-Path -Parent $t.PdfPath
-        $isCanonicalStore = ((Split-Path $pdfParent -Leaf) -eq '重問PDF')
-        if ($isCanonicalStore) {
-            Write-Host "[②-bis PDF削除] 原本ストア(重問PDF\)のため削除しません（保持）: $($t.PdfPath)" -ForegroundColor DarkGray
-        } elseif (Test-Path $t.PdfPath) {
-            try {
-                Remove-Item -Path $t.PdfPath -Force -ErrorAction Stop
-                Write-Host "[②-bis PDF削除] フラット配置の入力 PDF を削除しました（逐語は保持）: $($t.PdfPath)" -ForegroundColor DarkYellow
-            } catch {
-                Write-Host "[②-bis PDF削除] 削除失敗（手動削除可・処理は継続）: $_" -ForegroundColor Yellow
-            }
-        }
+        Write-Host "[②-bis PDF削除] 入力削除は恒久無効（inputs 恒久保管方針）→ PDF は保持: $($t.PdfPath)" -ForegroundColor DarkGray
     }
 
     # =========================================================
@@ -864,26 +853,27 @@ if ($SkipDeploy) {
 }
 
 # =========================================================
-# ⑦ 永続化＋入力クリーンアップ（-Finalize 指定時のみ）
-#   - jx-finalize.ps1 で各問題の HTML＋TTS を git commit/push（GitHub バックアップ）し、
-#     Drive バックアップ済みを確認してから入力 PDF＋逐語を git rm する。
-#   - 配置（⑥）が済んだ DeployIds を対象にする（Drive バックアップは⑥で担保済み）。
+# ⑦ 永続化（-Finalize 指定時のみ）※入力削除は恒久無効（2026-07-09 方針転換）
+#   - jx-finalize.ps1 で各問題の HTML＋TTS＋副産物を git commit/push（GitHub バックアップ）する。
+#   - 入力 PDF＋逐語は inputs に恒久保管する方針のため git rm しない（-NoCleanup を明示付与＝二重防御。
+#     jx-finalize 側も②入力クリーンアップを恒久無効化済み）。
+#   - 配置（⑥）が済んだ DeployIds を対象にする。
 # =========================================================
 $JxFinalize = Join-Path $ProjectRoot "scripts\jx-finalize.ps1"
 if ($Finalize -and -not $DryRun) {
-    Write-Host "`n--- ⑦ 永続化＋入力クリーンアップ ---" -ForegroundColor Cyan
+    Write-Host "`n--- ⑦ 永続化（commit/push・入力は保持）---" -ForegroundColor Cyan
     if ($DeployIds.Count -eq 0) {
         Write-Host "[⑦ FINALIZE] 対象なし（jxPass 0 件）。" -ForegroundColor Yellow
     } elseif (-not (Test-Path $JxFinalize)) {
         Write-Host "[⑦ FINALIZE] jx-finalize.ps1 が見つかりません: $JxFinalize（スキップ）" -ForegroundColor Yellow
     } else {
-        $finArgs = @('-NoProfile','-File',$JxFinalize,'-Subject',$Subject,'-Ids',($DeployIds -join ','),'-ProjectRoot',$ProjectRoot)
+        $finArgs = @('-NoProfile','-File',$JxFinalize,'-Subject',$Subject,'-Ids',($DeployIds -join ','),'-ProjectRoot',$ProjectRoot,'-NoCleanup')
         if ($NoPush) { $finArgs += '-NoPush' }
         & pwsh @finArgs
-        Write-Host "[⑦ FINALIZE] 完了（commit/push＋入力削除）。" -ForegroundColor Green
+        Write-Host "[⑦ FINALIZE] 完了（commit/push・入力は保持）。" -ForegroundColor Green
     }
 } elseif ($Finalize -and $DryRun) {
-    Write-Host "`n[⑦ FINALIZE] DryRun のためスキップ（実行時に commit/push＋入力削除）。" -ForegroundColor DarkGray
+    Write-Host "`n[⑦ FINALIZE] DryRun のためスキップ（実行時に commit/push・入力は保持）。" -ForegroundColor DarkGray
 }
 
 Write-Host "`n=== jx-batch-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan

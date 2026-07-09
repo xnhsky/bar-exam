@@ -5,10 +5,9 @@
 #                          ＋ 副産物 outputs/ux/002_RX/{00N_科目}/{Subject}RX{NNN}_*.html
 #                          ＋ outputs/ux/003_TREE/{00N_科目}/{ID}_TREE.html
 #                          ＋ outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html を git add → commit
-#   ② 入力クリーンアップ  : 入力 PDF（inputs/001_JX/{科目}/重問PDF/{n}.pdf）＋ 逐語 を git rm → commit
-#       └ 削除の多重ガード（1 つでも欠ければ削除しない）:
-#            (a) HTML が git にコミット済み（①で担保）
-#            (b) その PDF・逐語が Drive バックアップに存在（jx-deploy.ps1 が配置時にコピー済）
+#   ② 入力クリーンアップ  : 【2026-07-09 恒久無効化】入力 PDF＋逐語は削除せず inputs に恒久保管する。
+#       旧運用（Drive バックアップ後に git rm）は撤回。foreach 内で②に入る直前に必ず continue で
+#       スキップする（①③は維持）。手動で消したい時のみ scripts/jx-cleanup-pdf.sh を明示実行。
 #   ③ push（-Push 指定時。既定で実行・-NoPush で抑止）
 #
 # ※ Drive バックアップは jx-deploy.ps1 が担う。本スクリプトは「バックアップ済みを確認して消す」係。
@@ -198,7 +197,14 @@ foreach ($id in $Ids) {
 
     if ($NoCleanup) { continue }
 
-    # --- ② 入力クリーンアップ（PDF + 逐語）---
+    # === 入力削除は恒久無効化（2026-07-09 ユーザー方針転換：入力を inputs に恒久保管）===
+    # 旧運用「Drive バックアップ後に入力 PDF＋逐語を git rm」は撤回。①GitHub バックアップ（HTML＋
+    # TTS＋副産物の commit/push）と③push は維持し、②入力クリーンアップ（git rm）は行わない。
+    # どうしても削除したい場合のみ scripts/jx-cleanup-pdf.sh を手動で明示実行する（自動経路からは呼ばない）。
+    Write-Host "  [② cleanup] 入力削除は恒久無効（inputs 恒久保管方針）→ スキップ" -ForegroundColor DarkGray
+    continue
+
+    # --- ② 入力クリーンアップ（PDF + 逐語）--- ※以下は無効化済み（復活は直上の continue を外す）
     if ($null -eq $num) { Write-Host "  [② cleanup] 番号抽出不可 → スキップ" -ForegroundColor Yellow; continue }
 
     # ガード(a): HTML がコミット済み＆差分なし
