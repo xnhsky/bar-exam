@@ -1791,6 +1791,31 @@ class Validator:
             self.warn("G57", f"薄い罠 候補 カード{','.join(thin_t)}＝⚠️間違いやすいポイントが結論言い換えで cross-cut〈横串〉（似た別論点の"
                              "混同フラグ/対比/反転）を欠く。非空ゆえ G52 は素通り。cross-cut を1枠投入（§v13m③・詳細 check-tx-v13m-depth.py）。")
 
+    def g58_cross_cut_display(self):
+        """G58（cross-cut 表示規約・2026-07-09 恒久対策）＝横串→cross-cut 移行後の表示崩れを弾く。_lex のみ。
+        ERROR：①助詞直付き（前後スペース欠落で日欧混植が崩れる）②チップ .tx-cc-tag に CSS 未定義＝無装飾
+        ③罠body先頭チップに tx-cc-lead 欠落＝親の text-indent:1em でチップが右へずれる。
+        WARNING：④『◯◯（cross-cut）』括弧タグ形 ⑤生 cross-cut のリード＝『🔗 CROSS-CUT（説明）：』チップ形推奨。
+        現corpus clean（0件）につき ERROR 化して回帰を封じる。"""
+        if not self.html_path.stem.endswith("_lex"):
+            return
+        if "cross-cut" not in self.html and "CROSS-CUT" not in self.html:
+            return
+        body = re.sub(r"<style.*?</style>", "", self.html, flags=re.S)
+        cramped = re.findall(r"[ぁ-んァ-ヴー一-龥々〆ヶ]cross-cut|cross-cut[ぁ-んァ-ヴー一-龥々〆ヶ]", body)
+        if cramped:
+            self.err("G58", f"cross-cut の前後スペース欠落 {len(cramped)}件（例『{cramped[0][:18]}』）＝日欧混植で崩れる。"
+                            "前後を半角スペースで空ける（『。）：』等 約物の前は不要）。")
+        if 'class="tx-cc-tag"' in body and ".tx-cc-tag{" not in self.html:
+            self.err("G58", "🔗 CROSS-CUT チップ（.tx-cc-tag）を使っているのに CSS 定義が <style> に無い＝無装飾。チップ CSS を注入する。")
+        if re.search(r'class="tx-v13-trap-body"><span class="tx-cc-tag">', body):
+            self.err("G58", "🔗 CROSS-CUT チップが罠 body 先頭なのに tx-cc-lead が無い＝親の text-indent:1em でチップが右へずれる。"
+                            "trap-body に tx-cc-lead を足す（実測 offset=0px を確認）。")
+        if "（cross-cut）" in body or "(cross-cut)" in body:
+            self.warn("G58", "『◯◯（cross-cut）』括弧タグ形＝リードは『🔗 CROSS-CUT（罠種）：本文』チップ形に統一する（§v13m）。")
+        if re.search(r'class="tx-v13-trap-body">\s*cross-cut', body):
+            self.warn("G58", "罠 body 先頭が生 cross-cut のリード＝『🔗 CROSS-CUT（説明）：本文』チップ形に統一する（§v13m）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -1838,6 +1863,7 @@ class Validator:
         self.g50_v13_loopcard_structure()
         self.g55_basis_article_number_label()
         self.g56_v13m_depth_advisory()
+        self.g58_cross_cut_display()
 
 
 def main():

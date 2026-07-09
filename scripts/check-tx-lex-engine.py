@@ -140,9 +140,11 @@ def main() -> int:
         _depth = [(c, m) for c, m in v.warnings if c in ("G56", "G57")]
         if _depth:
             depth_notes.append((f, _depth))
+        # G58＝cross-cut 表示規約（助詞直付き/チップCSS欠落/字下げずれ＝ERROR）。決定論的な表示崩れなので push を止める。
+        v.g58_cross_cut_display()
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58")
         ]
         # G45＝v12.2.1 表示LOCK。既存の未移行 v12.1.1 を全件落とさないため、
         # v12.2.1 として生成・更新済みのファイルか、明示指定ファイルだけに適用する。

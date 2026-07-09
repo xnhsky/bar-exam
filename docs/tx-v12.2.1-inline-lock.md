@@ -203,7 +203,11 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
 - 比喩の 2〜3 文は lead 側に吸収し、締めは記憶に残る 1 行に圧縮する（“盛りすぎ”＝用語スープの逆を末尾でも徹底）。
 
 **C. `.tx-v13-trap`（⚠️間違いやすいポイント）＝cross-cut・誤解の罠を積極投入**
-- **【用語・2026-07-09】本文表記は「横串」→ 英語 `cross-cut` に統一**（ラベル形は `🔗 CROSS-CUT＝…`、文中の名詞は ` cross-cut`）。概念は同じ＝複数論点を1本で貫く/似た別論点の混同フラグ。gate 側 `_TRAP_YOKO` は `横串`/`cross-cut`/`CROSS-CUT` 全て marker として認識（`validate-tx-core.py`）。既存 corpus は `scripts` 一括置換で移行済み・以後の新規は `cross-cut` で書く。
+- **【用語・2026-07-09】本文表記は「横串」→ 英語 `cross-cut` に統一**（概念は同じ＝複数論点を1本で貫く/似た別論点の混同フラグ）。gate 側 `_TRAP_YOKO` は `横串`/`cross-cut`/`CROSS-CUT` 全て marker として認識（`validate-tx-core.py`）。既存 corpus は `scripts` 一括置換で移行済み・以後の新規は `cross-cut` で書く。
+- **【表示規約・2026-07-09／G58 で機械強制】** cross-cut の書き方を2形に固定する：
+  ① **リード形（罠の冒頭で cross-cut を名乗る）＝チップ**：`<span class="tx-cc-tag">🔗 CROSS-CUT</span>（罠種）：本文`。`.tx-cc-tag` CSS を `<style>` に注入し、罠 body 先頭に来るチップは親 `.tx-v13-trap-body` に **`tx-cc-lead`**（`text-indent:0`）を足す（親の1em字下げでチップがずれるため）。旧 `横串の罠：`／`◯◯の罠（横串）：` 型は不可。
+  ② **文中の名詞＝小文字インライン**：日欧混植で **`cross-cut` の前後に半角スペース**（`…で切る cross-cut。`・`cross-cut の罠`）。`。）：`等 約物の前は空けない。助詞直付き `cross-cutの`／`cross-cutで` は不可。
+  回帰防止＝`validate-tx-core.py` **G58**（①助詞直付き・②チップCSS欠落・③body先頭チップの `tx-cc-lead` 欠落＝ERROR／④`（cross-cut）`括弧タグ・⑤生 cross-cut リード＝WARNING）を `check-tx-lex-engine.py` の push 前ブロック対象に追加。静的プレビュー実測は `.claude/launch.json`(static:5517)＋playwright/preview_eval で `chipOffset=0px` を確認。
 - 出題者は**受験生が引っかかる・差がつくところ**を突く。そこを**先回りで潰す**罠枠を積極的に入れる（バンバン）。
 - 主軸の横串＝**「民法＝観念的／刑法＝現実的」**（焼損は従物/付合物でなく「毀損しなければ取り外せるか」で判断／
   占有は民法の占有改定＝観念的取得に対し刑法は現実の占有＝強盗・詐欺・盗品等譲受は占有改定どまりで未遂）。
