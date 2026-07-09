@@ -4,8 +4,14 @@
 
 v13.1.0 LOOP-CARD の「相互リンク往復」を実体化する決定論パッチ。本文不変・冪等。
 - 正誤表コンテナのフッターに「ストーリー解説へ」ジャンプリンク
-- ストーリー解説の先頭に「正誤表に戻る」リンク
-- 物語の各記述段落(①〜) ⇄ 対応する各肢解説カード の双方向リンク
+- ストーリー解説の先頭に「正誤表に戻る」＋全肢ジャンプバー、末尾にも全肢ジャンプバー
+- 各肢解説カードに「この問題を物語で読む」＝物語パネル先頭へのリンク
+
+v2（2026-07-09）変更点：物語は肢と 1:1 でない（テーマ単位で束ねる仕様）ため、v1 の
+「data-fa-label 内の丸数字＝肢番号」推測を廃止。この推測は実コーパスでほぼ一致せず
+（半角数字・順不同・重複・テーマ名ラベル）、①各肢カード→物語の飛び先 #tx-story-{肢} が
+未生成で死リンク、②物語→肢の順リンクが大半で未付与、の二重不具合を生んでいた。
+v2 は「全肢へ確実に飛べるバー」＋「物語パネル先頭へ確実に戻れるリンク」に置換する。
 
 配置：
 - CSS ＝ `<style id="tx-xnav-style">` を `</head>` 直前に1枚（strip 時はこの1枚だけ除去）。
@@ -31,7 +37,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-XNAV_VERSION = "v1"
+XNAV_VERSION = "v2"
 
 # ---- 注入する CSS（<style id="tx-xnav-style"> の1枚に閉じる） -------------------
 CSS_BLOCK = """<style id="tx-xnav-style">
@@ -47,10 +53,14 @@ CSS_BLOCK = """<style id="tx-xnav-style">
 .tx-xnav:hover{{ filter:brightness(1.05); }}
 .tx-xnav-footer{{ margin-top:16px; padding-top:13px; border-top:1px dashed rgba(139,121,166,.45); text-align:center; }}
 .tx-xnav-footer .tx-xnav{{ font-size:.9em; }}
-.tx-story-backrow{{ margin:0 0 14px; text-align:left; }}
-.tx-xnav-story-fwd{{ display:block; margin:8px 0 2px; text-align:right; }}
+.tx-story-backrow{{ margin:0 0 16px; }}
+.tx-story-fwdrow{{ margin:18px 0 2px; padding-top:13px; border-top:1px dashed rgba(139,121,166,.45); }}
+.tx-xnav-stmtbar{{ display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:9px; }}
+.tx-xnav-stmtbar-lead{{ font-family:var(--font-soft); font-size:.82em; font-weight:800; color:var(--accent-darker,#4f3577); }}
+.tx-xnav-stmtbar .tx-xnav{{ font-size:.8em; padding:4px 12px 5px; }}
 .tx-xnav-row{{ margin:13px 0 2px; display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }}
-#tx-verdict-anchor, #tx-story-anchor, [id^="tx-story-"]{{ scroll-margin-top:24px; }}
+#tx-verdict-anchor, #tx-story-anchor{{ scroll-margin-top:24px; }}
+.tx-inline-card[id^="stmt-"]{{ scroll-margin-top:24px; }}
 </style>
 """.format(ver=XNAV_VERSION)
 
@@ -75,6 +85,20 @@ JS_BLOCK = r"""
     a.className='tx-xnav '+cls; a.setAttribute('href', href); a.innerHTML=html;
     return a;
   }}
+  // 全肢ジャンプバー：物語は肢と 1:1 でない（テーマ単位で束ねる）ため、段落ごとの
+  // 対応を丸数字で推測せず、全肢へ確実に飛べるバーを置く（どの肢へも必ず正しく解決）。
+  function stmtBar(){{
+    var bar=document.createElement('div');
+    bar.className='tx-xnav-stmtbar';
+    var lead=document.createElement('span');
+    lead.className='tx-xnav-stmtbar-lead';
+    lead.textContent='各肢の詳しい解説へ：';
+    bar.appendChild(lead);
+    cardOrder().forEach(function(letter){{
+      bar.appendChild(mkLink('tx-xnav-to-card','#stmt-'+letter,'記述'+labelFor(letter)));
+    }});
+    return bar;
+  }}
   function enhanceVerdict(){{
     var panel=document.querySelector(VERDICT);
     if(!panel) return;
@@ -90,35 +114,31 @@ JS_BLOCK = r"""
     var panel=document.querySelector(STORY);
     if(!panel) return;
     panel.id='tx-story-anchor';
-    if(!panel.querySelector('.tx-story-backrow')){{
+    if(!cardOrder().length) return;                        // 肢カード未生成ならバーは張らない
+    if(!panel.querySelector('.tx-story-backrow')){{         // 冒頭：正誤表に戻る＋全肢バー
       var row=document.createElement('div');
       row.className='tx-story-backrow';
       row.appendChild(mkLink('tx-xnav-to-verdict','#tx-verdict-anchor','↑ 正誤表に戻る'));
+      row.appendChild(stmtBar());
       panel.insertBefore(row, panel.firstChild);
     }}
-    var order=cardOrder();
-    Array.prototype.forEach.call(panel.querySelectorAll('p[data-fa-label]'), function(p){{
-      var m=(p.getAttribute('data-fa-label')||'').match(/[①-⑳]/); // ①〜⑳
-      if(!m) return;
-      var letter=order[m[0].charCodeAt(0)-0x2460];
-      if(!letter) return;
-      p.id='tx-story-'+letter;
-      if(p.querySelector('.tx-xnav-story-fwd')) return;
-      var wrap=document.createElement('span');
-      wrap.className='tx-xnav-story-fwd';
-      wrap.appendChild(mkLink('tx-xnav-to-card','#stmt-'+letter,'→ 記述'+labelFor(letter)+'の詳しい解説へ'));
-      p.appendChild(wrap);
-    }});
+    if(!panel.querySelector('.tx-story-fwdrow')){{          // 末尾：読了後に各肢の詳説へ
+      var frow=document.createElement('div');
+      frow.className='tx-story-fwdrow';
+      frow.appendChild(stmtBar());
+      panel.appendChild(frow);
+    }}
   }}
   function enhanceCards(){{
     if(!document.querySelector(STORY)) return;             // 物語生成後に付与
     Array.prototype.forEach.call(document.querySelectorAll('.tx-inline-card[data-stmt]'), function(card){{
-      var letter=card.getAttribute('data-stmt');
       var explain=card.querySelector('.tx-inline-explain');
       if(!explain || explain.querySelector('.tx-xnav-to-story-card')) return;
       var row=document.createElement('div');
       row.className='tx-xnav-row';
-      row.appendChild(mkLink('tx-xnav-to-story-card','#tx-story-'+letter,'📖 この記述を物語で読む'));
+      // 飛び先は物語パネル先頭（必ず存在）。旧 #tx-story-{{肢}} は物語側で ID 未生成の
+      // ことが多く死リンクだった。物語は 1:1 でないため段落ピンポイントには飛ばさない。
+      row.appendChild(mkLink('tx-xnav-to-story-card','#tx-story-anchor','📖 この問題を物語で読む'));
       var back=explain.querySelector('.tx-sysmap-back');
       if(back) back.parentNode.insertBefore(row, back); else explain.appendChild(row);
     }});
@@ -136,7 +156,10 @@ JS_BLOCK = r"""
     if(document.readyState!=='loading') start(); else document.addEventListener('DOMContentLoaded', start);
   }}catch(e){{ run(); }}
 
-  /* 動的リンクはロード時 bind の対象外なので自前でスムーズスクロール＋フラッシュ */
+  /* 動的リンクはロード時 bind の対象外なので自前でスクロール＋フラッシュ。
+     behavior:'smooth' はインラインエンジンの遅延再描画に中断されページが動かない
+     （＝「リンクが効かない」の実体）ため、確実に着地する即時スクロールにし、
+     再描画の押し戻し対策として次フレームで一度だけ再アサートする。 */
   function flash(el){{ if(!el) return; el.classList.add('tx-basis-flash'); setTimeout(function(){{ el.classList.remove('tx-basis-flash'); }},1500); }}
   document.addEventListener('click', function(e){{
     var a=e.target.closest && e.target.closest('a.tx-xnav[href^="#"]');
@@ -144,7 +167,9 @@ JS_BLOCK = r"""
     var tgt=document.getElementById(a.getAttribute('href').slice(1));
     if(!tgt) return;
     e.preventDefault();
-    tgt.scrollIntoView({{behavior:'smooth', block:'start'}});
+    var go=function(){{ tgt.scrollIntoView({{block:'start'}}); }};
+    go();
+    if(window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go,16);
     flash(tgt);
   }}, false);
 }})();
