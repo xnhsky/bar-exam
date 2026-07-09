@@ -185,7 +185,8 @@ def inject(html: str, nl: str) -> str:
 
 
 def process(path: Path, apply: bool) -> str:
-    raw = path.read_text(encoding='utf-8', errors='surrogatepass')
+    with open(path, 'r', encoding='utf-8', errors='surrogatepass', newline='') as fh:
+        raw = fh.read()  # newline='' で CRLF を温存（read_text は改行を LF へ翻訳するため使わない）
     nl = '\r\n' if '\r\n' in raw else '\n'
     if not has_engine(raw):
         return 'SKIP(no-engine)'
