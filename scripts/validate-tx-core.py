@@ -1446,6 +1446,21 @@ class Validator:
                 self.err("G45", "記憶フック本文 `.tx-op-body` に `padding-left:1em` が残っている。"
                                 "予約スペースではなく `text-indent:1em` で本文先頭だけ字下げする。")
 
+        # --- G61: 不可侵原文ブロックの丸囲みマーカー/ラベルは text-indent:0 必須（字下げ継承バグの恒久防止） ---
+        # 事例型 _lex の「過去問原文（不可侵）」ブロックは inline-block の丸囲みマーカー(.tx-charge-mk)や
+        # ラベル(.tx-original-tag / .tx-original-charges-title)を持つ。親の text-indent:1em を継承すると
+        # 円内の1字が右へずれて欠ける（.choice-num-inline と同型の既知バグ）。マーカー/ラベルには
+        # text-indent:0 を明示させる。ブロックが無いファイルはスキップ（誤爆ゼロ）。
+        if ".tx-original-block" in css:
+            for cls in (".tx-charge-mk", ".tx-charge", ".tx-original-tag", ".tx-original-charges-title"):
+                m = re.search(re.escape(cls) + r"\s*\{(?P<body>[^}]*)\}", css, re.S)
+                if not m:
+                    continue
+                if not re.search(r"text-indent\s*:\s*0", m.group("body")):
+                    self.err("G61", f"不可侵原文ブロックのマーカー/ラベル `{cls}` に `text-indent:0` が無い。"
+                                    "親の text-indent:1em を継承して丸囲み文字が右へずれ欠ける"
+                                    "（.choice-num-inline と同型のバグ）。text-indent:0 を明示する。")
+
         answer_review_required = [
             "buildAnswerReview",
             "compactAnswerComparison",
