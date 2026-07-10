@@ -1461,6 +1461,25 @@ class Validator:
                                     "親の text-indent:1em を継承して丸囲み文字が右へずれ欠ける"
                                     "（.choice-num-inline と同型のバグ）。text-indent:0 を明示する。")
 
+        # --- G62: 一問一答の数＝原文の記述数（取りこぼし・水増しの恒久防止） ---
+        # 不可侵原文ブロックの罪名/記述リスト(.tx-charge)の数と、学習グリッドの記述数(.ox-row)、
+        # answer-key(data-correct-value)の長さは全て一致していなければならない。表面の選択肢記号数ではなく
+        # 実質の記述単位で一問一答を用意する規約（組合せ→素材の記述、空欄→空欄数）を機械保証する。
+        # 不可侵原文ブロックが無いファイルはスキップ（既存問誤爆ゼロ）。
+        orig_block = self.soup.select_one(".tx-original-block")
+        if orig_block is not None:
+            n_charge = len(orig_block.select(".tx-charge"))
+            n_oxrow = len(self.soup.select(".answer-ox-grid .ox-row"))
+            area = self.soup.select_one("[data-correct-value]")
+            n_key = len(area.get("data-correct-value", "")) if area is not None else 0
+            if n_charge and n_oxrow and n_charge != n_oxrow:
+                self.err("G62", f"一問一答の数({n_oxrow})が原文の記述数({n_charge})と不一致。"
+                                "不可侵原文の各記述(.tx-charge)に1つずつ一問一答(.ox-row)を対応させる"
+                                "（表面の選択肢記号数ではなく実質の記述数に合わせる）。")
+            if n_oxrow and n_key and n_oxrow != n_key:
+                self.err("G62", f"answer-key長({n_key})が一問一答数({n_oxrow})と不一致。"
+                                "data-correct-value の1文字ずつが各記述の正誤に対応する規約を満たすこと。")
+
         answer_review_required = [
             "buildAnswerReview",
             "compactAnswerComparison",
