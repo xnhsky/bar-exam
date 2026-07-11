@@ -17,7 +17,7 @@ description: 新規 TX を問題 PDF から生成。_lex は active v13.1.0 LOOP
 >   ⚠️間違いやすいポイント→🔗他科目横断(重要接点のある記述のみ・無理に足さない)。
 > - **相互リンク往復**（条文参照→同カードBASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合＝script2本）、
 >   **正誤マーキング**（分かれ目を×赤波線/○緑下線）、**使い方説明は載せない**、タブラベル字下げ無効・本文1字下げ。
-> - **検証**：`scripts/validate-tx-core.py`（G1〜G45＋**G50 v13構造**＝正誤表印付き原文/規範核バッジ/帰结箱不在/成績エンジンを検査）＋
+> - **検証**：`scripts/validate-tx-core.py`（G1〜G62＝G45表示LOCK＋**G50-G54 v13完全性**＝正誤表印付き原文/規範核バッジ/帰结箱不在/成績エンジン/BASIS中身/trap/相互リンク/🗝フック＋G56/G57 深さ助言＋G58 cross-cut＋G60 極性＋**G61/G62 v13n 不可侵ブロック**）＋
 >   `check-tx-lex-engine.py`（G41/script2本）＋`check-duplicates.py`。レンダリング実測（playwright）で往復リンク・トグル・
 >   マーキング・**成績表示（○×を正解で選び「解答を表示」→🎉）・印付き正誤表**・pageerror0 を確認。
 > - **正典 gold＝刑TX359（GENESIS-CARD）は正誤表リデザイン適用済。既存 v13（089/125/174/218/256/290-302/355-385・刑訴TX001 等）の
@@ -40,7 +40,7 @@ description: 新規 TX を問題 PDF から生成。_lex は active v13.1.0 LOOP
 > - **PART C・PART D（12問ドリル）は廃止**。深掘り層は別冊 `-deep.html`（`/deepen-tx` で誤答データ解禁時に後追い）。
 > - 参考条文・判例＝条文（文言＋保護法益＋制度趣旨・**スモークブルー系**）／判例（**判旨に『⚖ 判旨』バッジ＋判旨以外を NOTE 化・コーラル系**）。体系ツリー＋放射マップ（＋深掘りでフロー）。
 > - **配色住み分け（v12.1.1・最重要）**：①**大前提**（ヘッダー/フッター/紙面背景/PART見出し・section-title・リンク）＝従来の **V3 3パターン（11パレット）** 基調色。②**PART A 問題・解答エリア**＝**ナチュラルマイルド色**。③**インライン肢カード**＝Mildliner 系（条文=ブルー、判例=ピンク、補助根拠=グレー、文言/趣旨/射程/転用=レモンイエロー、切断点=ピンク、記憶フック=紫、答案圧縮=ピンク）。正誤の○緑/×赤は semantic 維持。
-> - 唯一の起点は `canonical/GENESIS-CORE.html`（active v12.2.1）。validate は `scripts/validate-tx-core.py`（G1〜G45）と `scripts/check-tx-lex-engine.py`。
+> - 唯一の起点は `canonical/GENESIS-CORE.html`（active v12.2.1）。validate は `scripts/validate-tx-core.py`（G1〜G62）と `scripts/check-tx-lex-engine.py`。
 > - **物語解説 typography patch（v12.1.1）**：`.fa-narrative b` は `font-weight:560` 以下。ストーリー解説の強調語を600超・700系の太字へ戻さない。
 > - **表示LOCK（v12.2.1）**：問題文と○×の一体化、解法ナビの非ネタバレヒント、条文/判例の題名・法理テーマチップ、ラベル付き本文2カラム字下げ、物語解説の reveal 後表示、カード内2行判定、解説冒頭の正誤表を維持する。
 > - **品質LOCK**：公開・push 前に、最新法令・判例・主要学説と解説内容を最高エフォートで確認する。
@@ -222,6 +222,16 @@ section リンク＝#part-a/#answer-area/#choice-1〜5/#basis/#mindmap-tree/#min
   data-correct-value は全○でよい**（`check-lex-oxgrid-integrity` が blank-mode を L4 から自動免除）。
   **禁止されるのは「素の○× ox-grid（blank-mode でない）を全○にする」＝判別性ゼロの退化グリッドだけ**（L4）。
 - **見解A/B・学説適用型**：Phase 4d-1bis の `.choice-premise`（🔎 前提見解）で A説/B説 定義を原文再掲（遡読防止）。
+- **共有事例型（「甲の罪責を検討せよ」型・見解×事例型）＝不可侵原文ブロック必須（§v13n・G61/G62）**：
+  `#part-a:has(.tx-inline-card) > .problem-text{display:none}` が事例を隠す（刑TX374 の事例消失事故）ため、
+  問題文直下（解法ナビ・肢カードより上）に `.tx-original-block` を置き、PDF の問い＋事例＋（見解）＋記述/罪名列を
+  **逐語のまま常時表示**する（付け足し・要約・改変ゼロ。区画ラベル「📖過去問原文」「【事例】/【罪名】」のみ可）。
+  事例は `.case-description > .case-scene > .case-paragraph`（Lexia の extractCaseContext が各設問へ文脈添付）、
+  記述/罪名列は `.tx-original-charges > .tx-charge`（丸囲み `.tx-charge-mk`）。CSS は GENESIS-CARD 同梱＝複製で自動継承。
+  **各記述が独立自己完結の型（逐語のインラインカードがそのまま原文）では作らない**（長文の二重掲載になるだけ）。
+  一問一答の数＝実質の記述数（表面の選択肢記号数ではない）。**G62** が `.ox-row` 数＝`.tx-charge` 数＝answer-key 長を、
+  **G61** がマーカー字下げ（text-indent:0）を機械保証する。実例＝`刑TX374_lex`・`刑TX401_lex`。
+  正典規約＝`docs/tx-v12.2.1-inline-lock.md` §v13n／`spec/tx-v13.1.0-loopcard-core.md` 第1-bis項。
 - **合格実例（型別テンプレ・複製起点ではなく“構造の写経元”）**：
   | 型 | 実例 _lex | 版 | 何を写すか |
   |---|---|---|---|
