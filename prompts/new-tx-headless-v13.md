@@ -82,7 +82,7 @@
 HTML 2 ファイル完成後、**bash で両方を検証**（安いpython機械ゲート＝トークンほぼ0・必ず通す）：
 
 ```bash
-python scripts/validate-tx-core.py {LEX_PATH}        # _lex＝ox-grid 必須（G1〜G62＝G50 v13構造＋G61/G62 v13n 含む）
+python scripts/validate-tx-core.py {LEX_PATH}        # _lex＝ox-grid 必須（G1〜G63＝G50 v13構造＋G61/G62 v13n＋G63 三点整合 含む）
 python scripts/validate-tx-core.py {OFFICIAL_PATH}   # 公式＝single/multi 可（G23/G25 自動緩和）
 python scripts/check-tx-lex-engine.py {LEX_PATH}     # 解法ナビ engine 整合（G41・script2本）
 python scripts/check-duplicates.py outputs           # 公式↔_lex ミラーは除外＝正常

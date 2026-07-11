@@ -22,7 +22,7 @@
 
 | 役割 | canonical | 生成コマンド | validator |
 |---|---|---|---|
-| **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.1.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G62＝G45表示LOCK＋**G50-G54 v13完全性**＋G56/G57深さ助言＋G58 cross-cut＋G60極性＋**G61/G62 v13n**・正典自身も対象）＋`check-tx-lex-engine.py`（G41/script2本＋G45=LOOP-CARDにも適用＋G61/G62＋CORE/CARD両契約）＋`check-duplicates.py` |
+| **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.1.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G63＝G45表示LOCK＋**G50-G54 v13完全性**＋G56/G57深さ助言＋G58 cross-cut＋G60極性＋**G61/G62 v13n**＋**G63 三点整合**・正典自身も対象）＋`check-tx-lex-engine.py`（G41/script2本＋G45=LOOP-CARDにも適用＋G61/G62/G63＋CORE/CARD両契約＋CSSドリフト可視化）＋`check-duplicates.py` |
 | 公式版（本物5択・`000_TX`） | — | `/new-tx` 二系統出力 | `validate-tx-core.py`（single/multi） |
 
 - 構造正典 spec：**`spec/tx-v13.1.0-loopcard-core.md`**（active・byte 正典）。二系統は `spec/tx-v11.1.0-twotrack.md` を継承。
@@ -32,9 +32,9 @@
   横断(3軸マトリクス)→肢カード→物語→#basis(現行法note のみ)。**正誤表リデザイン（2026-07-06）**＝各行に印付き記述原文(`data-brief-mark`)＋法理コア(転用タグ)＋成績表示(🎉)＋重厚感、体系マップ各札に✍規範核バッジ、`▼本問の帰結`箱は廃止。gold=刑TX359 適用済／既存は `scripts/tx-lex-verdict-redesign.py`（土台）＋各問執筆で移行。**正誤マーキング**（記述原文の分かれ目を×赤波線/○緑下線）、
   **相互リンク往復**（条文参照→BASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合）、**他科目横断は重要接点のみ**（放火では
   失火→民法失火責任法）。使い方説明は載せない。validator G50 と placeholder 契約で回帰を止める。**学説項目（2026-07-06 追加・版据置）**＝BASIS に `.tx-basis-item.is-theory`（ラベンダー・任意）を新設。重要な学説対立・通説/有力説が記述の決め手のときだけ置く（条文青/判例ピンク/学説紫の三分・ARIADNE(JX) と統一）。gold=刑TX363 記述3（焼損＝独立燃焼説 vs 効用喪失説）。任意項目のため版は据え置き。
-- **v13 本文（`<div class="tx-v13-verdict">`）は 65 本**（刑法64＋刑訴1・`089 125 174 218 256 290-302 355-400[381除く] 420` 等・gold=刑TX359）。**版は `scripts/tx-lex-v13-stamp.py` が実体から自動判定**して feature-tag/genmeta/footer の3箇所を揃える＝**規範核バッジ＋印付き原文の両方**を持てば **v13.1.0**、無ければ **v13.0.0**。現状 **v13.1.0＝39本（刑TX361-385[381除く]＋刑TX386-400）**（＋canonical 359・正誤表リデザイン＋**体系マップ親箱リデザイン**＋**学説項目**を該当問に適用済／2026-07-07 census：361-371(11)＋372-385(13)＋386-400(15)＝39本が nb-badge＋data-brief-mark を実体保有。pbox-chip は文書偽造/放火のみ・わいせつ/賭博/公務執行妨害は非標準マップで pbox SKIP＝pbox-chip=0 でも版判定は nb-badge＋brief-mark で成立）、残り **26本は v13.0.0**（`089 125 174 218 256 290-302 420` 等・`scripts/tx-lex-verdict-redesign.py` で土台注入＋各問で規範核・印付き原文を執筆＋`scripts/tx-lex-sysmap-pbox.py` で親箱を移行）。**方針＝371-445 を優先で v13.1.0 化・それ以外は TJR 付随で消化**。
+- **census（本数）は本欄に固定数値を書かず、都度実測する**（2026-07-11 監査：2026-07-07 記載の「v13 本文65本／v13.1.0 39本」が実測 109本／86本と既にズレて腐っていたため脱数値化。TJR が回るたび増えるので固定値は必ず古くなる）。実測＝v13 本文は `grep -l tx-v13-verdict outputs/ux/000_TX/**/*_lex.html`、v13.1.0 実体は **nb-badge＋data-brief-mark の両方**を持つもの。**版は `scripts/tx-lex-v13-stamp.py` が実体から自動判定**して feature-tag/genmeta/footer の3箇所を揃える＝**規範核バッジ＋印付き原文の両方**を持てば **v13.1.0**、無ければ **v13.0.0**（pbox-chip は非標準マップ分野で SKIP があるため版判定に使わない）。gold=刑TX359（**最新実体は canonical/GENESIS-CARD.html**。disk の 359_lex は正典より古く census 上 v13.0.0 側に出る）。v13.0.0→v13.1.0 移行＝`scripts/tx-lex-verdict-redesign.py` で土台注入＋各問で規範核・印付き原文を執筆＋`scripts/tx-lex-sysmap-pbox.py` で親箱移行。**方針＝371-445 を優先で v13.1.0 化・それ以外は TJR 付随で消化**。
   - **純v11(ox-grid)→v13.1.0 の再生成経路（2026-07-07 新設）**：355-385 は元 v12 インラインだったが **386-445 は純 v11.1.0（インラインカード無し）で recanon 不可**。GENESIS-CARD(v13.1.0 gold=359)を土台に既存 v11 本文を素材に鋳造する。決定論ラッパー **`scripts/tx-lex-v11-to-v13.py`**（prep→recanon→エンジン差替→style差替+パレット保全→pbox+v131-author→DOM補完→CRLF・冪等・本文不変）が構造/CSS/JS/SVG を全生成し、各問は slots.json（体系マップ nodes/panels/cross/mark）＋data.json（kihan）＋v13m 文の執筆に集中。**386-400 の15本で実証済み**（answer-key 不変・validate ERROR0）。
-- **版はスタンプ文字列でなく本文タグで実体判定**（v13 ビルド連鎖がスタンプを更新せず旧版名が残っていた経緯あり）。**未移行＝純 v11 の 311 本＋381**（v12.2.1/GENESIS-CORE 保守のまま。401-445 の45本が 371-445 優先ゾーンの残り）。
+- **版はスタンプ文字列でなく本文タグで実体判定**（v13 ビルド連鎖がスタンプを更新せず旧版名が残っていた経緯あり）。**未移行＝純 v11（インラインカード無し＝tx-v13-verdict を持たない `_lex`）**（v12.2.1/GENESIS-CORE 保守のまま。残数は census で都度実測・371-445 優先ゾーンから消化）。
 - **解説執筆規約 v13m（2026-07-06・構造不変の内容規律）**：記述カード解説の書き方の正典＝`docs/tx-v12.2.1-inline-lock.md` §v13m。
   `.syn-lead`＝やさしい版（用語サンドイッチ・核用語1〜2個・初出のみ太字）／`.syn-image`＝💭INTUITION→**🗝記憶のフック**（締めの一行）／
   `.tx-v13-trap`＝**横串・誤解の罠を積極投入**（民法=観念的/刑法=現実的 等・混同フラグ・判例は年月日を一次確認）／マップ短縮版は作らない。
@@ -147,7 +147,7 @@
 
 | script | 対象 | チェック |
 |---|---|---|
-| `validate-tx-core.py` | TX v11/v12 コア＋v13 LOOP-CARD（canonical/GENESIS-CARD 自身も対象） | G1〜G62（G50-G54 v13完全性・G56/G57 深さ助言・G58 cross-cut・G60 極性・G61/G62 v13n） |
+| `validate-tx-core.py` | TX v11/v12 コア＋v13 LOOP-CARD（canonical/GENESIS-CARD 自身も対象） | G1〜G63（G50-G54 v13完全性・G56/G57 深さ助言・G58 cross-cut・G60 極性・G61/G62 v13n・G63 カード⇄プール三点整合） |
 | `validate-tx-deep.py` | TX v11 別冊 | D1〜D13 |
 | `validate-tx-gold.py` | TX v10 | G1〜G19（legacy 保守） |
 | `validate-tx.py` | TX v8.x〜v9.x | S1〜S91（legacy） |

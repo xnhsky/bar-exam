@@ -136,7 +136,7 @@ python -X utf8 scripts/check-tx-lex-engine.py outputs/ux/000_TX/001_刑法
 python -X utf8 -m py_compile scripts/validate-tx-core.py scripts/check-tx-lex-engine.py
 ```
 
-`check-tx-lex-engine.py` は G41/G42/G43/G44＋G50-G60（v13）＋G61/G62（v13n）＋SNTIP＋判例元号割れ＋CORE/CARD 両スロット契約を横断実行し、v12.2.1 **または v13 LOOP-CARD** マーカー付き・明示指定ファイルには G45 も適用する（2026-07-11 監査で v13 が G45/G61/G62 の検査対象外だった穴を恒久修正）。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れ、v13n 崩れを push 前に止める。`canonical/GENESIS-CARD.html` 自身も `_lex` 同様に G23/G25 期待値＋G30-G62 の検査対象（validate-tx-core の `is_lex_target()`）で、正典をステージした commit は pre-commit（validate-staged・block 既定）でも自動検査される。
+`check-tx-lex-engine.py` は G41/G42/G43/G44＋G50-G60（v13）＋G61/G62（v13n）＋G63（カード⇄プール三点整合）＋SNTIP＋判例元号割れ＋CORE/CARD 両スロット契約＋CSSドリフト可視化（tx-lex-css-canonize --check・非ブロッキング）を横断実行し、v12.2.1 **または v13 LOOP-CARD** マーカー付き・明示指定ファイルには G45 も適用する（2026-07-11 監査で v13 が G45/G61/G62 の検査対象外だった穴を恒久修正）。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れ、v13n 崩れを push 前に止める。`canonical/GENESIS-CARD.html` 自身も `_lex` 同様に G23/G25 期待値＋G30-G63 の検査対象（validate-tx-core の `is_lex_target()`）で、正典をステージした commit は pre-commit（validate-staged・block 既定）でも自動検査される。
 
 ---
 
@@ -200,7 +200,9 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
 
 **B. `.syn-image` の役割＝💭INTUITION（2〜3文の比喩）→ 🗝記憶のフック（締めの一行）へ変更**
 - ラベルは `<span class="syn-tag">🗝 記憶のフック</span>`。**class/DOM は `.syn-image` のまま**（既存 CSS を流用・
-  構造不変）。中身は鉤括弧でくくった**一行の標語**にする（例：「保険が掛かれば、自分の家も“他人の物”」）。
+  構造不変）。中身は鉤括弧でくくった**一行の標語（＋必要なら補足1文まで可）**にする（例：「保険が掛かれば、
+  自分の家も“他人の物”」）。**【2026-07-11 現実化】**正典・corpus の実態は「標語＋補足1文」の2文型が主流のため、
+  補足1文までを正規形として明文化（2文超の説明化・解説要約への回帰は従来どおり不可）。
 - 比喩の 2〜3 文は lead 側に吸収し、締めは記憶に残る 1 行に圧縮する（“盛りすぎ”＝用語スープの逆を末尾でも徹底）。
 
 **C. `.tx-v13-trap`（⚠️間違いやすいポイント）＝cross-cut・誤解の罠を積極投入**
@@ -309,3 +311,14 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
    記載が無く、「共有事例型なのに作らない」は G61/G62（ブロック無しスキップ設計）でも無検出＝刑TX374 型の
    事例消失が新規生成で再発しうる状態だった。→ 4ファイルすべてに型判定（共有事例型→必須／独立自己完結型→不要）
    と G61/G62 を明記（spec 第1-bis項・placeholder スロット `{{過去問原文（不可侵）}}`・new-tx 特殊型ガイド・headless Phase 4a〜4g）。
+
+**追補（同日・第2ラウンド＝再生成に依らないシステム改善）**：
+5. **G63 三点整合ゲート新設**＝インラインカード⇄SM2プール（.ox-row）⇄answer-key の data-stmt 集合一致・重複なし・
+   key長＝row数（G25 WARNING から昇格）。従来この整合は誰も見ておらず、ズレると「プールに出るのに解けない記述」が
+   黙って生まれる穴だった。全コーパス実測 検出0 を確認して ERROR 化（run()＋check-tx-lex-engine 双方）。
+6. **CSSドリフトの自動可視化**＝`tx-lex-css-canonize.py` の CANON を disk の 刑TX359_lex（正典より古い実体）から
+   **正典本体 canonical/GENESIS-CARD.html へ変更**（単一情報源）。engine 末尾で `--check` を**非ブロッキング** surfacing
+   （実測 不一致 102/110＝生成世代差。`--apply` 全展開＋実機確認の完了後にブロッキング昇格予定）。
+7. 小物＝**G57 語彙拡充**（早とちり・一括把握・一括り・飛びつ＝監査で実証した言い換え罠の盲点語彙）／**G11 解消**
+   （正典 tree SVG viewBox 532→552・下端余白 42px）／**🗝フック文言の現実化**（§v13m B＝一行標語＋補足1文まで可）／
+   **lineage census 脱数値化**（固定数値の腐り対策＝実測コマンド参照へ）。
