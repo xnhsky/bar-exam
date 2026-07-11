@@ -290,6 +290,13 @@ class Validator:
         self.errors = []
         self.warnings = []
 
+    def is_lex_target(self):
+        """_lex 系ゲート（G23/G25 期待値・G30-G46・G45・G50-G62）の対象か。
+        corpus の *_lex.html に加え、v13 正典 canonical/GENESIS-CARD.html 自身も対象にする。
+        （監査 2026-07-11：正典は「作らせない層」の要なのに、stem が _lex でないため
+        v13 系ゲートが全てスキップされ機械保証ゼロだった＝改名コピーで強制実行して安全を実証済み。）"""
+        return self.html_path.stem.endswith("_lex") or self.html_path.stem == "GENESIS-CARD"
+
     def err(self, code, msg):
         self.errors.append((code, msg))
 
@@ -648,7 +655,7 @@ class Validator:
         # 二系統化：記述○×一覧表（data-answer-key）は ox-grid／Lexia 用 _lex の肢データ源。
         # 公式（outputs/000_TX/...）が real-exam 5択（single/multi）の場合は対象外（過去問そのまま）。
         area = self.soup.find(class_="answer-area")
-        is_lex = self.html_path.stem.endswith("_lex")
+        is_lex = self.is_lex_target()
         atype = area.get("data-answer-type", "") if area else ""
         if not is_lex and atype in ("single", "multi"):
             return  # 公式 real-exam 版は ○×一覧表 任意
@@ -683,7 +690,7 @@ class Validator:
         # 二系統化（v11.1.0 継承／v12.1.1 active）：Lexia 用 _lex（outputs/ux/000_TX/..._lex.html）は ox-grid 必須
         # ＝記述単位○×が Lexia 復習プールの肢データ源。一方、公式（outputs/000_TX/...）は
         # 過去問そのままの「本物の5択」＝ single / multi を許容する（解法ナビは _lex のみ）。
-        is_lex = self.html_path.stem.endswith("_lex")
+        is_lex = self.is_lex_target()
         if not is_lex and atype in ("single", "multi"):
             return  # 公式（real-exam 5択）＝ ox-grid 固有検査は対象外
         if atype != "ox-grid":
@@ -874,7 +881,7 @@ class Validator:
         # POINT(.choice-points li) を併載する。ここに空欄番号・選択肢記号・
         # A説/B説・記述参照・事例番号などが残ると、問題ローカル記号の暗記に
         # 退化するため _lex では ERROR として止める。
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
 
         targets = []
@@ -905,7 +912,7 @@ class Validator:
     def g33_tx_lex_reflex_core_five_tags(self):
         # TX-LEX の reveal 最終表は Lexia/SM2 で単独カード化されるため、単なる長文説明ではなく
         # 文言・趣旨・射程・切断点・転用の5点セットを要求する。既存在庫の移行期なので WARNING。
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         tbl = self.soup.find("table", class_="statement-verdict-table")
         if not tbl:
@@ -940,7 +947,7 @@ class Validator:
         # `.ox-pool-explain`（= tx-reflex-core + cycle aids）で自己完結させる。
         # `.fa-narrative` は初回理解用の読み物、`.tx-inline-detail` / PART B は詳説アーカイブなので、
         # 通常カード本文へ混ぜない。
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         area = self.soup.select_one('.answer-area.inline-prototype-mode[data-answer-type="ox-grid"]')
         cards = self.soup.select(".tx-inline-card[data-stmt]")
@@ -1000,7 +1007,7 @@ class Validator:
     def g36_tx360_template_flow_label_text(self):
         # TX360 is the concrete template source for inline-card flow labels.
         # The label text itself must stay compact; spacing is handled by CSS.
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         bad = []
         allowed = {"文言", "趣旨", "射程", "切断点", "転用"}
@@ -1022,7 +1029,7 @@ class Validator:
     def g37_tx360_template_visual_contract(self):
         # TX360 is also the visual source of truth: compact flow-label badges
         # and a title beginning with "No.NNN ──".
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
 
         code_m = re.match(r"(.+?)(\d+)_lex$", self.html_path.stem)
@@ -1064,7 +1071,7 @@ class Validator:
 
     def g38_placeholder_contract(self):
         unresolved = re.findall(r"\{\{[^{}]{1,120}\}\}", self.html)
-        if self.html_path.stem.endswith("_lex") and unresolved:
+        if self.is_lex_target() and unresolved:
             sample = " / ".join(unresolved[:8])
             more = f" 他 {len(unresolved)-8} 件" if len(unresolved) > 8 else ""
             self.err("G38", f"未置換プレースホルダーが残っている: {sample}{more}。"
@@ -1092,7 +1099,7 @@ class Validator:
                 self.err("G38", "正典HTMLに配色パレット選定はAI判断とする例外契約が無い。")
 
     def g39_tx360_cycle_aids_center_contract(self):
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
 
         css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
@@ -1147,7 +1154,7 @@ class Validator:
                             " top:-13px / min-width:8.2em / 記・答丸バッジに固定する。")
 
     def g40_tx360_inline_initial_state_contract(self):
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         if not self.soup.select_one(".answer-area.inline-prototype-mode[data-answer-type='ox-grid']"):
             return
@@ -1192,7 +1199,7 @@ class Validator:
         # G1〜G40 は構造要素の「存在」しか見ないため PASS してしまうが、デザイン崩れ・
         # 機能不全・本文肥大（+30〜70K）を招く（§7「保守的書き換え」禁止）。G41 はこの
         # 接ぎ木クラスを機械検出し、canonical エンジンから作り直させるための整合ガード。
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         # v12 インライン正典を名乗るファイル（.tx-inline-card を持つ）だけを対象にする。
         # 旧デザイン _lex（インラインカード無し）は対象外＝温存。
@@ -1236,7 +1243,7 @@ class Validator:
         # 良い例＝刑TX350（blank モード・各空欄を独立命題化・correct-value 全○）。
         # 悪い例＝刑TX089/174/218/220/256/368（組合せ当否判定）。G30 は「記号のみ肢」を見るが、
         # 本ゲートは「記号を消しても組合せ全体の当否を問うている」構造欠陥を検出する（G30 は素通り）。
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         area = None
         for a in self.soup.find_all(class_="answer-area"):
@@ -1270,7 +1277,7 @@ class Validator:
         # 原因：ox-stmt の記号フリー正規化時に、元の誤った命題を書く代わりに「正しい見解＋
         # 誤りである旨の解説」を肢文へ書いてしまう癖（LLM の“親切な補足”）。
         # 対処：評価語は解説（.ox-pool-explain）に置き、ox-stmt は元の（＝×になる）素の主張だけにする。
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         area = None
         for a in self.soup.find_all(class_="answer-area"):
@@ -1313,7 +1320,7 @@ class Validator:
                             "正しい命題を述べつつ×判定＝字義と正解の矛盾（実害 刑TX363）。")
 
     def g44_tx_inline_answer_controls_contract(self):
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         if not self.soup.select_one(".tx-inline-card"):
             return
@@ -1357,10 +1364,10 @@ class Validator:
         # 下部 basis-card 由来の題名＋法理的テーマだけを表示する。
         # また、ストーリー解説のラベルは本文に重ならない通常フロー配置、
         # 条文/判例本文はラベル列＋本文列の2カラムを正典とする。
-        target = self.html_path.stem.endswith("_lex") or self.html_path.name == "GENESIS-CORE.html"
+        target = self.is_lex_target() or self.html_path.name == "GENESIS-CORE.html"
         if not target:
             return
-        if self.html_path.stem.endswith("_lex") and not self.soup.select_one(".tx-inline-card"):
+        if self.is_lex_target() and not self.soup.select_one(".tx-inline-card"):
             return
 
         css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
@@ -1446,39 +1453,10 @@ class Validator:
                 self.err("G45", "記憶フック本文 `.tx-op-body` に `padding-left:1em` が残っている。"
                                 "予約スペースではなく `text-indent:1em` で本文先頭だけ字下げする。")
 
-        # --- G61: 不可侵原文ブロックの丸囲みマーカー/ラベルは text-indent:0 必須（字下げ継承バグの恒久防止） ---
-        # 事例型 _lex の「過去問原文（不可侵）」ブロックは inline-block の丸囲みマーカー(.tx-charge-mk)や
-        # ラベル(.tx-original-tag / .tx-original-charges-title)を持つ。親の text-indent:1em を継承すると
-        # 円内の1字が右へずれて欠ける（.choice-num-inline と同型の既知バグ）。マーカー/ラベルには
-        # text-indent:0 を明示させる。ブロックが無いファイルはスキップ（誤爆ゼロ）。
-        if ".tx-original-block" in css:
-            for cls in (".tx-charge-mk", ".tx-charge", ".tx-original-tag", ".tx-original-charges-title"):
-                m = re.search(re.escape(cls) + r"\s*\{(?P<body>[^}]*)\}", css, re.S)
-                if not m:
-                    continue
-                if not re.search(r"text-indent\s*:\s*0", m.group("body")):
-                    self.err("G61", f"不可侵原文ブロックのマーカー/ラベル `{cls}` に `text-indent:0` が無い。"
-                                    "親の text-indent:1em を継承して丸囲み文字が右へずれ欠ける"
-                                    "（.choice-num-inline と同型のバグ）。text-indent:0 を明示する。")
-
-        # --- G62: 一問一答の数＝原文の記述数（取りこぼし・水増しの恒久防止） ---
-        # 不可侵原文ブロックの罪名/記述リスト(.tx-charge)の数と、学習グリッドの記述数(.ox-row)、
-        # answer-key(data-correct-value)の長さは全て一致していなければならない。表面の選択肢記号数ではなく
-        # 実質の記述単位で一問一答を用意する規約（組合せ→素材の記述、空欄→空欄数）を機械保証する。
-        # 不可侵原文ブロックが無いファイルはスキップ（既存問誤爆ゼロ）。
-        orig_block = self.soup.select_one(".tx-original-block")
-        if orig_block is not None:
-            n_charge = len(orig_block.select(".tx-charge"))
-            n_oxrow = len(self.soup.select(".answer-ox-grid .ox-row"))
-            area = self.soup.select_one("[data-correct-value]")
-            n_key = len(area.get("data-correct-value", "")) if area is not None else 0
-            if n_charge and n_oxrow and n_charge != n_oxrow:
-                self.err("G62", f"一問一答の数({n_oxrow})が原文の記述数({n_charge})と不一致。"
-                                "不可侵原文の各記述(.tx-charge)に1つずつ一問一答(.ox-row)を対応させる"
-                                "（表面の選択肢記号数ではなく実質の記述数に合わせる）。")
-            if n_oxrow and n_key and n_oxrow != n_key:
-                self.err("G62", f"answer-key長({n_key})が一問一答数({n_oxrow})と不一致。"
-                                "data-correct-value の1文字ずつが各記述の正誤に対応する規約を満たすこと。")
+        # G61/G62（不可侵原文ブロック）は独立ゲート g61_/g62_ へ昇格（2026-07-11 監査対応）。
+        # g45 内包のままだと、push 前ゲート（check-tx-lex-engine）が g45 を v12.2.1 マーカー
+        # ファイルにしか適用しない設計のため、v13 の v13n 検査が run() 直呼び経路でしか働かなかった。
+        # 現在は run() と check-tx-lex-engine の双方が g61_/g62_ を直接呼ぶ。
 
         answer_review_required = [
             "buildAnswerReview",
@@ -1685,7 +1663,7 @@ class Validator:
 
     def g50_v13_loopcard_structure(self):
         """v13.x LOOP-CARD 構造検証（.tx-v13-verdict 検出時のみ・spec tx-v13.1.0-loopcard-core.md）。"""
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         if not self.soup.select_one(".tx-inline-card .tx-v13-verdict"):
             return  # v13 でなければスキップ（v12 は非退行）
@@ -1798,7 +1776,7 @@ class Validator:
         THE GIST が「やさしい版」か・⚠️罠が「横串」かは機械化困難（spec 第v13m項）なので、薄さの
         失敗シグネチャだけを WARNING で拾い、著者の自己照合1回を助ける（ERROR にしない＝良質な簡潔版を誤爆させない）。
         v13 カード（.tx-inline-card に .tx-v13-verdict）を持つ _lex のみ対象。単一情報源＝gist_depth_flag/trap_depth_flag。"""
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         if not self.soup.select_one(".tx-inline-card .tx-v13-verdict"):
             return
@@ -1831,7 +1809,7 @@ class Validator:
         ③罠body先頭チップに tx-cc-lead 欠落＝親の text-indent:1em でチップが右へずれる。
         WARNING：④『◯◯（cross-cut）』括弧タグ形 ⑤生 cross-cut のリード＝『🔗 CROSS-CUT（説明）：』チップ形推奨。
         現corpus clean（0件）につき ERROR 化して回帰を封じる。"""
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         if "cross-cut" not in self.html and "CROSS-CUT" not in self.html:
             return
@@ -1857,7 +1835,7 @@ class Validator:
         「相互リンク往復」として TX-XNAV ブロックを持つべき。持たない場合に助言する（非退行のため
         WARNING）。360未満の未移行 _lex は TJR 再生成（canonical 由来）で自動的に入るため止めない。
         伝播は scripts/tx-lex-inject-xnav.py。"""
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         has_engine = (self.soup.select_one(".tx-inline-card[data-stmt]") is not None
                       and self.soup.select_one(".fa-narrative") is not None
@@ -1923,7 +1901,7 @@ class Validator:
         return cleaned[-1][1]
 
     def g60_ox_stmt_inline_polarity(self):
-        if not self.html_path.stem.endswith("_lex"):
+        if not self.is_lex_target():
             return
         ox = {}
         for row in self.soup.select(".ox-row[data-stmt]"):
@@ -1944,6 +1922,49 @@ class Validator:
                                 f"（一方が『成立』側・他方が『不成立』側）。"
                                 "同一命題で answer-key を共有するため、片面で正答が誤答表示になる。"
                                 "ox-stmt を inline カードと同じ命題に揃える。")
+
+    def g61_original_block_marker_indent(self):
+        """G61（ERROR・§v13n）＝不可侵原文ブロックの丸囲みマーカー/ラベルは text-indent:0 必須。
+
+        事例型 _lex の「過去問原文（不可侵）」ブロックは inline-block の丸囲みマーカー(.tx-charge-mk)や
+        ラベル(.tx-original-tag / .tx-original-charges-title)を持つ。親の text-indent:1em を継承すると
+        円内の1字が右へずれて欠ける（.choice-num-inline と同型の既知バグ）。マーカー/ラベルには
+        text-indent:0 を明示させる。ブロック CSS が無いファイルはスキップ（誤爆ゼロ）。
+        2026-07-11 に g45 内包から独立ゲートへ昇格（run()＋check-tx-lex-engine の双方から実行）。"""
+        css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+        if ".tx-original-block" not in css:
+            return
+        for cls in (".tx-charge-mk", ".tx-charge", ".tx-original-tag", ".tx-original-charges-title"):
+            m = re.search(re.escape(cls) + r"\s*\{(?P<body>[^}]*)\}", css, re.S)
+            if not m:
+                continue
+            if not re.search(r"text-indent\s*:\s*0", m.group("body")):
+                self.err("G61", f"不可侵原文ブロックのマーカー/ラベル `{cls}` に `text-indent:0` が無い。"
+                                "親の text-indent:1em を継承して丸囲み文字が右へずれ欠ける"
+                                "（.choice-num-inline と同型のバグ）。text-indent:0 を明示する。")
+
+    def g62_original_block_stmt_count(self):
+        """G62（ERROR・§v13n）＝一問一答の数＝原文の記述数（取りこぼし・水増しの恒久防止）。
+
+        不可侵原文ブロックの罪名/記述リスト(.tx-charge)の数と、学習グリッドの記述数(.ox-row)、
+        answer-key(data-correct-value)の長さは全て一致していなければならない。表面の選択肢記号数ではなく
+        実質の記述単位で一問一答を用意する規約（組合せ→素材の記述、空欄→空欄数）を機械保証する。
+        不可侵原文ブロックが無いファイルはスキップ（既存問誤爆ゼロ）。
+        2026-07-11 に g45 内包から独立ゲートへ昇格（run()＋check-tx-lex-engine の双方から実行）。"""
+        orig_block = self.soup.select_one(".tx-original-block")
+        if orig_block is None:
+            return
+        n_charge = len(orig_block.select(".tx-charge"))
+        n_oxrow = len(self.soup.select(".answer-ox-grid .ox-row"))
+        area = self.soup.select_one("[data-correct-value]")
+        n_key = len(area.get("data-correct-value", "")) if area is not None else 0
+        if n_charge and n_oxrow and n_charge != n_oxrow:
+            self.err("G62", f"一問一答の数({n_oxrow})が原文の記述数({n_charge})と不一致。"
+                            "不可侵原文の各記述(.tx-charge)に1つずつ一問一答(.ox-row)を対応させる"
+                            "（表面の選択肢記号数ではなく実質の記述数に合わせる）。")
+        if n_oxrow and n_key and n_oxrow != n_key:
+            self.err("G62", f"answer-key長({n_key})が一問一答数({n_oxrow})と不一致。"
+                            "data-correct-value の1文字ずつが各記述の正誤に対応する規約を満たすこと。")
 
     def run(self):
         self.g1_head()
@@ -1995,6 +2016,8 @@ class Validator:
         self.g58_cross_cut_display()
         self.g59_xnav_crosslinks()
         self.g60_ox_stmt_inline_polarity()
+        self.g61_original_block_marker_indent()
+        self.g62_original_block_stmt_count()
 
 
 def main():
@@ -2006,7 +2029,7 @@ def main():
         print(f"❌ ファイルが見つからない: {html_path}")
         sys.exit(2)
 
-    print(f"\n=== TX v11/v12 LOOP-CORE 検証: {html_path.name} ===\n")
+    print(f"\n=== TX v11/v12 LOOP-CORE / v13 LOOP-CARD 検証: {html_path.name} ===\n")
     v = Validator(html_path)
     v.run()
 
@@ -2026,7 +2049,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G45, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G62, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

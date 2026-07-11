@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""TX _lex の push 前ゲート（G41/G42/G43/G44/G45・read-only）。
+"""TX _lex の push 前ゲート（G41〜G45＋G50-G62・read-only）。
 
 validate-tx-core.py の G41/G42/G44 を全 `*_lex.html` に横断適用し、「旧 _lex ベース流用＋
 後付けパッチ script 接ぎ木」（codex 366-385 型）を push 前に機械的に弾く。さらに G42 で
 「答え選択肢（組合せ1〜5）の当否を ox-stmt にした組合せ当否判定」（刑TX089/174/212/218/220/256/368 型）も弾く。
-G45 は v12.2.1 マーカーを持つファイル、またはコマンドで明示指定されたファイルに適用し、
-TX355-359 実地修正後の表示LOCK（条文/判例ラベル、2カラム字下げ、物語ラベル非重畳、
-物語本文の1字下げ）を弾く。
+G45 は v12.2.1／v13 LOOP-CARD マーカーを持つファイル、またはコマンドで明示指定されたファイルに
+適用し、TX355-359 実地修正後の表示LOCK（条文/判例ラベル、2カラム字下げ、物語ラベル非重畳、
+物語本文の1字下げ）を弾く。G61/G62（v13n 不可侵原文ブロック＝マーカー字下げ・記述数一致）は
+独立ゲートとして全 _lex に適用する（ブロック無しはスキップ＝誤爆ゼロ・監査 2026-07-11）。
 
 G1〜G40 は構造要素の存在しか見ないため、canonical/GENESIS-CORE.html の単一エンジンを
 使わず旧 Annex C JS に band-aid(tx-inline-v1211-upgrade-js)を足した接ぎ木でも 1 ファイル
@@ -106,7 +107,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41 engine + G42 combination + G43 detail + G44 controls + G45 presentation) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -117,21 +118,26 @@ def main() -> int:
     # スロット契約の存在＋版マーカー検査（ARIADNE の check_slot_contract 相当）。
     # 接ぎ木を「作った後に弾く」G41 の上流に、「そもそも自由編集させない」契約を据える。
     contract_fail = 0
-    contract = ROOT / "canonical" / "GENESIS-CORE.placeholder.html"
-    MARKER = "GENESIS_CORE_SLOT_CONTRACT"
-    if not contract.exists():
-        print("[ERROR] canonical/GENESIS-CORE.placeholder.html が無い（TX _lex スロット契約）")
-        contract_fail = 1
-    else:
+    # v12=CORE と v13=CARD（active）の両契約を検査する（監査 2026-07-11：従来は CORE のみで、
+    # active の CARD 契約が消えても/版マーカーが壊れても気づけなかった）。
+    for cname, marker in (
+        ("GENESIS-CORE.placeholder.html", "GENESIS_CORE_SLOT_CONTRACT"),
+        ("GENESIS-CARD.placeholder.html", "GENESIS_CARD_SLOT_CONTRACT"),
+    ):
+        contract = ROOT / "canonical" / cname
+        if not contract.exists():
+            print(f"[ERROR] canonical/{cname} が無い（TX _lex スロット契約）")
+            contract_fail = 1
+            continue
         ctext = contract.read_text(encoding="utf-8", errors="replace")
-        if MARKER not in ctext:
-            print(f"[ERROR] GENESIS-CORE.placeholder.html に版マーカー {MARKER} が無い")
+        if marker not in ctext:
+            print(f"[ERROR] {cname} に版マーカー {marker} が無い")
             contract_fail = 1
         elif "{{" not in ctext:
-            print("[ERROR] GENESIS-CORE.placeholder.html に {{...}} スロットが無い")
+            print(f"[ERROR] {cname} に {{{{...}}}} スロットが無い")
             contract_fail = 1
         else:
-            print(f"[OK] slot contract: {MARKER}")
+            print(f"[OK] slot contract: {marker}")
 
     scanned = 0
     g45_scanned = 0
@@ -168,16 +174,22 @@ def main() -> int:
         #     同一命題で answer-key を共有するため、逆向きだと片面で正答が誤答表示になる
         #     （刑TX368 記述1・2／刑TX362 エ・オ の実害）。決定論的・誤爆ゼロ設計なので push を止める。
         v.g60_ox_stmt_inline_polarity()
+        # G61/G62＝v13n 不可侵原文ブロック（マーカー字下げ／記述数一致）。ブロック無しはスキップ＝誤爆ゼロ。
+        #     監査 2026-07-11：従来は g45 内包＋v12.2.1 マーカー判定のため v13 で一切走らなかった穴を恒久修正。
+        v.g61_original_block_marker_indent()
+        v.g62_original_block_stmt_count()
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62")
         ]
-        # G45＝v12.2.1 表示LOCK。既存の未移行 v12.1.1 を全件落とさないため、
-        # v12.2.1 として生成・更新済みのファイルか、明示指定ファイルだけに適用する。
+        # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
+        # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
+        # ファイルか、明示指定ファイルだけに適用する（監査 2026-07-11：v13 スタンプを追加）。
         g45_required = (
             f.resolve() in explicit_files
             or "TX v12.2.1 LOOP-CORE" in v.html
             or "v12.2.1 LOOP-CORE" in v.html
+            or "LOOP-CARD" in v.html
         )
         if g45_required:
             g45_scanned += 1
@@ -217,9 +229,9 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK) 検出ファイル={len(offenders)}")
+    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n) 検出ファイル={len(offenders)}")
     if offenders:
-        print("\n[G41/G42/G43/G44/G45] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れを検出:")
+        print("\n[G41-G45/G50-G62] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れ or v13/v13n 規約崩れを検出:")
         for f, errs in offenders:
             rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
             print(f"  ❌ {rel}")
