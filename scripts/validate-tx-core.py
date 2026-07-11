@@ -2004,6 +2004,60 @@ class Validator:
             self.err("G63", f"answer-key 長({len(key)})が ox-row 数({len(rows)})と不一致。"
                             "data-correct-value は各記述の正誤を1文字ずつ持つ（G25 WARNING からの昇格）。")
 
+    def g64_verdict_badge_key_consistency(self):
+        """G64（ERROR・2026-07-11 特殊問題監査対応）＝v13 判定バッジ⇄answer-key の矛盾（integrity L1 の三層化）。
+
+        各記述カードの .tx-v13-verdict バッジ（○/×）と answer-key（正誤表 data-answer-key／
+        answer-area data-correct-value）の食い違い＝「カード本体は組合せの当否・見出し/key は事例の成否」を
+        判定している刑TX368 型の最悪クラス矛盾。check-lex-oxgrid-integrity.py の L1 と同一ロジックを
+        validate-tx-core へ移植し、run()＋check-tx-lex-engine＋pre-commit（validate-staged）の三層に乗せる
+        （integrity 側の L1 は preflight/runner 単体実行用に残置＝二重定義は仕様・変更時は両方直す）。
+        v13 バッジの無いファイル（v11/v12・公式）はスキップ＝誤爆ゼロ。全コーパス実測 検出0 で ERROR 化。"""
+        if not self.is_lex_target():
+            return
+
+        def _norm(v):
+            s = (v or "").strip().lower()
+            if s in ("o", "○", "◯"):
+                return "o"
+            if s in ("x", "×", "✕", "✗"):
+                return "x"
+            return ""
+
+        key = {}
+        t = self.soup.select_one(".statement-verdict-table[data-answer-key]")
+        if t:
+            for pair in t.get("data-answer-key", "").split(","):
+                if ":" in pair:
+                    k, val = pair.split(":", 1)
+                    n = _norm(val)
+                    if n:
+                        key[k.strip()] = n
+        if not key:
+            a = self.soup.select_one(".answer-area[data-correct-value]")
+            if a:
+                for i, ch in enumerate(a.get("data-correct-value", ""), start=1):
+                    n = _norm(ch)
+                    if n:
+                        key[str(i)] = n
+        if not key:
+            return
+        for card in self.soup.select(".tx-inline-card[data-stmt]"):
+            b = card.select_one(".tx-v13-verdict .verdict")
+            if not b:
+                continue
+            cls = " ".join(b.get("class", []))
+            bk = "o" if "verdict-correct" in cls else ("x" if "verdict-incorrect" in cls else "")
+            if not bk:
+                txt = b.get_text()
+                bk = "o" if "○" in txt else ("x" if "×" in txt else "")
+            ak = key.get((card.get("data-stmt") or "").strip(), "")
+            if bk and ak and bk != ak:
+                self.err("G64", f"記述{card.get('data-stmt')} の判定バッジ（{'○' if bk == 'o' else '×'}）と "
+                                f"answer-key（{'○' if ak == 'o' else '×'}）が矛盾。カード本体と answer-key で"
+                                "判定単位がズレている（刑TX368 型＝組合せの当否と事例の成否の混線）。"
+                                "命題を揃えて同じ向きにする（check-lex-oxgrid-integrity L1 と同一検査）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -2057,6 +2111,7 @@ class Validator:
         self.g61_original_block_marker_indent()
         self.g62_original_block_stmt_count()
         self.g63_inline_pool_alignment()
+        self.g64_verdict_badge_key_consistency()
 
 
 def main():
@@ -2088,7 +2143,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G63, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G64, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

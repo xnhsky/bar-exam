@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""TX _lex の push 前ゲート（G41〜G45＋G50-G63・read-only）。
+"""TX _lex の push 前ゲート（G41〜G45＋G50-G64・read-only）。
 
 validate-tx-core.py の G41/G42/G44 を全 `*_lex.html` に横断適用し、「旧 _lex ベース流用＋
 後付けパッチ script 接ぎ木」（codex 366-385 型）を push 前に機械的に弾く。さらに G42 で
@@ -130,6 +130,39 @@ def _run_css_canonize_advisory() -> None:
         print("  → 正典CSSとの世代差。tx-lex-css-canonize.py --apply の全展開＋実機確認後にブロッキング昇格予定。")
 
 
+def _run_oxgrid_advisory(roots: list[str]) -> None:
+    """特殊型 ○×健全性（L2/L3/L4）の可視化（非ブロッキング・2026-07-11 特殊問題監査対応）。
+
+    L1（バッジ⇄key 矛盾＝最悪クラス）は G64 が三層でブロックする。L2 組合せ当否ナビ／L3 組合せ
+    見出し／L4 全○退化は旧v11帯に既存分が残る（R 再生成で消滅予定）ため push は止めず、件数と
+    先頭数件を surfacing する。検出 0 になったら check-lexia-preflight の oxgrid を strict 既定へ
+    （docs/lex-oxgrid-integrity-audit.md §2）。"""
+    import subprocess
+
+    script = SCRIPTS / "check-lex-oxgrid-integrity.py"
+    if not script.exists():
+        return
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-X", "utf8", str(script), "--warn-only", *roots],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            cwd=str(ROOT), timeout=600,
+        )
+    except Exception as e:
+        print(f"\n[特殊型 ox-grid 可視化スキップ] {e}")
+        return
+    lines = [ln for ln in (proc.stdout or "").splitlines() if ln.strip()]
+    ng = [ln for ln in lines if ln.startswith("[NG]")]
+    summary = next((ln for ln in reversed(lines) if "check-lex-oxgrid-integrity" in ln), "")
+    print(f"\n[特殊型 ox-grid 健全性 可視化・非ブロッキング] {summary.strip('= ') or 'summary なし'}")
+    for ln in ng[:3]:
+        print(f"  {ln}")
+    if len(ng) > 3:
+        print(f"  …ほか {len(ng) - 3} 件（一覧: python -X utf8 scripts/check-lex-oxgrid-integrity.py outputs/ux）")
+    if ng:
+        print("  → L1 は G64 がブロック済み。L2-L4 の既存分は旧v11帯＝R 再生成で消滅予定（0 になったら preflight strict 既定化）。")
+
+
 def main() -> int:
     Validator = _load_validator()
     roots = sys.argv[1:] or ["outputs"]
@@ -140,7 +173,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63 sync + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63/G64 sync + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -214,9 +247,12 @@ def main() -> int:
         # G63＝インラインカード⇄SM2プール⇄answer-key の三点整合（data-stmt 集合一致・key長）。
         #     全コーパス実測 検出0（2026-07-11）を確認して ERROR ゲート化。決定論・誤爆ゼロ設計。
         v.g63_inline_pool_alignment()
+        # G64＝v13 判定バッジ⇄answer-key の矛盾（integrity L1 の三層化・刑TX368 型の最悪クラス）。
+        #     全コーパス実測 検出0（2026-07-11 特殊問題監査）を確認して ERROR ゲート化。
+        v.g64_verdict_badge_key_consistency()
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
@@ -265,7 +301,7 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63(三点整合) 検出ファイル={len(offenders)}")
+    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63/G64(三点整合・バッジ⇄key矛盾) 検出ファイル={len(offenders)}")
     if offenders:
         print("\n[G41-G45/G50-G62] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れ or v13/v13n 規約崩れを検出:")
         for f, errs in offenders:
@@ -292,6 +328,9 @@ def main() -> int:
 
     # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
     _run_css_canonize_advisory()
+
+    # 特殊型 ○×健全性 L2-L4 の可視化（非ブロッキング・L1 は G64 がブロック・2026-07-11）。
+    _run_oxgrid_advisory(roots)
 
     if contract_fail:
         return 1
