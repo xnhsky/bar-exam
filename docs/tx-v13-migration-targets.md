@@ -1,5 +1,8 @@
 # TX v13 移行対象（旧レイアウト→v13.1.0 LOOP-CARD・刑法）
 
+> **【2026-07-11】既存ファイル改修の実行計画（パスA〜D・優先順・完了条件）は
+> `docs/handoff-tx-remediation-2026-07.md` が正典**（360-445 優先＋v13.0.0 は TJR-R 対象外なので別パス）。
+
 > 旧レイアウト `_lex`（`getInlineAnswerTablePanel` 無し）でPDFが `inputs/000_TX/001_刑法/` にある問題。
 > ローカルバッチ（`TX-PICK -SpecVersion v13`）の対象。gold見本＝刑TX125（2026-07-04 パイロット確定）。
 > 生成日: (自動算出) / 対象 190 問 / 番号帯 55〜330。PDFがDriveのみの旧問は別途。
