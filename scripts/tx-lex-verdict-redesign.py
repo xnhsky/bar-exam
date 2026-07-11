@@ -113,15 +113,18 @@ def main():
 
     n_changed = 0
     for t in targets:
-        with open(t, encoding="utf-8") as f:
-            html = f.read()
+        with open(t, "rb") as f:
+            raw = f.read()
+        use_crlf = b"\r\n" in raw           # 生成物HTMLはCRLF・autocrlf=false。改行を保持する
+        html = raw.decode("utf-8").replace("\r\n", "\n")
         new, changed = inject(html, css, engine)
         rel = os.path.relpath(os.path.abspath(t), REPO)
         if new != html:
             n_changed += 1
             if not dry:
+                out = new.replace("\n", "\r\n") if use_crlf else new
                 with open(t, "w", encoding="utf-8", newline="") as f:
-                    f.write(new)
+                    f.write(out)
             print(f"[{'DRY' if dry else 'OK '}] {rel}: {', '.join(changed)}")
         else:
             print(f"[==] {rel}: 変更なし（既に土台導入済み）")
