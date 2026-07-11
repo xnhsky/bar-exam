@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""TX _lex の push 前ゲート（G41〜G45＋G50-G62・read-only）。
+"""TX _lex の push 前ゲート（G41〜G45＋G50-G63・read-only）。
 
 validate-tx-core.py の G41/G42/G44 を全 `*_lex.html` に横断適用し、「旧 _lex ベース流用＋
 後付けパッチ script 接ぎ木」（codex 366-385 型）を push 前に機械的に弾く。さらに G42 で
@@ -8,7 +8,8 @@ validate-tx-core.py の G41/G42/G44 を全 `*_lex.html` に横断適用し、「
 G45 は v12.2.1／v13 LOOP-CARD マーカーを持つファイル、またはコマンドで明示指定されたファイルに
 適用し、TX355-359 実地修正後の表示LOCK（条文/判例ラベル、2カラム字下げ、物語ラベル非重畳、
 物語本文の1字下げ）を弾く。G61/G62（v13n 不可侵原文ブロック＝マーカー字下げ・記述数一致）は
-独立ゲートとして全 _lex に適用する（ブロック無しはスキップ＝誤爆ゼロ・監査 2026-07-11）。
+独立ゲートとして全 _lex に適用する（ブロック無しはスキップ＝誤爆ゼロ・監査 2026-07-11）。G63（カード⇄プール
+三点整合）も同様に全 _lex へ適用し、正典↔corpus の CSS ドリフトは tx-lex-css-canonize --check を非ブロッキングで可視化する。
 
 G1〜G40 は構造要素の存在しか見ないため、canonical/GENESIS-CORE.html の単一エンジンを
 使わず旧 Annex C JS に band-aid(tx-inline-v1211-upgrade-js)を足した接ぎ木でも 1 ファイル
@@ -97,6 +98,38 @@ def _run_citation_era_gate(root: str = "outputs") -> int:
     return proc.returncode
 
 
+def _run_css_canonize_advisory() -> None:
+    """正典↔corpus の共通CSSドリフト可視化（非ブロッキング・2026-07-11 監査対応）。
+
+    tx-lex-css-canonize.py --check は「v13 の <style> 本体（palette :root 以外）＝全問共通」の
+    照合ゲート。現状は生成世代差で不一致が多数（実測 102/110）のため push は止めず、
+    件数と先頭数件だけを surfacing する（--apply 全展開＋実機確認の完了後にブロッキング昇格）。"""
+    import subprocess
+
+    script = SCRIPTS / "tx-lex-css-canonize.py"
+    if not script.exists():
+        return
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-X", "utf8", str(script), "--check"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            cwd=str(ROOT), timeout=300,
+        )
+    except Exception as e:
+        print(f"\n[CSS-drift 可視化スキップ] {e}")
+        return
+    lines = [ln for ln in (proc.stdout or "").splitlines() if ln.strip()]
+    ng = [ln for ln in lines if ln.startswith("[CSS-NG]")]
+    summary = next((ln for ln in reversed(lines) if ln.startswith("CSS canonical check")), "")
+    print(f"\n[CSS-drift 可視化・非ブロッキング] {summary or 'summary なし'}")
+    for ln in ng[:3]:
+        print(f"  {ln}")
+    if len(ng) > 3:
+        print(f"  …ほか {len(ng) - 3} 件（一覧: python -X utf8 scripts/tx-lex-css-canonize.py --check）")
+    if ng:
+        print("  → 正典CSSとの世代差。tx-lex-css-canonize.py --apply の全展開＋実機確認後にブロッキング昇格予定。")
+
+
 def main() -> int:
     Validator = _load_validator()
     roots = sys.argv[1:] or ["outputs"]
@@ -107,7 +140,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63 sync + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -178,9 +211,12 @@ def main() -> int:
         #     監査 2026-07-11：従来は g45 内包＋v12.2.1 マーカー判定のため v13 で一切走らなかった穴を恒久修正。
         v.g61_original_block_marker_indent()
         v.g62_original_block_stmt_count()
+        # G63＝インラインカード⇄SM2プール⇄answer-key の三点整合（data-stmt 集合一致・key長）。
+        #     全コーパス実測 検出0（2026-07-11）を確認して ERROR ゲート化。決定論・誤爆ゼロ設計。
+        v.g63_inline_pool_alignment()
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
@@ -229,7 +265,7 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n) 検出ファイル={len(offenders)}")
+    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63(三点整合) 検出ファイル={len(offenders)}")
     if offenders:
         print("\n[G41-G45/G50-G62] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れ or v13/v13n 規約崩れを検出:")
         for f, errs in offenders:
@@ -253,6 +289,9 @@ def main() -> int:
             for code, m in notes:
                 print(f"       - [{code}] {m}")
         print("  → 機械化困難ゆえ push は止めない（WARNING）。著者が自己照合で解消（詳細 python -X utf8 scripts/check-tx-v13m-depth.py <file> --detail）。")
+
+    # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
+    _run_css_canonize_advisory()
 
     if contract_fail:
         return 1

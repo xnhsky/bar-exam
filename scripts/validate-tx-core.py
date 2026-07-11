@@ -260,7 +260,9 @@ _TRAP_YOKO = (
     "に一般化", "広げ", "狭め", "と紛らわし", "と並ぶ", "と同型", "同じ発想",
 )
 _TRAP_RESTATE = ("早合点", "短絡", "誤読", "誤解", "思い込", "即断", "直結", "反射的",
-                 "怠る", "捨象", "考えてしまう", "数えてしまう", "決めつけ")
+                 "怠る", "捨象", "考えてしまう", "数えてしまう", "決めつけ",
+                 # 2026-07-11 監査で実証した盲点語彙（正典旧カード1/4 型の言い換え罠が素通りしていた）
+                 "早とちり", "一括把握", "一括り", "飛びつ")
 
 
 def trap_depth_flag(text):
@@ -1966,6 +1968,42 @@ class Validator:
             self.err("G62", f"answer-key長({n_key})が一問一答数({n_oxrow})と不一致。"
                             "data-correct-value の1文字ずつが各記述の正誤に対応する規約を満たすこと。")
 
+    def g63_inline_pool_alignment(self):
+        """G63（ERROR・2026-07-11 監査対応）＝インラインカード⇄SM2プール⇄answer-key の三点整合。
+
+        v12/v13 inline _lex は .tx-inline-card[data-stmt]（通常周回の主UI）と
+        .answer-ox-grid .ox-row[data-stmt]（Lexia/SM2・answer-key の単一情報源）を
+        エンジンが data-stmt で同期する。集合がズレる／answer-key 長が合わないと、
+        「プールに出るのにインラインで解けない記述」「回答が記録されない記述」が黙って生まれる。
+        従来は G25 が key長≠row数 を WARNING で見るだけで、カード側との集合一致は誰も
+        見ていなかった穴を塞ぐ。インラインカードの無い旧デザイン _lex・公式はスキップ（誤爆ゼロ）。"""
+        if not self.is_lex_target():
+            return
+        cards = self.soup.select(".tx-inline-card[data-stmt]")
+        if not cards:
+            return  # 旧デザイン _lex（インラインカード無し）は対象外
+        rows = self.soup.select(".answer-ox-grid .ox-row[data-stmt]")
+        card_ids = [(c.get("data-stmt") or "").strip() for c in cards]
+        row_ids = [(r.get("data-stmt") or "").strip() for r in rows]
+        for name, ids in (("tx-inline-card", card_ids), ("ox-row", row_ids)):
+            dup = sorted({i for i in ids if ids.count(i) > 1})
+            if dup:
+                self.err("G63", f"{name} の data-stmt が重複: {dup}（エンジンの同期先が曖昧になる）")
+        cs, rs = set(card_ids), set(row_ids)
+        if cs != rs:
+            detail = []
+            if rs - cs:
+                detail.append(f"プールにあるがインラインカードが無い記述 {sorted(rs - cs)}")
+            if cs - rs:
+                detail.append(f"インラインにあるがプール（ox-row）が無い記述 {sorted(cs - rs)}")
+            self.err("G63", "インラインカード⇄SM2プールの data-stmt 集合が不一致（" + "／".join(detail) +
+                            "）。片方だけの記述は回答同期・SM2 記録が壊れる。")
+        area = self.soup.select_one("[data-correct-value]")
+        key = (area.get("data-correct-value") or "").strip() if area is not None else ""
+        if rows and key and len(key) != len(rows):
+            self.err("G63", f"answer-key 長({len(key)})が ox-row 数({len(rows)})と不一致。"
+                            "data-correct-value は各記述の正誤を1文字ずつ持つ（G25 WARNING からの昇格）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -2018,6 +2056,7 @@ class Validator:
         self.g60_ox_stmt_inline_polarity()
         self.g61_original_block_marker_indent()
         self.g62_original_block_stmt_count()
+        self.g63_inline_pool_alignment()
 
 
 def main():
@@ -2049,7 +2088,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G62, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G63, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
