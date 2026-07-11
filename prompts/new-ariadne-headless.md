@@ -2,8 +2,9 @@
 
 あなたは司法試験対策の最高峰教授兼フロントエンド実装者。**検証済み JX（ATHENA）HTML** を一次情報源に、
 初学者向けの「解法ナビ＋周回」教材 **ARIADNE** を1問分生成する。正典は `spec/jx-ariadne-v1.2.0-core.md`。
-現行版は **ARIADNE v1.2.0 PLACEHOLDER-LOCK**。HTML/CSS/JS の構造は固定し、AI は問題固有スロットと
-難易度別 ACTIVE ベースカラー選択だけを判断する。
+現行版は **ARIADNE v1.4.0 ARENA-PURE**。HTML/CSS/JS の構造は固定し、AI は問題固有スロットと
+難易度別 ACTIVE ベースカラー選択だけを判断する。**arena（`data-arena="1"`＝Lexia復習プール対象）に
+載せてよいのは当該問題の法的実体（規範・要件・判別基準・判例の射程・条文）だけ**（v1.4.0・spec §4）。
 
 > 生成・検証・修正・sentinel 出力までを完全自走で完遂する。**必ず末尾の「完了 sentinel」節の
 > いずれか 1 つを標準出力に echo してから終了する**（ランナーが sentinel で完了判定する）。
@@ -13,7 +14,7 @@
 - `{NNN}`：3桁問題番号
 - `{PROBLEM_ID}`：問題ID（例 `刑JX029`）＝ sentinel に使う
 - `{JX_HTML}`：検証済み JX（ATHENA）HTML の実パス（ランナー注入・一次情報源）
-- `{SKELETON}`：`canonical/ARIADNE.html`（固定HTML/CSS/JS複製起点・v1.2.0 PLACEHOLDER-LOCK active）
+- `{SKELETON}`：`canonical/ARIADNE.html`（固定HTML/CSS/JS複製起点・v1.4.0 ARENA-PURE active）
 - `{SLOT_CONTRACT}`：`canonical/ARIADNE.placeholder.html`（AIが置換してよい `{{{...}}}` スロット契約）
 - `{OUT}`：`outputs/ux/001_ARIADNE/{00N_科目}/{PROBLEM_ID}_ARIADNE.html`
   （科目→フォルダは 001_刑法/002_刑事訴訟法/003_民法/004_商法/005_民事訴訟法/006_行政法/007_憲法）
@@ -52,15 +53,20 @@
    - **おとり**：`.bone` に `data-kp-decoys="iss:…|u:…|rule:…|fact:…"`（近い誤りを 4〜6 個）。おとり論点も `iss:【論点】…`（冠番号なし）で本物と識別不能にする。
    - **試験下書き `.drafting`**（骨子の直前）：先頭に **`.draft-problem`＝問題文原文の再掲（上部 `.problem .pq` を逐語コピー＝答案構成で上へ遡らず済む）**、その直下に **`.draft-digest`＝骨子用に一行へ圧縮したメモ**（`<span class="ddl">骨子用に一行圧縮</span><span class="ddbody">…</span>` の2カラム）を置く。続けて `.draft-grid` 上段に①人物関係図 `.rel-map` と②時系列 `.timeline` を2カラム、下段に③拾う文言 `.facts` を `.draft-card span2` で全幅に置く。人物関係図を `span2` にしない。`.facts li` は引用 `.ph`＋理由 `.cue` の2カラムで、右余白が空きすぎないよう引用側を広めに取る。`.cue` の先頭に `...` / `…` を置かない。**いずれも生の事実抽出まで**（論点名・規範は書かない＝パズルの想起対象）。
    - **想起カード**：○×のうち**規範名・要件・定義を問える3枚前後**を `class="self-check-quiz recall" data-recall="1" data-rx="{SUBJECT}RX{NNN}_{論点序号}" data-correct-value="○"`＋`.recall-reveal`（onclick で `.quiz-answer` 開示）＋`.recall-grade` に「書けた○/書けなかった×」へ格上げ。**`data-rx`＝その想起が問う論点に対応する RX 論証カードのコード**（同JX配下 `outputs/ux/002_RX/{00N_科目}/{SUBJECT}JX{NNN}/` の `_1/_2/_3`＝論点①②③順。手順1で抽出した論点と RX タイトルを突合し1枚ずつ確定。1カード=1RX・多対一可・対応RX無しは省略）。Lexia は誤答時その RX を復習プールへ注入（LXA_FEAT_008）。**同じJX内の重複 data-rx は、教育上同じ論証を2枚で問う意図が明確な場合だけ許す。迷う場合は1枚だけに配線する。**
-3-ter. **答案構成の作法（spec §12・教授のひとこと＋ステップ別周回ドリル）** ─ 構造（`.bc-wrap`／5ステップ＝予測・軸・骨・重心・締め／`.bc-col` CSS）は {SKELETON} 継承。**手順タイトル・5枚の周回ドリル○×は汎用＝原則そのまま流用可**（ドリルは復習プール単独表示の制約で必ず汎用）。**🎓教授のひとことコラム（`.bc-col`・5枚）は問題固有＝各問 TTS（耳トレ台本の答案構成/差がつく点/事案分析）から本問コーチングを抽出して鋳造**（端的な `.bc-inst` と register を分け重複回避・型タイトル維持）。`.bc-inst` は必ず `<span class="ji">本問</span><div class="bi">本文</div>` の2カラムにし、本文だけ字下げする。生成時に**問題固有**を鋳造する：各ステップ `.bc-inst`（本問の登場人物・罪名・順序）／④重心の `.bc-weight` 配点バー＋`.bc-cap` 字数目安／⑤締めの `.box-trap` 書かないことリスト／末尾 `.bc-rhythm` リズム超簡略版。**ドリルは答案構成の転用可能な手順原理**（設計優先・重い罪先行・規範先出し・重心集中・実益薄論点の切捨て）を○×で、**正解は偏らせない（○×混在）**。位置は解法ナビ（BRIDGE）と骨子（手7 BUILD）の間。
+3-ter. **答案構成の作法（spec §12・教授のひとこと＋ページ内確認ドリル）** ─ 構造（`.bc-wrap`／5ステップ＝予測・軸・骨・重心・締め／`.bc-col` CSS）は {SKELETON} 継承。**手順タイトル・5枚のページ内ドリル○×は汎用＝そのまま流用可。ただし【v1.4.0 ARENA-PURE・最重要】bc-wrap 内ドリルには `data-arena` を絶対に付けない**（汎用の答案作法ドリルは全問共通ゆえ、プールに載せると同一命題が問題数ぶん複製される＝2026-07-11 監査の実害。ページ内確認専用にする。data-arena 付与は validate A40 ERROR）。**🎓教授のひとことコラム（`.bc-col`・5枚）は問題固有＝各問 TTS（耳トレ台本の答案構成/差がつく点/事案分析）から本問コーチングを抽出して鋳造**（端的な `.bc-inst` と register を分け重複回避・型タイトル維持）。`.bc-inst` は必ず `<span class="ji">本問</span><div class="bi">本文</div>` の2カラムにし、本文だけ字下げする。生成時に**問題固有**を鋳造する：各ステップ `.bc-inst`（本問の登場人物・罪名・順序）／④重心の `.bc-weight` 配点バー＋`.bc-cap` 字数目安／⑤締めの `.box-trap` 書かないことリスト／末尾 `.bc-rhythm` リズム超簡略版。ドリルの**正解は偏らせない（○×混在）**。位置は解法ナビ（BRIDGE）と骨子（手7 BUILD）の間。
 4. **周回○×（10枚前後・最重要・spec §4／§9-5）**：
-   - 各 `.self-check-quiz` に **`data-arena="1"`** と **`data-correct-value="○/×"`**、`.quiz-question`、`.quiz-btn[data-value]`×2、`.quiz-answer`。
+   - 解法ナビ側の各 `.self-check-quiz` に **`data-arena="1"`** と **`data-correct-value="○/×"`**、`.quiz-question`、`.quiz-btn[data-value]`×2、`.quiz-answer`（bc-wrap 作法ドリルだけは data-arena 無し＝3-ter）。
    - **本問の前提なしで解ける自己完結の一般原則／【例題】**にする（復習プールで孤立表示されても解ける）。状況依存設問は禁止。
+   - **【v1.4.0 ARENA-PURE】arena ドリルは当該問題の法的実体（規範・要件・判別基準・判例の射程・条文）だけを問う。**
+     科目共通の答案方法論（体系順「構成要件該当性→違法性→責任」・4点セット・評価語・構成順の予測・重い罪から先に・
+     配点重心/紙幅・実益薄論点の切捨て・「争いのない要件は一言で通す」等）を arena で問うことは**禁止**
+     （`scripts/ariadne_arena_rules.py` の METHOD_RE＝validate A40 と corpus 横断ゲートが ERROR で弾く）。
+     方法論の確認がしたければ bc-wrap のページ内ドリル（data-arena 無し）に置く。
    - **【最重要】教示↔ドリル 非重複（spec §4-bis）**：各手のドリルは、直上の **教示（`.do`/`.peek`）を読めば答えが割れる言い換え**にしない。教示＝「本問でどう動くか」の手続ナビ、ドリル＝「どこでも効く規範・定義・区別・要件」の能動想起、と**認知の的を分ける**。教示が戦術的選択（例「教唆で足りる」「正犯から書く」「規範は再掲せず接続」）を述べているなら、ドリルは**その選択を支える一段深い転用知識**（共謀共同正犯の要件／共犯従属性／法定的符合説の定義 等）を問う。**各手で「教示を隠さず読んでもドリルが解けてしまわないか」を必ず自己点検**。法的根拠は {JX_HTML} 内に必ずあるものに限る（創作禁止）。
    - 設問文を Lexia メタ除去 regex（`(本問|本設問)[0-20字]正解｜正解は肢｜正解はどれ｜正解の組`）に当てない。
    - `<script>` 内に `</body>` リテラルを書かない（「`</`+`body>`」等で回避）。
 5. **体裁強化を冪等付与（必須）**：`python scripts/ariadne-enhance.py {OUT}`（①深層部 条文の「N項」バッジ化＋項を点線区切り／③マストヘッド目次ジャンプTOC／④各セクション区切り＋深掘り前に「▲先頭へ戻る」）→ `python scripts/ariadne-autolink.py {OUT}`（②本文インライン相互リンク＝条文・判例・学説・用語を語そのままリンク・解法ナビ⇄深層部・カード間相互）。両者**冪等**。
-6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A39 ERROR 0**（A34＝骨子 SIMPLE-BONE・matrix 使用時のみ WARN／**A35＝深掘りテンプレ流用は ERROR**＝本問に無い人物記号が深掘りに出たら別問題流用として落とす／A36-A39＝版スタンプ・未定義box・draft逐語・bc-inst 2カラムは WARN・§17）。ERROR は該当部を修正して再検証。
+6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A40 ERROR 0**（A34＝骨子 SIMPLE-BONE・matrix 使用時のみ WARN／**A35＝深掘りテンプレ流用は ERROR**＝本問に無い人物記号が深掘りに出たら別問題流用として落とす／A36-A39＝版スタンプ・未定義box・draft逐語・bc-inst 2カラムは WARN・§17／**A40＝arena純度（方法論ドリル・bc-wrap の data-arena）は ERROR**）。続けて `python -X utf8 scripts/check-ariadne-quiz-dedup.py` で **corpus 横断の同一設問複製（3ファイル以上=ERROR）が増えていない**ことを確認。ERROR は該当部を修正して再検証。
 7. **完了 sentinel を echo**（下記節のいずれか1つ）してから終了。本文は返さない。
 
 ## 注意
@@ -73,7 +79,7 @@
 
 ## 完了 sentinel（必ず 1 つだけ echo して終了）
 
-**完全成功時（validate A1〜A32 ERROR 0）：**
+**完全成功時（validate A1〜A40 ERROR 0）：**
 ```
 echo "BATCH_ITEM_COMPLETED:{PROBLEM_ID}-ARIADNE"
 ```

@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ARIADNE v1.2.0 PLACEHOLDER-LOCK canonical guard.
+"""ARIADNE v1.4.0 ARENA-PURE canonical guard.
 
-Run validate-ariadne.py over the active skeleton and generated ARIADNE files.
-Warnings are allowed by validate-ariadne.py; any ERROR exits non-zero.
+Run validate-ariadne.py over the active skeleton and generated ARIADNE files,
+then run the corpus-wide quiz dedup gate (check-ariadne-quiz-dedup.py) so that
+cross-file duplicated / method-generic arena drills cannot reach the Lexia pool.
+Warnings are allowed; any ERROR exits non-zero. Skip corpus gate with --no-corpus.
 """
 from __future__ import annotations
 
@@ -21,8 +23,9 @@ except Exception:
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate-ariadne.py"
 DEFAULT_GLOB = "outputs/ux/001_ARIADNE/**/*_ARIADNE.html"
-CANONICAL_VERSION = "ARIADNE v1.3.0 TXLEX-UNIFY"
-SLOT_CONTRACT_VERSION = "ARIADNE_SLOT_CONTRACT v1.3.0 TXLEX-UNIFY"
+CANONICAL_VERSION = "ARIADNE v1.4.0 ARENA-PURE"
+SLOT_CONTRACT_VERSION = "ARIADNE_SLOT_CONTRACT v1.4.0 ARENA-PURE"
+CORPUS_DEDUP = ROOT / "scripts" / "check-ariadne-quiz-dedup.py"
 
 
 def rel(path: Path) -> str:
@@ -123,6 +126,7 @@ def main() -> int:
         help="ROOT-relative glob(s) to validate",
     )
     ap.add_argument("--no-canonical", action="store_true", help="do not validate canonical/ARIADNE.html")
+    ap.add_argument("--no-corpus", action="store_true", help="skip the corpus-wide quiz dedup gate")
     ap.add_argument("--verbose", action="store_true", help="print full validator output for passing files")
     args = ap.parse_args()
 
@@ -140,6 +144,25 @@ def main() -> int:
     for path in files:
         rc = run_validator(path, args.verbose)
         if rc != 0:
+            failures += 1
+
+    if not args.no_corpus:
+        # corpus 横断ゲート（v1.4.0 ARENA-PURE）：対象 glob に依らず ARIADNE 出力全体で
+        # 「同一 arena 設問の 3 ファイル以上複製」「方法論ドリルの arena 混入」を検査する。
+        print("\n--- corpus quiz dedup gate ---")
+        completed = subprocess.run(
+            [sys.executable, "-X", "utf8", str(CORPUS_DEDUP)],
+            cwd=ROOT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            capture_output=True,
+        )
+        if completed.stdout:
+            print(completed.stdout, end="" if completed.stdout.endswith("\n") else "\n")
+        if completed.stderr:
+            print(completed.stderr, end="" if completed.stderr.endswith("\n") else "\n")
+        if completed.returncode != 0:
             failures += 1
 
     print("\n=== summary ===")

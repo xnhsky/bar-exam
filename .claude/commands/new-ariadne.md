@@ -3,15 +3,20 @@
 **用途**：既存の検証済み JX（ATHENA）から、初学者向けの「解法ナビ＋周回」教材 ARIADNE を1問生成する。
 ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/TREE と同じく検証済み JX から蒸留）。
 
-> **【現行版 ARIADNE v1.3.0 TXLEX-UNIFY・2026-07-04】正典は `canonical/ARIADNE.html`（複製起点）＋
-> `spec/jx-ariadne-v1.2.0-core.md` 冒頭の v1.3.0 節。判例カードは **`cx-sec` 形式**（`<div class="cx-sec cr-{role}">`
-> ＋パステル薄チップ `.cx-lab`＋`.cx-body`）で、構成＝**判例百選スキーム**（事件情報/事案/判旨/解説/射程/百選/
-> 本問での使い方・**事件情報は 裁判所：/判決日：/出典：… の複数行ラベル**）、配色＝TX_lex（条文ブルー/判例ピンク/
-> 学説ラベンダー＋6色チップ・★=violet）。canonical を複製すれば CSS/意匠は継承する。**生成後、既存様式が混ざったら
-> 一括反映ツールで v1.3.0 に揃える**（`python scripts/ariadne-txlex-theme.py --apply {file}` ＋ 必要に応じ
+> **【現行版 ARIADNE v1.4.0 ARENA-PURE・2026-07-11】正典は `canonical/ARIADNE.html`（複製起点）＋
+> `spec/jx-ariadne-v1.2.0-core.md` 冒頭の v1.4.0 節。**周回ドリルの arena 純度が最重要**：`data-arena="1"`
+> （Lexia 復習プール対象）に載せてよいのは**当該問題の法的実体（規範・要件・判別基準・判例の射程・条文）だけ**。
+> 科目共通の答案方法論（体系順・4点セット・評価語 等＝`scripts/ariadne_arena_rules.py`）は arena 禁止、
+> bc-wrap（作法）のドリルは data-arena を付けない（ページ内確認専用）。誌面は v1.3.0 を継承＝判例カードは
+> **`cx-sec` 形式**（`<div class="cx-sec cr-{role}">`＋パステル薄チップ `.cx-lab`＋`.cx-body`）で、構成＝
+> **判例百選スキーム**（事件情報/事案/判旨/解説/射程/百選/本問での使い方・**事件情報は 裁判所：/判決日：/出典：…
+> の複数行ラベル**）、配色＝TX_lex（条文ブルー/判例ピンク/学説ラベンダー＋6色チップ・★=violet）。canonical を
+> 複製すれば CSS/意匠は継承する。**生成後、既存様式が混ざったら一括反映ツールで揃える**
+> （`python scripts/ariadne-txlex-theme.py --apply {file}` ＋ 必要に応じ
 > `ariadne-case-unify.py`/`ariadne-hy-to-cx.py`/`ariadne-convert-compact.py`/`ariadne-convert-residual.py`/
 > `ariadne-unify-case-structure.py`/`ariadne-jiken-to-labeled.py`/`ariadne-problem-restyle.py`/`ariadne-sechead-contrast.py`・
-> 全て冪等・本文不変・LF保持）。検証は `check-ariadne-canonical.py`（版マーカー `ARIADNE v1.3.0 TXLEX-UNIFY`）。
+> 全て冪等・本文不変・LF保持）。検証は `check-ariadne-canonical.py`（版マーカー `ARIADNE v1.4.0 ARENA-PURE`・
+> validate A1〜A40 ＋ corpus 横断 `check-ariadne-quiz-dedup.py`＝同一設問3ファイル以上で ERROR）。
 
 ## 使い方
 ```

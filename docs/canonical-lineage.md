@@ -99,7 +99,7 @@
 |---|---|---|---|
 | **RX**（論証カード・1論点1HTML） | **`canonical/AXIOM.html`**（v1.0・2026-06-20 新設） | `prompts/new-rx-headless.md`（複製方式） | `scripts/validate-rx.py`（R1〜R10） |
 | **TREE**（樹形図・ARBOR 仕様） | `canonical/ARBOR.html`（gold TREE 複製） | `prompts/new-arb-headless.md` | `scripts/validate-tree.py`（T1〜T9） |
-| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（**v1.3.0 TXLEX-UNIFY・2026-07-04 active**／旧 v1.2.0 PLACEHOLDER-LOCK は系譜） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A36）＋`scripts/check-ariadne-canonical.py` |
+| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（**v1.4.0 ARENA-PURE・2026-07-11 active**／旧 v1.3.0 TXLEX-UNIFY・v1.2.0 PLACEHOLDER-LOCK は系譜） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A40）＋`scripts/check-ariadne-quiz-dedup.py`（corpus）＋`scripts/check-ariadne-canonical.py` |
 
 - **AXIOM（RX 正典・2026-06-20）**：従来 RX は正典を持たず自由生成で CSS が 58 種に割れていた。
   gold 刑RX001_1 を基に AXIOM を新設し、**作り込みフォント（TX/JX と同一 Google Fonts）・規範レモン
@@ -112,7 +112,19 @@
   ACTIVE ベースカラー（EASY/STD/HARD）の難易度選択のみ。恒久対策は `validate-ariadne.py` A30/A31/A32 と
   `check-ariadne-canonical.py`、同期前 `check-lexia-preflight.py` に組込み済み。最新法令・判例・学説レビューも必須で、
   新旧差分時は `ariadne-current-law-note` に立法経緯/改正経緯・改正趣旨を含める。
-- **ARIADNE v1.3.0 TXLEX-UNIFY（2026-07-04・現行 active）**：v1.2.0 の placeholder 契約を継承しつつ、
+- **ARIADNE v1.4.0 ARENA-PURE（2026-07-11・現行 active）**：v1.3.0 を全面継承し、**周回ドリルの arena 純度**を
+  正典化した minor 改定。2026-07-11 監査（74ファイル1544枚中、完全一致の横断重複436枚＝28%・作法エリア95%重複・
+  全問に「構成順を予測」等の答案入門命題が平均6枚ずつ data-arena でプール直行）への恒久対策。原則＝**arena
+  （`data-arena="1"`＝Lexia SM-2 プール対象）に載せてよいのは当該問題の法的実体（規範・要件・判別基準・判例の
+  射程・条文）だけ**。①bc-wrap（答案構成の作法）のドリルは data-arena を外しページ内確認専用に。②科目共通の
+  答案方法論（体系順・4点セット・評価語 等＝`scripts/ariadne_arena_rules.py` METHOD_RE が単一情報源）を arena で
+  問うことを禁止し、正典のステップ例文3枚を法的実体型（未必の故意／不作為犯の着手時期／排他的支配の自己の意思）へ
+  差替。③ゲート＝validate A40（ERROR）・A13 bc除外・A27 ドリル枚数強制撤廃・A36 v1.4.0、**corpus 横断
+  `check-ariadne-quiz-dedup.py`**（同一設問3ファイル以上=ERROR・`check-ariadne-canonical.py` が毎回実行）。
+  ④既存74ファイルは `scripts/ariadne-arena-pure.py`（冪等・生テキスト編集で改行不変）で一括是正
+  （bc-arena除去370・方法論ドリル削除112・スタンプ更新222＋自殺不可罰×5クラスタの個別是正）。
+  版マーカー＝`ARIADNE v1.4.0 ARENA-PURE`／契約＝`ARIADNE_SLOT_CONTRACT v1.4.0 ARENA-PURE`。
+- **ARIADNE v1.3.0 TXLEX-UNIFY（2026-07-04・系譜）**：v1.2.0 の placeholder 契約を継承しつつ、
   深掘り層（条文/判例/学説）の**誌面を TX_lex（刑TX420_lex）の配色・意匠に統一**し、**判例カードの構成を
   完全1本化**した major 改定。要点：①**全判例カードを `cx-sec` 形式に統一**（旧 h5・百選 hy-sec・table・
   `<p><strong>ラベル</strong>：`・plain hanging の全様式を吸収）＝節＝`<div class="cx-sec cr-{role}">`＋
