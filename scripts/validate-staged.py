@@ -42,7 +42,12 @@ if "--scope" in _args:
         pass
 
 # パス部分一致 → validator（先に一致したものを使う）
+# canonical/GENESIS-{CARD,CORE}.html は「作らせない層」の要なので、正典をステージした
+# commit でも自動検査する（監査 2026-07-11）。".placeholder.html" は完成 HTML でないため
+# 対象外（プレフィクスに ".html" まで含めることで部分一致から外れる）。
 ROUTES = [
+    ("canonical/GENESIS-CARD.html", "scripts/validate-tx-core.py"),
+    ("canonical/GENESIS-CORE.html", "scripts/validate-tx-core.py"),
     ("outputs/ux/001_ARIADNE/", "scripts/validate-ariadne.py"),
     ("outputs/ux/002_RX/", "scripts/validate-rx.py"),
     ("outputs/ux/000_TX/", "scripts/validate-tx-core.py"),

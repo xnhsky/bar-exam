@@ -125,6 +125,7 @@
 
 ```powershell
 python -X utf8 scripts/validate-tx-core.py canonical/GENESIS-CORE.html
+python -X utf8 scripts/validate-tx-core.py canonical/GENESIS-CARD.html
 python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX355_lex.html
 python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX356_lex.html
 python -X utf8 scripts/validate-tx-core.py outputs/ux/000_TX/001_刑法/刑TX357_lex.html
@@ -135,7 +136,7 @@ python -X utf8 scripts/check-tx-lex-engine.py outputs/ux/000_TX/001_刑法
 python -X utf8 -m py_compile scripts/validate-tx-core.py scripts/check-tx-lex-engine.py
 ```
 
-`check-tx-lex-engine.py` は G41/G42/G43/G44 を横断実行し、v12.2.1 マーカー付きまたは明示指定ファイルには G45 も適用する。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れを push 前に止める。
+`check-tx-lex-engine.py` は G41/G42/G43/G44＋G50-G60（v13）＋G61/G62（v13n）＋SNTIP＋判例元号割れ＋CORE/CARD 両スロット契約を横断実行し、v12.2.1 **または v13 LOOP-CARD** マーカー付き・明示指定ファイルには G45 も適用する（2026-07-11 監査で v13 が G45/G61/G62 の検査対象外だった穴を恒久修正）。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れ、v13n 崩れを push 前に止める。`canonical/GENESIS-CARD.html` 自身も `_lex` 同様に G23/G25 期待値＋G30-G62 の検査対象（validate-tx-core の `is_lex_target()`）で、正典をステージした commit は pre-commit（validate-staged・block 既定）でも自動検査される。
 
 ---
 
@@ -205,7 +206,7 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
 **C. `.tx-v13-trap`（⚠️間違いやすいポイント）＝cross-cut・誤解の罠を積極投入**
 - **【用語・2026-07-09】本文表記は「横串」→ 英語 `cross-cut` に統一**（概念は同じ＝複数論点を1本で貫く/似た別論点の混同フラグ）。gate 側 `_TRAP_YOKO` は `横串`/`cross-cut`/`CROSS-CUT` 全て marker として認識（`validate-tx-core.py`）。既存 corpus は `scripts` 一括置換で移行済み・以後の新規は `cross-cut` で書く。
 - **【表示規約・2026-07-09／G58 で機械強制】** cross-cut の書き方を2形に固定する：
-  ① **リード形（罠の冒頭で cross-cut を名乗る）＝チップ**：`<span class="tx-cc-tag">🔗 CROSS-CUT</span>（罠種）：本文`。`.tx-cc-tag` CSS を `<style>` に注入し、罠 body 先頭に来るチップは親 `.tx-v13-trap-body` に **`tx-cc-lead`**（`text-indent:0`）を足す（親の1em字下げでチップがずれるため）。旧 `横串の罠：`／`◯◯の罠（横串）：` 型は不可。
+  ① **リード形（罠の冒頭で cross-cut を名乗る）＝チップ**：`<span class="tx-cc-tag">🔗 CROSS-CUT</span>（罠種）：本文`。`.tx-cc-tag` CSS は **canonical/GENESIS-CARD.html に同梱**（2026-07-11・複製で自動継承・チップ未使用問では不活性＝v13n CSS と同方式。canonical 由来でない旧世代 _lex でチップを使う時だけ `<style>` に手動注入）。罠 body 先頭に来るチップは親 `.tx-v13-trap-body` に **`tx-cc-lead`**（`text-indent:0`）を足す（親の1em字下げでチップがずれるため）。旧 `横串の罠：`／`◯◯の罠（横串）：` 型は不可。
   ② **文中の名詞＝小文字インライン**：日欧混植で **`cross-cut` の前後に半角スペース**（`…で切る cross-cut。`・`cross-cut の罠`）。`。）：`等 約物の前は空けない。助詞直付き `cross-cutの`／`cross-cutで` は不可。
   回帰防止＝`validate-tx-core.py` **G58**（①助詞直付き・②チップCSS欠落・③body先頭チップの `tx-cc-lead` 欠落＝ERROR／④`（cross-cut）`括弧タグ・⑤生 cross-cut リード＝WARNING）を `check-tx-lex-engine.py` の push 前ブロック対象に追加。静的プレビュー実測は `.claude/launch.json`(static:5517)＋playwright/preview_eval で `chipOffset=0px` を確認。
 - 出題者は**受験生が引っかかる・差がつくところ**を突く。そこを**先回りで潰す**罠枠を積極的に入れる（バンバン）。
@@ -280,5 +281,31 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
    複製で自動継承。ブロックが無ければ CSS は不活性。
 
 **恒久ゲート：** `validate-tx-core.py` **G61**（マーカー text-indent:0）・**G62**（記述数一致）。ブロック無しは
-スキップ＝既存問誤爆ゼロ。**適用実績（刑法 v13 事例型）：** 刑TX374・刑TX401 完了／刑TX294 は既に良好／
+スキップ＝既存問誤爆ゼロ。**2026-07-11 に g45 内包から独立ゲートへ昇格し、push 前 `check-tx-lex-engine.py` にも組込**
+（従来は g45 の v12.2.1 マーカー判定に内包されており、v13 ファイルでは一切走っていなかった）。
+**適用実績（刑法 v13 事例型）：** 刑TX374・刑TX401 完了／刑TX294 は既に良好／
 刑TX407・刑TX437 は各記述独立自己完結でブロック不要。旧構造の事例型15問はバグ無し（v13 再生成時に本ブロックを継承）。
+
+## 【2026-07-11 テンプレート監査＋恒久対策】正典 gold 化＋ゲート配線の穴3件を修正
+
+既存問の個別監査ではなく**正典＋ゲート体系のテンプレート監査**で判明した穴と、その恒久対策の記録。
+
+1. **正典見本の薄さ（作らせない層）**：GENESIS-CARD 見本5カードのうち、カード1・3の💡THE GIST が
+   verdict＋条文羅列の要点羅列型（やさしい版でない）、カード1の罠が cross-cut 欠落、カード4の罠が
+   GIST の言い換え（§v13m 失敗シグネチャ②）だった＝G56/G57 の精度優先設計の盲点内（80字超の平叙羅列と
+   「早とちり」「一括把握」語彙は素通り）。→ **4箇所を gold 形へ書き直し**（author-once）。
+   カード1罠はリード形①チップの正典見本を兼ねる。**`.tx-cc-tag` チップ CSS を正典同梱**。
+2. **push 前ゲートの v13 穴**：`check-tx-lex-engine.py` の G45 適用判定が v12.2.1 マーカーのみ＝v13 ファイルで
+   G45（表示LOCK）＋内包の G61/G62 が一切走らず、明示指定でも G45 以外のコードは収集フィルタで捨てられていた。
+   → G61/G62 を独立ゲート化（run()＋engine 双方で実行）、G45 判定に LOOP-CARD 追加。**全コーパス実測で
+   検出0**（コーパス安全）を確認してから ERROR ゲートとして有効化。
+3. **正典自身が検査対象外**：v13 系ゲート（G50-G60 等）の `_lex` stem ガードで `canonical/GENESIS-CARD.html` が
+   スキップされ、従来の「GENESIS-CARD 0 error」は v13 ゲート未実行の PASS だった（g45 も GENESIS-CORE のみ対象）。
+   → `is_lex_target()`（stem `_lex` または `GENESIS-CARD`）で正典を全 _lex 系ゲートの対象化。
+   `validate-staged.py` の ROUTES に `canonical/GENESIS-{CARD,CORE}.html` を追加（正典ステージ時の pre-commit 自動検査）。
+   engine のスロット契約検査を CORE＋CARD 両 placeholder へ拡張。pre-commit フックの「既定は report」コメントを
+   実装どおり「既定は block」へ訂正。
+4. **v13n の生成側配線ゼロ**：spec・placeholder・new-tx.md・new-tx-headless-v13.md のどこにも不可侵ブロックの
+   記載が無く、「共有事例型なのに作らない」は G61/G62（ブロック無しスキップ設計）でも無検出＝刑TX374 型の
+   事例消失が新規生成で再発しうる状態だった。→ 4ファイルすべてに型判定（共有事例型→必須／独立自己完結型→不要）
+   と G61/G62 を明記（spec 第1-bis項・placeholder スロット `{{過去問原文（不可侵）}}`・new-tx 特殊型ガイド・headless Phase 4a〜4g）。

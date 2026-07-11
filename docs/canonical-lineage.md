@@ -22,7 +22,7 @@
 
 | 役割 | canonical | 生成コマンド | validator |
 |---|---|---|---|
-| **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.1.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G45＋**G50 v13構造**）＋`check-tx-lex-engine.py`（G41/script2本）＋`check-duplicates.py` |
+| **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.1.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G62＝G45表示LOCK＋**G50-G54 v13完全性**＋G56/G57深さ助言＋G58 cross-cut＋G60極性＋**G61/G62 v13n**・正典自身も対象）＋`check-tx-lex-engine.py`（G41/script2本＋G45=LOOP-CARDにも適用＋G61/G62＋CORE/CARD両契約）＋`check-duplicates.py` |
 | 公式版（本物5択・`000_TX`） | — | `/new-tx` 二系統出力 | `validate-tx-core.py`（single/multi） |
 
 - 構造正典 spec：**`spec/tx-v13.1.0-loopcard-core.md`**（active・byte 正典）。二系統は `spec/tx-v11.1.0-twotrack.md` を継承。
@@ -147,7 +147,7 @@
 
 | script | 対象 | チェック |
 |---|---|---|
-| `validate-tx-core.py` | TX v11/v12 コア | G1〜G45 |
+| `validate-tx-core.py` | TX v11/v12 コア＋v13 LOOP-CARD（canonical/GENESIS-CARD 自身も対象） | G1〜G62（G50-G54 v13完全性・G56/G57 深さ助言・G58 cross-cut・G60 極性・G61/G62 v13n） |
 | `validate-tx-deep.py` | TX v11 別冊 | D1〜D13 |
 | `validate-tx-gold.py` | TX v10 | G1〜G19（legacy 保守） |
 | `validate-tx.py` | TX v8.x〜v9.x | S1〜S91（legacy） |

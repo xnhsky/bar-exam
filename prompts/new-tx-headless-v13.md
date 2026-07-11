@@ -50,6 +50,10 @@
      →統合解説→POINT→📚BASIS→間違いやすいポイント→他科目横断）。相互リンク往復・正誤マーキングを配線。
      **正誤表(spec第2項)＝各行に印付き原文スロット `data-brief-mark`（各肢 `.syn-orig` と同じ marking の要約版・×赤波下線+✕+「→正解」/○緑下線+✓・属性は二重引用/内側classは単引用）を必ず鋳造**（法理コアは転用タグをエンジンが抽出・成績と重厚感はエンジン/CSSが自動）。
      **体系マップ(spec第3項)＝各記述札に ✍規範核バッジ `.nb-badge`＋`.nb-badge-text`（転用可能な規範核1文・ノード高さ118）を必ず鋳造し、`▼本問の帰結（○×）`箱は置かない**（未鋳造は Phase 6 の validate-tx-core G50 が WARN で検出）。
+     **共有事例型（「甲の罪責」型・見解×事例型）は不可侵原文ブロック `.tx-original-block` を問題文直下に必ず置く**
+     （PDF の問い＋事例＋（見解）＋記述/罪名列を逐語のまま常時表示。事例は `.case-description > .case-scene > .case-paragraph`、
+     記述列は `.tx-original-charges > .tx-charge`。CSS は GENESIS-CARD 同梱＝複製で自動継承。各記述が独立自己完結の型では
+     作らない＝二重掲載。一問一答数＝実質の記述数＝G62／マーカー字下げ＝G61。§v13n・new-tx.md 特殊型ガイド・実例 刑TX374/401）。
    - **Phase 4h（二系統・必須）**：`{OFFICIAL_PATH}` を **`_lex` に切り出し**てから公式を de-grid：
      1. `cp {OFFICIAL_PATH} {LEX_PATH}`
      2. `{LEX_PATH}` に `{SOLVENAV_PATH}` の解法ナビ3ブロックを注入（**エンジンJSは逐語コピー・問題固有データのみ本問値**）。
@@ -78,7 +82,7 @@
 HTML 2 ファイル完成後、**bash で両方を検証**（安いpython機械ゲート＝トークンほぼ0・必ず通す）：
 
 ```bash
-python scripts/validate-tx-core.py {LEX_PATH}        # _lex＝ox-grid 必須（G1〜G45＋G50）
+python scripts/validate-tx-core.py {LEX_PATH}        # _lex＝ox-grid 必須（G1〜G62＝G50 v13構造＋G61/G62 v13n 含む）
 python scripts/validate-tx-core.py {OFFICIAL_PATH}   # 公式＝single/multi 可（G23/G25 自動緩和）
 python scripts/check-tx-lex-engine.py {LEX_PATH}     # 解法ナビ engine 整合（G41・script2本）
 python scripts/check-duplicates.py outputs           # 公式↔_lex ミラーは除外＝正常
