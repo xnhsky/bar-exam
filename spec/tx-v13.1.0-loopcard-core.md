@@ -247,8 +247,14 @@ Lexia は `_lex` を取り込み、間違えた記述を **肢キー `{問題ID}
     と `.answer-ox-grid .ox-row[data-stmt]` の data-stmt 集合一致・重複なし・answer-key 長＝row 数（G25 の WARNING から昇格）。
     片方だけの記述は「プールに出るのにインラインで解けない」「回答が記録されない」形で黙って壊れる。
     インラインカードの無い旧デザイン _lex・公式はスキップ（誤爆ゼロ）。全コーパス実測 検出0 を確認して ERROR 化。
+  - **G64（ERROR・2026-07-11 特殊問題監査対応）＝判定バッジ⇄answer-key の矛盾**：各記述カードの
+    `.tx-v13-verdict` バッジ（○/×）と answer-key（正誤表 data-answer-key／answer-area data-correct-value）の
+    食い違い（刑TX368 型の最悪クラス＝組合せの当否と事例の成否の混線）。`check-lex-oxgrid-integrity.py` の
+    L1 を validate-tx-core へ移植した三層化（integrity 側は preflight/runner 用に残置）。全コーパス実測 検出0 で
+    ERROR 化。L2-L4（組合せ当否ナビ/見出し/全○退化）は integrity＋engine 非ブロッキング可視化＋新規生成 strict
+    （TJRランナー・new-tx Phase 6・headless Section 5）で担保（正典＝docs/lex-oxgrid-integrity-audit.md §2）。
   - **正典セルフチェック（2026-07-11）**：`canonical/GENESIS-CARD.html` 自身も `_lex` 同様に G23/G25 期待値＋
-    G30-G63 の検査対象（`is_lex_target()`）。「作らせない層」の正典が v13 ゲートの検査対象外だった穴を恒久修正。
+    G30-G64 の検査対象（`is_lex_target()`）。「作らせない層」の正典が v13 ゲートの検査対象外だった穴を恒久修正。
     正典をステージした commit は pre-commit（validate-staged・block 既定）でも自動検査される。
 - `python scripts/check-tx-lex-engine.py`：G41 単一エンジン＋script 最大2本＋**v13 完全性 G50-G54（ERROR級のみ push ブロック）**
   ＋**G45 表示LOCK（v12.2.1／v13 LOOP-CARD 両マーカーに適用・2026-07-11）**＋**G61/G62（v13n）**＋スロット契約

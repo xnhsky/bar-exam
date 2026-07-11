@@ -136,7 +136,7 @@ python -X utf8 scripts/check-tx-lex-engine.py outputs/ux/000_TX/001_刑法
 python -X utf8 -m py_compile scripts/validate-tx-core.py scripts/check-tx-lex-engine.py
 ```
 
-`check-tx-lex-engine.py` は G41/G42/G43/G44＋G50-G60（v13）＋G61/G62（v13n）＋G63（カード⇄プール三点整合）＋SNTIP＋判例元号割れ＋CORE/CARD 両スロット契約＋CSSドリフト可視化（tx-lex-css-canonize --check・非ブロッキング）を横断実行し、v12.2.1 **または v13 LOOP-CARD** マーカー付き・明示指定ファイルには G45 も適用する（2026-07-11 監査で v13 が G45/G61/G62 の検査対象外だった穴を恒久修正）。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れ、v13n 崩れを push 前に止める。`canonical/GENESIS-CARD.html` 自身も `_lex` 同様に G23/G25 期待値＋G30-G63 の検査対象（validate-tx-core の `is_lex_target()`）で、正典をステージした commit は pre-commit（validate-staged・block 既定）でも自動検査される。
+`check-tx-lex-engine.py` は G41/G42/G43/G44＋G50-G60（v13）＋G61/G62（v13n）＋G63（カード⇄プール三点整合）＋G64（バッジ⇄key矛盾＝integrity L1 三層化）＋SNTIP＋判例元号割れ＋CORE/CARD 両スロット契約＋CSSドリフト可視化（tx-lex-css-canonize --check・非ブロッキング）を横断実行し、v12.2.1 **または v13 LOOP-CARD** マーカー付き・明示指定ファイルには G45 も適用する（2026-07-11 監査で v13 が G45/G61/G62 の検査対象外だった穴を恒久修正）。接ぎ木、組合せ当否、空詳説、回答UI崩れ、表示LOCK崩れ、v13n 崩れを push 前に止める。`canonical/GENESIS-CARD.html` 自身も `_lex` 同様に G23/G25 期待値＋G30-G64 の検査対象（validate-tx-core の `is_lex_target()`）で、正典をステージした commit は pre-commit（validate-staged・block 既定）でも自動検査される。
 
 ---
 
