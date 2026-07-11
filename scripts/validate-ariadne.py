@@ -131,6 +131,25 @@ def main():
     else:
         P('A40', 'arena純度OK（方法論ドリルのプール混入・bc-wrap作法ドリルのarena化なし）')
 
+    # ---- A41 arena ○×バランス（当て勘封じ・2026-07-11・WARN）----
+    # プール単独表示の○×は、○に偏ると「常に○」の当て勘で通ってしまう（corpus 実測 ○率70%）。
+    # 想起（recall・data-correct-value は常に○の設計）を除いた通常○×で、ファイル内 ○率 25〜75% を目安にする。
+    # 是正は誤り命題（典型的な誤解を述べさせて×）を混ぜる方向で（正解値の書換えは answer-key 反転事故のもと）。
+    plain_ox = []
+    for ci, (tag, _inner) in enumerate(cards):
+        if card_in_bc[ci] or 'data-arena="1"' not in tag or 'data-recall' in tag:
+            continue
+        mdcv = re.search(r'data-correct-value="(.)"', tag)
+        if mdcv and mdcv.group(1) in ('○', '×'):
+            plain_ox.append(mdcv.group(1))
+    if len(plain_ox) >= 8:
+        o_rate = plain_ox.count('○') / len(plain_ox)
+        if o_rate > 0.75 or o_rate < 0.25:
+            W('A41', f'arena○×が偏り（○{plain_ox.count("○")}/×{plain_ox.count("×")}＝○率{o_rate:.0%}・目安25〜75%）'
+                     '。誤り命題（典型的誤解→×）を混ぜて当て勘を封じる（spec §4）')
+        else:
+            P('A41', f'arena○×バランスOK（○率{o_rate:.0%}）')
+
     # ---- Lexia 安全制約 A19〜A20 ----
     body_lit = False
     for sm in re.finditer(r'<script\b[^>]*>(.*?)</script>', html, re.S | re.I):

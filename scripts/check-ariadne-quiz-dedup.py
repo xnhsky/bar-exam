@@ -13,8 +13,11 @@ validate-ariadne.py は 1 ファイル内しか見ないため、
   D3: .bc-wrap（作法）内カードに data-arena → ERROR（作法ドリルはページ内専用）
 
 使い方:
-  python -X utf8 scripts/check-ariadne-quiz-dedup.py                 # 既定 glob 全件
-  python -X utf8 scripts/check-ariadne-quiz-dedup.py <glob> [...]    # 対象指定
+  python -X utf8 scripts/check-ariadne-quiz-dedup.py                    # 既定 glob 全件
+  python -X utf8 scripts/check-ariadne-quiz-dedup.py <glob> [...]       # 対象指定
+  python -X utf8 scripts/check-ariadne-quiz-dedup.py --report-similar   # 意味重複の定期点検用：
+      完全一致でなく 8-gram Jaccard >=0.5 の横断クラスタを一覧表示（情報のみ・exit に影響しない。
+      同一規範の言い換え想起が何問に散っているかを眺めて間引く運用のため）
 ERROR が 1 件でもあれば exit 1。
 """
 from __future__ import annotations
@@ -55,8 +58,39 @@ def text_only(s):
     return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', s)).strip()
 
 
+def _ngrams(s, n=8):
+    return set(s[i:i + n] for i in range(len(s) - n + 1)) if len(s) >= n else ({s} if s else set())
+
+
+def report_similar(entries, th=0.5):
+    """entries=[(fid, 原文設問, 正規化)]。別ファイル間 Jaccard>=th のクラスタを greedy に束ねて表示。"""
+    grams = [_ngrams(nq) for _f, _q, nq in entries]
+    n = len(entries)
+    used = set()
+    clusters = []
+    for i in range(n):
+        if i in used or not grams[i]:
+            continue
+        group = [i]
+        for j in range(i + 1, n):
+            if j in used or not grams[j] or entries[i][0] == entries[j][0]:
+                continue
+            inter = len(grams[i] & grams[j])
+            if inter and inter / len(grams[i] | grams[j]) >= th:
+                group.append(j)
+        if len({entries[k][0] for k in group}) >= 2:
+            used.update(group)
+            clusters.append(group)
+    clusters.sort(key=len, reverse=True)
+    print(f'--- 類似クラスタ（8-gram Jaccard>={th}・別ファイル間・情報のみ）: {len(clusters)}組 ---')
+    for g in clusters:
+        fids = '・'.join(sorted({entries[k][0] for k in g}))
+        print(f'  x{len(g)} [{fids}] {entries[g[0]][1][:56]}')
+
+
 def main() -> int:
-    patterns = sys.argv[1:] or [DEFAULT_GLOB]
+    do_similar = '--report-similar' in sys.argv
+    patterns = [a for a in sys.argv[1:] if not a.startswith('--')] or [DEFAULT_GLOB]
     files = []
     for pat in patterns:
         p = pat if os.path.isabs(pat) else os.path.join(ROOT, pat)
@@ -69,6 +103,8 @@ def main() -> int:
     errors, warns = [], []
     # question_norm -> {file_id: 原文}
     seen = defaultdict(dict)
+    entries = []            # (fid, 原文, 正規化) — --report-similar 用
+    ox = {'○': 0, '×': 0}   # 通常○×（想起除く）の全体バランス（情報表示）
     for path in files:
         fid = re.sub(r'_ARIADNE\.html$', '', os.path.basename(path))
         html = open(path, encoding='utf-8', newline='').read().replace('\r\n', '\n')
@@ -88,6 +124,11 @@ def main() -> int:
                 errors.append(f'[D2] {fid}: arenaドリルが答案方法論: {q[:44]}')
             if q:
                 seen[norm_question(q)].setdefault(fid, q)
+                entries.append((fid, q, norm_question(q)))
+            if 'data-recall' not in tag:
+                mdcv = re.search(r'data-correct-value="(.)"', tag)
+                if mdcv and mdcv.group(1) in ox:
+                    ox[mdcv.group(1)] += 1
 
     for _k, byfile in sorted(seen.items(), key=lambda kv: -len(kv[1])):
         n = len(byfile)
@@ -102,8 +143,12 @@ def main() -> int:
         print('[WARN] ', w)
     for e in errors:
         print('[ERROR]', e)
+    if do_similar:
+        report_similar(entries)
     total = sum(len(v) for v in seen.values())
-    print(f'\n=== ARIADNE quiz corpus dedup: files={len(files)} arena設問={total} '
+    n_ox = ox['○'] + ox['×']
+    rate = f'／通常○× {n_ox}枚 ○率{ox["○"]/n_ox:.0%}（当て勘目安25〜75%・per-fileはA41）' if n_ox else ''
+    print(f'\n=== ARIADNE quiz corpus dedup: files={len(files)} arena設問={total}{rate} '
           f'/ WARN {len(warns)} / ERROR {len(errors)} ===')
     return 1 if errors else 0
 
