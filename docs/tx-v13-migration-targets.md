@@ -19,8 +19,11 @@
 2. **R 再生成**：`pwsh scripts/tx-v13-runner.ps1 -Subject 刑 -Regen -FromNumber N -ToNumber N`
    （または「TJR処理 刑（Rだけ）」）。PDF から公式＋`_lex` を最新 v13.1.0 で作り直す。記述数 N は5に潰さない。
 3. **構造の写経元（型別合格実例）**：穴埋め=刑TX368（v13.1.0・nb-badge 完備）／組合せ・N≠5=刑TX089・174・218・256
-   （COMBOエンジン）／見解=刑TX290。`new-tx.md` の「特殊型の構造・作図ガイド」に明記済み。
-4. **検証**：`validate-tx-core.py`（_lex/公式）＋`check-tx-lex-engine.py`＋`check-duplicates.py` を通す。
+   （COMBOエンジン。**⚠ answer-key は写すな＝174/218/256 は L4 全○退化・2026-07-11 監査**）／見解=刑TX290／
+   **混在キー gold（キー設計・命題化の中身）＝刑TX406・408・416・433**（v13.1.0・判別性ある○×）。
+   `new-tx.md` の「特殊型の構造・作図ガイド」に明記済み。
+4. **検証**：`validate-tx-core.py`（_lex/公式・G64 バッジ⇄key矛盾含む）＋`check-tx-lex-engine.py`＋
+   `check-lex-oxgrid-integrity.py`（**L1-L4・strict**）＋`check-duplicates.py` を通す。
 5. **注意（版判定）**：`-Regen` は v13 世代（v13.0.0/v13.1.0）を SKIP し、旧版（v11.x/タグ無し）だけを対象にする。
    v13.0.0→v13.1.0 の底上げは PDF 再生成ではなく内容保存の verdict-redesign 経路（下記「26本」）で行う。
 
