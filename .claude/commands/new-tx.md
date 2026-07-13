@@ -13,11 +13,11 @@ description: 新規 TX を問題 PDF から生成。_lex は active v13.1.0 LOOP
 > - **縦順**：正誤表→**体系マップ(SVGハイブリッド・下部旧SVG2枚は廃止)**→横断(3軸マトリクス)→肢カード→物語(カード直後)→#basis(現行法note のみ)。
 > - **正誤表(LOCKED・spec第2項)**：各行＝①**印付き記述原文**（`.tx-vb-orig-mark`＝各行`<tr>`の **`data-brief-mark`** にHTML。各肢カード `.syn-orig` と同じ marking の**要約版**。×=誤り核に赤波下線`.tx-stmt-x`+✕+`.tx-stmt-fix`「→正解」／○=緑下線`.tx-stmt-o`+✓。属性は二重引用・内側classは単引用`'…'`）＋②**法理コア**（`.tx-vb-core`＝`extractReviewCoreSummary` が **転用タグ**を1文抽出）。見出し行右に**成績**（`computeInlineScore`→`.tx-inline-answer-score`＝🎉全問正解！N/N ／ n/N 正解）。**重厚感**（額装フレーム・金プレート見出し📋・立体ヘッダー・正誤行の左アクセント帯・押し出しチップ）。**data-brief-mark は問題固有スロット＝各記述で必ず執筆**（未鋳造は validate-tx-core G50 が WARN）。
 > - **体系マップ(LOCKED・spec第3項)**：客体三分ツリー＋本問N局面の記述札（`#stmt-N`）。各札に **✍規範核バッジ**（`.nb-badge`＋`.nb-badge-text`＝転用可能な**規範核1文**・ノード accent の暗色で白抜き11〜14字・ノード高さ118）。**`▼ 本問の帰結（○×）`箱は置かない**（答え先出し禁止）。帰結箱を除いた分 viewBox 下端を詰める。往路=`#stmt-N`／復路=各カード末尾 `.tx-sysmap-back`（`#tx-sysmap`）。**規範核バッジ文言は問題固有スロット＝必ず執筆**（未鋳造は G50 が WARN）。
-> - **カード物理順**：判定バッジ→📜記述原文(正誤マーキング)→🎯統合解説(THE GIST/段階/INTUITION)→📌POINT→📚BASIS→
+> - **カード物理順**：判定バッジ→📜記述原文(正誤マーキング)→🎯統合解説(THE GIST/段階/（任意）📐図解 `.tx-dgm`＝効く論点だけ・物語側と同一複製 `data-dgm` 同期/🗝フック)→📌POINT→📚BASIS→
 >   ⚠️間違いやすいポイント→🔗他科目横断(重要接点のある記述のみ・無理に足さない)。
 > - **相互リンク往復**（条文参照→同カードBASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合＝script2本）、
 >   **正誤マーキング**（分かれ目を×赤波線/○緑下線）、**使い方説明は載せない**、タブラベル字下げ無効・本文1字下げ。
-> - **検証**：`scripts/validate-tx-core.py`（G1〜G64＝G45表示LOCK＋**G50-G54 v13完全性**＝正誤表印付き原文/規範核バッジ/帰结箱不在/成績エンジン/BASIS中身/trap/相互リンク/🗝フック＋G56/G57 深さ助言＋G58 cross-cut＋G60 極性＋**G61/G62 v13n 不可侵ブロック＋G63 三点整合＋G64 バッジ⇄key矛盾**）＋
+> - **検証**：`scripts/validate-tx-core.py`（G1〜G64＝G45表示LOCK＋**G50-G54 v13完全性**＝正誤表印付き原文/規範核バッジ/帰结箱不在/成績エンジン/BASIS中身/trap/相互リンク/🗝フック＋G56/G57 深さ助言＋G58 cross-cut＋G60 極性＋**G61/G62 v13n 不可侵ブロック＋G63 三点整合＋G64 バッジ⇄key矛盾＋G66 図解整合**）＋
 >   `check-tx-lex-engine.py`（G41/script2本）＋`check-duplicates.py`。レンダリング実測（playwright）で往復リンク・トグル・
 >   マーキング・**成績表示（○×を正解で選び「解答を表示」→🎉）・印付き正誤表**・pageerror0 を確認。
 > - **正典 gold＝刑TX359（GENESIS-CARD）は正誤表リデザイン適用済。既存 v13（089/125/174/218/256/290-302/355-385・刑訴TX001 等）の
@@ -343,6 +343,9 @@ display-lock-v12.2.1／`palette: {名} (P{N})`／svg-overlap-checked／content-i
 3. 注入：`python scripts/tx-inject-narrative.py {接頭辞}{NNN} <json>`（`.fa-narrative` を `.final-answer` 冒頭へ・CSS は GENESIS-CORE に同梱済みだが無ければ自動注入・冪等）。
    - 補助：素材が要れば `python scripts/tx-extract-source.py {接頭辞}{NNN}`（核心・各記述＋論点コア＋問題文要旨を compact 出力）。
    - **議論形式（Type A・空欄補充の組合せ）**は `tx-build-typeA.py` が物語を内蔵するので、そちら経由なら 4i 不要（重複注入しない）。
+4. **図解（TX-DGM・§v13p・2026-07-13）**：物語の**効く論点**（対比・裏命題ペア・分岐・時系列）のラベル段落直後へ
+   `.tx-dgm`（対比レーン／ステップ＋分岐・許可クラスのみ）を置き、**同一図解を対応カードの `.syn-path` 直後にも複製**
+   （`data-dgm="{番号}-{連番}"` 同期・G66）。導入/まとめへ強制しない（偽図解の禁止）。CSS は GENESIS-CARD 複製で自動継承。
 
 #### 4j. Lexia/SM2 解説ペイロード（TX360 正典）
 SM2 は「長い読み物」ではなく「誤答肢を再判定する場所」。生成時は、Lexia が抽出してよい解説の優先順位を崩さない。

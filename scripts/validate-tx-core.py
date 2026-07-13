@@ -36,6 +36,8 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G38 正典プレースホルダー契約：生成済み _lex に {{...}} を残さない
   G39 記憶フック/答案圧縮：2カラム中央寄せのTX360テンプレートCSSを要求
   G45 v12.2.1 表示LOCK：条文/判例の題名・法理テーマ、条文本文2カラム、物語ラベル非重畳、解説役割の混入禁止を要求
+  G66 図解コンポーネント（TX-DGM・任意スロット）：使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・
+      物語⇄カードの data-dgm 同期（同 id 内容不一致=ERROR／片側のみ・id無し=WARNING）
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -2168,6 +2170,68 @@ class Validator:
                                  "（市立/公立等）・権限/承諾は圧縮時に省略しない（spec 第5-bis-2項・"
                                  "実害＝刑TX378 記述3）。言い換えで事実が保存されている場合は無視してよい。")
 
+    # G66（2026-07-13）＝図解コンポーネント（TX-DGM）の整合。任意スロットなので
+    # 図解を使わないファイルには何も要求しない（効く論点＝対比・裏命題ペア・分岐・時系列だけに置く規約）。
+    _G66_ALLOWED = {
+        "tx-dgm", "tx-dgm-tag", "tx-dgm-title",
+        "tx-dgm-lanes", "is-3",
+        "dgm-lane", "dgm-lane-head", "dgm-lane-obj", "dgm-lane-law", "dgm-lane-body",
+        "dgm-rule", "dgm-src", "dgm-case", "dgm-verdict",
+        "is-ok", "is-ng", "is-acc", "is-teal", "is-flat",
+        "tx-dgm-steps", "dgm-step", "dgm-step-no", "dgm-next", "tx-dgm-fork",
+    }
+
+    def g66_diagram_component(self):
+        """(a) .tx-dgm 使用時に TX-DGM CSS が無い＝無装飾の生 div で出る（ERROR・G16 の思想）。
+        (b) 図解内の class が契約の許可リスト外／inline style あり（ERROR・自由描画＝接ぎ木の芽）。
+        (c) data-dgm 同期＝物語側とカード側の同 id で内容不一致（ERROR）。片側のみ・id 無しは WARNING
+            （原則は「論点単位で 1 枚執筆→物語と該当カードへ同一複製」＝2026-07-13 ユーザー指示）。"""
+        if not self.is_lex_target():
+            return
+        dgms = self.soup.select(".tx-dgm")
+        if not dgms:
+            return
+        css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+        if "TX-DGM:BEGIN" not in css:
+            self.err("G66", ".tx-dgm を使っているのに TX-DGM CSS（TX-DGM:BEGIN 区画）が無い＝無装飾で出る。"
+                            "canonical/GENESIS-CARD.html 第1 <style> の正典CSSを tx-lex-css-canonize.py --apply で配る。")
+        bad_cls, bad_style = set(), 0
+        for dgm in dgms:
+            for el in [dgm] + dgm.find_all(True):
+                for cls in (el.get("class") or []):
+                    if cls not in self._G66_ALLOWED:
+                        bad_cls.add(cls)
+                if el.get("style"):
+                    bad_style += 1
+        if bad_cls:
+            self.err("G66", f"図解内に契約外 class: {sorted(bad_cls)[:8]}。TX-DGM の許可クラスだけで組む"
+                            "（新規クラス・自由描画は禁止＝GENESIS-CARD.placeholder 図解スロット契約）。")
+        if bad_style:
+            self.err("G66", f"図解内に inline style が {bad_style} 箇所。見た目の調整は正典CSSに寄せ、"
+                            "問題ファイル側では許可クラスの組合せだけで表現する。")
+        nar, card = {}, {}
+        no_id = 0
+        for dgm in dgms:
+            did = (dgm.get("data-dgm") or "").strip()
+            if not did:
+                no_id += 1
+                continue
+            key = re.sub(r"\s+", "", dgm.get_text())
+            if dgm.find_parent(class_="fa-narrative") is not None:
+                nar[did] = key
+            elif dgm.find_parent(class_="tx-inline-explain") is not None:
+                card[did] = key
+        if no_id:
+            self.warn("G66", f"data-dgm 無しの図解が {no_id} 枚。物語⇄カードの同期検証ができないため "
+                             "data-dgm=\"{番号}-{連番}\" を付ける。")
+        for did in sorted(set(nar) & set(card)):
+            if nar[did] != card[did]:
+                self.err("G66", f"図解 {did} の物語側とカード側で内容が不一致。同 id は同一図解の複製にする"
+                                "（片側だけ直す更新が同期ズレの主因）。")
+        lonely = sorted(set(nar) ^ set(card))
+        if lonely:
+            self.warn("G66", f"片側にしか無い図解 id: {lonely[:6]}。原則は物語の該当段落と対応する記述カードの両置き。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -2223,6 +2287,7 @@ class Validator:
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
+        self.g66_diagram_component()
 
 
 def main():
@@ -2254,7 +2319,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G65, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G66, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
