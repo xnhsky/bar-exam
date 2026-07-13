@@ -24,6 +24,7 @@
 #   「JX5 を TJR処理」             → ... -Subject 民 -JxFrom 5 -JxTo 5         # J=5固定・T/R=通常
 #   短縮形「TX 355-360 処理」      → ... -Subject 刑 -Only T -TxFrom 355 -TxTo 360   # Tだけ
 #   短縮形「JX 1-10 処理」         → ... -Subject 民 -Only J -JxFrom 1 -JxTo 10       # Jだけ
+#   「JX以外をTJR処理」            → ... -SkipJ                                       # T と R だけ（J をスキップ）
 #   検出だけ                       → ... -Subject 刑訴 -DryRun
 param(
     [ValidateSet('','刑','刑訴','民','民訴','商','憲','行政')]
@@ -35,6 +36,7 @@ param(
     # 単一ストリームに限定（既定は空＝T/J/R 全部走る。「指定外も当然に処理」の既定を上書きしたい時だけ）
     [ValidateSet('','T','J','R')]
     [string]$Only = '',
+    [switch]$SkipJ,               # 「JX以外を処理」＝J だけ落として T と R を回す。自動科目選択も J を無視する
     [int]$MaxTX = 12,             # T の通常チャンク（ピン時は範囲全件）
     [int]$MaxJX = 3,             # J の通常チャンク
     [int]$MaxR  = 3,             # R の通常チャンク
@@ -122,7 +124,8 @@ function Get-JxPending { param([string]$subj)
 # === 科目確定（-Subject 明示 or 自動＝優先順で最初に仕事のある科目）===
 if ([string]::IsNullOrWhiteSpace($Subject)) {
     foreach ($s in $SubjectOrder) {
-        if ((Get-TxPending $s) -or (Get-JxPending $s) -or (Get-RPending $s)) { $Subject = $s; break }
+        $hasWork = (Get-TxPending $s) -or (Get-RPending $s) -or ((-not $SkipJ) -and (Get-JxPending $s))
+        if ($hasWork) { $Subject = $s; break }
     }
     if ([string]::IsNullOrWhiteSpace($Subject)) {
         Write-Host "[TJR] 全科目で処理対象なし（T/J/R とも空）。終了。" -ForegroundColor Green
@@ -173,7 +176,7 @@ function Invoke-JxStream {
 
 # === 実行（Only 指定が無ければ T→J→R を全部・直列）===
 $runT = ($Only -eq '' -or $Only -eq 'T')
-$runJ = ($Only -eq '' -or $Only -eq 'J')
+$runJ = ($Only -eq '' -or $Only -eq 'J') -and (-not $SkipJ)
 $runR = ($Only -eq '' -or $Only -eq 'R')
 $rcT = 0; $rcJ = 0; $rcR = 0
 if ($runT) { $rcT = Invoke-TxStream          -Max $MaxTX -From $TxFrom -To $TxTo }
