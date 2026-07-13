@@ -36,6 +36,8 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G38 正典プレースホルダー契約：生成済み _lex に {{...}} を残さない
   G39 記憶フック/答案圧縮：2カラム中央寄せのTX360テンプレートCSSを要求
   G45 v12.2.1 表示LOCK：条文/判例の題名・法理テーマ、条文本文2カラム、物語ラベル非重畳、解説役割の混入禁止を要求
+  G66 体系マップSVG文字はみ出し：カード見出しが viewBox 端で切れる＝ERROR／カード枠を大きく越える＝WARNING。
+      判定は tx_sysmap_geom（単一情報源）、修正は scripts/tx-sysmap-fit.py（textLength+lengthAdjust・本文不変）。
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -47,9 +49,18 @@ spec: spec/tx-v11.0.0-core.md 第7項
 """
 
 import copy
+import os
 import re
 import sys
 from pathlib import Path
+
+# 体系マップ SVG のはみ出し判定は tx_sysmap_geom（単一情報源）を共用（G66）。
+# 幾何モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import tx_sysmap_geom as _sysmap_geom
+except Exception:
+    _sysmap_geom = None
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -467,6 +478,33 @@ class Validator:
                 self.err("G11", f"[{svg_name}] viewBox 下端余白が {margin:.0f}px（20px 未満）")
             elif margin < 40:
                 self.warn("G11", f"[{svg_name}] viewBox 下端余白が {margin:.0f}px（推奨 40px 以上）")
+
+    def g66_sysmap_text_overflow(self):
+        """G66：体系マップ SVG の見出し文字が viewBox 端で切れる／カード枠を大きくはみ出すのを検出。
+
+        体系マップの各カード見出し（fs15.5・幅260px 固定）は問題ごとに AI が書き換える差替スロットだが、
+        見出しが長い問題では文字がカード枠・viewBox 右端をはみ出して切れる（SVG の <text> は自動改行・
+        自動縮小しないため）。実害＝刑TX382 記述5「収得後知情行使は通貨のみ（152）」が viewBox 右端で切断。
+        判定は単一情報源 tx_sysmap_geom を使い、修正ツール tx-sysmap-fit.py と同基準。
+          - viewBox 端でのハードクリップ＝ERROR（確定的に文字が切れる致命的表示崩れ）
+          - カード枠の大きなはみ出し＝WARNING（隣カードへ食い込む・隙間へ溢れる）
+        恒久対策：scripts/tx-sysmap-fit.py が textLength+lengthAdjust で収める（本文不変・冪等）。
+        textLength で収めた見出しは実効幅が縮むため本ゲートを通過する。"""
+        if _sysmap_geom is None:
+            return
+        for svg in _sysmap_geom.find_sysmap_svgs(self.soup):
+            for info in _sysmap_geom.iter_text_overflow(svg):
+                snippet = info["content"][:28]
+                vbw = info["vbw"]
+                if vbw is not None:
+                    hard = max(info["x1"] - vbw, -info["x0"])
+                    if hard > 1.0:
+                        self.err("G66", f"体系マップ見出しが viewBox 端で切れる（+{hard:.0f}px）："
+                                          f"「{snippet}」→ scripts/tx-sysmap-fit.py で textLength 付与")
+                        continue
+                if info["card_over"] > 8.0:
+                    self.warn("G66", f"体系マップ見出しがカード枠をはみ出す（+{info['card_over']:.0f}px）："
+                                       f"「{snippet}」→ scripts/tx-sysmap-fit.py")
 
     # --- G12〜G13：content-independence ---
 
@@ -2180,6 +2218,7 @@ class Validator:
         self.g9_core_svgs()
         self.g10_no_overlap()
         self.g11_viewbox_margin()
+        self.g66_sysmap_text_overflow()
         self.g12_no_301_leakage()
         self.g13_no_baseline_copy()
         self.g14_filename_dir()
@@ -2254,7 +2293,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G65, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G66, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

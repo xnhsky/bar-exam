@@ -232,6 +232,17 @@
 > push 前 `check-tx-lex-engine.py` の非ブロッキング助言。執筆時は「この一文だけで○×を付けられるか」を
 > 執筆者本人が1回自己照合する（省エネ規律 (b) の一項目）。
 >
+> **【体系マップSVG見出しのはみ出し防止・2026-07-13】`_lex` の体系マップ（`.tx-sysmap svg.tree-svg`）の
+> 各カード見出しは問題ごとに AI が書き換える差替スロットだが、カード幅（260px）・viewBox（幅1500）は固定のため、
+> 見出しが長い問題では文字がカード枠・viewBox 右端をはみ出して切れる（SVG の `<text>` は自動改行・自動縮小しない）。**
+> 実害＝刑TX382 記述5「収得後知情行使は通貨のみ（152）」が viewBox 右端で切断・同型 44 見出し/20 ファイルを
+> 2026-07-13 一括是正。恒久対策は**本文を1文字も変えず** `textLength`＋`lengthAdjust="spacingAndGlyphs"` を
+> はみ出す見出しだけに付与して収める決定論ツール **`scripts/tx-sysmap-fit.py`**（冪等・`--check`/`--all` 対応）。
+> 三層防御＝①canonical `GENESIS-CARD.html` の例見出しは枠内に収める（作らせない）／②`validate-tx-core.py` **G66**
+> （viewBox 端クリップ＝ERROR・カード枠越え＝WARNING・判定は単一情報源 `scripts/tx_sysmap_geom.py`）／
+> ③push 前 `check-tx-lex-engine.py` にも G66 を組込み（viewBox クリップは push を止める）。見出しを長く書いた問題の
+> 生成・更新後は `python scripts/tx-sysmap-fit.py <file>` を通す（G66 が ERROR を出したら同ツールで収める）。
+>
 > **【解説品質レビュー・必須】** 解説は TX の命であり、機械整形・一括置換・テンプレ埋めだけで確定しない。
 > 新規生成・既存更新・伝播後は、作業時点で利用可能な最上位モデルを使い、推論/エフォート設定を最大にして
 > `ANSWER`、条文/判例ボックス、5点フロー、コツ、記憶フック、詳説、物語解説、SM2 `.ox-pool-explain` を
