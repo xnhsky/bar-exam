@@ -173,7 +173,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63/G64 sync + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63/G64 sync + G66 sysmapはみ出し + G67 dgm + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -209,6 +209,7 @@ def main() -> int:
     g45_scanned = 0
     offenders: list[tuple[Path, list[str]]] = []
     depth_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G56/G57 助言（非ブロッキング・§v13m 深さ）
+    fact_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G65 助言（非ブロッキング・ox-stmt 要件事実完全性）
     for f in files:
         if f.stem.endswith("_lex") is False:
             continue
@@ -250,9 +251,25 @@ def main() -> int:
         # G64＝v13 判定バッジ⇄answer-key の矛盾（integrity L1 の三層化・刑TX368 型の最悪クラス）。
         #     全コーパス実測 検出0（2026-07-11 特殊問題監査）を確認して ERROR ゲート化。
         v.g64_verdict_badge_key_consistency()
+        # G66＝体系マップ SVG 見出しの viewBox 端クリップ（文字が切れる致命的表示崩れ）。
+        #     カード幅固定に対し AI 生成見出しが長すぎるとはみ出す（実害＝刑TX382 記述5「（152）」切断）。
+        #     ERROR は viewBox ハードクリップのみ＝誤爆ゼロ。修正＝scripts/tx-sysmap-fit.py（textLength 付与）。
+        v.g66_sysmap_text_overflow()
+        # G67＝図解コンポーネント（TX-DGM・任意スロット）。図解の無いファイルは素通り＝誤爆ゼロ。
+        #     使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・物語⇄カード data-dgm 同期
+        #     （同 id 内容不一致）を ERROR で弾く（片側のみ/id無しは WARNING＝ブロックしない）。2026-07-13 追加。
+        v.g67_diagram_component()
+        # G65＝ox-stmt（復習プール全文）の要件事実完全性（主体身分・目的要件・官公性・承諾）。
+        #     語彙差分ヒューリスティックで誤検出があり得るため非ブロッキング（push は止めない）。
+        #     実害＝刑TX378 記述3（「市立…公務員」が圧縮で消え公文書性が判定不能）。2026-07-13 追加。
+        before_g65 = len(v.warnings)
+        v.g65_ox_stmt_fact_completeness()
+        _facts = [(c, m) for c, m in v.warnings[before_g65:] if c == "G65"]
+        if _facts:
+            fact_notes.append((f, _facts))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
@@ -301,7 +318,7 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63/G64(三点整合・バッジ⇄key矛盾) 検出ファイル={len(offenders)}")
+    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63/G64(三点整合・バッジ⇄key矛盾)+G66(sysmapはみ出し)+G67(図解) 検出ファイル={len(offenders)}")
     if offenders:
         print("\n[G41-G45/G50-G62] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れ or v13/v13n 規約崩れを検出:")
         for f, errs in offenders:
@@ -325,6 +342,15 @@ def main() -> int:
             for code, m in notes:
                 print(f"       - [{code}] {m}")
         print("  → 機械化困難ゆえ push は止めない（WARNING）。著者が自己照合で解消（詳細 python -X utf8 scripts/check-tx-v13m-depth.py <file> --detail）。")
+
+    if fact_notes:
+        print(f"\n[G65 助言・非ブロッキング] ox-stmt の要件事実欠落候補（原文にある主体身分/目的要件/官公性/承諾が復習プール文に無い）{len(fact_notes)} ファイル:")
+        for f, notes in fact_notes:
+            rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+            print(f"  ⚠️ {rel}")
+            for code, m in notes:
+                print(f"       - [{code}] {m.split('。')[0]}")
+        print("  → 語彙差分ヒューリスティックゆえ push は止めない（WARNING）。原文と照合し、正誤の分かれ目となる事実を ox-stmt に復元する（spec 第5-bis-2項）。")
 
     # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
     _run_css_canonize_advisory()
