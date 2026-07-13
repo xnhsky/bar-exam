@@ -173,7 +173,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63/G64 sync + G66 dgm + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63/G64 sync + G66 sysmapはみ出し + G67 dgm + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -251,10 +251,14 @@ def main() -> int:
         # G64＝v13 判定バッジ⇄answer-key の矛盾（integrity L1 の三層化・刑TX368 型の最悪クラス）。
         #     全コーパス実測 検出0（2026-07-11 特殊問題監査）を確認して ERROR ゲート化。
         v.g64_verdict_badge_key_consistency()
-        # G66＝図解コンポーネント（TX-DGM・任意スロット）。図解の無いファイルは素通り＝誤爆ゼロ。
+        # G66＝体系マップ SVG 見出しの viewBox 端クリップ（文字が切れる致命的表示崩れ）。
+        #     カード幅固定に対し AI 生成見出しが長すぎるとはみ出す（実害＝刑TX382 記述5「（152）」切断）。
+        #     ERROR は viewBox ハードクリップのみ＝誤爆ゼロ。修正＝scripts/tx-sysmap-fit.py（textLength 付与）。
+        v.g66_sysmap_text_overflow()
+        # G67＝図解コンポーネント（TX-DGM・任意スロット）。図解の無いファイルは素通り＝誤爆ゼロ。
         #     使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・物語⇄カード data-dgm 同期
         #     （同 id 内容不一致）を ERROR で弾く（片側のみ/id無しは WARNING＝ブロックしない）。2026-07-13 追加。
-        v.g66_diagram_component()
+        v.g67_diagram_component()
         # G65＝ox-stmt（復習プール全文）の要件事実完全性（主体身分・目的要件・官公性・承諾）。
         #     語彙差分ヒューリスティックで誤検出があり得るため非ブロッキング（push は止めない）。
         #     実害＝刑TX378 記述3（「市立…公務員」が圧縮で消え公文書性が判定不能）。2026-07-13 追加。
@@ -265,7 +269,7 @@ def main() -> int:
             fact_notes.append((f, _facts))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
@@ -314,7 +318,7 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63/G64(三点整合・バッジ⇄key矛盾)+G66(図解) 検出ファイル={len(offenders)}")
+    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63/G64(三点整合・バッジ⇄key矛盾)+G66(sysmapはみ出し)+G67(図解) 検出ファイル={len(offenders)}")
     if offenders:
         print("\n[G41-G45/G50-G62] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れ or v13/v13n 規約崩れを検出:")
         for f, errs in offenders:

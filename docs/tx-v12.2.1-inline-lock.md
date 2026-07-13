@@ -333,9 +333,9 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
 - CSS＝canonical/GENESIS-CARD.html 第1 `<style>` の `/* TX-DGM:BEGIN〜END */` 区画。全 v13 共通CSSとして
   `tx-lex-css-canonize.py --apply` で配布済み（2026-07-13・110本）。問題ファイル側は**許可クラスの markup だけ**書く。
 - 型＝**対比レーン**（`.tx-dgm-lanes` 2列既定／`.is-3` 3列）と**ステップ＋帰結分岐**（`.tx-dgm-steps`＋`.tx-dgm-fork`）。
-  SVG 座標打ち・新規クラス・inline style の自由描画は禁止（G66 ERROR）。
+  SVG 座標打ち・新規クラス・inline style の自由描画は禁止（G67 ERROR）。
 - 置き場所（present なら LOCKED）＝カード：`.syn-path` 直後・🗝記憶のフック直前／物語：該当ラベル段落直後の兄弟 div。
-  **論点単位で1枚執筆→物語と該当カードへ同一複製・`data-dgm="{番号}-{連番}"` で同期**（同 id 内容不一致＝G66 ERROR）。
+  **論点単位で1枚執筆→物語と該当カードへ同一複製・`data-dgm="{番号}-{連番}"` で同期**（同 id 内容不一致＝G67 ERROR）。
 - **効く論点だけ**＝対比・裏命題ペア・分岐・時系列。導入/まとめ・図で冗長になる論点へ強制しない（**偽図解の禁止**）。
   体系マップ縮小版・横断3軸マトリクスの複製は作らない（§v13m D と同じ重複禁止）。
 - 帰結チップ＝is-ok 緑（規定・救済・成立が有る側）／is-ng 赤（無い側）／is-teal・is-acc（中立対比）／is-flat。
@@ -354,7 +354,7 @@ v13 LOOP-CARD `_lex` の**記述カード解説の書き方**（＝`.sub-card.sy
   理由に入る（誤情報効果＝誤り文の反復露出が真実感に化けるリスクへの対策。新規生成・更新時から適用・既存一括変換はしない）。
 
 **検証・展開**
-- ゲート＝`validate-tx-core.py` **G66**（CSS存在／許可クラスのみ／inline style 禁止／data-dgm 同期）を
+- ゲート＝`validate-tx-core.py` **G67**（CSS存在／許可クラスのみ／inline style 禁止／data-dgm 同期）を
   `check-tx-lex-engine.py` の push 前ブロック対象に追加（三層＝placeholder 契約／validate／push 前）。
 - 既存展開＝380-445 の v13 本文へ効く論点の図解を優先執筆（カード＋物語の両置き）。379 以下は TJR 付随。
   新規生成は GENESIS-CARD 複製で CSS を自動継承し、執筆時に効く論点だけ図解スロットを埋める。

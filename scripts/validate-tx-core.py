@@ -36,8 +36,10 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G38 正典プレースホルダー契約：生成済み _lex に {{...}} を残さない
   G39 記憶フック/答案圧縮：2カラム中央寄せのTX360テンプレートCSSを要求
   G45 v12.2.1 表示LOCK：条文/判例の題名・法理テーマ、条文本文2カラム、物語ラベル非重畳、解説役割の混入禁止を要求
-  G66 図解コンポーネント（TX-DGM・任意スロット）：使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・
+  G66 体系マップSVG文字はみ出し：カード見出しが viewBox 端で切れる＝ERROR／カード枠を大きく越える＝WARNING。
+  G67 図解コンポーネント（TX-DGM・任意スロット）：使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・
       物語⇄カードの data-dgm 同期（同 id 内容不一致=ERROR／片側のみ・id無し=WARNING）
+      判定は tx_sysmap_geom（単一情報源）、修正は scripts/tx-sysmap-fit.py（textLength+lengthAdjust・本文不変）。
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -49,9 +51,18 @@ spec: spec/tx-v11.0.0-core.md 第7項
 """
 
 import copy
+import os
 import re
 import sys
 from pathlib import Path
+
+# 体系マップ SVG のはみ出し判定は tx_sysmap_geom（単一情報源）を共用（G66）。
+# 幾何モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try:
+    import tx_sysmap_geom as _sysmap_geom
+except Exception:
+    _sysmap_geom = None
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -469,6 +480,33 @@ class Validator:
                 self.err("G11", f"[{svg_name}] viewBox 下端余白が {margin:.0f}px（20px 未満）")
             elif margin < 40:
                 self.warn("G11", f"[{svg_name}] viewBox 下端余白が {margin:.0f}px（推奨 40px 以上）")
+
+    def g66_sysmap_text_overflow(self):
+        """G66：体系マップ SVG の見出し文字が viewBox 端で切れる／カード枠を大きくはみ出すのを検出。
+
+        体系マップの各カード見出し（fs15.5・幅260px 固定）は問題ごとに AI が書き換える差替スロットだが、
+        見出しが長い問題では文字がカード枠・viewBox 右端をはみ出して切れる（SVG の <text> は自動改行・
+        自動縮小しないため）。実害＝刑TX382 記述5「収得後知情行使は通貨のみ（152）」が viewBox 右端で切断。
+        判定は単一情報源 tx_sysmap_geom を使い、修正ツール tx-sysmap-fit.py と同基準。
+          - viewBox 端でのハードクリップ＝ERROR（確定的に文字が切れる致命的表示崩れ）
+          - カード枠の大きなはみ出し＝WARNING（隣カードへ食い込む・隙間へ溢れる）
+        恒久対策：scripts/tx-sysmap-fit.py が textLength+lengthAdjust で収める（本文不変・冪等）。
+        textLength で収めた見出しは実効幅が縮むため本ゲートを通過する。"""
+        if _sysmap_geom is None:
+            return
+        for svg in _sysmap_geom.find_sysmap_svgs(self.soup):
+            for info in _sysmap_geom.iter_text_overflow(svg):
+                snippet = info["content"][:28]
+                vbw = info["vbw"]
+                if vbw is not None:
+                    hard = max(info["x1"] - vbw, -info["x0"])
+                    if hard > 1.0:
+                        self.err("G66", f"体系マップ見出しが viewBox 端で切れる（+{hard:.0f}px）："
+                                          f"「{snippet}」→ scripts/tx-sysmap-fit.py で textLength 付与")
+                        continue
+                if info["card_over"] > 8.0:
+                    self.warn("G66", f"体系マップ見出しがカード枠をはみ出す（+{info['card_over']:.0f}px）："
+                                       f"「{snippet}」→ scripts/tx-sysmap-fit.py")
 
     # --- G12〜G13：content-independence ---
 
@@ -2170,9 +2208,9 @@ class Validator:
                                  "（市立/公立等）・権限/承諾は圧縮時に省略しない（spec 第5-bis-2項・"
                                  "実害＝刑TX378 記述3）。言い換えで事実が保存されている場合は無視してよい。")
 
-    # G66（2026-07-13）＝図解コンポーネント（TX-DGM）の整合。任意スロットなので
+    # G67（2026-07-13）＝図解コンポーネント（TX-DGM）の整合。任意スロットなので
     # 図解を使わないファイルには何も要求しない（効く論点＝対比・裏命題ペア・分岐・時系列だけに置く規約）。
-    _G66_ALLOWED = {
+    _G67_ALLOWED = {
         "tx-dgm", "tx-dgm-tag", "tx-dgm-title",
         "tx-dgm-lanes", "is-3",
         "dgm-lane", "dgm-lane-head", "dgm-lane-obj", "dgm-lane-law", "dgm-lane-body",
@@ -2181,7 +2219,7 @@ class Validator:
         "tx-dgm-steps", "dgm-step", "dgm-step-no", "dgm-next", "tx-dgm-fork",
     }
 
-    def g66_diagram_component(self):
+    def g67_diagram_component(self):
         """(a) .tx-dgm 使用時に TX-DGM CSS が無い＝無装飾の生 div で出る（ERROR・G16 の思想）。
         (b) 図解内の class が契約の許可リスト外／inline style あり（ERROR・自由描画＝接ぎ木の芽）。
         (c) data-dgm 同期＝物語側とカード側の同 id で内容不一致（ERROR）。片側のみ・id 無しは WARNING
@@ -2193,21 +2231,21 @@ class Validator:
             return
         css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
         if "TX-DGM:BEGIN" not in css:
-            self.err("G66", ".tx-dgm を使っているのに TX-DGM CSS（TX-DGM:BEGIN 区画）が無い＝無装飾で出る。"
+            self.err("G67", ".tx-dgm を使っているのに TX-DGM CSS（TX-DGM:BEGIN 区画）が無い＝無装飾で出る。"
                             "canonical/GENESIS-CARD.html 第1 <style> の正典CSSを tx-lex-css-canonize.py --apply で配る。")
         bad_cls, bad_style = set(), 0
         for dgm in dgms:
             for el in [dgm] + dgm.find_all(True):
                 for cls in (el.get("class") or []):
-                    if cls not in self._G66_ALLOWED:
+                    if cls not in self._G67_ALLOWED:
                         bad_cls.add(cls)
                 if el.get("style"):
                     bad_style += 1
         if bad_cls:
-            self.err("G66", f"図解内に契約外 class: {sorted(bad_cls)[:8]}。TX-DGM の許可クラスだけで組む"
+            self.err("G67", f"図解内に契約外 class: {sorted(bad_cls)[:8]}。TX-DGM の許可クラスだけで組む"
                             "（新規クラス・自由描画は禁止＝GENESIS-CARD.placeholder 図解スロット契約）。")
         if bad_style:
-            self.err("G66", f"図解内に inline style が {bad_style} 箇所。見た目の調整は正典CSSに寄せ、"
+            self.err("G67", f"図解内に inline style が {bad_style} 箇所。見た目の調整は正典CSSに寄せ、"
                             "問題ファイル側では許可クラスの組合せだけで表現する。")
         nar, card = {}, {}
         no_id = 0
@@ -2222,15 +2260,15 @@ class Validator:
             elif dgm.find_parent(class_="tx-inline-explain") is not None:
                 card[did] = key
         if no_id:
-            self.warn("G66", f"data-dgm 無しの図解が {no_id} 枚。物語⇄カードの同期検証ができないため "
+            self.warn("G67", f"data-dgm 無しの図解が {no_id} 枚。物語⇄カードの同期検証ができないため "
                              "data-dgm=\"{番号}-{連番}\" を付ける。")
         for did in sorted(set(nar) & set(card)):
             if nar[did] != card[did]:
-                self.err("G66", f"図解 {did} の物語側とカード側で内容が不一致。同 id は同一図解の複製にする"
+                self.err("G67", f"図解 {did} の物語側とカード側で内容が不一致。同 id は同一図解の複製にする"
                                 "（片側だけ直す更新が同期ズレの主因）。")
         lonely = sorted(set(nar) ^ set(card))
         if lonely:
-            self.warn("G66", f"片側にしか無い図解 id: {lonely[:6]}。原則は物語の該当段落と対応する記述カードの両置き。")
+            self.warn("G67", f"片側にしか無い図解 id: {lonely[:6]}。原則は物語の該当段落と対応する記述カードの両置き。")
 
     def run(self):
         self.g1_head()
@@ -2244,6 +2282,8 @@ class Validator:
         self.g9_core_svgs()
         self.g10_no_overlap()
         self.g11_viewbox_margin()
+        self.g66_sysmap_text_overflow()
+        self.g67_diagram_component()
         self.g12_no_301_leakage()
         self.g13_no_baseline_copy()
         self.g14_filename_dir()
@@ -2287,7 +2327,6 @@ class Validator:
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
-        self.g66_diagram_component()
 
 
 def main():
@@ -2319,7 +2358,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G66, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G67, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

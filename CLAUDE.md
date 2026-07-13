@@ -232,6 +232,17 @@
 > push 前 `check-tx-lex-engine.py` の非ブロッキング助言。執筆時は「この一文だけで○×を付けられるか」を
 > 執筆者本人が1回自己照合する（省エネ規律 (b) の一項目）。
 >
+> **【体系マップSVG見出しのはみ出し防止・2026-07-13】`_lex` の体系マップ（`.tx-sysmap svg.tree-svg`）の
+> 各カード見出しは問題ごとに AI が書き換える差替スロットだが、カード幅（260px）・viewBox（幅1500）は固定のため、
+> 見出しが長い問題では文字がカード枠・viewBox 右端をはみ出して切れる（SVG の `<text>` は自動改行・自動縮小しない）。**
+> 実害＝刑TX382 記述5「収得後知情行使は通貨のみ（152）」が viewBox 右端で切断・同型 44 見出し/20 ファイルを
+> 2026-07-13 一括是正。恒久対策は**本文を1文字も変えず** `textLength`＋`lengthAdjust="spacingAndGlyphs"` を
+> はみ出す見出しだけに付与して収める決定論ツール **`scripts/tx-sysmap-fit.py`**（冪等・`--check`/`--all` 対応）。
+> 三層防御＝①canonical `GENESIS-CARD.html` の例見出しは枠内に収める（作らせない）／②`validate-tx-core.py` **G66**
+> （viewBox 端クリップ＝ERROR・カード枠越え＝WARNING・判定は単一情報源 `scripts/tx_sysmap_geom.py`）／
+> ③push 前 `check-tx-lex-engine.py` にも G66 を組込み（viewBox クリップは push を止める）。見出しを長く書いた問題の
+> 生成・更新後は `python scripts/tx-sysmap-fit.py <file>` を通す（G66 が ERROR を出したら同ツールで収める）。
+>
 > **【図解コンポーネント TX-DGM・2026-07-13】`_lex` の物語解説と記述カードに、効く論点だけ図解を置く。**
 > 「似て非なる」規範の弁別は 1 画面の同時対比が最も効く（対比学習・二重符号化）ため、固定パターンの純CSS図解
 > （**対比レーン 2/3 列・ステップ＋帰結分岐**のみ・SVG座標打ち/新規クラス/inline style の自由描画は禁止）を、
@@ -241,7 +252,7 @@
 > CSS は `canonical/GENESIS-CARD.html` 第1 `<style>` の `TX-DGM` 区画（`tx-lex-css-canonize.py --apply` で全 v13 配布済み・
 > Lexia は無改修で復習カードにも表示される）。付随規約＝対比論点の記憶のフックは**対比圧縮型**（「通貨は流す、証券は
 > 見せる」）・表裏ペアは BASIS 判例 head に**基準/限界（裏命題）の役割ラベル**・×記述のプール解説は**訂正命題を先頭**に。
-> ゲート＝`validate-tx-core.py` **G66**＋push 前 `check-tx-lex-engine.py`（三層防御）。正典＝
+> ゲート＝`validate-tx-core.py` **G67**＋push 前 `check-tx-lex-engine.py`（三層防御）。正典＝
 > `docs/tx-v12.2.1-inline-lock.md` §v13p・`GENESIS-CARD.placeholder.html` 図解スロット。初例＝刑TX382_lex。
 > 既存展開＝**380-445 を優先改訂・それ以外は TJR 付随**。
 >
