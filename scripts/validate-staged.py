@@ -80,6 +80,7 @@ def main():
 
     errored = []
     checked = 0
+    seen_rx = set()
     for f in files:
         fn = f.replace("\\", "/")
         validator = next((v for pfx, v in ROUTES if pfx in fn), None)
@@ -88,7 +89,21 @@ def main():
         vpath = os.path.join(ROOT, validator)
         if not os.path.exists(vpath):
             continue
-        r = _run([sys.executable, "-X", "utf8", vpath, os.path.join(ROOT, f)])
+        # validate-rx.py は単一ファイルではなく <出力dir> <basename> 形式を取る。
+        # ステージされた RX ファイル(…/{basename}_N.html)から両者を導いて呼ぶ
+        # （単一ファイル渡しだと usage 終了 exit2 → ERROR 誤判定になっていた）。
+        if validator.endswith("validate-rx.py"):
+            abs_f = os.path.join(ROOT, f)
+            out_dir = os.path.dirname(abs_f)
+            base = re.sub(r"_\d+\.html$", "", os.path.basename(abs_f))
+            key = (out_dir, base)
+            if key in seen_rx:
+                continue
+            seen_rx.add(key)
+            args = [sys.executable, "-X", "utf8", vpath, out_dir, base]
+        else:
+            args = [sys.executable, "-X", "utf8", vpath, os.path.join(ROOT, f)]
+        r = _run(args)
         checked += 1
         if r is None:
             continue
