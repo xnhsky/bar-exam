@@ -209,6 +209,7 @@ def main() -> int:
     g45_scanned = 0
     offenders: list[tuple[Path, list[str]]] = []
     depth_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G56/G57 助言（非ブロッキング・§v13m 深さ）
+    fact_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G65 助言（非ブロッキング・ox-stmt 要件事実完全性）
     for f in files:
         if f.stem.endswith("_lex") is False:
             continue
@@ -250,6 +251,14 @@ def main() -> int:
         # G64＝v13 判定バッジ⇄answer-key の矛盾（integrity L1 の三層化・刑TX368 型の最悪クラス）。
         #     全コーパス実測 検出0（2026-07-11 特殊問題監査）を確認して ERROR ゲート化。
         v.g64_verdict_badge_key_consistency()
+        # G65＝ox-stmt（復習プール全文）の要件事実完全性（主体身分・目的要件・官公性・承諾）。
+        #     語彙差分ヒューリスティックで誤検出があり得るため非ブロッキング（push は止めない）。
+        #     実害＝刑TX378 記述3（「市立…公務員」が圧縮で消え公文書性が判定不能）。2026-07-13 追加。
+        before_g65 = len(v.warnings)
+        v.g65_ox_stmt_fact_completeness()
+        _facts = [(c, m) for c, m in v.warnings[before_g65:] if c == "G65"]
+        if _facts:
+            fact_notes.append((f, _facts))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
             if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64")
@@ -325,6 +334,15 @@ def main() -> int:
             for code, m in notes:
                 print(f"       - [{code}] {m}")
         print("  → 機械化困難ゆえ push は止めない（WARNING）。著者が自己照合で解消（詳細 python -X utf8 scripts/check-tx-v13m-depth.py <file> --detail）。")
+
+    if fact_notes:
+        print(f"\n[G65 助言・非ブロッキング] ox-stmt の要件事実欠落候補（原文にある主体身分/目的要件/官公性/承諾が復習プール文に無い）{len(fact_notes)} ファイル:")
+        for f, notes in fact_notes:
+            rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+            print(f"  ⚠️ {rel}")
+            for code, m in notes:
+                print(f"       - [{code}] {m.split('。')[0]}")
+        print("  → 語彙差分ヒューリスティックゆえ push は止めない（WARNING）。原文と照合し、正誤の分かれ目となる事実を ox-stmt に復元する（spec 第5-bis-2項）。")
 
     # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
     _run_css_canonize_advisory()

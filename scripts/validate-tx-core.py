@@ -293,7 +293,7 @@ class Validator:
         self.warnings = []
 
     def is_lex_target(self):
-        """_lex 系ゲート（G23/G25 期待値・G30-G46・G45・G50-G62）の対象か。
+        """_lex 系ゲート（G23/G25 期待値・G30-G46・G45・G50-G65）の対象か。
         corpus の *_lex.html に加え、v13 正典 canonical/GENESIS-CARD.html 自身も対象にする。
         （監査 2026-07-11：正典は「作らせない層」の要なのに、stem が _lex でないため
         v13 系ゲートが全てスキップされ機械保証ゼロだった＝改名コピーで強制実行して安全を実証済み。）"""
@@ -2058,6 +2058,116 @@ class Validator:
                                 "判定単位がズレている（刑TX368 型＝組合せの当否と事例の成否の混線）。"
                                 "命題を揃えて同じ向きにする（check-lex-oxgrid-integrity L1 と同一検査）。")
 
+    # ------------------------------------------------------------------
+    # G65（WARNING・2026-07-13）＝ox-stmt（Lexia 復習プール全文）の要件事実完全性。
+    #
+    # 背景：Lexia は ox-stmt が 30 字以上なら「自己完結命題」とみなし、原文への
+    #   フォールバック無しで単独の一問一答カードとして出題する（Lexia App.jsx）。
+    #   ox-stmt へ圧縮する際に正誤の分かれ目となる要件事実（主体の身分・目的要件・
+    #   客体の官公性・権限/承諾）を落とすと、原文を知らない復習時に○×が判定不能になる。
+    #   実害：刑TX378 記述3＝原文「X市立病院の事務長を務める公務員…行使の目的で」→
+    #   ox-stmt「病院事務長が…」に圧縮され、虚偽公文書作成罪(156)の身分前提（公務員か
+    #   私人か）が読めなくなった。
+    #
+    # 方式（安価な語彙差分・意味判定はしない・WARNING）：
+    #   原文（inline カード提示文を優先。無ければ対応 choice-section の syn-orig から
+    #   ネタバレ span（.tx-stmt-fix/.tx-stmt-mk/.syn-tag）を除去した本文）にグループの
+    #   マーカー語があるのに、ox-stmt 側に同グループの充足語が 1 つも無い記述を報告。
+    #   ・ox-stmt 30 字未満（Lexia が syn-orig 全文へフォールバック）はスキップ。
+    #   ・.ox-core-wrap（論点コア）を持つ行はスキップ（コアは転用可能な法理命題で
+    #     事案の事実語を持たないのが正・自己完結性は G30 系が担保）。
+    #   ・「官公性」は罪名（虚偽有印公文書作成罪 等）内の「公文書」を客体の性質記述と
+    #     誤認しないよう、罪名パターンを除去してから充足を判定する。
+    #   ・言い換え（例：市立→「公務員である」）で事実が保存されていれば充足扱い。
+    #     それでも残る誤検出は執筆者判断で無視してよい（WARNING の趣旨）。
+    # ------------------------------------------------------------------
+    # 罪名内の「公文書」を除去する（客体の性質記述「公文書である〜」は残る）
+    _G65_CRIME_RE = re.compile(r"(?:偽造|虚偽|有印|無印)*公文書(?:偽造|変造|作成|行使|毀棄)罪?")
+    # 罪名内の「業務上」（業務上過失致死傷）を除去する（業務上横領等の区別実益がある罪名は残す）
+    _G65_GYOKA_RE = re.compile(r"業務上過失(?:致死傷|致死|傷害)")
+
+    _G65_GROUPS = (
+        # (グループ名, 原文マーカー, ox-stmt 充足語, 除去正規表現|None, ox側にも除去を適用するか)
+        # 充足語「賄」＝収賄/贈賄/供賄/賄賂（賄賂罪系は主体の公務員性が罪名から自明）。
+        ("公務員性", ("公務員",),
+         ("公務", "官公", "賄", "警察"), None, False),
+        # 官公性は ox 側も罪名除去＝主張された結論の罪名（〜公文書偽造罪が成立する）は
+        # 客体が公文書である前提を伝えないため充足扱いにしない。
+        ("官公性", ("市立", "県立", "国立", "公立", "都立", "府立", "道立", "町立", "村立"),
+         ("市立", "県立", "国立", "公立", "都立", "府立", "道立", "町立", "村立",
+          "公務", "官公", "公文書", "賄"), _G65_CRIME_RE, True),
+        ("私人性", ("私立",),
+         ("私立", "開業医", "民間", "私人"), None, False),
+        ("行使目的", ("行使の目的",),
+         ("行使の目的", "行使目的", "行使する目的"), None, False),
+        ("営利目的", ("営利の目的",),
+         ("営利の目的", "営利目的"), None, False),
+        # マーカーは「医師が主体」の形に限定（「医師を呼ぶ」「医師の治療」等の周辺事実では発火させない）
+        ("医師身分", ("医師である", "医師免許", "の医師", "医師が", "医師は"),
+         ("医師", "無資格", "無免許"), None, False),
+        # 業務性は原文側のみ罪名除去＝業務上過失致死傷という罪名だけで発火させない。
+        # ox 側は除去しない（ox の罪名「業務上過失傷害罪」は業務性の情報を学習者に伝える）。
+        ("業務性", ("業務上",),
+         ("業務",), _G65_GYOKA_RE, False),
+        ("承諾", ("承諾",),
+         ("承諾", "同意", "了解", "てもら", "無断"), None, False),
+    )
+
+    def _g65_original_for(self, label, row_index):
+        """記述 label の原文全文テキスト（ネタバレ除去済み）。見つからなければ None。"""
+        card = self.soup.select_one(f'.tx-inline-card[data-stmt="{label}"]')
+        if card:
+            tx = card.find(class_="tx-inline-stmt-text")
+            if tx:
+                return tx.get_text("", strip=True)
+        sec = self.soup.select_one(f"#choice-{label}")
+        if sec is None:
+            secs = self.soup.select(".choice-section")
+            if 0 <= row_index < len(secs):
+                sec = secs[row_index]
+        if sec is not None:
+            orig = sec.select_one(".syn-orig")
+            if orig is not None:
+                clone = BeautifulSoup(str(orig), "html.parser")
+                for spoiler in clone.select(".tx-stmt-fix, .tx-stmt-mk, .syn-tag"):
+                    spoiler.decompose()
+                return clone.get_text("", strip=True)
+        return None
+
+    def g65_ox_stmt_fact_completeness(self):
+        if not self.is_lex_target():
+            return
+        for idx, row in enumerate(self.soup.select(".ox-row[data-stmt]")):
+            label = (row.get("data-stmt") or "").strip()
+            if row.select_one(".ox-core-wrap"):
+                continue
+            st = row.find(class_="ox-stmt")
+            if not st:
+                continue
+            ox = re.sub(r"\s+", "", st.get_text("", strip=True))
+            if len(ox) < 30:
+                continue
+            orig = self._g65_original_for(label, idx)
+            if not orig:
+                continue
+            orig = re.sub(r"\s+", "", orig)
+            missing = []
+            for name, markers, satisfiers, strip_re, strip_ox in self._G65_GROUPS:
+                src = strip_re.sub("", orig) if strip_re else orig
+                hit = next((m for m in markers if m in src), None)
+                if hit is None:
+                    continue
+                target = strip_re.sub("", ox) if (strip_re and strip_ox) else ox
+                if not any(s in target for s in satisfiers):
+                    missing.append(f"{name}（原文={hit}）")
+            if missing:
+                self.warn("G65", f"記述{label}: ox-stmt（復習プール全文）から正誤判定に効く原文の"
+                                 f"要件事実が落ちている疑い: {'、'.join(missing)}。"
+                                 "Lexia は 30 字以上の ox-stmt を原文なしの単独カードで出題するため、"
+                                 "主体の身分（公務員/医師）・目的要件（行使の目的等）・客体の官公性"
+                                 "（市立/公立等）・権限/承諾は圧縮時に省略しない（spec 第5-bis-2項・"
+                                 "実害＝刑TX378 記述3）。言い換えで事実が保存されている場合は無視してよい。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -2112,6 +2222,7 @@ class Validator:
         self.g62_original_block_stmt_count()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
+        self.g65_ox_stmt_fact_completeness()
 
 
 def main():
@@ -2143,7 +2254,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G64, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G65, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
