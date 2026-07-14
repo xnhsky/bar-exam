@@ -40,6 +40,9 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G67 図解コンポーネント（TX-DGM・任意スロット）：使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・
       物語⇄カードの data-dgm 同期（同 id 内容不一致=ERROR／片側のみ・id無し=WARNING）
       判定は tx_sysmap_geom（単一情報源）、修正は scripts/tx-sysmap-fit.py（textLength+lengthAdjust・本文不変）。
+  G68 フォント変数の未定義参照（2026-07-14・LEX-388）：var(--font-*) 参照に定義が無い＝全フォントが
+      ブラウザ既定へフォールバック（実害＝刑TX003 公式＋_lex：パレットを第1 :root＝フォント12変数
+      ブロックへ誤上書き）。公式・_lex 両系統 ERROR。
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -2270,6 +2273,23 @@ class Validator:
         if lonely:
             self.warn("G67", f"片側にしか無い図解 id: {lonely[:6]}。原則は物語の該当段落と対応する記述カードの両置き。")
 
+    # --- G68（2026-07-14・LEX-388）：フォント変数の未定義参照 ---
+
+    def g68_font_vars_defined(self):
+        """G68：var(--font-*) を参照しているのに、その --font-* 定義がファイル内に無い＝
+        12役割タイポが全てブラウザ既定フォントへフォールバックし「正典とフォントが違う」誌面になる。
+        実害＝刑TX003（公式＋_lex）：生成時にパレットを第1 :root（フォント12変数ブロック）へ
+        誤上書きしてフォント定義が丸ごと消えたが、既存ゲートはどれも検査せず PASS で push された。
+        フォールバック付き var(--font-x,serif) も既定フォント落ち＝正典逸脱として同罪に扱う。
+        公式・_lex の両系統に適用（is_lex_target に依らない）。"""
+        used = set(re.findall(r"var\(\s*(--font-[a-z-]+)", self.html))
+        defined = set(re.findall(r"(--font-[a-z-]+)\s*:\s*[^;}]+[;}]", self.html))
+        missing = sorted(used - defined)
+        if missing:
+            self.err("G68", f"未定義のフォント変数を参照: {', '.join(missing[:12])}。"
+                            "第1 :root のフォント12変数ブロック（canonical/GENESIS-CORE.html 冒頭 :root）が"
+                            "欠落／パレットで誤上書きされていないか確認する（パレットは3番目の :root＝--accent を含む方）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -2327,6 +2347,7 @@ class Validator:
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
+        self.g68_font_vars_defined()
 
 
 def main():
@@ -2358,7 +2379,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G67, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G68, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
