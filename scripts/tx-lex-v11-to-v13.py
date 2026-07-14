@@ -191,13 +191,56 @@ def prep(h, slots):
 
 
 # ---------------------------------------------------------------- 3. engine swap
+def _derive_hint(tip):
+    """build-ox-lex.py safeHint と同一規則：tip の最初の <b>…</b> から誘導ヒントを作る。"""
+    m = re.search(r'<b>(.*?)</b>', tip or '', re.S | re.I)
+    focus = re.sub(r'\s+', ' ', re.sub(r'<[^>]*>', '', m.group(1))).strip() if m else ''
+    if focus:
+        return ('まず「' + focus + '」が、どの条文要件・判例基準なのかを確認し、'
+                '問題文の具体的事実を一つ対応させる。結論は採点後に確認する。')
+    return ('設問の中で条文要件・判例基準に対応する具体的事実を一つ選ぶ。'
+            'どの限定・例外・時点で結論が分かれるかを先に決める。結論は採点後に確認する。')
+
+
+def _own_nav_data(h):
+    """swap 前のファイルから本問固有の解法ナビデータ（STEP/ORDER）を回収する。
+    旧エンジンが STMT（q/tip/note・build-ox-lex 系）の場合は STEP 型（label/q/tip/hint）へ変換。
+    見つからなければ None（呼び出し側で明示エラーにする）。"""
+    mo = re.search(r'(?m)^[ \t]*var ORDER\s*=\s*(\[[^\]]*\])', h)
+    ms = re.search(r'(?m)^[ \t]*var STEP\s*=\s*(\{.*\});', h)
+    mst = re.search(r'(?m)^[ \t]*var STMT\s*=\s*(\{.*\});', h)
+    if not mo or not (ms or mst):
+        return None
+    order = json.loads(mo.group(1))
+    if ms:
+        return order, json.loads(ms.group(1))
+    stmt = json.loads(mst.group(1))
+    step = {}
+    for lbl in order:
+        s = stmt.get(lbl) or {}
+        step[lbl] = {'label': lbl, 'q': s.get('q', ''), 'tip': s.get('tip', ''),
+                     'hint': s.get('hint') or _derive_hint(s.get('tip', ''))}
+    return order, step
+
+
 def engine_swap(h, gold):
+    own = _own_nav_data(h)
+    if own is None:
+        raise RuntimeError('own solve-nav data (var STEP/STMT + ORDER) not found — '
+                           'gold の問題固有データ（刑TX359）を持ち込むことになるため中止')
     g = [m.group(0) for m in re.finditer(r'<script\b[^>]*>.*?</script>', gold, re.S)]
     hs = [(m.start(), m.end()) for m in re.finditer(r'<script\b[^>]*>.*?</script>', h, re.S)]
     if len(g) != 2 or len(hs) != 2:
         raise RuntimeError('script count mismatch gold=%d file=%d' % (len(g), len(hs)))
     h = h[:hs[1][0]] + g[1] + h[hs[1][1]:]
     h = h[:hs[0][0]] + g[0] + h[hs[0][1]:]
+    # gold の <script> は問題固有データ（var STEP/ORDER＝刑TX359 の設問）ごと逐語移植されるので、
+    # 本問固有データへ差し戻す（LEX388: 59 ファイルが放火問題のナビを表示した事故の恒久対策）。
+    order, step = own
+    h = re.sub(r'(?m)^([ \t]*var ORDER\s*=\s*)\[[^\]]*\]',
+               lambda m: m.group(1) + json.dumps(order, ensure_ascii=False), h, count=1)
+    h = re.sub(r'(?m)^([ \t]*var STEP\s*=\s*)\{.*?\};',
+               lambda m: m.group(1) + json.dumps(step, ensure_ascii=False) + ';', h, count=1)
     for s in re.findall(r'<script\b[^>]*>.*?</script>', h, re.S):
         if '</' + 'body>' in s:
             raise RuntimeError('body-close literal in script')

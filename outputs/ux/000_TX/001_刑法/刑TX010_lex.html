@@ -4743,6 +4743,8 @@ body.snav-on .solve-nav{display:block;}
   var MODE = 'correct';                 // 'correct' | 'incorrect'
   var STMT = {"1": {"q": "肢1：①因果関係（ク）＋⑤実行行為性（コ）——2語とも正しい？", "tip": "決め手は<b>因果限定基準</b>。学生Aの因果を絞る基準は相当因果関係であって、実行行為性ではない（後半が×）。", "note": "× ⑤が誤り。→ 肢1は消える。"}, "2": {"q": "肢2：②法益保護主義（ス）＋④条件関係（ケ）——2語とも正しい？", "tip": "決め手は<b>批判の根拠原理</b>。条件関係で足りるとする立場を批判する原理は責任主義であって、法益保護主義ではない（前半が×）。", "note": "× ②が誤り。→ 肢2は消える。"}, "3": {"q": "肢3：②責任主義（シ）＋⑦故意（ア）——2語とも正しい？", "tip": "決め手は<b>予見可能性の前提要件</b>。予見可能性を要件とするのは過失の注意義務であって、故意ではない（後半が×）。", "note": "× ⑦が誤り。→ 肢3は消える。"}, "4": {"q": "肢4：③過失（イ）＋⑧一般人（カ）——2語とも正しい？", "tip": "決め手は<b>落ち度と判断基準</b>。加重結果に要求する落ち度は過失、予見可能性を客観的に測る基準は一般人で、2語とも合う唯一の肢。", "note": "○ 2語とも正しい。→ 肢4が残る。"}, "5": {"q": "肢5：⑤相当因果関係（サ）＋⑥期待可能性（エ）——2語とも正しい？", "tip": "決め手は<b>注意義務の前提要件</b>。過失の注意義務の前提となるのは予見可能性であって、期待可能性ではない（後半が×）。", "note": "× ⑥が誤り。→ 肢5は消える。残るは4。"}};
   var ORDER = ["1", "2", "3", "4", "5"];
+  var NUMS = ["1", "2", "3", "4", "5"];                    // ['1'..'N'] positional row numbers
+  var KEYS = ["ア", "イ", "ウ", "エ", "オ"];                    // actual data-stmt keys in order (ア..オ or 1..5)
   var root = document.getElementById('solve-nav');
   var area = document.querySelector('.answer-area[data-answer-type="ox-grid"]');
   if (!root || !area) return;
@@ -4764,12 +4766,12 @@ body.snav-on .solve-nav{display:block;}
   }
   function liveNums(){
     var out = [];
-    ['1','2','3','4','5'].forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
+    NUMS.forEach(function(n){ if (picks[n] !== DEAD) out.push(n); });
     return out;
   }
   function renderCombos(winNum){
     var html = '';
-    ['1','2','3','4','5'].forEach(function(n){
+    NUMS.forEach(function(n){
       var st = picks[n]; var mark = st ? st : '？';
       var cls = 'sn-combo ';
       if (winNum === n) cls += 'win';
@@ -4828,9 +4830,10 @@ body.snav-on .solve-nav{display:block;}
   }
   function commitAnswer(){
     if (area.classList.contains('answered')) return;
-    ['1','2','3','4','5'].forEach(function(b){
+    NUMS.forEach(function(b){
       var v = picks[b]; if (!v) return;
-      var row = area.querySelector('.ox-row[data-stmt="'+b+'"]');
+      var key = KEYS[parseInt(b,10)-1] || b;
+      var row = area.querySelector('.ox-row[data-stmt="'+key+'"]');
       if (!row) return;
       var btn = row.querySelector('.ox-btn[data-value="'+v+'"]');
       if (btn) btn.click();

@@ -163,6 +163,71 @@ def _run_oxgrid_advisory(roots: list[str]) -> None:
         print("  → L1 は G64 がブロック済み。L2-L4 の既存分は旧v11帯＝R 再生成で消滅予定（0 になったら preflight strict 既定化）。")
 
 
+def _run_solvenav_ownership_gate(files: list[Path]) -> int:
+    """G68＝解法ナビ問題固有データ（var STEP/STMT・var ORDER）の所有権ゲート（ブロッキング）。
+
+    実害（LEX388・2026-07-14）: tx-lex-v11-to-v13.py の engine swap が gold（刑TX359）の
+    <script> を逐語移植し、59 ファイルの解法ナビが放火問題の設問を表示していた。
+      (a) 複製検出: 同一の STEP/STMT JSON が複数ファイルに存在 → 本問データでない（ERROR）
+      (b) 整合検出: var ORDER/KEYS のラベル集合 ≠ ox-row data-stmt 集合 → ナビが設問と同期不能（ERROR）
+      (c) 未置換検出: __NUMS__/__KEYS__ プレースホルダ残存 → JS ReferenceError でナビ全体死亡（ERROR）
+      (d) 写像欠落検出: 実ラベルがア〜オ等なのに 1..N の positional 行参照 → 回答が行に同期しない（ERROR）
+    修正＝python -X utf8 scripts/fix-solvenav-step-mismatch.py --apply（(a)(b)）
+        ＋python -X utf8 scripts/fix-solvenav-engine-keys.py --apply（(c)(d)）
+    """
+    step_owners: dict[str, list[Path]] = {}
+    errors: list[str] = []
+    for f in files:
+        if not f.stem.endswith("_lex"):
+            continue
+        try:
+            html = f.read_text(encoding="utf-8", errors="replace")
+        except Exception:
+            continue
+        rows = re.findall(r'<div class="ox-row" data-stmt="([^"]+)"', html)
+        m = re.search(r"^[ \t]*var (?:STEP|STMT)\s*=\s*(\{.*\});", html, re.M)
+        mo = re.search(r"^[ \t]*var ORDER\s*=\s*(\[[^\]]*\])", html, re.M)
+        # 消去法エンジン（build-ox-lex 系）は ORDER=位置番号で、実 data-stmt は var KEYS が持つ。
+        # その場合は KEYS を照合対象にする（ORDER 照合だと誤検出になる）。
+        mk = re.search(r"^[ \t]*var KEYS\s*=\s*(\[[^\]]*\])", html, re.M)
+        rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+        if m:
+            step_owners.setdefault(m.group(1), []).append(f)
+        # (c) ビルダプレースホルダ未置換（var NUMS = __NUMS__; 等）＝ JS ReferenceError でナビ死亡
+        if re.search(r"<script\b[^>]*>[^<]*?__(?:NUMS|KEYS)__", html) or "__NUMS__" in html or "__KEYS__" in html:
+            errors.append(f"{rel}: __NUMS__/__KEYS__ プレースホルダ未置換（ナビ JS が ReferenceError で死亡）")
+        # (d) 実ラベル（ア〜オ等）に対する positional 行参照（1..N の番号ループのまま）＝同期不能
+        rows_positional = rows == [str(i) for i in range(1, len(rows) + 1)]
+        if (rows and not rows_positional
+                and "var row = area.querySelector('.ox-row[data-stmt=\"'+b+'\"]');" in html
+                and ("['1','2','3','4','5']" in html or re.search(r"\bvar NUMS\b", html))):
+            errors.append(f"{rel}: positional 行参照が実ラベル {rows} と不一致（回答が ox-row に同期しない）")
+        target = mk or mo
+        if target and rows:
+            try:
+                import json as _json
+                labels = _json.loads(target.group(1))
+            except Exception:
+                labels = None
+            if labels is not None and set(labels) != set(rows):
+                varname = "KEYS" if mk else "ORDER"
+                errors.append(f"{rel}: var {varname} {labels} が ox-row ラベル {rows} と不一致（ナビ⇄設問の同期不能）")
+    for sig, owners in step_owners.items():
+        if len(owners) > 1:
+            names = ", ".join(
+                (p.relative_to(ROOT).as_posix() if p.is_relative_to(ROOT) else str(p)) for p in owners
+            )
+            errors.append(f"同一の解法ナビ STEP/STMT が複数ファイルに存在（gold 混入の疑い）: {names}")
+    if errors:
+        print(f"\n[G68] 解法ナビ問題固有データの所有権崩れ {len(errors)} 件:")
+        for e in errors:
+            print(f"  ❌ {e}")
+        print("  → python -X utf8 scripts/fix-solvenav-step-mismatch.py --apply で本問データへ復元")
+        return 1
+    print("[OK] G68 solve-nav ownership (STEP/STMT 複製なし・ORDER⇄ox-row 整合)")
+    return 0
+
+
 def main() -> int:
     Validator = _load_validator()
     roots = sys.argv[1:] or ["outputs"]
@@ -179,6 +244,11 @@ def main() -> int:
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
     # masked されないよう最初に走らせる。コーパス横断の不変条件なので常に全 outputs を検査。
     if _run_citation_era_gate() != 0:
+        return 1
+
+    # G68＝解法ナビ問題固有データの所有権（複製＝gold 混入・ORDER⇄ox-row 不一致）。
+    # コーパス横断の不変条件なので per-file ループの外で最初に走らせる（LEX388 恒久対策・2026-07-14）。
+    if _run_solvenav_ownership_gate(files) != 0:
         return 1
 
     # スロット契約の存在＋版マーカー検査（ARIADNE の check_slot_contract 相当）。
