@@ -261,6 +261,15 @@
 > `docs/tx-v12.2.1-inline-lock.md` §v13p・`GENESIS-CARD.placeholder.html` 図解スロット。初例＝刑TX382_lex。
 > 既存展開＝**380-445 を優先改訂・それ以外は TJR 付随**。
 >
+> **【フォント12変数ブロックの保護・2026-07-14・LEX-388】TX の第1 `:root`（`--font-body` ほか
+> フォント12変数＋スケール）は不可侵。パレットは第3 `:root`（`--accent` を含む方）だけを差し替える。**
+> 実害＝刑TX003（公式＋`_lex`）：生成時にパレットを第1 `:root` へ誤上書き→ `var(--font-*)` 218箇所が
+> 全て未定義＝ブラウザ既定フォントで描画（さらに第3 `:root` は正典既定 #A8666E のままで配色も未適用）。
+> 全既存ゲートが PASS のまま push されていた。同型＝刑JX013_ARIADNE（正典に無い `var(--font-note)` を
+> inline 参照）。恒久ゲート三層＝`validate-tx-core.py` **G68**（未定義 `--font-*` 参照＝ERROR・公式/`_lex` 両系統）／
+> push 前 `check-tx-lex-engine.py`（G68 組込）／corpus 横断 `scripts/check-font-vars.py`（JX/RX/ARIADNE/TREE/
+> references も走査・`check-lexia-preflight.py` 組込）。
+>
 > **【解説品質レビュー・必須】** 解説は TX の命であり、機械整形・一括置換・テンプレ埋めだけで確定しない。
 > 新規生成・既存更新・伝播後は、作業時点で利用可能な最上位モデルを使い、推論/エフォート設定を最大にして
 > `ANSWER`、条文/判例ボックス、5点フロー、コツ、記憶フック、詳説、物語解説、SM2 `.ox-pool-explain` を
