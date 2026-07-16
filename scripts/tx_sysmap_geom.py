@@ -31,6 +31,16 @@ MIN_CARD_W = 120.0
 CARD_PAD = 8.0         # カード内側の右余白
 VB_PAD = 6.0           # viewBox 端の余白
 
+# ── 同一行の <text> 同士の重なり（衝突）判定用（2026-07-16・G69）─────────────
+# 実害：親ツリー（L1 カード）見出し帯で、見出し fs18（x=-198）とサブ見出し fs16（x=-120）を
+# 固定 x で並置したため、見出しが約 78px（fs18 で 4.3 文字）を超えると2本目に重なった
+# （刑TX395_lex「職務の適法性」×「要件・現在性」＝30px 重なり、ほか corpus 10 ファイル/16 件）。
+ASC_EM = 0.80              # baseline より上に伸びる字面（em 比・CJK 概算）
+DESC_EM = 0.12             # baseline より下（em 比）
+SAME_LINE_MIN_RATIO = 0.35  # min(fs) 比でこれ以上の縦重なり＝「同一行」とみなす
+COLLIDE_TOL = 2.0          # 横重なりがこの px 以下は無視（推定誤差の吸収）
+BAND_MAX_H = 40.0          # 「見出し帯 rect」とみなす高さ上限（L1 カードの帯=34px）
+
 
 def char_em(ch: str) -> float:
     if ch in _FULLWIDTH_PUNCT:
@@ -206,6 +216,95 @@ def iter_text_overflow(svg, min_fs: float = 0.0):
             "ax": ax, "x0": x0, "x1": x1, "card": card, "vbw": vbw,
             "vb_over": vb_over, "card_over": card_over, "maxw": maxw,
         }
+
+
+def iter_text_collisions(svg):
+    """sysmap svg 内で「同一行の <text> 同士が横に重なる」ペアを yield（dict）。
+
+    同一行判定＝字面の縦範囲（baseline−ASC_EM*fs 〜 baseline＋DESC_EM*fs）が
+    min(fs) の SAME_LINE_MIN_RATIO 以上交差すること。横重なりは実効幅（textLength 考慮）
+    ベースで COLLIDE_TOL px 超のみ報告（保守的幅モデルの推定誤差を吸収）。
+
+    キー：a / b（iter_text_overflow の info に "ay"=絶対 baseline を追加したもの・a が文書順で先）、
+          overlap（横重なり px）
+    """
+    infos = []
+    for info in iter_text_overflow(svg):
+        t = info["el"]
+        try:
+            ly = float(t.get("y", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        info["ay"] = ly + abs_translate(t)[1]
+        infos.append(info)
+    for i in range(len(infos)):
+        for j in range(i + 1, len(infos)):
+            a, b = infos[i], infos[j]
+            v_over = (min(a["ay"] + DESC_EM * a["fs"], b["ay"] + DESC_EM * b["fs"])
+                      - max(a["ay"] - ASC_EM * a["fs"], b["ay"] - ASC_EM * b["fs"]))
+            if v_over < SAME_LINE_MIN_RATIO * min(a["fs"], b["fs"]):
+                continue
+            h_over = min(a["x1"], b["x1"]) - max(a["x0"], b["x0"])
+            if h_over <= COLLIDE_TOL:
+                continue
+            yield {"a": a, "b": b, "overlap": h_over}
+
+
+def band_rect_of(text_el):
+    """text と同じ <g> 直下の「見出し帯 rect」を返す（無ければ None）。
+
+    見出し帯＝幅 MIN_CARD_W 以上・高さ BAND_MAX_H 以下で、text のベースラインを縦に含む rect
+    （L1 カードの色帯 34px が典型）。記述カード本体（h=118）やアクセントバー（w=7）は除外される。
+    """
+    g = text_el.parent
+    if g is None or getattr(g, "name", None) != "g":
+        return None
+    try:
+        ly = float(text_el.get("y", 0) or 0)
+    except (TypeError, ValueError):
+        return None
+    for r in g.find_all("rect", recursive=False):
+        try:
+            rx = float(r.get("x", 0) or 0)
+            ry = float(r.get("y", 0) or 0)
+            rw = float(r.get("width", 0) or 0)
+            rh = float(r.get("height", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        if rw >= MIN_CARD_W and rh <= BAND_MAX_H and ry <= ly <= ry + rh:
+            return {"x": rx, "y": ry, "w": rw, "h": rh}
+    return None
+
+
+def iter_header_pairs(svg):
+    """見出し帯の中で同一ベースラインに並ぶ <text> 2本組（title=大fs／sub=小fs）を yield。
+
+    親ツリー（L1 カード）の「見出し＋サブ見出し」2本並置パターンの幾何判定。正典形は
+    1 <text>＋<tspan>（v13k-bis／pbox 正典）なので、このペアはマージ対象の候補。
+    帯内の text がちょうど 2 本・ベースライン一致（±2px）・fs 差 1px 以上のときだけ返す。
+
+    キー：title / sub（iter_text_overflow の info・"ly"=ローカル y 付き）、band（帯 rect のローカル座標）
+    """
+    by_g = {}
+    for info in iter_text_overflow(svg):
+        t = info["el"]
+        band = band_rect_of(t)
+        if band is None:
+            continue
+        try:
+            info["ly"] = float(t.get("y", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        info["band"] = band
+        by_g.setdefault(id(t.parent), []).append(info)
+    for items in by_g.values():
+        if len(items) != 2:
+            continue
+        a, b = items
+        if abs(a["ly"] - b["ly"]) > 2.0 or abs(a["fs"] - b["fs"]) < 1.0:
+            continue
+        title, sub = (a, b) if a["fs"] > b["fs"] else (b, a)
+        yield {"title": title, "sub": sub, "band": title["band"]}
 
 
 def find_sysmap_svgs(soup):

@@ -182,6 +182,18 @@ python -X utf8 -m py_compile scripts/validate-tx-core.py scripts/check-tx-lex-en
 SVGは問題固有の作画のため CSS 一括では効かず、本ツールで全35問へ展開した（089=2箱・174=見出しのみ・
 256=lone・420=既編集を全角スペース方式へ統一）。検証は `validate-tx-core.py`（G45含む）＋`check-duplicates.py`。
 
+**【追補 2026-07-16・LEX-395 文字重なりの恒久ゲート化】** 本節の展開後に生成・再生成された問題で、
+親箱見出し帯を旧形（`<text>` 2本の固定 x 並置＝見出し fs18 x=-198／サブ fs16 x=-120、または中央寄せ
+見出し＋左寄せサブ文の同一ベースライン重畳）で書く回帰が再発し、見出しが約 78px を超えた分だけ
+2本目に文字が重なった（実害＝刑TX395_lex「職務の適法性」×「要件・現在性」30px、刑TX125_lex は完全
+重畳、公式 刑TX293.html を含む計 10 ファイル/16 件→全是正）。原因＝センター化はツールがあるだけで
+**検出ゲートが無く**、生成後に誰も走らせなければ旧形のまま出荷されること。恒久対策の三層＝
+①placeholder 契約に「見出し帯は 1 `<text>`＋`<tspan>`・2本並置禁止」を明記（作らせない）／
+②`validate-tx-core.py` **G69**（同一行の `<text>` 重なり・幾何判定＝`tx_sysmap_geom.iter_text_collisions`・
+6px 超=ERROR／2〜6px=WARNING）／③push 前 `check-tx-lex-engine.py` に G69 組込み（弾く）。
+修復＝`scripts/tx-sysmap-fit.py`（重なりを含む sysmap の見出し帯ペアを幾何判定で本節の正典形へ統合・
+fs15 サブ見出しや公式 000_TX にも効く・冪等・CRLF 保存）。
+
 ---
 
 ## v13m 統合解説の平易化（やさしい版）＋🗝記憶のフック＋横串・誤解の罠（2026-07-06・合意の正典化）

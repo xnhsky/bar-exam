@@ -43,6 +43,10 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G68 フォント変数の未定義参照（2026-07-14・LEX-388）：var(--font-*) 参照に定義が無い＝全フォントが
       ブラウザ既定へフォールバック（実害＝刑TX003 公式＋_lex：パレットを第1 :root＝フォント12変数
       ブロックへ誤上書き）。公式・_lex 両系統 ERROR。
+  G69 体系マップSVG文字の同一行重なり（2026-07-16・LEX-395）：親ツリー見出し帯に <text> 2本を固定 x で
+      並置し、見出しが長いと2本目に文字が重なる（実害＝刑TX395_lex「職務の適法性」×「要件・現在性」ほか
+      10ファイル/16件）。重なり 6px 超＝ERROR／2〜6px＝WARNING。正典形は 1 <text>＋<tspan>（中央寄せ・
+      v13k-bis／pbox 正典）。判定は tx_sysmap_geom（単一情報源）、修正は scripts/tx-sysmap-fit.py（正典形へ統合）。
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -510,6 +514,32 @@ class Validator:
                 if info["card_over"] > 8.0:
                     self.warn("G66", f"体系マップ見出しがカード枠をはみ出す（+{info['card_over']:.0f}px）："
                                        f"「{snippet}」→ scripts/tx-sysmap-fit.py")
+
+    def g69_sysmap_text_collision(self):
+        """G69：体系マップ SVG 内で同一行の <text> 同士が横に重なるのを検出（2026-07-16・LEX-395）。
+
+        親ツリー（L1 カード）の見出し帯を「見出し fs18（x=-198）＋サブ見出し fs16（x=-120）」の
+        <text> 2本固定 x 並置で書くと、見出しが約 78px（fs18 で 4.3 文字）を超えた分だけ2本目に
+        文字が重なって判読不能になる（実害＝刑TX395_lex「職務の適法性」×「要件・現在性」＝30px、
+        刑TX125_lex「既遂」等は中央寄せ見出しがサブ文の上に完全重畳、ほか corpus 10 ファイル/16 件）。
+        正典形は 1 <text>＋<tspan>（中央寄せ・v13k-bis／`tx-lex-sysmap-pbox.py` 正典ブロックと同形）。
+        判定は単一情報源 tx_sysmap_geom.iter_text_collisions（同一行＝字面の縦範囲交差・横は実効幅）。
+          - 重なり 6px 超＝ERROR（確定的に文字が潰れる）
+          - 2〜6px＝WARNING（保守的幅モデルの推定誤差域・視覚上は接触程度）
+        恒久対策：scripts/tx-sysmap-fit.py が衝突を含む sysmap の見出し帯 2 本組を正典形へ統合する
+        （本文不変・冪等・CRLF 保存）。"""
+        if _sysmap_geom is None or not hasattr(_sysmap_geom, "iter_text_collisions"):
+            return
+        for svg in _sysmap_geom.find_sysmap_svgs(self.soup):
+            for c in _sysmap_geom.iter_text_collisions(svg):
+                sa = c["a"]["content"].strip()[:16]
+                sb = c["b"]["content"].strip()[:16]
+                msg = (f"体系マップで同一行の文字が重なる（{c['overlap']:.0f}px）："
+                       f"「{sa}」×「{sb}」→ scripts/tx-sysmap-fit.py で正典形（1 text＋tspan）へ統合")
+                if c["overlap"] > 6.0:
+                    self.err("G69", msg)
+                else:
+                    self.warn("G69", msg)
 
     # --- G12〜G13：content-independence ---
 
@@ -2303,6 +2333,7 @@ class Validator:
         self.g10_no_overlap()
         self.g11_viewbox_margin()
         self.g66_sysmap_text_overflow()
+        self.g69_sysmap_text_collision()
         self.g67_diagram_component()
         self.g12_no_301_leakage()
         self.g13_no_baseline_copy()
@@ -2379,7 +2410,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G68, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G69, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
