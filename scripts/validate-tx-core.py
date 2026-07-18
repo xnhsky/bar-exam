@@ -2241,6 +2241,66 @@ class Validator:
                                  "（市立/公立等）・権限/承諾は圧縮時に省略しない（spec 第5-bis-2項・"
                                  "実害＝刑TX378 記述3）。言い換えで事実が保存されている場合は無視してよい。")
 
+    # G70（WARNING・2026-07-18）＝ox-stmt の断定命題形式（疑問形・体言止め/電報体の検出）。
+    #
+    # 背景：ox-stmt は復習プールの単独カードで「○＝命題が正しい／×＝誤り」を問う（G60）。
+    #   疑問形（「〜は成立しないか」）は○×の向きが読み手ごとに割れ、体言止め・電報体
+    #   （「宝くじの番号改ざん → 有印私文書変造罪」「共同正犯。乙のみ正当防衛の状況」）は
+    #   判定対象の述語ごと消えるため、原文を知らない復習時に判定不能になる。
+    #   実害：刑TX395/397（何罪の成否を問うか単独カードで読めない）ほか 380-445 帯 18 ファイル
+    #   ＋刑TX147/220 型（2026-07-18 監査）。
+    #
+    # 方式（末尾ヒューリスティック・意味判定はしない・WARNING）：
+    #   末尾の括弧注釈（（…））と句読点類を剥いだ本文末尾で判定。
+    #   (a) 「か」終わり＝疑問形 → ○×の向きが曖昧。
+    #   (b) 句点で終わらず末尾が漢字/カタカナ/英数字/記号＝体言止め・電報体の疑い。
+    #       判定枠として機能する定型（〜との記述/とする記述/との内容/との判定/とする結論/
+    #       との見解/との批判 等）は除外。ひらがな終わり（「〜は成立しない」等の用言終止・
+    #       句点欠落のみ）は判定可能なので発火しない。
+    #   要件事実の充足（意味の自己完結）は機械化しない＝執筆規律（spec 第5-bis-2項）と G65 が担う。
+    _G70_TAIL_PAREN_RE = re.compile(r"[（(【][^（）()【】]*[）)】]$")
+    _G70_ALLOWED_TAIL_RE = re.compile(
+        r"(?:との記述|とする記述|との内容|とする内容|との判定|とする判定|との結論|とする結論|"
+        r"との見解|とする見解|との立場|とする立場|との批判|との指摘|の一つである|の例である)$")
+    _G70_PUNCT = "。．.」』？?！!"
+
+    def g70_ox_stmt_proposition_form(self):
+        if not self.is_lex_target():
+            return
+        for row in self.soup.select(".ox-row[data-stmt]"):
+            label = (row.get("data-stmt") or "").strip()
+            if row.select_one(".ox-core-wrap"):
+                continue
+            st = row.find(class_="ox-stmt")
+            if not st:
+                continue
+            text = re.sub(r"\s+", "", st.get_text("", strip=True))
+            if not text:
+                continue
+            body = text.rstrip(self._G70_PUNCT)
+            prev = None
+            while prev != body:
+                prev = body
+                body = self._G70_TAIL_PAREN_RE.sub("", body).rstrip(self._G70_PUNCT)
+            if not body:
+                continue
+            if body.endswith("か"):
+                self.warn("G70", f"記述{label}: ox-stmt が疑問形（〜か）＝単独カードで○×の向きが"
+                                 "曖昧。断定完結命題（『〜した行為に◯◯罪が成立する。』等・文末は句点）"
+                                 "に書き換える（spec 第5-bis-2項・実害＝刑TX388/394/430 型）。")
+                continue
+            if text.endswith("。"):
+                continue
+            if self._G70_ALLOWED_TAIL_RE.search(body):
+                continue
+            tail = body[-1]
+            # ひらがな終わり＝用言終止の可能性大（「〜は成立しない」等）。句点欠落のみ＝判定可能なので許容。
+            if "ぁ" <= tail <= "ん":
+                continue
+            self.warn("G70", f"記述{label}: ox-stmt が体言止め/電報体の疑い（末尾『…{body[-8:]}』）＝"
+                             "単独カードで判定対象の述語が読めない。要件事実込みの断定完結命題"
+                             "（文末は句点）に書き換える（spec 第5-bis-2項・実害＝刑TX395/397/387 型）。")
+
     # G67（2026-07-13）＝図解コンポーネント（TX-DGM）の整合。任意スロットなので
     # 図解を使わないファイルには何も要求しない（効く論点＝対比・裏命題ペア・分岐・時系列だけに置く規約）。
     _G67_ALLOWED = {
@@ -2378,6 +2438,7 @@ class Validator:
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
+        self.g70_ox_stmt_proposition_form()
         self.g68_font_vars_defined()
 
 
