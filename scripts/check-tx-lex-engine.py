@@ -348,8 +348,10 @@ def main() -> int:
         if _facts:
             fact_notes.append((f, _facts))
         # G70＝ox-stmt の断定命題形式（疑問形・体言止め/電報体）。末尾ヒューリスティックで
-        #     定型除外はあるが誤検出があり得るため非ブロッキング（push は止めない）。
+        #     定型除外はあるが誤検出があり得るため WARNING は非ブロッキング（push は止めない）。
         #     実害＝刑TX395/397（何罪の成否か単独カードで読めない）ほか。2026-07-18 追加。
+        #     ただし「〜との内容/とする内容」の枠組み断片だけは決定論＝validate 側で ERROR になり、
+        #     下の gate_errs（G70）で push を止める（実害＝刑TX405/413・実機報告 2026-07-18）。
         before_g70 = len(v.warnings)
         v.g70_ox_stmt_proposition_form()
         _props = [(c, m) for c, m in v.warnings[before_g70:] if c == "G70"]
@@ -357,7 +359,7 @@ def main() -> int:
             prop_notes.append((f, _props))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
