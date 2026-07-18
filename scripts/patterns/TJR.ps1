@@ -3,8 +3,9 @@
 # 【位置づけ】2026-07-04 確定・ユーザー指示で旧パターン（TX-MARCH / TX-PICK / JX）を廃止し、
 #   本 TJR を現行版の唯一の入口にする。TJR は「指揮者」であり、重い生成ロジックは持たない。
 #   実生成は各エンジンへ委譲：
-#     T（新規TX）    : scripts\tx-v13-runner.ps1              … v13 二系統（公式 000_TX ＋ Lexia _lex）
-#     R（旧_lex再生成）: scripts\tx-v13-runner.ps1 -Regen      … PDFから最新v13で作り直す（公式も同時に最新化）
+#     T（新規TX）    : scripts\tx-v13-runner.ps1              … フロンティア前進（公式最大番号より先）・v13 二系統
+#     R（さかのぼり）  : scripts\tx-v13-runner.ps1 -Regen      … 旧版_lex再生成＋公式最大番号以下の欠番補完
+#                        （2026-07-18「刑法58件未生成の分をR再生成と併せる」・T と番号集合が重ならない）
 #     J（新規JX）    : scripts\jx-batch-runner.ps1（内部エンジン）… JX＋副産物RX/TREE/ARIADNE＋台本
 #
 # 【バッチ単位固定・2026-07-18 ユーザー確定】1バッチ＝ T:12問 / J:3問 / R:3問。ユーザーが
@@ -90,15 +91,26 @@ function Test-NumInRange { param([int]$n, [int]$From, [int]$To)
     if ($To   -gt 0 -and $n -gt $To)   { return $false }
     return $true
 }
+function Get-MaxOfficial { param([string]$subj)
+    # T/R の境界＝公式の最大既存番号（T=これより先のフロンティア／R=これ以下のさかのぼり）
+    $outDir = Join-Path $ProjectRoot "outputs\000_TX\$($SubjectFolder[$subj])"
+    $max = 0
+    foreach ($f in @(Get-ChildItem $outDir -Filter "${subj}TX*.html" -File -ErrorAction SilentlyContinue)) {
+        if ($f.BaseName -match '(\d+)$') { $n = [int]$Matches[1]; if ($n -gt $max) { $max = $n } }
+    }
+    return $max
+}
 function Get-TxPending { param([string]$subj, [int]$From = 0, [int]$To = 0)
     $folder = $SubjectFolder[$subj]
     $pdfDir = Join-Path $ProjectRoot "inputs\000_TX\$folder"
     $outDir = Join-Path $ProjectRoot "outputs\000_TX\$folder"
     if (-not (Test-Path $pdfDir)) { return $false }
+    $maxOff = Get-MaxOfficial $subj
     foreach ($p in @(Get-ChildItem $pdfDir -Filter '*.pdf' -File -ErrorAction SilentlyContinue)) {
         $stem = [System.IO.Path]::GetFileNameWithoutExtension($p.Name)
         if ($stem -notmatch '^\d+') { continue }
         $n = [int]$Matches[0]
+        if ($n -le $maxOff) { continue }   # 過去帯の欠番は R の領分（エンジンと同一規則）
         if (-not (Test-NumInRange $n $From $To)) { continue }
         if (-not (Test-Path (Join-Path $outDir ("${subj}TX{0}.html" -f $n.ToString('000'))))) { return $true }
     }
@@ -108,16 +120,31 @@ function Get-RPending { param([string]$subj, [int]$From = 0, [int]$To = 0)
     $folder = $SubjectFolder[$subj]
     $lexDir = Join-Path $ProjectRoot "outputs\ux\000_TX\$folder"
     $pdfDir = Join-Path $ProjectRoot "inputs\000_TX\$folder"
-    if (-not (Test-Path $lexDir)) { return $false }
-    foreach ($lex in @(Get-ChildItem $lexDir -Filter '*_lex.html' -File -ErrorAction SilentlyContinue)) {
-        $stem = [System.IO.Path]::GetFileNameWithoutExtension($lex.Name)
-        if ($stem -notmatch '(\d+)_lex$') { continue }
-        $n = [int]$Matches[1]
-        if (-not (Test-NumInRange $n $From $To)) { continue }
-        # 版判定はエンジン（tx-v13-runner.ps1 の $alreadyV13）と同一パターン＝v13 世代全体を SKIP。
-        # 旧実装の 'v13\.0\.0' 固定は v13.1.0 を旧版誤判定する既知バグ（runner 側コメント参照）。
-        if (Select-String -LiteralPath $lex.FullName -Pattern 'TX v13\.\d+\.\d+ LOOP-CARD' -Quiet -ErrorAction SilentlyContinue) { continue }
-        if (Test-Path (Join-Path $pdfDir "$n.pdf")) { return $true }
+    # (a) 旧版 _lex の再生成対象
+    if (Test-Path $lexDir) {
+        foreach ($lex in @(Get-ChildItem $lexDir -Filter '*_lex.html' -File -ErrorAction SilentlyContinue)) {
+            $stem = [System.IO.Path]::GetFileNameWithoutExtension($lex.Name)
+            if ($stem -notmatch '(\d+)_lex$') { continue }
+            $n = [int]$Matches[1]
+            if (-not (Test-NumInRange $n $From $To)) { continue }
+            # 版判定はエンジン（tx-v13-runner.ps1 の $alreadyV13）と同一パターン＝v13 世代全体を SKIP。
+            # 旧実装の 'v13\.0\.0' 固定は v13.1.0 を旧版誤判定する既知バグ（runner 側コメント参照）。
+            if (Select-String -LiteralPath $lex.FullName -Pattern 'TX v13\.\d+\.\d+ LOOP-CARD' -Quiet -ErrorAction SilentlyContinue) { continue }
+            if (Test-Path (Join-Path $pdfDir "$n.pdf")) { return $true }
+        }
+    }
+    # (b) 公式最大番号以下の欠番補完（PDF あり・公式なし＝過去帯の未生成穴・エンジンと同一規則）
+    if (Test-Path $pdfDir) {
+        $outDir = Join-Path $ProjectRoot "outputs\000_TX\$folder"
+        $maxOff = Get-MaxOfficial $subj
+        foreach ($p in @(Get-ChildItem $pdfDir -Filter '*.pdf' -File -ErrorAction SilentlyContinue)) {
+            $stem = [System.IO.Path]::GetFileNameWithoutExtension($p.Name)
+            if ($stem -notmatch '^\d+') { continue }
+            $n = [int]$Matches[0]
+            if ($n -gt $maxOff) { continue }
+            if (-not (Test-NumInRange $n $From $To)) { continue }
+            if (-not (Test-Path (Join-Path $outDir ("${subj}TX{0}.html" -f $n.ToString('000'))))) { return $true }
+        }
     }
     return $false
 }
