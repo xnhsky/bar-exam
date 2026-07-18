@@ -280,6 +280,7 @@ def main() -> int:
     offenders: list[tuple[Path, list[str]]] = []
     depth_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G56/G57 助言（非ブロッキング・§v13m 深さ）
     fact_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G65 助言（非ブロッキング・ox-stmt 要件事実完全性）
+    prop_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G70 助言（非ブロッキング・ox-stmt 断定命題形式）
     for f in files:
         if f.stem.endswith("_lex") is False:
             continue
@@ -346,6 +347,14 @@ def main() -> int:
         _facts = [(c, m) for c, m in v.warnings[before_g65:] if c == "G65"]
         if _facts:
             fact_notes.append((f, _facts))
+        # G70＝ox-stmt の断定命題形式（疑問形・体言止め/電報体）。末尾ヒューリスティックで
+        #     定型除外はあるが誤検出があり得るため非ブロッキング（push は止めない）。
+        #     実害＝刑TX395/397（何罪の成否か単独カードで読めない）ほか。2026-07-18 追加。
+        before_g70 = len(v.warnings)
+        v.g70_ox_stmt_proposition_form()
+        _props = [(c, m) for c, m in v.warnings[before_g70:] if c == "G70"]
+        if _props:
+            prop_notes.append((f, _props))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
             if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69")
@@ -430,6 +439,15 @@ def main() -> int:
             for code, m in notes:
                 print(f"       - [{code}] {m.split('。')[0]}")
         print("  → 語彙差分ヒューリスティックゆえ push は止めない（WARNING）。原文と照合し、正誤の分かれ目となる事実を ox-stmt に復元する（spec 第5-bis-2項）。")
+
+    if prop_notes:
+        print(f"\n[G70 助言・非ブロッキング] ox-stmt が疑問形/体言止め・電報体の疑い（単独カードで○×の判定対象・向きが読めない）{len(prop_notes)} ファイル:")
+        for f, notes in prop_notes:
+            rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+            print(f"  ⚠️ {rel}")
+            for code, m in notes:
+                print(f"       - [{code}] {m.split('。')[0]}")
+        print("  → 末尾ヒューリスティックゆえ push は止めない（WARNING）。要件事実込みの断定完結命題（文末は句点）へ書き換える（spec 第5-bis-2項・実害＝刑TX395/397）。")
 
     # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
     _run_css_canonize_advisory()
