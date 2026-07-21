@@ -105,6 +105,11 @@ def classify(html: str, code: str):
         kind = "B"
     elif code in FORCED_CODES and decl is None:
         kind = "C"
+    elif decl is not None and decl["name"] == "Sunset Harmony":
+        # P3 帯シグナル統一（2026-07-21 実機フィードバック）：SH はピンク寄りモーブで
+        # 旧既定 dusty rose と見分けが付かず「難問＝紫」にならないため、P3 の SH は
+        # 宣言の有無・出自（自動/手動）を問わず Twilight Violet へ寄せる。
+        kind = "D"
     else:
         kind = None
     return kind, (decl["name"] if decl else None)
@@ -205,9 +210,11 @@ def main() -> int:
             skipped_no_rate.append(code)
             continue
         band = rules.band_of(rate)
-        # 兄弟の §5 宣言（B 型）が最優先＝宣言パレットへ寄せる。無ければ決定論ローテーション
+        # 兄弟の §5 宣言（B 型）が最優先＝宣言パレットへ寄せる。無ければ決定論ローテーション。
+        # Sunset Harmony は D 種（TV へ統一）の対象なので兄弟宣言としても拾い直さない（無限ループ防止）
         decl_name = next((d for _, _, _, d, _ in infos
-                          if d and d in rules.load_templates() and rules.PALETTE_BAND.get(d) == band), None)
+                          if d and d != "Sunset Harmony"
+                          and d in rules.load_templates() and rules.PALETTE_BAND.get(d) == band), None)
         name = decl_name or rules.REPAINT_ROTATION[band][number_of(code) % len(rules.REPAINT_ROTATION[band])]
         for f, html, kind, _, frate in infos:
             if kind is None:

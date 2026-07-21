@@ -54,10 +54,14 @@ DEFAULT_ACCENTS = {
 # 一括再選定（repaint）の帯内ローテーション。テンプレは corpus 実証済みの
 # 逐語ブロックがあるパレットのみ（Mint Tea / Fresh Mint は corpus 未使用のため除外。
 # Antique Pearl は v10 既定と同一 hex で「未選定と見分けが付かない」ため rotation からも除外）。
+# P3 は Twilight Violet 一本（2026-07-21 実機フィードバック・LEX-403 追補）：Sunset Harmony は
+# accent #9A5C76 がピンク寄りモーブで旧既定 dusty rose #A8666E とほぼ見分けが付かず、
+# 「難問＝紫」の帯シグナルにならない（刑TX409 実機報告）。SH は §3-4 の表上は P3 合法のまま
+# （手動宣言は G72 を通る）が、自動選定では使わない。
 REPAINT_ROTATION = {
     "P1": ["Sweet Berry", "Rose Mist", "Fresh Citrus", "Maison Blanche"],
     "P2": ["Crystal Blue", "Dusty Sage"],
-    "P3": ["Twilight Violet", "Sunset Harmony"],
+    "P3": ["Twilight Violet"],
 }
 
 # §5 宣言コメント（palette 選定の宣言）。既定配色/baseline を含むものは「未選定」。
