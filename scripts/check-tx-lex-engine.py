@@ -281,6 +281,7 @@ def main() -> int:
     depth_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G56/G57 助言（非ブロッキング・§v13m 深さ）
     fact_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G65 助言（非ブロッキング・ox-stmt 要件事実完全性）
     prop_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G70 助言（非ブロッキング・ox-stmt 断定命題形式）
+    palette_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G72 助言（非ブロッキング・§5 パレット宣言なし）
     for f in files:
         if f.stem.endswith("_lex") is False:
             continue
@@ -339,6 +340,18 @@ def main() -> int:
         #     実害＝刑TX003 公式＋_lex：生成時にパレットを第1 :root（フォント12変数ブロック）へ誤上書きし、
         #     全ゲート緑のまま既定フォント誌面で push された（LEX-388）。決定論・誤爆ゼロなので push を止める。
         v.g68_font_vars_defined()
+        # G71/G72＝難易度帯パレット（2026-07-21・LEX-403）。G71＝palette :root が正典既定ブロックの
+        #     バイトコピーのまま（配色未選定）。実害＝_lex 483 本中 216 本が既定色のまま出荷
+        #     （G6/G7 は変数の存在しか見ないため正典複製で必ず PASS）。判定は「実効ブロックの
+        #     バイト一致 AND §5 選定宣言なし」＝誤爆ゼロ設計なので push を止める。
+        #     G72 の ERROR（宣言帯≠実帯／帯外パレット名／宣言だけして hex 未適用＝刑TX359/286 型）も
+        #     決定論なので push を止める。G72 の WARNING（宣言なし＝帯検証不能）は非ブロッキング助言。
+        v.g71_palette_not_default()
+        before_g72 = len(v.warnings)
+        v.g72_palette_declaration_band()
+        _pal = [(c, m) for c, m in v.warnings[before_g72:] if c == "G72"]
+        if _pal:
+            palette_notes.append((f, _pal))
         # G65＝ox-stmt（復習プール全文）の要件事実完全性（主体身分・目的要件・官公性・承諾）。
         #     語彙差分ヒューリスティックで誤検出があり得るため非ブロッキング（push は止めない）。
         #     実害＝刑TX378 記述3（「市立…公務員」が圧縮で消え公文書性が判定不能）。2026-07-13 追加。
@@ -359,7 +372,7 @@ def main() -> int:
             prop_notes.append((f, _props))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70")
+            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
@@ -450,6 +463,16 @@ def main() -> int:
             for code, m in notes:
                 print(f"       - [{code}] {m.split('。')[0]}")
         print("  → 末尾ヒューリスティックゆえ push は止めない（WARNING）。要件事実込みの断定完結命題（文末は句点）へ書き換える（spec 第5-bis-2項・実害＝刑TX395/397）。")
+
+    if palette_notes:
+        print(f"\n[G72 助言・非ブロッキング] §5 パレット選定宣言なし（正答率帯との整合を機械検証できない）{len(palette_notes)} ファイル:")
+        for f, notes in palette_notes[:20]:
+            rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+            print(f"  ⚠️ {rel}")
+        if len(palette_notes) > 20:
+            print(f"  … ほか {len(palette_notes) - 20} ファイル")
+        print("  → push は止めない（WARNING）。次回更新時に §5 宣言コメントを追記する"
+              "（既定色のままなら G71 が ERROR で止める・hex 正典＝memory/reference_palette_v3.md）。")
 
     # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
     _run_css_canonize_advisory()
