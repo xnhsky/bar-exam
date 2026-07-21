@@ -71,6 +71,13 @@ try:
 except Exception:
     _sysmap_geom = None
 
+# 難易度帯パレット規律（G71/G72）は tx_palette_rules（単一情報源）を共用。
+# 規律モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
+try:
+    import tx_palette_rules as _palette_rules
+except Exception:
+    _palette_rules = None
+
 if hasattr(sys.stdout, "reconfigure"):
     try:
         sys.stdout.reconfigure(encoding="utf-8")
@@ -2391,6 +2398,91 @@ class Validator:
                             "第1 :root のフォント12変数ブロック（canonical/GENESIS-CORE.html 冒頭 :root）が"
                             "欠落／パレットで誤上書きされていないか確認する（パレットは3番目の :root＝--accent を含む方）。")
 
+    # --- G71/G72（2026-07-21・LEX-403）：難易度帯パレットの不履行 ---
+
+    def _palette_gate_target(self):
+        """G71/G72 の対象か。canonical 自身（既定配色が正）は対象外。"""
+        return _palette_rules is not None and "canonical" not in self.html_path.parts
+
+    def g71_palette_not_default(self):
+        """G71：パレット :root（--accent を含むブロック）が歴代正典の既定ブロックの
+        バイトコピーのまま＝Phase 4a（HEAD :root 配色 V3 適用）が実行されていない。
+        実害＝2026-07-21 監査：_lex 483 本中 216 本が既定パレットのまま出荷
+        （GENESIS-CARD #A8666E ×148／GENESIS #A07895 ×47／GENESIS-CORE #8E6E9A ×21）。
+        G6/G7 は変数の存在しか見ないため正典複製で必ず PASS し、どのゲートにも掛からなかった。
+        判定は「実効ブロック（最後の --accent 定義ブロック＝cascade 勝ち）が正典既定と
+        バイト一致」かつ「§5 選定宣言（非 baseline）が無い」の AND（Antique Pearl／
+        Twilight Violet は正規 accent が旧正典既定 hex と同一のため、hex 単独では
+        未選定と区別できない＝宣言の有無で判定する。誤爆ゼロ設計）。"""
+        if not self._palette_gate_target():
+            return
+        blocks = _palette_rules.palette_root_blocks(self.html)
+        if not blocks:
+            return  # :root 欠落は G6 が検出する
+        last_block = blocks[-1][2]
+        decl = _palette_rules.last_selected_declaration(self.html)
+        canon = _palette_rules.canonical_default_blocks()
+        hit = next((name for name, b in canon.items() if b == last_block), None)
+        if hit is None and canon:
+            return
+        if hit is None and not canon:
+            # canonical が読めない環境のフォールバック（#A8666E はどのパレットの正規 accent
+            # でもないため hex 単独で未選定と断定できる）
+            eff = _palette_rules.effective_accent(self.html)
+            if eff == "#A8666E" and decl is None:
+                self.err("G71", "実効 --accent が正典既定 #A8666E のまま＝配色パレット未選定。"
+                                "正答率帯（P1≥60%/P2 40-60%/P3<40%）からパレットを選定して"
+                                "palette :root を差し替える（scripts/tx-lex-repaint-palette.py --apply が決定論修復）。")
+            return
+        if hit and decl is None:
+            self.err("G71", f"パレット :root が正典 {hit} の既定ブロックのまま（配色パレット未選定）。"
+                            "生成 Phase 4a（HEAD :root 配色 V3 適用）が実行されていない。"
+                            "正答率帯からパレットを選定して palette :root（block#2/#3）と §5 宣言コメントを"
+                            "差し替える（一括修復＝scripts/tx-lex-repaint-palette.py --apply・"
+                            "hex 正典＝memory/reference_palette_v3.md）。")
+
+    def g72_palette_declaration_band(self):
+        """G72：§5 宣言（パレット選定の宣言コメント）と正答率帯・実 hex の整合。
+        - 宣言あり: 宣言帯≠正答率帯／帯外パレット名／「宣言だけして hex 未適用」
+          （実効 --accent が正典既定 hex のままで宣言パレットの accent と不一致）を ERROR
+          （既存 corpus の宣言ファイルは全件整合を実測済み＝誤爆ゼロ）。
+        - 宣言なし: 帯整合を機械検証できないため WARNING（非ブロッキング・
+          既定ブロックのままなら G71 が ERROR を出す）。"""
+        if not self._palette_gate_target():
+            return
+        rate = _palette_rules.extract_rate(self.html)
+        band = _palette_rules.band_of(rate)
+        decl = _palette_rules.last_selected_declaration(self.html)
+        if decl is None:
+            blocks = _palette_rules.palette_root_blocks(self.html)
+            if not blocks:
+                return
+            canon = _palette_rules.canonical_default_blocks()
+            if any(b == blocks[-1][2] for b in canon.values()):
+                return  # 既定のまま＝G71 が ERROR 済み（二重報知しない）
+            self.warn("G72", "§5 パレット選定宣言（/* === §5 V3 P{N} {Name} … === */）が無く、"
+                             "正答率帯との整合を機械検証できない。次回更新時に宣言コメントを追記する"
+                             "（書式＝memory/reference_palette_v3.md・単一情報源 scripts/tx_palette_rules.py）。")
+            return
+        name = decl["name"]
+        if name not in _palette_rules.PALETTE_BAND:
+            self.warn("G72", f"§5 宣言のパレット名『{name}』が 11 パレット表に無い"
+                             "（memory/reference_palette_v3.md を確認）。")
+            return
+        if band and decl["band"] != band:
+            self.err("G72", f"§5 宣言の帯 {decl['band']} が正答率 {rate}% の帯 {band} と不一致。"
+                            "正答率帯からパターンを再判定してパレットを選び直す。")
+        if band and _palette_rules.PALETTE_BAND[name] != band:
+            self.err("G72", f"宣言パレット『{name}』は {_palette_rules.PALETTE_BAND[name]} 用で、"
+                            f"正答率 {rate}%（{band}）に帯不適合。帯内パレット"
+                            f"（{ ' / '.join(_palette_rules.BAND_PALETTES[band]) }）から選び直す。")
+        eff = _palette_rules.effective_accent(self.html)
+        expected = _palette_rules.template_accent(name)
+        if eff in _palette_rules.DEFAULT_ACCENTS and expected and expected != eff:
+            self.err("G72", f"§5 で『{name}』を宣言しているが実効 --accent は正典既定 {eff} のまま"
+                            "＝宣言だけしてパレット hex 未適用（実害＝刑TX359/286 型）。"
+                            "palette :root を宣言パレットへ差し替える（scripts/tx-lex-repaint-palette.py）。")
+
     def run(self):
         self.g1_head()
         self.g2_header()
@@ -2451,6 +2543,8 @@ class Validator:
         self.g65_ox_stmt_fact_completeness()
         self.g70_ox_stmt_proposition_form()
         self.g68_font_vars_defined()
+        self.g71_palette_not_default()
+        self.g72_palette_declaration_band()
 
 
 def main():
