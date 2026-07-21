@@ -318,7 +318,11 @@
 > 逐語テンプレ `scripts/tx-palette-templates.json`（corpus 実証済み 9 パレットの block#2/#3）。
 > **既存一括是正＝`scripts/tx-lex-repaint-palette.py`**（決定論・冪等・本文不変・公式と _lex は同色ミラー・
 > 兄弟の §5 宣言があればそれを尊重、無ければ帯内ローテーション）で 285 ファイルを 2026-07-21 塗り直し済み
-> （未選定 272＋宣言未適用 3＝刑TX359/286 型＋帯外カスタム 10＝green-on-P1）。実効 accent が旧既定 hex でも
+> （未選定 272＋宣言未適用 3＝刑TX359/286 型＋帯外カスタム 10＝green-on-P1）。
+> **P3 の自動選定は Twilight Violet 一本（同日追補・実機フィードバック）**：Sunset Harmony は accent
+> #9A5C76 がピンク寄りモーブで旧既定 dusty rose とほぼ同じに見え「難問＝紫」のシグナルにならない
+> （刑TX409 実機報告「変わってないみたい」）。corpus の P3 SH は宣言の出自を問わず TV へ統一済み
+> （36 ファイル・repaint 種別 D が冪等に維持）。SH は §3-4 の表上は P3 合法のまま＝手動宣言は G72 を通る。実効 accent が旧既定 hex でも
 > 帯一致（AP=P1／TV=P3）の宣言なし 31 本は視覚上正しいため残置＝G72 WARNING が次回更新時の宣言追記を促す。
 > hex 正典は `docs/palette-v3_2.pdf` から復旧（画像内 chip ラベルが正・下段 COLOR 行に誤植あり＝同 md 注記）。
 >
