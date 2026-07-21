@@ -215,10 +215,14 @@ def main() -> int:
     failures = 0
     for p, owner in bad:
         num = re.search(r"TX(\d{3})", p.name).group(1)
+        subj = p.name.split("TX")[0]
         html = read(p)
         rows = own_rows(html)
         try:
-            if num in OWN_ROWS_FALLBACK:
+            # scripts/lex/ のスペックは刑法（build-ox-lex 系）由来で 3 桁番号キー＝科目を持たない。
+            # 刑訴TX075 のような他科目ファイルに同番号の刑法スペックを写像すると別科目の
+            # 中身が混入するため、刑法以外は常に自ファイルの ox-stmt から導出する（2026-07-21）。
+            if num in OWN_ROWS_FALLBACK or subj != "刑":
                 spec_path = "(own ox-stmt)"
                 step, new_order = build_step_from_rows(html, rows)
             else:
