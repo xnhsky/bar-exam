@@ -300,6 +300,28 @@
 > push 前 `check-tx-lex-engine.py`（G68 組込）／corpus 横断 `scripts/check-font-vars.py`（JX/RX/ARIADNE/TREE/
 > references も走査・`check-lexia-preflight.py` 組込）。
 >
+> **【難易度帯パレットの不履行と恒久ゲート・2026-07-21・LEX-403】TX の配色は正答率帯
+> （P1≥60% ピンク系／P2 40-60% グリーン・ブルー系／P3<40% バイオレット系）から選定するのが仕様だが、
+> 生成工程のスキップが機械検出されず _lex 483 本中 216 本（45%）が歴代正典の既定パレットのまま
+> 出荷されていた**（GENESIS-CARD #A8666E ×148／GENESIS #A07895 ×47／GENESIS-CORE #8E6E9A ×21・
+> 公式 000_TX も同根 125 本）。原因＝①G6/G7 は CSS 変数の「存在」しか見ず正典複製で必ず PASS
+> ②headless プロンプト（new-tx-headless-v13.md）の工程要約から Phase 4a（HEAD :root 配色適用）が
+> 欠落＝冒頭応答でパレットを宣言しながら :root を差し替えない ③hex 正典 `memory/reference_palette_v3.md`
+> がリポジトリに不在（参照だけ残存）④GENESIS-CARD の §5 コメントが Twilight Violet 表記のまま実 hex は
+> dusty rose で食い違い。**恒久対策三層**＝①canonical（GENESIS-CARD §5 是正＋placeholder 契約に
+> 「§5 宣言と palette :root を対で差し替え・省略不可」明記＝作らせない）②`validate-tx-core.py`
+> **G71**（palette :root が正典既定ブロックのバイトコピーのまま＋§5 選定宣言なし＝ERROR・
+> Antique Pearl/Twilight Violet は正規 accent が旧既定 hex と同一のため宣言の有無で判定＝誤爆ゼロ）／
+> **G72**（宣言帯≠正答率帯・帯外パレット名・宣言だけして hex 未適用＝ERROR／宣言なし＝WARNING 助言）
+> ③push 前 `check-tx-lex-engine.py` に G71/G72 組込み（G71・G72 ERROR は push 停止）。
+> 単一情報源＝`scripts/tx_palette_rules.py`（帯→11パレット表・宣言/ブロック抽出・正典既定判定）＋
+> 逐語テンプレ `scripts/tx-palette-templates.json`（corpus 実証済み 9 パレットの block#2/#3）。
+> **既存一括是正＝`scripts/tx-lex-repaint-palette.py`**（決定論・冪等・本文不変・公式と _lex は同色ミラー・
+> 兄弟の §5 宣言があればそれを尊重、無ければ帯内ローテーション）で 285 ファイルを 2026-07-21 塗り直し済み
+> （未選定 272＋宣言未適用 3＝刑TX359/286 型＋帯外カスタム 10＝green-on-P1）。実効 accent が旧既定 hex でも
+> 帯一致（AP=P1／TV=P3）の宣言なし 31 本は視覚上正しいため残置＝G72 WARNING が次回更新時の宣言追記を促す。
+> hex 正典は `docs/palette-v3_2.pdf` から復旧（画像内 chip ラベルが正・下段 COLOR 行に誤植あり＝同 md 注記）。
+>
 > **【解説品質レビュー・必須】** 解説は TX の命であり、機械整形・一括置換・テンプレ埋めだけで確定しない。
 > 新規生成・既存更新・伝播後は、作業時点で利用可能な最上位モデルを使い、推論/エフォート設定を最大にして
 > `ANSWER`、条文/判例ボックス、5点フロー、コツ、記憶フック、詳説、物語解説、SM2 `.ox-pool-explain` を
