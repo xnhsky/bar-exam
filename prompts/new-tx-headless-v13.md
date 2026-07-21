@@ -45,7 +45,13 @@
    - **Phase 3**：`{CANONICAL_PATH}`（GENESIS-CARD）を Read → `{OFFICIAL_PATH}` へ **bash `cp`** で複製 →
      **本文を空文字列で初期化**（構造シェルは逐語保持・本文は新規執筆＝AP-42/G13 リーク厳禁）。
      前面 PowerShell の Copy-Item はブロックされるので bash `cp` を使う。
-   - **Phase 4a〜4g**：v13 LOOP-CARD の縦順・カード物理順で section-by-section 鋳造
+   - **Phase 4a（HEAD :root 配色 V3 適用・省略不可）**：Phase 1 で判定した正答率帯（P1≥60% ピンク系／
+     P2 40-60% 緑青系／P3<40% 紫系）の帯内パレットを `memory/reference_palette_v3.md` から選定し、
+     **§5 宣言コメントと palette :root（block#2＝`--accent` を含む方／block#3＝`--accent-light` を含む方）を
+     対で差し替える**。第1 `:root`（フォント12変数）は不可侵（LEX-388/G68）。既定配色のまま次工程へ
+     進むと **validate-tx-core G71 が ERROR**（宣言と帯・実 hex の不整合は G72）で COMPLETED にできない
+     （LEX-403：冒頭応答でパレットを宣言しながら :root を差し替えない事故が 216 本量産された）。
+   - **Phase 4b〜4g**：v13 LOOP-CARD の縦順・カード物理順で section-by-section 鋳造
      （正誤表→体系マップ(SVGハイブリッド)→横断→肢カード→物語→#basis。カード＝判定バッジ→記述原文(正誤マーキング)
      →統合解説→POINT→📚BASIS→間違いやすいポイント→他科目横断）。相互リンク往復・正誤マーキングを配線。
      **正誤表(spec第2項)＝各行に印付き原文スロット `data-brief-mark`（各肢 `.syn-orig` と同じ marking の要約版・×赤波下線+✕+「→正解」/○緑下線+✓・属性は二重引用/内側classは単引用）を必ず鋳造**（法理コアは転用タグをエンジンが抽出・成績と重厚感はエンジン/CSSが自動）。
@@ -82,7 +88,7 @@
 HTML 2 ファイル完成後、**bash で両方を検証**（安いpython機械ゲート＝トークンほぼ0・必ず通す）：
 
 ```bash
-python scripts/validate-tx-core.py {LEX_PATH}        # _lex＝ox-grid 必須（G1〜G64＝G50 v13構造＋G61/G62 v13n＋G63/G64 整合・矛盾 含む）
+python scripts/validate-tx-core.py {LEX_PATH}        # _lex＝ox-grid 必須（G1〜G72＝G50 v13構造＋G61/G62 v13n＋G63/G64 整合・矛盾＋G71/G72 難易度帯パレット 含む）
 python scripts/validate-tx-core.py {OFFICIAL_PATH}   # 公式＝single/multi 可（G23/G25 自動緩和）
 python scripts/check-tx-lex-engine.py {LEX_PATH}     # 解法ナビ engine 整合（G41・script2本）
 python scripts/check-lex-oxgrid-integrity.py {LEX_PATH}  # 特殊型 L1-L4（○×矛盾/組合せ当否/全○退化）＝strict・NG なら判別性ある○×へ直す（2026-07-11 監査で追加）
