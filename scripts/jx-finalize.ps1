@@ -84,6 +84,18 @@ function Git-Clean([string]$relPath) {
 $pushNeeded = $false
 $cleanupHold = $false
 
+# === 作成日時スタンプ（ゲート前に先行実行・順序バグ修正 2026-07-23）===
+# 新規/再生成の JX＋副産物は commit 前に lexia-genmeta を持たないため、直後の
+# Lexia 同期契約ゲート（genmeta 有無を検査）が必ず ABORT していた（スタンプは従来
+# commit ループ内＝ゲートより後で走っていた）。stamp-created-date.py は未追跡/dirty を
+# 現在時刻(JST)で刻み既スタンプはスキップする冪等処理なので、ゲート前に先行実行して
+# 新規生成物にも genmeta を付与し、ゲートを正しく通す（pre-commit フックの保険とも整合）。
+if (-not $NoGate) {
+    Write-Host "`n--- 作成日時スタンプ（ゲート前・冪等）: scripts/stamp-created-date.py ---" -ForegroundColor Cyan
+    try { python -X utf8 (Join-Path $ProjectRoot 'scripts/stamp-created-date.py') | Out-Null }
+    catch { Write-Host "  [stamp] skip: $_" -ForegroundColor Yellow }
+}
+
 # === 配布前ゲート: ファイル間の重複・ID 不整合チェック（Lexia 重複バグ再発防止）===
 # title/doc-header/footer の問題コード不一致や、同一 title・同一本文の重複を検出したら
 # commit/push せず中止する。git(=Lexia の取り込み元)に不整合な生成物を入れないための関門。
