@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>捜索差押えの適法性 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XV <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">捜索差押えの適法性 <em>— On the Legality of Search &amp; Seizure</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">捜索差押えの<br>適法性</h2>
+      <div class="mm-root-en">Specificity &amp; Comprehensive Seizure</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑事訴訟法<br>
+        <em>Origin</em>東大ロー 平21改題 第15問 · 最決平10・5・1【百選22】<br>
+        <em>Form</em>令状執行・適法性検討型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑事訴訟法・捜査法（強制処分）の中核。<strong>令状に基づく捜索差押えの適法性</strong>を、①差押対象物の特定性（明示の要請）と②被疑事実関連性を確認しない<strong>包括的差押え</strong>の二筋で検証する。電磁的記録媒体の差押えという現代的論点が交差する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>捜査法頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>「関連性未確認＝原則違法」の出発点を書けるか、微妙な<strong>危険性を非協力的態度から認定</strong>できるかで差がつく。司法試験・予備で繰り返し問われる令状執行の最重要域。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。基本枠組み（平10の二要件）は明快だが、<strong>危険性を基礎づける事情が本問には乏しい</strong>という捻りで一気に難化する。二要件を機械的に肯定すると失点する認定型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>別件差押えの禁止／令状の呈示（222Ⅰ・110条）／必要な処分（111条2項）／協力要請（111条の2）／平成23年改正の電磁的記録処分（記録命令付差押え99条の2・複写99条2項・110条の2）。とりわけ<strong>「関連性の判断基準時＝実行時基準」</strong>は本論点の落とし穴。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>XはFから委託された美術品をYへ売却し、代金を<strong>費消・着服して横領の嫌疑</strong>。Yは「Xから<strong>パソコン作成・プリントの領収書</strong>を受け取った」と供述。警察は「帳簿・メモ等の文書」「パソコン・フロッピー<strong>その他の電磁的記録媒体</strong>」を差押対象とする令状を得てX方を捜索。発見したパソコンは<strong>ID・パスワードで保護</strong>され、Xは教示を拒否。Kはスイッチを切って差押え→専門部門が解読すると、<strong>本件金銭授受のデータは皆無</strong>だった。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>X（被疑者・横領・捜索の立会人）／F（美術品の売却を委託した知人）／Y（買主・PC作成の領収書を受領し供述）／警察官K（差押え執行者）。客体は<strong>ID・パスワード設定のパソコン1台</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 「その他の電磁的記録媒体」の概括的記載は<strong>差押対象物の特定性</strong>を充たすか。<br>② 被疑事実関連性を<strong>現場で確認せず</strong>本件PCを差し押さえられるか（包括的差押え）。<br>③ ①蓋然性・②危険性の二要件をどう認定するか（危険性が微妙）。<br>④ 教示要求（111条の2）・解読（111条2項）・<strong>事後判明の影響（基準時）</strong>は。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 令状の特定性（概括的記載）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押対象物の明示（<strong>219条1項・憲法35条1項</strong>）の趣旨は一般的・探索的押収の禁止。<strong>具体的例示＋罪名と相まって合理的に特定できれば概括的記載も適法</strong>（<span class="case-name">最大決昭33.7.29</span>）。本問は帳簿・PC等の例示＋横領の罪名で「Xの横領に関連する物」と特定できる。<strong>主戦場ではないので一言で切る</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 関連性未確認＝原則違法</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押えには被疑事実との関連性が必要（<strong>222条1項準用99条1項</strong>）。関連性を確認せず包括的に差し押さえることは、一般的・探索的差押えの禁止に照らし<strong>原則違法</strong>。いきなり平10規範に飛ばず、この出発点を必ず立てる（論理の土台）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 平10の二要件（蓋然性・危険性）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>電磁的記録媒体は可視性・可読性がなく確認困難・<strong>瞬時に消去可能</strong>。そこで<span class="case-name">最決平10.5.1</span>は、①被疑事実に関する情報の記録された<strong>蓋然性</strong>＋②その場の確認では<strong>損壊される危険</strong>があるとき、内容確認前の差押えを許容。本問①は領収書のPC作成で肯定、<strong>②危険性が微妙</strong>（Xの教示拒否から自動消去プログラムを想定して推認）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 基準時・付随処分</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>関連性は<strong>実行時基準</strong>で一応の疎明があれば足り、事後にデータ皆無と判明しても遡って違法にならない（<strong>落とすと大幅減点</strong>）。教示要求は協力要請（111条の2・強制不可）、スイッチOFF差押え＋解読は<strong>必要な処分</strong>（111条2項）として適法。全体として適法と締める。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 差押対象物の特定性
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Specificity</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 明示の要請の意義</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>令状に差し押さえるべき物を明示すべきとする趣旨（<strong>219条1項・憲法35条1項</strong>）は、①被処分者に受忍範囲を明示し、②被疑事実に関連しない<strong>一般的・探索的な捜索押収を禁止</strong>してプライバシー・財産権を保護する点にある。</p><div class="norm">差し押さえるべき物の明示は、一般的・探索的な捜索押収を禁ずる趣旨である。<span class="norm-cite">— 憲法35条1項・219条1項の趣旨</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 概括的記載許容説（判例・通説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜査初期段階では差押物が具体的に判明しないことが多い。そこで<strong>具体的例示や罪名と相まって合理的に特定できる場合</strong>には概括的記載も許される。</p><div class="norm">具体的な例示や罪名の記載と相まって、記載事項を合理的に解釈して差押対象物を特定できる場合には、概括的記載も許される。<span class="norm-cite">— 概括的記載許容説（判例・通説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 厳格特定説との対比・本問帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>厳格特定説は<strong>できる限り個別・具体的な記載</strong>を要求するが、捜査の現実に合わず、例示があれば足りるとの批判を受ける。<br>本問は帳簿・メモ・パソコン・フロッピーの例示＋横領の罪名から「例示に準じる物＝Xの横領に関連する物」と特定でき、しかも実際に押さえたのは令状明記の<strong>パソコンそのもの</strong>。特定性は<strong>問題なく肯定</strong>（一言で処理）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 包括的差押え・関連性
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Comprehensive Seizure</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 関連性未確認は原則違法</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押えに被疑事実との関連性を要求する趣旨（<strong>99条1項・219条1項</strong>）は一般的・探索的差押えの禁止。よって関連性を確認せず包括的に差し押さえることは原則許されない。もっとも「正当な理由」（憲法35条1項）の存否は<strong>被処分者の利益と捜査の必要の比較衡量による規範的判断</strong>で、関連性の程度も一義的でない。</p><div class="norm">関連性を確認せず包括的に差し押さえることは原則違法。もっとも「正当な理由」の存否は現場状況を踏まえた比較衡量による規範的判断である。<span class="norm-cite">— 変動的・規範的把握説</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 平10の二要件（蓋然性・危険性）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>電磁的記録媒体は可視性・可読性がなく確認困難で、<strong>瞬時に消去等ができ罪証隠滅が容易</strong>。この特殊性から内容確認前の差押えを例外的に許容する。</p><div class="norm">①当該媒体に被疑事実に関する情報が記録されている蓋然性が認められ、②その場で確認していたのでは情報を損壊される危険があるときは、内容を確認することなく差し押さえることが許される。<span class="norm-cite">— 最決平10.5.1【百選22】の二要件</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 危険性認定の分岐（本問の山場）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>①蓋然性は<strong>領収書がPC作成</strong>されたことから肯定できる（薄いが可）。問題は②危険性で、平10事案の「消去ソフト開発」に相当する事情が本問にはない。処理は二通り：<br>（ア）<strong>射程内・危険性推認</strong>＝ID・パス教示拒否の非協力的態度から自動消去プログラムの作動を想定し危険性を推認（答案例・楽）。<br>（イ）<strong>射程外・規範修正</strong>＝非協力で現場確認できないことを危険性に代替（有力・規範段階で書換）。どちらでも可。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 差押対象物の特定性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">令状に差し押さえるべき物を明示すべきものとした趣旨は、被処分者に受忍範囲を明示し、被疑事実に関連しない一般的・探索的な捜索押収を禁止してそのプライバシー・財産権を保護する点にある。もっとも、捜査の初期段階では差押物が具体的に判明していないことも多い。そこで、具体的な例示や罪名の記載と相まって、記載事項を合理的に解釈して差押対象物を特定できる場合には、概括的記載も許されると解する。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 包括的差押えの二要件規範</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">差押えに関連性を要求する趣旨は一般的・探索的差押えの禁止にあるから、関連性を確認せず包括的に差し押さえることは原則許されない。もっとも「正当な理由」の存否は比較衡量による規範的判断であり、電磁的記録媒体は確認困難・消去容易という特殊性がある。そこで、①被疑事実に関する情報が記録されている蓋然性が認められ、②その場で確認していたのでは情報を損壊される危険があるときは、内容を確認することなく差し押さえることが許されると解する。<span class="norm-cite">— 平10二要件・完全版型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 非協力からの危険性の推認</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">本件パソコンにはID・パスワードが設定され、Xがその教示を拒否している。かかる非協力的態度からは、誤ったパスワードを入力すると自動的にデータが消去されるプログラムが作動する事態も想定される。したがって、実際に情報が記録されているかをその場で確認していたのでは、情報を破壊される危険がある。<span class="norm-cite">— 危険性推認型（本問固有）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 関連性の判断基準時</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">被疑事実との関連性は、捜索・差押えの実行時に、現場の状況から判断できる限りで一応の疎明があれば足りる。したがって、後に本件パソコンに関連情報が記録されていなかったことが判明しても、差押え時の適法性を左右せず、遡って違法となるものではない。<span class="norm-cite">— 実行時基準・締め型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">補足 · 協力要請・必要な処分</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">KがXにID・パスワードの教示を求めた行為は、222条1項本文が準用する111条の2により可能であるが、これは協力要請にとどまり拒否を強制する手段はない。また、スイッチを切って差し押さえたうえ専門部門にファイルの解読を依頼した行為は、押収物に対する必要な処分（222条1項本文・111条2項）として適法である。<span class="norm-cite">— 付随処分・標準形</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 蓋然性①（肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Yが「Xから<strong>パソコンで作成しプリントアウトした領収書</strong>を受け取った」と供述／横領は一連の金銭授受を伴う／発見された本件PCはXが使用していたと思われる。<br>──作成媒体たる本件PCに金銭授受の電磁的記録が残る見込み＝<strong>①蓋然性を肯定</strong>（材料は薄いが必ず引用）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 危険性②（推認材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>ID・パスワードの設定</strong>＝アクセス制御・防御の構え／Xが教示を<strong>拒否</strong>（非協力的態度）／電磁的記録は瞬時消去が容易。<br>──誤入力による自動消去プログラムの作動を想定でき、その場の確認では情報破壊の危険＝<strong>②危険性を推認</strong>（本問の山場・微妙さを自覚して認定）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 特定性（合理的特定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>令状は「帳簿・メモ・パソコン・フロッピーディスク」を具体的に例示／罪名は横領（本件に関係する金銭の授受）／実際に押さえたのは令状明記のパソコン。<br>──例示＋罪名から「例示に準じる物」と<strong>合理的特定が可能</strong>＝特定性を肯定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 基準時（事後判明の扱い）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>解読の結果、本件金銭授受のデータは<strong>全く記録されていなかった</strong>／もっとも判断は差押え<strong>実行時</strong>／実行時に一応の疎明あり。<br>──関連性は実行時基準ゆえ、事後判明は<strong>適法性を左右しない</strong>（違法と誤結論しない）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>特定性</strong> — 明示の要請＝一般的探索的押収の禁止／例示＋罪名で合理的特定なら概括的記載も可<br>② <strong>包括的差押え</strong> — 関連性未確認は原則違法／電磁的記録の特殊性＋比較衡量<br>③ <strong>二要件</strong> — ①蓋然性＋②危険性で内容確認前の差押えを許容（実行時基準）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最決平10.5.1</span> — 蓋然性・危険性の二要件（百選22・刑集52-4-275）<br>② <span class="case-name">最大決昭33.7.29</span> — 概括的記載の特定性（百選A5・刑集12-12-2776）<br>③ <span class="case-name">最大判昭47.11.22</span> — 川崎民商・令状主義の趣旨（背景判例）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 明示の要請 — 219条1項・憲法35条1項<br>· 関連性 — 222条1項準用99条1項<br>· 必要な処分 — 111条2項（222条1項本文準用）<br>· 協力要請 — 111条の2（強制不可）<br>· 平23改正 — 記録命令付差押え99条の2・複写99条2項・110条の2</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「一般的・探索的な捜索押収の禁止」<br>· 「例示に準じる物を指すことが明らか」<br>· 「蓋然性」＋「損壊される危険」<br>· 「内容を確認することなしに差し押さえる」<br>· 「実行時に一応の疎明があれば足りる」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 別件差押えの禁止</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本件と無関係な別件の証拠を差し押さえることは<strong>常に違法</strong>（令状主義の潜脱）。包括的差押え（関連性未確認の一括差押え）と問題状況は近いが、後者は蓋然性・危険性で<strong>例外的に許容</strong>される点が異なる。いずれも<strong>99条1項の被疑事実関連性・一般的探索的押収の禁止</strong>に由来する対概念。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 平成23年改正の電磁的記録処分</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>現行法は<strong>記録命令付差押え（99条の2）</strong>・<strong>リモートアクセスによる複写の処分（99条2項・218条2項）</strong>・<strong>記録媒体の差押えの執行方法＝複写等（110条の2）</strong>を整備し、媒体全体の押収以外の手段を用意した。平10当時はこれらがなく、<strong>媒体そのものの差押えの可否</strong>が問題となった経緯を押さえる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 必要な処分・協力要請</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>スイッチOFF差押え＋専門部門の解読は、押収物に対する<strong>必要な処分</strong>（222条1項本文・111条2項）。ID・パス教示要求は<strong>協力要請</strong>（111条の2）で可能だが拒否を<strong>強制する手段はない</strong>。両者を混同せず整理する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 令状の呈示（222Ⅰ・110条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜索差押えは着手前に令状を呈示するのが原則（222条1項・110条）。受忍範囲の明示という特定性の趣旨を実効化する。もっとも罪証隠滅防止のため<strong>呈示前の着手が許される場合</strong>もある（最決平14.10.4）。本問では直接問われないが特定性の裏づけとして押さえる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 事後判明で「関連性なし→違法」</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>解読の結果データが皆無だったことを理由に<strong>「関連性なし → 違法」</strong>と結論するのが最大の失点（−15〜20点）。関連性は<strong>実行時基準</strong>で一応の疎明があれば足り、事後判明は適法性を左右しない。ここを落とさないことが本問の分水嶺。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 原則違法の出発点を書かない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>関連性未確認＝原則違法という土台を書かず、<strong>いきなり平10規範に飛ぶ</strong>（−10〜15点）。99条1項・一般的探索的押収の禁止から出発し、例外構成へ橋渡しする論理を必ず立てる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 危険性を無自覚にあっさり認定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本問には消去ソフト開発のような<strong>危険性を直接基礎づける事情がない</strong>のに、その微妙さに無自覚で危険性をあっさり肯定する（−5〜10点）。非協力からの<strong>推認</strong>か<strong>規範修正</strong>かを意識的に選択して示す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 蓋然性の材料を拾わない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>①蓋然性の認定材料（<strong>領収書がPC作成・プリント</strong>）を引用せず結論だけ書く。事情は薄いが、これが本件PCへの記録の見込みを基礎づける唯一の事実なので<strong>必ず拾う</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 111条の2と混同・特定性の厚書き</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>ID・パス教示要求（111条の2）を包括的差押えと混同する／または<strong>特定性を厚く書きすぎ</strong>て本命の論点2が薄くなる。特定性は一言で切り、教示要求は付随処分として別項で整理する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じておく。特定性→包括的差押え→付随処分の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。二要件と原則違法の出発点を固める。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。<strong>危険性認定の分岐</strong>（射程内推認／射程外修正）を自分の言葉で選べるように。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。蓋然性・危険性のあてはめと基準時の一文を訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。二要件・基準時・付随処分の規範を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。3 判例と条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決平成10年5月1日</span><span class="mm-leaf-sub"><em>Comprehensive Seizure · Two Requirements</em> · 百選22</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>本問の中核判例（刑集52-4-275）</strong>。「パソコン、フロッピーディスク等の中に被疑事実に関する情報が記録されている<strong>蓋然性</strong>が認められ、その場で確認していたのでは<strong>損壊される危険</strong>があるときは、内容を確認することなしに差し押さえることが許される」。<em>射程</em> — 事案は「消去ソフト開発」情報で危険性を基礎づけた。本問には相当事情がなく、危険性を非協力から推認するか規範修正するかが分かれる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最大決昭和33年7月29日</span><span class="mm-leaf-sub"><em>Generic Description · Specificity</em> · 百選A5</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>概括的記載の特定性の基本判例（刑集12-12-2776）</strong>。具体的に例示された物件に続けて「その他本件に関係ありと思料せられる一切の文書及び物件」と記載しても、<strong>罪名や例示と相まって合理的に特定しうる場合</strong>には憲法35条の明示の要請に反しない。<em>射程</em> — 本件令状も帳簿・PC等の例示＋横領の罪名で特定でき射程内。論点1の規範の起点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最大判昭和47年11月22日</span><span class="mm-leaf-sub"><em>Kawasaki-Minshō · Warrant Principle</em> · 背景判例</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>川崎民商事件（刑集26-9-554）</strong>。憲法35条の令状主義の保障が及ぶ範囲は必ずしも刑事責任追及の手続に限られないとしつつ、行政上の質問検査には及ばない場合があるとした。<em>射程</em> — 明示の要請の根底にある<strong>一般的・探索的処分の禁止</strong>という理念を確認する背景判例。本問は刑事手続内で令状主義が全面的に及ぶ（深入り不要）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">憲法35条1項</span><span class="mm-leaf-sub"><em>Const., art. 35(1) · Warrant &amp; Specificity</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「正当な理由」に基づき「押収する物を明示する令状」がなければ捜索・押収を受けない権利を保障。<em>射程</em> — 差押対象物の明示の要請（特定性）と、包括的差押えにおける「正当な理由」の比較衡量的判断の双方の憲法上の根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴99条1項</span><span class="mm-leaf-sub"><em>CCP, art. 99(1) · Relevance</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押えの対象を「証拠物又は没収すべき物と思料するもの」に限定し、<strong>被疑事実との関連性</strong>を要求する根拠条文（捜査には222条1項が準用）。<em>射程</em> — 関連性未確認の包括的差押えを原則違法とする出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴219条1項</span><span class="mm-leaf-sub"><em>art. 219(1) · Warrant Entries</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜索差押許可状に「差し押さえるべき物」「捜索すべき場所」「罪名」等を記載すべきことを要求。<em>射程</em> — 差押対象物の明示（特定性）の直接の根拠。罪名の記載は対象物の解釈基準として機能する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴222条1項</span><span class="mm-leaf-sub"><em>art. 222(1) · Mutatis Mutandis</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜査機関の捜索・差押えに、公判の押収規定（99条・110条・111条・111条の2 等）を準用する規定。<em>射程</em> — 本問の関連性（99条1項）・必要な処分（111条2項）・協力要請（111条の2）の準用根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴111条2項</span><span class="mm-leaf-sub"><em>art. 111(2) · Necessary Disposition</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>押収物について「必要な処分」をすることができる旨を定める。<em>射程</em> — スイッチを切って差し押さえ、専門部門にファイルを解読させる行為を、押収の目的達成に必要かつ相当な処分として適法づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴111条の2</span><span class="mm-leaf-sub"><em>art. 111-2 · Cooperation Request</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>電磁的記録に係る記録媒体の差押えの執行にあたり、被処分者等に<strong>必要な協力を求めることができる</strong>旨の規定。<em>射程</em> — KのID・パス教示要求の根拠。もっとも協力要請にとどまり、拒否を強制する手段はない（Xの拒否自体は違法を生じない）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">変動的・規範的把握説</span><span class="mm-leaf-sub"><em>Normative Relevance Doctrine</em> · 判例的</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>関連性の程度は現場状況を踏まえた<strong>比較衡量で規範的に定まる</strong>とし、蓋然性・危険性があれば内容確認前でも関連性を肯定する通説的立場。固定的把握説（関連性は物ごとに固定・確認しない差押えは原則違法）と対立。<em>射程</em> — 平10判決と整合し、電磁的記録の消去容易性という特殊性に対応できる本問の採用説。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">差押対象物の明示（219条1項・憲35Ⅰ）を要求する趣旨は？</span></summary>
+                  <div class="mm-q-answer">被処分者に受忍範囲を明示し、被疑事実に関連しない<span class="kw">一般的・探索的な捜索押収を禁止</span>してプライバシー・財産権を保護すること。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">概括的記載でも特定性が肯定される要件は？</span></summary>
+                  <div class="mm-q-answer">具体的な<span class="kw">例示や罪名の記載と相まって</span>、記載事項を合理的に解釈して差押対象物を特定できる場合（最大決昭33.7.29）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">関連性を確認せず包括的に差し押さえることの原則と根拠条文は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">原則違法</span>。差押えに被疑事実との関連性を要求する趣旨（<span class="kw">222条1項準用99条1項</span>・一般的探索的押収の禁止）に反するから。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">最決平10.5.1が内容確認前の差押えを許す二要件は？</span></summary>
+                  <div class="mm-q-answer">①被疑事実に関する情報が記録されている<span class="kw">蓋然性</span>＋②その場で確認していたのでは情報を<span class="kw">損壊される危険</span>。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">本問で②危険性の認定が微妙なのはなぜ？どう処理する？</span></summary>
+                  <div class="mm-q-answer">平10事案の「<span class="kw">消去ソフト開発</span>」に相当する危険性を直接基礎づける事情が本問にない。(ア)ID・パス教示拒否から自動消去プログラムを想定して<span class="kw">危険性を推認</span>（射程内・答案例）か、(イ)非協力で現場確認できないことを危険性に代替して<span class="kw">規範を修正</span>（射程外・有力）で処理する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">解読の結果データが皆無だった。差押えは遡って違法になるか？</span></summary>
+                  <div class="mm-q-answer">ならない。関連性は<span class="kw">差押えの実行時</span>に現場の状況から判断できる限りで一応の疎明があれば足り、<span class="verb">事後的に関連性が否定されても遡って違法とはならない</span>。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">①蓋然性は本問のどの事実から認定するか？</span></summary>
+                  <div class="mm-q-answer">Yが「Xから<span class="kw">パソコンで作成しプリントアウトした領収書</span>を受け取った」と供述している事実。作成媒体たる本件PCに金銭授受の電磁的記録が残る見込みがある（材料は薄いが必ず引用）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">差押対象物の特定性（概括的記載）の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">差し押さえるべき物の明示は一般的・探索的な捜索押収を禁ずる趣旨であるから、具体的な例示や罪名の記載と相まって、記載事項を合理的に解釈して差押対象物を特定できる場合には、概括的記載も許される。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">包括的差押えの二要件規範を（原則・特殊性を含めて）述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">関連性を確認せず包括的に差し押さえることは原則許されないが、「正当な理由」の存否は比較衡量による規範的判断であり、電磁的記録媒体は確認困難・消去容易という特殊性がある。そこで、①被疑事実に関する情報が記録されている蓋然性が認められ、②その場で確認していたのでは情報を損壊される危険があるときは、内容を確認することなく差し押さえることが許される。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">関連性の判断基準時の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">被疑事実との関連性は、捜索・差押えの実行時に、現場の状況から判断できる限りで一応の疎明があれば足り、事後的に関連性が否定されても差押え時の適法性を左右せず、遡って違法となるものではない。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">検討順序は<span class="kw">特定性（薄め）→ 包括的差押え（最厚）→ 付随処分・基準時</span>。配点の重心は第2（包括的差押え・とくに<span class="kw">危険性のあてはめ</span>）。想定分量は約1,800〜2,200字（4頁）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">KのID・パス教示要求と、スイッチOFF差押え＋解読はそれぞれ何条で処理する？</span></summary>
+                  <div class="mm-q-answer">教示要求＝<span class="kw">協力要請（222Ⅰ本文準用111条の2）</span>で可能だが強制不可。スイッチOFF差押え＋専門部門の解読＝押収物に対する<span class="kw">必要な処分（222Ⅰ本文準用111条2項）</span>として適法。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">例示＋罪名で合理的特定 → ？</span></summary>
+                  <div class="mm-q-answer">概括的記載も適法。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">蓋然性＋危険性 → ？</span></summary>
+                  <div class="mm-q-answer">内容確認前の差押え可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">事後にデータ皆無と判明 → ？</span></summary>
+                  <div class="mm-q-answer">実行時基準ゆえ適法のまま。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XV — 捜索差押えの適法性 · 13 chapters · 3 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-07-23T03:42+09:00">Generated: 2026-07-23 03:42 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
