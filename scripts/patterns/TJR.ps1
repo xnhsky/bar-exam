@@ -254,6 +254,21 @@ function Invoke-FStream {
     try { $audit = Get-Content $auditJson -Raw -Encoding utf8 | ConvertFrom-Json }
     catch { Write-Host "[F] 監査 JSON 解析失敗 → F をスキップして続行" -ForegroundColor Yellow; $res.Rc = 1; return $res }
     $res.Actionable = [int]$audit.summary.actionable
+
+    # 台帳の掃除は actionable=0 の早期 return より前に行う（監査に出なくなった項目＝修復完了とみなし削除）。
+    # 末尾でだけ掃除すると「修復完了→クリーン」の回で stale な attempts が残り、同じ番号が将来
+    # 別の事故で壊れたときに即 ESCALATE する誤動作になる（DryRun は状態を変えないので掃除しない）。
+    $ledger = @{}
+    if (-not $DryRun) {
+        $ledger = Read-RepairLedger
+        $activeIds = @(@($audit.txRepairs) + @($audit.jxRepairs) | Where-Object { $_ } | ForEach-Object { $_.id })
+        $stale = @($ledger.Keys | Where-Object { $activeIds -notcontains $_ })
+        if ($stale.Count -gt 0) {
+            foreach ($k in $stale) { $ledger.Remove($k) }
+            Save-RepairLedger $ledger
+        }
+    }
+
     if ($res.Actionable -eq 0) {
         Write-Host "[F] 修復対象なし（クリーン）" -ForegroundColor Green
         return $res
@@ -263,7 +278,6 @@ function Invoke-FStream {
         return $res
     }
 
-    $ledger = Read-RepairLedger
     $reportLines = @()
 
     # --- 1) 回収コミット（検証PASSの未コミット残骸＝再生成不要・安価） ---
@@ -344,10 +358,6 @@ function Invoke-FStream {
     foreach ($g in @($audit.byproductGaps | Where-Object { $_ })) { $reportLines += "- GAP $($g.problemId): 副産物欠落 $($g.missing -join '/')（autofill/②-verify が回収）" }
     Add-RepairReport -Lines $reportLines
 
-    # --- 5) 台帳の掃除（監査に出なくなった項目＝修復完了とみなし削除・台帳の無限肥大防止） ---
-    $activeIds = @(@($audit.txRepairs) + @($audit.jxRepairs) | Where-Object { $_ } | ForEach-Object { $_.id })
-    foreach ($k in @($ledger.Keys)) { if ($activeIds -notcontains $k) { $ledger.Remove($k) } }
-    Save-RepairLedger $ledger
     return $res
 }
 
