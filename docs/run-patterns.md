@@ -1,21 +1,24 @@
-# 実行パターン一覧（号令＝TJR に一元化・2026-07-04 改）
+# 実行パターン一覧（号令＝TJR に一元化・2026-07-04 改／F 修復ストリーム追加・2026-07-24）
 
 > **【最重要・2026-07-04】生成バッチの号令は `TJR処理` 1 本に統一した。** 旧パターン（TX-MARCH /
 > TX-PICK / JX）は**廃止**。TJR が「大元の号令＝指揮者」で、TX新規（T）／JX新規（J）／旧版TXLEX再生成（R）
-> を 1 号令で束ねる。実生成は各エンジン（`tx-v13-runner.ps1`／`jx-batch-runner.ps1`）へ委譲する。
+> ／修復（F・2026-07-24 新設）を 1 号令で束ねる。実生成は各エンジン（`tx-v13-runner.ps1`／`jx-batch-runner.ps1`）へ委譲する。
 > チャットで「**TJR処理 刑訴**」のように科目名を添えて指示すれば起動する。両 PC・全セッション共通の語彙。
 
-## TJR の3ストリーム
+## TJR の4ストリーム
 
 | 記号 | ストリーム | 内容 | エンジン | 恒久/過渡 |
 |---|---|---|---|---|
+| **F** | 修復（エラー品・未完成品の回収・2026-07-24 新設） | 毎バッチ**先頭**で `tjr-audit.py` が全科目を監査：**①二系統ペア欠け**（公式のみ/_lexのみ）**②途切れ**（`</html>`なし）**③プレースホルダー残骸**（`{{SLOT}}`）**④サイズ異常 ⑤未コミット残骸**（検証PASS→**回収コミット**のみ・FAIL→再生成）を検出し、入力PDF（JXは＋逐語）が残るものを**修復再生成**。G66/G69 のみの失敗は `tx-sysmap-fit.py`（決定論）で無料修復。**同一問題 2 回失敗で自動再試行停止＝ESCALATE**（`logs/tjr-repair-report.md`）。対象ゼロなら数十秒の監査だけで素通り | `scripts/tjr-audit.py`（検出）＋`tx-v13-runner.ps1 -RepairIds`／`jx-batch-runner.ps1 -RepairNumbers`（再生成） | 恒久（常設の安全網） |
 | **T** | 新規TX生成（フロンティア前進） | `inputs/000_TX/{科目}` の未生成番号のうち**公式の最大既存番号より先**を最若番から（過去帯の欠番は R の領分＝二重処理防止・2026-07-18）。**v13 二系統＝公式(000_TX 本物5択)＋Lexia `_lex`(ux/000_TX ox-grid＋解法ナビ＋物語)** | `scripts/tx-v13-runner.ps1` | 恒久（未生成が尽きるまで） |
 | **J** | 新規JX生成 | `inputs/001_JX/{科目}` の未生成番号を最若番から。JX＋**副産物 RX/TREE/ARIADNE**＋TTS台本＋配置 | `scripts/jx-batch-runner.ps1`（内部エンジン） | 恒久 |
 | **R** | さかのぼり（旧版TXLEX再生成＋欠番補完） | (a) `_lex` が既存だが版が旧い（v13 でない）かつ**入力PDFが残っている**番号を **PDFから最新v13で作り直す**（公式も同時に最新化）。PDFが消えた番号はスキップ。(b) **公式最大番号以下の欠番**（PDFあり・公式なし＝過去帯の未生成穴。例：刑法 15-54/304-309/312-323 の58件）の**補完生成**（2026-07-18 ユーザー確定「刑法58件未生成の分をR再生成と併せる」） | `scripts/tx-v13-runner.ps1 -Regen` | **過渡＝全件最新化で自然消滅** |
 
-- **同時起動＝1号令で T→J→R を順に自動実行**（1作業ツリーで並行すると git commit/push が衝突する実害が
+- **同時起動＝1号令で F→T→J→R を順に自動実行**（1作業ツリーで並行すると git commit/push が衝突する実害が
   記録済み＝`feedback_jx_concurrent_batch_gate_collision`／`feedback_shared_workdir_agent_collision`。よって直列。
   真の並列が要るときは各 PC で番号帯を分ける or 別 worktree で回す）。「1回叩いて放置」を満たす。
+  **「修復と新規生成の同時並行」（2026-07-24 ユーザー指示）は「1 号令の中で F と T/J/R の両方が自動で進む」
+  形で実現**（プロセス並列は上記 git 衝突実害により不採用）。
 - **号令なら指定外も当然に処理（番号ピン方式）**：番号指定は「そのストリームだけ範囲固定」で、他は止めない。
   例「**TX355 を TJR処理**」→ T は 355 固定・**J と R は通常どおり最若番から**。1ストリームだけ回したい時（旧・
   短縮形「TX 355-360 処理」）は `-Only T` を付ける。
@@ -27,6 +30,8 @@
 - **バッチ単位固定（2026-07-18 ユーザー確定）**：1バッチ＝ **T:12問 / J:3問 / R:3問**（TJR 既定値）。回数は
   ユーザーが「TJRを○バッチ」で指示（`-Batches N`・バッチ間も直列・毎バッチ科目を再解決＝尽きた科目から次へ自動で
   移る）。勝手なチャンク拡大・自動完遂ループは禁止（`feedback_tjr_batch_unit_fixed`）。
+  **F の単位（2026-07-24）**：修復再生成は 1バッチ **TX:3問（`-MaxF`）／JX:1問（`-MaxFJx`）**まで・回収コミット
+  （再生成しない git 回収）は件数無制限（安価なため）。F は検出があるときだけ動く＝通常はゼロコスト。
 - **科目差の自動処理**：`inputs` に対象が無いストリームは自動でスキップ（例：民法は現状 TX 入力ゼロ→T は 0 件で
   即スキップ、J のみ走る）。刑法は公式/_lex がほぼ揃っているので実質 R が主役、刑訴は TX 入力 334 件で T が主役。
 
@@ -50,9 +55,15 @@ pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 民 -JxFrom 5 -JxTo 5
 pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑 -Only T -TxFrom 355 -TxTo 360
 pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 民 -Only J -JxFrom 1 -JxTo 10
 
+# 修復だけ（F単独＝監査→回収コミット→修復再生成。新規生成はしない）
+pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Only F
+
+# 監査だけ手で見る（read-only・TJR を介さず直接）
+python scripts/tjr-audit.py
+
 # チャンク数の調整・検出のみ
 pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑訴 -MaxTX 20
-pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑訴 -DryRun     # 各エンジンの検出だけ
+pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑訴 -DryRun     # 各エンジン＋F監査の検出だけ
 ```
 
 ### 号令の言い回し（チャット）
@@ -64,13 +75,15 @@ pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑訴 -DryRun     # 各
 - 「**TJR処理 刑（Rだけ）**」→ `-Only R`。
 - 「**TX 355-360 処理**」（TXだけ）→ `-Only T -TxFrom 355 -TxTo 360`。
 - 「**JX 1-10 処理**」（JXだけ）→ `-Only J -JxFrom 1 -JxTo 10`。
+- 「**修復だけ**」「**エラー品を直して**」→ `-Only F`（F は通常の「TJR処理」にも毎バッチ自動で入っている）。
 
 ## エンジン（内部・直接は叩かない）
 
 | エンジン | 役割 | 備考 |
 |---|---|---|
-| `scripts/tx-v13-runner.ps1` | T・R の TX 生成（v13 二系統・validate-tx-core 両検証・作成日時スタンプ・各問 commit/push） | headless prompt＝`prompts/new-tx-headless-v13.md`（手順正典は `.claude/commands/new-tx.md`） |
-| `scripts/jx-batch-runner.ps1` | J の JX 生成（副産物 RX/TREE/ARIADNE・TTS台本・deploy・finalize・hooks・keep-awake） | TJR から `-SkipAudio -Finalize` で呼ばれる。多数の常駐スクリプトが依存するため温存 |
+| `scripts/tx-v13-runner.ps1` | T・R の TX 生成（v13 二系統・validate-tx-core 両検証・作成日時スタンプ・各問 commit/push）＋F の TX 修復再生成（`-RepairIds '60,125'`＝T/R の検出をバイパスして番号直指定・REGEN 上書き） | headless prompt＝`prompts/new-tx-headless-v13.md`（手順正典は `.claude/commands/new-tx.md`） |
+| `scripts/jx-batch-runner.ps1` | J の JX 生成（副産物 RX/TREE/ARIADNE・TTS台本・deploy・finalize・hooks・keep-awake）＋F の JX 修復再生成（`-RepairNumbers '5'`＝SKIP_EXISTS を突破・既存破損 HTML は `logs/jx-repair-backup/` へ退避し生成空振り時は自動復元） | TJR から `-SkipAudio -Finalize` で呼ばれる。多数の常駐スクリプトが依存するため温存 |
+| `scripts/tjr-audit.py` | F の検出器（read-only 基本）。ペア欠け／途切れ／プレースホルダー残骸／サイズ異常／未コミット残骸（検証PASS=回収コミット候補・FAIL=再生成候補）／JX 副産物欠落（報告のみ）を JSON で TJR へ渡す。`--fix-safe` 時のみ G66/G69 限定で `tx-sysmap-fit.py` を実行 | 直接叩いてもよい（`python scripts/tjr-audit.py`＝人間向けサマリ表示・exit 1=修復対象あり） |
 
 > **廃止済み（呼ばない）**：`scripts/patterns/{TX-MARCH,TX-PICK,JX}.ps1`（TJR へ転送するだけの deprecation スタブ）。
 > `scripts/night-batch-runner.ps1` は v10 GOLD-SKELETON 専用で TX 生成からは引退（`tx-v13-runner.ps1` が後継）。
@@ -89,6 +102,32 @@ pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑訴 -DryRun     # 各
   復元後に再対象化）。R は全件 v13 化＋欠番解消で対象が尽きて自然消滅する（該当なし=正常）。
 - 方式は **PDFから完全新規再生成**（決定論 recanon ではない・ユーザー選択 2026-07-04）。旧本文（Codex期）の判例誤りを
   継承しないため、既存 HTML を template 起点にせず GENESIS-CARD から作り直す。
+
+## F（修復＝エラー品・未完成品の回収）の対象判定と安全設計（2026-07-24 新設）
+
+**動機**：T/J/R は「出力ファイルが存在するか」で対象を決めるため、生成が途中で死んだ／validate ERROR で
+commit されずに残った HTML は、**存在するだけで** T（`Test-Path` SKIP）・R(a)（v13 マーカーで SKIP）・
+R(b)（公式ありで SKIP）・J（`SKIP_EXISTS`）の全てから不可視＝**未完成のまま永久放置**になる構造穴があった。
+F はこの「事故の残骸」を毎バッチ検出して回収する常設の安全網（ユーザー指示 2026-07-24）。
+
+- **検査スコープはインシデント（事故の残骸）に限定**：①TX 二系統ペア欠け ②途切れ（末尾 `</html>` なし）
+  ③プレースホルダー残骸（`{{SLOT}}`）④サイズ異常（30KB 未満）⑤未コミット残骸（`git status` dirty）
+  ⑥JX 副産物欠落（**検出・報告のみ**＝修復は ②-verify／`rx-arb-autofill` の領分）。
+  **コミット済み・構造健全なファイルへ最新ゲート（G70 等）を遡及適用する再監査はしない**
+  （旧作の後付けゲート違反は「TJR 付随で消化」＝R の領分・ユーザー方針 2026-07-14/18 のまま）。
+- **修復の振り分け**：未コミット残骸は該当検証（validate-tx-core／check-tx-lex-engine／
+  check-lex-oxgrid-integrity／validate-jx）を通し、**PASS→回収コミットのみ（再生成しない＝安価）／
+  FAIL→修復再生成**。構造破損（①〜④）は入力（TX=PDF・JX=PDF＋逐語）が残っていれば**修復再生成**、
+  無ければ report-only（`[F-SKIP-NOPDF]`・Drive 復元後に再対象化）。
+- **生成中ガード**：関連ファイルの最終更新が 45 分以内なら「in-flight（生成中の可能性）」として
+  今回はスキップ（並行する手動セッション等の書きかけを事故と誤認しない）。
+- **再試行の上限＝ESCALATE**：台帳 `logs/tjr-repair-ledger.json`（PC ローカル）で試行を数え、
+  **同一問題 2 回失敗で自動再試行を停止**し `logs/tjr-repair-report.md` へ ESCALATE 記録（手動対応待ち）。
+  無限再生成でトークンを溶かさない（省エネ規律）。修復が完了して監査から消えれば台帳エントリは自動削除。
+- **決定論修復の優先**：validate 失敗が G66/G69（体系マップ幾何）だけなら `tx-sysmap-fit.py`（冪等・
+  本文不変）で直して再検証＝claude -p を使わない（`--fix-safe`）。
+- **T/R との二重処理なし**：F が直る前に他ストリームが同番号を拾うことはない（破損品は T/R から不可視・
+  直列実行・修復完了後は通常の SKIP 判定に戻る）。
 
 ## 音声（wav）の作り方 — AI Studio で手動（2026-06-06〜・変更なし）
 
