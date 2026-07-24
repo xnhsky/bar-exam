@@ -11,6 +11,9 @@
 #   （公式も同時に最新化＝両者の本文整合を保つ）＋ (b) 公式最大番号以下の欠番（PDFあり・公式なし）の
 #   補完生成（2026-07-18 ユーザー確定「刑法58件未生成の分をR再生成と併せる」）。
 #   PDFが消えている旧_lex は再生成不能＝スキップし [R-SKIP-NOPDF] を出す（Drive 復元後に再対象化）。
+# 【F モード（-RepairIds '60,125'）】修復＝tjr-audit.py が検出したエラー品・未完成品（ペア欠け・
+#   途切れ・検証FAILの残骸等）を番号直指定で PDF から再生成する（2026-07-24 新設・TJR-F ストリーム用）。
+#   破損ファイルは「存在する」ため T/R の検出からは不可視＝この経路だけが回収できる。
 #
 # 使い方:
 #   pwsh -NoProfile -File scripts/tx-v13-runner.ps1 -Subject 刑訴 -MaxProblems 12
@@ -25,6 +28,10 @@ param(
     [int]$ToNumber = 0,
     [int]$MaxConsecutiveFailures = 3,
     [switch]$Regen,                 # R モード（旧_lex を PDF から再生成）
+    [string]$RepairIds = '',        # F モード（TJR-F 修復）：カンマ/空白区切りの番号列（例 '60,125'）。
+                                    #   tjr-audit.py が検出したエラー品・未完成品を、T/R の対象検出
+                                    #   （フロンティア・版判定・欠番）をバイパスして番号直指定で再生成する。
+                                    #   指定時は該当番号だけを処理（Regen/From/To より優先）。
     [switch]$NoPush,                # commit のみ（push しない）
     [switch]$NoCommit,              # commit もしない（生成・検証・スタンプまで）
     [string]$ProjectRoot = '',
@@ -77,7 +84,7 @@ if (-not $DryRun) {
     } catch { Write-Host "[KEEP-AWAKE] 抑止設定に失敗（続行）: $($_.Exception.Message)" -ForegroundColor Yellow }
 }
 
-$modeText = if ($Regen) { 'R（旧_lex再生成）' } else { 'T（新規TX）' }
+$modeText = if ($RepairIds) { 'F（修復再生成）' } elseif ($Regen) { 'R（旧_lex再生成）' } else { 'T（新規TX）' }
 Write-Host "=== tx-v13-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "Subject=$Subject ($SubjectFolder) / モード=$modeText / MaxProblems=$MaxProblems / 範囲 From=$FromNumber To=$ToNumber / DryRun=$DryRun"
 Write-Host "PDF=$PdfDir"
@@ -127,7 +134,27 @@ foreach ($f in @(Get-ChildItem -Path $OfficialDir -Filter "${Prefix}TX*.html" -F
     if ($f.BaseName -match '(\d+)$') { $mn = [int]$Matches[1]; if ($mn -gt $MaxOfficial) { $MaxOfficial = $mn } }
 }
 $Pending = @()
-if ($Regen) {
+if ($RepairIds) {
+    # --- F モード（TJR-F 修復）：tjr-audit.py が検出したエラー品・未完成品の番号直指定再生成 ---
+    # 破損した公式/_lex は「存在する」ため T（Test-Path で SKIP）・R(a)（v13マーカーで SKIP）・
+    # R(b)（公式ありで SKIP）のいずれからも不可視になる。F はその検出バイパス経路。
+    foreach ($tok in @($RepairIds -split '[,\s]+')) {
+        if ($tok -notmatch '^\d+$') { continue }
+        $n = [int]$tok
+        if (-not $PdfMap.ContainsKey($n)) {
+            Write-Host "[F-SKIP-NOPDF] ${Prefix}TX$($n.ToString('000'))：入力PDFが無く修復再生成不能（Drive復元後に再対象化）" -ForegroundColor Magenta
+            continue
+        }
+        $num = $n.ToString('000')
+        $Pending += [PSCustomObject]@{
+            Number=$num; ProblemId="${Prefix}TX${num}"; PdfPath=$PdfMap[$n]
+            OfficialPath=(Join-Path $OfficialDir "${Prefix}TX${num}.html")
+            LexPath=(Join-Path $LexDir "${Prefix}TX${num}_lex.html")
+            Reason='修復再生成'
+        }
+    }
+    $Pending = @($Pending | Sort-Object { [int]$_.Number })
+} elseif ($Regen) {
     $seen = @{}
     # --- (a) 旧版 _lex の再生成 ---
     foreach ($lex in @(Get-ChildItem -Path $LexDir -Filter "*_lex.html" -File -ErrorAction SilentlyContinue | Sort-Object Name)) {
@@ -228,13 +255,13 @@ foreach ($t in $Targets) {
         -replace '\{SUBJECT_FOLDER\}',   $SubjectFolder `
         -replace '\{CANONICAL_PATH\}',   $Canonical `
         -replace '\{SOLVENAV_PATH\}',    $SolveNav `
-        -replace '\{REGEN_FLAG\}',       ($(if ($Regen -and $t.Reason -eq '欠番補完') { 'NEW（過去帯欠番の補完生成・既存ファイルなし）' } elseif ($Regen) { 'REGEN（既存の旧_lexと公式を最新v13で上書き）' } else { 'NEW（新規生成）' }))
+        -replace '\{REGEN_FLAG\}',       ($(if ($t.Reason -eq '修復再生成') { 'REGEN（エラー品・未完成品の修復再生成＝既存の公式・_lexを最新v13で上書き）' } elseif ($Regen -and $t.Reason -eq '欠番補完') { 'NEW（過去帯欠番の補完生成・既存ファイルなし）' } elseif ($Regen) { 'REGEN（既存の旧_lexと公式を最新v13で上書き）' } else { 'NEW（新規生成）' }))
     $execHeader = @"
 【最優先・実行指示 / headless】これは参照資料ではなく実行命令である。あなたは今すぐ TX 問題
 $($t.ProblemId) を v13.0.0 二系統（公式＝本物5択／_lex＝ox-grid＋解法ナビ＋物語解説）で生成せよ。
 挨拶・確認・要約・「依頼内容が不明」等の応答は禁止。下記手順書に厳密に従い、対象PDFを読解して
 直ちに着手し、公式＝$($t.OfficialPath)／_lex＝$($t.LexPath) の2ファイルを出力し、最後に必ず
-sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せよ。区分=$(if($Regen){'REGEN・既存上書き可'}else{'NEW'})。
+sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せよ。区分=$(if($t.Reason -eq '修復再生成'){'REGEN・既存上書き可（破損品の修復）'}elseif($Regen){'REGEN・既存上書き可'}else{'NEW'})。
 ━━━━━━━━━━━━━━━━ 以下、手順書本体 ━━━━━━━━━━━━━━━━
 
 "@
@@ -289,7 +316,8 @@ sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せ�
         try { if (Test-Path $StampScript) { & python $StampScript 2>&1 | Out-Null } } catch {}
         try {
             & git -C $ProjectRoot add -- $t.OfficialPath $t.LexPath 2>&1 | Out-Null
-            $msg = if ($Regen -and $t.Reason -eq '欠番補完') { "feat($($Prefix)TX): $($t.ProblemId) を v13 で補完生成（過去帯欠番・二系統）" }
+            $msg = if ($t.Reason -eq '修復再生成') { "fix($($Prefix)TX): $($t.ProblemId) を修復再生成（TJR-F・エラー品/未完成品の回収）" }
+                   elseif ($Regen -and $t.Reason -eq '欠番補完') { "feat($($Prefix)TX): $($t.ProblemId) を v13 で補完生成（過去帯欠番・二系統）" }
                    elseif ($Regen) { "feat($($Prefix)TX): $($t.ProblemId) を v13 で再生成（旧_lex最新化・二系統）" }
                    else            { "feat($($Prefix)TX): $($t.ProblemId) を二系統生成（公式5択／Lexia用 ox-grid＋解法ナビ）" }
             & git -C $ProjectRoot commit -m $msg 2>&1 | Out-Null

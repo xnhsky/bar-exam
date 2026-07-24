@@ -1,4 +1,4 @@
-# TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ 旧版TXLEX再生成＝R を1本で束ねる指揮者）
+# TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ 旧版TXLEX再生成＝R ／ 修復＝F を1本で束ねる指揮者）
 #
 # 【位置づけ】2026-07-04 確定・ユーザー指示で旧パターン（TX-MARCH / TX-PICK / JX）を廃止し、
 #   本 TJR を現行版の唯一の入口にする。TJR は「指揮者」であり、重い生成ロジックは持たない。
@@ -7,6 +7,17 @@
 #     R（さかのぼり）  : scripts\tx-v13-runner.ps1 -Regen      … 旧版_lex再生成＋公式最大番号以下の欠番補完
 #                        （2026-07-18「刑法58件未生成の分をR再生成と併せる」・T と番号集合が重ならない）
 #     J（新規JX）    : scripts\jx-batch-runner.ps1（内部エンジン）… JX＋副産物RX/TREE/ARIADNE＋台本
+#     F（修復）      : scripts\tjr-audit.py（検出）＋各エンジンの修復モード（2026-07-24 新設・ユーザー指示
+#                      「エラー品・未完成品を検出して新規生成と同時並行で修正」）。生成が途中で死んだ／
+#                      validate ERROR で commit されず残った HTML は「存在する」ため T/J/R の対象検出から
+#                      不可視＝永久放置になる構造穴があり、F が毎バッチ先頭で検出→回収する：
+#                        ・検証PASSの未コミット残骸 → 回収 commit/push（再生成せず＝安価）
+#                        ・ペア欠け/途切れ/プレースホルダー残骸/検証FAIL → tx-v13-runner -RepairIds ／
+#                          jx-batch-runner -RepairNumbers で PDF から修復再生成
+#                        ・G66/G69 のみの失敗 → tx-sysmap-fit.py（決定論）で無料修復（--fix-safe）
+#                        ・同一問題の修復 2 回失敗 → 自動再試行を停止し logs\tjr-repair-report.md へ
+#                          ESCALATE（無限再生成でトークンを溶かさない・省エネ規律）
+#                      修復対象ゼロなら数十秒の監査だけで即終了（F の常設コストはほぼゼロ）。
 #
 # 【バッチ単位固定・2026-07-18 ユーザー確定】1バッチ＝ T:12問 / J:3問 / R:3問。ユーザーが
 #   「TJRを○バッチ」と回数を指示する（-Batches N・バッチ間も直列）。勝手なチャンク拡大・
@@ -23,7 +34,11 @@
 #
 # 【同時起動＝直列】1作業ツリーで並行すると git commit/push が衝突する実害が記録済み
 #   （feedback_jx_concurrent_batch_gate_collision / feedback_shared_workdir_agent_collision）。
-#   よって T→J→R を直列・-Batches のバッチ間も直列。
+#   よって F→T→J→R を直列・-Batches のバッチ間も直列。「同時並行」は
+#   「1 号令の中で修復と新規生成の両方が自動で進む」ことで実現する（プロセス並列は上記実害により不採用。
+#   真の並列が要るときは従来どおり二台 PC / 番号帯分け）。F を先頭に置くのは、放置品の回収を
+#   新規生成より優先するユーザー方針（2026-07-24）と、破損公式が MaxOfficial を汚したまま
+#   T のフロンティア判定へ入るのを防ぐため。
 #
 # 使い方（号令）:
 #   「TJR処理」「TJRを1バッチ」   → pwsh -NoProfile -File scripts/patterns/TJR.ps1
@@ -32,6 +47,7 @@
 #   「TX60 を TJR処理」           → ... -TxFrom 60 -TxTo 60     # T=60固定・J/R=通常
 #   「TX 60-71 処理」（Tだけ）     → ... -Only T -TxFrom 60 -TxTo 71
 #   「JX 14-16 処理」（Jだけ）     → ... -Only J -JxFrom 14 -JxTo 16
+#   修復だけ（F単独）             → ... -Only F
 #   検出だけ                      → ... -DryRun
 param(
     [ValidateSet('','刑','刑訴','民','民訴','商','憲','行政')]
@@ -42,13 +58,16 @@ param(
     [int]$TxFrom = 0, [int]$TxTo = 0,
     [int]$JxFrom = 0, [int]$JxTo = 0,
     [int]$RFrom  = 0, [int]$RTo  = 0,
-    # 単一ストリームに限定（既定は空＝T/J/R 全部走る。「指定外も当然に処理」の既定を上書きしたい時だけ）
-    [ValidateSet('','T','J','R')]
+    # 単一ストリームに限定（既定は空＝F/T/J/R 全部走る。「指定外も当然に処理」の既定を上書きしたい時だけ）
+    [ValidateSet('','T','J','R','F')]
     [string]$Only = '',
     [switch]$SkipJ,               # 「JX以外を処理」＝J だけ落として T と R を回す
+    [switch]$SkipF,               # F（修復）を止める（既定は毎バッチ先頭で監査→修復）
     [int]$MaxTX = 12,             # T の基本単位（ピン時は範囲全件）
     [int]$MaxJX = 3,              # J の基本単位
     [int]$MaxR  = 3,              # R の基本単位
+    [int]$MaxF  = 3,              # F の TX 修復再生成 上限/バッチ（回収コミットは無制限＝安価なため）
+    [int]$MaxFJx = 1,             # F の JX 修復再生成 上限/バッチ（JX は 1〜2 時間/問のため既定 1）
     [switch]$NoPush,
     [switch]$DryRun,
     [string]$ProjectRoot = ''
@@ -62,6 +81,10 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 
 $TxRunner = Join-Path $ProjectRoot 'scripts\tx-v13-runner.ps1'
 $JxRunner = Join-Path $ProjectRoot 'scripts\jx-batch-runner.ps1'
+$AuditTool = Join-Path $ProjectRoot 'scripts\tjr-audit.py'
+$LogsDir = Join-Path $ProjectRoot 'logs'
+$RepairLedger = Join-Path $LogsDir 'tjr-repair-ledger.json'   # F の再試行台帳（PCローカル・git外）
+$RepairReport = Join-Path $LogsDir 'tjr-repair-report.md'     # ESCALATE / report-only の追記先
 
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
@@ -183,9 +206,154 @@ function Resolve-StreamSubject { param([string]$stream, [int]$From = 0, [int]$To
     return ''
 }
 
+# === F（修復）ストリーム：tjr-audit.py の検出 → 回収コミット／修復再生成へ振り分け ===
+# 台帳（logs\tjr-repair-ledger.json・PCローカル）で同一問題の修復試行を数え、2回失敗で自動再試行を
+# 停止（ESCALATE）＝壊れた入力等で無限に claude -p を回してトークンを溶かさない（省エネ規律）。
+function Read-RepairLedger {
+    if (Test-Path $RepairLedger) {
+        try { return (Get-Content $RepairLedger -Raw -Encoding utf8 | ConvertFrom-Json -AsHashtable) } catch { return @{} }
+    }
+    return @{}
+}
+function Save-RepairLedger { param($Ledger)
+    if (-not (Test-Path $LogsDir)) { New-Item -Path $LogsDir -ItemType Directory -Force | Out-Null }
+    ($Ledger | ConvertTo-Json -Depth 5) | Out-File -FilePath $RepairLedger -Encoding utf8
+}
+function Add-RepairReport { param([string[]]$Lines)
+    if ($Lines.Count -eq 0) { return }
+    if (-not (Test-Path $LogsDir)) { New-Item -Path $LogsDir -ItemType Directory -Force | Out-Null }
+    Add-Content -Path $RepairReport -Encoding utf8 -Value (@("## $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') TJR-F") + $Lines + @(''))
+}
+function Invoke-GitPushWithRetry {
+    for ($try = 1; $try -le 3; $try++) {
+        & git -C $ProjectRoot push 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) { return $true }
+        & git -C $ProjectRoot -c rebase.autoStash=true pull --rebase 2>&1 | Out-Null
+        Start-Sleep -Seconds ([Math]::Min(30, 5 * $try))
+    }
+    return $false
+}
+function Invoke-FStream {
+    # 戻り値: @{ Rc=<0/1>; Dispatched=<今回実際に動かした件数>; Actionable=<監査の要対応件数> }
+    $res = @{ Rc = 0; Dispatched = 0; Actionable = 0 }
+    if (-not (Test-Path $AuditTool)) {
+        Write-Host "[SKIP] F：監査ツール不在: $AuditTool" -ForegroundColor Yellow
+        return $res
+    }
+    Write-Host "`n———————— F（修復＝エラー品・未完成品の検出/回収） 開始 ————————" -ForegroundColor Green
+    if (-not (Test-Path $LogsDir)) { New-Item -Path $LogsDir -ItemType Directory -Force | Out-Null }
+    $auditJson = Join-Path $LogsDir 'tjr-audit-latest.json'
+    Remove-Item -LiteralPath $auditJson -Force -ErrorAction SilentlyContinue
+    $auditArgs = @($AuditTool, '--root', $ProjectRoot, '--json', $auditJson, '--min-age-min', '45')
+    if (-not $DryRun) { $auditArgs += '--fix-safe' }   # G66/G69 のみの失敗は決定論ツールで無料修復
+    & python @auditArgs | Out-Host
+    if (-not (Test-Path $auditJson)) {
+        Write-Host "[F] 監査 JSON なし（監査ツール失敗）→ F をスキップして続行" -ForegroundColor Yellow
+        $res.Rc = 1; return $res
+    }
+    try { $audit = Get-Content $auditJson -Raw -Encoding utf8 | ConvertFrom-Json }
+    catch { Write-Host "[F] 監査 JSON 解析失敗 → F をスキップして続行" -ForegroundColor Yellow; $res.Rc = 1; return $res }
+    $res.Actionable = [int]$audit.summary.actionable
+    if ($res.Actionable -eq 0) {
+        Write-Host "[F] 修復対象なし（クリーン）" -ForegroundColor Green
+        return $res
+    }
+    if ($DryRun) {
+        Write-Host "[F][DRY-RUN] 修復対象 $($res.Actionable) 件（内訳は上記監査出力）。実行はしない。" -ForegroundColor Yellow
+        return $res
+    }
+
+    $ledger = Read-RepairLedger
+    $reportLines = @()
+
+    # --- 1) 回収コミット（検証PASSの未コミット残骸＝再生成不要・安価） ---
+    $commitItems = @(@($audit.txCommits) + @($audit.jxCommits) | Where-Object { $_ })
+    foreach ($c in $commitItems) {
+        # 監査 JSON の path は repo 相対・スラッシュ区切り。git は Windows でもスラッシュを解する
+        # ため変換せずそのまま `git -C` に渡す（バックスラッシュ変換は Linux pwsh で壊れる）。
+        $paths = @($c.paths)
+        try {
+            & git -C $ProjectRoot add -- @paths 2>&1 | Out-Null
+            & git -C $ProjectRoot commit -m "fix(TJR-F): $($c.problemId) の未コミット成果物を回収（検証PASS）" 2>&1 | Out-Null
+            Write-Host "[F-COMMIT] $($c.problemId) を回収コミット（$($paths.Count) ファイル）: $($c.note)" -ForegroundColor Green
+            $res.Dispatched++
+        } catch { Write-Host "[F-COMMIT FAIL] $($c.problemId): $_" -ForegroundColor Yellow; $res.Rc = 1 }
+    }
+    if ($commitItems.Count -gt 0 -and -not $NoPush) {
+        if (Invoke-GitPushWithRetry) { Write-Host "[F-COMMIT] push 済" -ForegroundColor Green }
+        else { Write-Host "[F-COMMIT] push 未了（リモート先行。以後のストリームの push か手動回収で反映）" -ForegroundColor Yellow }
+    }
+
+    # --- 2) TX 修復再生成（tx-v13-runner -RepairIds・上限 MaxF/バッチ・台帳で再試行制御） ---
+    $txQueue = @()
+    foreach ($r in @($audit.txRepairs | Where-Object { $_ })) {
+        $att = 0; if ($ledger.ContainsKey($r.id)) { $att = [int]$ledger[$r.id].attempts }
+        if ($att -ge 2) {
+            Write-Host "[F-ESCALATE] $($r.problemId)：修復 $att 回失敗済み → 自動再試行を停止（手動対応要・logs\tjr-repair-report.md）" -ForegroundColor Red
+            $reportLines += "- ESCALATE $($r.problemId)（修復 $att 回失敗→自動停止）: $($r.reasons -join '；')"
+            $res.Rc = 1
+            continue
+        }
+        $txQueue += $r
+    }
+    foreach ($grp in @($txQueue | Select-Object -First $MaxF | Group-Object subject)) {
+        $ids = @($grp.Group | ForEach-Object { $_.number }) -join ','
+        foreach ($r in $grp.Group) {
+            if (-not $ledger.ContainsKey($r.id)) { $ledger[$r.id] = @{ attempts = 0 } }
+            $ledger[$r.id].attempts = [int]$ledger[$r.id].attempts + 1
+            $ledger[$r.id].last = Get-Date -Format 's'
+            $ledger[$r.id].reasons = ($r.reasons -join '；')
+        }
+        Save-RepairLedger $ledger
+        Write-Host "[F] TX 修復再生成 → $($grp.Name): $ids" -ForegroundColor Cyan
+        $p = @{ Subject = $grp.Name; RepairIds = $ids; MaxProblems = @($grp.Group).Count; ProjectRoot = $ProjectRoot }
+        if ($NoPush) { $p.NoPush = $true }
+        & $TxRunner @p | Out-Host
+        if ($LASTEXITCODE -ne 0) { $res.Rc = 1 }
+        $res.Dispatched += @($grp.Group).Count
+    }
+
+    # --- 3) JX 修復再生成（jx-batch-runner -RepairNumbers・上限 MaxFJx/バッチ・台帳で再試行制御） ---
+    $jxQueue = @()
+    foreach ($r in @($audit.jxRepairs | Where-Object { $_ })) {
+        $att = 0; if ($ledger.ContainsKey($r.id)) { $att = [int]$ledger[$r.id].attempts }
+        if ($att -ge 2) {
+            Write-Host "[F-ESCALATE] $($r.problemId)：修復 $att 回失敗済み → 自動再試行を停止（手動対応要・logs\tjr-repair-report.md）" -ForegroundColor Red
+            $reportLines += "- ESCALATE $($r.problemId)（修復 $att 回失敗→自動停止）: $($r.reasons -join '；')"
+            $res.Rc = 1
+            continue
+        }
+        $jxQueue += $r
+    }
+    foreach ($r in @($jxQueue | Select-Object -First $MaxFJx)) {
+        if (-not $ledger.ContainsKey($r.id)) { $ledger[$r.id] = @{ attempts = 0 } }
+        $ledger[$r.id].attempts = [int]$ledger[$r.id].attempts + 1
+        $ledger[$r.id].last = Get-Date -Format 's'
+        $ledger[$r.id].reasons = ($r.reasons -join '；')
+        Save-RepairLedger $ledger
+        Write-Host "[F] JX 修復再生成 → $($r.problemId)" -ForegroundColor Cyan
+        $p = @{ Subject = $r.subject; RepairNumbers = "$($r.number)"; MaxProblems = 1; SkipAudio = $true; Finalize = $true; ProjectRoot = $ProjectRoot }
+        if ($NoPush) { $p.NoPush = $true }
+        & $JxRunner @p | Out-Host
+        if ($LASTEXITCODE -ne 0) { $res.Rc = 1 }
+        $res.Dispatched++
+    }
+
+    # --- 4) report-only・副産物欠落はレポートへ（副産物の修復は ②-verify／rx-arb-autofill の領分） ---
+    foreach ($ro in @($audit.reportOnly | Where-Object { $_ })) { $reportLines += "- REPORT $($ro.path): $($ro.reasons -join '；')" }
+    foreach ($g in @($audit.byproductGaps | Where-Object { $_ })) { $reportLines += "- GAP $($g.problemId): 副産物欠落 $($g.missing -join '/')（autofill/②-verify が回収）" }
+    Add-RepairReport -Lines $reportLines
+
+    # --- 5) 台帳の掃除（監査に出なくなった項目＝修復完了とみなし削除・台帳の無限肥大防止） ---
+    $activeIds = @(@($audit.txRepairs) + @($audit.jxRepairs) | Where-Object { $_ } | ForEach-Object { $_.id })
+    foreach ($k in @($ledger.Keys)) { if ($activeIds -notcontains $k) { $ledger.Remove($k) } }
+    Save-RepairLedger $ledger
+    return $res
+}
+
 Write-Host "======================================================================" -ForegroundColor Cyan
 Write-Host "  TJR 処理  Batches=$Batches  Subject=$(if($Subject){"$Subject(優先)"}else{'(ストリーム別自動)'})  Only=$(if($Only){$Only}else{'(全部)'})  DryRun=$DryRun" -ForegroundColor Cyan
-Write-Host "  ピン: TX=$TxFrom-$TxTo  JX=$JxFrom-$JxTo  R=$RFrom-$RTo   基本単位 T:$MaxTX J:$MaxJX R:$MaxR" -ForegroundColor Cyan
+Write-Host "  ピン: TX=$TxFrom-$TxTo  JX=$JxFrom-$JxTo  R=$RFrom-$RTo   基本単位 F:$MaxF(+JX$MaxFJx) T:$MaxTX J:$MaxJX R:$MaxR" -ForegroundColor Cyan
 Write-Host "======================================================================" -ForegroundColor Cyan
 
 # === ストリーム実行ヘルパ ===
@@ -223,10 +391,11 @@ function Invoke-JxStream {
     return $LASTEXITCODE
 }
 
-# === 実行（Only 指定が無ければ T→J→R を全部・直列。バッチ間も直列）===
+# === 実行（Only 指定が無ければ F→T→J→R を全部・直列。バッチ間も直列）===
 $runT = ($Only -eq '' -or $Only -eq 'T')
 $runJ = ($Only -eq '' -or $Only -eq 'J') -and (-not $SkipJ)
 $runR = ($Only -eq '' -or $Only -eq 'R')
+$runF = ($Only -eq '' -or $Only -eq 'F') -and (-not $SkipF)
 $rcAll = 0
 $batchCount = $Batches
 if ($DryRun -and $Batches -gt 1) {
@@ -240,13 +409,29 @@ for ($b = 1; $b -le $batchCount; $b++) {
     if ($runT) { $subT = Resolve-StreamSubject 'T' $TxFrom $TxTo }
     if ($runJ) { $subJ = Resolve-StreamSubject 'J' $JxFrom $JxTo }
     if ($runR) { $subR = Resolve-StreamSubject 'R' $RFrom  $RTo  }
-    if (-not ($subT -or $subJ -or $subR)) {
+    $hasTJRWork = [bool]($subT -or $subJ -or $subR)
+    if (-not $hasTJRWork -and -not $runF) {
         Write-Host "`n[TJR] バッチ $b：全ストリーム・全科目で処理対象なし。終了。" -ForegroundColor Green
         break
     }
     Write-Host "`n==================== TJR バッチ $b / $batchCount ====================" -ForegroundColor Cyan
-    Write-Host ("  科目割当: T={0}  J={1}  R={2}" -f `
-        $(if($subT){$subT}else{'該当なし'}), $(if($subJ){$subJ}else{'該当なし'}), $(if($subR){$subR}else{'該当なし'})) -ForegroundColor Cyan
+    Write-Host ("  科目割当: T={0}  J={1}  R={2}  F={3}" -f `
+        $(if($subT){$subT}else{'該当なし'}), $(if($subJ){$subJ}else{'該当なし'}), $(if($subR){$subR}else{'該当なし'}), `
+        $(if($runF){'全科目監査'}else{'OFF'})) -ForegroundColor Cyan
+
+    # F は毎バッチ先頭（放置品の回収を新規生成より優先＋破損公式が T のフロンティア判定を汚す前に直す）。
+    # 修復対象ゼロなら監査（数十秒）だけで即抜けるので常設コストはほぼ無い。
+    $fRes = @{ Rc = 0; Dispatched = 0; Actionable = 0 }
+    if ($runF) { $fRes = Invoke-FStream }
+    if (-not $hasTJRWork -and $fRes.Dispatched -eq 0) {
+        if ($fRes.Actionable -gt 0) {
+            Write-Host "`n[TJR] バッチ $b：T/J/R 対象なし・F は自動修復不能の残件のみ（logs\tjr-repair-report.md 参照）。終了。" -ForegroundColor Yellow
+        } else {
+            Write-Host "`n[TJR] バッチ $b：全ストリーム・全科目で処理対象なし（修復対象もなし）。終了。" -ForegroundColor Green
+        }
+        if ($fRes.Rc -ne 0) { $rcAll = 1 }
+        break
+    }
 
     $rcT = 0; $rcJ = 0; $rcR = 0
     if ($runT) {
@@ -263,10 +448,11 @@ for ($b = 1; $b -le $batchCount; $b++) {
     }
 
     Write-Host "`n———————— TJR バッチ $b 集計 ————————" -ForegroundColor Cyan
+    if ($runF) { Write-Host ("  F（修復）        exit={0}  実行 {1} 件 / 検出 {2} 件" -f $fRes.Rc, $fRes.Dispatched, $fRes.Actionable) }
     if ($runT) { Write-Host ("  T（新規TX・{0}）  exit={1}" -f $(if($subT){$subT}else{'-'}), $rcT) }
     if ($runJ) { Write-Host ("  J（新規JX・{0}）  exit={1}" -f $(if($subJ){$subJ}else{'-'}), $rcJ) }
     if ($runR) { Write-Host ("  R（旧_lex・{0}）  exit={1}" -f $(if($subR){$subR}else{'-'}), $rcR) }
-    if ($rcT -ne 0 -or $rcJ -ne 0 -or $rcR -ne 0) { $rcAll = 1 }
+    if ($rcT -ne 0 -or $rcJ -ne 0 -or $rcR -ne 0 -or $fRes.Rc -ne 0) { $rcAll = 1 }
 }
 
 Write-Host "`n  TJR 終了 exit=$rcAll" -ForegroundColor Cyan
