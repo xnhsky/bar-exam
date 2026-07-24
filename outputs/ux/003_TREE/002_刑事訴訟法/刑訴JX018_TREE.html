@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>差押えの適法性 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XVIII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">差押えの適法性 <em>— On the Lawfulness of Seizure</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">2</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">差押えの<br>適法性</h2>
+      <div class="mm-root-en">Lawfulness of Seizure</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑事訴訟法<br>
+        <em>Origin</em>重要問題 第18問 · 令状記載外物件／別件捜索・差押え<br>
+        <em>Form</em>捜査法・事例問題
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑事訴訟法・捜査法（強制処分・令状主義）の中核。<strong>捜索差押許可状の効力範囲</strong>を問う事例で、「差し押さえた物が令状の効力の及ぶ範囲内か」という一点から出発する。<strong>①令状記載物件該当性</strong>と<strong>②被疑事実関連性</strong>という二つの枠が交差し、さらに別件捜索・差押えという令状主義潜脱論に接続する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>捜査法超頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>令状主義は司法試験・予備試験の捜査法で最重要域。「記載物件性（形式）と被疑事実関連性（実質）を切り分ける」理解の深さで差がつく。別件捜索まで書けるかが上位答案の分岐点。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。出発点は「令状の枠とのズレ」で易しいが、<strong>差押え②で記載物件性をクリアさせたうえで被疑事実関連性の欠如で切る二段構え</strong>を崩すと一気に失点する。素直に「等に入らないから違法」と書くと減点される罠型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>領置（221条）／逮捕に伴う差押え（220条1項2号）／概括的記載・一般令状の禁止（最大判昭36.6.7）／別件逮捕・勾留／違法収集証拠排除法則。とりわけ<strong>「別件捜索・差押え」は別件逮捕勾留を捜索差押えに置換した同型の潜脱論</strong>で、本論点の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>司法警察員Pは、Aの<strong>恐喝</strong>（脅迫文でVを恐喝）を捜査していたが令状の証拠が足りなかった。その後Aに<strong>収賄</strong>の嫌疑が生じ、場所「Aの別荘」・物「R社製の高級腕時計」の令状を得た。別荘捜索中に腕時計のほか<strong>覚せい剤</strong>を発見しAの抗議を押し切り差押え（差押え①）。次に場所「Aの自宅」・物「メモ、手紙、日記等」の収賄令状で捜索したが、収賄の物は出ず<strong>恐喝の脅迫文</strong>を発見して差押え（差押え②）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>P（司法警察員・捜査主体）／A（被疑者・恐喝＋収賄の嫌疑）／V（恐喝の被害者）／B（収賄の贈賄側・「Aは慎重でメモは残さない」と供述）。恐喝は「本件」、収賄は「別件」という関係が答案の骨格を決める。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 差押え①：収賄令状（物件「腕時計」）で<strong>令状記載外の覚せい剤</strong>を差し押さえられるか。<br>② 差押え②：脅迫文は「メモ、手紙、日記等」に当たるか（<strong>概括的記載</strong>）。<br>③ 脅迫文は<strong>収賄の被疑事実と関連性</strong>を有するか。<br>④ 収賄に仮託した<strong>別件（恐喝）捜索・差押え</strong>ではないか。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 令状の枠を確認する</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>まず令状に<strong>何が書いてあるか（場所・物件・被疑事実）</strong>を確認し、実際に差し押さえた物がその枠の内か外かを照合する。差押え①＝物件「R社製の高級腕時計」に覚せい剤は当たらない（<strong>物件のズレ</strong>）。差押え②＝物件「メモ、手紙、日記等」の被疑事実は収賄なのに脅迫文は恐喝の証拠（<strong>被疑事実のズレ</strong>）。ズレがあれば原則違法から出発する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 差押え①＝記載外物件の原則違法と例外潰し</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>令状の効力は記載物件に限られる（218条1項・219条1項＝一般的探索的差押えの禁止）から、覚せい剤の差押えは<strong>原則違法</strong>。緊急逮捕（210条）に倣う<strong>「緊急捜索・差押え」を一応論じて否定</strong>する（明文なし・強制処分法定主義197条1項但書）。いきなり「法禁物だから押収可」と書かないのが鉄則。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 差押え①＝適法な代替手段の提示</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>条文上とりうる適法手段は三つ。①任意提出→<strong>領置</strong>（221条）、②現場保全（222条1項・112条1項）＋<strong>改めて令状</strong>、③覚せい剤所持は法禁物所持で犯罪だから<strong>現行犯逮捕</strong>（213条・212条1項）＋<strong>逮捕に伴う差押え</strong>（220条1項2号）。③が本命ルート。本問はいずれも履践せず反対を押し切ったから<strong>違法</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 差押え②＝物件該当性→関連性→別件捜索</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>脅迫文は「等」に含まれ<strong>記載物件性はクリア</strong>（概括的記載の許容＝最大判昭36.6.7）。しかし差押えの対象は<strong>被疑事実に関連する物</strong>に限る（222条1項・99条1項）。脅迫文は恐喝の証拠で収賄と無関連＝<strong>関連性を欠き違法</strong>。＋αで、収賄に仮託した<strong>別件捜索・差押え</strong>（令状主義の潜脱）を諸事情の総合考慮で認定する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 令状記載外物件（差押え①）
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Off-Warrant Item</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 差押物件記載の趣旨</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押えは財産権・プライバシーへの重大な制約を伴う強制処分であり、令状主義（<strong>憲法35条</strong>）は押収すべき物を明示した令状を要求する。刑訴法219条1項が差押物件の記載を求めるのは、<strong>一般的・探索的差押えを禁じ、対象を令状記載物件に限定する趣旨</strong>である。</p><div class="norm">令状の効力は記載された差押物件にのみ及び、記載外の物を差し押さえることは、一般的・探索的差押えを禁じた令状主義に反し、原則として違法である。<span class="norm-cite">— 憲法35条・218条1項・219条1項</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 緊急捜索・差押えの否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>証拠隠滅の緊急性がある場合に、緊急逮捕（210条）に倣い令状なく差し押さえる「緊急捜索・差押え」を認める余地も考えられる。しかし<strong>現行法にこれを認める明文はなく</strong>、強制処分は法律の定める手続によらなければならない（197条1項但書）。判例・通説はこれを否定する。</p><div class="norm">緊急捜索・差押えを認める明文はなく、強制処分法定主義・令状主義の下でこれを認めることはできない。<span class="norm-cite">— 緊急捜索差押え否定説（通説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 適法な代替手段と本問の帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>記載外物件を適法に押収するには、①任意提出→領置（221条）、②現場保全（222条1項・112条1項）＋再令状、③法禁物所持を現認して現行犯逮捕（213条・212条1項）＋逮捕に伴う差押え（220条1項2号）による。<br>本問でAは「新たに令状をもってこい」と<strong>抗議＝任意提出なし</strong>、②③の手続もとらず反対を押し切った。いずれのルートにも乗らない宙に浮いた押収であり、<strong>差押え①は違法</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 被疑事実関連性・別件捜索（差押え②）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Relevance · Pretext</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 概括的記載の許容性（物件該当性）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>令状には差し押さえるべき物を記載しなければならないが（219条1項）、被疑事実の性質上これを個別に列挙し難い場合がある。そこで<strong>被疑事実との関連で特定される限度では、例示に「等」を付す程度の概括的記載も許される</strong>。脅迫文は「手紙」ないし「等」に含まれ、記載物件性はクリアする。</p><div class="norm">被疑事実との関連で特定される限度では、例示に「等」を付す程度の概括的記載も許される。<span class="norm-cite">— 最大判昭36.6.7・限定的許容説（通説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 被疑事実関連性の要求</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>もっとも、令状記載物件に当たることは差押えの<strong>必要条件にすぎない</strong>。差押えの対象は被疑事実に関連する物に限られる（222条1項が準用する99条1項）。記載物件性（形式）と被疑事実関連性（実質）は別要件で、<strong>両方を満たして初めて適法</strong>。脅迫文は恐喝の証拠で、令状の被疑事実である収賄とは関連しない。</p><div class="norm">差押えの対象は、令状記載物件であっても、被疑事実に関連する物に限られる。脅迫文は収賄と関連せず、被疑事実関連性を欠くから差押えは違法である。<span class="norm-cite">— 222条1項・99条1項／最決平10.5.1</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 別件捜索・差押えと本問の帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本件（恐喝）の証拠収集のため、殊更に別件（収賄）に名を借りて行う捜索・差押えは、令状審査を潜脱し令状主義に反し違法。別件性は<strong>真の目的・両事件の関連性・別件令状取得の難易・実際の捜索態様等を総合考慮</strong>して判断する。<br>本問は、恐喝令状は取得困難／メモは無いと認識／時計は押収済みで収賄捜索の必要性乏しい、から真の目的は恐喝の証拠収集と推認され、<strong>被疑事実関連性の欠如でも別件捜索の点でも違法</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 記載外物件の原則的違法</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">差押えは重大な権利制約を伴う強制処分であり、令状主義（憲法35条）は押収すべき物を明示した令状を要求する。これを受け刑訴法219条1項が差押物件の記載を求めるのは、一般的・探索的差押えを禁じ、差押えの対象を令状記載物件に限定する趣旨である。したがって、令状の効力は記載物件にのみ及び、記載外の物を差し押さえることは原則として違法である。<span class="norm-cite">— 差押え①・必須論証</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 緊急捜索差押えの否定と代替手段</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">証拠隠滅の緊急性があっても、緊急逮捕（210条）に倣う緊急捜索・差押えを認める明文はなく、強制処分は法律の定める手続によらなければならない（197条1項但書）。適法に押収するには、任意提出を求めて領置し（221条）、現場を保全して改めて令状を得（222条1項・112条1項）、又は法禁物所持を現認して現行犯逮捕し（213条・212条1項）逮捕に伴う差押え（220条1項2号）によるべきである。<span class="norm-cite">— 差押え①・処理誘導型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 概括的記載と被疑事実関連性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">令状には差し押さえるべき物を記載しなければならないが（219条1項）、被疑事実との関連で特定される限度では、例示に「等」を付す程度の概括的記載も許される（最大判昭36.6.7）。もっとも、差押えの対象は、令状記載物件であっても、被疑事実に関連する物に限られる（222条1項・99条1項）。脅迫文は「等」に含まれ物件性は満たすが、恐喝の証拠であって収賄とは関連せず、被疑事実関連性を欠き違法である。<span class="norm-cite">— 差押え②・二段構え型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 別件捜索・差押えの違法</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">本件の証拠収集のため、殊更に別件に名を借りて行う捜索・差押えは、令状審査を潜脱するものであって令状主義に反し違法である。別件捜索・差押えに当たるかは、捜索の真の目的、別件と本件の関連性、別件についての令状取得の難易、実際の捜索・差押えの態様等の諸事情を総合的に考慮して判断する。<span class="norm-cite">— 差押え②・潜脱論の枠組み</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 差押え①・違法を基礎づける事実</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>覚せい剤は令状記載物件「R社製の高級腕時計」ではない／Aは「新たに令状をもってこい」と<strong>明示に抗議</strong>＝任意提出（領置）なし／Pは現場保全＋再令状の手続をとらず／現行犯逮捕もせず／<strong>Aの反対を押し切って差し押さえた</strong>。<br>──どの適法ルート（領置・再令状・逮捕に伴う差押え）にも接続せず違法。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 差押え②・関連性欠如を基礎づける事実</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差し押さえた脅迫文は<strong>AがVに送り付けた恐喝事件（本件）の証拠</strong>／令状の被疑事実は<strong>収賄</strong>／収賄に関係するメモ・日記等は発見されなかった。<br>──脅迫文は「等」に含まれても、収賄の被疑事実とは関連性がない＝被疑事実関連性を欠く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 差押え②・別件捜索を推認させる事実</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>恐喝を被疑事実とする令状は<strong>証拠不足で取得できていなかった</strong>／Bの供述で「Aは慎重でメモは残さない」＝収賄の物の<strong>発見可能性は低いと認識</strong>／収賄の物証たる腕時計は<strong>差押え①の時点で既に押収済み</strong>。<br>──収賄で自宅を捜索する必要性は乏しく、真の目的は恐喝の証拠収集＝別件捜索・差押えと評価。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>記載外物件</strong> — 令状の効力は記載物件に限る（一般的探索的差押えの禁止）／緊急捜索差押えは明文なく否定<br>② <strong>被疑事実関連性</strong> — 記載物件でも被疑事実に関連する物に限る（222Ⅰ・99Ⅰ）<br>③ <strong>別件捜索</strong> — 本件目的で別件令状を利用＝潜脱／真の目的等の総合考慮</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 2 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最大判昭36.6.7</span> — 「本件に関係ありと思料される一切の文書・物件」＝概括的記載の許容（一般令状の禁止との調和）<br>② <span class="case-name">最決平10.5.1</span> — 差押物件は被疑事実に関連する<strong>蓋然性</strong>があれば内容を個別確認せず差押え可（フロッピー事件）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">条文暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 令状主義 — 憲法35条／197条1項但書（強制処分法定主義）<br>· 記載事項 — 218条1項・219条1項<br>· 関連性 — 222条1項→99条1項<br>· 代替手段 — 領置221／出禁112Ⅰ／現行犯逮捕213・212Ⅰ／逮捕に伴う差押え220Ⅰ②</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「一般的・探索的差押えの禁止」<br>· 「令状の効力は記載物件に限る」<br>· 「緊急捜索・差押えの明文なし」<br>· 「記載物件性（形式）と関連性（実質）は別要件」<br>· 「別件に名を借りた＝令状主義の潜脱」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 領置（221条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>遺留物・任意提出物の押収は領置＝<strong>任意処分で令状不要</strong>。記載外物件を適法に押収する第一の道。もっとも本問はAが<strong>抗議＝任意提出がなく</strong>領置の要件を欠く。差押え①でこのルートが塞がれている点を明示する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 逮捕に伴う差押え（220条1項2号）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>逮捕現場での無令状の捜索・差押えは適法。覚せい剤所持は<strong>法禁物所持でそれ自体が犯罪</strong>だから、現行犯逮捕（213条・212条1項）して逮捕に伴う差押えができた。本命ルートだが本問は<strong>逮捕をしていない</strong>ため根拠を欠く。「法禁物＝無条件で押収可」の短絡と峻別。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 概括的記載・一般令状の禁止</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押物件は可能な限り特定すべきだが、被疑事実との関連で特定される限度で概括的記載を許容する（最大判昭36.6.7）。「メモ、手紙、日記等」もこれに当たる。<strong>物件該当性で強引に切ると判例の理解不足</strong>と見られるので、関連性で切るのが正しい筋。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 別件逮捕・勾留との平仄</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>別件捜索・差押えは、<strong>別件の身柄拘束を利用して本件を取り調べる別件逮捕・勾留を、捜索・差押えに置き換えた同型の潜脱論</strong>。いずれも諸事情の総合考慮で違法評価する。この対応関係を一言添えると論点相互の位置づけが示せる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 違法収集証拠排除法則</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>令状主義の精神を没却する重大違法＋排除相当で証拠能力を否定する。別件捜索と評価されると<strong>違法の重大性が増し排除に傾く</strong>。本問は差押えの適法性のみが問われるが、「初めから恐喝の証拠を狙っていた」評価が後の証拠排除の布石になる、と一言で上位答案。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 法禁物だから当然押収可と書く</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「覚せい剤は法禁物だから当然に差し押さえてよい」と書くと<strong>大幅減点</strong>。法禁物でも令状記載外である以上、<strong>現行犯逮捕に伴う差押え等の手続を経なければ</strong>差し押さえられない。「法禁物＝無条件で押収可」は令状主義の理解を欠くと評価される。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 緊急捜索差押えを論じ忘れ／即断で救済</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押え①で緊急捜索・差押えの可否を<strong>問題提起せず即結論</strong>に飛ぶと薄い答案。逆に安易に肯定して救済するのも危険。<strong>一応立てて、明文欠如・強制処分法定主義で否定</strong>し、条文上の代替手段に誘導するのが定跡。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 差押え②を物件該当性で切る</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「脅迫文は『等』に含まれない＝記載物件でないから違法」とだけ書いて終わるのは<strong>筋が悪い</strong>。判例は概括的記載を広く許容するため、物件該当性はクリアしたうえで<strong>被疑事実関連性の欠如で切る</strong>のが正しい筋道。物件性で切ると最大判昭36.6.7の理解不足と見られる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 記載物件性と関連性を混同</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「令状記載物件なら何でも差し押さえられる」と考えるのは誤り。<strong>記載物件性（形式）と被疑事実関連性（実質）は別の要件</strong>で、両方を満たして初めて適法。この二段を切り分けずに一括処理すると差押え②の核心を落とす。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 別件捜索を書かず加点を逃す</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>被疑事実関連性の欠如だけでも違法の結論は出るが、そこで止めると<strong>+αの厚みを逃す</strong>。恐喝令状取得困難・メモ無し認識・時計押収済みという事情を拾い、<strong>別件捜索・差押え</strong>を重ねると違法の重大性が増し上位答案になる。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じておく。「差押え①＝物件のズレ／差押え②＝被疑事実のズレ」という二回の型を掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。記載外物件の原則と代替3手段を固める。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。特に差押え②の<strong>物件該当性→関連性の二段構え</strong>と別件性の総合考慮を意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。代替手段の条文番号と別件性のあてはめ事実を正確に組み込む訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。緊急捜索差押え否定・被疑事実関連性・別件捜索の枠組みを声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。2 判例と代替手段の条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最大判昭和36年6月7日</span><span class="mm-leaf-sub"><em>Blanket Description · General Warrant</em> · 刑集15巻6号915頁</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>概括的記載の許容性の基本判例</strong>。「本件に関係ありと思料せられる一切の文書及び物件」との記載も、令状に明示された被疑事実との関連において、差し押さえるべき物を例示的に列挙した後に付加されたものと解しうるから、憲法35条の要求する特定に欠けない。<em>射程</em> — 「メモ、手紙、日記等」の「等」を許容する根拠。脅迫文の物件該当性を肯定する起点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決平成10年5月1日</span><span class="mm-leaf-sub"><em>Relevance Probability · Floppy Disk</em> · 刑集52巻4号275頁</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>差押物件の関連性判断の判例</strong>。当該物件が被疑事実に関連する<u>蓋然性</u>が認められる限りにおいては、内容を個別に確認することなく差し押さえることも許される。<em>射程</em> — あくまで令状記載物件かつ被疑事実関連物件の範囲内の話。覚せい剤（差押え①）や恐喝の脅迫文（差押え②）のように令状の枠を外れる物には及ばない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">憲法35条</span><span class="mm-leaf-sub"><em>Constitution, art. 35 · Warrant Requirement</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>住居・書類・所持品について、正当な理由に基づき発せられ、かつ<strong>捜索する場所及び押収する物を明示する令状</strong>がなければ侵されない。<em>射程</em> — 令状主義の憲法上の根拠。差押物件記載（219条1項）の趣旨＝一般的探索的差押えの禁止を導く出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴法218条1項・219条1項</span><span class="mm-leaf-sub"><em>arts. 218(1), 219(1) · Warrant / Description</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押え・捜索は令状によること（218Ⅰ）、令状に「差し押さえるべき物」を記載すること（219Ⅰ）を要求する。<em>射程</em> — 令状の効力を記載物件に限定する根拠。差押え①（覚せい剤＝記載外）の原則的違法を導く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴法222条1項・99条1項</span><span class="mm-leaf-sub"><em>arts. 222(1), 99(1) · Relevance</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜索差押えに準用される99条1項が差押えの目的物を「証拠物又は没収すべき物と思料するもの」とし、<strong>被疑事実との関連性</strong>を要求する趣旨。<em>射程</em> — 差押え②で、記載物件でも収賄と無関連な脅迫文は差し押さえられないことを導く実質要件。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴法197条1項但書</span><span class="mm-leaf-sub"><em>art. 197(1) proviso · Compulsory-Measure Legalism</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「強制の処分は、この法律に特別の定のある場合でなければ、これをすることができない」＝強制処分法定主義。<em>射程</em> — 明文なき「緊急捜索・差押え」を否定する根拠。差押え①で例外を潰す決め手。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴法221条・112条1項</span><span class="mm-leaf-sub"><em>arts. 221, 112(1) · Retention / Prohibition of Entry</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>領置（221条）＝任意提出物・遺留物を令状なく押収。出入禁止（222Ⅰが準用する112Ⅰ）＝捜索中に現場の現状を保全。<em>射程</em> — 差押え①で覚せい剤を適法に扱う代替手段①②。本問はAの抗議で領置不可、現場保全＋再令状も踏まず。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴法213条・212条1項・220条1項2号</span><span class="mm-leaf-sub"><em>arts. 213, 212(1), 220(1)(ii) · Flagrant Arrest</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>現行犯人は令状なく逮捕でき（213・212Ⅰ）、逮捕の現場で無令状の差押えができる（220Ⅰ②）。<em>射程</em> — 覚せい剤所持は法禁物所持でそれ自体が現行犯だから、これが差押え①の<strong>本命の適法ルート</strong>。本問は逮捕をしていないため使えず違法。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">別件捜索・差押えの違法（総合考慮説）</span><span class="mm-leaf-sub"><em>Pretextual Search Doctrine</em> · 通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>別件（収賄）の令状で専ら本件（恐喝）の証拠を収集する意図・態様が認められる場合は<strong>令状主義の潜脱として違法</strong>。真の目的・両事件の関連・別件令状取得の難易・実際の捜索態様等を総合考慮。<em>射程</em> — 別件逮捕・勾留と平仄が合う。本問の「収賄に仮託した恐喝の証拠収集」を違法と評価する枠組み。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">緊急捜索・差押え肯定説と批判</span><span class="mm-leaf-sub"><em>Emergency Search — Rejected</em> · 少数説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>緊急逮捕（210条）が認められるのと同様、証拠隠滅の緊急性がある場合に明文なく緊急の捜索・差押えを認めてよいとする少数説。<em>批判</em> — <strong>明文の欠如を無視し令状主義を潜脱する</strong>もので支持できない。答案では触れて否定し、条文上の手段に誘導する。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">差押物件の記載（219条1項）が要求される趣旨は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">一般的・探索的差押えを禁じ、差押えの対象を令状記載物件に限定する</span>趣旨。だから令状の効力は記載物件にのみ及び、記載外の物の差押えは原則違法。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">令状記載外の覚せい剤を適法に押収する3つの手段は？</span></summary>
+                  <div class="mm-q-answer">①任意提出→<span class="kw">領置</span>（221条）／②現場保全（222Ⅰ・112Ⅰ）＋<span class="kw">再令状</span>／③法禁物所持で<span class="kw">現行犯逮捕</span>（213・212Ⅰ）＋<span class="kw">逮捕に伴う差押え</span>（220Ⅰ②）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">脅迫文が「メモ、手紙、日記等」に当たるとして、なぜそれだけでは差押えは適法にならないか？</span></summary>
+                  <div class="mm-q-answer">記載物件性は<span class="verb">必要条件にすぎず</span>、差押えの対象は<span class="kw">被疑事実に関連する物</span>に限られるから（222Ⅰ・99Ⅰ）。記載物件性（形式）と関連性（実質）は別要件。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">別件捜索・差押えが違法とされる理由は？</span></summary>
+                  <div class="mm-q-answer">本件の証拠収集のため別件に名を借りて行う捜索・差押えは、<span class="kw">令状審査を潜脱</span>し令状主義に反するから。別件逮捕・勾留と同型の潜脱論。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">もしPが覚せい剤発見後にAを現行犯逮捕し、その場で差し押さえていたら適法か？</span></summary>
+                  <div class="mm-q-answer">適法。覚せい剤所持は法禁物所持でそれ自体が犯罪＝現行犯（213・212Ⅰ）だから、<span class="kw">逮捕に伴う差押え</span>（220Ⅰ②）として無令状で差し押さえられる。本問との差は「逮捕手続を踏んだか」の一点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">差押え②を「脅迫文は『等』に含まれないから違法」と切る答案はなぜ危ういか？</span></summary>
+                  <div class="mm-q-answer">判例（<span class="kw">最大判昭36.6.7</span>）は概括的記載を広く許容するため、物件性で切ると理解不足と見られる。物件性はクリアしたうえで<span class="kw">被疑事実関連性の欠如</span>で切るのが正しい筋道。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">被疑事実関連性の欠如だけで違法が出るのに、なお別件捜索を論じる実益は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">違法の重大性</span>が増す点。「たまたま無関連の物を差し押さえた」ではなく「初めから恐喝の証拠を狙っていた」評価は、後の<span class="verb">違法収集証拠排除</span>で証拠排除に傾く布石になる。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">令状記載外物件の差押えの原則的違法の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">令状主義（憲法35条）を受け、刑訴法219条1項が差押物件の記載を求めるのは、一般的・探索的差押えを禁じ差押えの対象を令状記載物件に限定する趣旨であるから、令状の効力は記載物件にのみ及び、記載外の物を差し押さえることは原則として違法である。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">概括的記載の許容性と被疑事実関連性の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">被疑事実の性質上差押物件を個別に列挙し難い場合があるから、被疑事実との関連で特定される限度では概括的記載も許される（最大判昭36.6.7）。もっとも、差押えの対象は令状記載物件であっても被疑事実に関連する物に限られる（222条1項・99条1項）。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">別件捜索・差押えの違法性判断の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">本件の証拠収集のため殊更に別件に名を借りて行う捜索・差押えは令状審査を潜脱し令状主義に反し違法であり、これに当たるかは、捜索の真の目的、別件と本件の関連性、別件についての令状取得の難易、実際の捜索・差押えの態様等の諸事情を総合的に考慮して判断する。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">差押え①・②を答案でどの順序・骨格で構成する？</span></summary>
+                  <div class="mm-q-answer">設問どおり<span class="kw">①→②</span>。①＝記載外＝原則違法→緊急捜索差押えを否定→代替3手段→いずれも不履践で違法。②＝物件該当性（概括的記載でクリア）→<span class="kw">被疑事実関連性の欠如で違法</span>→+αで別件捜索。各論点「令状の枠→例外→結論」を淡々と回す。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">差押え②の別件性を推認させる本問の事実を3つ挙げよ。</span></summary>
+                  <div class="mm-q-answer">①<span class="kw">恐喝令状は取得困難</span>（証拠不足）／②Bの供述で<span class="kw">メモ等は無いと認識</span>＝発見可能性低／③収賄の物証たる<span class="kw">時計は既に押収済み</span>＝収賄捜索の必要性乏しい。→真の目的は恐喝の証拠収集。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">令状記載外の覚せい剤を反対を押し切って差押え → ？</span></summary>
+                  <div class="mm-q-answer">代替手段いずれも不履践で違法。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">脅迫文は「等」に入るが収賄と無関連 → ？</span></summary>
+                  <div class="mm-q-answer">被疑事実関連性を欠き違法。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">恐喝令状取れず・時計押収済みで収賄捜索 → ？</span></summary>
+                  <div class="mm-q-answer">別件捜索・差押え＝令状主義の潜脱。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XVIII — 差押えの適法性（令状記載外物件・別件捜索差押え） · 13 chapters · 2 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-07-24T10:28+09:00">Generated: 2026-07-24 10:28 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
