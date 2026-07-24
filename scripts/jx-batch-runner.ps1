@@ -40,6 +40,10 @@ param(
     [int]$MaxProblems = 5,              # 1 起動あたり最大処理数
     [int]$FromNumber = 0,               # 処理対象の最小問題番号 (0 = 下限なし)
     [int]$ToNumber = 0,                 # 処理対象の最大問題番号 (0 = 上限なし)
+    [string]$RepairNumbers = '',        # F モード（TJR-F 修復）：カンマ/空白区切りの番号列（例 '5,12'）。
+                                        #   tjr-audit.py が検出した破損 JX（途切れ・検証FAIL 残骸等）を再生成する。
+                                        #   既存 HTML があっても PENDING 化し（通常は SKIP_EXISTS）、生成前に
+                                        #   logs\jx-repair-backup\ へ退避（生成失敗時は自動復元）。指定時は該当番号のみ処理。
     [int]$MaxConsecutiveFailures = 3,   # 連続失敗で abort
     [switch]$SkipAudio,                 # 指定時は⑤音声生成をスキップ（台本集約まで・課金回避）
     [ValidateSet('main','sub')]
@@ -241,6 +245,12 @@ if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadneSlots)) { Write-Host "[NOTE] ARIADNE slot contract 不在 → ②-ariadne 自動スキップ: $CanonicalAriadneSlots" -ForegroundColor Yellow; $AriadneEnabled = $false }
 Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'}) / ARIADNE(解法ナビ)=$(if($AriadneEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir / $AriadneOutputDir"
 
+# === F モード（TJR-F 修復）対象番号の解決 ===
+$RepairSet = @{}
+foreach ($tok in @($RepairNumbers -split '[,\s]+')) {
+    if ($tok -match '^\d+$') { $RepairSet[[int]$tok] = $true }
+}
+
 # === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
 # 入力レイアウト（2026-06-06 分類確定）:
 #   PDF  : inputs\001_JX\{科目}\重問PDF\NN.pdf
@@ -312,8 +322,12 @@ foreach ($pdf in $AllPdfs) {
     $jxOutputPath = Join-Path $JxOutputDir "${problemId}.html"
     $problemTtsOutputDir = Join-Path $TtsOutputDir $problemId
     $transcript   = Find-Transcript -NumInt $numInt   # 同番号逐語（必須）
-    # 判定優先順位：既存 HTML > 逐語欠如 > 処理対象
-    $status = if (Test-Path $jxOutputPath) { "SKIP_EXISTS" }
+    # 判定優先順位：F修復指定 > 既存 HTML > 逐語欠如 > 処理対象
+    # （F モードでは破損 HTML が「存在する」ために SKIP_EXISTS で永久放置される穴を突破する）
+    $status = if ($RepairSet.Count -gt 0 -and $RepairSet.ContainsKey($numInt)) {
+                  if ($transcript) { "PENDING" } else { "SKIP_NO_TRANSCRIPT" }
+              }
+              elseif (Test-Path $jxOutputPath) { "SKIP_EXISTS" }
               elseif (-not $transcript)    { "SKIP_NO_TRANSCRIPT" }
               else                         { "PENDING" }
     $Catalog += [PSCustomObject]@{
@@ -337,6 +351,10 @@ if ($FromNumber -gt 0 -or $ToNumber -gt 0) {
         (($FromNumber -le 0) -or ($numInt -ge $FromNumber)) -and
         (($ToNumber   -le 0) -or ($numInt -le $ToNumber))
     })
+}
+# F モード時は指定番号だけを対象にする（通常の新規 PENDING を巻き込まない＝修復専用起動）
+if ($RepairSet.Count -gt 0) {
+    $Pending = @($Pending | Where-Object { $RepairSet.ContainsKey([int]$_.Number) })
 }
 $Targets = @($Pending | Select-Object -First $MaxProblems)
 
@@ -504,6 +522,19 @@ foreach ($t in $Targets) {
     $ttsElapsed = 0; $ttsCount = 0; $ttsSentinel = "skipped"; $ttsExit = $null; $ttsValidate = "skipped"
     $overall = "INCOMPLETE"
 
+    # ----- F モード：既存の破損 HTML を退避 -----
+    # new-jx-headless.md は既存出力を検知すると FAILED(output_exists) で止まる仕様のため、
+    # 修復対象は生成前に logs\jx-repair-backup\ へ退避して「未生成」状態にする。
+    # 生成が空振り（HTML 0 byte）なら退避を自動復元＝現状より悪化させない。
+    $repairBackup = $null
+    if ($RepairSet.Count -gt 0 -and $RepairSet.ContainsKey([int]$t.Number) -and (Test-Path $t.JxOutputPath)) {
+        $bakDir = Join-Path $LogsDir "jx-repair-backup"
+        if (-not (Test-Path $bakDir)) { New-Item -Path $bakDir -ItemType Directory -Force | Out-Null }
+        $repairBackup = Join-Path $bakDir ("{0}.{1}.html" -f $t.ProblemId, (Get-Date -Format 'yyyyMMdd-HHmmss'))
+        Move-Item -LiteralPath $t.JxOutputPath -Destination $repairBackup -Force
+        Write-Host "[F-BACKUP] 破損 JX を退避: $repairBackup（生成失敗時は自動復元）" -ForegroundColor Yellow
+    }
+
     # =========================================================
     # ① JX 生成（claude -p / new-jx-headless.md）
     # =========================================================
@@ -526,6 +557,14 @@ foreach ($t in $Targets) {
     $jxElapsed = [int]((Get-Date) - $jxStart).TotalSeconds
     $jxSentinel = Get-Sentinel -Text $jxRes.Output -ProblemId $t.ProblemId
     if (Test-Path $t.JxOutputPath) { $jxBytes = (Get-Item $t.JxOutputPath).Length }
+
+    # F モード：生成が空振りなら退避した旧 HTML を復元（現状維持・悪化させない）
+    if ($repairBackup -and $jxBytes -eq 0) {
+        try {
+            Move-Item -LiteralPath $repairBackup -Destination $t.JxOutputPath -Force
+            Write-Host "[F-RESTORE] 生成失敗のため退避 HTML を復元: $($t.JxOutputPath)" -ForegroundColor Yellow
+        } catch { Write-Host "[F-RESTORE FAIL] $_" -ForegroundColor Red }
+    }
 
     Write-Host "[① DONE] elapsed=$([math]::Round($jxElapsed/60,1))min, html=$jxBytes bytes, sentinel=$jxSentinel, exit=$jxExit"
 
