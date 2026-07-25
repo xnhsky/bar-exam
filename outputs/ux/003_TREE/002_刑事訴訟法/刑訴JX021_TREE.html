@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>嚥下物の差押えと令状の選択 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XXI <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">嚥下物の差押えと令状の選択 <em>— On the Seizure of Ingested Evidence</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">嚥下物の<br>差押え</h2>
+      <div class="mm-root-en">Seizure of Ingested Evidence</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑事訴訟法<br>
+        <em>Origin</em>旧司法試験 平成14年度 第1問<br>
+        <em>Form</em>令状選択型（最高裁判例なし）
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑事訴訟法・捜査法の中核。<strong>強制処分と任意処分の区別（197条1項但書）</strong>を前提に、<strong>体内隠匿証拠物の強制取得（嚥下物の差押え）にどの令状が必要か</strong>を問う。強制採尿・強制採血と並ぶ「身体からの強制採取」類型で、令状主義（憲35）の具体的運用が試される純然たる捜査法問題。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>捜査法頻出</span>
+                <span><em>重要度</em>★★★★☆</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>強制処分該当性は易しいが、令状の種類は<strong>最高裁判例が存在しない</strong>難所。既存令状類型（捜索差押・鑑定処分・身体検査）を性質ごとに腑分けする論理力で差がつく。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中〜高難 × 高重要」象限。論点1（要否）は薄く、<strong>論点2（種類）に配点が圧倒的に偏る（2:8〜3:7）</strong>。強制採尿の枠組みを覚えていれば土台に乗れるが、レントゲン・下剤の医学的侵襲をどう受け止めるかで上位が割れる罠型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>強制処分と任意処分の限界（最決昭51.3.16）／強制採尿（最決昭55.10.23）／強制採血／身体検査令状（218条6項）／鑑定処分許可状（225条3項・168条）／令状記載事項。とりわけ<strong>「取得の根拠（差押え）」と「身体侵襲の根拠（鑑定処分）」を分けて組み合わせる</strong>思考が本論点の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲が<strong>ラップに包んだ大麻樹脂の塊を飲み込んで体内に隠匿</strong>している疑いがある。捜査機関は、①甲の腹部を<strong>レントゲン撮影</strong>して塊の存在を確認し、②<strong>下剤を用いて</strong>塊を早期に体外へ排出させ、③排出された<strong>大麻樹脂を押収</strong>しようと考えた。甲の同意は問題文になく、意思に反することが前提。「令状は必要か、必要ならどの令状か」を問う。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">予定される三処分</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>レントゲン撮影</strong> — 体内の塊の存在・位置を確認（取得の準備）。<br>② <strong>下剤の投与</strong> — 塊を早期に体外排出させる医学的処置（身体に生理的・機能的変化）。<br>③ <strong>嚥下物の押収</strong> — 排出物を証拠物として占有取得（＝差押え）。①〜③は一連の捜査として一体評価されるが、<strong>「取得」と「医学的侵襲」の二側面</strong>に腑分けするのが決定的。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 一連の捜査は「<strong>強制の処分</strong>」（197条1項但書）か＝令状の要否。<br>② 必要なら<strong>どの令状</strong>によるべきか（本問の山場・最高裁判例なし）。<br>③ 令状に<strong>いかなる条件・記載</strong>を要するか（218条6項準用）。配点は圧倒的に②に偏る。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 令状の要否（強制処分該当性）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜査法の令状問題は<strong>「①要否 → ②種類」の二段構え</strong>が定石。まず本件捜査が「強制の処分」（197Ⅰ但書）か。レントゲン・下剤・押収は甲の<strong>意思を制圧し身体という重要な権利利益に制約</strong>を加えるから、強制採尿・強制採血と同じく強制処分。ここはほぼ争いなく、薄く処理して②へ橋渡しする。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 取得の性質 → 捜索差押許可状</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>最終目的は嚥下物の<strong>「押収」＝証拠物の占有取得</strong>。体内の物の強制取得は<span class="case-name">最決昭55.10.23</span>と同じく<strong>捜索・差押えの性質</strong>を有するから、<strong>捜索差押許可状（218Ⅰ）は全説共通で必須</strong>。差押えの根拠を落とすと致命的、というのが本問最大の羅針盤。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 医学的侵襲の受け止め（説の分岐）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>強制採尿との違いは<strong>レントゲン・下剤という医学的侵襲</strong>が加重される点。これを──<br>説A：<strong>218Ⅵ準用の条件記載</strong>で足りる（条件付き捜索差押許可状一本）。<br>説B：<strong>鑑定処分許可状（225Ⅲ・168）を併用</strong>して受け止める（解答例・有力）。<br>どちらでも合格。侵襲の重大性をどう評価するかで分岐する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 令状の記載事項（条件）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜索差押許可状に、捜索場所「被疑者の身体」・差押対象「嚥下物」を記載し、条件として<strong>「嚥下物の検査・採取は医師をして医学的に相当と認める方法によること」</strong>を記載（218Ⅵ準用）。鑑定処分の方法は専門家の裁量に委ねるべきで、方法の条件記載までは不要と解しうる。設問の二段の問いに<strong>①要る②この令状</strong>と一対一で答えて締める。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 強制処分該当性
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Compulsory Disposition</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 「強制の処分」の意義</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>強制処分は法律に特別の定めがなければ許されない（<strong>強制処分法定主義・197Ⅰ但書</strong>）。「強制の処分」とは有形力の行使に限られず、<strong>個人の意思を制圧し、身体・住居・財産等の重要な権利利益に制約を加えて強制的に捜査目的を実現する行為</strong>をいう。</p><div class="norm">強制手段とは、有形力の行使を伴う手段を意味するものではなく、個人の意思を制圧し、身体、住居、財産等に制約を加えて強制的に捜査目的を実現する行為など、特別の根拠規定がなければ許容することが相当でない手段を意味する。<span class="norm-cite">— 最決昭51.3.16（岐阜呼気検査事件）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 意思制圧＋重要権利利益の制約</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>現在の通説（<strong>重要権利利益制約説</strong>）は、①相手方の<strong>明示・黙示の意思に反し</strong>、②<strong>重要な権利利益に実質的な侵害・制約</strong>を加える処分を強制処分とみる。単なる有形力の有無では画さない。本問のレントゲン・下剤は身体への侵襲・健康被害の危険を伴い、重要な権利利益への制約が明白。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 本問へのあてはめ（ほぼ明らか）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲の<strong>同意なく</strong>レントゲン撮影・下剤投与・押収を行うことは、意思を制圧し身体という重要な権利利益に制約を加える。よって<strong>強制処分に当たり令状が必要</strong>（197Ⅰ但書・憲35）。強制採血・強制採尿と同じで争いは薄い。深追いせず<strong>「強制処分 ⇒ 令状主義・強制処分法定主義 ⇒ 令状必要 ⇒ ではどの令状か」</strong>まで一気に結論づけて論点2へ橋渡しする。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 令状の種類（核心）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Warrant Type</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 二面性の把握（問題の所在）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本件捜査は、①<strong>証拠物の取得</strong>（捜索・差押えの性質）と、②<strong>レントゲン・下剤という医学的侵襲</strong>（鑑定処分・身体検査の性質）の<strong>二つの性質を併有</strong>する。この二面性を既存の令状類型のどの組合せで受け止めるかが本論点。最高裁判例が存在しないため、各処分の性質を条文構造に即して腑分けする論理力が試される。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 説A 条件付き捜索差押許可状説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>強制採尿（最決昭55.10.23）と同様</strong>、体内の物の強制取得は捜索・差押えの性質を有するから<strong>捜索差押許可状1本</strong>で処理。人権侵害のおそれは<strong>身体検査令状（218Ⅵ）を準用した条件記載</strong>で対応する。</p><div class="norm">体内の証拠物を強制的に取得する行為は捜索・差押えの性質を有するから捜索差押許可状を要し、人権侵害にわたるおそれがある点で身体検査と共通するから218条6項が準用され、医師をして医学的に相当と認める方法により行う旨の条件記載が不可欠である。<span class="norm-cite">— 説A・強制採尿型（インプット未了ならこれで十分）</span></div><p><em>批判</em> — レントゲン・下剤の医学的侵襲を条件記載だけで受け止めるのは不十分ではないか。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 説B 捜索差押＋鑑定処分 併用説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>解答例・有力説</strong>。取得（差押え）は捜索差押許可状（218Ⅰ）で、<strong>レントゲン・下剤の医学的侵襲は鑑定処分許可状（225Ⅲ・168）で別立て</strong>にカバー。強制採尿より医学的専門性・侵襲が大きいことに見合う手続的統制。</p><div class="norm">レントゲン撮影・下剤の投与は身体に生理的・機能的変化を生じさせ影響が後日に及ぶこともあり、専門的知識・技術を有する鑑定受託者による処分と同視できるから、人権保障の見地から鑑定処分許可状（225条3項）を併用すべきである。<span class="norm-cite">— 説B・併用説（強制採血型の発想）</span></div><p><em>批判</em> — 2令状の併用は理論的にスッキリせず、実務上も煩雑。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-D · 差押えを外すな（帰結の羅針盤）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>最終的にやることは<strong>塊を押収する＝証拠物の占有取得</strong>だから、<strong>差押えの根拠（捜索差押許可状）は絶対に外せない</strong>。「身体検査令状＋鑑定処分許可状」だけで処理する第三説は、本問が明確に「押収しようと考えた」と書く以上、<strong>差押えの根拠を欠き不採用</strong>。どの説でもよいが差押えだけは共通で要求する、が本問の鉄則。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 強制処分該当性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">「強制の処分」（197条1項但書）とは、有形力の行使を伴う手段に限られず、個人の意思を制圧し、身体、住居、財産等の重要な権利・利益に制約を加えて強制的に捜査目的を実現する行為をいう。本件捜査は、甲の同意なくレントゲン撮影・下剤投与により身体への侵襲を加えるものであるから、甲の意思を制圧し身体という重要な権利利益に制約を加える強制処分に当たり、令状が必要である。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 捜索差押許可状の必要性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">本件捜査は、体内にある大麻樹脂という証拠物を発見し取得するために行うものであるから、捜索・差押えとしての性質を有する。したがって、捜索差押許可状（218条1項）が必要である。<span class="norm-cite">— 全説共通の土台・差押えの根拠</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 鑑定処分許可状の併用（説B）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">もっとも、レントゲン撮影及び下剤の投与は、身体に生理的・機能的変化を生じさせ、その影響が後日まで及ぶこともあり、専門的知識・技術を有する鑑定受託者が鑑定に必要な処分を行うものと同視できる。よって、被疑者の人権保障の観点から、鑑定処分許可状（225条3項）も併用することが必要と考える。<span class="norm-cite">— 併用説型・医学的侵襲を別立て</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 令状の記載（条件の準用）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">証拠物の強制取得は人権侵害にわたるおそれがある点で検証の方法としての身体検査と共通の性質を有するから、身体検査令状に関する218条6項が捜索差押令状に準用される。捜索差押許可状には、捜索すべき場所として「被疑者の身体」、差し押さえるべき物として「嚥下物」等と記載し、条件として「嚥下物の検査、採取については医師をして医学的に相当と認める方法によること」を記載すべきである。<span class="norm-cite">— 記載事項・標準形（最決昭55.10.23参照）</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 強制処分該当性（肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲の同意が問題文にない＝<strong>意思に反する</strong>／レントゲン撮影・下剤投与という<strong>身体への侵襲・健康被害の危険</strong>／体内への強制的な介入。<br>──意思の制圧＋重要な権利利益の制約 ＝ 強制処分該当性を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 捜索差押えの性質（取得材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>最終目的が塊の<strong>「押収」＝証拠物の占有取得</strong>／体内に隠匿された<strong>固形の証拠物</strong>を発見して取り出す／強制採尿（体内の物の強制取得）との構造的共通性。<br>──捜索・差押えの性質 ＝ 捜索差押許可状（218Ⅰ）の必要性を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 医学的侵襲（鑑定処分材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>下剤投与が<strong>「医学的処置」</strong>であること／身体に<strong>生理的・機能的変化</strong>を生じさせ影響が後日に及ぶ危険／<strong>専門的知識・技術</strong>を要し鑑定受託者の処分と同視できる／強制採尿より侵襲が大きい。<br>──鑑定処分と同視 ＝ 鑑定処分許可状（225Ⅲ・168）併用（説B）を基礎づける。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>強制処分</strong> — 意思の制圧＋重要な権利利益の制約（197Ⅰ但書・昭51.3.16）<br>② <strong>取得＝捜索差押え</strong> — 体内の物の強制取得は捜索差押許可状（218Ⅰ・全説共通）<br>③ <strong>医学的侵襲</strong> — 条件記載（説A・218Ⅵ）or 鑑定処分許可状併用（説B・225Ⅲ・168）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最決昭51.3.16</span> — 強制処分の意義（岐阜呼気検査）<br>② <span class="case-name">最決昭55.10.23</span> — 強制採尿＝条件付き捜索差押許可状（百選27・説Aの母体）<br>③ <span class="case-name">最決平6.9.16</span> — 強制採尿のための連行（枠組みの実務定着）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">条文暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 強制処分法定主義 — 197条1項但書<br>· 令状主義 — 憲法35条<br>· 捜索差押許可状 — 218条1項／条件記載準用 — 218条6項<br>· 鑑定処分許可状 — 225条3項・168条<br>· 身体検査の注意 — 131条</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「意思を制圧し重要な権利利益に制約」<br>· 「捜索・差押えの性質を有する」<br>· 「医師をして医学的に相当と認める方法」<br>· 「生理的・機能的変化・影響が後日に及ぶ」<br>· 「差押えの根拠を外すな」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 強制採尿（体内の物・採尿型）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>尿という体内の体液の強制採取を<strong>捜索・差押えの性質</strong>とし、条件付き捜索差押許可状によるとした<span class="case-name">最決昭55.10.23</span>。<strong>本問の説Aの母体</strong>。カテーテル挿入という比較的単純な処置である点で、レントゲン・下剤の医学的侵襲が加重される本問とは距離がある。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 強制採血（医学的侵襲・採血型）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>血液の強制採取は、<strong>身体検査令状＋鑑定処分許可状の併用</strong>が有力（学説）。取得＋医学的侵襲を令状の組合せで受け止める発想が<strong>本問の説B（併用説）の発想源</strong>。本問は採尿型（体内の物）でありながら採血型（医学的侵襲）でもある中間類型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 身体検査令状の限界</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>身体検査令状（218Ⅰ後段・6項）は検証の一態様で条件を付しうるが、<strong>「押収（差押え）」の権能を含まない</strong>。だから身体検査令状＋鑑定処分許可状だけの構成は本問の押収を根拠づけられず不採用。<strong>取得の根拠と侵襲の根拠を分ける</strong>思考の要。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 強制採取の統一的思考</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>身体からの強制採取を貫く思考は、<strong>「①取得（差押え／領置）の根拠」と「②身体侵襲（検証・身体検査・鑑定処分）の根拠」を分けて考え、事案の侵襲の程度に応じて令状を組み合わせる</strong>点にある。強制採尿・強制採血・嚥下物・毛髪採取を一本の軸で整理できる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 差押えの根拠を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本問<strong>最大の致命傷</strong>。問題文は明確に「押収しようと考えた」と書くのに、身体検査令状＋鑑定処分許可状だけで処理して<strong>捜索差押許可状（差押えの根拠）を落とす</strong>と、証拠物の占有取得を正当化できない。どの説でも<strong>捜索差押許可状は必ず要求</strong>する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 令状不要（任意処分）と誤認</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲の同意なく身体侵襲を伴う以上、<strong>任意処分では正当化不能</strong>。「レントゲンくらいなら任意」と流すのは誤り。強制採血・強制採尿と同じく強制処分と確定してから令状の種類へ進む。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 医学的侵襲を無視して採尿型に流す</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>強制採尿とまったく同じと即断し、<strong>レントゲン・下剤の医学的侵襲を評価しない</strong>のは上位を逃す。説Aで一本化するなら「条件記載で対応する」と一言、説Bなら鑑定処分許可状の併用まで踏み込む。侵襲の加重に触れるのが差。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 判例があるかのように断定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>嚥下物の差押えに<strong>最高裁判例は存在しない</strong>。あたかも確立した判例があるかのように断定するのは危険。「判例がない旨に一言触れて」各説を腑分けし、<strong>断定を避けて論理で詰める</strong>のが安全。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 論点1を厚く書きすぎる</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>強制処分該当性はほぼ争いがないのに<strong>紙幅を割きすぎ</strong>、本命の論点2（令状の種類）が薄くなるのは配点感覚の欠如。規範150字＋あてはめ150字で足り、<strong>時間・分量を2:8〜3:7で論点2に寄せる</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフは閉じたまま。<strong>要否 → 取得（捜索差押）→ 医学的侵襲（説の分岐）→ 記載</strong>の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<strong>差押えは全説共通で必須</strong>を刷り込む。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 5 の説A・説Bを開き、LV 2（3 問）を解く。<strong>強制採尿との異同・医学的侵襲の加重</strong>を意識して両説を再現できるようにする。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。捜索差押許可状の必要性→鑑定処分併用→条件記載の順で書き切る訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生。強制採尿・強制採血との位置関係と<strong>「取得と侵襲を分ける」統一思考</strong>を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外は閉じる。3 判例・条文番号・キーフレーズを高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例条文<span class="mm-name-en">Cases &amp; Statutes</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決昭和51年3月16日</span><span class="mm-leaf-sub"><em>Gifu Breath-Test · Meaning of Compulsion</em> · 刑集30-2-187</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>「強制の処分」の意義を画した中核判例</strong>。「強制手段とは、有形力の行使を伴う手段を意味するものではなく、個人の意思を制圧し、身体、住居、財産等に制約を加えて強制的に捜査目的を実現する行為など、特別の根拠規定がなければ許容することが相当でない手段を意味する」。<em>射程</em> — 本問の論点1の規範を提供。レントゲン・下剤・押収はまさに意思を制圧し重要な権利利益に制約を加える行為で直截に該当。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決昭和55年10月23日</span><span class="mm-leaf-sub"><em>Forcible Urine Sampling</em> · 百選27 · 刑集34-5-300</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>強制採尿事件・本問の骨格となる判例</strong>。「体内に存在する尿を犯罪の証拠物として強制的に採取する行為は捜索・差押の性質を有する……捜索差押令状を必要とする。ただし……身体検査令状に関する刑訴法218条5項（現6項）が準用され……医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠である」。<em>射程</em> — 「体内の物の強制取得＝捜索差押えの性質」の骨格は共通で射程が及ぶ。<strong>説A（条件付き捜索差押許可状説）の直接的根拠</strong>。医学的侵襲の加重をどう扱うかで説A／説Bが分岐。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決平成6年9月16日</span><span class="mm-leaf-sub"><em>Transport for Urine Sampling</em> · 刑集48-6-420</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>強制採尿のための連行を認めた後続判例</strong>。「強制採尿令状の効力として、採尿に適する最寄りの場所まで被疑者を連行することができ……その旨を令状に記載することができる」。<em>射程</em> — 本問の直接の争点ではないが、<strong>条件付き捜索差押許可状という枠組みが実務に定着</strong>していることを裏づける参考判例。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑事訴訟法197条1項但書</span><span class="mm-leaf-sub"><em>art. 197(1) proviso · Compulsory-Disposition Legalism</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「強制の処分は、この法律に特別の定のある場合でなければ、これをすることができない」。<strong>強制処分法定主義</strong>の根拠条文。本問では、本件捜査が「強制の処分」に当たる ⇒ 法律に特別の定め（令状）が必要、という論点1の出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">憲法35条</span><span class="mm-leaf-sub"><em>Const. art. 35 · Warrant Principle</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>住居・書類・所持品について、正当な理由に基づき発せられ捜索する場所・押収する物を明示する令状によらなければ、侵入・捜索・押収を受けない旨を定める<strong>令状主義</strong>の憲法的根拠。強制処分該当性を肯定した後、令状の必要性を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑事訴訟法218条1項</span><span class="mm-leaf-sub"><em>art. 218(1) · Search &amp; Seizure Warrant</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>捜査機関が令状により差押え・捜索・検証・身体検査をなしうる根拠。本問の最終目的＝嚥下物の<strong>「押収」＝差押え</strong>をカバーする<strong>捜索差押許可状</strong>の根拠条文で、<strong>いずれの説でも必須</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑事訴訟法218条6項</span><span class="mm-leaf-sub"><em>art. 218(6) · Body-Search Conditions</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>身体検査令状に条件を付しうる旨の規定（強制採尿判例が引く旧5項）。<strong>捜索差押令状に準用</strong>して「医師をして医学的に相当と認める方法によること」等の条件を記載する根拠（説A・記載事項の核）。判文の「218条5項」は現在の6項に読み替える。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑事訴訟法225条3項</span><span class="mm-leaf-sub"><em>art. 225(3) · Expert-Examination Permit</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>鑑定受託者が鑑定に必要な処分（身体検査等）をなすため、捜査機関が<strong>鑑定処分許可状</strong>を裁判官に請求する根拠。レントゲン・下剤の<strong>医学的侵襲を別立てでカバー</strong>する説B（併用説）の中核条文（225条1項・4項も併記）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑事訴訟法168条</span><span class="mm-leaf-sub"><em>art. 168 · Expert's Necessary Dispositions</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>鑑定人が鑑定について必要がある場合に身体検査等の処分をなしうる旨の規定（3項・4項・6項）。225条を介して鑑定受託者に準用され、<strong>鑑定処分許可状の内容</strong>を規律する。説Bで医学的侵襲の手続的統制を根拠づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑事訴訟法131条</span><span class="mm-leaf-sub"><em>art. 131 · Care in Body Search</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>身体検査に際し被検査者の名誉を害しないよう注意し、健康状態その他を考慮すべき旨の規定。人権保障の見地から、医学的侵襲を伴う処分に<strong>慎重な手続</strong>が要請される根拠として、説Bの論証で併せて引用する。</p></div>
+          </details>
+        </div>
+      </div>
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">本件捜査が「強制の処分」に当たるとどうなるか？根拠条文は？</span></summary>
+                  <div class="mm-q-answer">法律に特別の定め（令状）が必要となる（<span class="kw">強制処分法定主義・197条1項但書</span>）。あわせて令状主義（<span class="kw">憲法35条</span>）により令状が必要。だから次に「どの令状か」が問題となる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">最終目的が塊の「押収」である以上、全説共通で必須となる令状は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">捜索差押許可状（218条1項）</span>。体内の物の強制取得は捜索・差押えの性質を有するから。<span class="verb">差押えの根拠</span>を落とすと致命的で、どの説でも必ず要求する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">強制採尿（最決昭55.10.23）が採った令状の枠組みは？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">条件付き捜索差押許可状</span>。捜索差押令状に身体検査令状の<span class="kw">218条6項</span>を準用し、医師をして医学的に相当と認める方法により行う旨の条件記載を不可欠とした。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">説B（併用説）が医学的侵襲を受け止める令状と根拠条文は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">鑑定処分許可状（225条3項・168条）</span>。レントゲン・下剤は鑑定受託者による処分と同視でき、人権保障の見地から捜索差押許可状に併用する。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">本問が強制採尿（説A母体）と決定的に異なる事実は？それが生む分岐は？</span></summary>
+                  <div class="mm-q-answer">本問には<span class="kw">レントゲン撮影・下剤投与という医学的侵襲</span>が加重される点。これを218条6項の条件記載で足りるとみるか（説A）、<span class="kw">鑑定処分許可状の併用</span>で受け止めるか（説B）で分岐する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">「身体検査令状＋鑑定処分許可状」だけで処理する構成はなぜ本問に適さないか？</span></summary>
+                  <div class="mm-q-answer">本問は排出物を<span class="kw">押収（差押え）</span>する以上、身体検査令状にも鑑定処分許可状にも<span class="verb">差押えの権能がない</span>ため、取得の根拠を欠く。捜索差押許可状を欠く構成は不採用。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">嚥下物の差押えに最高裁判例はあるか。答案ではどう扱うべきか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">最高裁判例は存在しない</span>。その旨に一言触れ、最も近接する強制採尿判例の射程を検討したうえで各説を腑分けし、<span class="verb">断定を避けて</span>論理で詰めるのが安全。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">「強制の処分」の意義の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">「強制の処分」とは、有形力の行使を伴う手段に限られず、個人の意思を制圧し、身体・住居・財産等の重要な権利利益に制約を加えて強制的に捜査目的を実現する行為をいう。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">捜索差押許可状の必要性の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">本件捜査は、体内にある大麻樹脂という証拠物を発見し取得するために行うものであるから、捜索・差押えとしての性質を有し、捜索差押許可状（218条1項）が必要である。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">鑑定処分許可状を併用すべき理由（説B）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">レントゲン撮影及び下剤の投与は、身体に生理的・機能的変化を生じさせ影響が後日に及ぶこともあり、専門的知識・技術を有する鑑定受託者による処分と同視できるから、人権保障の見地から鑑定処分許可状（225条3項）も併用すべきである。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">二段構え：<span class="kw">第1 強制処分該当性（薄め・2〜3割）→ 第2 令状の種類（厚め・7〜8割）</span>。第2の中では①捜索差押許可状の必要性 → ②鑑定処分許可状の併用 → ③条件の記載、の順。<span class="verb">令状の種類が配点の中心</span>。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">設問の二段の問いに、結論部でどう答えるか？</span></summary>
+                  <div class="mm-q-answer">①「<span class="kw">令状が必要である</span>」、②「<span class="kw">捜索差押許可状＋鑑定処分許可状による（又は条件付き捜索差押許可状による）</span>」と、問いに<span class="verb">一対一</span>で答える。正面から答えないと内容が正しくても伸びない。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">体内の物の強制取得 → ？</span></summary>
+                  <div class="mm-q-answer">捜索差押えの性質＝捜索差押許可状。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">レントゲン・下剤の医学的侵襲 → ？</span></summary>
+                  <div class="mm-q-answer">鑑定処分許可状を併用（説B）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">迷ったら絶対に外さない令状は？</span></summary>
+                  <div class="mm-q-answer">押収＝差押えの捜索差押許可状。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XXI — 嚥下物の差押えと令状の選択 · 13 chapters · 3 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-07-25T10:00+09:00">Generated: 2026-07-25 10:00 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
