@@ -150,6 +150,29 @@ def main():
         else:
             P('A41', f'arena○×バランスOK（○率{o_rate:.0%}）')
 
+    # ---- A42 quiz-answer 円バッジの qa-mark 契約（2026-07-26・縦落ち防止）----
+    # 旧 CSS `.quiz-answer b:first-child{…1.5em 円…}` は :first-child がテキストノードを
+    # 無視するため、想起型の答えの文中最初の <b>（長文キーワード）にも誤マッチし
+    # 1.5em 幅へ押し込まれ 1 文字ずつ縦落ちする（実害＝刑JX020・iPad/Lexia 実機報告）。
+    # 現行契約：円バッジは `<b class="qa-mark">○/×</b>`（冒頭の判定マーク専用）のみ。
+    a42_errors = []
+    if '.quiz-answer b:first-child' in html:
+        a42_errors.append('旧CSS .quiz-answer b:first-child が残存（文中<b>長文が1.5em円へ縦落ち・'
+                          'scripts/ariadne-qa-mark-fix.py で b.qa-mark 契約へ移行）')
+    for qm in re.finditer(r'<b class="qa-mark">(.*?)</b>', html, re.S):
+        t = text_only(qm.group(1))
+        if t not in ('○', '×'):
+            a42_errors.append(f'b.qa-mark の中身が○/×以外（1.5em円固定で潰れる）: {t[:24]}')
+    if a42_errors:
+        E('A42', ' / '.join(a42_errors[:6]) + (f' / 他{len(a42_errors)-6}件' if len(a42_errors) > 6 else ''))
+    else:
+        unmarked = len(re.findall(r'<div class="quiz-answer"[^>]*>\s*<b>[○×]</b>', html))
+        if unmarked:
+            W('A42', f'quiz-answer 冒頭の <b>○/×</b> が qa-mark 未指定 {unmarked} 枚'
+                     '（円バッジが出ない・<b class="qa-mark">○</b> と書く）')
+        else:
+            P('A42', 'qa-mark 契約OK（b:first-child 円バッジ廃止・qa-mark は○/×のみ）')
+
     # ---- Lexia 安全制約 A19〜A20 ----
     body_lit = False
     for sm in re.finditer(r'<script\b[^>]*>(.*?)</script>', html, re.S | re.I):

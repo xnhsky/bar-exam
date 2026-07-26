@@ -24,6 +24,19 @@
 >    刑JX001 のみ残し、刑JX002/005 を各問核心（被害者の落ち度／被害者の不適切行動と因果関係）へ差替・003/048 は削除。
 > 6. **生成規律**：`prompts/new-ariadne-headless.md` 手順3-ter／4 に ARENA-PURE を明記（bc=arena 無し・
 >    arena=法的実体のみ・検証に corpus ゲート追加）。
+> 7. **qa-mark パッチ（2026-07-26・版据置）**：周回ドリル答えの円バッジ CSS を
+>    `.quiz-answer b:first-child` → **`.quiz-answer b.qa-mark`** へ改め、冒頭の判定マークは
+>    `<b class="qa-mark">○/×</b>` と書く契約にした。旧セレクタは :first-child がテキストノードを
+>    無視するため、**想起（recall）型の答えのように文中に最初の `<b>` が来る場合も誤マッチ**し、
+>    長文キーワードが 1.5em 円へ押し込まれ 1 文字ずつ縦落ちしていた（実害＝刑JX020・iPad/Lexia
+>    実機報告。corpus 実測：想起型 103 answer 縦落ち＋冒頭2〜9字ラベル 23 answer 円内潰れ／48ファイル）。
+>    併せて `.recall .quiz-btn` に `width:auto; padding:0 14px; white-space:nowrap` を足し
+>    「書けなかった」の2行折れも修正。**qa-mark は○×1文字専用**（長文への付与は同じ縦落ちを再発させる）。
+>    三層防御＝①canonical/placeholder 契約に明記（作らせない）②`validate-ariadne.py` **A42**
+>    （旧セレクタ残存・qa-mark 中身が○×以外＝ERROR／冒頭 `<b>○/×</b>` の qa-mark 未指定＝WARN）
+>    ③`check-ariadne-canonical.py` 経由で corpus 常時検査。既存一括是正＝
+>    **`scripts/ariadne-qa-mark-fix.py`**（決定論・冪等・生テキスト編集で改行不変・
+>    canonical＋全103ファイルへ 2026-07-26 適用済み・qa-mark 付与1,726）。
 >
 > 以下は v1.3.0 の記述（誌面・判例カードは継続有効。周回ドリル関連は上記と §4/§12 の改定本文が優先）。
 

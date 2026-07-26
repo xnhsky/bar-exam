@@ -124,6 +124,10 @@
   ④既存74ファイルは `scripts/ariadne-arena-pure.py`（冪等・生テキスト編集で改行不変）で一括是正
   （bc-arena除去370・方法論ドリル削除112・スタンプ更新222＋自殺不可罰×5クラスタの個別是正）。
   版マーカー＝`ARIADNE v1.4.0 ARENA-PURE`／契約＝`ARIADNE_SLOT_CONTRACT v1.4.0 ARENA-PURE`。
+  **qa-mark パッチ（2026-07-26・版据置）**＝周回ドリル答えの円バッジ CSS `.quiz-answer b:first-child` が
+  想起型の文中最初の `<b>` 長文にも誤マッチし 1.5em 円へ縦落ち（実害＝刑JX020・iPad実機）→
+  **`b.qa-mark` 契約**（冒頭○×専用）へ移行＋`.recall .quiz-btn` の「書けなかった」2行折れ修正。
+  ゲート＝validate-ariadne **A42**・一括是正＝`scripts/ariadne-qa-mark-fix.py`（spec 冒頭 v1.4.0 節 7 参照）。
 - **ARIADNE v1.3.0 TXLEX-UNIFY（2026-07-04・系譜）**：v1.2.0 の placeholder 契約を継承しつつ、
   深掘り層（条文/判例/学説）の**誌面を TX_lex（刑TX420_lex）の配色・意匠に統一**し、**判例カードの構成を
   完全1本化**した major 改定。要点：①**全判例カードを `cx-sec` 形式に統一**（旧 h5・百選 hy-sec・table・
