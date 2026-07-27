@@ -803,7 +803,12 @@ TJR は「大元の号令＝指揮者」で、4 ストリームを 1 号令で�
 - 対象が無いストリームは自動スキップ（例：民法は TX 入力ゼロ→T スキップ・J のみ）。刑法は R が主役、刑訴は TX 334 件で T が主役。
 - **旧パターン script は TJR への転送スタブに置換**（`scripts/patterns/{TX-MARCH,TX-PICK,JX}.ps1`＝旧名で叩いても TJR へ流れる）。
   `scripts/night-batch-runner.ps1` は v10 GOLD-SKELETON 専用に引退（TX 生成は tx-v13-runner が後継。Windows スケジュールタスクは順次 TJR へ貼り替える）。
-- 二台運用は各 PC で番号帯を分けて並行（PC-A `-FromNumber 1 -ToNumber 20`／PC-B `-FromNumber 21 -ToNumber 40` 等）。
+- **二台同時 TJR は claim 予約で自動衝突回避（2026-07-27）**：各問の生成前に `locks/claims/{問題ID}.json` を
+  commit/push して番号を原子的に予約（先取りされたら次候補へ繰り上げ）。push 衝突は `pull --rebase -X ours` で
+  リモート先着版を自動採用（first-push-wins・解決不能でも必ず `rebase --abort`＝途中放置禁止）。実装
+  `scripts/tjr-claim.ps1`・正典 `docs/run-patterns.md`「二台同時 TJR の衝突対策」。夜間タスクは xnrg2 側 +60 分の
+  時差登録（`register-tjr-night-task.ps1`・AUTO・要再登録）。旧・番号帯の手動分割（`-FromNumber`/`-ToNumber` を
+  PC で分ける）は不要になったが併用可。
 - **JX は TTS 台本生成まで。音声（wav）は自動化せず AI Studio で手動生成する**（2026-06-06 方針・課金見送りで継続）。
   台本は `outputs/002_TTS/{問題ID}/`（配置後は `…TTSファイル原本\{問題ID}\`）。これを AI Studio で音声化し
   wav を `…A_重問耳トレ\N 科目\{問題ID}\` に置く。鍵（main/sub）・Pro/Flash の区別・自動音声段(旧⑤)は撤回。

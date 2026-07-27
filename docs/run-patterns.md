@@ -129,6 +129,42 @@ F はこの「事故の残骸」を毎バッチ検出して回収する常設の
 - **T/R との二重処理なし**：F が直る前に他ストリームが同番号を拾うことはない（破損品は T/R から不可視・
   直列実行・修復完了後は通常の SKIP 判定に戻る）。
 
+## 二台同時 TJR の衝突対策（claim 予約・first-push-wins・2026-07-27）
+
+**背景**：T/J/R の対象選定は決定論的（T=フロンティア最若番・R=旧版番号順・J=未生成最若番）なので、
+2 台が同時に TJR を始めると**同じ問題を選び**、生成 20〜35 分（JX は 1〜2 時間）を二重消費した上で
+push が衝突する。さらに旧実装は push 衝突時の素の `pull --rebase` が同一ファイル add/add で**途中停止
+したまま次問へ進み、以降の全 commit が unmerged paths で失敗する連鎖**があった。対策は三層：
+
+1. **claim 予約（`scripts/tjr-claim.ps1`・T/J/R/F 全ストリーム）**：各問の生成前に
+   `locks/claims/{問題ID}.json`（PC名・UTC時刻・ストリーム・TTL）を commit→push して番号を原子的に
+   予約する（GitHub の push 直列化を分散ロックに使う）。先取りされていたら `[SKIP-CLAIMED]`、
+   リモートに成果物が既に在れば `[SKIP-REMOTE]` で**次候補へ繰り上げ**（着手数 quota は維持＝
+   2 台が交互に番号を取り合って前進する。例：A が 49 を取れば B は 50 へ）。
+   - **解放**：TX は完成 commit に claim 削除を同梱（1 push で完結）。JX は ⑦ finalize の commit に同梱。
+     生成/検証失敗時は明示解放（`Release-TjrClaim`）。
+   - **TTL**：TX=150 分／JX=600 分（バッチ全体を覆う）。**失効 claim は他 PC が引き継ぎ可**＋TJR が
+     毎バッチ先頭で掃除（`Clear-TjrStaleClaims`）＝クラッシュした PC が番号を永久占有しない。
+   - **オフライン**：リモート到達不可なら予約なしで続行（単機運転を止めない。最終網は下記 2）。
+   - R(a) は claim の前に**リモート _lex が既に v13 か**を直接確認して `[SKIP-REMOTE]`（相手が再生成済み）。
+2. **安全 push（`Invoke-TjrSafePush`・first-push-wins）**：push 拒否 → `pull --rebase -X ours`
+   （rebase 中の ours=upstream＝**同一ファイル衝突はリモート先着版を採用・自分の commit は空化して
+   自動 drop**）→ 再 push。`-X` で解決できない競合（claim の modify/delete 等）は必ず
+   `git rebase --abort` で復帰して commit をローカル保持＝**rebase 途中放置の禁止**（連鎖 commit
+   失敗の根絶）。置換済みの push 経路＝tx-v13-runner／TJR-F（回収コミット）／jx-finalize ③／
+   rx-arb-autofill。起動時・毎バッチ頭にも同追随（`Sync-TjrRepo`）を入れ、pull を怠った側が相手の
+   生成済み番号を「未生成」と誤認する事故経路も塞いだ。
+3. **夜間タスクの時差**（`register-tjr-night-task.ps1 -StaggerMinutes`）：AUTO＝xnrg2 PC
+   （DESKTOP-5664QR6）のみ +60 分（21:00→22:00 …）。同時刻起動そのものを減らす運用緩和
+   （claim は保険に回る）。**反映には各 PC でタスクの再登録が必要**。
+
+- 番号帯の手動分割（`-TxFrom/-TxTo` を PC で分ける旧運用）は**不要になったが併用可**（claim と両立）。
+- F の「回収コミット」（未コミット残骸）はその PC のローカルにしか無いので claim 不要（push は安全 push）。
+- ストリームの科目自動充当は claim を見ない＝両 PC が同科目を選ぶことはあるが、問題単位で交互に
+  取り合うため二重生成にはならない。
+- 検証：2 クローン＋bare リポジトリで claim 競走（add/add→先着勝ち）・同一成果物衝突（-X ours で
+  先着版採用＋敗者 commit 自動 drop）・modify/delete（rebase 停止→abort 復帰）を実測確認済み。
+
 ## 音声（wav）の作り方 — AI Studio で手動（2026-06-06〜・変更なし）
 
 - J（JX）は**台本（txt）まで**生成する。音声は**自動化しない**。各問の台本は
