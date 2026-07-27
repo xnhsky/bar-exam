@@ -270,7 +270,13 @@ if (-not $DryRun -and $pushNeeded -and -not $NoPush) {
     for ($i=1; $i -le 3; $i++) {
         git push origin master
         if ($LASTEXITCODE -eq 0) { $ok=$true; break }
-        Write-Host "[push] 失敗（試行 $i/3）。再試行..." -ForegroundColor Yellow
+        Write-Host "[push] 失敗（試行 $i/3）。リモート先行へ rebase 追随して再試行..." -ForegroundColor Yellow
+        # 2026-07-27: pull 無しの再試行はリモートが 1 コミットでも先行すると 3 連敗が確定する
+        # （fetch-first 拒否は待っても解消しない）。-X ours＝同一ファイル衝突はリモート先着版を
+        # 採用（first-push-wins・二台同時 TJR の衝突対策）。解決不能なら rebase --abort で必ず
+        # 復帰して commit をローカル保持（rebase 途中放置の禁止）。正典 docs/run-patterns.md。
+        git -c rebase.autoStash=true pull --rebase -X ours origin master
+        if ($LASTEXITCODE -ne 0) { git rebase --abort 2>$null }
         Start-Sleep -Seconds ([math]::Pow(2,$i))
     }
     if ($ok) { Write-Host "[push] 完了。" -ForegroundColor Green }

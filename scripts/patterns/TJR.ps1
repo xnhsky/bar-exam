@@ -86,6 +86,12 @@ $LogsDir = Join-Path $ProjectRoot 'logs'
 $RepairLedger = Join-Path $LogsDir 'tjr-repair-ledger.json'   # F の再試行台帳（PCローカル・git外）
 $RepairReport = Join-Path $LogsDir 'tjr-repair-report.md'     # ESCALATE / report-only の追記先
 
+# === TJR claim ライブラリ（二台同時実行の衝突対策・2026-07-27）===
+#   claim 予約＋安全 push（first-push-wins・rebase 途中放置の禁止）。正典 docs/run-patterns.md。
+#   各エンジン（tx-v13-runner / jx-batch-runner）も dot-source するが、TJR 自身も
+#   バッチ頭の Sync-TjrRepo / Clear-TjrStaleClaims / F の安全 push で使う。
+. (Join-Path $ProjectRoot 'scripts\tjr-claim.ps1')
+
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -225,13 +231,10 @@ function Add-RepairReport { param([string[]]$Lines)
     Add-Content -Path $RepairReport -Encoding utf8 -Value (@("## $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') TJR-F") + $Lines + @(''))
 }
 function Invoke-GitPushWithRetry {
-    for ($try = 1; $try -le 3; $try++) {
-        & git -C $ProjectRoot push 2>&1 | Out-Null
-        if ($LASTEXITCODE -eq 0) { return $true }
-        & git -C $ProjectRoot -c rebase.autoStash=true pull --rebase 2>&1 | Out-Null
-        Start-Sleep -Seconds ([Math]::Min(30, 5 * $try))
-    }
-    return $false
+    # 2026-07-27: 安全 push（tjr-claim.ps1）へ委譲。push 拒否 → pull --rebase -X ours（同一
+    # ファイル衝突はリモート先着版を採用）→ 再 push。解決不能でも rebase --abort で必ず復帰
+    # ＝旧実装の「rebase 途中放置→以降の commit 全滅」を根絶。
+    return (Invoke-TjrSafePush -ProjectRoot $ProjectRoot -MaxTries 3 -Label 'TJR-F')
 }
 function Invoke-FStream {
     # 戻り値: @{ Rc=<0/1>; Dispatched=<今回実際に動かした件数>; Actionable=<監査の要対応件数> }
@@ -414,6 +417,13 @@ if ($DryRun -and $Batches -gt 1) {
 }
 
 for ($b = 1; $b -le $batchCount; $b++) {
+    # 毎バッチ先頭でリモート先行分へ追随＋失効 claim を掃除（二台同時実行の衝突対策・2026-07-27）。
+    # 追随してから対象検出することで、相手 PC の生成済み番号を「仕事あり」と誤検出しない。
+    if (-not $DryRun) {
+        [void](Sync-TjrRepo -ProjectRoot $ProjectRoot)
+        Clear-TjrStaleClaims -ProjectRoot $ProjectRoot -NoPush:$NoPush
+    }
+
     # 毎バッチ再解決＝科目の仕事が尽きたら次バッチから優先順の次科目へ自動で移る
     $subT = ''; $subJ = ''; $subR = ''
     if ($runT) { $subT = Resolve-StreamSubject 'T' $TxFrom $TxTo }

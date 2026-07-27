@@ -66,6 +66,11 @@ $DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
 if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
 $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
+
+# === TJR claim ライブラリ（二台同時実行の衝突対策・2026-07-27）===
+#   claim 予約＋安全 push（first-push-wins・rebase 途中放置の禁止）。正典 docs/run-patterns.md。
+. (Join-Path $ProjectRoot "scripts\tjr-claim.ps1")
+
 # 科目 → 00N_科目 サブフォルダ（全シリーズ共通・入出力とも・2026-06-20 inputs も統一）
 $SubjectDir    = switch ($Subject) { '刑'{'001_刑法'} '刑訴'{'002_刑事訴訟法'} '民'{'003_民法'} '商'{'004_商法'} '民訴'{'005_民事訴訟法'} '行政'{'006_行政法'} '憲'{'007_憲法'} default {"$Subject"} }
 # 入力は科目フォルダ(00N_科目)に 重問PDF\＋講義逐語\ を内包：inputs\001_JX\00N_科目\重問PDF\NN.pdf
@@ -250,6 +255,10 @@ $RepairSet = @{}
 foreach ($tok in @($RepairNumbers -split '[,\s]+')) {
     if ($tok -match '^\d+$') { $RepairSet[[int]$tok] = $true }
 }
+
+# === 対象検出の前にリモート先行分へ追随（2026-07-27）===
+#   pull を怠った側が相手 PC の生成済み JX を PENDING と誤検出して作り直す事故経路を塞ぐ。
+if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
 # === PDF 検出と分類（PENDING / SKIP_EXISTS / SKIP_NO_TRANSCRIPT / SKIP_NONUMERIC）===
 # 入力レイアウト（2026-06-06 分類確定）:
@@ -510,12 +519,32 @@ function Clear-TtsOutputDir {
 }
 
 # === 1 問処理ループ ===
+#   $Pending 全体を候補に、claim が取れた問題から着手する（着手数は $MaxProblems で打ち止め）。
+#   相手 PC に先取りされた番号は SKIP して次候補へ繰り上げ（二台同時実行の衝突対策・2026-07-27）。
 $ConsecutiveFailures = 0
 $ProcessedCount = 0
+$AttemptedCount = 0
 $DeployIds = @()   # ⑥配置対象（HTML 生成＝jxPass の問題 ID）
 
-foreach ($t in $Targets) {
+foreach ($t in $Pending) {
+    if ($AttemptedCount -ge $MaxProblems) { break }
     Write-Host "`n==================== [$($t.ProblemId)] ====================" -ForegroundColor Cyan
+
+    # ----- claim 予約（二台同時 TJR の同番号二重生成を防止・2026-07-27）-----
+    #   JX は commit/push が ⑦ finalize（バッチ末尾）まで無いため、生成中〜finalize の間は
+    #   この claim だけが相手 PC への「着手中」シグナルになる。TTL はバッチ全体
+    #   （最大 3 問 × 1〜2 時間＋副産物）を覆う 600 分。解放は ⑦ finalize の commit に同梱。
+    $claimStatus = 'CLAIMED_OFFLINE'
+    if (-not $NoPush) {
+        $existsRel = @()
+        if ($RepairSet.Count -eq 0) {
+            # 新規＝リモートに JX が出現していれば相手 PC が完成済み（F 修復は存在が前提なので見ない）
+            $existsRel = @( (ConvertTo-TjrRelPath $ProjectRoot $t.JxOutputPath) )
+        }
+        $claimStatus = Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId $t.ProblemId -Stream 'J' -TtlMinutes 600 -RemoteExistsRelPaths $existsRel
+        if ($claimStatus -in @('REMOTE_EXISTS', 'CLAIMED_BY_OTHER', 'ERROR')) { continue }
+    }
+    $AttemptedCount++
 
     # ----- 初期化 -----
     $jxElapsed = 0; $jxBytes = 0; $jxSentinel = "UNKNOWN"; $jxExit = $null; $jxValidate = "skipped"
@@ -805,6 +834,11 @@ foreach ($t in $Targets) {
     # ⑥配置対象として記録（HTML 生成済み＝jxPass）。実配置はバッチ末尾（⑤音声の後）。
     if ($jxPass) { $DeployIds += $t.ProblemId }
 
+    if (-not $jxPass -and $claimStatus -eq 'CLAIMED') {
+        # JX 不成立＝⑦ finalize に乗らない → 予約を解放して相手 PC／次回 TJR-F に道を開ける
+        Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId $t.ProblemId -Reason 'JX 生成/検証失敗' -NoPush:$NoPush
+    }
+
     $ProcessedCount++
 }
 
@@ -906,6 +940,10 @@ if ($Finalize -and -not $DryRun) {
     } elseif (-not (Test-Path $JxFinalize)) {
         Write-Host "[⑦ FINALIZE] jx-finalize.ps1 が見つかりません: $JxFinalize（スキップ）" -ForegroundColor Yellow
     } else {
+        # 各問の claim 解放を finalize の commit に同梱する（自分の claim だけ削除＋stage・2026-07-27。
+        # jx-finalize の commit は index 全体を拾うため stage 済み削除が自然に乗る。乗り損ねても
+        # TTL 失効＋TJR バッチ頭の Clear-TjrStaleClaims が回収する）
+        foreach ($id in $DeployIds) { [void](Remove-TjrClaimLocal -ProjectRoot $ProjectRoot -ProblemId $id) }
         $finArgs = @('-NoProfile','-File',$JxFinalize,'-Subject',$Subject,'-Ids',($DeployIds -join ','),'-ProjectRoot',$ProjectRoot,'-NoCleanup')
         if ($NoPush) { $finArgs += '-NoPush' }
         & pwsh @finArgs
@@ -916,7 +954,7 @@ if ($Finalize -and -not $DryRun) {
 }
 
 Write-Host "`n=== jx-batch-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
-Write-Host "処理件数: $ProcessedCount / $($Targets.Count)"
+Write-Host "処理件数: $ProcessedCount / 着手 $AttemptedCount（候補 $($Pending.Count) 件・最大 $MaxProblems）"
 Write-Host "コストログ: $CostCsv"
 
 Stop-Transcript | Out-Null

@@ -154,8 +154,11 @@ try {
 
   & git push origin master 2>&1 | Out-Null
   if ($LASTEXITCODE -ne 0) {
-    Log "push 失敗 → pull --rebase して再試行" 'Yellow'
-    & git pull --rebase origin master 2>&1 | Out-Null
+    Log "push 失敗 → pull --rebase -X ours（同一ファイルはリモート先着版を採用）して再試行" 'Yellow'
+    # 2026-07-27: 素の pull --rebase は同一ファイル add/add（両 PC が同じ副産物を補完等）で
+    # rebase を途中放置し以降の git 操作を壊す。-X ours＝first-push-wins・失敗時は必ず abort。
+    & git pull --rebase -X ours origin master 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) { & git rebase --abort 2>&1 | Out-Null }
     & git push origin master 2>&1 | Out-Null
   }
   if ($LASTEXITCODE -eq 0) { Log "push 完了（副産物を GitHub 永続化）✅" 'Green'; Report "✅ 副産物を自動補完して push: $filledDesc  [$sha]" }

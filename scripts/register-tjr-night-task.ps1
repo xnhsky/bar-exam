@@ -39,6 +39,7 @@ param(
     [int]$MaxJX  = 3,                   # J の1起動チャンク
     [int]$MaxR   = 3,                   # R の1起動チャンク
     [string[]]$Times     = @('21:00','23:00','01:00','03:00','05:00'),
+    [int]$StaggerMinutes = -1,          # 夜間トリガーの時差(分)。-1=AUTO（xnrg2 PC=DESKTOP-5664QR6 のみ +60・他は 0）
     [switch]$NoPush,                    # commit のみ（push しない）
     [string]$ProjectRoot = '',          # 別 clone/root で登録する場合に指定（未指定はこの repo）
     [switch]$Unregister
@@ -94,6 +95,17 @@ if ($NoPush) { $argList += '-NoPush' }
 $argString = $argList -join ' '
 
 $Action = New-ScheduledTaskAction -Execute $PwshExe -Argument $argString -WorkingDirectory $ProjectRoot
+
+# === 二台同時起動の緩和（2026-07-27）: PC ごとに夜間トリガーをずらす ===
+#   両 PC が同時刻に TJR を始めると対象選定が同一（最若番から）で claim 競走が毎問発生する。
+#   時差でほぼ直列化し、claim（scripts/tjr-claim.ps1）は保険に回す。AUTO は xnrg2 PC
+#   （DESKTOP-5664QR6・CLAUDE.md §8 の二台構成）のみ +60 分。明示指定 -StaggerMinutes N / 0=無効。
+#   ※ 反映には各 PC で本スクリプトの再実行（タスク再登録）が必要。
+if ($StaggerMinutes -lt 0) { $StaggerMinutes = if ($env:COMPUTERNAME -eq 'DESKTOP-5664QR6') { 60 } else { 0 } }
+if ($StaggerMinutes -gt 0) {
+    $Times = @($Times | ForEach-Object { [DateTime]::ParseExact($_, 'HH:mm', $null).AddMinutes($StaggerMinutes).ToString('HH:mm') })
+    Write-Host "[INFO] 夜間トリガーを +$StaggerMinutes 分シフト: $($Times -join ' / ')（二台同時起動の緩和）" -ForegroundColor Yellow
+}
 
 # === 5 トリガー（各時刻の毎日起動）＋ 起動時トリガー（遅延3分）===
 $Triggers = @(foreach ($t in $Times) { New-ScheduledTaskTrigger -Daily -At $t })

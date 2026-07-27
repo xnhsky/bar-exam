@@ -74,6 +74,10 @@ try {
     if ($__hp -ne 'scripts/git-hooks') { & git -C $ProjectRoot config core.hooksPath scripts/git-hooks 2>$null }
 } catch {}
 
+# === TJR claim ライブラリ（二台同時実行の衝突対策・2026-07-27）===
+#   claim 予約＋安全 push（first-push-wins・rebase 途中放置の禁止）。正典 docs/run-patterns.md。
+. (Join-Path $ProjectRoot 'scripts\tjr-claim.ps1')
+
 # === スリープ抑止（DryRun 以外・feedback_nbr_keep_awake）===
 if (-not $DryRun) {
     try {
@@ -104,6 +108,11 @@ if ($missing.Count -gt 0) {
     exit 1
 }
 foreach ($d in @($OfficialDir, $LexDir)) { if (-not (Test-Path $d)) { New-Item -Path $d -ItemType Directory -Force | Out-Null } }
+
+# === 対象検出の前にリモート先行分へ追随（2026-07-27）===
+#   pull を怠った側が相手 PC の生成済み番号を「未生成」と誤認して作り直す事故経路を塞ぐ。
+#   （旧実装は起動時 pull が無く、push 失敗後のリトライ内でしか追随しなかった）
+if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
 # === 番号 → 入力PDFパス索引（数字ステムのみ）===
 function Get-PdfMap {
@@ -218,8 +227,8 @@ if ($RepairIds) {
     }
 }
 
-Write-Host "`n$modeText 対象: $($Pending.Count) 件（本起動で最大 $MaxProblems 件）" -ForegroundColor Yellow
-$Targets = @($Pending | Select-Object -First $MaxProblems)
+Write-Host "`n$modeText 対象: $($Pending.Count) 件（本起動で最大 $MaxProblems 件・相手 PC の claim 先取り分は次候補へ繰り上げ）" -ForegroundColor Yellow
+$Targets = @($Pending | Select-Object -First $MaxProblems)   # 当初候補の表示用（実際の着手は claim 取得順）
 foreach ($t in $Targets) { Write-Host "  - $($t.ProblemId)  <- $($t.PdfPath)" }
 
 if ($Targets.Count -eq 0) { Write-Host "対象なし、終了。" -ForegroundColor Green; Stop-Transcript | Out-Null; exit 0 }
@@ -237,11 +246,37 @@ function Invoke-ClaudeHeadless {
 }
 
 # === 1 問処理ループ ===
+#   $Pending 全体を候補に、claim が取れた問題から着手する（着手数は $MaxProblems で打ち止め）。
+#   相手 PC に先取りされた番号は SKIP して次候補へ繰り上げ＝2 台が交互に番号を取り合って前進する。
 $ConsecutiveFailures = 0
 $Processed = 0
-foreach ($t in $Targets) {
-    $startTime = Get-Date
+$Attempted = 0
+foreach ($t in $Pending) {
+    if ($Attempted -ge $MaxProblems) { break }
     Write-Host "`n==================== [$($t.ProblemId)] $modeText ====================" -ForegroundColor Cyan
+
+    # ----- claim 予約（二台同時 TJR の同番号二重生成を防止・2026-07-27）-----
+    $claimStatus = 'CLAIMED_OFFLINE'
+    if (-not $NoCommit -and -not $NoPush) {
+        if ($t.Reason -eq '旧_lex最新化') {
+            # 相手 PC が先に v13 再生成済みならスキップ（リモート _lex の版マーカーを直接確認）
+            $lexRel = ConvertTo-TjrRelPath $ProjectRoot $t.LexPath
+            if (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $lexRel -Pattern 'TX v13\.\d+\.\d+ LOOP-CARD') {
+                Write-Host "[SKIP-REMOTE] $($t.ProblemId)：リモート _lex は既に v13（相手 PC が再生成済み）" -ForegroundColor DarkYellow
+                continue
+            }
+            $existsRel = @()   # 出力は存在が前提（旧版の上書き）＝存在チェックは使わない
+        } elseif ($t.Reason -eq '修復再生成') {
+            $existsRel = @()   # 破損品の上書き修復＝存在が前提。claim だけで直列化
+        } else {
+            # 新規／欠番補完＝リモートに公式が出現していれば相手 PC が完成済み
+            $existsRel = @( (ConvertTo-TjrRelPath $ProjectRoot $t.OfficialPath) )
+        }
+        $claimStatus = Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId $t.ProblemId -Stream $modeText -TtlMinutes 150 -RemoteExistsRelPaths $existsRel
+        if ($claimStatus -in @('REMOTE_EXISTS', 'CLAIMED_BY_OTHER', 'ERROR')) { continue }
+    }
+    $Attempted++
+    $startTime = Get-Date
 
     # プロンプト組み立て（実行指示を前置＝参照資料誤認による挨拶終了の防止）
     $tmpl = Get-Content $PromptSource -Raw -Encoding utf8
@@ -316,6 +351,8 @@ sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せ�
         try { if (Test-Path $StampScript) { & python $StampScript 2>&1 | Out-Null } } catch {}
         try {
             & git -C $ProjectRoot add -- $t.OfficialPath $t.LexPath 2>&1 | Out-Null
+            # claim 解放を同じ commit に同梱（予約→成果物→解放が 1 push で完結・2026-07-27）
+            [void](Remove-TjrClaimLocal -ProjectRoot $ProjectRoot -ProblemId $t.ProblemId)
             $msg = if ($t.Reason -eq '修復再生成') { "fix($($Prefix)TX): $($t.ProblemId) を修復再生成（TJR-F・エラー品/未完成品の回収）" }
                    elseif ($Regen -and $t.Reason -eq '欠番補完') { "feat($($Prefix)TX): $($t.ProblemId) を v13 で補完生成（過去帯欠番・二系統）" }
                    elseif ($Regen) { "feat($($Prefix)TX): $($t.ProblemId) を v13 で再生成（旧_lex最新化・二系統）" }
@@ -324,20 +361,23 @@ sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せ�
             $committed = $true
             $pushed = $false
             if (-not $NoPush) {
-                for ($try=1; $try -le 3; $try++) {
-                    & git -C $ProjectRoot push 2>&1 | Out-Null
-                    if ($LASTEXITCODE -eq 0) { $pushed = $true; break }
-                    # 別PCの並行 push に先行されると fetch-first 拒否で3回とも同じ失敗になるため、
-                    # リトライ前に rebase で追随（autoStash＝settings.local.json 等の未staged差分を退避）。
-                    # 旧実装は追随なし＋失敗でも「push 済」表示＝未pushコミット滞留の実害（刑訴TX038-042/刑TX057-059）。
-                    & git -C $ProjectRoot -c rebase.autoStash=true pull --rebase 2>&1 | Out-Null
-                    Start-Sleep -Seconds ([Math]::Min(30, 5 * $try))
-                }
+                # 安全 push（2026-07-27・tjr-claim.ps1）: push 拒否 → pull --rebase -X ours（同一
+                # ファイル衝突はリモート先着版を採用＝first-push-wins・自コミットは空化して自動 drop）
+                # → 再 push。解決不能な競合は必ず rebase --abort で復帰して commit をローカル保持。
+                # 旧実装の素の pull --rebase は同一ファイル add/add で rebase を途中放置し、
+                # 以降の全問の commit が unmerged paths で失敗する連鎖があった。
+                $pushed = Invoke-TjrSafePush -ProjectRoot $ProjectRoot -MaxTries 3 -Label $t.ProblemId
             }
             if ($NoPush)      { Write-Host "[COMMIT] $($t.ProblemId) 永続化（commit のみ・-NoPush）" -ForegroundColor Green }
             elseif ($pushed)  { Write-Host "[COMMIT] $($t.ProblemId) 永続化（push 済）" -ForegroundColor Green }
             else              { Write-Host "[COMMIT] $($t.ProblemId) commit 済・push 未了（リモート先行。次問の push か手動回収で反映）" -ForegroundColor Yellow }
         } catch { Write-Host "[COMMIT FAIL] $_" -ForegroundColor Yellow }
+    }
+
+    if (-not $committed -and $claimStatus -eq 'CLAIMED') {
+        # 検証 NG・出力不完全・commit 失敗などで成果物が載らない場合は予約を解放
+        # （相手 PC／次回 TJR-F が着手できるようにする。解放漏れは TTL 失効＋掃除が回収）
+        Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId $t.ProblemId -Reason '生成/検証失敗' -NoPush:$NoPush
     }
 
     Add-Content -Path $CostCsv -Encoding utf8 -Value ("$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$($t.ProblemId),$modeText,$elapsed,$offBytes,$lexBytes,$sentinel,$exitCode,$validate,$committed")
@@ -351,7 +391,7 @@ sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せ�
     $Processed++
 }
 
-Write-Host "`n=== tx-v13-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') 処理 $Processed / $($Targets.Count) ===" -ForegroundColor Cyan
+Write-Host "`n=== tx-v13-runner 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') 処理 $Processed / 着手 $Attempted（候補 $($Pending.Count) 件・最大 $MaxProblems）===" -ForegroundColor Cyan
 
 # バッチ後監査：ファイル間重複・ID 不整合
 if (Test-Path (Join-Path $ProjectRoot 'scripts\check-duplicates.py')) {
