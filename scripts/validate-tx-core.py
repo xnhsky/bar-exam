@@ -2319,6 +2319,59 @@ class Validator:
                              "単独カードで判定対象の述語が読めない。要件事実込みの断定完結命題"
                              "（文末は句点）に書き換える（spec 第5-bis-2項・実害＝刑TX395/397/387 型）。")
 
+    # G73（2026-07-28）＝答案圧縮（TX-ANSCOMP・§v13q）の統合整合。規約＝各記述カードの
+    # 記述原文（.syn-orig）末尾と正誤表 tr の data-brief-mark 末尾の 2 箇所に同一文で置く
+    # （シングルソース）。既存 corpus は未展開のため「両方無し」は WARNING（TJR 付随で消化）。
+    # 片置き・文の不一致・CSS 区画欠落は ERROR（作っても弾く層）。可視の空 #basis 白箱は助言。
+    def g73_anscomp_integration(self):
+        if not self.is_lex_target():
+            return
+        if self.soup.select_one(".tx-inline-card .tx-v13-verdict") is None:
+            return  # v13 LOOP-CARD のみ対象
+        def _norm(t):
+            return re.sub(r"\s+", "", t or "")
+        card_map = {}
+        for art in self.soup.select("article.tx-inline-card[data-stmt]"):
+            sid = (art.get("data-stmt") or "").strip()
+            el = art.select_one(".syn-orig .tx-anscomp-line")
+            card_map[sid] = _norm(el.get_text()) if el else None
+        if not card_map:
+            return
+        tbl_map = {}
+        for row in self.soup.select("tr[data-stmt][data-brief-mark]"):
+            sid = (row.get("data-stmt") or "").strip()
+            frag = BeautifulSoup(row.get("data-brief-mark") or "", "html.parser")
+            el = frag.select_one(".tx-anscomp-line")
+            tbl_map[sid] = _norm(el.get_text()) if el else None
+        if any(v for v in list(card_map.values()) + list(tbl_map.values())):
+            css = "\n".join(style.get_text() for style in self.soup.find_all("style"))
+            if "TX-ANSCOMP:BEGIN" not in css and not re.search(r"\.tx-anscomp-line\s*\{", css):
+                self.err("G73", ".tx-anscomp-line を使っているのに TX-ANSCOMP CSS 区画が無い＝無装飾で出る。"
+                                "canonical/GENESIS-CARD.html 第1 <style> の /* TX-ANSCOMP:BEGIN〜END */ を複製する。")
+        missing_both = []
+        for sid in sorted(card_map):
+            c, t = card_map.get(sid), tbl_map.get(sid)
+            if c is None and t is None:
+                missing_both.append(sid)
+                continue
+            if (c is None) != (t is None):
+                where = "正誤表 data-brief-mark" if t is None else "記述原文（.syn-orig）"
+                self.err("G73", f"記述{sid}: 答案圧縮が片置き（{where} 側に無い）。§v13q はカード記述原文末尾と"
+                                "正誤表 brief-mark 末尾の 2 箇所同一文（シングルソース）を要求する。")
+            elif c != t:
+                self.err("G73", f"記述{sid}: 答案圧縮の文がカード側と正誤表側で不一致（シングルソース崩れ）。"
+                                "タグ除去後のテキストが一致するよう同一文に揃える（§v13q）。")
+        if missing_both and len(missing_both) == len(card_map):
+            self.warn("G73", "答案圧縮（.tx-anscomp-line）が未展開（全記述に無し）。新規生成・既存更新時は"
+                             "記述原文末尾＋正誤表 brief-mark 末尾へ同一文で置く（§v13q・既存は TJR 付随で消化）。")
+        elif missing_both:
+            self.warn("G73", f"記述{','.join(missing_both)}: 答案圧縮が無い（他記述には有り）。全記述へ展開する（§v13q）。")
+        basis = self.soup.find(id="basis")
+        if basis is not None and not basis.has_attr("hidden"):
+            if _norm(basis.get_text()) in ("", "↑ページ先頭へ"):
+                self.warn("G73", "#basis が可視の空箱（中身が「↑ページ先頭へ」だけ）。最新法令ノートを使わない問題は"
+                                 " <section class=\"section\" id=\"basis\" hidden=\"\"></section> の不可視アンカーにする（§v13q）。")
+
     # G67（2026-07-13）＝図解コンポーネント（TX-DGM）の整合。任意スロットなので
     # 図解を使わないファイルには何も要求しない（効く論点＝対比・裏命題ペア・分岐・時系列だけに置く規約）。
     _G67_ALLOWED = {
@@ -2498,6 +2551,7 @@ class Validator:
         self.g66_sysmap_text_overflow()
         self.g69_sysmap_text_collision()
         self.g67_diagram_component()
+        self.g73_anscomp_integration()
         self.g12_no_301_leakage()
         self.g13_no_baseline_copy()
         self.g14_filename_dir()
@@ -2576,7 +2630,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G69, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G73, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
