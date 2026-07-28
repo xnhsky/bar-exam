@@ -74,6 +74,9 @@ v12.2.1 は問題文直下のインライン肢カードに **ANSWER 箱＋5点�
   印付き原文は各行 `<tr>` の **`data-brief-mark`**（問題固有スロット・属性は二重引用、内側 class は単引用 `'…'`）に
   HTML で持たせ、エンジンが innerHTML 展開する。フル `.syn-orig` は長いので**要約版**を鋳造する（カードは精読、
   正誤表は文脈付き高速復習の役割分担）。
+- **✍答案圧縮（§v13q・2026-07-28）**：`data-brief-mark` 値の**末尾**に
+  `<span class='tx-anscomp-line'>規範＋条文・判例の答案調1〜2文</span>` を置き、各肢カード `.syn-orig` 末尾の
+  同要素と**同一文**にする（シングルソース・G73 が片置き/不一致を ERROR）。×記述の `.tx-stmt-fix` は最小訂正に留める。
 - **成績表示（LOCKED）**：`renderInlineAnswerTablePanel` が `computeInlineScore` で正解数を集計し、パネル見出し行
   `.tx-inline-answer-table-title-row` の右に `.tx-inline-answer-score` を出す（全問正解＝`is-perfect`「🎉 全問正解！ N/N」／
   一部＝`is-partial`「n / N 正解」／`answered==0` は非表示）。行の正誤は `.tx-user-correct`/`.tx-user-incorrect` で判定
@@ -121,7 +124,8 @@ v12.2.1 は問題文直下のインライン肢カードに **ANSWER 箱＋5点�
 
 1. `.tx-v13-verdict` … 判定バッジ（○×＋一言理由）。
 2. `.sub-card.synthesis` … 🎯統合解説。中身の順＝
-   `.syn-orig`（📜記述原文＋**正誤マーキング**） → `.syn-lead`（💡THE GIST） → `.syn-path`（段階解説・番号） →
+   `.syn-orig`（📜記述原文＋**正誤マーキング**＋末尾に**✍答案圧縮** `.tx-anscomp-line`＝規範完全文・
+   正誤表 brief-mark と同一文＝§v13q） → `.syn-lead`（💡THE GIST＝自己完結構成・§v13q B） → `.syn-path`（段階解説・番号） →
    `.syn-image`（🗝記憶のフック＝締めの一行標語＋補足1文まで可。旧💭INTUITION の位置・class 流用）。**SYNTHESIS の外箱は平坦化**
    （枠・背景を外し、内側の GIST/記憶のフックだけ箱）。**執筆規約**（syn-lead＝やさしい版・用語サンドイッチ／
    syn-image＝🗝記憶のフックの一行標語＋補足1文まで可）は `docs/tx-v12.2.1-inline-lock.md` §v13m が正典。
