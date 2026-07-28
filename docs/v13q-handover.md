@@ -26,6 +26,14 @@
 - `scripts/v13q-inject.py <FILE> <payload.json>` … 決定論注入（CSS 区画の canonical 移植・syn-orig/brief-mark への同一文注入・fix 置換・hide_basis）。BOM/CRLF 保持・assert 付き・brief-mark 行の無い v13.0 表はカード側のみ注入（現存対象は無し＝001 は済）。
 - payload 形式は v13q-inject.py の docstring 参照。**anscomp に半角二重引用符 `"` 禁止**（属性内に入るため）。
 
+## 3-bis. 【2026-07-28 追記】残件は TJR-Q 特別枠へ移行済み
+
+残り（刑訴TX081〜179）は **TJR の Q ストリーム（特別枠）** が自動消化する：通常の「TJR処理」1バッチごとに
+**10本ずつ**（`-MaxQ` で変更可）headless（Opus 5 固定）で改訂→PASS のみ commit/push。残件ゼロで自然消滅。
+エンジン＝`scripts/v13q-runner.ps1`／プロンプト＝`prompts/v13q-headless.md`／正典＝`docs/run-patterns.md` Q 節。
+したがって**新規セッションでの手動継続（下記 §4）は不要になった**（大量に一気に進めたい時のオプションとして残す。
+その場合は TJR と重ならないよう claim を確認するか、TJR 夜間タスクを止めてから行う）。
+
 ## 4. 実行パイプライン（確立済み・そのまま踏襲）
 
 1. ブランチ：`git fetch origin master && git checkout -B <作業ブランチ> origin/master`（作業ブランチ名は新セッションの指定に従う）。

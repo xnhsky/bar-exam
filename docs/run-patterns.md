@@ -5,7 +5,7 @@
 > ／修復（F・2026-07-24 新設）を 1 号令で束ねる。実生成は各エンジン（`tx-v13-runner.ps1`／`jx-batch-runner.ps1`）へ委譲する。
 > チャットで「**TJR処理 刑訴**」のように科目名を添えて指示すれば起動する。両 PC・全セッション共通の語彙。
 
-## TJR の4ストリーム
+## TJR の5ストリーム
 
 | 記号 | ストリーム | 内容 | エンジン | 恒久/過渡 |
 |---|---|---|---|---|
@@ -13,8 +13,9 @@
 | **T** | 新規TX生成（フロンティア前進） | `inputs/000_TX/{科目}` の未生成番号のうち**公式の最大既存番号より先**を最若番から（過去帯の欠番は R の領分＝二重処理防止・2026-07-18）。**v13 二系統＝公式(000_TX 本物5択)＋Lexia `_lex`(ux/000_TX ox-grid＋解法ナビ＋物語)** | `scripts/tx-v13-runner.ps1` | 恒久（未生成が尽きるまで） |
 | **J** | 新規JX生成 | `inputs/001_JX/{科目}` の未生成番号を最若番から。JX＋**副産物 RX/TREE/ARIADNE**＋TTS台本＋配置 | `scripts/jx-batch-runner.ps1`（内部エンジン） | 恒久 |
 | **R** | さかのぼり（旧版TXLEX再生成＋欠番補完） | (a) `_lex` が既存だが版が旧い（v13 でない）かつ**入力PDFが残っている**番号を **PDFから最新v13で作り直す**（公式も同時に最新化）。PDFが消えた番号はスキップ。(b) **公式最大番号以下の欠番**（PDFあり・公式なし＝過去帯の未生成穴。例：刑法 15-54/304-309/312-323 の58件）の**補完生成**（2026-07-18 ユーザー確定「刑法58件未生成の分をR再生成と併せる」） | `scripts/tx-v13-runner.ps1 -Regen` | **過渡＝全件最新化で自然消滅** |
+| **Q** | §v13q 付随・特別枠（2026-07-28 新設） | **刑訴TX の既存 `_lex`（v13）で答案圧縮（`tx-anscomp-line`）未展開の残件**（設置時点＝081-179 の99本）を若番から **1バッチ10本ずつ** headless（Opus 5 固定＝`-Model claude-opus-5`）で §v13q 改訂（✍答案圧縮＋GIST自己完結＋訂正チップ最小化＋#basis空箱hidden）。レシピ正典＝`docs/v13q-handover.md`／プロンプト＝`prompts/v13q-headless.md`。ランナーが validate-tx-core＋check-tx-lex-engine を再検証し **PASS のみ 1問ずつ commit/push**（FAIL はロールバック・同一問題2回失敗で ESCALATE）。二台衝突は claim（`{ID}_v13q`）＋リモート改訂済み検知で回避 | `scripts/v13q-runner.ps1` | **過渡＝残件ゼロ（完遂）で「該当なし」SKIP＝自然消滅** |
 
-- **同時起動＝1号令で F→T→J→R を順に自動実行**（1作業ツリーで並行すると git commit/push が衝突する実害が
+- **同時起動＝1号令で F→T→J→R→Q を順に自動実行**（1作業ツリーで並行すると git commit/push が衝突する実害が
   記録済み＝`feedback_jx_concurrent_batch_gate_collision`／`feedback_shared_workdir_agent_collision`。よって直列。
   真の並列が要るときは各 PC で番号帯を分ける or 別 worktree で回す）。「1回叩いて放置」を満たす。
   **「修復と新規生成の同時並行」（2026-07-24 ユーザー指示）は「1 号令の中で F と T/J/R の両方が自動で進む」
@@ -54,6 +55,12 @@ pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 民 -JxFrom 5 -JxTo 5
 # 1ストリームだけ（旧・短縮形「TX 355-360 処理」「JX 1-10 処理」）＝-Only を付ける
 pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑 -Only T -TxFrom 355 -TxTo 360
 pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 民 -Only J -JxFrom 1 -JxTo 10
+
+# Q（§v13q 特別枠）だけ回す／件数を変える／止める
+pwsh -NoProfile -File scripts\patterns\TJR.ps1 -Only Q            # 10本だけ処理
+pwsh -NoProfile -File scripts\patterns\TJR.ps1 -Only Q -MaxQ 20   # 件数変更
+pwsh -NoProfile -File scripts\patterns\TJR.ps1 -SkipQ             # 通常TJRからQを外す
+# ※通常の「TJR処理」でも毎バッチ末尾で自動的に10本ずつ消化される（完遂まで）
 
 # 修復だけ（F単独＝監査→回収コミット→修復再生成。新規生成はしない）
 pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Only F
