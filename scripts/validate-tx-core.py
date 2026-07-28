@@ -2361,6 +2361,16 @@ class Validator:
             elif c != t:
                 self.err("G73", f"記述{sid}: 答案圧縮の文がカード側と正誤表側で不一致（シングルソース崩れ）。"
                                 "タグ除去後のテキストが一致するよう同一文に揃える（§v13q）。")
+        if not tbl_map:
+            # v13.0 正誤表（data-brief-mark 未導入）＝表側 N/A。カード側のみの展開を許容し、
+            # v13.1 印付き原文表への移行は TJR 付随（再生成）に委ねる（片置き ERROR にしない）。
+            if any(card_map.values()):
+                self.warn("G73", "正誤表が v13.0 形（data-brief-mark 無し）のため答案圧縮はカード側のみ。"
+                                 "v13.1 印付き原文表への移行（brief-mark 鋳造）は TJR 付随で消化する。")
+            elif len(missing_both) == len(card_map):
+                self.warn("G73", "答案圧縮（.tx-anscomp-line）が未展開（全記述に無し）。新規生成・既存更新時は"
+                                 "記述原文末尾＋正誤表 brief-mark 末尾へ同一文で置く（§v13q・既存は TJR 付随で消化）。")
+            return
         if missing_both and len(missing_both) == len(card_map):
             self.warn("G73", "答案圧縮（.tx-anscomp-line）が未展開（全記述に無し）。新規生成・既存更新時は"
                              "記述原文末尾＋正誤表 brief-mark 末尾へ同一文で置く（§v13q・既存は TJR 付随で消化）。")
