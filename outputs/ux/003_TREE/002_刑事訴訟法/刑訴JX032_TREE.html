@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>訴因と罪数の齟齬 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XXXII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">訴因と罪数の齟齬 <em>— Amendment of Charges &amp; Count-Discrepancy</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">訴因と<br>罪数の齟齬</h2>
+      <div class="mm-root-en">Amendment &amp; Counts</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑事訴訟法<br>
+        <em>Origin</em>重要問題 第32問 · 最決平13・4・11<br>
+        <em>Form</em>手続処理型（措置を問う）
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑事訴訟法・公訴／審判対象論の中核。<strong>訴因変更の要否・可否</strong>を、一罪⇔数罪という<strong>罪数の齟齬</strong>を絡めて問う応用問題。訴因対象説（審判対象＝検察官が設定する訴因）を土台に、公訴事実と裁判所の心証がズレたときの<strong>手続処理</strong>を試す。「措置を問う＝手続論」と即断できるかが分水嶺。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>論文</em>超頻出（訴因変更）</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>訴因変更の要否は司法試験・予備試験で頻出（平24・26・令4／予備平25・29）。本問は罪数の齟齬という上乗せで一段難化する。要否・可否の切り分けと「罪数＝専権評価」の割り切りで差がつく。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。基本規範（審判対象画定基準）は既知でも、<strong>実体法の罪数論に引きずられて手続論を見失う</strong>と一気に失点する罠型。設問の一語「措置」を性質決定の起点にできるかが鍵。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>公訴事実の同一性／縮小認定（大は小を兼ねる）／訴因の特定（256条3項）／訴因変更命令の形成力（最大判昭40）／国家訴追主義・不告不理／訴因の補正。とりわけ<strong>「罪数変化は訴因変更に一元化して処理する」</strong>という到達点が本論点の核。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>〔前段〕</strong>甲は「平成26年5月1日午後10時ころ、Aを合計10発殴打し加療4週間の傷害」という<strong>一個の傷害の訴因</strong>で起訴。裁判所は審理の結果、暴行は<strong>10時ころ4発＋翌2日午前0時ころ6発</strong>に分かれ<strong>両者は併合罪</strong>との心証を得た（一罪→数罪）。<strong>〔後段〕</strong>検察官が同じ事実で<strong>併合罪（数罪）</strong>として起訴したところ、裁判所は<strong>包括一罪</strong>と判断した（数罪→一罪）。いずれも「裁判所はいかなる措置を講ずべきか」を問う。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者・審判の枠</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>検察官（審判対象の設定権者・国家訴追主義247条）／裁判所（審理し心証を形成・不告不理）／訴因＝公訴事実＝審判の対象を画する枠（256条3項）。<strong>事実の設定は検察官、罪数評価は裁判所</strong>という権限分配が全体の骨格。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 日時・回数の変動は<strong>訴因変更を要する</strong>か（要否）。<br>② 変更は<strong>公訴事実の同一性</strong>の枠内か（可否）。<br>③ 一罪→数罪の<strong>罪数の齟齬</strong>に固有の補正が要るか。<br>④ 裁判所が採るべき<strong>措置</strong>は何か（釈明・訴追意思）。<br>⑤〔後段〕事実不変・罪数のみ変化なら<strong>何が要るか</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 0 · 性質決定＝手続論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設問は「裁判所は<strong>いかなる措置を講ずべきか</strong>」。実体法の罪数（一罪か数罪か）を結論として問うのではなく、公訴事実と心証がズレたとき<strong>そのまま有罪認定できるか、訴因変更等の手続を要するか</strong>を問う<strong>手続の問題</strong>。冒頭でこう性質決定するのが第一歩。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 訴因変更の要否</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>公訴事実のまま認定できるか＝<strong>審判対象の画定に不可欠な事実に変動</strong>があるか（<span class="case-name">最決平13・4・11</span>）。前段は暴行の<strong>日時・回数</strong>が動く＝該当し<strong>訴因変更が必要</strong>。ここを飛ばして既遂認定・実体論へ行くのが最大の失点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 訴因変更の可否（同一性）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>変更は「<strong>公訴事実の同一性を害しない限度</strong>」で許される（312条1項）。基本的事実関係が社会的に同一かで判断。本問は暴行の<strong>総数（10発）・結果（加療4週間）が共通</strong>＝基本的事実同一で<strong>変更可能</strong>。要否だけで止めず可否まで示して初めて措置が確定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 罪数の齟齬→措置→訴追意思</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一罪→数罪は<strong>法的評価＝裁判所の専権</strong>だから<strong>罪数固有の補正は不要</strong>（事実変動を訴因変更でカバーすれば罪数も片付く）。裁判所は自ら変更できないから<strong>検察官に釈明を求め訴因変更を促す</strong>（命令312条2項に形成力なし）。翌日0時の<strong>「別事件」につき訴追意思を確認</strong>（不告不理）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 後段＝前段の裏返し</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>後段は<strong>事実（日時・回数・結果）が一切不変</strong>で、動くのは併合罪⇔包括一罪という<strong>罪数評価だけ</strong>。よって<strong>訴因変更は不要</strong>（画定に不可欠な事実の変動なし）、罪数は専権評価で<strong>補正も不要</strong>。裁判所は<strong>そのまま包括一罪として有罪認定できる</strong>。前段との対照を明示。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 訴因変更の要否
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Necessity</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 訴因の機能</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>訴因は検察官が主張する具体的犯罪事実であり、<strong>審判の対象を画定する</strong>とともに<strong>被告人の防御の範囲を示す</strong>（当事者主義・256条3項）。この二機能から、どの範囲のズレで訴因変更が要るかの基準が導かれる。</p><div class="norm">訴因は、審判の対象を画定するとともに被告人の防御の範囲を示すものである。<span class="norm-cite">— 256条3項・訴因対象説</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 審判対象画定基準（判例・通説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>審判対象の画定に不可欠な事実に変動</strong>が生ずる場合には、被告人の防御に不利益がなく罰条に変更がなくとも、原則として訴因変更を要する。加えて明示され防御上重要な事実の変動も原則必要（第二次基準）。</p><div class="norm">審判対象の画定に不可欠な事項については、罰条に変更がなくとも、これを認定するには訴因変更手続を要する。<span class="norm-cite">— 最決平13・4・11（審判対象画定基準説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 防御説との対比／本問帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>少数説の防御説は<strong>被告人の防御に重要な事実</strong>の変動で判断するが、基準が相対的で不明確。判例は<strong>画定基準を第一次基準</strong>に据える。<br>本問前段は暴行の<strong>日時・回数</strong>という審判対象の画定に不可欠な事実が動く＝<strong>訴因変更が必要</strong>。後段は同基準を裏から適用し「変動なし→不要」。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 可否＋罪数の齟齬
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Identity &amp; Counts</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 公訴事実の同一性（可否）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>訴因変更は「<strong>公訴事実の同一性を害しない限度</strong>」で許される（312条1項）。同一性は両訴因の<strong>基本的事実関係が社会的に同一</strong>といえるかで判断する（＋非両立性を補助的基準とする見解）。</p><div class="norm">訴因変更は「公訴事実の同一性を害しない限度」で許され、両訴因の基本的事実関係が社会的に同一であれば同一性が認められる。<span class="norm-cite">— 312条1項・基本的事実同一説</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 罪数＝法的評価＝裁判所の専権</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一罪か数罪かは<strong>犯罪事実そのものではなく、これに対する法的評価</strong>であって<strong>裁判所の専権</strong>に属する。事実の設定（＝検察官）と罪数評価（＝裁判所）は層が異なる。ここを分けるのが本問の心臓部。</p><div class="norm">一罪か数罪かは犯罪事実そのものではなく、これに対する法的評価であって裁判所の専権に属する。<span class="norm-cite">— 補正不要説の核（西田・上口ほか）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 補正不要説と本問帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一罪一訴因の原則から「訴因の補正」が要るとも思えるが、<strong>訴因変更と別個の特別手続は存在せず</strong>、罪数は専権評価にすぎない。<strong>事実変動を訴因変更でカバーすれば罪数の齟齬も包摂されて解消</strong>する。<br>本問前段は基本的事実が同一で<strong>変更可能</strong>・罪数固有の補正は<strong>不要</strong>（<span class="case-name">東京高判昭52・12・20</span>の「罪数補正を伴う訴因変更手続」＝一元化と整合）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 訴因変更の要否</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">訴因は、検察官が主張する具体的犯罪事実であり、審判の対象を画定するとともに被告人の防御の範囲を示すものである（当事者主義・256条3項）。そうだとすれば、審判対象の画定に不可欠な事実に変動が生ずる場合には、被告人の防御に不利益がなく罰条に変更がなくとも、原則として訴因変更手続（312条1項）を要すると解する。<span class="norm-cite">— 試験本番想定・標準形（論証Y-1）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 可否＝公訴事実の同一性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">訴因変更は「公訴事実の同一性を害しない限度」で許される（312条1項）。公訴事実の同一性は、両訴因の基本的事実関係が社会的に同一といえるかによって判断する。本件では暴行の総数と結果に変化がなく、基本的事実関係は同一であるから、公訴事実の同一性が認められ、訴因変更は可能である。<span class="norm-cite">— 論証Y-2</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 罪数の齟齬（専権評価）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">一罪か数罪かは犯罪事実そのものではなく、これに対する法的評価であって裁判所の専権に属する。したがって、事実の変動を訴因変更手続によって処理すれば、罪数の齟齬もこれに包摂されて解消されるから、罪数固有の補正手続を別途要しないと解する。<span class="norm-cite">— 論証Y-3</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 措置＋訴追意思</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">審判対象の設定は検察官の権限に属するから（国家訴追主義・247条）、裁判所は自ら訴因を変更することはできない。よって裁判所は、検察官に釈明を求めて訴因変更を促すべきである（訴因変更命令＜312条2項＞に形成力はない）。加えて、別事件についての検察官の訴追意思を釈明により確認すべきである。<span class="norm-cite">— 論証Y-4・罪数言及型の締め</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 事実の変動あり（要否の肯定材料・前段）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>暴行の日時が「5月1日午後10時ころ」→「同日午後10時ころ＋翌2日午前0時ころ」に分かれた／一個の行為が二個の行為に分かれた（回数の変動）。<br>──審判対象の画定に不可欠な事実の変動＝<strong>訴因変更が必要</strong>を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 基本的事実は共通（可否の肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aに加えられた暴行の<strong>総数（10発）</strong>と生じた<strong>結果（加療4週間の打撲・皮下出血）</strong>は訴因・心証で共通。<br>──基本的事実関係の同一＝<strong>公訴事実の同一性あり＝訴因変更が可能</strong>を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 別事件の浮上（訴追意思の材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>翌日午前0時ころの6発は、裁判所の心証上<strong>「別事件」</strong>を構成する。この事件につき検察官に<strong>訴追意思</strong>があるかは自明でない。<br>──訴追意思のない事件を審判に取り込めば<strong>不告不理</strong>に反する＝<strong>釈明による訴追意思の確認</strong>を基礎づける。〔後段〕では事実が一切不変＝要否・補正いずれも不要の材料。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>要否</strong> — 審判対象の画定に不可欠な事実の変動→訴因変更が必要（最決平13）<br>② <strong>可否</strong> — 公訴事実の同一性（基本的事実の同一）を害しない限度（312条1項）<br>③ <strong>罪数</strong> — 一罪⇔数罪は法的評価＝裁判所の専権→補正不要（訴因変更に包摂）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最決平13・4・11</span>（刑集55-3-127）— 審判対象画定基準<br>② <span class="case-name">東京高判昭52・12・20</span> — 罪数補正を伴う訴因変更手続（本問類似）<br>③ <span class="case-name">最大判昭40・4・28</span> — 訴因変更命令に形成力なし</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 訴因変更 — 312条1項（要否・可否の中心）<br>· 訴因変更命令 — 312条2項（形成力なし）<br>· 訴因の明示・特定 — 256条3項<br>· 国家訴追主義 — 247条／起訴便宜 248条<br>· 求釈明 — 刑訴規則208条／併合罪 刑法45条</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「措置を問う＝手続論」（性質決定）<br>· 「審判対象の画定に不可欠な事実」<br>· 「公訴事実の同一性を害しない限度」<br>· 「罪数は法的評価＝裁判所の専権」<br>· 「釈明を求め訴因変更を促す」＋「訴追意思の確認」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 縮小認定（大は小を兼ねる）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>訴因に包含されるより<strong>小さい事実</strong>を認定する場合は訴因変更不要。本問前段は事実が<strong>別方向に動く（増える）</strong>ため縮小認定では処理できず訴因変更が要る。後段は訴因の枠内で罪数評価を変えるだけで<strong>不意打ちにならない</strong>点が縮小認定と同旨。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 訴因変更命令（312条2項）の形成力</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>裁判所は命令できるが、判例上<strong>形成力はない</strong>（<span class="case-name">最大判昭40・4・28</span>）。命令に従うかは検察官次第。よって前段の措置の中心は<strong>釈明による促し</strong>で、命令は補充的手段。審判対象の設定権が検察官に属することの現れ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 国家訴追主義・不告不理</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>公訴は検察官が行う（<strong>国家訴追主義・247条</strong>）。審判対象の設定・訴追範囲は検察官の権限だから、裁判所は自ら訴因を書き換えられず、訴追意思のない「別事件」を取り込めば<strong>不告不理</strong>に反する。訴追意思確認の理論的根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 包括一罪／併合罪（実体の罪数）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>同一法益への時間的・場所的に近接した一連の暴行は<strong>包括一罪</strong>と評価されうる（傷害・刑法204条の一体的評価）。<strong>併合罪</strong>は確定裁判を経ない二個以上の罪（45条）。本問はこの罪数評価が前段・後段で逆方向に動くが、いずれも<strong>手続では専権評価として一元処理</strong>される点が肝（実体論に深入り禁止）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 実体の罪数論に埋没する</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一罪か数罪かを<strong>実体法で延々論じる</strong>のが最大の失点（−15〜20点）。設問の一語「<strong>措置</strong>」に着眼し、<strong>冒頭で「手続の問題」と性質決定</strong>する。罪数は手続では専権評価として一段で流す対象にすぎない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 要否の判断基準を示さない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「事実が変わったから変更」で済ませ、<strong>審判対象画定基準（最決平13）を規範として立てない</strong>のは大幅減点（−10〜15点）。訴因の機能から基準を導き、日時・回数の変動にあてはめる過程が配点の山。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 裁判所が自ら変更できる前提</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>裁判所が<strong>自ら訴因を書き換える前提</strong>で書くのは誤り（−10〜15点）。審判対象の設定は検察官の権限（国家訴追主義）。裁判所の措置は<strong>釈明・訴因変更の促し</strong>にとどまり、命令にも形成力がない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 可否（同一性）を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>要否だけ論じて<strong>可否＝公訴事実の同一性の検討を落とす</strong>と中程度減点（−5〜10点）。暴行の総数・結果の共通性から同一性を認定し、<strong>変更できるところまで</strong>示して初めて措置が確定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 補正必要と誤る／訴追意思を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>数罪→一罪（後段）で<strong>「訴因の補正が必要」と即断</strong>するのは誤り（−5〜8点）。罪数は専権評価で補正不要。また前段で翌日0時の別事件についての<strong>訴追意思の確認</strong>に触れないと小幅減点（不告不理への目配りを一文で）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じておく。<strong>措置＝手続論／要否→可否→罪数→措置</strong>の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。<strong>要否と可否の区別・罪数＝専権評価</strong>の射程を意識。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。前段（厚）と後段（対照で薄）の分量配分を訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。要否・可否・罪数の規範を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。3 判例と条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決平成13年4月11日</span><span class="mm-leaf-sub"><em>Necessity · Object-Fixing Standard</em> · 刑集55-3-127</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>訴因変更の要否＝審判対象画定基準の指導的判例</strong>。共謀共同正犯の実行行為者の食い違いにつき「審判対象の画定に不可欠な事項については、罰条に変更がなくとも訴因変更を要する。加えて防御上重要な事項も原則として要する」とした。<em>射程</em> — 前段の日時・回数の変動は「画定に不可欠な事実」に当たり訴因変更を要する。後段は同基準の裏側適用で「変動なし→不要」。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">東京高判昭和52年12月20日</span><span class="mm-leaf-sub"><em>Count-Correction w/ Amendment</em> · 本問類似</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>本問とほぼ同型の古典的裁判例</strong>。「法的評価の範囲を超えて訴因事実そのものに変動が生じ、数個の併合罪と認定するのが相当となった場合、裁判所は釈明を求め、場合により<strong>罪数補正を伴う訴因変更手続</strong>を促す訴訟法上の義務を負う」とした。<em>射程</em> — 前段の直接の根拠。後段は「法的評価の範囲にとどまる」場面として<strong>反対解釈</strong>で用いる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最大判昭和40年4月28日</span><span class="mm-leaf-sub"><em>No Formative Force of Order</em> · 命令の限界</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>訴因変更命令に形成力なし</strong>。命令（312条2項）があっても検察官が変更しない限り訴因は変更されないとした。<em>射程</em> — 前段の措置の限界（命令では変更されない→<strong>釈明による促し</strong>が中心）を基礎づける。審判対象設定権が検察官に属することの確認。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴312条1項</span><span class="mm-leaf-sub"><em>C.C.P. art. 312(1) · Amendment</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「裁判所は、検察官の請求があるときは、公訴事実の同一性を害しない限度において、起訴状に記載された訴因……の追加、撤回又は変更を許さなければならない」。<em>射程</em> — 要否（訴因の機能）・可否（同一性の限度）の中心条文。「検察官の請求があるとき」＝裁判所は自ら変更できない根拠でもある。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴312条2項</span><span class="mm-leaf-sub"><em>art. 312(2) · Amendment Order</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「裁判所は、審理の経過に鑑み適当と認めるときは、訴因又は罰条を追加又は変更すべきことを命ずることができる」。<em>射程</em> — 前段の措置の補充的手段（訴因変更命令）。ただし形成力がない（最大判昭40）ため、中心は釈明による促し。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴256条3項</span><span class="mm-leaf-sub"><em>art. 256(3) · Charging Specificity</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「公訴事実は、訴因を明示してこれを記載しなければならない。訴因を明示するには、できる限り日時、場所及び方法を以て罪となるべき事実を特定して……」。<em>射程</em> — 訴因の機能（審判対象画定・防御範囲明示）の条文的根拠。要否論の出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴247条・248条</span><span class="mm-leaf-sub"><em>art. 247 / 248 · State Prosecution</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「公訴は、検察官がこれを行う」（247条・国家訴追主義）／訴追を必要としないとき公訴を提起しないことができる（248条・起訴便宜主義）。<em>射程</em> — 審判対象の設定・訴追範囲は検察官の権限。裁判所が自ら変更できない根拠、訴追意思確認の基礎。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴規則208条</span><span class="mm-leaf-sub"><em>Rule 208 · Clarification</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「裁判長は、訴訟関係を明瞭にするため必要と認めるときは、訴訟関係人に対し、釈明を求め……ることができる」。<em>射程</em> — 裁判所が検察官に訴因変更・罪数主張・訴追意思の明確化を促す手続的根拠（措置の中核）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑法45条・204条</span><span class="mm-leaf-sub"><em>Penal Code 45 / 204 · Counts</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>45条「確定裁判を経ていない二個以上の罪を併合罪とする」／204条（傷害罪）。<em>射程</em> — 前段の心証（数罪＝併合罪）・後段の心証（包括一罪）の実体的基礎。もっとも本問では罪数は<strong>専権評価</strong>として手続で一元処理され、実体論への深入りは不要。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">補正不要説（罪数の齟齬）</span><span class="mm-leaf-sub"><em>No-Correction Doctrine</em> · 通説的処理</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一罪⇔数罪の変化に固有の訴因の補正は不要とする説。<strong>罪数は法的評価＝裁判所の専権</strong>であり、補正は独立の手続として存在せず<strong>訴因変更に包摂</strong>される。東京高判昭52の「罪数補正を伴う訴因変更手続」という一元的処理と整合。対立説＝補正必要説（起訴行為の個数の修正を要するとするが、実益に乏しい）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">設問「いかなる措置を講ずべきか」は何を問う問題か？</span></summary>
+                  <div class="mm-q-answer">実体法の罪数論ではなく、公訴事実と心証がズレたときそのまま認定できるか訴因変更等を要するかという<span class="kw">手続の問題</span>。冒頭で性質決定する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">訴因変更の要否の判断基準（判例）は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">審判対象の画定に不可欠な事実</span>に変動があれば、防御に不利益がなく罰条変更がなくとも訴因変更を要する（最決平13・4・11）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">訴因変更の可否は何で画されるか？根拠条文は？</span></summary>
+                  <div class="mm-q-answer">「<span class="kw">公訴事実の同一性</span>を害しない限度」（<span class="kw">312条1項</span>）。両訴因の基本的事実関係が社会的に同一かで判断する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">一罪⇔数罪の罪数の齟齬に固有の補正は要るか？なぜ？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">不要</span>。罪数は犯罪事実そのものではなく<span class="verb">法的評価であり裁判所の専権</span>。事実変動を訴因変更で処理すれば罪数も包摂されて解消する。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">後段（数罪起訴→包括一罪の心証）で裁判所は何をすべきか？</span></summary>
+                  <div class="mm-q-answer">暴行の日時・回数・結果に変動がなく審判対象たる事実は同一だから訴因変更は不要。罪数は専権評価で補正も不要。<span class="kw">そのまま包括一罪として有罪認定できる</span>。前段の裏返し。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">裁判所が自ら訴因を変更できないのはなぜか。措置の中心は？</span></summary>
+                  <div class="mm-q-answer">審判対象の設定は検察官の権限（<span class="kw">国家訴追主義・247条</span>）だから。裁判所は<span class="kw">検察官に釈明を求め訴因変更を促す</span>。命令（312条2項）には形成力がない（最大判昭40）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">翌日0時ころの暴行につき、なぜ訴追意思を確認するのか？</span></summary>
+                  <div class="mm-q-answer">それは心証上「別事件」であり、検察官に訴追意思がないのに審判に取り込むと<span class="kw">不告不理</span>に反するから。釈明で訴追意思の有無を確認すべき。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">訴因変更の要否の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">訴因は審判の対象を画定するとともに被告人の防御の範囲を示すものであるから、審判対象の画定に不可欠な事実に変動が生ずる場合には、被告人の防御に不利益がなく罰条に変更がなくとも、原則として訴因変更手続（312条1項）を要する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">訴因変更の可否（公訴事実の同一性）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">訴因変更は「公訴事実の同一性を害しない限度」で許され、公訴事実の同一性は両訴因の基本的事実関係が社会的に同一といえるかによって判断する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">罪数の齟齬の処理（補正不要）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">一罪か数罪かは犯罪事実そのものではなく、これに対する法的評価であって裁判所の専権に属するから、事実の変動を訴因変更手続によって処理すれば罪数の齟齬もこれに包摂されて解消され、罪数固有の補正を別途要しない。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配分で構成する？</span></summary>
+                  <div class="mm-q-answer">前段を厚く：<span class="kw">要否→可否→罪数（専権・補正不要）→措置（釈明で促す）→訴追意思</span>（約1,000〜1,200字）。後段は前段の規範を裏から流用し<span class="kw">対照で簡潔に</span>（約300〜400字）。要否・可否の順序を崩さない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">前段と後段を一言で束ねる対照は？</span></summary>
+                  <div class="mm-q-answer">前段は<span class="kw">事実も評価も動く</span>（訴因変更が要る）。後段は<span class="kw">評価だけ動く</span>（何も要らない）。「動くのは事実か評価か」で両設問を束ねる。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">日時・回数が動く → ？</span></summary>
+                  <div class="mm-q-answer">画定に不可欠な事実の変動＝訴因変更必要。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">一罪⇔数罪の変化 → ？</span></summary>
+                  <div class="mm-q-answer">法的評価＝専権＝補正不要。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">事実不変・罪数だけ動く（後段）→ ？</span></summary>
+                  <div class="mm-q-answer">そのまま包括一罪で認定可。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XXXII — 訴因と罪数の齟齬 · 13 chapters · 3 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-07-31T03:34+09:00">Generated: 2026-07-31 03:34 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>

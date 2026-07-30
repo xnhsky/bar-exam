@@ -1,0 +1,2675 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刑訴JX033　訴因変更の可否・公訴事実の同一性のシステマティック解法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700;800&family=Shippori+Antique&family=Zen+Old+Mincho:wght@400;500;700;900&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Kaisei+Decol:wght@400;500;700&family=Kosugi+Maru&family=Source+Code+Pro:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@500;700;800&family=M+PLUS+1p:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* ==========================================
+     配色（刑訴アンカー：スレート×スモーキー・TX 完全準拠）
+     雰囲気選定：訴因変更の可否という手続的・分析的論点に呼応する
+     冷静で理知的なスレートグレー基調（過剰装飾を避け、精緻な弁別を助ける）
+     役割：ベース70% / メイン25% / アクセント5% / サブ×2
+     ========================================== */
+  --accent:#585257;            /* メイン25%：スレート（見出し・ヘッダー・白文字背景・刑訴アンカー） */
+  --mid:#94b5b2;               /* アクセント5%：スモーキーティール（badge・強調・刑訴アンカー） */
+  --base:#f5f4f5;              /* ベース70%：極淡スレートホワイト（body 地色） */
+  --soft:#ece6dd;              /* サブ1：ウォームサンド（テーブル縞・柔背景） */
+  --light:#dde3e1;             /* サブ2：淡スモーキー（key-box / back-refs） */
+  --paper:#fffdfb;             /* 温白（カード内地色・小面積） */
+  --text:#2a282b;              /* 本文：ダークスレートグレー（純黒回避・text-dark L<40） */
+  --bg-dark:#3d383e;           /* 暗スレート（重要結論・白文字背景） */
+  --accent-3:#f5f4f5;          /* para-num 極淡背景 */
+  --border-soft:#cdd3d0;       /* 淡スモーキー境界線 */
+  --shadow-soft:rgba(88,82,87,.10);
+  --shadow-mid:rgba(88,82,87,.18);
+
+  /* ==========================================
+     12 色固定指標（全科目共通・不変）
+     ========================================== */
+  --hl-super:#ffd54f; --hl-high:#aed581; --hl-std:#90caf9;
+  --tan-super:#c62828; --tan-high:#ef6c00; --tan-std:#1565c0;
+  --rank-A:#c62828; --rank-B:#e65100; --rank-C:#1565c0; --rank-D:#333333;
+
+  /* ==========================================
+     11 役割タイポグラフィ（v3.2・改変禁止）
+     ========================================== */
+  /* ① 本文ゴシック */
+  --font-body:    "A1 Gothic","A-OTF A1ゴシック Std","Zen Kaku Gothic Antique","Hiragino Sans","Yu Gothic Medium","Noto Sans JP",sans-serif;
+  /* ② 柔強調・タグ・中見出し */
+  --font-soft:    "Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif;
+  /* ③ 大見出し・カバー */
+  --font-display: "Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ④ 条文 */
+  --font-statute: "Noto Serif JP","Yu Mincho","Hiragino Mincho ProN",serif;
+  /* ⑤ 引用一般 */
+  --font-quote:   "Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑥ 模範答案・論証 */
+  --font-answer:  "Shippori Antique","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑦ KEY フレーズ */
+  --font-keyword: "Kaisei Decol","M PLUS Rounded 1c","Yu Mincho",serif;
+  /* ⑧ 判旨原文 */
+  --font-judgment:"Zen Old Mincho","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑨ 注釈・補足 */
+  --font-note:    "Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif;
+  /* ⑩ 教授コメント */
+  --font-professor:"Kosugi Maru","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  /* ⑪ 等幅・ラベル */
+  --font-mono:    "Source Code Pro","Consolas","Menlo",monospace;
+  /* ⑫ インパクト（M PLUS 1p・TX 由来・任意使用） */
+  --font-impact:  "M PLUS 1p","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+
+body{
+  font-family:var(--font-body);
+  font-weight:500;
+  line-height:2.0;
+  font-size:16px;
+  letter-spacing:.04em;
+  font-feature-settings:"palt" 1;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  background:var(--base);
+  color:var(--text);
+  margin:0;padding:0;
+}
+
+/* ==========================================
+   見出し階層
+   ========================================== */
+h1{font-family:var(--font-display);font-weight:700;letter-spacing:.06em;line-height:1.4;}
+h2{
+  font-family:var(--font-display);
+  color:var(--accent);font-size:1.6em;font-weight:700;
+  letter-spacing:.06em;
+  margin:0 0 18px 0;
+  padding:10px 16px;
+  background:var(--soft);
+  border-left:8px solid var(--accent);
+  border-radius:4px;
+  line-height:1.4;
+}
+h3{
+  font-family:var(--font-soft);
+  color:var(--accent);font-size:1.25em;font-weight:700;
+  letter-spacing:.04em;
+  margin:26px 0 14px 0;
+  padding:7px 14px;
+  background:var(--light);
+  border-left:5px solid var(--mid);
+}
+h4{
+  font-family:var(--font-soft);
+  color:var(--mid);font-size:1.08em;font-weight:700;
+  margin:18px 0 10px 0;
+  padding-bottom:4px;
+  border-bottom:1.5px dashed var(--mid);
+  letter-spacing:.03em;
+}
+h5{
+  font-family:var(--font-soft);
+  color:var(--accent);font-size:1em;font-weight:700;
+  margin:14px 0 8px 0;letter-spacing:.03em;
+}
+
+/* 第5部スキーマ用 点線見出し */
+section[id^="ref-"] h3,
+section[id^="part5"] h3{
+  border-bottom:3px dotted var(--accent);
+  padding-bottom:14px;margin-bottom:28px;
+  background:transparent;border-left:none;padding-left:0;
+}
+section[id^="ref-"] h4{
+  border-bottom:2px dotted var(--border-soft);
+  padding-bottom:6px;
+}
+
+/* ==========================================
+   ヘッダー：右上 ID タグ
+   ========================================== */
+.doc-header{
+  position:absolute;
+  top:14px;right:18px;
+  z-index:100;
+  display:inline-block;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;
+  padding:6px 14px;
+  border-radius:8px;
+  font-family:var(--font-mono);
+  font-weight:600;font-size:16px;letter-spacing:.10em;
+  border:1.5px solid rgba(255,255,255,.65);
+  box-shadow:0 2px 6px rgba(0,0,0,.20);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+
+/* カバーヘッダー */
+header.cover{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;padding:70px 32px 44px 32px;text-align:center;
+  border-radius:0 0 20px 20px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+header.cover::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at top right, rgba(255,255,255,.12) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0,0,0,.10) 0%, transparent 60%);
+}
+header.cover h1{
+  margin:0 0 10px 0;
+  font-family:var(--font-display);
+  font-size:1.9em;font-weight:700;letter-spacing:.06em;
+  color:#fff;line-height:1.45;
+}
+header.cover h2{
+  margin:0 0 10px 0;
+  font-family:var(--font-display);
+  font-size:1.7em;font-weight:700;letter-spacing:.04em;
+  color:#fff;line-height:1.45;
+  background:transparent;border:none;padding:0;
+}
+header.cover .subtitle{
+  margin:0;
+  font-family:var(--font-quote);
+  font-size:1em;opacity:.94;color:#fff;
+  font-weight:400;
+}
+header.cover .subject-tag{
+  display:inline-block;margin-bottom:14px;padding:4px 14px;
+  background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.45);
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-size:.78em;font-weight:700;letter-spacing:.18em;
+}
+
+/* ==========================================
+   レイアウト：container + section カード
+   ========================================== */
+.container{
+  max-width:1320px;
+  margin:0 auto;
+  padding:0 16px 32px 16px;
+  background:transparent;
+  position:relative;
+}
+@media (min-width:769px){
+  .container{padding:0 24px 48px 24px;}
+}
+
+.container > section,
+.container > nav.toc,
+.container > nav#toc{
+  background:var(--paper);
+  border-radius:14px;
+  padding:28px 30px;
+  margin:24px 0;
+  box-shadow:0 4px 14px var(--shadow-soft);
+  border:none;
+}
+section section,
+section .card{
+  background:transparent;padding:0;
+  margin:24px 0 0 0;box-shadow:none;border-radius:0;
+}
+/* 内側 .card は薄い区切りを演出（v3.2 準拠：透明＋ラインのみ） */
+section .card{
+  background:transparent;
+  border-top:1px solid var(--border-soft);
+  padding-top:18px;margin-top:32px;
+}
+section .card:first-of-type{
+  border-top:none;padding-top:0;margin-top:24px;
+}
+
+/* ==========================================
+   本文インデント設計（第23項）
+   ========================================== */
+section > p,
+section > ul,
+section > ol,
+.card > p,
+.card > ul,
+.card > ol,
+.ref-entry > p,
+.ref-entry > ul,
+.ref-entry > ol{
+  padding-left:1.4em;
+}
+section > h2,
+section > h3,
+section > h4,
+section > h5,
+.card > h3,
+.card > h4,
+.card > h5,
+section > .key-box,
+section > .note-box,
+section > .warn-box,
+section > .success-box,
+section > .danger-box,
+section > .lecturer-advice,
+section > .arg-card,
+section > .model-answer,
+section > .grading,
+section > .svg-wrap,
+section > blockquote,
+section > .timeline,
+section > table,
+section > .flow,
+.card > .key-box,
+.card > .note-box,
+.card > .warn-box,
+.card > .success-box,
+.card > .danger-box,
+.card > .lecturer-advice,
+.card > .arg-card,
+.card > .model-answer,
+.card > .grading,
+.card > .svg-wrap,
+.card > blockquote,
+.card > .timeline,
+.card > table,
+.card > .flow{
+  margin-left:0;
+}
+
+/* ==========================================
+   key-box（KTX v6.19 流豪華装飾・specificity 防御）
+   ========================================== */
+.key-box,
+.section .key-box,
+.container .key-box,
+section .key-box,
+.card .key-box{
+  position:relative;
+  background:linear-gradient(135deg,#fff8f0 0%,var(--light) 60%,var(--soft) 100%);
+  border:2px solid var(--accent);
+  border-radius:8px;
+  padding:56px 44px 38px 72px;
+  margin:30px 0 24px;
+  font-family:var(--font-keyword);
+  font-size:1.05rem;
+  font-weight:500;
+  line-height:2.0;
+  letter-spacing:.04em;
+  color:var(--text);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,.10),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.key-box::before{
+  content:'🔑 KEY';
+  position:absolute;top:-14px;left:22px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;
+  padding:5px 16px 4px;
+  border-radius:4px;
+  font-family:var(--font-mono);
+  font-size:.80rem;font-weight:600;letter-spacing:.14em;
+  box-shadow:0 2px 6px rgba(0,0,0,.20);
+  white-space:nowrap;
+}
+.key-box::after{
+  content:'';position:absolute;top:0;right:0;
+  width:64px;height:64px;
+  background:radial-gradient(circle at top right, rgba(0,0,0,.08), transparent 70%);
+  border-radius:0 8px 0 64px;
+  pointer-events:none;
+}
+.key-box p{margin:.4em 0;}
+.key-box .kp-strong{
+  font-weight:700;color:var(--accent);
+  font-size:1.10rem;letter-spacing:.05em;
+}
+
+/* ==========================================
+   状況伝達系：ラベル付きカード（v3.2 全周 border + ::before）
+   ========================================== */
+.note-box, .warn-box, .success-box, .danger-box{
+  position:relative;
+  margin:18px 0;
+  padding:20px 22px 16px;
+  border-radius:8px;
+  font-family:var(--font-note);
+  font-weight:500;
+  line-height:1.95;
+  letter-spacing:.03em;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.06),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.note-box   {background:#e7f1ff;border:1px solid rgba(21,101,192,.30);}
+.warn-box   {background:#fff7e0;border:1px solid rgba(239,108,0,.32);}
+.success-box{background:#e8f5e9;border:1px solid rgba(46,125,50,.32);}
+.danger-box {background:#ffeef0;border:1px solid rgba(198,40,40,.32);}
+
+.note-box::before, .warn-box::before, .success-box::before, .danger-box::before{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;
+  color:#fff;
+  padding:3px 10px 2px;
+  border-radius:3px;
+  margin-bottom:10px;margin-right:8px;
+  vertical-align:2px;
+  box-shadow:0 1px 2px rgba(0,0,0,.18);
+}
+.note-box::before   {content:'ℹ NOTE';   background:linear-gradient(135deg,#0d47a1,#1565c0);}
+.warn-box::before   {content:'⚠ WARN';   background:linear-gradient(135deg,#bf360c,#ef6c00);}
+.success-box::before{content:'✓ TIP';    background:linear-gradient(135deg,#1b5e20,#2e7d32);}
+.danger-box::before {content:'✗ NG';     background:linear-gradient(135deg,#7f0000,#c62828);}
+
+.note-box h4, .warn-box h4, .success-box h4, .danger-box h4{
+  display:inline;font-family:var(--font-soft);
+  font-size:1em;font-weight:700;margin:0;
+  border:none;padding:0;color:inherit;
+}
+.note-box p, .warn-box p, .success-box p, .danger-box p{margin:.5em 0;}
+.note-box ul, .warn-box ul, .success-box ul, .danger-box ul{margin:.6em 0;padding-left:1.4em;}
+.note-box ol, .warn-box ol, .success-box ol, .danger-box ol{margin:.6em 0;padding-left:1.4em;}
+
+/* ==========================================
+   講師のアドバイス（講義逐語ベース・教授ボイス／Kosugi Maru）
+   ========================================== */
+.lecturer-advice{
+  position:relative;
+  margin:30px 0 26px;
+  padding:28px 26px 18px 28px;
+  border-radius:10px;
+  background:linear-gradient(135deg, #ece0e8 0%, #f4ebf0 58%, var(--paper) 100%);
+  border:1px solid rgba(92,69,102,.42);
+  border-left:7px solid var(--accent);
+  font-family:var(--font-professor);
+  font-weight:500;
+  line-height:1.95;
+  letter-spacing:.02em;
+  color:var(--text);
+  box-shadow:
+    0 4px 16px rgba(92,69,102,.20),
+    inset 0 0 0 1px rgba(255,255,255,.55);
+}
+.lecturer-advice::before{
+  content:'🎓 講師のアドバイス';
+  position:absolute;top:-15px;left:20px;
+  font-family:var(--font-mono);
+  font-size:.84rem;font-weight:700;letter-spacing:.13em;
+  color:#fff;
+  padding:6px 18px 5px;
+  border-radius:5px;
+  background:linear-gradient(135deg, var(--accent) 0%, var(--mid) 100%);
+  box-shadow:0 3px 9px rgba(92,69,102,.42);
+  white-space:nowrap;
+}
+.lecturer-advice .la-lead{
+  display:block;
+  font-family:var(--font-soft);font-weight:700;
+  color:var(--accent);
+  font-size:1.04em;letter-spacing:.03em;
+  margin:.2em 0 .6em;
+}
+.lecturer-advice p{margin:.55em 0;}
+.lecturer-advice ul{margin:.6em 0;padding-left:1.45em;}
+.lecturer-advice li{margin:.34em 0;}
+.lecturer-advice .la-key{
+  font-family:var(--font-keyword);font-weight:700;
+  color:var(--accent);letter-spacing:.02em;
+}
+.lecturer-advice .la-quote{
+  font-family:var(--font-quote);
+  color:var(--bg-dark);font-style:normal;
+  background:rgba(92,69,102,.07);
+  padding:1px 6px;border-radius:3px;
+}
+
+/* ==========================================
+   テーブル
+   ========================================== */
+table{
+  width:100%;border-collapse:collapse;margin:18px 0;font-size:.96em;
+  page-break-inside:avoid;
+}
+th,td{
+  border:1px solid var(--border-soft);
+  padding:10px 12px;text-align:left;vertical-align:top;
+}
+th{
+  background:var(--accent);color:#fff;
+  font-family:var(--font-soft);font-weight:700;letter-spacing:.04em;
+}
+/* ヘッダーセル内のリンクは白（濃い --accent 背景と同化させない） */
+th a, th a.xref{color:#fff;text-decoration-color:rgba(255,255,255,.6);}
+th a.xref:hover{background:rgba(255,255,255,.18);color:#fff;}
+tr:nth-child(even) td{background:var(--soft);}
+
+/* ==========================================
+   タイムライン
+   ========================================== */
+.timeline{position:relative;padding-left:32px;margin:18px 0;}
+.timeline::before{
+  content:'';position:absolute;left:10px;top:0;bottom:0;
+  width:3px;background:var(--mid);border-radius:2px;
+}
+.timeline-item{position:relative;margin-bottom:18px;padding-left:18px;}
+.timeline-item::before{
+  content:'';position:absolute;left:-26px;top:8px;
+  width:14px;height:14px;background:var(--accent);
+  border-radius:50%;border:3px solid var(--light);
+}
+.timeline-label{
+  display:block;font-family:var(--font-soft);font-weight:700;
+  color:var(--accent);font-size:1.02em;letter-spacing:.04em;
+  margin-bottom:4px;
+}
+.timeline p{margin:.3em 0;}
+
+/* ==========================================
+   SVG ラップ
+   ========================================== */
+.svg-wrap{
+  text-align:center;margin:24px 0;
+  background:var(--paper);border-radius:10px;
+  padding:18px;overflow-x:auto;page-break-inside:avoid;
+  border:1px solid var(--border-soft);
+}
+.svg-wrap svg{max-width:100%;height:auto;}
+.svg-wrap h3{
+  background:transparent;border-left:none;
+  text-align:left;padding:0 0 12px 0;
+  border-bottom:none;
+}
+
+/* フローボックス */
+.flow{
+  background:var(--soft);border:1.5px solid var(--mid);
+  border-radius:8px;padding:20px 24px;margin:18px 0;
+  page-break-inside:avoid;
+}
+.flow .step{
+  margin:6px 0;padding:8px 0;
+  border-bottom:1px dashed var(--border-soft);
+  font-weight:500;font-family:var(--font-note);
+  line-height:1.85;
+}
+.flow .step:last-child{border-bottom:none;}
+.flow .arrow{
+  text-align:center;color:var(--mid);
+  font-weight:700;font-size:1.1em;margin:4px 0;
+}
+
+/* ==========================================
+   学習指標（v3.2 潰れ防止強化）
+   ========================================== */
+.tan{
+  display:inline-block;
+  font-family:var(--font-soft);
+  font-size:.78em;padding:2px 9px;border-radius:4px;
+  color:#fff;font-weight:700;margin-right:4px;
+  letter-spacing:.08em;vertical-align:1px;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.tan-super{background:var(--tan-super);border:2px solid #8a1818;}
+.tan-high {background:var(--tan-high);}
+.tan-std  {background:var(--tan-std);}
+
+.rank-A{color:var(--rank-A);font-weight:700;letter-spacing:.04em;}
+.rank-B{color:var(--rank-B);font-weight:700;letter-spacing:.04em;}
+.rank-C{color:var(--rank-C);font-weight:500;letter-spacing:.04em;}
+.rank-D{color:var(--rank-D);font-weight:500;letter-spacing:.04em;}
+
+.arg-tier{
+  display:inline-block;
+  font-family:var(--font-soft);
+  font-size:.78em;font-weight:700;
+  padding:2px 9px;border-radius:4px;color:#fff;
+  margin-right:6px;letter-spacing:.08em;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.arg-required, .arg-must         {background:#c62828;border:2px solid #8a1818;}
+.arg-recommended, .arg-recommend {background:#ef6c00;}
+.arg-advanced, .arg-develop      {background:#1565c0;}
+
+/* ハイライト */
+.hl-super{
+  background:linear-gradient(transparent 55%,rgba(255,213,79,.55) 55%);
+  padding:0 4px 1px;font-weight:700;letter-spacing:.08em;
+}
+.hl-high{
+  background:linear-gradient(transparent 60%,rgba(174,213,129,.55) 60%);
+  padding:0 4px 1px;font-weight:700;letter-spacing:.08em;
+}
+.hl-std{
+  background:linear-gradient(transparent 70%,rgba(144,202,249,.50) 70%);
+  padding:0 4px 1px;font-weight:500;letter-spacing:.06em;
+}
+
+/* exam-mark */
+.exam-mark{
+  background-size:100% 100%;background-repeat:no-repeat;
+  padding:0 4px 1px;font-weight:700;letter-spacing:.09em;
+  margin:0 1px;-webkit-font-smoothing:antialiased;
+}
+.exam-mark.freq-high{background:linear-gradient(transparent 55%,rgba(198,40,40,.42) 55%);color:#8a1818;}
+.exam-mark.freq-mid {background:linear-gradient(transparent 55%,rgba(239,108,0,.42) 55%);color:#a04500;}
+.exam-mark.freq-low {background:linear-gradient(transparent 55%,rgba(21,101,192,.36) 55%);color:#1565c0;}
+
+/* 条文・判例の行内強調（v3.2 border-bottom 廃止） */
+.statute-emphasis{font-family:var(--font-statute);font-weight:700;padding:0 3px;letter-spacing:.06em;}
+.case-emphasis{font-family:var(--font-statute);font-weight:700;font-style:italic;padding:0 3px;letter-spacing:.06em;}
+
+/* ==========================================
+   第〇項 網掛け
+   ========================================== */
+.para-num{
+  display:inline-block;
+  background:var(--accent-3);
+  color:var(--accent);
+  padding:2px 10px;
+  border-radius:3px;
+  font-family:var(--font-statute);
+  font-weight:700;font-size:.96em;
+  margin-right:8px;
+  border:1px solid var(--border-soft);
+  letter-spacing:.04em;
+}
+
+/* ==========================================
+   引用：条文（薄グレー）／判例（薄ピンク）／問題文
+   ========================================== */
+blockquote{
+  margin:14px 0;padding:14px 18px;
+  background:var(--soft);border-left:5px solid var(--accent);
+  border-radius:6px;
+  font-family:var(--font-quote);font-weight:400;line-height:1.95;
+}
+blockquote p{margin:.4em 0;}
+
+blockquote.statute{
+  background:#f3f4f6;
+  border:1px solid rgba(0,0,0,.10);
+  border-left:4px solid #6b7280;
+  border-radius:6px;padding:14px 18px;
+  font-family:var(--font-statute);
+  font-weight:500;letter-spacing:.04em;
+}
+blockquote.case,
+blockquote.case-law{
+  background:#ffeef1;
+  border:1px solid rgba(0,0,0,.10);
+  border-left:4px solid var(--mid);
+  border-radius:6px;padding:14px 18px;
+  font-family:var(--font-quote);
+}
+blockquote.problem{
+  background:var(--soft);
+  border:1px solid var(--border-soft);
+  border-left:4px solid var(--mid);
+  border-radius:6px;padding:18px 22px;
+  font-family:var(--font-quote);
+  font-weight:400;line-height:2.0;
+}
+
+.judgment-text{
+  font-family:var(--font-judgment);
+  font-weight:700;letter-spacing:.03em;line-height:1.95;
+}
+
+/* ==========================================
+   論証カード
+   ========================================== */
+.arg-card{
+  background:var(--paper);
+  border:2px solid var(--mid);
+  border-radius:10px;
+  padding:22px 24px;margin:20px 0;
+  page-break-inside:avoid;
+  box-shadow:0 4px 12px var(--shadow-soft);
+}
+.arg-card h5{
+  margin-top:0;color:var(--accent);
+  border-bottom:1.5px dashed var(--mid);
+  padding-bottom:6px;
+  font-family:var(--font-soft);font-weight:700;font-size:1.05em;
+}
+.arg-card .arg-meta{
+  font-family:var(--font-mono);
+  font-size:.78em;font-weight:600;letter-spacing:.10em;
+  color:var(--mid);
+  margin:0 0 12px 0;
+}
+.arg-card .arg-body{
+  font-family:var(--font-answer);
+  font-weight:400;line-height:2.05;letter-spacing:.02em;
+  background:var(--light);
+  padding:16px 18px;border-radius:6px;
+  border-left:3px solid var(--mid);
+  margin:8px 0 10px 0;
+}
+.arg-card p{margin:.5em 0;font-family:var(--font-note);font-size:.92em;}
+
+/* ==========================================
+   模範答案
+   ========================================== */
+.model-answer, blockquote.model-answer{
+  position:relative;
+  background:linear-gradient(180deg,var(--light) 0%,var(--paper) 100%);
+  border:2px solid var(--accent);border-radius:10px;
+  padding:38px 30px 28px 30px;margin:24px 0;
+  font-family:var(--font-answer);
+  font-weight:400;line-height:2.05;letter-spacing:.02em;
+  page-break-inside:avoid;
+  box-shadow:0 4px 14px var(--shadow-soft);
+}
+.model-answer::before{
+  content:'MODEL ANSWER';
+  position:absolute;top:-12px;left:24px;
+  background:linear-gradient(135deg,var(--accent),var(--mid));
+  color:#fff;padding:4px 14px 3px;
+  border-radius:3px;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:600;letter-spacing:.18em;
+  box-shadow:0 2px 5px rgba(0,0,0,.18);
+}
+.model-answer h4, .model-answer h5{
+  font-family:var(--font-display);
+  color:var(--accent);letter-spacing:.04em;
+  margin-top:0;border-bottom:1.5px dashed var(--mid);
+  padding-bottom:6px;
+}
+.model-answer p{margin:.7em 0;line-height:2.0;font-weight:400;}
+
+/* ==========================================
+   採点講評
+   ========================================== */
+.grading{
+  position:relative;
+  background:#fff8e1;
+  border:1px solid rgba(255,179,0,.45);
+  border-radius:10px;
+  padding:34px 24px 22px;margin:22px 0;
+  page-break-inside:avoid;
+  box-shadow:0 2px 6px rgba(255,179,0,.12);
+}
+.grading::before{
+  content:'GRADING';
+  position:absolute;top:-12px;left:24px;
+  background:linear-gradient(135deg,#bf6b00,#ef6c00);
+  color:#fff;padding:4px 14px 3px;
+  border-radius:3px;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:600;letter-spacing:.18em;
+  box-shadow:0 2px 5px rgba(0,0,0,.18);
+}
+.grading h4{
+  font-family:var(--font-soft);
+  color:#bf6b00;margin-top:0;
+  border-bottom:1.5px solid rgba(255,179,0,.45);
+  padding-bottom:6px;
+}
+.grading h5{
+  font-family:var(--font-soft);
+  color:#bf6b00;
+}
+.grading p{margin:.5em 0;}
+
+/* ==========================================
+   目次
+   ========================================== */
+nav.toc, nav#toc{
+  background:var(--paper);
+  border:2px solid var(--mid);
+  border-radius:14px;
+  padding:24px 28px;margin:24px 0;
+  box-shadow:0 4px 14px var(--shadow-soft);
+}
+nav.toc h2, nav#toc h2{
+  margin-top:0;
+  font-family:var(--font-display);
+  background:transparent;border-left:none;
+  border-bottom:3px solid var(--accent);
+  border-radius:0;padding:0 0 8px 0;
+  font-size:1.3em;
+}
+nav.toc ul, nav#toc ul{list-style:none;padding-left:0;margin:8px 0;}
+nav.toc li, nav#toc li{margin:6px 0;line-height:1.6;font-family:var(--font-soft);}
+nav.toc a, nav#toc a{
+  color:var(--accent);text-decoration:none;
+  border-bottom:1px dotted transparent;
+  transition:.2s;font-weight:700;
+  letter-spacing:.02em;
+}
+nav.toc a:hover, nav#toc a:hover{
+  color:var(--mid);border-bottom:1px dotted var(--mid);
+}
+nav.toc .l2, nav#toc .l2{padding-left:18px;font-size:.96em;}
+nav.toc .l3, nav#toc .l3{padding-left:36px;font-size:.92em;color:#555;}
+nav.toc .l3 a, nav#toc .l3 a{color:#555;font-weight:500;}
+
+/* ==========================================
+   相互リンク
+   ========================================== */
+a.xref{
+  text-decoration:underline;
+  text-decoration-thickness:2px;
+  text-underline-offset:3px;
+  color:var(--accent);font-weight:700;
+  border-radius:2px;padding:0 2px;
+  transition:.18s;
+}
+a.xref:hover{background:var(--light);color:var(--accent);}
+
+.back-refs{
+  margin-top:14px;padding:10px 14px;
+  background:var(--light);border-radius:6px;
+  font-size:.92em;font-weight:700;
+  border-left:3px solid var(--accent);
+  font-family:var(--font-note);
+}
+.back-refs::before{content:'📌 ';font-size:1.1em;}
+.back-refs a{
+  color:var(--accent);text-decoration:none;
+  margin:0 6px;
+  border-bottom:1px dotted var(--accent);
+  font-weight:700;
+}
+.back-refs a:hover{color:var(--mid);border-bottom-color:var(--mid);}
+
+/* ==========================================
+   戻るリンク
+   ========================================== */
+.back-to-toc{
+  display:inline-block;margin:18px 0 4px 0;
+  padding:8px 18px;
+  background:var(--accent);color:#fff;
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-size:.85em;text-decoration:none;font-weight:700;
+  letter-spacing:.05em;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+  transition:.2s;
+}
+.back-to-toc:hover{background:var(--mid);}
+
+/* ==========================================
+   凡例（コンパクト版・3 カラム横並び）
+   ========================================== */
+.legend-card{
+  background:var(--paper);
+  border:1.5px solid var(--mid);
+  border-radius:10px;
+  padding:18px 20px;margin:18px 0;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;
+}
+.legend-card .legend-block{
+  padding:12px 14px;background:var(--soft);
+  border-radius:6px;
+}
+.legend-card .legend-block h4{
+  margin:0 0 8px 0;font-size:.95em;color:var(--accent);
+  border:none;padding:0 0 4px 0;
+  border-bottom:1px solid var(--border-soft);
+}
+.legend-card .legend-block ul{
+  list-style:none;padding:0;margin:6px 0 0 0;
+}
+.legend-card .legend-block li{
+  padding:3px 0;font-size:.85em;line-height:1.55;font-weight:500;
+}
+
+/* ==========================================
+   チェックリスト
+   ========================================== */
+.checklist{margin:14px 0;padding-left:0;list-style:none;}
+.checklist li{
+  margin:6px 0;padding:8px 10px 8px 32px;position:relative;
+  background:var(--light);border-radius:4px;
+  font-family:var(--font-note);font-weight:500;line-height:1.85;
+}
+.checklist li::before{
+  content:'☐';position:absolute;left:10px;top:7px;
+  font-size:1.15em;color:var(--accent);font-weight:700;
+}
+
+/* ==========================================
+   ref-entry（第5部用）
+   ========================================== */
+.ref-entry{
+  background:var(--paper);
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  padding:22px 24px;margin:22px 0;
+  page-break-inside:avoid;
+}
+.ref-entry h4{
+  margin-top:0;
+  font-family:var(--font-soft);
+  color:var(--accent);
+  border-bottom:1.5px solid var(--mid);
+  border-bottom-style:solid;
+  padding-bottom:8px;
+  font-size:1.1em;
+}
+.ref-entry h5{
+  margin-top:18px;
+  font-family:var(--font-soft);
+  color:var(--mid);font-size:.98em;
+}
+.ref-entry p{margin:.4em 0;}
+.ref-entry.arg-card .arg-body{
+  font-family:var(--font-answer);
+}
+
+/* ==========================================
+   フッター
+   ========================================== */
+footer{
+  background:linear-gradient(135deg,var(--accent),var(--mid));
+  color:#fff;text-align:center;
+  padding:32px 24px;
+  margin:48px 0 0 0;
+  border-radius:16px 16px 0 0;
+}
+footer p{
+  margin:.5em 0;
+  font-family:var(--font-quote);
+  font-weight:400;color:#fff;line-height:1.95;
+}
+footer .closing{
+  font-family:var(--font-display);
+  font-weight:700;letter-spacing:.1em;
+}
+
+/* ==========================================
+   印刷最適化
+   ========================================== */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:#fff;font-size:11pt;line-height:1.85;color:var(--text);letter-spacing:.02em;}
+  .container{max-width:100%;padding:0;}
+  .container > section, .container > nav#toc, .container > nav.toc{
+    box-shadow:none;border-radius:0;padding:14px 0;margin:14px 0;
+  }
+  @page{size:A4;margin:20mm 15mm;}
+  .doc-header{position:absolute;top:8mm;right:8mm;font-size:13px;padding:4px 10px;box-shadow:none;}
+  header.cover{background:var(--accent)!important;color:#fff!important;padding:24px 20px;border-radius:0;margin-bottom:18px;}
+  .back-to-toc, .back-to-top{display:none!important;}
+  h2,h3,h4{page-break-after:avoid;}
+  .key-box, .note-box, .warn-box, .success-box, .danger-box, .lecturer-advice,
+  .model-answer, blockquote, blockquote.statute, blockquote.case, blockquote.problem,
+  table, .svg-wrap, .legend-card, .arg-card, .grading, .ref-entry, .timeline, .flow{
+    page-break-inside:avoid;
+  }
+  .hl-super,.hl-high,.hl-std,.tan,.rank-A,.rank-B,.rank-C,.arg-tier,.exam-mark,.para-num{
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;
+  }
+  a{color:var(--accent);text-decoration:none;}
+  a.xref{text-decoration:underline;}
+  details{display:block;} details > summary{display:none;}
+  footer{margin:24px 0 0 0;border-radius:0;}
+}
+
+/* ==========================================
+   レスポンシブ
+   ========================================== */
+@media screen and (max-width:768px){
+  body{font-size:15px;line-height:1.92;}
+  .container{padding:0 10px 28px 10px;}
+  .doc-header{top:10px;right:12px;font-size:13px;padding:4px 10px;}
+  header.cover{padding:60px 16px 30px;}
+  header.cover h1, header.cover h2{font-size:1.4em;letter-spacing:.04em;}
+  .container > section, .container > nav#toc, .container > nav.toc{padding:22px 14px;}
+  h2{font-size:1.25em;}
+  h3{font-size:1.1em;}
+  .key-box{padding:46px 24px 28px 28px;font-size:1rem;}
+  .note-box, .warn-box, .success-box, .danger-box{padding:18px 18px 14px;}
+  .lecturer-advice{padding:20px 18px 14px 18px;}
+  .model-answer{padding:32px 20px 22px;}
+  .arg-card{padding:18px 18px;}
+  .ref-entry{padding:18px 18px;}
+  table{font-size:.88em;display:block;width:max-content;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;} th,td{padding:7px;}
+}
+
+/* ==========================================
+   v4 LOOP-FOLD：reveal（模範答案）／deep-dive（深掘り層）折りたたみ・照合ナビ・口頭骨格
+   ※印刷は @media print の details{display:block}/summary{display:none} で全文強制展開
+   ========================================== */
+details.reveal-answer, details#deep-dive{
+  border:2px dashed var(--accent,#7c4a12); border-radius:12px; margin:24px 0;
+}
+details.reveal-answer > summary, details#deep-dive > summary{
+  cursor:pointer; list-style:none; padding:15px 20px; font-weight:700;
+  color:var(--accent,#7c4a12); font-size:1.05em; line-height:1.6; border-radius:10px;
+}
+details#deep-dive > summary{ background:var(--accent,#7c4a12); color:#fff; }
+details.reveal-answer > summary::-webkit-details-marker,
+details#deep-dive > summary::-webkit-details-marker{ display:none; }
+details.reveal-answer > summary::before,
+details#deep-dive > summary::before{ content:"▶  "; }
+details.reveal-answer[open] > summary::before,
+details#deep-dive[open] > summary::before{ content:"▼  "; }
+details.reveal-answer[open] > summary, details#deep-dive[open] > summary{
+  border-bottom:1px solid rgba(0,0,0,.12); border-radius:10px 10px 0 0;
+}
+.collation-nav{
+  border:1px solid var(--accent,#7c4a12); border-left:5px solid var(--accent,#7c4a12);
+  border-radius:0 10px 10px 0; padding:14px 20px; margin:22px 0;
+}
+.collation-nav h4{ margin:0 0 10px; }
+.collation-nav ol{ margin:0 0 0 1.4em; } .collation-nav li{ margin-bottom:.5em; }
+.oral-skeleton{
+  border-top:1px dashed rgba(0,0,0,.25); margin-top:14px; padding-top:10px; font-size:.96em;
+}
+.oral-skeleton .os-label{ font-weight:700; color:var(--accent,#7c4a12); }
+
+/* ==========================================
+   本文の字下げ（段落一字下げ・クラス無し <p> のみ／矢印・規範ボックス等は対象外）
+   ========================================== */
+.container p:not([class]){ text-indent:1em; }
+@media print{ .container p:not([class]){ text-indent:1em; } }
+</style>
+</head>
+<body>
+
+<!-- 右上 ID タグ -->
+<div class="doc-header">刑訴JX033</div>
+
+<header class="cover">
+  <span class="subject-tag">刑事訴訟法</span>
+  <h1>訴因変更の可否・公訴事実の同一性のシステマティック解法</h1>
+  <p class="subtitle">最判昭和29年5月14日を素材とする重要問題 ― 公訴事実の同一性の判断枠組みの体系的攻略</p>
+</header>
+
+<div class="container">
+<!-- ============================================
+     第0部　本書の使い方・凡例
+     ============================================ -->
+<section id="part0">
+<h2>第0部　本書の使い方・凡例</h2>
+
+<div class="legend-card">
+
+  <div class="legend-block">
+    <h4>論文式試験 出題頻度マーカー（①論文）</h4>
+    <ul>
+      <li><span class="hl-super">超頻出</span>（5回以上）　濃イエロー</li>
+      <li><span class="hl-high">頻出</span>（3〜4回）　グリーン</li>
+      <li><span class="hl-std">標準</span>（1〜2回）　ライトブルー</li>
+      <li>未出題（0回）　マーカーなし</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>短答式試験 出題頻度マーク（②短答）</h4>
+    <ul>
+      <li><span class="tan tan-super">短答★★★</span> 超頻出(7回以上)</li>
+      <li><span class="tan tan-high">短答★★</span> 頻出（4〜6回）</li>
+      <li><span class="tan tan-std">短答★</span> 標準（1〜3回）</li>
+      <li>未出題（0回）　表記なし</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>重要度（文字色・③重要度）</h4>
+    <ul>
+      <li><span class="rank-A">最重要A</span> 本問核心論点（通説・判例として確立）</li>
+      <li><span class="rank-B">重要B</span> 主要論点に付随（判例・学説）</li>
+      <li><span class="rank-C">標準C</span> 前提知識・基本論点</li>
+      <li><span class="rank-D">参考D</span> 深入り厳禁の脱線論点</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>答案必要度（論証ブロック・④必要度）</h4>
+    <ul>
+      <li><span class="arg-tier arg-required">必須</span> 省略不可・大幅減点</li>
+      <li><span class="arg-tier arg-recommended">推奨</span> 上位答案には必要・加点</li>
+      <li><span class="arg-tier arg-advanced">発展</span> 余裕があれば・差をつける一手</li>
+    </ul>
+  </div>
+
+</div>
+<p style="font-size:.92em;color:#555;margin-top:10px">※ 上記①論文・②短答・③重要度・④必要度の4指標は、本文各所のマーカー・マーク・文字色・論証タグに対応する。①②は各見出し・論点に、③は各論点見出しと第5部の条文/判例カードに、④は第2部G・第5-4の論証ブロックに付す。</p>
+</section>
+
+<!-- ============================================
+     目次
+     ============================================ -->
+<nav class="toc" id="toc">
+<h2>目次（Table of Contents）</h2>
+<ul>
+  <li><a href="#part0">第0部　本書の使い方・凡例</a></li>
+  <li><a href="#part1">第1部　問題のシステマティック分析</a></li>
+  <li class="l2"><a href="#case-overview">本問の事案概要</a></li>
+  <li class="l2"><a href="#relationship-diagram">訴因対照・事実関係図</a></li>
+  <li class="l2"><a href="#timeline">時系列整理</a></li>
+  <li class="l2"><a href="#fact-analysis">ファクトの仕分け</a></li>
+  <li class="l2"><a href="#issue-extraction">論点の自動抽出と構造化</a></li>
+  <li><a href="#part2">第2部　論点別 詳細解説</a></li>
+  <li class="l2"><a href="#issue-K">論点1　公訴事実の同一性の意義・判断基準と設問前段への適用</a></li>
+  <li class="l3"><a href="#K-A">A. 条文分析（論点固有の視点）</a></li>
+  <li class="l3"><a href="#K-B">B. 判例法理の展開</a></li>
+  <li class="l3"><a href="#K-C">C. 学説の整理</a></li>
+  <li class="l3"><a href="#K-D">D. 解法アルゴリズムと答案構成</a></li>
+  <li class="l3"><a href="#K-E">E. 関連論点との比較</a></li>
+  <li class="l3"><a href="#K-F">F. 答案表現集</a></li>
+  <li class="l3"><a href="#K-G">G. 頻出論証ブロック</a></li>
+  <li class="l3"><a href="#K-H">H. 失点回避チェックリスト</a></li>
+  <li class="l2"><a href="#issue-R">論点2　事実の共通性の限界と非両立性基準の位置づけ（設問後段）</a></li>
+  <li class="l3"><a href="#R-A">A. 条文分析（論点固有の視点）</a></li>
+  <li class="l3"><a href="#R-B">B. 判例法理の展開</a></li>
+  <li class="l3"><a href="#R-C">C. 学説の整理</a></li>
+  <li class="l3"><a href="#R-D">D. 解法アルゴリズムと答案構成</a></li>
+  <li class="l3"><a href="#R-E">E. 関連論点との比較</a></li>
+  <li class="l3"><a href="#R-F">F. 答案表現集</a></li>
+  <li class="l3"><a href="#R-G">G. 頻出論証ブロック</a></li>
+  <li class="l3"><a href="#R-H">H. 失点回避チェックリスト</a></li>
+  <li><a href="#part3">第3部　模範答案全文</a></li>
+  <li class="l2"><a href="#answer-full">完成答案</a></li>
+  <li class="l2"><a href="#grading-comment">採点講評</a></li>
+  <li><a href="#part4">第4部　知識の体系化と実践的補足</a></li>
+  <li class="l2"><a href="#correlation-map">4-1　論点相関マップ</a></li>
+  <li class="l2"><a href="#priority-flow">4-2　論点間の優先順位フロー</a></li>
+  <li class="l2"><a href="#column-comprehensive">4-3　コラム：網羅的思考（法的構成の選択）</a></li>
+  <li class="l2"><a href="#column-memory">4-4　コラム：実践的記憶術</a></li>
+  <li class="l2"><a href="#column-history">4-5　コラム：歴史的背景</a></li>
+  <li class="l2"><a href="#column-practice">4-6　コラム：実務との架橋</a></li>
+  <li class="l2"><a href="#exam-strategy">試験戦略アドバイス</a></li>
+  <li><a href="#part5">第5部　参考資料</a></li>
+  <li class="l2"><a href="#ref-statute">5-1　条文集</a></li>
+  <li class="l2"><a href="#ref-case">5-2　判例集</a></li>
+  <li class="l2"><a href="#ref-theory">5-3　学説一覧</a></li>
+  <li class="l2"><a href="#ref-arg">5-4　答案論証集</a></li>
+  <li class="l2"><a href="#ref-term">5-5　用語集</a></li>
+  <li class="l2"><a href="#ref-abbrev">5-6　略語・出典一覧</a></li>
+</ul>
+</nav>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+
+<!-- ============================================
+     第1部　問題のシステマティック分析
+     ============================================ -->
+<section id="part1">
+<h2>第1部　問題のシステマティック分析</h2>
+
+<div class="card" id="case-overview">
+<h3>本問の事案概要</h3>
+
+<h4>問題文原文</h4>
+<blockquote class="problem">
+<p>甲は、「平成30年3月22日、東京都A区B内のホテル『X』内において、宿泊客のV所有にかかる背広1着を窃取した」との窃盗の訴因で起訴された。しかし、公判において、甲は、「問題となっている背広1着は、平成30年3月27日、静岡県C市D番地の喫茶店で、知人のYから無償で譲り受けたものだ。これまでYをかばって嘘をついていた。」と供述した。検察官Pは、甲の供述に基づいて調査を行ったものの、その真偽は明らかとならなかった。そこで、Pは、予備的に、平成30年3月27日の盗品等無償譲受け罪の訴因の変更（追加）を請求した。</p>
+<p>Pによる訴因変更請求は認められるか。また、変更請求された訴因が、平成31年3月27日の沖縄県における盗品等無償譲受け罪の訴因であった場合はどうか。</p>
+<p style="text-align:right">（最判昭和29年5月14日を素材とする問題）</p>
+</blockquote>
+
+<h4>設問の分析</h4>
+<p>本問は、<strong>予備的に追加請求された新訴因</strong>と、起訴状記載の<strong>旧訴因</strong>との間に「公訴事実の同一性」（<a class="xref" href="#ref-stat-keiso-312">刑訴312条1項</a>）が認められるかを問うものであり、二つの設問を通じて<span class="hl-super">公訴事実の同一性の判断基準そのものの射程</span>を試す。</p>
+<ul>
+  <li><span class="rank-A">設問前段</span>：旧訴因（窃盗・平成30年3月22日・東京）／新訴因（盗品等無償譲受け・平成30年3月27日・静岡）⇒ <span class="hl-super">日時5日・隣接県だが「背広1着」は同一物件</span></li>
+  <li><span class="rank-A">設問後段</span>：新訴因が平成31年3月27日・沖縄の盗品等無償譲受けであった場合 ⇒ <span class="hl-super">日時約1年・東京と沖縄で事実の共通性が問えるか</span></li>
+</ul>
+<div class="key-box">
+<p><strong>【検討の骨格】</strong>いずれの設問も、①「公訴事実の同一性」の意義（機能的概念）→②判断基準（基本的事実関係の同一性を第一次基準・非両立性を補充的基準とする判例の枠組み）→③各設問の事実へのあてはめ、という<span class="rank-A">共通の思考プロセス</span>で処理する。前段と後段の<strong>結論を分ける決め手</strong>が、日時・場所の近接性を通じた<span class="hl-high">「事実の共通性」の有無</span>である点を最初に押さえる。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="svg-wrap" id="relationship-diagram">
+<h3>訴因対照・事実関係図</h3>
+<svg viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg">
+  <rect width="820" height="520" fill="#f5f4f5"/>
+  <text x="410" y="34" text-anchor="middle" font-size="17" font-weight="bold" fill="#3d383e">同一の「背広1着」をめぐる新旧訴因の対照</text>
+
+  <!-- 旧訴因 -->
+  <rect x="40" y="60" width="330" height="150" rx="12" fill="#585257" stroke="#3d383e" stroke-width="2"/>
+  <text x="205" y="86" text-anchor="middle" font-size="15" font-weight="bold" fill="#fff">旧訴因（起訴状記載）</text>
+  <text x="205" y="112" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">窃盗罪（刑235条）</text>
+  <text x="205" y="136" text-anchor="middle" font-size="12" fill="#fff">平成30年3月22日</text>
+  <text x="205" y="156" text-anchor="middle" font-size="12" fill="#fff">東京都A区・ホテルX</text>
+  <text x="205" y="182" text-anchor="middle" font-size="12" fill="#e8ecea">甲がVの背広1着を「窃取」</text>
+
+  <!-- 新訴因（前段） -->
+  <rect x="450" y="60" width="330" height="150" rx="12" fill="#94b5b2" stroke="#5f817d" stroke-width="2"/>
+  <text x="615" y="86" text-anchor="middle" font-size="15" font-weight="bold" fill="#23302e">新訴因A（前段）</text>
+  <text x="615" y="112" text-anchor="middle" font-size="14" font-weight="bold" fill="#23302e">盗品等無償譲受け罪（刑256条1項）</text>
+  <text x="615" y="136" text-anchor="middle" font-size="12" fill="#23302e">平成30年3月27日</text>
+  <text x="615" y="156" text-anchor="middle" font-size="12" fill="#23302e">静岡県C市・喫茶店</text>
+  <text x="615" y="182" text-anchor="middle" font-size="12" fill="#23302e">甲がYから背広1着を「無償譲受け」</text>
+
+  <!-- 中央：同一物件 -->
+  <line x1="370" y1="135" x2="450" y2="135" stroke="#c0392b" stroke-width="2.5" stroke-dasharray="7,4"/>
+  <rect x="330" y="228" width="160" height="52" rx="8" fill="#fbeae7" stroke="#c0392b" stroke-width="2"/>
+  <text x="410" y="250" text-anchor="middle" font-size="12" font-weight="bold" fill="#c0392b">背広1着＝同一物件</text>
+  <text x="410" y="268" text-anchor="middle" font-size="11" fill="#c0392b">→ 非両立の関係</text>
+
+  <!-- 判断の分岐 -->
+  <rect x="120" y="320" width="580" height="70" rx="10" fill="#ece6dd" stroke="#b9a889" stroke-width="1.6"/>
+  <text x="410" y="346" text-anchor="middle" font-size="13" font-weight="bold" fill="#5a4a2a">前段：日時5日／東京・静岡（隣接）＝近接性あり</text>
+  <text x="410" y="370" text-anchor="middle" font-size="13" font-weight="bold" fill="#2e7d32">⇒ 事実の共通性＋非両立 → 公訴事実の同一性を肯定（変更許容）</text>
+
+  <!-- 後段 -->
+  <rect x="450" y="418" width="330" height="82" rx="12" fill="#fff" stroke="#94b5b2" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="615" y="442" text-anchor="middle" font-size="14" font-weight="bold" fill="#3d383e">新訴因B（後段）</text>
+  <text x="615" y="464" text-anchor="middle" font-size="12" fill="#3d383e">平成31年3月27日・沖縄県</text>
+  <text x="615" y="486" text-anchor="middle" font-size="12" fill="#c0392b">日時約1年・東京と沖縄＝遠隔</text>
+  <rect x="40" y="418" width="380" height="82" rx="10" fill="#f3e6e6" stroke="#c0392b" stroke-width="1.6"/>
+  <text x="230" y="446" text-anchor="middle" font-size="13" font-weight="bold" fill="#8e2f22">後段：非両立でも事実の共通性が欠落</text>
+  <text x="230" y="472" text-anchor="middle" font-size="13" font-weight="bold" fill="#8e2f22">⇒ 公訴事実の同一性を否定（変更不許）</text>
+  <line x1="420" y1="459" x2="450" y2="459" stroke="#888" stroke-width="1.6"/>
+</svg>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="timeline">
+<h3>時系列整理</h3>
+<div class="timeline">
+  <div class="timeline-item">
+    <span class="timeline-label">時点①　平成30年3月22日（旧訴因）</span>
+    <p>東京都A区B内のホテル「X」で、甲がVの背広1着を<strong>窃取</strong>したとの窃盗の訴因で起訴。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点②　公判での甲の供述</span>
+    <p>甲は「背広1着は<strong>平成30年3月27日、静岡県C市</strong>の喫茶店で知人Yから<strong>無償で譲り受けた</strong>。Yをかばって嘘をついていた」と供述（自白の撤回・弁解）。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点③　検察官Pの調査</span>
+    <p>Pは甲の供述に基づき調査したが、<strong>真偽は明らかとならなかった</strong>（窃盗か盗品等無償譲受けか確定できない）。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点④　訴因変更（追加）請求</span>
+    <p>Pは<strong>予備的に</strong>、平成30年3月27日の盗品等無償譲受け罪の訴因の<strong>変更（追加）</strong>を請求（前段）。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点④'　仮定：後段</span>
+    <p>仮に追加訴因が<strong>平成31年3月27日・沖縄県</strong>の盗品等無償譲受け罪であった場合、変更請求は認められるか。</p>
+  </div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="fact-analysis">
+<h3>ファクトの仕分け</h3>
+
+<h4>確定事実（評価の余地のない事実）</h4>
+<ul>
+  <li>起訴状記載の旧訴因は「平成30年3月22日・東京・窃盗」である</li>
+  <li>追加請求された新訴因（前段）は「平成30年3月27日・静岡・盗品等無償譲受け」である</li>
+  <li>両訴因の客体は<strong>同一の「背広1着」</strong>である（甲がV所有の背広1着について問われている）</li>
+  <li>甲は本犯（窃盗犯）か盗品譲受人かのいずれかであり、両者は真偽不明である</li>
+  <li>変更請求は「予備的・追加」の形式でされている</li>
+  <li>後段の仮定訴因は「平成31年3月27日・沖縄」である</li>
+</ul>
+
+<h4>評価を要する事実（法的評価が必要な事実）</h4>
+<table>
+  <tr><th>事実</th><th>法的評価のポイント</th></tr>
+  <tr><td>背広1着が新旧訴因で同一物件である</td><td><span class="rank-A">非両立性（択一関係）</span>を基礎づける中核事実</td></tr>
+  <tr><td>甲は窃盗の本犯か、盗品の譲受人か</td><td>本犯者は自己の窃取物につき盗品等関与罪の主体となりえない → <span class="rank-A">両立しえない関係</span></td></tr>
+  <tr><td>前段：日時5日・東京と静岡（隣接県）</td><td><span class="rank-A">日時・場所の近接性＝事実の共通性</span>を肯定しうる</td></tr>
+  <tr><td>後段：日時約1年・東京と沖縄（遠隔）</td><td><span class="rank-A">事実の共通性の欠落</span>＝基本的事実関係の同一性を否定する方向</td></tr>
+</table>
+
+<h4>トリガーファクト（特定論点を起動させる事実）</h4>
+<table>
+  <tr><th>事実</th><th>起動する論点</th></tr>
+  <tr><td>予備的追加の訴因変更請求</td><td>→ <span class="hl-super">訴因変更の可否（公訴事実の同一性・<a class="xref" href="#ref-stat-keiso-312">312条1項</a>）</span></td></tr>
+  <tr><td>基本的事実（日時・場所・行為態様）が新旧で相違</td><td>→ <span class="hl-super">基本的事実関係の同一性の判断基準</span></td></tr>
+  <tr><td>背広1着が同一物件・本犯者性の択一</td><td>→ <span class="hl-super">非両立性基準（補充的基準）の機能</span></td></tr>
+  <tr><td>後段の日時・場所の大きな乖離</td><td>→ <span class="hl-high">事実の共通性の要否・非両立性基準本質説の限界</span></td></tr>
+  <tr><td>「予備的」訴因の追加</td><td>→ <span class="hl-std">択一的・予備的訴因と訴因変更の関係</span></td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="issue-extraction">
+<h3>論点の自動抽出と構造化</h3>
+<p style="font-size:.93em;color:#555">※ ここでは結論・優先順位を伏せ、拾うべき論点の見出しのみを提示する（解答の骨子は第2部以降で組み立てる）。</p>
+
+<h4>[1] 訴因変更の可否 ― 公訴事実の同一性の意義と判断基準</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>適用条文</td><td><span class="rank-A">訴因変更の可否＝公訴事実の同一性（<a class="xref" href="#ref-stat-keiso-312">刑訴312条1項</a>）</span></td></tr>
+  <tr><td>論点①</td><td><span class="hl-super">「公訴事実の同一性」の意義</span>（審判対象画定・一事不再理効の範囲を画する機能的概念）</td></tr>
+  <tr><td>論点②</td><td><span class="hl-super">判断基準</span>（基本的事実関係の同一性＝第一次基準／非両立性＝補充的基準）</td></tr>
+  <tr><td>論点③</td><td><span class="hl-high">非両立性の実体法的根拠</span>（本犯者は盗品等関与罪の主体となりえない）</td></tr>
+</table>
+
+<h4>[2] 設問前段への適用</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>近接性</td><td>日時5日・東京と静岡（隣接県）→ 日時・場所の近接性を肯定しうる</td></tr>
+  <tr><td>同一物件</td><td>背広1着が同一物件 → 非両立の関係</td></tr>
+  <tr><td>検討の帰結</td><td>事実の共通性＋非両立 → 公訴事実の同一性の有無を判定</td></tr>
+</table>
+
+<h4>[3] 設問後段への適用 ― 事実の共通性の限界</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>近接性の欠落</td><td>日時約1年・東京と沖縄（遠隔）→ 事実の共通性が問えるか</td></tr>
+  <tr><td>非両立性のみでの判断の当否</td><td><span class="rank-B">非両立性基準本質説</span>に立った場合の処理と限界</td></tr>
+  <tr><td>検討の帰結</td><td>事実の共通性の要否 → 公訴事実の同一性の有無を判定</td></tr>
+</table>
+
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第2部　論点別 詳細解説
+     ============================================ -->
+<section id="part2">
+<h2>第2部　論点別 詳細解説</h2>
+
+<div class="lecturer-advice">
+<span class="la-lead">総論：本問は「公訴事実の同一性」の一枚看板 ― 前段で基準を立て、後段で射程を試す</span>
+<p>この問題は、いわゆる<span class="la-key">訴因変更の可否に関する問題</span>です。処理はシンプルで、<strong>公訴事実の同一性（<a class="xref" href="#ref-stat-keiso-312">312条1項</a>）が認められるかどうか</strong>を論じていけばよい。まず同一性の意義と判断基準を一度きちんと立て、あとは前段・後段の事実に当てはめるだけです。基準は判例の立場、すなわち<span class="la-key">基本的事実関係の同一性を第一次基準にし、それがよく分からないときに非両立性基準を補充的に用いる</span>——これで貫きます。</p>
+<p>前段は、日時で5日、場所は東京と静岡でそれなりに離れているので、<strong>基本的事実関係の同一性を直ちに認めるのは難しい</strong>。しかし<span class="la-quote">背広1着が同一物件だというのは明らか</span>で、甲が本犯なら盗品罪は成立せず、盗品罪なら本犯でない——つまり<span class="la-key">非両立の関係</span>にある。だから非両立基準を補充的に使って同一性を肯定する。素材の<strong>最判昭29.5.14</strong>も、まさにこの発想で公訴事実の同一性を肯定しています。「基本的事実だけ見ると分からないが、非両立性を補充的に用いれば同一だと分かる」——非両立基準が機能する典型例だと思ってください。</p>
+<p>後段は、日時が1年ちょっと、場所は東京と沖縄。<strong>前段よりよほど離れている</strong>。非両立といえば非両立（本犯者性は同じ）ですが、<span class="la-key">あまりに日時・場所が異なりすぎている</span>。素材判例が「日時の先後及び場所の地理的関係とその双方の近接性に鑑みれば」と<strong>近接性を理由に挙げている</strong>ことからすると、後段では事実の共通性が欠け、同一性は否定——訴因変更は認められない、という結論でよい。近時は<span class="la-quote">非両立性こそ本質的基準だ</span>とする有力説もありますが、その見解も<strong>全く事実の共通性がない場合まで許容するわけではない</strong>。結局、事実の共通性と非両立関係はセットで考える必要があり、非両立関係だけで押し切るのは難しい、というのが落ち着きのよい理解です。</p>
+</div>
+
+<!-- ====== 論点1：公訴事実の同一性の意義・判断基準と前段適用 ====== -->
+<div class="card" id="issue-K">
+<h3>論点1　公訴事実の同一性の意義・判断基準と設問前段への適用<span class="tan tan-super">短答★★★</span></h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">まず基準を一度だけ丁寧に立てる ― あとは前段・後段で使い回す</span>
+<p>答案の効率を上げる鍵は、<span class="la-key">同一性の意義と判断基準を論点1で完成させておく</span>ことです。ここで「機能的概念→基本的事実同一（第一次）＋非両立性（補充）」まで書き切れば、後段は基準を繰り返さず<strong>あてはめだけ</strong>で処理できます。前段のあてはめでは、<span class="la-quote">同一物件＝非両立</span>と<span class="la-quote">日時・場所の近接性＝事実の共通性</span>の2点を必ず拾う。この2点がそろって初めて同一性が肯定される、という構造を意識してください。</p>
+</div>
+
+<!-- A. 条文分析 -->
+<div id="K-A">
+<h4>A. 条文分析（論点固有の視点）</h4>
+
+<p>本論点の中心条文は<a class="xref" href="#ref-stat-keiso-312">刑訴312条1項</a>である。同項は「裁判所は、検察官の請求があるときは、<strong>公訴事実の同一性を害しない限度において</strong>、起訴状に記載された訴因又は罰条の追加、撤回又は変更を許さなければならない」と定める。訴因変更が許されるか（可否）は、この<span class="rank-A">「公訴事実の同一性」の枠内にあるか否か</span>で決まる。条文全文・関連条文網は<a class="xref" href="#ref-stat-keiso-312">第5-1</a>を参照。</p>
+
+<h5>当該論点で問題となる要件の特定</h5>
+<table>
+  <tr><th>要件</th><th>本問における争点</th></tr>
+  <tr><td>訴因変更の請求</td><td>検察官Pが予備的・追加の形式で請求（争いなし）</td></tr>
+  <tr><td><span class="rank-A">「公訴事実の同一性」の限度</span></td><td><span class="hl-super">新旧訴因が同一性の範囲内にあるか</span>＝本論点の核心</td></tr>
+  <tr><td>「害しない限度において……許さなければならない」</td><td>同一性が認められれば裁判所は許可を<strong>義務づけ</strong>られる（裁量ではない）</td></tr>
+</table>
+
+<h5>「公訴事実の同一性」の意義（要件解釈の出発点）</h5>
+<div class="key-box">
+<p><strong>【意義】</strong>「公訴事実の同一性」は、それ自体に実体があるのではなく、<span class="hl-super">訴因変更が許される範囲＝一個の手続で審判できる事実の範囲を画する機能的概念</span>である（機能概念説・通説）。この範囲を画することで、同時に<span class="rank-A">一事不再理効（<a class="xref" href="#ref-stat-kenpo-39">憲法39条</a>・<a class="xref" href="#ref-stat-keiso-337">刑訴337条1号</a>）の及ぶ範囲</span>も画される。</p>
+<p><strong>【広義と狭義】</strong>広義の「公訴事実の同一性」は、①同一時点における事実の一個性を問う<a class="xref" href="#ref-term-tanitsusei">公訴事実の単一性</a>と、②時間的前後にわたる事実の同一性を問う<strong>狭義の公訴事実の同一性</strong>を含む。本問は、日時・場所を異にする新旧訴因の関係が問題であるから、<span class="rank-A">狭義の同一性</span>の問題である。</p>
+</div>
+
+<h5>当該論点における要件解釈の争点</h5>
+<div class="key-box">
+<p><strong>【争点①】狭義の同一性をどう判断するか</strong>（基本的事実関係の同一性を基準とするか、非両立性を基準とするか）</p>
+<p><strong>【争点②】非両立性は本質的基準か補充的基準か</strong>（判例＝補充的考慮／有力説＝本質的基準）</p>
+<p><strong>【争点③】非両立性の実体法的根拠</strong>（本犯者は自己の窃取物について盗品等関与罪（<a class="xref" href="#ref-stat-keih-256">刑256条</a>）の主体となりえない＝両立しえない）</p>
+</div>
+
+<h5>答案上の認定戦略（どの事実を要件にあてはめるか）</h5>
+<table>
+  <tr><th>要件</th><th>前段での認定材料</th></tr>
+  <tr><td>基本的事実の共通性</td><td>日時5日・東京と静岡（隣接県）＝<strong>日時・場所の近接性</strong></td></tr>
+  <tr><td>非両立性（択一関係）</td><td>背広1着が同一物件／甲が本犯なら盗品罪不成立、盗品罪なら本犯でない</td></tr>
+  <tr><td>同一性の帰結</td><td>近接性＋非両立 → 基本的事実関係を同じくする → 同一性肯定</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- B. 判例法理の展開 -->
+<div id="K-B">
+<h4>B. 判例法理の展開（論点固有の視点）</h4>
+
+<p>判例は、狭義の公訴事実の同一性について、<span class="hl-super">基本的事実関係が同一か否かを第一次的な基準</span>とし、これが判然としない場合に<span class="hl-high">両訴因が両立しない関係（非両立性）にあること</span>を補充的に考慮して同一性を判断する（二元的・折衷的枠組み）。各判例の事案・出典は<a class="xref" href="#ref-case-saihan-s29-5-14">第5-2</a>を参照。</p>
+
+<h5><a class="xref" href="#ref-case-saihan-s29-5-14"><span class="tan tan-super">短答★★★</span><span class="rank-A">最判昭和29年5月14日（本問の素材判例）</span></a>の規範のコア</h5>
+<blockquote class="case">
+<p class="judgment-text">『右予備的訴因において被告人が牙保したという背広1着が、起訴状記載の訴因において被告人が窃取したというB所有の背広1着と同一物件を指すものであることは、本件審理の経過に徴し、極めて明らかである。従つて、右二訴因はともにBの窃取された同人所有の背広1着に関するものであつて、ただこれに関する被告人の所為が窃盗であるか、それとも事後における賍物牙保であるかという点に差異があるに過ぎない。そして、両者は罪質上密接な関係があるばかりでなく、……<span class="para-num">その日時の先後及び場所の地理的関係とその双方の近接性に鑑みれば</span>、一方の犯罪が認められるときは他方の犯罪の成立を認め得ない関係にあると認めざるを得ないから、かような場合には両訴因は基本的事実関係を同じくするものと解するを相当とすべく、従つて公訴事実の同一性の範囲内に属する』</p>
+</blockquote>
+<div class="key-box">
+<p><strong>【規範のコア部分の意義】</strong>①<span class="hl-super">同一物件性</span>と②<span class="hl-super">本犯者性による非両立（一方が認められれば他方は成立しえない関係）</span>を指摘し、加えて③<span class="hl-high">日時・場所の近接性</span>に鑑みて「基本的事実関係を同じくする」と結論づけた。非両立性を「基本的事実関係の同一性」を基礎づける<strong>補充的な手がかり</strong>として用いた代表判例である。</p>
+<p><strong>【本問への射程】</strong>前段は素材判例と<span class="rank-A">事案がほぼ同一</span>（窃盗↔盗品等関与、同一の背広1着、日時数日・隣接地）。したがって、素材判例の枠組みをそのまま用いて同一性を肯定できる。逆に後段は、判旨が同一性肯定の理由として<strong>「近接性」を明示的に挙げた</strong>点が効いてくる（近接性が失われれば結論も変わる）。</p>
+</div>
+
+<h5><a class="xref" href="#ref-case-saidaihan-s37-11-28"><span class="tan tan-high">短答★★</span><span class="rank-C">最大判昭和37年11月28日（白山丸事件）</span></a>の規範のコア（関連）</h5>
+<p>密出国の出国日時を概括的に記載した訴因の特定が争われた事件。<span class="rank-C">訴因の特定・明示（<a class="xref" href="#ref-stat-keiso-256">256条3項</a>）</span>の問題であり同一性の判断基準そのものとは局面を異にするが、「起訴状の記載は他の犯罪事実との区別ができる程度に特定されていれば足りる」とした点で、<strong>訴因の機能（審判対象の画定）</strong>を理解する素材となる。</p>
+<div class="warn-box">
+<p><strong>【本問への射程】</strong>直接の射程はないが、公訴事実の同一性が「訴因＝審判対象の画定」と表裏の関係にあることを示す。答案では素材判例に集中し、白山丸事件は関連知識にとどめてよい。</p>
+</div>
+
+<h5>当該論点におけるあてはめ手順（前段）</h5>
+<div class="flow">
+<p class="step"><strong>手順1：</strong>基本的事実の共通性を検討 → 日時5日・東京と静岡で相違はあるが近接性あり（直ちに肯定はしがたい）</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順2：</strong>非両立性を補充的に検討 → 背広1着は同一物件／甲が本犯なら盗品罪不成立（<a class="xref" href="#ref-stat-keih-256">256条</a>）＝両立しえない</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順3：</strong>近接性と非両立を総合 → 基本的事実関係を同じくすると評価</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順4：</strong>公訴事実の同一性を肯定 → 訴因変更（追加）は許容される</p>
+</div>
+
+<h5>判例の射程整理</h5>
+<table>
+  <tr><th>判例</th><th>判断の中核</th><th>本問への射程</th></tr>
+  <tr><td>最判昭29.5.14（素材）</td><td>同一物件＋非両立＋近接性 → 同一性肯定</td><td><span class="rank-A">強</span>（前段は事案がほぼ同一）</td></tr>
+  <tr><td>白山丸事件</td><td>訴因の特定の程度</td><td><span class="rank-C">弱</span>（局面が異なる・関連知識）</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- C. 学説の整理 -->
+<div id="K-C">
+<h4>C. 学説の整理（論点固有の視点）</h4>
+
+<p>狭義の公訴事実の同一性の判断基準をめぐっては、①基本的事実同一説、②非両立性基準（補充的か本質的かで対立）、③罪質同一説等が対立する。各説の論拠・文献は<a class="xref" href="#ref-doctrine-kihonteki">第5-3</a>を参照。</p>
+
+<h5>判断基準をめぐる学説対立の構造</h5>
+<table>
+  <tr><th style="width:24%">学説</th><th>内容（基準）</th><th>批判の核心</th></tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-kihonteki"><span class="rank-A">基本的事実同一説</span></a>（判例・通説の第一次基準）</td>
+    <td>新旧訴因の基礎となる社会的事実が基本的な点で共通するかで判断</td>
+    <td>「基本的」の内容が不明確で、限界事例で判断がぶれる</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-hiryoritsu-hojuu"><span class="rank-A">非両立性補充説</span></a>（判例の枠組み）</td>
+    <td>基本的事実同一を第一次基準とし、判然としない場合に非両立性を補充的に考慮</td>
+    <td>二元的で、両基準の関係・優先順位がなお理論的に整理されていない</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-hiryoritsu-honshitsu"><span class="rank-B">非両立性本質説</span></a>（近時の有力説）</td>
+    <td>両訴因が実体法上両立しえない関係（択一関係）にあることこそ同一性の本質</td>
+    <td>非両立でも事実が全く共通しない場合（後段型）の処理に窮する</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-zaishitsu"><span class="rank-D">罪質同一説</span></a></td>
+    <td>両訴因の罪質の同一性を重視</td>
+    <td>罪質が異なっても同一性を認めるべき場合を説明できない</td>
+  </tr>
+</table>
+
+<h5>非両立性本質説の位置づけ ― <span class="rank-A">本問後段の核心</span></h5>
+<div class="warn-box">
+<p>非両立性本質説は、「甲が本犯なら盗品罪は不成立、盗品罪なら本犯でない」という<strong>択一関係</strong>を同一性の本質とみる。前段は同一物件により非両立が明確なので、この説でも同一性は肯定される。ところが<span class="rank-A">後段</span>は、日時約1年・東京と沖縄と事実が大きく乖離しており、非両立性だけを頼りにすると「離れすぎていても同一」と判定しかねない。この説の論者自身、<span class="hl-high">「全く事実の共通性が認められない場合にまで訴因変更を許容するものではない」</span>と限定しており、結局は事実の共通性を要求せざるをえない。</p>
+</div>
+
+<h5>採用説とその選択理由</h5>
+<div class="success-box">
+<p><strong>【採用説】非両立性補充説（判例の枠組み）</strong></p>
+<ol>
+  <li><strong>判例との整合性</strong>：素材判例（最判昭29.5.14）がこの枠組みに立つ</li>
+  <li><strong>後段の説明力</strong>：事実の共通性を要求することで、非両立でも遠隔な後段を的確に同一性否定できる</li>
+  <li><strong>予測可能性</strong>：本質説より基準が安定し、被告人の防御対象の予測可能性に資する</li>
+</ol>
+</div>
+
+<h5>答案での書き方</h5>
+<p>規範定立段階で「基本的事実関係の同一性を第一次基準とし、判然としない場合に非両立性を補充的に考慮する」と一度立て、前段では非両立＋近接性で肯定、後段では事実の共通性の欠落で否定する。非両立本質説には後段のあてはめの中で「仮にこの説に立っても、事実の共通性を全く欠く本件では同一性は認められない」と一言触れると厚みが出る。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- D. 解法アルゴリズム -->
+<div id="K-D">
+<h4>D. 解法アルゴリズムと答案構成</h4>
+
+<h5>思考のフローチャート（If-Thenルール）</h5>
+<div class="flow">
+<p class="step"><strong>[第1段階：問題の所在]</strong><br>予備的追加の訴因変更請求 → <span class="rank-A">公訴事実の同一性（<a class="xref" href="#ref-stat-keiso-312">312条1項</a>）の限度内か</span>を検討</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第2段階：意義]</strong><br>公訴事実の同一性＝審判対象と一事不再理効の範囲を画する<strong>機能的概念</strong><br>本問は日時・場所を異にする訴因間の問題 → <span class="rank-A">狭義の同一性</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第3段階：判断基準の定立]</strong><br>①基本的事実関係の同一性＝第一次基準<br>②判然としない場合、非両立性を補充的に考慮</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第4段階：前段のあてはめ]</strong></p>
+<p class="step">　①基本的事実 → 日時5日・東京と静岡で相違（直ちには肯定しがたい）<br>　②非両立性 → 背広1着は同一物件／本犯者は盗品罪の主体となりえない（<a class="xref" href="#ref-stat-keih-256">256条</a>）＝両立しえない<br>　③近接性 → 日時の先後・地理的関係が近接 → 事実の共通性あり</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第5段階：前段の結論]</strong><br>非両立＋近接性 → 基本的事実関係を同じくする → <span class="rank-A">公訴事実の同一性を肯定 → 訴因変更（追加）は許容される</span></p>
+</div>
+
+<h5>規範の暗記事項</h5>
+<div class="key-box">
+<p><strong>【コア部分（必ず書く）】</strong></p>
+<ol>
+  <li>公訴事実の同一性は審判対象・一事不再理効の範囲を画する機能的概念</li>
+  <li>判断基準：基本的事実関係の同一性を第一次基準・非両立性を補充的基準</li>
+  <li>非両立の実体法的根拠：本犯者は自己の窃取物につき盗品等関与罪の主体となりえない</li>
+</ol>
+<p><strong>【周辺部分（書ければ加点）】</strong></p>
+<ul>
+  <li>広義（単一性＋狭義の同一性）と狭義の同一性の区別</li>
+  <li>非両立性本質説とその限界（事実の共通性を全く欠く場合は許容しない）</li>
+</ul>
+</div>
+
+<h5>あてはめのコツ（トリガーファクト・評価語の引き出し）</h5>
+<table>
+  <tr><th>事実</th><th>評価語</th><th>結論</th></tr>
+  <tr><td>背広1着が同一物件</td><td>客体の同一性／択一関係の基礎</td><td>非両立性を基礎づける</td></tr>
+  <tr><td>甲が本犯か盗品譲受人か</td><td>本犯者は盗品罪の主体となりえない</td><td>両立しえない関係</td></tr>
+  <tr><td>日時5日・東京と静岡（隣接）</td><td>日時の先後・地理的関係の近接性</td><td>事実の共通性を肯定</td></tr>
+  <tr><td>真偽不明のまま予備的追加</td><td>択一的認定の必要性</td><td>訴因変更の必要性・許容性</td></tr>
+</table>
+
+<h5>採点者視点（A答案・B答案・C答案の差異）</h5>
+<table>
+  <tr><th>段階</th><th>A答案（上位2割）</th><th>B答案（中位）</th><th>C答案（下位）</th></tr>
+  <tr><td>意義</td><td>機能的概念＋一事不再理効との連関＋広狭の区別</td><td>機能的概念に言及</td><td>意義を書かず基準へ</td></tr>
+  <tr><td>基準</td><td>第一次／補充の関係を明示</td><td>両基準を列挙</td><td>非両立性のみ</td></tr>
+  <tr><td>前段あてはめ</td><td>同一物件・本犯者性・近接性を評価語と結合</td><td>非両立を指摘</td><td>結論のみ</td></tr>
+  <tr><td>実体法の理解</td><td>本犯者は盗品罪の主体でない（256条）を明示</td><td>「両立しない」で済ます</td><td>触れない</td></tr>
+</table>
+
+<h5>陥りやすいミス</h5>
+<div class="danger-box">
+<ul>
+  <li><span class="rank-A">ミス①</span>：意義（機能的概念）を書かずいきなり基準へ → 一事不再理効との連関で説得力が増す</li>
+  <li><span class="rank-A">ミス②</span>：非両立性を第一次基準にしてしまう → 判例は<strong>基本的事実同一が第一次</strong>・非両立は補充</li>
+  <li><span class="rank-B">ミス③</span>：非両立の根拠（本犯者性・<a class="xref" href="#ref-stat-keih-256">256条</a>）を書かない → 「なぜ両立しないか」を実体法で示す</li>
+  <li><span class="rank-B">ミス④</span>：近接性への言及漏れ → 後段との結論の分かれ目なので前段で必ず拾う</li>
+</ul>
+</div>
+
+<h5>時間配分の目安</h5>
+<p>論点1（意義・基準・前段あてはめ）で<strong>構成7分・記述22分（合計29分）</strong>。意義・基準の定立に10分、前段あてはめに12分が目安。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- E. 関連論点との比較 -->
+<div id="K-E">
+<h4>E. 関連論点との比較</h4>
+
+<h5><span class="tan tan-high">短答★★</span>公訴事実の「単一性」と「狭義の同一性」の区別</h5>
+<table>
+  <tr><th>観点</th><th>公訴事実の単一性</th><th>狭義の公訴事実の同一性</th></tr>
+  <tr><td>問う対象</td><td>同一時点における事実の一個性（一罪か数罪か）</td><td>時間的前後にわたる事実の同一性</td></tr>
+  <tr><td>判断基準</td><td>実体法上の罪数（科刑上一罪・包括一罪等）</td><td>基本的事実の同一性＋非両立性（補充）</td></tr>
+  <tr><td>本問の位置</td><td>—</td><td><span class="rank-A">こちら</span>（日時・場所を異にする訴因間）</td></tr>
+</table>
+
+<h5>芋づる式関連知識</h5>
+<ul>
+  <li><span class="rank-B">訴因変更の要否（<a class="xref" href="#ref-stat-keiso-312">312条</a>）</span>：本問は「可否」（同一性の限度）だが、審判対象の画定・防御の観点から変更を要するかという「要否」の論点とは別問題。混同注意</li>
+  <li><span class="rank-A">一事不再理効（<a class="xref" href="#ref-stat-kenpo-39">憲法39条</a>・<a class="xref" href="#ref-stat-keiso-337">337条1号</a>）</span>：公訴事実の同一性の範囲＝確定判決の既判力（一事不再理効）が及ぶ範囲。同一性を広く認めるほど再訴が遮断される</li>
+  <li><span class="rank-B">予備的・択一的訴因（<a class="xref" href="#ref-stat-keiso-256">256条5項</a>）</span>：真偽不明の事案で複数訴因を掲げる手法。本問のPの「予備的追加」はこの一場面</li>
+  <li><span class="rank-C">訴因対象説／公訴事実対象説</span>：審判対象を訴因とみるか背後の公訴事実とみるか。通説（訴因対象説）でも公訴事実の同一性は変更の外枠として機能する</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- F. 答案表現集 -->
+<div id="K-F">
+<h4>F. 答案表現集</h4>
+
+<h5>論点提起の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>問題提起型</td><td>「Pの訴因変更請求は、新旧訴因が『公訴事実の同一性』（312条1項）の範囲内にある場合に許される。では、本件でその同一性が認められるか。」</td></tr>
+  <tr><td>意義先行型</td><td>「公訴事実の同一性は、審判の対象と一事不再理効の及ぶ範囲を画する機能的概念である。」</td></tr>
+  <tr><td>基準提示型</td><td>「その有無は、基本的事実関係の同一性を第一次的基準とし、これが判然としない場合に非両立性を補充的に考慮して判断する。」</td></tr>
+</table>
+
+<h5>規範定立例（短縮版・完全版）</h5>
+<div class="arg-card">
+<h5><span class="arg-tier arg-required">必須論証</span>公訴事実の同一性の判断基準（短縮版）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約120字</div>
+<div class="arg-body">公訴事実の同一性は、審判対象と一事不再理効の範囲を画する機能的概念である。その有無は、両訴因の基本的事実関係が同一か否かを第一次的基準とし、これが判然としない場合には、両訴因が両立しない関係にあること（非両立性）を補充的に考慮して判断する。</div>
+</div>
+
+<div class="arg-card">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>公訴事実の同一性の判断基準（完全版）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約230字</div>
+<div class="arg-body">「公訴事実の同一性」（312条1項）は、それ自体に実体があるのではなく、一個の手続で審判しうる範囲、ひいては一事不再理効（憲法39条）の及ぶ範囲を画する機能的概念である。時間的前後にわたる狭義の同一性が問題となる場合、その有無は、両訴因の基礎をなす社会的事実が基本的な点で同一か否か（基本的事実関係の同一性）を第一次的基準として判断する。もっとも、これが判然としない場合には、両訴因が実体法上両立しえない関係（一方が認められれば他方は成立しえない関係）にあることを補充的に考慮し、基本的事実関係の同一性を認めうるかを判定する。</div>
+</div>
+
+<h5>あてはめ表現例（事実→評価語→結論）</h5>
+<div class="arg-card">
+<h5><span class="arg-tier arg-required">必須論証</span>前段のあてはめ（非両立＋近接性）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約200字</div>
+<div class="arg-body">本件において、旧訴因の窃取された背広1着と新訴因の無償譲受けにかかる背広1着は同一物件である。そして、窃盗の本犯者は、自己が窃取した物について盗品等関与罪（256条）の主体となりえないから、甲が窃盗犯であれば盗品等無償譲受け罪は成立せず、その逆もまた成り立たない。両訴因は一方が認められれば他方の成立を認め得ない関係にある。加えて、両訴因の日時は5日の差にとどまり、場所も東京と静岡という近接した地理的関係にある。その近接性に鑑みれば、両訴因は基本的事実関係を同じくするものと認められる。</div>
+</div>
+
+<h5>結論部分の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>標準型</td><td>「よって、両訴因には公訴事実の同一性が認められ、Pの訴因変更（追加）請求は許容される。」</td></tr>
+  <tr><td>条文摘示型</td><td>「以上より、公訴事実の同一性（312条1項）を害しないから、裁判所は訴因変更を許さなければならない。」</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- G. 頻出論証ブロック -->
+<div id="K-G">
+<h4>G. 頻出論証ブロック</h4>
+
+<p>本論点で答案に転記可能な頻出論証を、完成形・簡略版・発展版の3層で提示する。出典・条文・判例は<a class="xref" href="#ref-arg">第5-4答案論証集</a>を参照。</p>
+
+<div class="arg-card" id="arg-K-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証K-1：公訴事実の同一性の意義・判断基準</h5>
+<div class="arg-meta"><strong>出題実績：</strong>司法試験 平成26年（旧司 昭和期頻出）／予備試験　<strong>想定文字数：</strong>完成形 約240字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">訴因変更は「公訴事実の同一性を害しない限度において」許される（312条1項）。公訴事実の同一性は、一個の手続で審判しうる範囲、ひいては一事不再理効の及ぶ範囲を画する機能的概念である。時間的前後にわたる狭義の同一性が問題となる場合、その有無は、両訴因の基礎をなす社会的事実が基本的な点で同一か（基本的事実関係の同一性）を第一次的基準として判断する。もっとも、これが判然としないときは、両訴因が両立しえない関係にあることを補充的に考慮し、基本的事実関係の同一性を肯定しうるかを判定すべきである。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">公訴事実の同一性は審判対象と一事不再理効の範囲を画する機能的概念である。その有無は、基本的事実関係の同一性を第一次基準とし、判然としない場合に非両立性を補充的に考慮して判断する。</div>
+<p><strong>【発展版（加点要素）】</strong></p>
+<div class="arg-body">この枠組みは、被告人の防御の対象を明確にしつつ、実体的真実に即した一回的解決を可能にする点で、審判対象を訴因と解する立場（訴因対象説）とも整合する。非両立性を本質的基準とみる有力説もあるが、非両立でも事実の共通性を全く欠く場合を的確に排除しえない点で、なお補充的基準と位置づけるのが妥当である。</div>
+</div>
+
+<div class="arg-card" id="arg-K-2">
+<h5><span class="arg-tier arg-required">必須論証</span>論証K-2：前段のあてはめ（非両立性の実体法的根拠）</h5>
+<div class="arg-meta"><strong>出題実績：</strong>最判昭29.5.14型　<strong>想定文字数：</strong>完成形 約200字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">旧訴因の窃取物と新訴因の無償譲受けにかかる物は、いずれも同一の背広1着である。窃盗の本犯者は自己の窃取した物について盗品等関与罪（256条）の主体となりえないから、甲が窃盗犯であれば盗品等無償譲受け罪は成立せず、その逆も成り立たない。両訴因は一方が認められれば他方の成立を認め得ない関係にある。さらに、両訴因の日時は5日の差、場所も東京と静岡という近接した地理的関係にとどまる。以上を総合すれば、両訴因は基本的事実関係を同じくし、公訴事実の同一性が認められる。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">背広1着は同一物件であり、本犯者は盗品等関与罪の主体となりえないから両訴因は非両立である。日時・場所も近接するから、基本的事実関係を同じくし、公訴事実の同一性が認められる。</div>
+</div>
+
+<div class="arg-card" id="arg-K-3">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>論証K-3：単一性と狭義の同一性の区別</h5>
+<div class="arg-meta"><strong>出題実績：</strong>基礎知識　<strong>想定文字数：</strong>完成形 約120字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">広義の公訴事実の同一性は、同一時点の事実の一個性を問う単一性と、時間的前後にわたる狭義の同一性からなる。本件は日時・場所を異にする新旧訴因の関係が問題であるから、狭義の同一性、すなわち基本的事実関係の同一性の有無が問われる。</div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- H. 失点回避チェックリスト -->
+<div id="K-H">
+<h4>H. 失点回避チェックリスト</h4>
+
+<h5>論点漏れチェック（必ず触れるべきサブ論点）</h5>
+<ul class="checklist">
+  <li>訴因変更の可否を「公訴事実の同一性」（312条1項）の限度で論じたか</li>
+  <li>同一性の意義（機能的概念・一事不再理効との連関）に触れたか</li>
+  <li>基本的事実同一（第一次）＋非両立（補充）の順序を守ったか</li>
+  <li>非両立の実体法的根拠（本犯者は256条の主体でない）を示したか</li>
+  <li>日時・場所の近接性を前段のあてはめで拾ったか</li>
+  <li>結論として訴因変更（追加）の許容を明示したか</li>
+</ul>
+
+<h5>規範の正確性チェック（判例表現の正確引用）</h5>
+<ul class="checklist">
+  <li>「一方の犯罪が認められるときは他方の犯罪の成立を認め得ない関係」と書いたか</li>
+  <li>「基本的事実関係を同じくする」という判例の結論文言を用いたか</li>
+  <li>「日時の先後及び場所の地理的関係とその双方の近接性」を意識したか</li>
+</ul>
+
+<h5>あてはめチェック（拾うべき事実・評価語の妥当性）</h5>
+<ul class="checklist">
+  <li>「背広1着」の同一物件性を明示したか</li>
+  <li>本犯者性による択一関係を実体法（256条）で説明したか</li>
+  <li>日時5日・東京と静岡の近接性を評価語と結合したか</li>
+</ul>
+
+<h5>形式チェック（ナンバリング・条文番号の正確性）</h5>
+<ul class="checklist">
+  <li>条文番号は<a class="xref" href="#ref-stat-keiso-312">刑訴312条1項</a>・<a class="xref" href="#ref-stat-keih-256">刑256条</a>を正確に書いたか</li>
+  <li>第1、1、(1)、ア、(ア)の階層的ナンバリングを守ったか</li>
+  <li>結論文を一文でまとめたか</li>
+</ul>
+
+<div class="oral-skeleton">
+<span class="os-label">🗣 口頭骨格（3周目以降・3〜5分で言い切る）</span>
+<ol>
+  <li><strong>論点</strong>：訴因変更の可否＝公訴事実の同一性（312条1項）の有無（前段）</li>
+  <li><strong>条文</strong>：刑訴312条1項／刑235条・256条（実体法的根拠）</li>
+  <li><strong>規範</strong>：機能的概念／基本的事実同一（第一次）＋非両立性（補充）</li>
+  <li><strong>結論</strong>：背広1着＝同一物件で非両立、日時・場所も近接 → 基本的事実関係を同じくする → 同一性肯定 → 変更許容</li>
+</ol>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</div><!-- /論点1 -->
+
+
+<!-- ====== 論点2：事実の共通性の限界と非両立性基準の位置づけ（後段） ====== -->
+<div class="card" id="issue-R">
+<h3>論点2　事実の共通性の限界と非両立性基準の位置づけ（設問後段）<span class="tan tan-high">短答★★</span></h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">後段は「非両立でも足りない」を示す問題 ― 近接性の裏返しで斬る</span>
+<p>後段の勘所は、<span class="la-key">非両立関係は前段と同じく認められる（本犯者性は変わらない）のに、結論は逆になる</span>という点です。決め手は<strong>日時約1年・東京と沖縄という遠隔性</strong>。素材判例が同一性を肯定した理由に「近接性」を挙げていた以上、その近接性が失われれば結論も反転する、と論じます。ここで<span class="la-quote">非両立性こそ本質だ</span>という有力説に触れ、しかしその説も<strong>全く事実の共通性がない場合まで許容しない</strong>ことを指摘して、結局は補充的基準が妥当だと締める。これで前段との対比がきれいに決まります。</p>
+</div>
+
+<!-- A. 条文分析 -->
+<div id="R-A">
+<h4>A. 条文分析（論点固有の視点）</h4>
+
+<p>後段も中心条文は<a class="xref" href="#ref-stat-keiso-312">刑訴312条1項</a>であり、問われるのは同じく「公訴事実の同一性」の限度である。もっとも、後段は前段と異なり<span class="hl-high">日時・場所が大きく乖離</span>しており、論点1で立てた判断基準のうち<span class="rank-A">「基本的事実関係の同一性」（事実の共通性）の要件が充たされるか</span>が正面から問われる。条文の位置づけは<a class="xref" href="#ref-stat-keiso-312">第5-1</a>を参照。</p>
+
+<h5>当該論点で問題となる要件の特定</h5>
+<table>
+  <tr><th>要件</th><th>後段における争点</th></tr>
+  <tr><td>非両立性（択一関係）</td><td>本犯者性により<strong>前段と同じく非両立は認められる</strong>（争点ではない）</td></tr>
+  <tr><td><span class="rank-A">事実の共通性（基本的事実関係の同一性）</span></td><td><span class="hl-super">日時約1年・東京と沖縄で共通性が認められるか</span>＝後段の核心</td></tr>
+  <tr><td>非両立性のみで同一性を認めてよいか</td><td>非両立性基準本質説に立った場合の処理と限界</td></tr>
+</table>
+
+<h5>当該論点における要件解釈の争点</h5>
+<div class="key-box">
+<p><strong>【争点①】非両立でも事実の共通性を欠けば同一性は否定されるか</strong></p>
+<p>素材判例は同一性肯定の理由に「日時・場所の近接性」を挙げた。裏を返せば、近接性＝事実の共通性を欠く場合には、非両立であっても基本的事実関係の同一性は否定される（補充的基準の限界）。</p>
+
+<p><strong>【争点②】非両立性基準本質説は後段をどう処理するか</strong></p>
+<p>非両立性を本質とみる有力説でも、択一関係さえあれば無制限に同一性を認めるわけではない。論者自身「全く事実の共通性が認められない場合にまで訴因変更を許容するものではない」と限定するため、後段では同一性は否定される。</p>
+</div>
+
+<h5>答案上の認定戦略（どの事実を要件にあてはめるか）</h5>
+<table>
+  <tr><th>要件</th><th>後段での認定材料</th></tr>
+  <tr><td>非両立性</td><td>背広1着の同一物件性・本犯者性は前段と同じ → 非両立は認められる</td></tr>
+  <tr><td>事実の共通性の欠落</td><td>日時約1年（平成30年3月22日↔平成31年3月27日）・場所は東京と沖縄で遠隔</td></tr>
+  <tr><td>帰結</td><td>近接性を欠く → 基本的事実関係の同一性を否定 → 公訴事実の同一性を否定</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- B. 判例法理の展開 -->
+<div id="R-B">
+<h4>B. 判例法理の展開（論点固有の視点）</h4>
+
+<p>後段の処理も素材判例（最判昭29.5.14）の射程理解が鍵となる。判旨が同一性肯定の理由として<span class="hl-high">「その日時の先後及び場所の地理的関係とその双方の近接性に鑑みれば」</span>と述べた点を、後段では<strong>反対解釈</strong>して用いる。</p>
+
+<h5><a class="xref" href="#ref-case-saihan-s29-5-14"><span class="rank-A">最判昭和29年5月14日</span></a>の射程（後段への反対解釈）</h5>
+<blockquote class="case">
+<p class="judgment-text">『……<span class="para-num">その日時の先後及び場所の地理的関係とその双方の近接性に鑑みれば</span>、一方の犯罪が認められるときは他方の犯罪の成立を認め得ない関係にあると認めざるを得ないから、かような場合には両訴因は基本的事実関係を同じくするものと解するを相当とすべく……』</p>
+</blockquote>
+<div class="warn-box">
+<p><strong>【射程の読み方】</strong>素材判例は、<span class="rank-A">非両立性を「近接性」という事実の共通性と組み合わせて</span>同一性を肯定した。したがって、非両立であっても日時・場所の近接性（事実の共通性）を欠く場合には、判例の射程外であり、同一性は否定される。後段の日時約1年・東京と沖縄はまさにこの射程外の事例である。</p>
+</div>
+
+<h5>当該論点におけるあてはめ手順（後段）</h5>
+<div class="flow">
+<p class="step"><strong>手順1：</strong>非両立性を確認 → 前段同様、本犯者性により両立しえない関係は認められる</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順2：</strong>事実の共通性を検討 → 日時約1年・場所は東京と沖縄で遠隔 → 近接性なし</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順3：</strong>素材判例の射程を確認 → 近接性を欠くため判例の射程外</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順4：</strong>基本的事実関係の同一性を否定 → 公訴事実の同一性なし → 訴因変更請求は認められない</p>
+</div>
+
+<h5>非両立性のみでの判断がもたらす不都合</h5>
+<p>仮に非両立性のみで同一性を判断すると、後段のように日時・場所が全く異なる事例でも「非両立だから同一」と判定され、被告人の防御対象が不当に拡散する。判例が近接性を要求したのは、こうした<span class="rank-B">防御対象の予測可能性・実体的審理の一体性</span>を担保する趣旨と理解できる。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- C. 学説の整理 -->
+<div id="R-C">
+<h4>C. 学説の整理（論点固有の視点）</h4>
+
+<p>後段では、非両立性基準本質説（近時の有力説）の当否とその限界が正面から問われる。各説の論拠は<a class="xref" href="#ref-doctrine-hiryoritsu-honshitsu">第5-3</a>を参照。</p>
+
+<h5>非両立性基準本質説の主張と限界</h5>
+<table>
+  <tr><th style="width:26%">論点</th><th>本質説の主張</th><th>後段での帰結・限界</th></tr>
+  <tr>
+    <td>基準の本質</td>
+    <td>両訴因が実体法上両立しえない（択一）ことこそ同一性の本質</td>
+    <td>後段も非両立ゆえ、形式的には同一性を肯定しかねない</td>
+  </tr>
+  <tr>
+    <td>論者自身の限定</td>
+    <td>「全く事実の共通性が認められない場合にまで訴因変更を許容するものではない」</td>
+    <td><span class="rank-A">後段は事実の共通性を全く欠く → 本質説でも同一性否定</span></td>
+  </tr>
+  <tr>
+    <td>結論</td>
+    <td>—</td>
+    <td>いずれの説でも後段は同一性否定 → 訴因変更不許</td>
+  </tr>
+</table>
+
+<h5>採用説とその選択理由</h5>
+<div class="success-box">
+<p><strong>【採用説】非両立性補充説（論点1と一貫）</strong></p>
+<ol>
+  <li><strong>後段の的確な処理</strong>：事実の共通性を要件とするため、非両立でも遠隔な後段を無理なく同一性否定できる</li>
+  <li><strong>本質説との実質的一致</strong>：本質説も事実の共通性を要求せざるをえず、結論は同じ。ならば基準として明快な補充説が優る</li>
+  <li><strong>防御の予測可能性</strong>：被告人が防御すべき事実の範囲が不当に拡散しない</li>
+</ol>
+</div>
+
+<h5>答案での書き方</h5>
+<p>論点1で立てた基準を繰り返さず、「非両立は認められるが、事実の共通性を欠く」と端的にあてはめる。そのうえで「非両立性を本質とみる有力説によっても、事実の共通性を全く欠く本件では同一性は認められない」と一言加え、結論の安定性を示す。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- D. 解法アルゴリズム -->
+<div id="R-D">
+<h4>D. 解法アルゴリズムと答案構成</h4>
+
+<h5>思考のフローチャート（If-Thenルール）</h5>
+<div class="flow">
+<p class="step"><strong>[第1段階：基準の援用]</strong><br>論点1の基準（基本的事実同一＝第一次／非両立＝補充）をそのまま用いる</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第2段階：非両立性の確認]</strong><br>背広1着の同一物件性・本犯者性は前段と同じ → <span class="rank-A">非両立は認められる</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第3段階：事実の共通性の検討]</strong><br>日時約1年（H30.3.22↔H31.3.27）・場所は東京と沖縄 → <span class="rank-A">近接性を欠く＝事実の共通性なし</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第4段階：本質説の検討]</strong><br>非両立性本質説でも「全く事実の共通性を欠く場合」は許容しない → 結論は同じ</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第5段階：結論]</strong><br>基本的事実関係の同一性を否定 → <span class="rank-A">公訴事実の同一性なし → 訴因変更請求は認められない</span></p>
+</div>
+
+<h5>規範の暗記事項</h5>
+<div class="key-box">
+<p><strong>【コア部分（必ず書く）】</strong></p>
+<ol>
+  <li>非両立性は補充的基準にとどまり、事実の共通性（基本的事実関係の同一性）を代替しない</li>
+  <li>素材判例が同一性肯定の理由に「近接性」を挙げた点の反対解釈</li>
+  <li>非両立性本質説でも「全く事実の共通性を欠く場合」は許容しない</li>
+</ol>
+<p><strong>【周辺部分（書ければ加点）】</strong></p>
+<ul>
+  <li>近接性要求の趣旨（防御対象の予測可能性・審理の一体性）</li>
+</ul>
+</div>
+
+<h5>あてはめのコツ（トリガーファクト・評価語の引き出し）</h5>
+<table>
+  <tr><th>事実</th><th>評価語</th><th>結論</th></tr>
+  <tr><td>本犯者性（前段と同じ）</td><td>択一関係・両立しえない</td><td>非両立性は肯定</td></tr>
+  <tr><td>日時約1年の隔たり</td><td>時間的近接性の欠如</td><td>事実の共通性を否定</td></tr>
+  <tr><td>東京と沖縄</td><td>地理的関係の著しい隔絶</td><td>事実の共通性を否定</td></tr>
+  <tr><td>本質説論者の限定</td><td>「全く事実の共通性がない場合は許容せず」</td><td>いずれの説でも同一性否定</td></tr>
+</table>
+
+<h5>採点者視点（A答案・B答案・C答案の差異）</h5>
+<table>
+  <tr><th>段階</th><th>A答案（上位2割）</th><th>B答案（中位）</th><th>C答案（下位）</th></tr>
+  <tr><td>非両立の扱い</td><td>「非両立は認められるが」と前段と同じ点を明示</td><td>非両立に言及</td><td>非両立で同一性を肯定してしまう</td></tr>
+  <tr><td>射程</td><td>素材判例の「近接性」の反対解釈を示す</td><td>近接性の欠如を指摘</td><td>近接性に触れない</td></tr>
+  <tr><td>本質説</td><td>本質説でも同一性否定になる理由を示す</td><td>本質説に言及のみ</td><td>触れない</td></tr>
+  <tr><td>結論</td><td>訴因変更不許を条文とともに明示</td><td>不許の結論</td><td>前段と同じ結論にしてしまう</td></tr>
+</table>
+
+<h5>陥りやすいミス</h5>
+<div class="danger-box">
+<ul>
+  <li><span class="rank-A">ミス①</span>：非両立だけで後段も同一性を肯定してしまう → <strong>事実の共通性の欠落</strong>を決め手にする</li>
+  <li><span class="rank-A">ミス②</span>：前段と同じ結論（変更許容）にしてしまう → 後段は<strong>変更不許</strong></li>
+  <li><span class="rank-B">ミス③</span>：素材判例の「近接性」への言及を落とす → 反対解釈の核心を示す</li>
+  <li><span class="rank-C">ミス④</span>：本質説を紹介するだけで限界に触れない → 「全く共通性を欠く場合は許容しない」まで書く</li>
+</ul>
+</div>
+
+<h5>時間配分の目安</h5>
+<p>論点2（後段）は基準を再定立しないため<strong>構成3分・記述10分（合計13分）</strong>。非両立の確認1分、事実の共通性の否定6分、本質説の限界3分が目安。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- E. 関連論点との比較 -->
+<div id="R-E">
+<h4>E. 関連論点との比較</h4>
+
+<h5><span class="tan tan-std">短答★</span>訴因変更の「可否」と「要否」の区別</h5>
+<table>
+  <tr><th>観点</th><th>訴因変更の可否（本問）</th><th>訴因変更の要否</th></tr>
+  <tr><td>問う内容</td><td>変更が公訴事実の同一性の範囲内か（外枠）</td><td>認定を変えるのに変更手続が必要か（内側）</td></tr>
+  <tr><td>基準</td><td>基本的事実同一＋非両立性</td><td>審判対象の画定・被告人の防御への不利益</td></tr>
+  <tr><td>本問での位置</td><td><span class="rank-A">こちら</span></td><td>—（混同注意）</td></tr>
+</table>
+
+<h5>芋づる式関連知識</h5>
+<ul>
+  <li><span class="rank-A">一事不再理効の範囲</span>：後段で同一性が否定されるということは、前訴（窃盗）の確定判決の既判力が沖縄の盗品譲受けには及ばず、<strong>別途起訴が可能</strong>という帰結にもつながる（<a class="xref" href="#ref-stat-kenpo-39">憲法39条</a>）</li>
+  <li><span class="rank-B">択一的認定・予備的訴因（<a class="xref" href="#ref-stat-keiso-256">256条5項</a>）</span>：真偽不明の窃盗／盗品譲受けを両立しえない関係として一手続で処理する仕組み。前段はこれが機能し、後段は同一性を欠くため別手続となる</li>
+  <li><span class="rank-C">盗品等関与罪と本犯（<a class="xref" href="#ref-stat-keih-256">刑256条</a>）</span>：本犯者が自己の盗品を処分・収受しても盗品等関与罪を構成しない（不可罰的事後行為的関係）。非両立性の実体法的基礎</li>
+  <li><span class="rank-D">併合罪・観念的競合との違い</span>：単一性（同時点の一罪性）の問題であり、狭義の同一性（本問）とは局面が異なる</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- F. 答案表現集 -->
+<div id="R-F">
+<h4>F. 答案表現集</h4>
+
+<h5>論点提起の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>対比型</td><td>「これに対し、変更請求された訴因が平成31年3月27日・沖縄県の盗品等無償譲受け罪であった場合はどうか。」</td></tr>
+  <tr><td>争点明示型</td><td>「後段では、非両立性は認められるものの、日時・場所が大きく異なるため、事実の共通性が認められるかが問題となる。」</td></tr>
+</table>
+
+<h5>あてはめ表現例（事実→評価語→結論）</h5>
+<div class="arg-card">
+<h5><span class="arg-tier arg-required">必須論証</span>後段のあてはめ（事実の共通性の欠落）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約210字</div>
+<div class="arg-body">後段においても、背広1着が同一物件であり、窃盗の本犯者は盗品等関与罪の主体となりえないから、両訴因が両立しえない関係にあること自体は前段と変わらない。もっとも、両訴因の日時は約1年を隔て、場所も東京と沖縄という著しく隔絶した地理的関係にある。素材判例が公訴事実の同一性を肯定した理由は、非両立性に加えて日時・場所の近接性に求められていたのであるから、その近接性を欠く本件では、基本的事実関係の同一性を認めることはできない。よって、公訴事実の同一性は否定される。</div>
+</div>
+
+<div class="arg-card">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>非両立性本質説への目配り</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約120字</div>
+<div class="arg-body">この点、非両立性こそ公訴事実の同一性の本質的基準であるとする有力な見解もある。もっとも、この見解も、全く事実の共通性が認められない場合にまで訴因変更を許容するものではない。したがって、いずれの立場によっても、本件では公訴事実の同一性は認められない。</div>
+</div>
+
+<h5>結論部分の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>標準型</td><td>「よって、両訴因には公訴事実の同一性が認められず、Pの訴因変更請求は認められない。」</td></tr>
+  <tr><td>対比締め型</td><td>「前段と異なり、後段では事実の共通性を欠くため、訴因変更請求は許されない。」</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- G. 頻出論証ブロック -->
+<div id="R-G">
+<h4>G. 頻出論証ブロック</h4>
+
+<p>後段固有の頻出論証を提示する。出典は<a class="xref" href="#ref-arg">第5-4答案論証集</a>を参照。</p>
+
+<div class="arg-card" id="arg-R-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証R-1：事実の共通性を欠く場合の同一性否定</h5>
+<div class="arg-meta"><strong>出題実績：</strong>最判昭29.5.14の射程を問う応用型　<strong>想定文字数：</strong>完成形 約190字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">両訴因の客体が同一物件であり、本犯者は盗品等関与罪の主体となりえないから、両訴因が両立しえない関係にあることは認められる。もっとも、両訴因の日時は約1年を隔て、場所も東京と沖縄と著しく隔絶している。公訴事実の同一性の判断において非両立性は補充的基準にとどまり、基本的事実関係の同一性、すなわち事実の共通性を代替するものではない。日時・場所の近接性を欠く本件では、基本的事実関係の同一性を肯定できず、公訴事実の同一性は認められない。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">非両立性は認められるが、日時・場所が著しく隔絶し事実の共通性を欠く。非両立性は補充的基準にとどまるから、基本的事実関係の同一性は否定され、公訴事実の同一性は認められない。</div>
+</div>
+
+<div class="arg-card" id="arg-R-2">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>論証R-2：非両立性本質説の限界</h5>
+<div class="arg-meta"><strong>出題実績：</strong>学説対立を問う応用型　<strong>想定文字数：</strong>完成形 約110字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">非両立性を本質的基準とみる有力説によっても、同説は全く事実の共通性が認められない場合にまで訴因変更を許容するものではない。したがって、事実の共通性を欠く本件では、いずれの見解によっても公訴事実の同一性は認められない。</div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- H. 失点回避チェックリスト -->
+<div id="R-H">
+<h4>H. 失点回避チェックリスト</h4>
+
+<h5>論点漏れチェック（必ず触れるべきサブ論点）</h5>
+<ul class="checklist">
+  <li>非両立性は前段同様に認められる点を確認したか</li>
+  <li>事実の共通性の欠落（日時約1年・東京と沖縄）を決め手にしたか</li>
+  <li>素材判例の「近接性」を反対解釈したか</li>
+  <li>非両立性本質説の限界（全く共通性を欠く場合は許容せず）に触れたか</li>
+  <li>結論として訴因変更不許を明示したか</li>
+</ul>
+
+<h5>規範の正確性チェック（判例表現の正確引用）</h5>
+<ul class="checklist">
+  <li>非両立性を「補充的基準」と位置づけたか</li>
+  <li>「基本的事実関係の同一性」を否定するという結論構造を守ったか</li>
+</ul>
+
+<h5>あてはめチェック（拾うべき事実・評価語の妥当性）</h5>
+<ul class="checklist">
+  <li>日時約1年の隔たりを具体的に示したか（H30.3.22↔H31.3.27）</li>
+  <li>東京と沖縄の地理的隔絶を評価語と結合したか</li>
+  <li>前段との結論の違いを対比で明示したか</li>
+</ul>
+
+<h5>形式チェック（ナンバリング・条文番号の正確性）</h5>
+<ul class="checklist">
+  <li>条文番号は<a class="xref" href="#ref-stat-keiso-312">刑訴312条1項</a>を正確に書いたか</li>
+  <li>前段と同じ基準を再定立せず、あてはめに集中したか</li>
+  <li>結論文を一文でまとめたか</li>
+</ul>
+
+<div class="oral-skeleton">
+<span class="os-label">🗣 口頭骨格（3周目以降・3〜5分で言い切る）</span>
+<ol>
+  <li><strong>論点</strong>：後段＝事実の共通性を欠く場合の公訴事実の同一性（312条1項）</li>
+  <li><strong>条文</strong>：刑訴312条1項／刑256条（非両立の根拠）</li>
+  <li><strong>規範</strong>：非両立性は補充的基準にとどまり、事実の共通性を代替しない</li>
+  <li><strong>結論</strong>：非両立は認められるが日時約1年・東京と沖縄で近接性・共通性を欠く → 同一性否定 → 変更不許（本質説でも同結論）</li>
+</ol>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</div><!-- /論点2 -->
+
+</section>
+
+
+<!-- ============================================
+     第3部　模範答案全文
+     ============================================ -->
+<section id="part3">
+<h2>第3部　模範答案全文</h2>
+
+<nav class="collation-nav" id="collation-nav">
+<h4>📋 照合ナビ ― 自分の答案構成を確定してから下の模範答案を開く</h4>
+<ol>
+  <li><strong>① 論点の過不足</strong>：<a href="#issue-extraction">第1部 論点抽出</a>と各論点の <strong>H（失点回避チェックリスト）</strong>で、拾うべき論点（意義・基準・前段・後段）を数え合わせる。</li>
+  <li><strong>② 規範の正確性</strong>：各論点の <strong>G（頻出論証ブロック＝規範コア）</strong>・<strong>A（条文分析）</strong>で、立てた基準（機能的概念／基本的事実同一＋非両立補充）のズレを照合する。</li>
+  <li><strong>③ あてはめに使った事実</strong>：各論点の <strong>D（解法アルゴリズム）</strong>・<strong>F（答案表現集）</strong>で、前段（同一物件・本犯者性・近接性）／後段（遠隔・共通性欠落）の事実の過不足を照合する。</li>
+</ol>
+<p style="margin:8px 0 0;font-size:.9em">3周目以降は各 H 末尾の口頭骨格だけで「論点→条文→規範→結論」を3〜5分で言い切る。</p>
+</nav>
+
+<div class="card" id="answer-full">
+<h3>本試験形式・完成答案</h3>
+
+<div class="key-box">
+<p><strong>【想定文字数・枚数】</strong></p>
+<ul>
+  <li>本問の予想答案分量：<span class="rank-B">約1,400〜1,700字（2.5〜3頁程度）</span></li>
+  <li>本試験では、答案用紙2〜3枚（1枚600字程度）を想定</li>
+  <li>第1：意義・判断基準（共通の骨格）／第2：前段のあてはめ／第3：後段のあてはめ</li>
+</ul>
+</div>
+
+<details class="reveal-answer">
+<summary>✋ 自分の答案構成を確定してから開く（模範答案＋採点講評）</summary>
+<div class="model-answer">
+<h4>解答</h4>
+
+<p><strong>第1　公訴事実の同一性の意義と判断基準</strong></p>
+
+<p><strong>1</strong>　検察官Pの訴因変更（追加）請求は、新旧訴因が「公訴事実の同一性を害しない限度」（<a class="xref" href="#ref-stat-keiso-312">312条1項</a>）にある場合に許される。そこで、旧訴因（窃盗）と新訴因（盗品等無償譲受け）との間に公訴事実の同一性が認められるかを検討する（→ 論証は<a class="xref" href="#arg-K-1">第2部G 論証K-1</a>）。</p>
+
+<p><strong>2</strong>　「公訴事実の同一性」は、それ自体に実体があるのではなく、一個の手続で審判しうる範囲、ひいては一事不再理効（<a class="xref" href="#ref-stat-kenpo-39">憲法39条</a>）の及ぶ範囲を画する機能的概念である。本件は、日時・場所を異にする新旧訴因の関係が問題であるから、時間的前後にわたる狭義の同一性が問われる。</p>
+
+<p>その有無は、両訴因の基礎をなす社会的事実が基本的な点で同一か否か（基本的事実関係の同一性）を第一次的基準として判断する。もっとも、これが判然としないときは、両訴因が両立しえない関係（一方が認められれば他方の成立を認め得ない関係）にあることを補充的に考慮し、基本的事実関係の同一性を肯定しうるかを判定すべきである。</p>
+
+<p style="margin-top:1.5em"><strong>第2　設問前段について</strong></p>
+
+<p><strong>1</strong>　本件では、旧訴因の窃取された背広1着と、新訴因の無償譲受けにかかる背広1着とは同一物件である。そして、窃盗の本犯者は、自己が窃取した物について盗品等関与罪（<a class="xref" href="#ref-stat-keih-256">刑256条</a>）の主体となりえない。したがって、甲が窃盗犯であれば盗品等無償譲受け罪は成立せず、その逆もまた成り立たない。両訴因は、一方が認められれば他方の成立を認め得ない関係にある（→ <a class="xref" href="#arg-K-2">論証K-2</a>）。</p>
+
+<p><strong>2</strong>　加えて、両訴因の日時は5日の差にとどまり、場所も東京と静岡という近接した地理的関係にある。その日時の先後及び場所の地理的関係とその近接性に鑑みれば、両訴因は基本的事実関係を同じくするものと認められる。</p>
+
+<p><strong>3</strong>　よって、両訴因には公訴事実の同一性が認められ、<u>Pの訴因変更（追加）請求は許容される</u>。</p>
+
+<p style="margin-top:1.5em"><strong>第3　設問後段について</strong></p>
+
+<p><strong>1</strong>　これに対し、変更請求された訴因が平成31年3月27日・沖縄県の盗品等無償譲受け罪であった場合はどうか。</p>
+
+<p><strong>2</strong>　この場合も、背広1着が同一物件であり、本犯者は盗品等関与罪の主体となりえないから、両訴因が両立しえない関係にあること自体は前段と変わらない。</p>
+
+<p>もっとも、両訴因の日時は約1年を隔て（平成30年3月22日と平成31年3月27日）、場所も東京と沖縄という著しく隔絶した地理的関係にある。前述のとおり、非両立性は基本的事実関係の同一性を補充的に基礎づけるにとどまり、事実の共通性そのものを代替するものではない。素材となる判例が公訴事実の同一性を肯定した理由も、非両立性に加えて日時・場所の近接性に求められていた。その近接性を欠く本件では、基本的事実関係の同一性を認めることはできない（→ <a class="xref" href="#arg-R-1">論証R-1</a>）。</p>
+
+<p><strong>3</strong>　なお、非両立性こそ公訴事実の同一性の本質的基準であるとする有力な見解もある。もっとも、この見解も、全く事実の共通性が認められない場合にまで訴因変更を許容するものではない。したがって、いずれの立場によっても、本件では公訴事実の同一性は認められない（→ <a class="xref" href="#arg-R-2">論証R-2</a>）。</p>
+
+<p><strong>4</strong>　よって、両訴因には公訴事実の同一性が認められず、<u>Pの訴因変更請求は認められない</u>。</p>
+
+<p style="text-align:right;margin-top:2em"><strong>以上</strong></p>
+</div>
+
+<!-- 採点講評（reveal 内・模範答案と一体） -->
+<div class="grading" id="grading-comment">
+<h4>採点講評</h4>
+
+<h5>A答案として評価されるポイント（上位2割）</h5>
+<ul class="checklist">
+  <li><strong>第1段（意義・基準）</strong>：公訴事実の同一性を機能的概念と捉え、一事不再理効との連関を示したうえで、基本的事実同一（第一次）＋非両立性（補充）の順序を明示している点。</li>
+  <li><strong>第2段（前段の非両立）</strong>：「背広1着＝同一物件」「本犯者は256条の主体でない」を実体法に基づいて説明し、非両立性を根拠づけている点。</li>
+  <li><strong>第2段（前段の近接性）</strong>：日時5日・東京と静岡の近接性を、事実の共通性の評価語と結合させている点。</li>
+  <li><strong>第3段（後段の対比）</strong>：非両立は前段と同じでも、事実の共通性を欠くため結論が反転することを、素材判例の「近接性」の反対解釈で示している点。</li>
+  <li><strong>第3段（本質説への目配り）</strong>：非両立性本質説に触れ、その限界（全く共通性を欠く場合は許容しない）まで示している点。</li>
+</ul>
+
+<h5>減点リスク（避けるべき失点パターン）</h5>
+<table>
+  <tr><th>失点パターン</th><th>減点幅の目安</th><th>対策</th></tr>
+  <tr><td>非両立性を第一次基準にしてしまう</td><td><span class="rank-A">大幅減点（−10〜15点）</span></td><td>判例は基本的事実同一が第一次・非両立は補充</td></tr>
+  <tr><td>非両立の実体法的根拠（256条・本犯者性）を書かない</td><td><span class="rank-B">中程度減点（−5〜10点）</span></td><td>「なぜ両立しないか」を実体法で示す</td></tr>
+  <tr><td>後段を前段と同じ結論（変更許容）にする</td><td><span class="rank-A">大幅減点（−10〜15点）</span></td><td>事実の共通性の欠落で同一性否定</td></tr>
+  <tr><td>後段で近接性の反対解釈に触れない</td><td><span class="rank-B">中程度減点（−5〜8点）</span></td><td>素材判例の理由の裏返しを明示</td></tr>
+  <tr><td>意義（機能的概念）を書かず基準へ直行</td><td><span class="rank-C">小幅減点（−3〜5点）</span></td><td>一事不再理効との連関を一文で</td></tr>
+  <tr><td>条文番号の誤り（312条・256条）</td><td><span class="rank-C">−1〜2点／箇所</span></td><td><a class="xref" href="#ref-stat-keiso-312">312条1項</a>・<a class="xref" href="#ref-stat-keih-256">刑256条</a>を正確に</td></tr>
+</table>
+
+<h5>分量のバランス（上位答案の分配）</h5>
+<table>
+  <tr><th>項目</th><th>分量目安</th><th>備考</th></tr>
+  <tr><td>第1（意義・基準）</td><td>400〜500字</td><td>機能的概念＋第一次／補充の順序</td></tr>
+  <tr><td>第2（前段）</td><td>500〜600字</td><td>同一物件・本犯者性・近接性のあてはめ中心</td></tr>
+  <tr><td>第3（後段）</td><td>400〜500字</td><td>共通性の欠落＋本質説の限界</td></tr>
+</table>
+
+<h5>本問特有の評価ポイント</h5>
+<div class="success-box">
+<p><strong>前段・後段の「対」の構造を意識できているか</strong>：本問は、非両立性という共通項を保ちながら、事実の共通性（近接性）の有無だけで結論を反転させる設計である。前段で「近接性」を明示的に拾っておくと、後段の反対解釈が自然に決まる。この対比を答案上で可視化できれば上位答案となる。</p>
+<p><strong>素材判例の射程を正確に運用できているか</strong>：「非両立だから同一」ではなく「非両立＋近接性だから同一」という判例の論理構造を正確に押さえ、後段でその一方（近接性）を欠くと論じられれば、判例理解の深さを示せる。</p>
+</div>
+</div>
+</details>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<details id="deep-dive">
+<summary class="deep-summary">📚 深掘り層（第4部 体系化＋第5部 条文・判例・学説・論証集）｜ 1周目は開かない・同じ論点を2回ズラしたら／直前期に開く</summary>
+
+<!-- ============================================
+     第4部　知識の体系化と実践的補足
+     ============================================ -->
+<section id="part4">
+<h2>第4部　知識の体系化と実践的補足</h2>
+
+<!-- 4-1 論点相関マップ -->
+<div class="svg-wrap" id="correlation-map">
+<h3>4-1. 論点相関マップ</h3>
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="560" fill="#f5f4f5"/>
+  <ellipse cx="450" cy="90" rx="200" ry="52" fill="#585257" stroke="#3d383e" stroke-width="3"/>
+  <text x="450" y="86" text-anchor="middle" font-size="17" font-weight="bold" fill="#fff">公訴事実の同一性（312条1項）</text>
+  <text x="450" y="108" text-anchor="middle" font-size="12" fill="#e8ecea">＝訴因変更の可否／一事不再理効の範囲</text>
+
+  <!-- 左：単一性 -->
+  <rect x="60" y="200" width="230" height="72" rx="10" fill="#dde3e1" stroke="#7f9a96" stroke-width="2"/>
+  <text x="175" y="228" text-anchor="middle" font-size="14" font-weight="bold" fill="#2a282b">公訴事実の単一性</text>
+  <text x="175" y="250" text-anchor="middle" font-size="11" fill="#444">同一時点の一罪性（罪数）</text>
+  <line x1="360" y1="140" x2="230" y2="200" stroke="#888" stroke-width="2"/>
+
+  <!-- 右：狭義の同一性 -->
+  <rect x="610" y="200" width="230" height="72" rx="10" fill="#94b5b2" stroke="#5f817d" stroke-width="2"/>
+  <text x="725" y="226" text-anchor="middle" font-size="14" font-weight="bold" fill="#23302e">狭義の同一性（本問）</text>
+  <text x="725" y="248" text-anchor="middle" font-size="11" fill="#23302e">時間的前後にわたる同一性</text>
+  <line x1="540" y1="140" x2="670" y2="200" stroke="#5f817d" stroke-width="2.5"/>
+
+  <!-- 中央：判断基準 -->
+  <rect x="330" y="300" width="240" height="66" rx="10" fill="#ece6dd" stroke="#b9a889" stroke-width="2"/>
+  <text x="450" y="326" text-anchor="middle" font-size="13" font-weight="bold" fill="#5a4a2a">判断基準（二段構え）</text>
+  <text x="450" y="348" text-anchor="middle" font-size="11" fill="#5a4a2a">①基本的事実同一（第一次）②非両立（補充）</text>
+  <line x1="725" y1="272" x2="500" y2="300" stroke="#5f817d" stroke-width="2"/>
+
+  <!-- 前段 -->
+  <rect x="120" y="410" width="300" height="96" rx="10" fill="#e7efe7" stroke="#2e7d32" stroke-width="2"/>
+  <text x="270" y="436" text-anchor="middle" font-size="13" font-weight="bold" fill="#1b5e20">前段：H30.3.27・静岡</text>
+  <text x="270" y="458" text-anchor="middle" font-size="11" fill="#256428">同一物件＋本犯者性＝非両立</text>
+  <text x="270" y="476" text-anchor="middle" font-size="11" fill="#256428">日時5日・東京と静岡＝近接</text>
+  <text x="270" y="496" text-anchor="middle" font-size="12" font-weight="bold" fill="#1b5e20">→ 同一性肯定（変更許容）</text>
+  <line x1="410" y1="366" x2="300" y2="410" stroke="#2e7d32" stroke-width="2"/>
+
+  <!-- 後段 -->
+  <rect x="480" y="410" width="300" height="96" rx="10" fill="#f6e7e5" stroke="#c0392b" stroke-width="2"/>
+  <text x="630" y="436" text-anchor="middle" font-size="13" font-weight="bold" fill="#8e2f22">後段：H31.3.27・沖縄</text>
+  <text x="630" y="458" text-anchor="middle" font-size="11" fill="#8e2f22">非両立は同じ（本犯者性）</text>
+  <text x="630" y="476" text-anchor="middle" font-size="11" fill="#8e2f22">日時約1年・東京と沖縄＝遠隔</text>
+  <text x="630" y="496" text-anchor="middle" font-size="12" font-weight="bold" fill="#8e2f22">→ 同一性否定（変更不許）</text>
+  <line x1="490" y1="366" x2="600" y2="410" stroke="#c0392b" stroke-width="2"/>
+</svg>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-2 論点間の優先順位フロー -->
+<div class="svg-wrap" id="priority-flow">
+<h3>4-2. 論点間の優先順位フロー</h3>
+<p>本問は論点が「意義→基準→前段→後段」と一直線に連なるため、書く順序も明快である。基準の定立を先に完成させ、あてはめで前段・後段を対比するのが最も効率的な導線となる。</p>
+<svg viewBox="0 0 880 360" xmlns="http://www.w3.org/2000/svg">
+  <rect width="880" height="360" fill="#f5f4f5"/>
+  <rect x="40" y="40" width="200" height="70" rx="10" fill="#585257" stroke="#3d383e" stroke-width="2"/>
+  <text x="140" y="70" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">① 意義</text>
+  <text x="140" y="92" text-anchor="middle" font-size="11" fill="#e8ecea">機能的概念・一事不再理</text>
+
+  <rect x="290" y="40" width="200" height="70" rx="10" fill="#585257" stroke="#3d383e" stroke-width="2"/>
+  <text x="390" y="70" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">② 判断基準</text>
+  <text x="390" y="92" text-anchor="middle" font-size="11" fill="#e8ecea">基本的事実同一＋非両立補充</text>
+
+  <rect x="540" y="40" width="200" height="70" rx="10" fill="#94b5b2" stroke="#5f817d" stroke-width="2"/>
+  <text x="640" y="70" text-anchor="middle" font-size="14" font-weight="bold" fill="#23302e">③ 前段あてはめ</text>
+  <text x="640" y="92" text-anchor="middle" font-size="11" fill="#23302e">非両立＋近接 → 肯定</text>
+
+  <rect x="540" y="180" width="200" height="80" rx="10" fill="#f6e7e5" stroke="#c0392b" stroke-width="2"/>
+  <text x="640" y="210" text-anchor="middle" font-size="14" font-weight="bold" fill="#8e2f22">④ 後段あてはめ</text>
+  <text x="640" y="232" text-anchor="middle" font-size="11" fill="#8e2f22">共通性欠落 → 否定</text>
+  <text x="640" y="250" text-anchor="middle" font-size="11" fill="#8e2f22">本質説でも同結論</text>
+
+  <line x1="240" y1="75" x2="290" y2="75" stroke="#666" stroke-width="2.5" marker-end="url(#pf-ar)"/>
+  <line x1="490" y1="75" x2="540" y2="75" stroke="#666" stroke-width="2.5" marker-end="url(#pf-ar)"/>
+  <line x1="640" y1="110" x2="640" y2="180" stroke="#666" stroke-width="2.5" marker-end="url(#pf-ar)"/>
+  <defs>
+    <marker id="pf-ar" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#666"/></marker>
+  </defs>
+
+  <rect x="40" y="180" width="440" height="80" rx="10" fill="#ece6dd" stroke="#b9a889" stroke-width="1.6"/>
+  <text x="260" y="208" text-anchor="middle" font-size="13" font-weight="bold" fill="#5a4a2a">対比の軸＝「事実の共通性（近接性）」の有無</text>
+  <text x="260" y="230" text-anchor="middle" font-size="11" fill="#5a4a2a">非両立性は前段・後段で共通。結論を分けるのは近接性だけ。</text>
+  <text x="260" y="248" text-anchor="middle" font-size="11" fill="#5a4a2a">→ 前段で近接性を明示的に拾えば、後段の反対解釈が自然に決まる。</text>
+</svg>
+
+<table>
+  <tr><th>順位</th><th>論述項目</th><th>理由</th></tr>
+  <tr><td>1</td><td>公訴事実の同一性の意義</td><td>以後の議論の前提。機能的概念であることを先に確定</td></tr>
+  <tr><td>2</td><td>判断基準の定立</td><td>前段・後段で共通して使う土台。一度で完成させる</td></tr>
+  <tr><td>3</td><td>前段のあてはめ</td><td>非両立＋近接性で肯定。近接性を明示的に拾う</td></tr>
+  <tr><td>4</td><td>後段のあてはめ</td><td>近接性の反対解釈で否定。本質説の限界も添える</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-3 コラム：網羅的思考 -->
+<div class="card" id="column-comprehensive">
+<h3>4-3. コラム：網羅的思考（法的構成の選択）</h3>
+<p>公訴事実の同一性の判断基準には、大きく分けて次の3系統の構成がある。答案では判例の折衷的枠組みを採るのが安全だが、他の構成も理解しておくと応用問題に強くなる。</p>
+<table>
+  <tr><th>構成</th><th>発想</th><th>本問での帰結</th></tr>
+  <tr><td>基本的事実同一説（判例第一次基準）</td><td>社会的事実の共通性を重視</td><td>後段は共通性欠落で否定しやすい</td></tr>
+  <tr><td>非両立性補充説（判例の実像）</td><td>基本的事実同一を非両立性で補強</td><td>前段肯定・後段否定を無理なく説明</td></tr>
+  <tr><td>非両立性本質説（有力説）</td><td>択一関係こそ本質</td><td>後段は「共通性を欠く場合の限定」で否定</td></tr>
+</table>
+<div class="note-box">
+<p>💡 三説はいずれも本問で同じ結論（前段肯定・後段否定）に至る。基準論の対立は結論を左右しないが、<strong>後段の理由づけの精度</strong>で差がつく。判例の折衷説を軸に、本質説の限界を一言添えるのが最も安定する。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-4 コラム：実践的記憶術 -->
+<div class="card" id="column-memory">
+<h3>4-4. コラム：実践的記憶術</h3>
+<div class="success-box">
+<p><strong>【記憶フック①】「近いから同じ、遠いから別」</strong><br>非両立性は前段も後段も共通。結論を分けるのは<span class="rank-A">近接性（＝事実の共通性）</span>ただ一つ。「近い（5日・隣接県）から同じ／遠い（1年・東京沖縄）から別」と唱えれば、前段・後段の結論を一瞬で復元できる。</p>
+</div>
+<div class="note-box">
+<p><strong>【記憶フック②】「本犯は盗品を"持てない"」</strong><br>非両立性の実体法的根拠は「本犯者は自己の窃取物について盗品等関与罪の主体となりえない」。<strong>盗んだ本人は盗品罪になれない</strong>——この一言で択一関係（非両立）が導ける。</p>
+</div>
+<div class="note-box">
+<p><strong>【記憶フック③】「機能的概念＝入れ物」</strong><br>公訴事実の同一性は実体ではなく、審判対象と一事不再理効の範囲を画す<strong>入れ物（枠）</strong>。だから「同一性を広げる＝再訴を遮断する」と一事不再理とセットで覚える。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-5 コラム：歴史的背景 -->
+<div class="card" id="column-history">
+<h3>4-5. コラム：歴史的背景</h3>
+<p>公訴事実の同一性の判断基準は、戦後の当事者主義的刑事訴訟法の下で、審判対象論（訴因対象説か公訴事実対象説か）と密接に結びついて発展してきた。</p>
+<ul>
+  <li><strong>旧法（職権主義）下</strong>：審判対象は「公訴事実」そのものとされ、同一性は実体的事実の同一として広く捉えられていた。</li>
+  <li><strong>現行法（当事者主義）下</strong>：審判対象は検察官の設定する「訴因」であるとする訴因対象説が通説化。もっとも、訴因変更の外枠として「公訴事実の同一性」（<a class="xref" href="#ref-stat-keiso-312">312条1項</a>）が残り、その内容が問題となった。</li>
+  <li><strong>最判昭和29年5月14日</strong>：本問の素材判例。窃盗と盗品牙保という<strong>実体法上両立しえない関係</strong>を、日時・場所の近接性とあわせて「基本的事実関係の同一」と評価し、非両立性を同一性判断に取り込む枠組みを示した。以後の判例・実務の基礎となった。</li>
+  <li><strong>近時の学説</strong>：非両立性を同一性の本質的基準と位置づける有力説が台頭したが、事実の共通性を全く欠く事例の処理をめぐり、なお補充的基準にとどめる見解が有力である。</li>
+</ul>
+<div class="warn-box">
+<p><strong>【現在の到達点】</strong>判例の枠組み（基本的事実同一＋非両立補充）は、当事者主義の下で被告人の防御対象の明確性と実体的真実の一回的解決の調和を図るものとして、実務上定着している。本問はその枠組みの<strong>射程の限界</strong>（近接性を欠く場合）を問う応用問題である。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 4-6 コラム：実務との架橋 -->
+<div class="card" id="column-practice">
+<h3>4-6. コラム：実務との架橋</h3>
+<p>本問のように、公判段階で被告人が「実は盗品を譲り受けただけだ」と自白を撤回し、真偽が確定できない場面は実務でも生じうる。検察官の対応と実務上の含意は次のとおり。</p>
+<ul>
+  <li><strong>予備的・択一的訴因の活用（<a class="xref" href="#ref-stat-keiso-256">256条5項</a>）</strong>：真偽不明の窃盗／盗品譲受けを、両立しえない関係にある予備的訴因として一手続で審理する。前段はこれが機能する典型例。</li>
+  <li><strong>同一性を欠く場合の帰結</strong>：後段のように同一性が否定されると、追加訴因は別個の起訴によらざるをえず、<strong>公訴時効・管轄・二重起訴</strong>の問題が別途生じる。沖縄の盗品譲受けは、東京の窃盗事件とは別事件として処理される。</li>
+  <li><strong>一事不再理効との連動</strong>：前段で同一性が肯定されれば、窃盗の確定判決の既判力が盗品譲受けにも及び再訴は遮断される。後段では及ばず、別途訴追が可能。検察官はこの帰結を見据えて訴因設計を行う。</li>
+  <li><strong>裁判所の釈明・訴訟指揮</strong>：真偽不明の局面では、裁判所が検察官に訴因の補正・追加を促す（釈明）こともある。訴因変更の可否は、こうした訴訟指揮の適否とも関わる。</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 試験戦略アドバイス -->
+<div class="card" id="exam-strategy">
+<h3>試験戦略アドバイス</h3>
+<div class="key-box">
+<p><strong>【本問を15分で骨格化する手順】</strong></p>
+<ol>
+  <li>意義（機能的概念）＋基準（基本的事実同一＋非両立補充）を最初に固定（この土台は前段・後段で使い回す）</li>
+  <li>前段＝「同一物件・本犯者性＝非両立」「日時5日・東京静岡＝近接」→ 肯定</li>
+  <li>後段＝「非両立は同じ」「日時1年・東京沖縄＝遠隔で共通性欠落」→ 否定</li>
+  <li>後段末尾に本質説の限界を一文（全く共通性を欠く場合は許容しない）</li>
+</ol>
+</div>
+<div class="danger-box">
+<p><strong>【時間切れ回避】</strong>基準の定立に時間をかけすぎないこと。意義・基準は合わせて400字程度で切り上げ、配点の重い前段・後段のあてはめ（同一物件・本犯者性・近接性／遠隔性）に時間を回す。<strong>前段と後段の結論を必ず逆にする</strong>ことだけは死守する。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第5部　参考資料（deep 内・5-1〜5-4）
+     ============================================ -->
+<section id="part5">
+<h2>第5部　参考資料</h2>
+
+<!-- 5-1 条文集 -->
+<div class="card" id="ref-statute">
+<h3>5-1　条文集</h3>
+
+<section class="ref-entry" id="ref-stat-keiso-312">
+<h5><span class="tan tan-super">短答★★★</span><span class="rank-A">刑事訴訟法312条（訴因・罰条の追加・撤回・変更）</span></h5>
+<blockquote class="statute">
+<p>1項　裁判所は、検察官の請求があるときは、<strong>公訴事実の同一性を害しない限度において</strong>、起訴状に記載された訴因又は罰条の追加、撤回又は変更を許さなければならない。</p>
+<p>2項　裁判所は、審理の経過に鑑み適当と認めるときは、訴因又は罰条を追加又は変更すべきことを命ずることができる。</p>
+</blockquote>
+<table>
+  <tr><th>趣旨</th><td>審判対象（訴因）の変動を、被告人の防御可能な範囲＝公訴事実の同一性の枠内で認める。1項の「害しない限度において……許さなければならない」は、同一性があれば許可が義務づけられることを意味する</td></tr>
+  <tr><th>本問での作用</th><td>訴因変更の「可否」＝同一性の限度の問題。前段は同一性ありで許容、後段は同一性なしで不許</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-A">第2部 論点1 A</a>／<a href="#R-A">論点2 A</a>／<a href="#answer-full">第3部 模範答案</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keiso-256">
+<h5><span class="tan tan-high">短答★★</span><span class="rank-B">刑事訴訟法256条（起訴状・訴因の明示・予備的択一的記載）</span></h5>
+<blockquote class="statute">
+<p>3項　公訴事実は、訴因を明示してこれを記載しなければならない。訴因を明示するには、できる限り日時、場所及び方法を以て罪となるべき事実を特定してこれをしなければならない。</p>
+<p>5項　数個の訴因及び罰条は、予備的に又は択一的にこれを記載することができる。</p>
+</blockquote>
+<table>
+  <tr><th>趣旨</th><td>審判対象の画定と被告人の防御範囲の明示（3項）。真偽不明の事実を複数訴因で掲げる手法を許容（5項）</td></tr>
+  <tr><th>本問での作用</th><td>Pの「予備的追加」は5項の場面。訴因の特定（3項）は白山丸事件の論点</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-B">第2部 論点1 B</a>／<a href="#R-E">論点2 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keiso-337">
+<h5><span class="tan tan-std">短答★</span><span class="rank-B">刑事訴訟法337条（免訴の判決）</span></h5>
+<blockquote class="statute">
+<p>左の場合には、判決で免訴の言渡をしなければならない。<br>一　<strong>確定判決を経たとき</strong>。</p>
+</blockquote>
+<table>
+  <tr><th>趣旨</th><td>一事不再理効（既判力）の手続的表れ。確定判決を経た事件の再訴を遮断する</td></tr>
+  <tr><th>本問との関係</th><td>一事不再理効の及ぶ範囲は公訴事実の同一性の範囲と一致。前段の同一性肯定は再訴遮断、後段の否定は別途訴追可能を意味する</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-E">第2部 論点1 E</a>／<a href="#R-E">論点2 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-235">
+<h5><span class="rank-C">刑法235条（窃盗）</span></h5>
+<blockquote class="statute">
+<p>他人の財物を窃取した者は、窃盗の罪とし、10年以下の懲役又は50万円以下の罰金に処する。</p>
+</blockquote>
+<table>
+  <tr><th>本問での作用</th><td>旧訴因の罪名。甲が「本犯」であることを基礎づける。本犯者性が非両立性の一方の極</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#case-overview">第1部 事案概要</a>／<a href="#K-A">論点1 A</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-keih-256">
+<h5><span class="tan tan-high">短答★★</span><span class="rank-A">刑法256条（盗品等に関する罪）</span></h5>
+<blockquote class="statute">
+<p>1項　盗品その他財産に対する罪に当たる行為によって領得された物を<strong>無償で譲り受けた者</strong>は、3年以下の懲役に処する。</p>
+<p>2項　前項に規定する物を運搬し、保管し、若しくは有償で譲り受け、又はその有償の処分のあっせんをした者は、10年以下の懲役及び50万円以下の罰金に処する。</p>
+</blockquote>
+<table>
+  <tr><th>趣旨</th><td>本犯による違法状態（被害者の追求権侵害）の維持・助長を処罰</td></tr>
+  <tr><th>本問の核心（非両立の根拠）</th><td><span class="rank-A">本犯者は、自己が領得した物について本罪の主体となりえない</span>（不可罰的事後行為的関係）。ゆえに「窃盗犯である」と「盗品を無償譲受けした」は両立しえない</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-A">第2部 論点1 A</a>／<a href="#K-D">論点1 D</a>／<a href="#R-E">論点2 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-stat-kenpo-39">
+<h5><span class="tan tan-std">短答★</span><span class="rank-B">憲法39条（遡及処罰の禁止・二重処罰の禁止）</span></h5>
+<blockquote class="statute">
+<p>何人も、実行の時に適法であった行為又は既に無罪とされた行為については、刑事上の責任を問われない。<strong>又、同一の犯罪について、重ねて刑事上の責任を問われない。</strong></p>
+</blockquote>
+<table>
+  <tr><th>趣旨</th><td>一事不再理原則の憲法上の根拠。同一事件で被告人を繰り返し訴追する不利益を防ぐ</td></tr>
+  <tr><th>本問との関係</th><td>公訴事実の同一性は、この一事不再理効の及ぶ範囲を画する機能をもつ</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-A">第2部 論点1 A</a>／<a href="#K-F">論点1 F</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-2 判例集 -->
+<div class="card" id="ref-case">
+<h3>5-2　判例集</h3>
+
+<section class="ref-entry" id="ref-case-saihan-s29-5-14">
+<h5><span class="tan tan-super">短答★★★</span><span class="rank-A">最判昭和29年5月14日（本問の素材判例）</span></h5>
+<table>
+  <tr><th>事案</th><td>窃盗の訴因で起訴後、予備的に賍物牙保（現・盗品等有償処分あっせん類似）の訴因が追加され、両訴因の公訴事実の同一性が争われた</td></tr>
+  <tr><th>判旨</th><td>牙保した背広1着と窃取した背広1着は同一物件であり、両者は「一方の犯罪が認められるときは他方の犯罪の成立を認め得ない関係」にある。加えて「その日時の先後及び場所の地理的関係とその双方の近接性に鑑みれば」、両訴因は「基本的事実関係を同じくする」として公訴事実の同一性を肯定した</td></tr>
+  <tr><th>規範のコア</th><td><span class="rank-A">非両立性＋日時・場所の近接性 → 基本的事実関係を同じくする → 公訴事実の同一性を肯定</span></td></tr>
+  <tr><th>本問への射程</th><td>前段は事案がほぼ同一で同一性肯定。後段は判旨の「近接性」を欠くため射程外＝同一性否定（反対解釈）</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-B">第2部 論点1 B</a>／<a href="#R-B">論点2 B</a>／<a href="#answer-full">第3部 模範答案</a></div>
+</section>
+
+<section class="ref-entry" id="ref-case-saidaihan-s37-11-28">
+<h5><span class="tan tan-high">短答★★</span><span class="rank-C">最大判昭和37年11月28日（白山丸事件）</span></h5>
+<table>
+  <tr><th>事案</th><td>不法出国（密出国）の出国日時を概括的に記載した訴因の特定の適否が争われた</td></tr>
+  <tr><th>判旨</th><td>訴因は、他の犯罪事実との識別ができる程度に特定されていれば足りるとした</td></tr>
+  <tr><th>本問への射程</th><td>訴因の特定（256条3項）の問題であり同一性判断そのものとは局面を異にするが、訴因＝審判対象の画定機能を理解する関連判例</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-B">第2部 論点1 B</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-3 学説一覧 -->
+<div class="card" id="ref-theory">
+<h3>5-3　学説一覧</h3>
+
+<section class="ref-entry" id="ref-doctrine-kihonteki">
+<h5><span class="rank-A">基本的事実同一説（判例の第一次基準・通説）</span></h5>
+<table>
+  <tr><th>内容</th><td>新旧訴因の基礎をなす社会的事実が基本的な点で同一か否かで公訴事実の同一性を判断</td></tr>
+  <tr><th>論拠</th><td>被告人の防御対象を社会的事実の共通性に求めるのが、当事者主義・防御権保障に適う</td></tr>
+  <tr><th>批判</th><td>「基本的」の外延が不明確で限界事例の判断がぶれる</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-C">第2部 論点1 C</a></div>
+</section>
+
+<section class="ref-entry" id="ref-doctrine-hiryoritsu-hojuu">
+<h5><span class="rank-A">非両立性補充説（判例の実像・本教材の採用説）</span></h5>
+<table>
+  <tr><th>内容</th><td>基本的事実同一を第一次基準とし、これが判然としない場合に、両訴因が両立しえない関係にあること（非両立性）を補充的に考慮する</td></tr>
+  <tr><th>論拠</th><td>非両立性を手がかりにすることで基本的事実の同一性の判断を安定させつつ、事実の共通性の要件を維持できる</td></tr>
+  <tr><th>本問での帰結</th><td>前段は非両立＋近接性で肯定、後段は共通性欠落で否定と、両設問を無理なく説明</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-C">第2部 論点1 C</a>／<a href="#R-C">論点2 C</a></div>
+</section>
+
+<section class="ref-entry" id="ref-doctrine-hiryoritsu-honshitsu">
+<h5><span class="rank-B">非両立性基準本質説（近時の有力説）</span></h5>
+<table>
+  <tr><th>内容</th><td>両訴因が実体法上両立しえない関係（択一関係）にあることこそ、公訴事実の同一性の本質的・第一次的基準であるとする</td></tr>
+  <tr><th>論拠</th><td>択一関係にある事実は実質的に一個の紛争であり、一回的解決に適する</td></tr>
+  <tr><th>限界</th><td>論者自身、全く事実の共通性が認められない場合にまで訴因変更を許容するものではないと限定する。ゆえに後段（遠隔事例）では結局同一性を否定せざるをえず、補充説との実質的差は小さい</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-C">第2部 論点1 C</a>／<a href="#R-C">論点2 C</a>／<a href="#R-G">論点2 G</a></div>
+</section>
+
+<section class="ref-entry" id="ref-doctrine-zaishitsu">
+<h5><span class="rank-D">罪質同一説（参考）</span></h5>
+<table>
+  <tr><th>内容</th><td>両訴因の罪質の同一性を重視して公訴事実の同一性を判断する</td></tr>
+  <tr><th>批判</th><td>罪質が異なっても同一性を認めるべき場合（本問の窃盗↔盗品罪は罪質を異にする）を説明できず、現在は支持が乏しい</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#K-C">第2部 論点1 C</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-4 答案論証集 -->
+<div class="card" id="ref-arg">
+<h3>5-4　答案論証集</h3>
+<p>本編第2部Gで示した論証ブロックの一覧。各リンクから完成形・簡略版・発展版へ飛べる。</p>
+<table>
+  <tr><th>論証</th><th>テーマ</th><th>必要度</th><th>参照</th></tr>
+  <tr><td>K-1</td><td>公訴事実の同一性の意義・判断基準</td><td><span class="arg-tier arg-required">必須</span></td><td><a class="xref" href="#arg-K-1">第2部 論点1 G</a></td></tr>
+  <tr><td>K-2</td><td>前段のあてはめ（非両立性の実体法的根拠）</td><td><span class="arg-tier arg-required">必須</span></td><td><a class="xref" href="#arg-K-2">第2部 論点1 G</a></td></tr>
+  <tr><td>K-3</td><td>単一性と狭義の同一性の区別</td><td><span class="arg-tier arg-recommended">推奨</span></td><td><a class="xref" href="#arg-K-3">第2部 論点1 G</a></td></tr>
+  <tr><td>R-1</td><td>事実の共通性を欠く場合の同一性否定</td><td><span class="arg-tier arg-required">必須</span></td><td><a class="xref" href="#arg-R-1">第2部 論点2 G</a></td></tr>
+  <tr><td>R-2</td><td>非両立性本質説の限界</td><td><span class="arg-tier arg-recommended">推奨</span></td><td><a class="xref" href="#arg-R-2">第2部 論点2 G</a></td></tr>
+</table>
+<div class="note-box">
+<p>💡 答案では、K-1（基準）→ K-2（前段あてはめ）→ R-1（後段あてはめ）→ R-2（本質説の限界）の順で用いると、前段肯定・後段否定の対比が最も明快に決まる。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+</details><!-- /#deep-dive 深掘り層ここまで -->
+
+
+<!-- =====================================
+     第5部（続き・deep の外）用語集・略語＝クイック参照
+     ===================================== -->
+<section id="part5-ref">
+<h2>用語集・略語（クイック参照）</h2>
+
+<!-- 5-5 用語集 -->
+<div class="card" id="ref-term">
+<h3>5-5　用語集</h3>
+
+<section class="ref-entry" id="ref-term-koso-doitsu">
+<h5>公訴事実の同一性（こうそじじつのどういつせい）</h5>
+<table>
+  <tr><th>定義</th><td>訴因変更が許される範囲、ひいては一事不再理効の及ぶ範囲を画する機能的概念（312条1項）</td></tr>
+  <tr><th>広狭</th><td>広義＝単一性＋狭義の同一性／本問は狭義の同一性</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-A">第2部 論点1 A</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-soin-henko">
+<h5>訴因変更（そいんへんこう）</h5>
+<table>
+  <tr><th>定義</th><td>起訴状記載の訴因・罰条を、公訴事実の同一性を害しない限度で追加・撤回・変更する手続（312条1項）</td></tr>
+  <tr><th>可否と要否</th><td>可否＝同一性の限度の問題／要否＝変更手続が必要かの問題。混同注意</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-A">第2部 論点1 A</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-soin">
+<h5>訴因（そいん）</h5>
+<table>
+  <tr><th>定義</th><td>検察官が主張する具体的犯罪事実。審判対象を画定し、被告人の防御範囲を明示する（256条3項）</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-A">第2部 論点1 A</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-kihonteki">
+<h5>基本的事実関係の同一性（きほんてきじじつかんけいのどういつせい）</h5>
+<table>
+  <tr><th>定義</th><td>新旧訴因の基礎をなす社会的事実が基本的な点で共通すること。狭義の同一性の第一次的判断基準</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-C">第2部 論点1 C</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-hiryoritsu">
+<h5>非両立性／択一関係（ひりょうりつせい／たくいつかんけい）</h5>
+<table>
+  <tr><th>定義</th><td>一方の犯罪が認められるときは他方の犯罪の成立を認め得ない関係。基本的事実の同一性を補充的に基礎づける</td></tr>
+  <tr><th>本問</th><td>本犯者は自己の窃取物につき盗品等関与罪の主体となりえない＝窃盗と盗品譲受けは非両立</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-B">第2部 論点1 B</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-tanitsusei">
+<h5>公訴事実の単一性（こうそじじつのたんいつせい）</h5>
+<table>
+  <tr><th>定義</th><td>同一時点における事実の一個性（一罪か数罪か）。実体法上の罪数論で判断する</td></tr>
+  <tr><th>本問との別</th><td>本問は時間的前後の狭義の同一性であり、単一性とは局面が異なる</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-E">第2部 論点1 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-kyogi-doitsu">
+<h5>狭義の公訴事実の同一性（きょうぎのどういつせい）</h5>
+<table>
+  <tr><th>定義</th><td>時間的前後にわたる事実の同一性。基本的事実同一＋非両立補充で判断する</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-A">第2部 論点1 A</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-ichiji-fusairi">
+<h5>一事不再理効（いちじふさいりこう）</h5>
+<table>
+  <tr><th>定義</th><td>確定判決を経た事件について再度の訴追を許さない効力（憲法39条・刑訴337条1号）</td></tr>
+  <tr><th>連関</th><td>その及ぶ範囲は公訴事実の同一性の範囲と一致する</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-E">第2部 論点1 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-tohin-muishou">
+<h5>盗品等無償譲受け罪（とうひんとうむしょうゆずりうけざい）</h5>
+<table>
+  <tr><th>定義</th><td>本犯が領得した物を無償で譲り受ける罪（刑256条1項・3年以下の懲役）</td></tr>
+  <tr><th>本問</th><td>新訴因の罪名。本犯者はこの罪の主体となりえない点が非両立の根拠</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#case-overview">第1部 事案概要</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-honpansha">
+<h5>本犯者・不可罰的事後行為（ほんぱんしゃ・ふかばつてきじごこうい）</h5>
+<table>
+  <tr><th>定義</th><td>財産犯を犯した本人（本犯者）が、その領得物を処分・収受する行為。本犯の評価に吸収され、盗品等関与罪を構成しない</td></tr>
+  <tr><th>機能</th><td>本問の非両立性（窃盗犯は盗品罪の主体でない）を基礎づける実体法的根拠</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-D">第2部 論点1 D</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-yobi-soin">
+<h5>予備的訴因（よびてきそいん）</h5>
+<table>
+  <tr><th>定義</th><td>主位的訴因が認められない場合に備えて順位を付して掲げる訴因（256条5項）</td></tr>
+  <tr><th>本問</th><td>Pは窃盗を主位、盗品譲受けを予備として追加請求している</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#R-E">第2部 論点2 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-shinpan-taisho">
+<h5>審判対象・訴因対象説（しんぱんたいしょう・そいんたいしょうせつ）</h5>
+<table>
+  <tr><th>定義</th><td>当事者主義の下、審判対象は検察官が設定する訴因であるとする通説。公訴事実の同一性は訴因変更の外枠として機能する</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#K-E">第2部 論点1 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-kinsetsu">
+<h5>日時・場所の近接性（にちじ・ばしょのきんせつせい）</h5>
+<table>
+  <tr><th>定義</th><td>新旧訴因の日時の先後・地理的関係が近接していること。事実の共通性を基礎づける要素</td></tr>
+  <tr><th>本問</th><td>前段（5日・隣接県）は肯定／後段（約1年・東京と沖縄）は否定。結論を分ける決め手</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：<a href="#R-B">第2部 論点2 B</a></div>
+</section>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 5-6 略語・出典一覧 -->
+<div class="card" id="ref-abbrev">
+<h3>5-6　略語・出典一覧</h3>
+<p style="font-size:.95em;color:#555">本教材で用いた略語・出典の一覧。</p>
+
+<h4>判例集・法律雑誌</h4>
+<table>
+  <tr><th>略語</th><th>正式名称</th><th>備考</th></tr>
+  <tr><td>刑集</td><td>最高裁判所刑事判例集</td><td>最高裁刑事判例の公式判例集</td></tr>
+  <tr><td>民集</td><td>最高裁判所民事判例集</td><td>最高裁民事判例の公式判例集</td></tr>
+  <tr><td>判時</td><td>判例時報</td><td>判例時報社</td></tr>
+  <tr><td>判タ</td><td>判例タイムズ</td><td>判例タイムズ社</td></tr>
+  <tr><td>最判解刑事篇</td><td>最高裁判所判例解説 刑事篇</td><td>調査官解説。法曹会刊</td></tr>
+  <tr><td>刑訴百選</td><td>刑事訴訟法判例百選</td><td>有斐閣</td></tr>
+</table>
+
+<h4>裁判所の略称</h4>
+<table>
+  <tr><th>略</th><th>正式名称</th></tr>
+  <tr><td>最判</td><td>最高裁判所判決</td></tr>
+  <tr><td>最決</td><td>最高裁判所決定</td></tr>
+  <tr><td>最大判</td><td>最高裁判所大法廷判決</td></tr>
+  <tr><td>大判</td><td>大審院判決（戦前最上級審）</td></tr>
+  <tr><td>高判</td><td>高等裁判所判決</td></tr>
+</table>
+
+<h4>法令略称</h4>
+<table>
+  <tr><th>略</th><th>正式名称</th></tr>
+  <tr><td>刑訴</td><td>刑事訴訟法</td></tr>
+  <tr><td>刑</td><td>刑法</td></tr>
+  <tr><td>憲</td><td>日本国憲法</td></tr>
+  <tr><td>刑訴規</td><td>刑事訴訟規則</td></tr>
+</table>
+
+<h4>主要教科書略語</h4>
+<table>
+  <tr><th>略称</th><th>正式書名</th></tr>
+  <tr><td>田宮・刑訴</td><td>田宮裕『刑事訴訟法〔新版〕』有斐閣</td></tr>
+  <tr><td>田口・刑訴</td><td>田口守一『刑事訴訟法〔第7版〕』弘文堂</td></tr>
+  <tr><td>上口・刑訴</td><td>上口裕『刑事訴訟法〔第5版〕』成文堂</td></tr>
+  <tr><td>白取・刑訴</td><td>白取祐司『刑事訴訟法〔第10版〕』日本評論社</td></tr>
+  <tr><td>酒巻・刑訴</td><td>酒巻匡『刑事訴訟法〔第2版〕』有斐閣</td></tr>
+  <tr><td>松尾・刑訴</td><td>松尾浩也『刑事訴訟法（上・下）』弘文堂</td></tr>
+  <tr><td>三井・刑訴</td><td>三井誠『刑事手続法』有斐閣</td></tr>
+</table>
+
+<h4>主要学者略称</h4>
+<table>
+  <tr><th>略</th><th>氏名</th></tr>
+  <tr><td>田宮</td><td>田宮裕</td></tr>
+  <tr><td>田口</td><td>田口守一</td></tr>
+  <tr><td>松尾</td><td>松尾浩也</td></tr>
+  <tr><td>平野</td><td>平野龍一</td></tr>
+  <tr><td>酒巻</td><td>酒巻匡</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+<footer>
+<p>本教材は、司法試験・予備試験の上位合格を目指す受験生のために作成された一元化教材である。</p>
+<p>公訴事実の同一性は刑事訴訟法の最重要論点の一つであり、本教材で示した判断枠組み（基本的事実関係の同一性を第一次基準・非両立性を補充的基準とする）と、その射程（事実の共通性＝日時・場所の近接性の有無で結論が分かれること）を身につければ、訴因変更・一事不再理をめぐるどのような事例にも対応できる。</p>
+<p>本問の核心である「非両立性は認められても、事実の共通性を欠けば同一性は否定される」という前段・後段の対の構造を、素材判例（最判昭和29年5月14日）の「近接性」の論理に基づいて往復できれば、類似事案にも自在に応用できる。一冊の教材を完全消化することが、十冊の参考書を流し読みすることよりも遥かに学力を伸ばすことを、ここに記しておく。</p>
+<p class="closing" style="margin-top:18px;font-size:1.05em">― 一日一論点の積み重ねが、必ず合格の扉を開く。あなたの努力は、必ず報われる。―</p>
+<p class="footer-date lexia-genmeta" data-generated="2026-07-31T03:34+09:00">Generated: 2026-07-31 03:34 / JX v4.0.0 LOOP-FOLD</p>
+</footer>
+
+</div><!-- /.container -->
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var t=document.querySelector(this.getAttribute('href'));
+      if(t){
+        e.preventDefault();
+        // xref が閉じた details（deep-dive / reveal-answer）内を指す場合、祖先 details を全て開いてからスクロール
+        var d=t.closest&&t.closest('details');
+        while(d){ d.open=true; d=d.parentElement&&d.parentElement.closest&&d.parentElement.closest('details'); }
+        t.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
