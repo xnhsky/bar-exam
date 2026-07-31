@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>厳格な証明と自由な証明・伝聞法則の適用 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XXXVII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">厳格な証明と自由な証明・伝聞法則の適用 <em>— Strict Proof v. Free Proof &amp; the Hearsay Rule</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">2</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">証明の様式と<br>伝聞法則</h2>
+      <div class="mm-root-en">Strict / Free Proof</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>刑事訴訟法<br>
+        <em>Origin</em>重要問題 第37問 · 最判昭28・2・12／最判昭31・3・27<br>
+        <em>Form</em>証明の様式→伝聞→伝聞例外
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>刑事訴訟法・証拠法の基礎領域。<strong>証拠裁判主義（317条）を出発点に、厳格な証明／自由な証明の区別</strong>を問う。証明の様式が決まって初めて伝聞法則（320条1項）の適用が定まる、という<strong>伝聞法則の「一歩手前」</strong>を正面から扱う変則問題。伝聞・伝聞例外に飛びつく前に立証対象の性質決定を要求する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>単独出題は稀</span>
+                <span><em>重要度</em>★★★★☆</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>伝聞法則自体は最頻出だが、その前提たる証明の様式を正面から問う型は近年ほとんど出ない。万一出たとき<strong>「ハシゴを外される」構造に気付けるか</strong>で決定的に差がつく。体系理解の深さを試す良問。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限。処理の型（①様式→②伝聞→③例外）は共通で単純だが、<strong>Q備忘録（訴訟法上の事実）とYメモ（間接事実）で①の答えが逆になる</strong>ところが捻り。素直に伝聞から論じると前段でつまずく罠型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>伝聞法則（320条1項）／伝聞例外（323条3号・321条1項3号）／再伝聞（324条）／当事者の同意（326条1項）／弾劾証拠（328条）／自白法則（319条1項）・補強法則（319条2項）。とりわけ<strong>「証明の様式→伝聞→伝聞例外→証拠意見」の4段構造</strong>を一体で理解できるかが到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Xは<strong>Vに対する強盗罪</strong>で起訴。検察官はP作成のX自白調書を請求したが、弁護人は不同意とし<strong>「任意にされたものでない疑のある自白」</strong>（Pの暴行）と主張。そこで検察官は、任意性を立証するため<strong>P同僚Q作成の備忘録</strong>（当時Pが「Xは正直なやつで素直に自白した」と述べた旨の手帳）を請求→弁護人不同意。他方、弁護人は<strong>アリバイ</strong>（事件時XはYと居酒屋で飲酒）を主張し<strong>Y作成のメモ</strong>を請求→検察官不同意。<strong>Q・Yとも公判で証言可能</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者・証拠</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>X（被告人・強盗被告事件）／P（取調べ警察官・自白調書作成者）／Q（Pの同僚・備忘録作成者）／Y（Xの友人・アリバイメモ作成者・飲酒相手）。<strong>【証拠①】Q備忘録</strong>＝立証対象は<strong>自白の任意性（訴訟法上の事実）</strong>。<strong>【証拠②】Yメモ</strong>＝立証対象は<strong>Xの犯人性の不存在＝アリバイ（犯罪事実）</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 自白の任意性の証明は<strong>厳格な証明か自由な証明か</strong>（317条の意義）。<br>② 厳格説なら伝聞法則が適用され<strong>伝聞例外（323条3号・321条1項3号）</strong>を充たすか。<br>③ アリバイ（間接事実）は<strong>厳格な証明の対象か</strong>／被告人に有利でも同じか。<br>④ 不同意ゆえ<strong>326条の同意</strong>による救済もないか。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 立証対象の特定と証明の様式</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>各証拠で<strong>何を立証するか</strong>を先に確定する。317条にいう「事実」＝<strong>犯罪事実及びこれに準じる重要な事実・これを推認する間接事実</strong>は厳格な証明、<strong>訴訟法上の事実</strong>は原則自由な証明。ここで<strong>自由な証明で足りるなら伝聞法則の適用がない</strong>（＝Step2に進まない＝ハシゴが外れる）点を必ず意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 伝聞法則の適用</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>厳格な証明を要すると決まった証拠についてのみ、<strong>伝聞法則（320条1項）が適用</strong>される。書面の記載内容の真実性が問題となるなら伝聞証拠。Q備忘録は厳格説に立てば、Yメモは間接事実ゆえ当然に、この段に進む。判例（自由な証明説）でQ備忘録を処理すればこの段に進まず取調べ可で完結する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 伝聞例外の検討</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>①<strong>323条3号</strong>の「書面」＝戸籍謄本・商業帳簿に準じ正確性が類型的に信頼できる書面。<strong>心覚えの手帳・メモは当たらない</strong>（<span class="case-name">最判昭31.3.27</span>）。②<strong>321条1項3号</strong>＝Q・Yとも<strong>公判で証言可能＝供述不能でない</strong>から不充足。備忘録はさらに記載内容がP供述で<strong>再伝聞</strong>が残る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 証拠意見（不同意）と結論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>両証拠とも<strong>相手方が不同意</strong>ゆえ<strong>326条1項の同意</strong>による救済もない。結論は──<strong>Q備忘録</strong>＝判例なら取調べ可／有力説なら証拠能力なし・取調べ不可。<strong>Yメモ</strong>＝アリバイ＝厳格な証明ゆえ伝聞例外なし・<strong>いずれの立場でも取調べ不可</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 証明の様式（317条）
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Proof Mode</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 317条＝厳格な証明の根拠</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>317条は「事実の認定は、証拠による」と定め<strong>証拠裁判主義</strong>を宣言する。ここにいう「事実」＝<strong>犯罪事実及びこれに準じる重要な事実</strong>の認定には、証拠能力ある証拠による適式の証拠調べ＝<strong>厳格な証明</strong>を要する趣旨と解する。</p><div class="norm">317条にいう「事実」＝犯罪事実（構成要件該当事実・違法性・責任に関する事実）及びこれに準じる重要な事実は、証拠能力を有し適法な証拠調べを経た証拠による証明＝厳格な証明を要する。<span class="norm-cite">— 証拠裁判主義（317条）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 厳格な証明の対象事実（犯・準・間）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>厳格な証明を要するのは、①<strong>狭義の犯罪事実</strong>（構成要件・違法・責任）、②<strong>処罰条件・刑の加重減免事由</strong>（犯罪事実に準じる）、③<strong>これらを推認させる間接事実</strong>。訴訟条件の存否・自白の任意性等の<strong>訴訟法上の事実は原則として自由な証明</strong>で足りる。記憶は<strong>「犯・準・間」</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 自由な証明と伝聞法則の関係（分岐の要）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>自由な証明で足りるなら、証拠能力の制約たる伝聞法則（320条1項）の適用がない</strong>。伝聞例外を論ずるまでもなく取調べが許される。逆に厳格な証明を要するなら伝聞法則が適用され、323条・321条1項3号の検討へ進む。<strong>この関係が本問の分岐の要</strong>で、様式を論じずに伝聞へ入ると「ハシゴを外される」。厳格・自由は証明の<strong>「様式」の区別</strong>で、証明の「程度」の区別ではない。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② Q備忘録＝自白の任意性
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Voluntariness</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 任意性＝訴訟法上の事実（自由説・判例）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>自白の任意性は<strong>自白調書の証拠能力の有無に関わる訴訟法上の事実</strong>である。訴訟法上の事実は原則自由な証明で足りるから、任意性も自由な証明でよい──というのが判例（<span class="case-name">最判昭28.2.12</span>）。</p><div class="norm">自白の任意性の有無を判断するについては、その証拠能力の有無に関する事項であって、いわゆる訴訟法上の事実に属するから、厳格な証明を要せず、自由な証明をもって足りる。<span class="norm-cite">— 最判昭28.2.12</span></div><p>自由な証明で足りるなら伝聞法則の適用なし＝<strong>Q備忘録は取り調べうる</strong>（判例で書けばここで完結）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 厳格な証明説（有力説）と中間説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>有力説は、<strong>自白は犯罪事実認定において決定的な証拠でありその任意性は誤判防止の要</strong>だから、任意性は単なる訴訟法上の事実にとどまらず<strong>犯罪事実に準じる重要な事実</strong>として厳格な証明を要するとする。</p><div class="norm">自白の任意性は、犯罪事実の証拠としての自白の重要性に鑑み犯罪事実に準じるから、その証明には厳格な証明を要する。反対尋問による吟味を経ない伝聞証拠で任意性を認めれば自白法則（319条1項）の趣旨が没却される。<span class="norm-cite">— 厳格な証明説（有力説）</span></div><p><em>中間説</em> — 厳格な証明までは不要だが、当事者に攻撃防御を尽くす機会を保障すべきとする（境界が不明確との批判）。<strong>判例・学説いずれで書いても合格答案</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 伝聞例外の否定＋再伝聞（厳格説の帰結）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>厳格説に立つと伝聞法則が適用され、伝聞例外を検討する。①備忘録は<strong>心覚えの手帳</strong>で323条3号の書面に当たらない（<span class="case-name">最判昭31.3.27</span>）。②Qは公判で証言可能ゆえ321条1項3号の<strong>供述不能でない</strong>。③さらに手帳の記載内容は<strong>P自身の発言</strong>（「Xは正直なやつで…」）でその真実性が問題＝<strong>再伝聞</strong>が残る。よって<strong>証拠能力なし・取調べ不可</strong>。不同意ゆえ326条でも救えない。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論点③ Yメモ＝アリバイ
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論点③<span class="mm-name-en">Alibi</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-A · アリバイ＝間接事実（厳格な証明）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>アリバイは、犯行時に被告人が犯行現場以外にいたこと＝<strong>犯罪事実たる犯人性の不存在を推認させる間接事実</strong>。犯罪事実を推認させる間接事実は犯罪事実そのものの認定を左右するから、<strong>犯罪事実と同様に厳格な証明を要する</strong>（通説）。ここがQ備忘録（訴訟法上の事実）との<strong>決定的な違い＝①の答えが逆</strong>。</p><div class="norm">犯罪事実の存否を推認させる間接事実は、犯罪事実そのものと同様に厳格な証明を要する。アリバイは犯人性の不存在を推認する間接事実であり、その証明の様式もこれに従う。<span class="norm-cite">— 間接事実＝厳格な証明（通説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-B · 有利な事実の使い分け否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「アリバイは被告人に有利な事実だから、検察官との力関係を考えて自由な証明でよいのでは」という少数説もある。しかし<strong>317条は証明の様式を事実の有利・不利で使い分けていない</strong>。条文上の根拠を欠く以上、<strong>被告人に有利な事実でも厳格な証明を要する</strong>。証明の様式は犯罪事実認定の適正の要請から定まり、当事者の力関係で左右されるべきでない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-C · 伝聞例外の否定（結論＝取調べ不可）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>厳格な証明を要する以上、記載アリバイの真実性が問題となるYメモに伝聞法則が適用される。①<strong>心覚えのメモ</strong>で323条3号に当たらない（<span class="case-name">最判昭31.3.27</span>が直接妥当）。②Yは公判で証言可能ゆえ321条1項3号の供述不能でない。検察官が不同意ゆえ326条の同意もない。よって<strong>証拠能力なし・取調べ不可</strong>。<strong>判例・通説いずれでもYメモは取調べ不可</strong>で一貫する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 317条と厳格／自由の区別</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">317条は「事実の認定は、証拠による」と定め、証拠裁判主義を宣言する。ここにいう「事実」とは、犯罪事実及びこれに準じる重要な事実をいい、その認定には証拠能力を有し適法な証拠調べを経た証拠による証明、すなわち厳格な証明を要する。これに対し、訴訟法上の事実は、犯罪事実そのものではなくその認定は裁判所の合理的裁量に委ねてよいから、原則として自由な証明で足りる。自由な証明で足りる事実については、証拠能力の制約たる伝聞法則の適用はない。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 自白の任意性の証明の様式</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">自白の任意性は、自白調書の証拠能力の有無に関わる訴訟法上の事実であるから、自由な証明で足りるとも思える。しかし、自白は犯罪事実認定において決定的な意味を持つ証拠であり、その任意性は誤判防止の要である。そうすると、自白の任意性は犯罪事実に準じる重要な事実というべきであって、その証明には厳格な証明を要すると解する。反対尋問による吟味を経ない伝聞証拠で任意性を認めれば、自白法則（319条1項）の趣旨が没却されるからである。<span class="norm-cite">— 厳格な証明説型（判例は自由な証明）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · アリバイと厳格な証明（有利否定）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">アリバイは、犯行時に被告人が犯行現場以外の場所にいたこと、すなわち犯罪事実たる犯人性の不存在を推認させる間接事実である。犯罪事実を推認させる間接事実は、犯罪事実そのものの認定を左右するから、犯罪事実と同様に厳格な証明を要する。被告人に有利な事実であっても、317条は証明の様式を事実の有利・不利によって使い分けておらず、この結論は変わらない。<span class="norm-cite">— 間接事実＝厳格な証明型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 伝聞例外の否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">厳格な証明を要する以上、伝聞証拠には伝聞法則（320条1項）が適用される。323条3号の「書面」は、戸籍謄本・商業帳簿に準じその作成及び内容の正確性が類型的に信頼できる書面をいうところ、本件備忘録・メモは単に心覚えのため書き留めた手帳にすぎず、これに当たらない。また、Q・Yは公判廷で証言することに支障がないから、321条1項3号の供述不能の要件も充たさない。よって伝聞例外は認められない。<span class="norm-cite">— 伝聞例外否定・標準形</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node">
+          <span class="mm-num">8</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ Q備忘録（任意性）の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>立証対象は<strong>自白の任意性＝自白調書の証拠能力の前提事実</strong>（訴訟法上の事実）／自白は「証拠の王」でその任意性は誤判防止の要（＝犯罪事実に準じる重要性・厳格説の評価語）／備忘録は「<strong>単に心覚えのため書き留めた手帳</strong>」＝正確性の類型的保障なし。<br>──317条の意義と任意性の性質決定を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ Yメモ（アリバイ）の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>立証対象は<strong>アリバイ＝犯人性の不存在を推認させる間接事実</strong>（犯罪事実に関わる）／事件時にXがYと居酒屋で飲酒＝犯行現場以外にいた／被告人に有利な事実だが317条は有利・不利で様式を使い分けない／メモは「<strong>心覚えのメモ</strong>」で正確性の保障なし。<br>──厳格な証明・伝聞例外否定を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 供述不能の否定材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Q及びYともに、公判廷において証言することに何らの支障もない</strong>（問題文の前提）＝321条1項3号の「供述することができないとき」に当たらない。供述不能要件を看過して伝聞例外を安易に肯定するのは失点。手帳の記載内容は<strong>P自身の供述</strong>＝再伝聞の材料。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 不同意（326条否定）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Q備忘録は<strong>弁護人が不同意</strong>／Yメモは<strong>検察官が不同意</strong>。いずれも<strong>326条1項の同意による証拠能力の付与を受けられない</strong>。したがって、伝聞例外の要件を充たさない限り証拠能力は認められない。答案の締めで「不同意ゆえ同意による救済もない」と一言添えると丁寧。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">9</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>317条</strong> — 犯罪事実＋準じる重要事実＋間接事実＝厳格な証明／訴訟法上の事実＝原則自由な証明<br>② <strong>分岐</strong> — 自由な証明で足りるなら伝聞法則の適用なし（＝取調べ可で完結）<br>③ <strong>伝聞例外</strong> — 323条3号（正確性の類型的保障ある書面）／321条1項3号（供述不能）とも否定</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 2 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判昭28.2.12</span> — 自白の任意性＝訴訟法上の事実＝自由な証明で足りる<br>② <span class="case-name">最判昭31.3.27</span> — 323条3号の「書面」＝戸籍謄本・商業帳簿に準ずる正確性ある書面／心覚えの手帳・メモは否定（本問備忘録・メモに直接妥当）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">条文暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 証拠裁判主義 — <strong>317条</strong><br>· 伝聞法則 — <strong>320条1項</strong><br>· 特信文書 — <strong>323条3号</strong><br>· 供述不能等 — <strong>321条1項3号</strong><br>· 当事者の同意 — <strong>326条1項</strong><br>· 自白法則／補強法則 — 319条1項／2項　· 再伝聞 — 324条　· 弾劾証拠 — 328条</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「事実の認定は、証拠による」（317条）<br>· 「犯・準・間」＝厳格な証明の対象<br>· 「自由な証明なら伝聞法則の適用なし」＝ハシゴ<br>· 「戸籍謄本・商業帳簿に準ずる／心覚えの手帳はダメ」<br>· 「証言できる＝供述不能でない」<br>· 「様式の区別であって程度の区別ではない」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 伝聞法則・伝聞例外の体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>伝聞証拠は原則証拠能力なし（320条1項）。反対尋問による吟味を欠くからである。例外は321条以下に列挙。本問で問題となるのは<strong>323条3号（特信文書）と321条1項3号（供述不能＋特信情況）</strong>。証明の様式で厳格な証明を要すると決まって初めてこの体系に入る点が本問の眼目。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 再伝聞（324条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Q備忘録のように「<strong>供述を記載した書面</strong>」は、書面自体の伝聞性と、記載されたP供述の伝聞性が<strong>二重に</strong>問題となる（再伝聞）。仮に備忘録の伝聞性を除去できても、P供述部分について別途伝聞例外を要する。一言でも触れれば加点。324条が再伝聞処理の受け皿。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 当事者の同意（326条1項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>伝聞証拠でも相手方が<strong>同意</strong>し、作成・供述時の情況を考慮して相当と認めるときは証拠とできる（326条1項）。本問は両証拠とも<strong>不同意</strong>ゆえこの救済がない。不同意にすれば相手方に伝聞例外の立証責任を負わせられる＝証拠意見の戦術。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 弾劾証拠（328条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>供述の証明力を争う<strong>弾劾</strong>目的なら、伝聞でも例外的に許容される（328条・自己矛盾供述の限度）。もっとも本問は任意性・アリバイの<strong>実質立証</strong>であって弾劾目的ではないから、328条による救済もない。「弾劾なら別」という切り分けを頭の隅に。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 自白法則・補強法則（319条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>自白法則（319条1項）</strong>＝任意性に疑いある自白は証拠能力を否定。本問の争いはこの「任意性」を立証する<strong>証明の様式</strong>の問題。厳格説は自白法則の趣旨（虚偽排除・人権擁護）を様式論の根拠に用いる。<strong>補強法則（319条2項）</strong>＝自白のみで有罪不可・補強証拠は犯罪事実に関わり厳格な証明を要する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 様式を論じず伝聞から入る</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>最大の失点。<strong>「証拠として取り調べられるか」＝ふつうは証拠能力を直接検討</strong>という癖でいきなり伝聞に入ると、<strong>自由な証明なら伝聞法則の適用がない</strong>ことに気付かず「ハシゴを外される」。まず証明の様式（317条）を論点として立てる（−15〜20点）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 任意性を「犯罪事実」そのものと誤認</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>自白の任意性は犯罪事実そのものではなく、<strong>自白調書の証拠能力を左右する訴訟法上の事実</strong>。ここを「犯罪事実」と誤ると性質決定が崩れる。「訴訟法上の事実だが犯罪事実に準じる（有力説）」という<strong>二段の性質決定</strong>を丁寧に（−10〜15点）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 323条3号を安易に肯定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「書面だから323条3号でいける」と即断は誤り。<strong>心覚えの手帳・メモは正確性の類型的保障を欠き当たらない</strong>（<span class="case-name">最判昭31.3.27</span>）。戸籍謄本・商業帳簿に準ずる書面に限る、という規範を正確に立てて否定する（−5〜10点）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 321条1項3号の供述不能を看過</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>問題文が<strong>「Q・Yとも公判で証言することに何らの支障もない」</strong>とわざわざ与えている＝<strong>供述不能でない</strong>ことを使わせる誘導。これを看過して321条1項3号を検討し忘れる／安易に肯定するのは失点（−5〜8点）。再伝聞（P供述部分）も落とさない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ アリバイを自由な証明でよいと誤る</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「被告人に有利だから自由な証明でよい」と即断は誤り。<strong>アリバイ＝犯人性の不存在を推認する間接事実＝犯罪事実に関わる＝厳格な証明</strong>。317条は有利・不利で様式を使い分けない、と一言で排斥する。Q備忘録の結論をコピーして①を誤るのも典型ミス（−10〜15点）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和28年2月12日</span><span class="mm-leaf-sub"><em>Voluntariness · Free Proof</em> · 任意性＝訴訟法上の事実</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>自白の任意性は自由な証明で足りるとした判例</strong>。「自白の任意性の有無を判断するについては、その証拠能力の有無に関する事項であって、いわゆる訴訟法上の事実に属するから、厳格な証明を要せず、自由な証明をもって足りる」。<em>射程</em> — 任意性を訴訟法上の事実と性質決定し自由な証明で足りるとする。判例に立てばQ備忘録は取調べ可。有力説はこれを批判し厳格な証明を要すると説く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和31年3月27日</span><span class="mm-leaf-sub"><em>Art. 323(3) · "Memo" is not a Trustworthy Document</em> · 本問直撃</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>323条3号の「書面」の意義を画した古典的判例</strong>。「323条3号の『書面』は、前二号の書面すなわち戸籍謄本、商業帳簿等に準ずる書面を意味する……本件メモはその形体からみても単に心覚えのため書き留めた手帳であること明らかであるから、刑訴323条3号の書面と認めることはできない」。<em>射程</em> — 本問のQ備忘録・Yメモと<strong>事案がほぼ重なり直接妥当</strong>。厳格説でも伝聞例外を否定できる決め手。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴317条</span><span class="mm-leaf-sub"><em>Code of Crim. Proc., art. 317 · Trial by Evidence</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「事実の認定は、証拠による」。証拠裁判主義。<em>射程</em> — ここにいう「事実」＝犯罪事実及びこれに準じる重要な事実・間接事実は<strong>厳格な証明</strong>を要するとの解釈の根拠。訴訟法上の事実は原則自由な証明。本問の証明の様式論すべての出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴320条1項</span><span class="mm-leaf-sub"><em>art. 320(1) · Hearsay Rule</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>公判期日外の供述に代わる書面・供述は原則証拠とできない（伝聞法則）。<em>射程</em> — <strong>厳格な証明を要する場合にのみ適用</strong>。自由な証明で足りるなら適用外＝本問の分岐の要。備忘録・メモの記載内容の真実性が問題となるから伝聞証拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴323条3号</span><span class="mm-leaf-sub"><em>art. 323(iii) · Trustworthy Documents</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>1号（戸籍謄本等）・2号（商業帳簿等）に次ぐ「その他特に信用すべき情況の下に作成された書面」。<em>射程</em> — <strong>前二号に準ずる正確性が類型的に信頼できる書面</strong>に限る（最判昭31.3.27）。心覚えの手帳・メモは当たらず、本問では否定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴321条1項3号</span><span class="mm-leaf-sub"><em>art. 321(1)(iii) · Unavailability</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>供述者が死亡・所在不明等で<strong>供述することができず</strong>、かつ供述が犯罪事実の証明に不可欠で絶対的特信情況があるとき伝聞例外を認める。<em>射程</em> — <strong>Q・Yとも公判で証言可能＝供述不能でない</strong>から本問では要件不充足。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴326条1項</span><span class="mm-leaf-sub"><em>art. 326(1) · Consent</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>検察官及び被告人が証拠とすることに<strong>同意</strong>し、情況を考慮し相当と認めるとき、321条乃至前条にかかわらず証拠とできる。<em>射程</em> — 本問は両証拠とも相手方が<strong>不同意</strong>ゆえ同意による証拠能力付与なし。伝聞例外を充たさない限り証拠能力は否定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴324条</span><span class="mm-leaf-sub"><em>art. 324 · Double Hearsay</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>被告人以外の者の供述で被告人・第三者の供述をその内容とするものの証拠能力を規律。<em>射程</em> — Q備忘録は書面の伝聞性＋記載されたP供述の伝聞性が二重に問題＝<strong>再伝聞</strong>。P供述部分について別途伝聞例外を要する点の受け皿条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">刑訴319条1項</span><span class="mm-leaf-sub"><em>art. 319(1) · Confession Rule</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>強制・拷問・脅迫による自白、任意性に疑いある自白は証拠とできない（自白法則）。<em>射程</em> — 本問の争いは、この「任意性」を立証する<strong>証明の様式</strong>の問題。厳格説は自白法則の趣旨（虚偽排除・人権擁護）を厳格な証明の根拠に援用する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">厳格な証明／自由な証明の区別</span><span class="mm-leaf-sub"><em>Strengbeweis / Freibeweis</em> · 学説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>独刑訴学に由来し継受された区別。<strong>証拠能力を有し適法な証拠調べを経た証拠による証明＝厳格な証明</strong>、その制約を受けない証明＝自由な証明。<em>射程</em> — 証明の<strong>「様式」の区別</strong>であって証明の「程度」（合理的疑いを超える確信）の区別ではない。対象＝犯罪事実・準じる重要事実・間接事実は厳格、訴訟法上の事実は原則自由。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">317条にいう「事実」のうち厳格な証明を要するのは？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">犯罪事実（構成要件・違法・責任）及びこれに準じる重要な事実、並びにこれを推認させる間接事実</span>。訴訟法上の事実は原則<span class="verb">自由な証明</span>で足りる。「犯・準・間」。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">自由な証明で足りると、伝聞法則との関係はどうなる？</span></summary>
+                  <div class="mm-q-answer">証拠能力の制約たる<span class="kw">伝聞法則（320条1項）の適用がない</span>。伝聞例外を論ずるまでもなく取調べが許される。様式を論じず伝聞に入ると「ハシゴを外される」。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">自白の任意性は厳格・自由どちらの証明か（判例／有力説）？</span></summary>
+                  <div class="mm-q-answer">判例（最判昭28.2.12）＝訴訟法上の事実として<span class="kw">自由な証明</span>で足りる。有力説＝犯罪事実に準じるとして<span class="kw">厳格な証明</span>を要する。どちらでも合格答案。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">アリバイの証明は厳格・自由どちらか。理由は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">厳格な証明</span>。アリバイは犯人性の不存在を推認する<span class="verb">間接事実</span>で犯罪事実に関わるから。被告人に有利でも317条は有利・不利で使い分けない。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">Q備忘録が323条3号の書面に当たらないのはなぜか？</span></summary>
+                  <div class="mm-q-answer">323条3号の「書面」は戸籍謄本・商業帳簿に準じ<span class="kw">正確性が類型的に信頼できる書面</span>に限る。備忘録は<span class="kw">単に心覚えのため書き留めた手帳</span>にすぎず当たらない（最判昭31.3.27）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">なぜ321条1項3号の伝聞例外も否定されるのか？</span></summary>
+                  <div class="mm-q-answer">同号は供述者が<span class="kw">供述することができない</span>こと（供述不能）を要件とするが、問題文上<span class="kw">Q・Yとも公判で証言可能</span>だから供述不能の要件を充たさない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">Q備忘録に固有の「再伝聞」とは何か？</span></summary>
+                  <div class="mm-q-answer">手帳という書面の伝聞性に加え、記載内容が<span class="kw">P自身の供述</span>（「Xは正直なやつで…」）でその真実性が問題となる＝供述の伝聞が二重に残る。P供述部分に別途伝聞例外を要する（324条）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">317条と厳格／自由の区別の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">317条にいう「事実」＝犯罪事実及びこれに準じる重要な事実は、証拠能力を有し適法な証拠調べを経た証拠による証明（厳格な証明）を要し、訴訟法上の事実は原則として自由な証明で足りる。自由な証明で足りる事実には伝聞法則の適用はない。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">自白の任意性の証明の様式（厳格説）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">自白の任意性は訴訟法上の事実であるが、自白は犯罪事実認定において決定的でその任意性は誤判防止の要であるから、犯罪事実に準じる重要な事実として厳格な証明を要する。反対尋問を経ない伝聞証拠で任意性を認めれば自白法則の趣旨が没却されるからである。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">アリバイと厳格な証明（有利否定）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">アリバイは犯罪事実たる犯人性の不存在を推認させる間接事実であり、犯罪事実そのものの認定を左右するから犯罪事実と同様に厳格な証明を要する。317条は証明の様式を事実の有利・不利で使い分けておらず、被告人に有利な事実でも結論は変わらない。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">問題文の登場順に：<span class="kw">第1 Q備忘録（証明の様式→伝聞例外／約55点・900〜1100字）→ 第2 Yメモ（アリバイ＝厳格な証明→伝聞／約35点・400〜600字）→ 補論（不同意326条）</span>。共通枠組みは第1でフル展開し、第2は性質決定だけ厚く・伝聞例外は援用。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">本問の結論を証拠×立場の表で言えるか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">Q備忘録</span>＝判例(自由な証明)なら取調べ可／有力説(厳格)なら取調べ不可。<span class="kw">Yメモ</span>＝アリバイ＝厳格な証明ゆえ<span class="kw">判例・通説いずれでも取調べ不可</span>。両者とも不同意で326条の救済なし。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">自由な証明で足りる → ？</span></summary>
+                  <div class="mm-q-answer">伝聞法則の適用なし＝取調べ可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">心覚えの手帳・メモ → ？</span></summary>
+                  <div class="mm-q-answer">323条3号の書面に当たらず（昭31.3.27）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">アリバイ＝間接事実 → ？</span></summary>
+                  <div class="mm-q-answer">厳格な証明→伝聞例外なし→取調べ不可。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XXXVII — 厳格な証明と自由な証明・伝聞法則の適用 · 13 chapters · 2 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-07-31T20:56+09:00">Generated: 2026-07-31 20:56 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
