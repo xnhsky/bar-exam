@@ -238,7 +238,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -317,6 +317,11 @@ def main() -> int:
         #     監査 2026-07-11：従来は g45 内包＋v12.2.1 マーカー判定のため v13 で一切走らなかった穴を恒久修正。
         v.g61_original_block_marker_indent()
         v.g62_original_block_stmt_count()
+        # G74＝共有前提（事例/事案/語句群）がブロック不在のまま #part-a 直下に残り、インライン規則の
+        #     display:none で消える型（刑TX374 型の再発＝刑TX439/395/218 の実害・実機報告 2026-08-02）。
+        #     G61/G62 はブロック有り前提のためこの型を素通りしていた穴を埋める。長文かつ記述再掲でない
+        #     .problem-text のみを見る＝独立自己完結型は対象外・全コーパス実測 検出0（是正後）。
+        v.g74_shared_premise_hidden()
         # G63＝インラインカード⇄SM2プール⇄answer-key の三点整合（data-stmt 集合一致・key長）。
         #     全コーパス実測 検出0（2026-07-11）を確認して ERROR ゲート化。決定論・誤爆ゼロ設計。
         v.g63_inline_pool_alignment()
@@ -425,7 +430,7 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62(v13n)+G63/G64(三点整合・バッジ⇄key矛盾)+G66/G69(sysmapはみ出し・重なり)+G67(図解)+G73(答案圧縮) 検出ファイル={len(offenders)}")
+    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62/G74(v13n)+G63/G64(三点整合・バッジ⇄key矛盾)+G66/G69(sysmapはみ出し・重なり)+G67(図解)+G73(答案圧縮) 検出ファイル={len(offenders)}")
     if offenders:
         print("\n[G41-G45/G50-G62] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れ or v13/v13n 規約崩れを検出:")
         for f, errs in offenders:

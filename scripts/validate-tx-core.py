@@ -47,6 +47,10 @@ spec: spec/tx-v11.0.0-core.md 第7項
       並置し、見出しが長いと2本目に文字が重なる（実害＝刑TX395_lex「職務の適法性」×「要件・現在性」ほか
       10ファイル/16件）。重なり 6px 超＝ERROR／2〜6px＝WARNING。正典形は 1 <text>＋<tspan>（中央寄せ・
       v13k-bis／pbox 正典）。判定は tx_sysmap_geom（単一情報源）、修正は scripts/tx-sysmap-fit.py（正典形へ統合）。
+  G74 共有前提の非表示（2026-08-02・LEX-439・§v13n）：不可侵原文ブロック不在のまま #part-a 直下に
+      共有事例/事案/語句群が残り、`#part-a:has(.tx-inline-card) > .problem-text{display:none}` に
+      巻き込まれて周回画面から消える（実害＝刑TX439/395/218・刑TX374 型の再発）。G61/G62 はブロック
+      有り前提でこの型を素通りしていた穴を埋める。記述再掲でない長文のみ検出＝独立自己完結型は対象外。
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -2048,6 +2052,40 @@ class Validator:
             self.err("G62", f"answer-key長({n_key})が一問一答数({n_oxrow})と不一致。"
                             "data-correct-value の1文字ずつが各記述の正誤に対応する規約を満たすこと。")
 
+    def g74_shared_premise_hidden(self):
+        """G74（ERROR・§v13n）＝共有前提（事例/事案/見解/語句群）が display:none に巻き込まれて消える。
+
+        inline _lex は `#part-a:has(.tx-inline-card) > .problem-text{display:none}` で
+        記述の重複掲載を隠すが、この規則は **同じ #part-a 直下に置かれた共有前提**（【事例】【事案】
+        【語句群】等・インラインカードに複製されない唯一の原文）も道連れに隠す。結果、周回画面から
+        事例が丸ごと消え、記述が読めなくなる（刑TX374 型の実害。刑TX439/395/218 で再発）。
+        §v13n の恒久解は「不可侵原文ブロック（.tx-original-block）へ移す」こと。
+        G61/G62 はブロックが有る前提の検査でブロック不在のこの型を素通りしていた穴を埋める。
+
+        判定：インラインカードが有り、.tx-original-block が無く、#part-a 直下の .problem-text に
+        「記述ごとの再掲でない長文」（.choice-num-inline を持たず 80 字以上）が残っていれば ERROR。
+        各記述が独立自己完結の型（全 .problem-text が記述の再掲＝choice-num-inline 付き）は対象外。"""
+        if not self.is_lex_target():
+            return
+        if not self.soup.select_one(".tx-inline-card"):
+            return
+        if self.soup.select_one(".tx-original-block") is not None:
+            return
+        part_a = self.soup.select_one("#part-a")
+        if part_a is None:
+            return
+        for div in part_a.find_all("div", class_="problem-text", recursive=False):
+            if div.find(class_="choice-num-inline"):
+                continue
+            text = div.get_text(" ", strip=True)
+            if len(text) < 80:
+                continue
+            self.err("G74", f"共有前提（"
+                            f"{text[:24]}…）が #part-a 直下の .problem-text にあり、"
+                            "インライン周回では display:none で非表示になる（事例が消える）。"
+                            "§v13n の不可侵原文ブロック（.tx-original-block ＞ .case-description ＞ "
+                            ".case-scene ＞ .case-paragraph）へ移して常時表示にする。")
+
     def g63_inline_pool_alignment(self):
         """G63（ERROR・2026-07-11 監査対応）＝インラインカード⇄SM2プール⇄answer-key の三点整合。
 
@@ -2602,6 +2640,7 @@ class Validator:
         self.g60_ox_stmt_inline_polarity()
         self.g61_original_block_marker_indent()
         self.g62_original_block_stmt_count()
+        self.g74_shared_premise_hidden()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
