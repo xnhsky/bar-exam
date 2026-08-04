@@ -238,7 +238,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -322,6 +322,12 @@ def main() -> int:
         #     G61/G62 はブロック有り前提のためこの型を素通りしていた穴を埋める。長文かつ記述再掲でない
         #     .problem-text のみを見る＝独立自己完結型は対象外・全コーパス実測 検出0（是正後）。
         v.g74_shared_premise_hidden()
+        # G19＝解答前に常時見える設問エリア（設問リード／不可侵原文ブロック／解法ナビ）の正解露出。
+        #     設問・問題文エリアは原文のまま不可侵とし、正解の先出しを書かない（ユーザー指示 2026-08-04）。
+        #     素の <p> リードは .problem-text の display:none に当たらずインライン周回でも出続ける
+        #     （実害＝刑訴TX002「正しい組合せは肢5＝ウオ」・実機報告）。原文の設問は「正解」とも
+        #     「＝記号」とも書かないため識別子にでき、○×表記の凡例と「肢1〜5」原文形は誤検出しない。
+        v.g19_no_answer_spoiler()
         # G63＝インラインカード⇄SM2プール⇄answer-key の三点整合（data-stmt 集合一致・key長）。
         #     全コーパス実測 検出0（2026-07-11）を確認して ERROR ゲート化。決定論・誤爆ゼロ設計。
         v.g63_inline_pool_alignment()
@@ -381,7 +387,7 @@ def main() -> int:
             prop_notes.append((f, _props))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73")
+            if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
@@ -430,7 +436,7 @@ def main() -> int:
         if gate_errs:
             offenders.append((f, gate_errs))
 
-    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62/G74(v13n)+G63/G64(三点整合・バッジ⇄key矛盾)+G66/G69(sysmapはみ出し・重なり)+G67(図解)+G73(答案圧縮) 検出ファイル={len(offenders)}")
+    print(f"\nv12/v13 inline _lex 走査={scanned} / G45対象={g45_scanned} / G41(接ぎ木)+G42(組合せ当否)+G43(空詳説)+G44(回答UI)+G45(表示LOCK)+G50-G60(v13)+G61/G62/G74(v13n)+G63/G64(三点整合・バッジ⇄key矛盾)+G66/G69(sysmapはみ出し・重なり)+G67(図解)+G73(答案圧縮)+G19(設問エリアの正解露出) 検出ファイル={len(offenders)}")
     if offenders:
         print("\n[G41-G45/G50-G62] 接ぎ木 or 組合せ当否判定 or 空詳説 or 回答UI崩れ or 表示LOCK崩れ or v13/v13n 規約崩れを検出:")
         for f, errs in offenders:
