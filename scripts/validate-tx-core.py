@@ -163,6 +163,46 @@ ANSWER_SPOILER_VISIBLE_PATTERNS = [
     r"答え?は[肢記述][0-9０-９]",
 ]
 
+# G19-bis（2026-08-04・LEX-4xx）＝設問リード／原文ブロック／解法ナビ の「解答前に見える設問エリア」で
+# 正解を露出する編集加筆を弾く。原文の設問（「…の組合せは、後記1から5までのうちどれか」）は
+# 「正解」とも「＝記号」とも書かないため、この2つを識別子にすれば原文を誤検出しない。
+# 実測（corpus 1,300+ ファイル）：真陽性 42 ファイル／原文・凡例の誤検出 0。
+_SP_TOK = r"[アイウエオA-E]"           # 記述記号
+_SP_NUM = r"[0-9０-９]"
+# 「肢1〜5」「肢1から5まで」＝原文の選択肢レンジは正解露出ではないので除外する
+_SP_NOTRANGE = r"(?![〜~\-ー－]|\s*から)"
+# 「選択肢 1.アウ／2.アオ…」＝原文の選択肢一覧は 選択"肢" が肢トークンに化けるので除外する
+_SP_SHI = r"(?<!選択)肢"
+ANSWER_SPOILER_STEM_PATTERNS = [
+    # 「正解＝肢3」「正解＝ウエ」「正解は組合せ4＝ウ・エ」「正解は記述3・4の組合せ＝肢4」
+    (r"正解[はが]?[^。）)]{0,18}?[＝=]\s*(?:%s|記述|番号|組合せ)?\s*(?:%s%s|%s)"
+     % (_SP_SHI, _SP_NUM, _SP_NOTRANGE, _SP_TOK), "正解＝…"),
+    # 「ウオ＝肢5」「＝番号3」
+    (r"[＝=]\s*(?:%s|番号)\s*%s%s" % (_SP_SHI, _SP_NUM, _SP_NOTRANGE), "＝肢N"),
+    # 「正しい組合せは肢5」「誤っている組合せは肢4」「正しい記述の組合せは記述2・記述3」
+    (r"(?:正しい|誤って?いる|適法な)[^。）)]{0,8}(?:組合せ|順序)[はが][^。）)]{0,6}(?:%s|番号|記述)\s*%s%s"
+     % (_SP_SHI, _SP_NUM, _SP_NOTRANGE), "組合せは肢N"),
+    # 「正しいものの組合せ＝ウオ」「誤っているものの組合せ＝ア・エ」「適法な順序＝C・D」
+    # （「＝2個選ぶ」は個数のみで組合せ問題では自明のため除外）
+    (r"(?:正しい|誤って?いる|適法な)[^。）)]{0,8}(?:組合せ|順序|もの)\s*[はが]?\s*[＝=]\s*"
+     r"(?!%s+\s*個)[^。）)]{0,8}?%s" % (_SP_NUM, _SP_TOK), "組合せ＝記号"),
+    # 「誤り＝ウ・エ」（「誤り＝×」は○×表記の凡例なので記述記号のときだけ）
+    (r"(?:誤り|正しいもの)\s*[＝=]\s*%s" % _SP_TOK, "誤り＝記号"),
+    # 個数問題：「要するものは4個＝正解の個数」
+    (r"%s\s*個\s*[＝=]\s*正解" % _SP_NUM, "N個＝正解"),
+    # 「（いずれも正しい＝○）」＝全記述の○×を先出し
+    (r"いずれも(?:正しい|誤り)\s*[＝=]?\s*[○×]", "いずれも○×"),
+]
+
+# G19-ter（WARNING・2026-08-04）＝設問・問題内容エリアへの編集文の混入（要約・言い換え・付け足し）。
+# 試験の原文には現れない編集語だけを見る＝高精度。原文復元は入力 PDF との突き合わせが要るため
+# 機械では ERROR にできない（言い換えの有無は原文を持たないと判定不能）。次回更新時の是正を促す助言。
+# ○×判定の操作指示（「各記述それぞれの正誤（○×）を判定する」）は編集注記として許容＝検出語に含めない。
+EDITORIAL_IN_STEM_PATTERNS = [
+    "を素材に", "組み替え", "ここでは", "がコアです", "この教材",
+    "下の一問一答", "もとの短答問題", "もとは【", "原題", "本問は", "周回する",
+]
+
 CANONICAL_301_LEAKAGE = [
     "詐欺罪と他罪の成否", "詐欺罪のみが成立し得る", "背任行為が同時に詐欺の欺罔行為に当たる",
     "畏怖の一材料", "集金業務を委託", "偽造通貨行使罪に包含", "最判昭28.5.8",
@@ -696,6 +736,54 @@ class Validator:
             m = re.search(pat, txt)
             if m:
                 self.err("G19", f"PART A の可視テキストが正解を開示している（'{m.group(0)}'）")
+                break
+        self._g19_stem_area_spoiler(part_a)
+
+    def _g19_stem_area_spoiler(self, part_a):
+        """G19-bis（ERROR・2026-08-04）＝解答前に常時見える「設問エリア」の正解露出。
+
+        対象は reveal 前から画面に出ている3箇所だけに絞る（解説本文は当然 `正解` を書くので対象外）：
+          ① #part-a 直下のリード段落（素の <p>／.problem-text）
+          ② 不可侵原文ブロック（.tx-original-block / .tx-original-lead）
+          ③ 解法ナビ（.solve-nav ＝ v12.2.1 表示LOCK「正誤/正解番号を出さない」）
+        ①は .problem-text ではない素の <p> だと `#part-a:has(.tx-inline-card) > .problem-text`
+        の display:none に当たらず、インライン周回でも先頭に出続ける（実害＝刑訴TX002）。
+        """
+        areas = []
+        for p in part_a.find_all("p", recursive=False):
+            areas.append(("設問リード", p))
+        for el in part_a.select(".tx-original-block, .tx-original-lead"):
+            areas.append(("原文ブロック", el))
+        for el in part_a.select(".solve-nav"):
+            areas.append(("解法ナビ", el))
+        for nav in self.soup.select(".solve-nav"):
+            if part_a not in nav.parents:
+                areas.append(("解法ナビ", nav))
+        seen = set()
+        for where, el in areas:
+            text = el.get_text(" ", strip=True)
+            for pat, label in ANSWER_SPOILER_STEM_PATTERNS:
+                m = re.search(pat, text)
+                if not m:
+                    continue
+                key = (where, m.group(0))
+                if key in seen:
+                    continue
+                seen.add(key)
+                self.err("G19", f"{where}が解答前に正解を開示している（{label}：'{m.group(0)}'）。"
+                                "設問・問題文エリアは原文のまま不可侵とし、正解・正誤の先出しを書かない"
+                                "（○×判定の操作指示は書いてよいが、どれが○かは書かない）。")
+                break
+        # 設問・問題内容への編集文（要約・言い換え・付け足し）の混入＝WARNING 助言
+        stem = " ".join(
+            el.get_text(" ", strip=True) for where, el in areas if where != "解法ナビ"
+        )
+        for word in EDITORIAL_IN_STEM_PATTERNS:
+            if word in stem:
+                self.warn("G19", f"設問・問題内容エリアに編集文の混入疑い（'{word}'）。設問と問題文は"
+                                 "原則 PDF 原文のまま置き、要約・言い換え・付け足しを混ぜない"
+                                 "（○×判定の操作指示は可。原文＝.tx-original-lead ／ 操作指示＝編集注記の二層に分ける）。"
+                                 "一問一答（.ox-stmt・記述カード）はこの原則の対象外＝独自に書いてよい。")
                 break
 
     # --- G20：記述単位検査 ---
