@@ -51,6 +51,13 @@ spec: spec/tx-v11.0.0-core.md 第7項
       共有事例/事案/語句群が残り、`#part-a:has(.tx-inline-card) > .problem-text{display:none}` に
       巻き込まれて周回画面から消える（実害＝刑TX439/395/218・刑TX374 型の再発）。G61/G62 はブロック
       有り前提でこの型を素通りしていた穴を埋める。記述再掲でない長文のみ検出＝独立自己完結型は対象外。
+  G75 設問・問題文原文の欠落（2026-08-05・LEX-005・§v13s）：公式 000_TX が持つ設問リード・
+      【会話】【事例】【語句群】【記述】【組合せ】が `_lex` へ移送されず、周回画面に問題本体が
+      存在しない（実害＝刑訴TX005_lex：おとり捜査の【会話】①〜⑥と【記述】ア〜クが丸ごと不在で
+      設問リードだけが出ていた）。G74 は「DOM に在るが display:none で消える」型だけを見るため、
+      「そもそも作らなかった」型は素通りしていた。公式（PDF 由来の原文）と対照して欠落を ERROR、
+      原文層（.tx-original-block／.tx-original-lead）が一つも無い `_lex` を WARNING で可視化する。
+      復元は scripts/tx-restore-original.py（公式を単一情報源に逐語移送・冪等）。
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -354,6 +361,20 @@ def trap_depth_flag(text):
 # ============================================================
 # 検証本体
 # ============================================================
+
+# ---- G75（§v13s）：公式↔`_lex` の設問・問題文原文の対照 -------------------------
+# 判定式は scripts/tx_source_text.py（単一情報源）へ委譲する。復元ツール
+# scripts/tx-restore-original.py と同じ関数を使うことで「検出 ⟺ 修復可能」を同値にし、
+# 「直したのに ERROR が消えない／ERROR は出ないのに欠けている」を構造的に起こさない。
+
+def _load_source_text_module():
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    try:
+        import tx_source_text  # noqa: F401
+    except Exception:
+        return None
+    return tx_source_text
+
 
 class Validator:
     def __init__(self, html_path):
@@ -2174,6 +2195,49 @@ class Validator:
                             "§v13n の不可侵原文ブロック（.tx-original-block ＞ .case-description ＞ "
                             ".case-scene ＞ .case-paragraph）へ移して常時表示にする。")
 
+    def g75_source_text_present(self):
+        """G75（ERROR/WARNING・§v13s）＝設問・問題文の原文が `_lex` に載っているか。
+
+        TX は 1 問＝公式（PDF 原文の設問リード・【会話】【事例】【語句群】【記述】【組合せ】を保持）＋
+        `_lex`（記述カードで周回する Lexia 用）の二系統。`_lex` へ組み替える工程で **共有本体だけを
+        移送し忘れる**と、周回画面には設問リードしか出ず問題が解けない（実害＝刑訴TX005_lex：
+        おとり捜査の【会話】①〜⑥と【記述】ア〜クが丸ごと不在・実機報告 2026-08-05）。
+        G74 は「DOM に在るが display:none で消える」型専用なので、この「作らなかった」型は
+        誰も見ていなかった穴。ここでは公式（唯一の原文ソース）と対照して機械検出する。
+
+        判定（scripts/tx_source_text.analyze・復元ツールと同一式）：
+          * ERROR   ── 公式の原文が `_lex` から半分以上欠け、公式から逐語復元できる。
+                        `python scripts/tx-restore-original.py --apply <file>` で直る。
+          * WARNING ── (a) `_lex` が自前の言い換え本体を持ち原文と差がある（要内容照合）／
+                        (b) 原文層（.tx-original-block／.tx-original-lead）が一つも無い。
+                        どちらも入力 PDF を見て 1 問ずつ原文へ戻す（決定論ツール化できない）。
+        公式が無い・インラインカードが無い（旧デザイン）ファイルはスキップ＝誤爆ゼロ。"""
+        if not self.is_lex_target():
+            return
+        if not self.soup.select_one(".tx-inline-card"):
+            return
+        mod = _load_source_text_module()
+        if mod is None:
+            return
+        try:
+            verdict, payload = mod.analyze(self.html_path, lex_html=self.html)
+        except Exception:
+            return
+        if verdict == "restorable":
+            self.err("G75", f"公式（{Path(payload['official']).name}）の設問・問題文の原文が "
+                            f"`_lex` から {int(payload['ratio'] * 100)}% 欠けている"
+                            f"（実質 {payload['delta']} 字）。周回画面に【会話】【事例】【語句群】"
+                            "【記述】等の問題本体が出ない。`python scripts/tx-restore-original.py "
+                            "--apply <file>` で公式から不可侵原文ブロックへ逐語復元する。")
+        elif verdict == "review":
+            self.warn("G75", f"公式の原文と差がある（欠落率 {int(payload['ratio'] * 100)}%）が、"
+                             "`_lex` は自前の共有本体を持つため機械復元しない。入力 PDF と"
+                             "突き合わせて言い換え版を原文へ戻す（§v13r 原文不可侵）。")
+        elif verdict == "no-layer":
+            self.warn("G75", "原文層（.tx-original-block／.tx-original-lead）が無い。設問が編集文に"
+                             "置き換わっている疑いがある（§v13r 原文不可侵）。入力 PDF を見て"
+                             "原文の設問・選択肢一覧を復元し、操作指示は別段落に分ける。")
+
     def g63_inline_pool_alignment(self):
         """G63（ERROR・2026-07-11 監査対応）＝インラインカード⇄SM2プール⇄answer-key の三点整合。
 
@@ -2729,6 +2793,7 @@ class Validator:
         self.g61_original_block_marker_indent()
         self.g62_original_block_stmt_count()
         self.g74_shared_premise_hidden()
+        self.g75_source_text_present()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
@@ -2767,7 +2832,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G73, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G75, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

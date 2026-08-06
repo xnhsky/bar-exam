@@ -1,0 +1,334 @@
+# 設問・問題文原文の欠落 監査（§v13s・LEX-005）
+
+再生成＝`python scripts/tx-restore-original.py --report`／判定＝`scripts/tx_source_text.py`（`validate-tx-core.py` G75 と同一式）
+
+## 何を見ているか
+
+TX は 1 問＝公式（`outputs/000_TX/…`＝PDF 原文の設問リード・【会話】【事例】【語句群】【記述】【組合せ】を保持）
+＋ Lexia 用 `_lex`（記述カードで周回）。`_lex` へ組み替える工程で原文が落ちると、**周回画面に問題本体が出ず解けない**
+（実害＝刑訴TX005_lex：おとり捜査の【会話】①〜⑥と【記述】ア〜クが丸ごと不在・実機報告 2026-08-05）。
+
+## 区分と件数
+
+| 区分 | 意味 | 扱い | 件数 |
+|---|---|---|---:|
+| restorable | 公式に在る原文が `_lex` に無い＝公式から逐語復元できる | **G75 ERROR**（push 停止）／`scripts/tx-restore-original.py --apply` で自動 | 0 |
+| review | `_lex` が自前の言い換え本体を持ち原文と差がある | G75 WARNING／入力 PDF と照合して 1 問ずつ原文へ戻す | 1 |
+| no-layer | 原文層（`.tx-original-block`／`.tx-original-lead`）が無い | G75 WARNING／入力 PDF を見て 1 問ずつ復元（TJR 付随） | 543 |
+
+no-layer のうち **295 本がインライン周回（v13 LOOP-CARD）**＝優先度が高い。残りは旧デザイン `_lex`。
+
+## 科目別（no-layer）
+
+| 科目 | インライン周回 `_lex` | 旧デザイン `_lex` |
+|---|---:|---:|
+| 001_刑法 | 145 | 248 |
+| 002_刑事訴訟法 | 150 | 0 |
+
+## review（要内容照合）
+
+- `outputs/ux/000_TX/001_刑法/刑TX089_lex.html`（欠落率 57%・実質 137 字）
+
+## no-layer 一覧（インライン周回のみ）
+
+
+### 001_刑法
+
+- `刑TX001_lex.html`
+- `刑TX003_lex.html`
+- `刑TX004_lex.html`
+- `刑TX005_lex.html`
+- `刑TX007_lex.html`
+- `刑TX008_lex.html`
+- `刑TX009_lex.html`
+- `刑TX010_lex.html`
+- `刑TX012_lex.html`
+- `刑TX013_lex.html`
+- `刑TX014_lex.html`
+- `刑TX015_lex.html`
+- `刑TX016_lex.html`
+- `刑TX019_lex.html`
+- `刑TX020_lex.html`
+- `刑TX022_lex.html`
+- `刑TX024_lex.html`
+- `刑TX025_lex.html`
+- `刑TX028_lex.html`
+- `刑TX030_lex.html`
+- `刑TX031_lex.html`
+- `刑TX034_lex.html`
+- `刑TX035_lex.html`
+- `刑TX036_lex.html`
+- `刑TX039_lex.html`
+- `刑TX040_lex.html`
+- `刑TX041_lex.html`
+- `刑TX042_lex.html`
+- `刑TX043_lex.html`
+- `刑TX044_lex.html`
+- `刑TX045_lex.html`
+- `刑TX055_lex.html`
+- `刑TX056_lex.html`
+- `刑TX058_lex.html`
+- `刑TX059_lex.html`
+- `刑TX066_lex.html`
+- `刑TX067_lex.html`
+- `刑TX068_lex.html`
+- `刑TX070_lex.html`
+- `刑TX071_lex.html`
+- `刑TX072_lex.html`
+- `刑TX073_lex.html`
+- `刑TX074_lex.html`
+- `刑TX075_lex.html`
+- `刑TX125_lex.html`
+- `刑TX290_lex.html`
+- `刑TX291_lex.html`
+- `刑TX292_lex.html`
+- `刑TX293_lex.html`
+- `刑TX294_lex.html`
+- `刑TX295_lex.html`
+- `刑TX296_lex.html`
+- `刑TX297_lex.html`
+- `刑TX298_lex.html`
+- `刑TX299_lex.html`
+- `刑TX300_lex.html`
+- `刑TX301_lex.html`
+- `刑TX302_lex.html`
+- `刑TX355_lex.html`
+- `刑TX356_lex.html`
+- `刑TX357_lex.html`
+- `刑TX358_lex.html`
+- `刑TX359_lex.html`
+- `刑TX360_lex.html`
+- `刑TX361_lex.html`
+- `刑TX362_lex.html`
+- `刑TX363_lex.html`
+- `刑TX364_lex.html`
+- `刑TX365_lex.html`
+- `刑TX366_lex.html`
+- `刑TX367_lex.html`
+- `刑TX368_lex.html`
+- `刑TX369_lex.html`
+- `刑TX370_lex.html`
+- `刑TX371_lex.html`
+- `刑TX372_lex.html`
+- `刑TX373_lex.html`
+- `刑TX375_lex.html`
+- `刑TX376_lex.html`
+- `刑TX377_lex.html`
+- `刑TX378_lex.html`
+- `刑TX379_lex.html`
+- `刑TX380_lex.html`
+- `刑TX381_lex.html`
+- `刑TX382_lex.html`
+- `刑TX383_lex.html`
+- `刑TX384_lex.html`
+- `刑TX385_lex.html`
+- `刑TX386_lex.html`
+- `刑TX387_lex.html`
+- `刑TX388_lex.html`
+- `刑TX389_lex.html`
+- `刑TX390_lex.html`
+- `刑TX391_lex.html`
+- `刑TX392_lex.html`
+- `刑TX393_lex.html`
+- `刑TX394_lex.html`
+- `刑TX396_lex.html`
+- `刑TX397_lex.html`
+- `刑TX398_lex.html`
+- `刑TX399_lex.html`
+- `刑TX400_lex.html`
+- `刑TX402_lex.html`
+- `刑TX403_lex.html`
+- `刑TX404_lex.html`
+- `刑TX405_lex.html`
+- `刑TX406_lex.html`
+- `刑TX407_lex.html`
+- `刑TX408_lex.html`
+- `刑TX409_lex.html`
+- `刑TX410_lex.html`
+- `刑TX411_lex.html`
+- `刑TX412_lex.html`
+- `刑TX413_lex.html`
+- `刑TX414_lex.html`
+- `刑TX415_lex.html`
+- `刑TX416_lex.html`
+- `刑TX417_lex.html`
+- `刑TX418_lex.html`
+- `刑TX419_lex.html`
+- `刑TX420_lex.html`
+- `刑TX421_lex.html`
+- `刑TX422_lex.html`
+- `刑TX423_lex.html`
+- `刑TX424_lex.html`
+- `刑TX425_lex.html`
+- `刑TX426_lex.html`
+- `刑TX427_lex.html`
+- `刑TX428_lex.html`
+- `刑TX429_lex.html`
+- `刑TX430_lex.html`
+- `刑TX431_lex.html`
+- `刑TX432_lex.html`
+- `刑TX433_lex.html`
+- `刑TX434_lex.html`
+- `刑TX435_lex.html`
+- `刑TX436_lex.html`
+- `刑TX437_lex.html`
+- `刑TX438_lex.html`
+- `刑TX440_lex.html`
+- `刑TX441_lex.html`
+- `刑TX442_lex.html`
+- `刑TX443_lex.html`
+- `刑TX444_lex.html`
+- `刑TX445_lex.html`
+
+### 002_刑事訴訟法
+
+- `刑訴TX004_lex.html`
+- `刑訴TX007_lex.html`
+- `刑訴TX008_lex.html`
+- `刑訴TX009_lex.html`
+- `刑訴TX013_lex.html`
+- `刑訴TX014_lex.html`
+- `刑訴TX017_lex.html`
+- `刑訴TX018_lex.html`
+- `刑訴TX023_lex.html`
+- `刑訴TX024_lex.html`
+- `刑訴TX025_lex.html`
+- `刑訴TX026_lex.html`
+- `刑訴TX027_lex.html`
+- `刑訴TX028_lex.html`
+- `刑訴TX030_lex.html`
+- `刑訴TX031_lex.html`
+- `刑訴TX034_lex.html`
+- `刑訴TX036_lex.html`
+- `刑訴TX038_lex.html`
+- `刑訴TX039_lex.html`
+- `刑訴TX041_lex.html`
+- `刑訴TX042_lex.html`
+- `刑訴TX044_lex.html`
+- `刑訴TX046_lex.html`
+- `刑訴TX047_lex.html`
+- `刑訴TX048_lex.html`
+- `刑訴TX049_lex.html`
+- `刑訴TX050_lex.html`
+- `刑訴TX051_lex.html`
+- `刑訴TX053_lex.html`
+- `刑訴TX054_lex.html`
+- `刑訴TX055_lex.html`
+- `刑訴TX056_lex.html`
+- `刑訴TX057_lex.html`
+- `刑訴TX058_lex.html`
+- `刑訴TX059_lex.html`
+- `刑訴TX060_lex.html`
+- `刑訴TX063_lex.html`
+- `刑訴TX064_lex.html`
+- `刑訴TX065_lex.html`
+- `刑訴TX066_lex.html`
+- `刑訴TX067_lex.html`
+- `刑訴TX073_lex.html`
+- `刑訴TX074_lex.html`
+- `刑訴TX075_lex.html`
+- `刑訴TX076_lex.html`
+- `刑訴TX077_lex.html`
+- `刑訴TX079_lex.html`
+- `刑訴TX081_lex.html`
+- `刑訴TX082_lex.html`
+- `刑訴TX088_lex.html`
+- `刑訴TX092_lex.html`
+- `刑訴TX093_lex.html`
+- `刑訴TX094_lex.html`
+- `刑訴TX095_lex.html`
+- `刑訴TX096_lex.html`
+- `刑訴TX099_lex.html`
+- `刑訴TX100_lex.html`
+- `刑訴TX101_lex.html`
+- `刑訴TX102_lex.html`
+- `刑訴TX103_lex.html`
+- `刑訴TX104_lex.html`
+- `刑訴TX105_lex.html`
+- `刑訴TX106_lex.html`
+- `刑訴TX107_lex.html`
+- `刑訴TX108_lex.html`
+- `刑訴TX111_lex.html`
+- `刑訴TX112_lex.html`
+- `刑訴TX113_lex.html`
+- `刑訴TX119_lex.html`
+- `刑訴TX121_lex.html`
+- `刑訴TX122_lex.html`
+- `刑訴TX123_lex.html`
+- `刑訴TX124_lex.html`
+- `刑訴TX127_lex.html`
+- `刑訴TX130_lex.html`
+- `刑訴TX132_lex.html`
+- `刑訴TX133_lex.html`
+- `刑訴TX134_lex.html`
+- `刑訴TX135_lex.html`
+- `刑訴TX137_lex.html`
+- `刑訴TX139_lex.html`
+- `刑訴TX140_lex.html`
+- `刑訴TX143_lex.html`
+- `刑訴TX144_lex.html`
+- `刑訴TX145_lex.html`
+- `刑訴TX149_lex.html`
+- `刑訴TX150_lex.html`
+- `刑訴TX151_lex.html`
+- `刑訴TX153_lex.html`
+- `刑訴TX154_lex.html`
+- `刑訴TX155_lex.html`
+- `刑訴TX156_lex.html`
+- `刑訴TX157_lex.html`
+- `刑訴TX159_lex.html`
+- `刑訴TX161_lex.html`
+- `刑訴TX163_lex.html`
+- `刑訴TX164_lex.html`
+- `刑訴TX165_lex.html`
+- `刑訴TX166_lex.html`
+- `刑訴TX167_lex.html`
+- `刑訴TX168_lex.html`
+- `刑訴TX170_lex.html`
+- `刑訴TX172_lex.html`
+- `刑訴TX173_lex.html`
+- `刑訴TX174_lex.html`
+- `刑訴TX176_lex.html`
+- `刑訴TX177_lex.html`
+- `刑訴TX181_lex.html`
+- `刑訴TX185_lex.html`
+- `刑訴TX186_lex.html`
+- `刑訴TX187_lex.html`
+- `刑訴TX188_lex.html`
+- `刑訴TX189_lex.html`
+- `刑訴TX190_lex.html`
+- `刑訴TX191_lex.html`
+- `刑訴TX195_lex.html`
+- `刑訴TX196_lex.html`
+- `刑訴TX198_lex.html`
+- `刑訴TX201_lex.html`
+- `刑訴TX202_lex.html`
+- `刑訴TX203_lex.html`
+- `刑訴TX204_lex.html`
+- `刑訴TX209_lex.html`
+- `刑訴TX210_lex.html`
+- `刑訴TX211_lex.html`
+- `刑訴TX212_lex.html`
+- `刑訴TX213_lex.html`
+- `刑訴TX214_lex.html`
+- `刑訴TX215_lex.html`
+- `刑訴TX217_lex.html`
+- `刑訴TX218_lex.html`
+- `刑訴TX219_lex.html`
+- `刑訴TX221_lex.html`
+- `刑訴TX222_lex.html`
+- `刑訴TX225_lex.html`
+- `刑訴TX228_lex.html`
+- `刑訴TX236_lex.html`
+- `刑訴TX238_lex.html`
+- `刑訴TX239_lex.html`
+- `刑訴TX241_lex.html`
+- `刑訴TX242_lex.html`
+- `刑訴TX243_lex.html`
+- `刑訴TX245_lex.html`
+- `刑訴TX246_lex.html`
+- `刑訴TX248_lex.html`
+- `刑訴TX249_lex.html`
+- `刑訴TX252_lex.html`
+- `刑訴TX256_lex.html`
+- `刑訴TX261_lex.html`

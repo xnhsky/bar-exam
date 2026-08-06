@@ -146,6 +146,29 @@ doc-header / footer の ID 書き換え漏れ（D80）や本文重複（D82）�
 新規問題は必ず生成パイプライン（`night-batch-runner.ps1` / `jx-batch-runner.ps1`）で
 PDF・逐語から生成する。万一コピー作成しても、上記ゲートが push 前に検出する。
 
+## 設問・問題文原文の復元: tx-restore-original.py（§v13s・恒久対策・2026-08-05）
+
+TX は 1 問＝公式（`outputs/000_TX/…`＝PDF 原文の設問リード・【会話】【事例】【語句群】【記述】
+【組合せ】を保持）＋ Lexia 用 `_lex`（記述カードで周回）。`_lex` へ組み替える工程で共有本体を
+移送し忘れると、周回画面には設問リードしか出ず**問題が解けない**
+（実害＝刑訴TX005_lex：おとり捜査の【会話】①〜⑥と【記述】ア〜クが丸ごと不在・実機報告）。
+
+```bash
+python scripts/tx-restore-original.py                 # 復元対象の一覧（既定＝--check）
+python scripts/tx-restore-original.py --apply         # corpus 一括復元
+python scripts/tx-restore-original.py --apply <file>  # 個別ファイル
+python scripts/tx-restore-original.py --report        # 残件監査（restorable / review / no-layer）
+```
+
+公式を単一情報源に `.tx-original-block` へ**逐語**で移送する（決定論・冪等・CRLF 保存・本文不変）。
+参照条文・解答・編集注記と、正解の先出し（「正解：肢3」「／正答率89%」＝§v13r）は落としてから移送する。
+`_lex` が自前の言い換え本体を持つ問題は二重掲載になるため触らない（`--report` の review に出る）。
+
+検出は `validate-tx-core.py` **G75**（push 前 `check-tx-lex-engine.py` にも組込み）。判定式は
+**`scripts/tx_source_text.py` が単一情報源**で、検出ゲートと復元ツールが同じ関数を使う
+（「直したのに ERROR が消えない／ERROR は出ないのに欠けている」を構造的に起こさないため）。
+残件一覧は `docs/tx-source-text-audit.md`。
+
 ## 体系マップSVG 文字はみ出し・重なり修正: tx-sysmap-fit.py（恒久対策・2026-07-13／重なり 2026-07-16）
 
 `_lex` の体系マップ（`.tx-sysmap svg.tree-svg`）の各カード見出しは問題ごとに AI が書き換える
