@@ -7350,8 +7350,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       document.querySelectorAll('.tx-inline-card[data-stmt]'),
       function(c){ return c.getAttribute('data-stmt'); });
   }
+  // カードは id="stmt-{data-stmt}" が原則だが、data-stmt が記述記号（ア/イ…）で
+  // id は stmt-1.. の連番、という世代が corpus に混在する（刑TX038_lex）。id の直引きだけだと
+  // その世代でリンクが全部死ぬ（v2 の全肢ジャンプバーも同じ理由で死んでいた）ため、
+  // data-stmt での引き当てを併用し、飛び先は必ずカードの実 id から作る。
+  function cardFor(stmt){
+    return document.getElementById('stmt-'+stmt)
+        || document.querySelector('.tx-inline-card[data-stmt="'+stmt+'"]');
+  }
+  function cardHref(stmt){
+    var c=cardFor(stmt);
+    if(!c) return null;
+    if(!c.id) c.id='stmt-'+stmt;
+    return '#'+c.id;
+  }
   function labelFor(letter){
-    var card=document.getElementById('stmt-'+letter);
+    var card=cardFor(letter);
     var n=card && card.querySelector('.choice-num-inline');
     return (n && n.textContent.trim()) || letter;
   }
@@ -7370,7 +7384,8 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     lead.textContent='各肢の詳しい解説へ：';
     bar.appendChild(lead);
     cardOrder().forEach(function(letter){
-      bar.appendChild(mkLink('tx-xnav-to-card','#stmt-'+letter,'記述'+labelFor(letter)));
+      var href=cardHref(letter);
+      if(href) bar.appendChild(mkLink('tx-xnav-to-card',href,'記述'+labelFor(letter)));
     });
     return bar;
   }
@@ -7380,11 +7395,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
   function enhanceVerdictRows(panel){
     Array.prototype.forEach.call(panel.querySelectorAll('tbody tr[data-stmt]'), function(row){
       var stmt=row.getAttribute('data-stmt');
-      if(!stmt || !document.getElementById('stmt-'+stmt)) return;   // 対応カードが無い行は触らない
+      var href=stmt && cardHref(stmt);
+      if(!href) return;                                             // 対応カードが無い行は触らない
       row.id=rowId(stmt);
       var cell=row.cells && row.cells[0];
       if(!cell || cell.querySelector('.tx-verdict-jump')) return;
-      var a=mkLink('tx-verdict-jump','#stmt-'+stmt,'解説<span class="tx-vj-arrow">↓</span>');
+      var a=mkLink('tx-verdict-jump',href,'解説<span class="tx-vj-arrow">↓</span>');
       a.setAttribute('title','記述'+labelFor(stmt)+'の解説へ');
       cell.appendChild(a);
     });
