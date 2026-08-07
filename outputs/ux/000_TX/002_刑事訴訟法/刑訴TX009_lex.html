@@ -7461,6 +7461,20 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       setTimeout(run,60); setTimeout(run,300);
     }
   }, false);
+  // v3: 「解答を表示」の着地点を正誤表にそろえる。
+  // reveal は 5 肢の解説を一斉に開くので本文が一気に伸び、ブラウザのスクロールアンカリングが
+  // 押し下げられた位置を追って**最後の肢カードまで**飛ばしてしまう（v3 以前からの挙動）。
+  // 露出順は 正誤表 → 体系マップ → 肢カード なので、明示的に正誤表へ着地させる。
+  // 伸長は遅延描画で数回に分かれて起きるため、短い窓の中で数回だけ再アサートする
+  // （「解説だけ閲覧」は最初の解説へ飛ぶ既存動線なので対象にしない）。
+  function landOnVerdict(){
+    var panel=document.querySelector(VERDICT);
+    if(panel && !panel.hidden) jumpTo(panel);
+  }
+  document.addEventListener('click', function(e){
+    if(!(e.target.closest && e.target.closest('.tx-inline-reveal-btn,.reveal-answer-btn'))) return;
+    [60,180,360,700].forEach(function(ms){ setTimeout(landOnVerdict, ms); });
+  }, false);
   try{
     var ob=new MutationObserver(function(){ run(); });
     var start=function(){ ob.observe(document.body,{childList:true,subtree:true}); run(); };
@@ -7470,7 +7484,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
   /* 動的リンクはロード時 bind の対象外なので自前でスクロール＋フラッシュ。
      behavior:'smooth' はインラインエンジンの遅延再描画に中断されページが動かない
      （＝「リンクが効かない」の実体）ため、確実に着地する即時スクロールにし、
-     再描画の押し戻し対策として次フレームで一度だけ再アサートする。 */
+     再描画の押し戻し対策として次フレームで一度だけ再アサートする。
+     v3: 引数省略では html{scroll-behavior:smooth} を継承してしまい（数千〜万 px の
+     アニメーションになる＝「なかなか着かない／途中で止まる」）、再アサートのたびに
+     滑走がやり直しになる。behavior:'instant' で明示的に打ち消す（非対応環境は従来どおり）。 */
+  function jumpTo(el){
+    try{ el.scrollIntoView({block:'start', behavior:'instant'}); }
+    catch(e){ el.scrollIntoView({block:'start'}); }
+  }
   function flash(el){ if(!el) return; el.classList.add('tx-basis-flash'); setTimeout(function(){ el.classList.remove('tx-basis-flash'); },1500); }
   document.addEventListener('click', function(e){
     var a=e.target.closest && e.target.closest('a.tx-xnav[href^="#"]');
@@ -7479,7 +7500,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     if(!tgt && a.getAttribute('data-fallback')) tgt=document.getElementById(a.getAttribute('data-fallback'));
     if(!tgt) return;
     e.preventDefault();
-    var go=function(){ tgt.scrollIntoView({block:'start'}); };
+    var go=function(){ jumpTo(tgt); };
     go();
     if(window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go,16);
     flash(tgt);
