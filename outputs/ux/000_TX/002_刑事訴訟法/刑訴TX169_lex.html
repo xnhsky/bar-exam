@@ -5402,7 +5402,8 @@ a.ref-stat[href]{ cursor:pointer; }
 /* TX-DGM:END */
 </style>
 <style id="tx-xnav-style">
-/* TX-XNAV v2: 正誤表 ⇄ 物語(ストーリー解説) ⇄ 各肢解説 の相互リンク */
+/* TX-XNAV-CSS:BEGIN v3 */
+/* TX-XNAV v3: 正誤表 ⇄ 物語(ストーリー解説) ⇄ 各肢解説 の相互リンク */
 .tx-xnav{
   display:inline-flex; align-items:center; gap:5px; padding:5px 14px 6px;
   border:1px solid rgba(139,121,166,.55); border-radius:999px;
@@ -5422,6 +5423,29 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-xnav-row{ margin:13px 0 2px; display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
 #tx-verdict-anchor, #tx-story-anchor{ scroll-margin-top:24px; }
 .tx-inline-card[id^="stmt-"]{ scroll-margin-top:24px; }
+/* v3: 正誤表の行 ⇄ 対応する肢カードの 1:1 往復。
+   「記述」列は 1 文字（ア）だけで縦に余白が空くので、そこへ 2 段の小ピルを落とす。
+   列幅を広げて右端の本文列を圧迫しないよう、幅は見出し「記述」と同等に抑える。 */
+.tx-verdict-jump.tx-xnav{
+  display:block; width:max-content; max-width:100%; margin:7px auto 0;
+  padding:3px 7px 4px; gap:0; border-radius:9px; white-space:nowrap;
+  font-size:.62em; font-weight:800; line-height:1.3; letter-spacing:0; text-indent:0;
+  background:linear-gradient(180deg,#fffdf3 0%,#f2e6c2 100%);
+  border-color:rgba(122,102,41,.5); color:#6a5a24;
+  box-shadow:0 2px 5px -2px rgba(90,72,25,.35), inset 0 1px 0 rgba(255,255,255,.7);
+}
+.tx-verdict-jump .tx-vj-arrow{ display:block; font-size:1.15em; line-height:1; }
+/* 戻り先の行。scroll-margin は tr でも scrollIntoView に効く。 */
+.statement-verdict-table tbody tr[id^="tx-verdict-row-"]{ scroll-margin-top:24px; }
+/* 行のハイライトは td の box-shadow で出す（td の background は !important 指定済みで
+   キーフレームからは上書きできないため、影の層で光らせる）。 */
+tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
+@keyframes txRowFlash{
+  0%{ box-shadow:inset 0 0 0 3px rgba(90,134,168,.62); }
+  70%{ box-shadow:inset 0 0 0 3px rgba(90,134,168,.22); }
+  100%{ box-shadow:inset 0 0 0 0 rgba(90,134,168,0); }
+}
+/* TX-XNAV-CSS:END v3 */
 /* === 過去問原文の不可侵ブロック（原文そのまま・別エリア） ===
    共有の事例/見解を持つ事例型で、問い＋事例＋（見解）＋記述列を PDF 逐語のまま常時表示する箱。
    #part-a:has(.tx-inline-card) > .problem-text の display:none に当たらない別クラスで、
@@ -7148,7 +7172,7 @@ a.ref-stat[href]{ cursor:pointer; }
   });
 })();
 
-/* TX-XNAV:BEGIN v2 ── 正誤表 ⇄ 物語(ストーリー解説) ⇄ 各肢解説 の相互リンク
+/* TX-XNAV:BEGIN v3 ── 正誤表 ⇄ 物語(ストーリー解説) ⇄ 各肢解説 の相互リンク
    正誤表/物語パネルは JS で遅延生成・再描画されるため MutationObserver で追随し冪等に付与する。 */
 (function(){
   var VERDICT='.tx-inline-answer-table-panel', STORY='.tx-inline-story-panel';
@@ -7157,8 +7181,22 @@ a.ref-stat[href]{ cursor:pointer; }
       document.querySelectorAll('.tx-inline-card[data-stmt]'),
       function(c){ return c.getAttribute('data-stmt'); });
   }
+  // カードは id="stmt-{data-stmt}" が原則だが、data-stmt が記述記号（ア/イ…）で
+  // id は stmt-1.. の連番、という世代が corpus に混在する（刑TX038_lex）。id の直引きだけだと
+  // その世代でリンクが全部死ぬ（v2 の全肢ジャンプバーも同じ理由で死んでいた）ため、
+  // data-stmt での引き当てを併用し、飛び先は必ずカードの実 id から作る。
+  function cardFor(stmt){
+    return document.getElementById('stmt-'+stmt)
+        || document.querySelector('.tx-inline-card[data-stmt="'+stmt+'"]');
+  }
+  function cardHref(stmt){
+    var c=cardFor(stmt);
+    if(!c) return null;
+    if(!c.id) c.id='stmt-'+stmt;
+    return '#'+c.id;
+  }
   function labelFor(letter){
-    var card=document.getElementById('stmt-'+letter);
+    var card=cardFor(letter);
     var n=card && card.querySelector('.choice-num-inline');
     return (n && n.textContent.trim()) || letter;
   }
@@ -7177,14 +7215,32 @@ a.ref-stat[href]{ cursor:pointer; }
     lead.textContent='各肢の詳しい解説へ：';
     bar.appendChild(lead);
     cardOrder().forEach(function(letter){
-      bar.appendChild(mkLink('tx-xnav-to-card','#stmt-'+letter,'記述'+labelFor(letter)));
+      var href=cardHref(letter);
+      if(href) bar.appendChild(mkLink('tx-xnav-to-card',href,'記述'+labelFor(letter)));
     });
     return bar;
+  }
+  // v3: 正誤表の行 ⇄ 肢カードの 1:1 往復。行に id を振り、「記述」列の余白へ
+  // その肢の解説カードへ落ちる小ピルを置く（行→カード）。冪等・再描画で再付与。
+  function rowId(stmt){ return 'tx-verdict-row-'+stmt; }
+  function enhanceVerdictRows(panel){
+    Array.prototype.forEach.call(panel.querySelectorAll('tbody tr[data-stmt]'), function(row){
+      var stmt=row.getAttribute('data-stmt');
+      var href=stmt && cardHref(stmt);
+      if(!href) return;                                             // 対応カードが無い行は触らない
+      row.id=rowId(stmt);
+      var cell=row.cells && row.cells[0];
+      if(!cell || cell.querySelector('.tx-verdict-jump')) return;
+      var a=mkLink('tx-verdict-jump',href,'解説<span class="tx-vj-arrow">↓</span>');
+      a.setAttribute('title','記述'+labelFor(stmt)+'の解説へ');
+      cell.appendChild(a);
+    });
   }
   function enhanceVerdict(){
     var panel=document.querySelector(VERDICT);
     if(!panel) return;
     panel.id='tx-verdict-anchor';
+    enhanceVerdictRows(panel);                            // 行→カードは物語の有無に依らず張る
     if(!document.querySelector(STORY)) return;            // 物語が未生成ならフッターは付けない
     if(panel.querySelector('.tx-xnav-footer')) return;    // 再描画で消えたら再付与（冪等）
     var foot=document.createElement('div');
@@ -7211,26 +7267,60 @@ a.ref-stat[href]{ cursor:pointer; }
       panel.appendChild(frow);
     }
   }
+  // カード内の xnav 行（無ければ体系マップ戻りリンクの直前に作る）。
+  function xnavRow(explain){
+    var row=explain.querySelector('.tx-xnav-row');
+    if(row) return row;
+    row=document.createElement('div');
+    row.className='tx-xnav-row';
+    var back=explain.querySelector('.tx-sysmap-back');
+    if(back) back.parentNode.insertBefore(row, back); else explain.appendChild(row);
+    return row;
+  }
   function enhanceCards(){
     if(!document.querySelector(STORY)) return;             // 物語生成後に付与
     Array.prototype.forEach.call(document.querySelectorAll('.tx-inline-card[data-stmt]'), function(card){
       var explain=card.querySelector('.tx-inline-explain');
       if(!explain || explain.querySelector('.tx-xnav-to-story-card')) return;
-      var row=document.createElement('div');
-      row.className='tx-xnav-row';
       // 飛び先は物語パネル先頭（必ず存在）。旧 #tx-story-{肢} は物語側で ID 未生成の
       // ことが多く死リンクだった。物語は 1:1 でないため段落ピンポイントには飛ばさない。
-      row.appendChild(mkLink('tx-xnav-to-story-card','#tx-story-anchor','📖 この問題を物語で読む'));
-      var back=explain.querySelector('.tx-sysmap-back');
-      if(back) back.parentNode.insertBefore(row, back); else explain.appendChild(row);
+      xnavRow(explain).appendChild(mkLink('tx-xnav-to-story-card','#tx-story-anchor','📖 この問題を物語で読む'));
+    });
+  }
+  // v3: カード→正誤表の**その行**へ戻す（従来の戻り先は表の先頭だけだった）。
+  // 行 id は再描画で一時的に消えるので data-fallback で表の先頭へ退避させる。
+  function enhanceCardBacklinks(){
+    if(!document.querySelector(VERDICT)) return;            // 正誤表（解答表示後）にのみ張る
+    Array.prototype.forEach.call(document.querySelectorAll('.tx-inline-card[data-stmt]'), function(card){
+      var explain=card.querySelector('.tx-inline-explain');
+      if(!explain || explain.querySelector('.tx-xnav-to-verdict-row')) return;
+      var stmt=card.getAttribute('data-stmt');
+      var a=mkLink('tx-xnav-to-verdict-row','#'+rowId(stmt),'↑ 正誤表の記述'+labelFor(stmt)+'へ');
+      a.setAttribute('data-fallback','tx-verdict-anchor');
+      var row=xnavRow(explain);
+      row.insertBefore(a, row.firstChild);
     });
   }
   var guard=false;
-  function run(){ if(guard) return; guard=true; try{ enhanceVerdict(); enhanceStory(); enhanceCards(); }catch(e){} guard=false; }
+  function run(){ if(guard) return; guard=true; try{ enhanceVerdict(); enhanceStory(); enhanceCards(); enhanceCardBacklinks(); }catch(e){} guard=false; }
   document.addEventListener('click', function(e){
     if(e.target.closest && e.target.closest('.reveal-answer-btn,.tx-inline-reveal-btn,.tx-inline-browse-btn,.peek-explain-btn,.tx-inline-ox,.ox-btn')){
       setTimeout(run,60); setTimeout(run,300);
     }
+  }, false);
+  // v3: 「解答を表示」の着地点を正誤表にそろえる。
+  // reveal は 5 肢の解説を一斉に開くので本文が一気に伸び、ブラウザのスクロールアンカリングが
+  // 押し下げられた位置を追って**最後の肢カードまで**飛ばしてしまう（v3 以前からの挙動）。
+  // 露出順は 正誤表 → 体系マップ → 肢カード なので、明示的に正誤表へ着地させる。
+  // 伸長は遅延描画で数回に分かれて起きるため、短い窓の中で数回だけ再アサートする
+  // （「解説だけ閲覧」は最初の解説へ飛ぶ既存動線なので対象にしない）。
+  function landOnVerdict(){
+    var panel=document.querySelector(VERDICT);
+    if(panel && !panel.hidden) jumpTo(panel);
+  }
+  document.addEventListener('click', function(e){
+    if(!(e.target.closest && e.target.closest('.tx-inline-reveal-btn,.reveal-answer-btn'))) return;
+    [60,180,360,700].forEach(function(ms){ setTimeout(landOnVerdict, ms); });
   }, false);
   try{
     var ob=new MutationObserver(function(){ run(); });
@@ -7241,21 +7331,29 @@ a.ref-stat[href]{ cursor:pointer; }
   /* 動的リンクはロード時 bind の対象外なので自前でスクロール＋フラッシュ。
      behavior:'smooth' はインラインエンジンの遅延再描画に中断されページが動かない
      （＝「リンクが効かない」の実体）ため、確実に着地する即時スクロールにし、
-     再描画の押し戻し対策として次フレームで一度だけ再アサートする。 */
+     再描画の押し戻し対策として次フレームで一度だけ再アサートする。
+     v3: 引数省略では html{scroll-behavior:smooth} を継承してしまい（数千〜万 px の
+     アニメーションになる＝「なかなか着かない／途中で止まる」）、再アサートのたびに
+     滑走がやり直しになる。behavior:'instant' で明示的に打ち消す（非対応環境は従来どおり）。 */
+  function jumpTo(el){
+    try{ el.scrollIntoView({block:'start', behavior:'instant'}); }
+    catch(e){ el.scrollIntoView({block:'start'}); }
+  }
   function flash(el){ if(!el) return; el.classList.add('tx-basis-flash'); setTimeout(function(){ el.classList.remove('tx-basis-flash'); },1500); }
   document.addEventListener('click', function(e){
     var a=e.target.closest && e.target.closest('a.tx-xnav[href^="#"]');
     if(!a) return;
     var tgt=document.getElementById(a.getAttribute('href').slice(1));
+    if(!tgt && a.getAttribute('data-fallback')) tgt=document.getElementById(a.getAttribute('data-fallback'));
     if(!tgt) return;
     e.preventDefault();
-    var go=function(){ tgt.scrollIntoView({block:'start'}); };
+    var go=function(){ jumpTo(tgt); };
     go();
     if(window.requestAnimationFrame) requestAnimationFrame(go); else setTimeout(go,16);
     flash(tgt);
   }, false);
 })();
-/* TX-XNAV:END v2 */
+/* TX-XNAV:END v3 */
 </script>
 <script>
 /* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
