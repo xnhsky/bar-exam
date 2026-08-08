@@ -116,20 +116,34 @@ def inject(html, css, engine, core2_css):
         nl = local_newline(anchor)
         html = html.replace(anchor, nl + to_newline(css, nl) + anchor, 1)
         changed.append("CSS")
-    # 1-bis) v2 CSS 区画（コア列の実体名ラベル＋残り法理 details）注入（冪等）
-    if CORE2_MARK not in html:
+    # 1-bis) v2 CSS 区画（コア列の実体名ラベル＋残り法理 details）を正典へ同期（冪等）。
+    #        既に在る場合も**正典と差があれば載せ替える**＝正典追補が全ファイルへ必ず届く
+    #        （skip だけの冪等にすると、改定のたびに手作業の再注入が要り接ぎ木の温床になる）。
+    if CORE2_CSS_START in html:
+        s = html.find(CORE2_CSS_START)
+        e = html.find(CORE2_CSS_END, s)
+        if e < 0:
+            raise SystemExit("[ERR] target の TX-VERDICT-CORE2 CSS 区画が閉じていない")
+        e += len(CORE2_CSS_END)
+        cur = html[s:e]
+        new_block = to_newline(core2_css, local_newline(cur)).rstrip("\r\n")
+        if cur != new_block:
+            html = html[:s] + new_block + html[e:]
+            changed.append("CSS2(sync)")
+    else:
         html = inject_into_first_style(html, core2_css)
         changed.append("CSS2")
-    # 2) エンジン差し替え（冪等：v2 エンジン未導入時のみ・v1/旧どちらの境界からでも載せ替える）
-    if CORE2_ENG_FN not in html:
-        s = html.find(ENG_START)
-        if s < 0:
-            s = html.find(OLD_ENG_START)
-        e = html.find(ENG_END)
-        if s < 0 or e < 0 or e <= s:
-            raise SystemExit("[ERR] target の旧エンジン境界（extractReviewCore*〜setInlineAnswerTableVisible）が見つからない")
-        # 旧エンジン塊と同じ改行様式で載せ替える（周辺バイトは1文字も動かさない）
-        html = html[:s] + to_newline(engine, local_newline(html[s:e])) + html[e:]
+    # 2) エンジンを正典へ同期（v1/旧どちらの境界からでも載せ替える・差が無ければ無変更）
+    s = html.find(ENG_START)
+    if s < 0:
+        s = html.find(OLD_ENG_START)
+    e = html.find(ENG_END)
+    if s < 0 or e < 0 or e <= s:
+        raise SystemExit("[ERR] target の旧エンジン境界（extractReviewCore*〜setInlineAnswerTableVisible）が見つからない")
+    # 旧エンジン塊と同じ改行様式で載せ替える（周辺バイトは1文字も動かさない）
+    new_engine = to_newline(engine, local_newline(html[s:e]))
+    if html[s:e] != new_engine:
+        html = html[:s] + new_engine + html[e:]
         changed.append("ENGINE")
     # 3) 本問の帰結（○×）箱の除去（行単位・keyed on ラベル）
     if KIKETSU in html:
