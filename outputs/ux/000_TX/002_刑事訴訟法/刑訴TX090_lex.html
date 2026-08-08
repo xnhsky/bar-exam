@@ -5511,13 +5511,33 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-rest > summary::-webkit-details-marker{ display:none; }
 .tx-verdict-brief .tx-vb-rest > summary::marker{ content:''; }
 .tx-verdict-brief .tx-vb-rest > summary:hover{ filter:brightness(1.04); }
-.tx-verdict-brief .tx-vb-rest[open] > summary{ margin-bottom:9px; }
+.tx-verdict-brief .tx-vb-rest[open] > summary{ margin-bottom:2px; }
+/* 開いた中身＝1枚の「引き出し面」（左レール付きの淡い面）。表の地とは別の層に見せて、
+   4点が本文と混ざらないようにする。 */
+.tx-verdict-brief .tx-vb-rest-body{
+  margin-top:9px; padding:13px 14px 12px;
+  border:1px solid rgba(138,122,58,.26); border-left:3px solid rgba(138,122,58,.5); border-radius:10px;
+  background:linear-gradient(180deg,#fffdf6 0%,#fbf5e6 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.85);
+}
+/* 1行=1役割。点線で区切り、読む順は 文言→趣旨→射程→切断点（エンジンが並べ替える）。 */
 .tx-verdict-brief .tx-vb-rest-line{
-  margin:0 0 8px; font-family:var(--font-note,sans-serif); font-size:.9em; font-weight:500;
+  margin:0 0 9px; padding-bottom:9px; border-bottom:1px dotted rgba(138,122,58,.32);
+  font-family:var(--font-note,sans-serif); font-size:.9em; font-weight:500;
   line-height:1.8; color:#4a4234;
 }
-.tx-verdict-brief .tx-vb-rest-line:last-child{ margin-bottom:0; }
-.tx-verdict-brief .tx-vb-rest-line .tx-vb-label{ background:#eae3d2; color:#6b5c37; }
+.tx-verdict-brief .tx-vb-rest-line:last-child{ margin-bottom:0; padding-bottom:0; border-bottom:0; }
+/* 役割色＝淡地＋濃文字（主行の濃地ラベルより一段弱く＝階層が出る）。
+   文言＝条文のブルー／趣旨＝理由のグリーン／射程＝範囲のバイオレット／切断点＝分かれ目のテラコッタ。 */
+.tx-verdict-brief .tx-vb-rest-line .tx-vb-label{
+  background:#eae3d2; color:#6b5c37; border:1px solid rgba(138,122,58,.3); box-shadow:none;
+  text-shadow:none; font-weight:800;
+}
+.tx-verdict-brief .tx-vb-k-word .tx-vb-label{ background:#e7eef9; color:#39548a; border-color:#c2d1e8; }
+.tx-verdict-brief .tx-vb-k-aim .tx-vb-label{ background:#e6f2e9; color:#336b47; border-color:#bad8c3; }
+.tx-verdict-brief .tx-vb-k-range .tx-vb-label{ background:#efe9f7; color:#584987; border-color:#d2c6e7; }
+.tx-verdict-brief .tx-vb-k-cut .tx-vb-label{ background:#fbeade; color:#8a5030; border-color:#e8c6b0; }
+.tx-verdict-brief .tx-vb-k-carry .tx-vb-label{ background:#f7f0d5; color:#6d5f22; border-color:#ded0a1; }
 /* TX-VERDICT-CORE2:END */
 </style>
 <style id="tx-xnav-style">
@@ -6258,6 +6278,9 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
   // 外した行＝切断点（どこで正誤が分かれたか）＋転用／取れた行＝転用のみ（＝原文→答案圧縮で次へ進める）。
   // 未回答は記述の正誤で振る（×＝切断点＋転用／○＝転用）。表に出さない残り（文言・趣旨・射程ほか）は
   // details に畳んで表内で開けるようにする＝周回速度を落とさずに、書いた法理を死蔵させない。
+  var CORE_ROLE_KEY = { '文言':'word', '趣旨':'aim', '射程':'range', '切断点':'cut', '転用':'carry' };
+  var CORE_ROLE_ORDER = ['文言', '趣旨', '射程', '切断点', '転用'];
+  function coreRoleKey(label){ return CORE_ROLE_KEY[label] || 'sub'; }
   function extractReviewCoreLines(cell, wantCut){
     var out = { main: [], rest: [] };
     if (!cell) return out;
@@ -6293,7 +6316,13 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       if (used.indexOf(line) >= 0) return;
       var text = textWithoutReviewTag(line);
       if (!text) return;
-      out.rest.push({ label: compactReviewText(line.querySelector('.tx-reflex-tag')) || '補足', text: text });
+      var label = compactReviewText(line.querySelector('.tx-reflex-tag')) || '補足';
+      out.rest.push({ label: label, text: text, key: coreRoleKey(label) });
+    });
+    // 引き出しの中は 文言 → 趣旨 → 射程 → 切断点 の思考順に固定（DOM 順の揺れを吸収）。
+    out.rest.sort(function(a, b){
+      var ia = CORE_ROLE_ORDER.indexOf(a.label), ib = CORE_ROLE_ORDER.indexOf(b.label);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
     });
     return out;
   }
@@ -6318,9 +6347,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     var summary = document.createElement('summary');
     summary.textContent = '＋ ' + core.rest.map(function(r){ return r.label; }).join('・') + ' を開く';
     details.appendChild(summary);
+    var body = document.createElement('div');       // 開いた中身＝役割色＋区切りの引き出し面
+    body.className = 'tx-vb-rest-body';
     core.rest.forEach(function(r){
-      details.appendChild(makeBriefLine('tx-vb-rest-line', r.label, r.text));
+      body.appendChild(makeBriefLine('tx-vb-rest-line tx-vb-k-' + (r.key || 'sub'), r.label, r.text));
     });
+    details.appendChild(body);
     wrap.appendChild(details);
   }
   function compactReviewTableClone(table){
