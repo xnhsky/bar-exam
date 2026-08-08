@@ -5441,6 +5441,34 @@ a.ref-stat[href]{ cursor:pointer; }
 }
 .tx-anscomp-line strong{ color:#39404a; font-weight:800; }
 /* TX-ANSCOMP:END */
+
+/* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details（2026-08-08 追加・版据置）
+   旧＝5点フロー（文言・趣旨・射程・切断点・転用）のうち転用行だけを『コア』の名で1行出し、残り4行は
+   インライン周回では .final-answer{display:none} により**一度も露出しなかった**（corpus 実測 2,334行×4行）。
+   新＝外した行は「切断点＋転用」、取れた行は「転用」を実体名ラベルで出し（未回答は記述の正誤で振る）、
+   残り（文言・趣旨・射程ほか）は既定閉じの details で表内から開ける。
+   ゲート＝validate-tx-core G76／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-verdict-brief .tx-vb-cut .tx-vb-label{ background:linear-gradient(135deg,#8a5636,#a56f44); color:#fff; }
+.tx-verdict-brief .tx-vb-carry .tx-vb-label{ background:linear-gradient(135deg,#8a7a3a,#a2903f); color:#fff; }
+/* 主行が2本並ぶ×行では、点線区切りは1本目にだけ出す（表がうるさくならない） */
+.tx-verdict-brief .tx-vb-core + .tx-vb-core{ margin-top:2px; padding-top:0; border-top:0; }
+/* 残り法理＝既定閉じ details（周回は閉じたまま進める・開いても表外へはみ出さない） */
+.tx-verdict-brief .tx-vb-rest{ margin-top:7px; padding-top:8px; border-top:1px dashed rgba(138,122,58,.34); }
+.tx-verdict-brief .tx-vb-rest > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:3px 13px 4px; border-radius:8px;
+  border:1px solid rgba(138,122,58,.45); background:linear-gradient(180deg,#fdf8ea 0%,#f2e7cb 100%); color:#6b5c37;
+  font-family:var(--font-note,sans-serif); font-size:.76em; font-weight:800; letter-spacing:.04em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(90,70,25,.5), inset 0 1px 0 rgba(255,255,255,.7);
+}
+.tx-verdict-brief .tx-vb-rest > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief .tx-vb-rest > summary::marker{ content:''; }
+.tx-verdict-brief .tx-vb-rest > summary:hover{ filter:brightness(1.04); }
+.tx-verdict-brief .tx-vb-rest[open] > summary{ margin-bottom:8px; }
+.tx-verdict-brief .tx-vb-rest-line{ margin:0 0 7px; line-height:1.72; font-size:.9em; color:#4a4234; text-indent:0; }
+.tx-verdict-brief .tx-vb-rest-line:last-child{ margin-bottom:0; }
+.tx-verdict-brief .tx-vb-rest-line .tx-vb-label{ background:#eae3d2; color:#6b5c37; }
+/* TX-VERDICT-CORE2:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6187,19 +6215,48 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     }
     return null;
   }
-  function extractReviewCoreSummary(cell){
-    if (!cell) return '';
+  // TX-VERDICT-CORE2: コア列は「実体名ラベル」で出す（旧＝転用行を『コア』の名で1行だけ出していた）。
+  // 外した行＝切断点（どこで正誤が分かれたか）＋転用／取れた行＝転用のみ（＝原文→答案圧縮で次へ進める）。
+  // 未回答は記述の正誤で振る（×＝切断点＋転用／○＝転用）。表に出さない残り（文言・趣旨・射程ほか）は
+  // details に畳んで表内で開けるようにする＝周回速度を落とさずに、書いた法理を死蔵させない。
+  function extractReviewCoreLines(cell, wantCut){
+    var out = { main: [], rest: [] };
+    if (!cell) return out;
     var lines = Array.prototype.slice.call(cell.querySelectorAll('.tx-reflex-line'));
-    if (lines.length) {
-      var preferred = findReviewLineByTag(lines, '転用') ||
-        findReviewLineByTag(lines, '射程') ||
+    if (!lines.length) {
+      var whole = compactReviewText(cell);
+      if (whole) out.main.push({ label: 'コア', text: whole, key: 'core' });
+      return out;
+    }
+    var used = [];
+    function take(label, key){
+      var line = findReviewLineByTag(lines, label);
+      if (!line || used.indexOf(line) >= 0) return;
+      var text = textWithoutReviewTag(line);
+      if (!text) return;
+      used.push(line);
+      out.main.push({ label: label, text: text, key: key });
+    }
+    if (wantCut) take('切断点', 'cut');
+    take('転用', 'carry');
+    if (!out.main.length) {                                  // 5点フローが揃わない旧データの保険
+      var fb = findReviewLineByTag(lines, '射程') ||
         findReviewLineByTag(lines, '切断点') ||
         findReviewLineByTag(lines, '文言') ||
         lines[0];
-      var text = textWithoutReviewTag(preferred);
-      if (text) return text;
+      var fbText = fb ? textWithoutReviewTag(fb) : '';
+      if (fbText) {
+        used.push(fb);
+        out.main.push({ label: compactReviewText(fb.querySelector('.tx-reflex-tag')) || 'コア', text: fbText, key: 'core' });
+      }
     }
-    return compactReviewText(cell);
+    lines.forEach(function(line){
+      if (used.indexOf(line) >= 0) return;
+      var text = textWithoutReviewTag(line);
+      if (!text) return;
+      out.rest.push({ label: compactReviewText(line.querySelector('.tx-reflex-tag')) || '補足', text: text });
+    });
+    return out;
   }
   function makeBriefLine(cls, label, text){
     var p = document.createElement('p');
@@ -6211,21 +6268,40 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
+  // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
+  function appendCoreLines(wrap, core){
+    core.main.forEach(function(item){
+      wrap.appendChild(makeBriefLine('tx-vb-core tx-vb-' + (item.key || 'core'), item.label, item.text));
+    });
+    if (!core.rest.length) return;
+    var details = document.createElement('details');
+    details.className = 'tx-vb-rest';
+    var summary = document.createElement('summary');
+    summary.textContent = '＋ ' + core.rest.map(function(r){ return r.label; }).join('・') + ' を開く';
+    details.appendChild(summary);
+    core.rest.forEach(function(r){
+      details.appendChild(makeBriefLine('tx-vb-rest-line', r.label, r.text));
+    });
+    wrap.appendChild(details);
+  }
   function compactReviewTableClone(table){
     var clone = table.cloneNode(true);
     var headRow = clone.tHead && clone.tHead.rows && clone.tHead.rows[0];
     if (headRow && headRow.cells.length) {
-      headRow.cells[headRow.cells.length - 1].textContent = '各記述の原文（誤り箇所に下線＋正解）と転用可能な法理';
+      headRow.cells[headRow.cells.length - 1].textContent = '各記述の原文（誤り箇所に下線＋正解）と切断点・転用';
     }
     Array.prototype.slice.call(clone.querySelectorAll('tbody tr')).forEach(function(row){
       if (!row.cells.length) return;
       var coreCell = row.cells[row.cells.length - 1];
-      var summary = extractReviewCoreSummary(coreCell);
+      var v = (row.getAttribute('data-verdict') || '').toLowerCase();
+      var isCorrect = (v === 'o' || v === '○');
+      // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
+      var userWrong = row.classList.contains('tx-user-incorrect');
+      var userRight = row.classList.contains('tx-user-correct');
+      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
-      var v = (row.getAttribute('data-verdict') || '').toLowerCase();
-      var isCorrect = (v === 'o' || v === '○');
       coreCell.textContent = '';
       if (mark) {
         var wrapM = document.createElement('div');
@@ -6234,20 +6310,20 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.className = 'tx-vb-line tx-vb-orig-mark';
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
-        if (summary) wrapM.appendChild(makeBriefLine('tx-vb-core', 'コア', summary));
+        appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
         var wrap = document.createElement('div');
         wrap.className = 'tx-verdict-brief';
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
-        if (summary) wrap.appendChild(makeBriefLine('tx-vb-core', 'コア', summary));
+        appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
-        var p = document.createElement('p');
-        p.className = 'tx-review-core-summary';
-        p.textContent = summary;
-        coreCell.appendChild(p);
+        var wrapF = document.createElement('div');
+        wrapF.className = 'tx-verdict-brief';
+        appendCoreLines(wrapF, core);
+        coreCell.appendChild(wrapF);
       }
     });
     return clone;
