@@ -67,7 +67,7 @@ v12.2.1 は問題文直下のインライン肢カードに **ANSWER 箱＋5点�
 - 元表 `.statement-verdict-table` は `.final-answer` 内に置き、`inline-prototype-mode` では **display:none**
   （answer-key/検証用にデータ源として DOM 保持）。
 - エンジンが元表を複製し `.tx-inline-answer-table-panel` に描画。挿入位置は `getInlineAnswerTablePanel` が
-  **`.tx-sysmap` の直前**。見出しは「各記述の原文（誤り箇所に下線＋正解）と転用可能な法理」。
+  **`.tx-sysmap` の直前**。見出しは「各記述の原文（誤り箇所に下線＋正解）と切断点・転用」（§v13t）。
 - **各行＝印付き原文＋法理コアの2段（LOCKED）**：論点コア列を、① **印付き記述原文**（`.tx-vb-orig-mark`＝各肢
   カードの `.syn-orig` と同じ marking。×＝誤り核語句に赤波下線 `.tx-stmt-x`＋`.tx-stmt-mk`✕＋`.tx-stmt-fix`で
   「→正解」、○＝決め手に緑下線 `.tx-stmt-o`＋✓）と、② **法理コア**（`.tx-vb-core`＝射程行の1文テーゼ）に再構成。
@@ -84,7 +84,16 @@ v12.2.1 は問題文直下のインライン肢カードに **ANSWER 箱＋5点�
 - **重厚感（LOCKED）**：パネル＝額装フレーム（羊皮紙グラデ＋テクスチャ＋深い影）、見出し＝金プレート（📋）、
   ヘッダー＝金グラデ立体、正解/不正解行＝層状グラデ＋左端アクセント帯、ラベル＝押し出しチップ。ラベルは
   text-indent:0（パネル内 `<p>` が継承するグローバル字下げを打ち消す）。CSS は canonical 同梱。
-- 元表の `.tx-reflex-core`（5タグ）は **DOM 保持**（answer-key 源＋G33＋`extractReviewCoreSummary` が射程行を法理コアに使う）。
+- **法理コアは実体名ラベル＋残り法理 details（§v13t・2026-08-08・LOCKED）**：コア列の②は総称「コア」をやめ、
+  **外した行**（`.tx-user-incorrect`）＝`切断点`（`.tx-vb-cut`）＋`転用`（`.tx-vb-carry`）／**取れた行**＝`転用` 1 行
+  （未回答は記述の正誤で振る＝×は切断点＋転用・○は転用）。表に出さない残り（文言・趣旨・射程ほか）は既定閉じの
+  `<details class="tx-vb-rest">`（「＋ 文言・趣旨・射程 を開く」）に畳み、**表内で開ける**。見出し列は
+  「各記述の原文（誤り箇所に下線＋正解）と切断点・転用」。狙い＝**正誤表だけで周回を完結**させ、
+  取れた肢は 原文→✍答案圧縮→転用 で流し、外した肢はその場で切断点まで読める（カードへのジャンプは精読時のみ）。
+  エンジン＝`extractReviewCoreLines`／`appendCoreLines`、CSS＝`TX-VERDICT-CORE2` 区画。ゲート＝
+  `validate-tx-core.py` **G76**＋push 前 `check-tx-lex-engine.py`。伝播＝`scripts/tx-lex-verdict-redesign.py`。
+  執筆規約（5タグを書く）は不変。**切断点＝外した人がその場で腑に落ちる1文／転用＝次の問題へ持ち出す1文**に書き分ける。
+- 元表の `.tx-reflex-core`（5タグ）は **DOM 保持**（answer-key 源＋G33＋`extractReviewCoreLines` が切断点/転用行を法理コアに使う）。
   `moveStatementVerdictTableToTop` は元表を持ち上げ**ない**（fa 内に隠す）。二重表示を作らない。
 
 ---
