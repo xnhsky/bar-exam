@@ -5406,7 +5406,11 @@ a.ref-stat[href]{ cursor:pointer; }
    置き場所＝①各記述カードの .syn-orig（📜記述原文）末尾＋②正誤表 tr の data-brief-mark 末尾の 2 箇所に
    同一文（シングルソース・タグ除去後の正規化テキストが一致）で置く。中身＝規範＋条文・判例を答案調 1〜2 文。
    ×記述の訂正チップ（.tx-stmt-fix）は最小訂正に留め、完全規範文はこの答案圧縮へ一本化する。
-   ラベルはシルバー食み出しタブ（他ラベルと同じ「小箱＋上端タブ・本文は下」形式）。ゲート＝validate-tx-core G73。 */
+   ラベルはシルバー食み出しタブ（他ラベルと同じ「小箱＋上端タブ・本文は下」形式）。ゲート＝validate-tx-core G73。
+   【2026-08-08 追補・実機フィードバック「フォントがにじむ」】--font-answer の実体 Shippori Antique は
+   **400 の 1 ウェイトしか読み込んでいない**ため、font-weight:600/800 を当てるとブラウザが合成ボールド
+   （faux bold）を描き、輪郭がにじむ。本文は 400 のまま色で締め、強調は実ウェイトを持つ書体
+   （--font-display＝Shippori Mincho B1 の 700）へ寄せる。合成ボールドを他所でも作らないこと。 */
 .tx-anscomp-line{
   display:block;
   position:relative;
@@ -5417,9 +5421,10 @@ a.ref-stat[href]{ cursor:pointer; }
   background:linear-gradient(180deg,#fbfcfd 0%,#edf0f3 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.85), 0 3px 10px -6px rgba(70,80,90,.35);
   font-family:var(--font-answer);
-  color:#3b4048;
-  line-height:1.85;
-  font-weight:600;
+  color:#343b45;
+  line-height:1.9;
+  font-weight:400;          /* Shippori Antique は 400 のみ＝600 指定は合成ボールドでにじむ */
+  font-size:1.0em;
   text-indent:1em;
 }
 .tx-anscomp-line::before{
@@ -5438,7 +5443,8 @@ a.ref-stat[href]{ cursor:pointer; }
   white-space:nowrap;
   text-indent:0;
 }
-.tx-anscomp-line strong{ color:#39404a; font-weight:800; }
+/* 強調は実ウェイトを持つ書体で出す（Shippori Antique に 700 は無い＝合成ボールド回避） */
+.tx-anscomp-line strong, .tx-anscomp-line b{ font-family:var(--font-display,serif); color:#2f3640; font-weight:700; }
 /* TX-ANSCOMP:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5450,15 +5456,19 @@ a.ref-stat[href]{ cursor:pointer; }
    追補＝①ラベルと本文を2カラムにそろえる（折返しがラベル下へ回り込む「ぶら下がり」を解消）
         ②表全体を役割フォントで作り込む（原文＝明朝の引用／法理＝Zen Old Mincho／ラベル＝M PLUS 1p）。
    ゲート＝validate-tx-core G76／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
-/* ① ラベル＝固定幅チップ／本文＝ぶら下げインデント（ラベル下へ回り込ませない・AXIOM refs と同型の2カラム） */
+/* ① ラベル＝固定幅チップ／本文＝ぶら下げインデント（ラベル下へ回り込ませない・AXIOM refs と同型の2カラム）。
+      ラベル右の余白は 8px＋約1字ぶん＝本文先頭の1字下げ（v12.2.1 の .tx-mini-law-body と同じ作法）。 */
 .tx-verdict-brief .tx-vb-label{
-  min-width:70px; box-sizing:border-box; margin-right:8px; text-align:center;
+  min-width:70px; box-sizing:border-box; margin-right:24px; text-align:center;
   font-family:var(--font-impact,sans-serif); font-size:.7em; font-weight:800; letter-spacing:.08em;
 }
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line{
   padding-left:78px; text-indent:-78px !important;
 }
-.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line > .tx-anscomp-line{ text-indent:1em !important; }
+/* text-indent は**継承する**。inline-block の子（✓/✕ マーク .tx-stmt-mk・ラベル・チップ）は自分の内容にも
+   -78px が効いて本文から約6文字ぶん左へずれ、直前の文字に重なる（実機報告 2026-08-08）。子孫で必ず戻す。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line *{ text-indent:0; }
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ text-indent:1em !important; }
 /* ② 役割フォントで誌面を作り込む（表全体が既定ゴシックのままだと解説カードに比べて質素に見える） */
 .tx-inline-answer-table-panel .statement-verdict-table thead th{
   font-family:var(--font-display,serif); font-weight:700; letter-spacing:.05em;
