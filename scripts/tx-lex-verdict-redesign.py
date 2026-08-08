@@ -15,7 +15,10 @@
   - 正誤表各行の data-brief-mark（印付き原文の要約＝記述ごとに執筆）。
 
 参照元（--ref）から CSS/エンジンを実体抽出して注入するので、正典改定時は --ref を新正典にすれば追従する。
-冪等（computeInlineScore 有 → エンジン skip／marker 有 → CSS skip／帰結箱無 → 除去 skip）。本文の他部分は不変。
+**同期型（2026-08-08〜）**：マーカー付き CSS 区画（TX-VERDICT-CORE2／TX-ANSCOMP）とエンジン塊は、
+既に在っても**正典と差があれば載せ替える**（旧＝マーカーが在れば skip。それだと正典追補が既存へ届かず、
+手作業の再注入＝接ぎ木の温床になった）。差が無ければ無変更＝冪等。本文・改行は不変
+（LF/CRLF 混在ファイルでも差し込み箇所だけ局所様式に合わせる）。
 
 使い方:
   python -X utf8 scripts/tx-lex-verdict-redesign.py --ref outputs/ux/000_TX/001_刑法/刑TX371_lex.html canonical/GENESIS-CARD.html
@@ -37,10 +40,24 @@ DEFAULT_REF = os.path.join(REPO, "canonical", "GENESIS-CARD.html")
 
 CSS_START = "/* === TX371 試作: 体系マップ規範核バッジ"
 CSS_MARKER = "TX-VERDICT-REDESIGN"                    # 冪等判定＋注入後のマーカー
-ENG_START = "  function extractReviewCoreSummary(cell){"      # コア＝転用可能な法理（転用タグ優先）から含めて差し替える
+ENG_START = "  // TX-VERDICT-CORE2:"                          # v2 エンジン塊の先頭コメント
 ENG_END = "  function setInlineAnswerTableVisible(open){"
-OLD_ENG_START = "  function extractReviewCoreSummary(cell){"
+OLD_ENG_START = "  function extractReviewCoreSummary(cell){"  # v1 エンジンの先頭（旧版ファイルの境界）
 KIKETSU = "▼ 本問の帰結（○×）"
+
+# --- v2（2026-08-08・正誤表コア列の実体名ラベル化＋残り法理の details）---------------------
+CORE2_MARK = "TX-VERDICT-CORE2"                              # CSS/エンジン共通の版マーカー
+CORE2_CSS_START = "/* TX-VERDICT-CORE2:BEGIN"
+CORE2_CSS_END = "/* TX-VERDICT-CORE2:END */"
+CORE2_ENG_FN = "function extractReviewCoreLines("            # v2 エンジンの識別子（冪等判定）
+
+# 同期する CSS 区画（BEGIN/END マーカー・正典が単一情報源）。
+#   TX-ANSCOMP＝✍答案圧縮。正誤表とカードの両方に出るため、合成ボールド（にじみ）の是正等は
+#   ここを同期しないと表だけ直ってカードが取り残される（2026-08-08 追補）。
+SYNC_CSS_REGIONS = [
+    (CORE2_CSS_START, CORE2_CSS_END, "CSS2"),
+    ("/* TX-ANSCOMP:BEGIN", "/* TX-ANSCOMP:END */", "ANSCOMP"),
+]
 
 
 def extract_css(ref):
@@ -58,29 +75,88 @@ def extract_css(ref):
 
 
 def extract_engine(ref):
-    """参照元から新エンジン塊を抽出（makeBriefLine〜renderInlineAnswerTablePanel 末尾）。"""
+    """参照元から新エンジン塊を抽出（extractReviewCoreLines〜renderInlineAnswerTablePanel 末尾）。"""
     s = ref.find(ENG_START)
     e = ref.find(ENG_END)
     if s < 0 or e < 0 or e <= s:
         raise SystemExit("[ERR] 参照元から新エンジンを抽出できない")
+    if CORE2_ENG_FN not in ref[s:e]:
+        raise SystemExit("[ERR] 参照元のエンジンが v2（extractReviewCoreLines）でない")
     return ref[s:e].rstrip("\n") + "\n"
 
 
-def inject(html, css, engine):
+def extract_marked_css(ref, begin, end, label):
+    """参照元から BEGIN〜END マーカーで囲まれた CSS 区画を抽出する。"""
+    s = ref.find(begin)
+    e = ref.find(end)
+    if s < 0 or e < 0 or e <= s:
+        raise SystemExit(f"[ERR] 参照元から {label} の CSS 区画を抽出できない")
+    return ref[s:e + len(end)] + "\n"
+
+
+def inject_into_first_style(html, block):
+    """第1 <style>（tx-lex-css-canonize が単一情報源とみなすブロック）の末尾へ差し込む。"""
+    s = html.find("<style>")
+    if s < 0:
+        raise SystemExit("[ERR] target に素の <style> が無い（CSS 注入不可）")
+    e = html.find("</style>", s)
+    if e < 0:
+        raise SystemExit("[ERR] target の第1 <style> が閉じていない")
+    nl = local_newline(html[s:e])
+    return html[:e] + nl + to_newline(block, nl) + html[e:]
+
+
+def local_newline(chunk):
+    """差し込み先の改行様式を局所判定する（生成物は LF/CRLF 混在があるため全体正規化はしない）。"""
+    return "\r\n" if "\r\n" in chunk else "\n"
+
+
+def to_newline(block, nl):
+    """ブロック（参照元＝LF）の改行を差し込み先の様式へ合わせる。"""
+    body = block.replace("\r\n", "\n")
+    return body if nl == "\n" else body.replace("\n", "\r\n")
+
+
+def inject(html, css, engine, region_blocks):
     changed = []
-    # 1) CSS 注入（冪等）
+    # 1) CSS 土台（v1）注入（冪等）
     if CSS_MARKER not in html and CSS_START not in html:
-        if "</style>\n</head>" not in html:
+        anchor = next((a for a in ("</style>\n</head>", "</style>\r\n</head>") if a in html), None)
+        if not anchor:
             raise SystemExit("[ERR] target に </style></head> が無い（CSS 注入不可）")
-        html = html.replace("</style>\n</head>", "\n" + css + "</style>\n</head>", 1)
+        nl = local_newline(anchor)
+        html = html.replace(anchor, nl + to_newline(css, nl) + anchor, 1)
         changed.append("CSS")
-    # 2) エンジン差し替え（冪等：computeInlineScore 未導入時のみ）
-    if "function computeInlineScore(" not in html:
+    # 1-bis) マーカー付き CSS 区画を正典へ同期（冪等）。既に在る場合も**正典と差があれば載せ替える**
+    #        ＝正典追補が全ファイルへ必ず届く（skip だけの冪等にすると、改定のたびに手作業の再注入が
+    #        要り接ぎ木の温床になる）。無ければ第1 <style> の末尾へ注入する。
+    for begin, end, label in SYNC_CSS_REGIONS:
+        block = region_blocks[label]
+        if begin in html:
+            s = html.find(begin)
+            e = html.find(end, s)
+            if e < 0:
+                raise SystemExit(f"[ERR] target の {label} CSS 区画が閉じていない")
+            e += len(end)
+            cur = html[s:e]
+            new_block = to_newline(block, local_newline(cur)).rstrip("\r\n")
+            if cur != new_block:
+                html = html[:s] + new_block + html[e:]
+                changed.append(f"{label}(sync)")
+        else:
+            html = inject_into_first_style(html, block)
+            changed.append(label)
+    # 2) エンジンを正典へ同期（v1/旧どちらの境界からでも載せ替える・差が無ければ無変更）
+    s = html.find(ENG_START)
+    if s < 0:
         s = html.find(OLD_ENG_START)
-        e = html.find(ENG_END)
-        if s < 0 or e < 0 or e <= s:
-            raise SystemExit("[ERR] target の旧エンジン境界（compactReviewTableClone〜setInlineAnswerTableVisible）が見つからない")
-        html = html[:s] + engine + html[e:]  # html[e:] は次関数のインデント2スペースを含む
+    e = html.find(ENG_END)
+    if s < 0 or e < 0 or e <= s:
+        raise SystemExit("[ERR] target の旧エンジン境界（extractReviewCore*〜setInlineAnswerTableVisible）が見つからない")
+    # 旧エンジン塊と同じ改行様式で載せ替える（周辺バイトは1文字も動かさない）
+    new_engine = to_newline(engine, local_newline(html[s:e]))
+    if html[s:e] != new_engine:
+        html = html[:s] + new_engine + html[e:]
         changed.append("ENGINE")
     # 3) 本問の帰結（○×）箱の除去（行単位・keyed on ラベル）
     if KIKETSU in html:
@@ -109,22 +185,25 @@ def main():
         ref = f.read()
     css = extract_css(ref)
     engine = extract_engine(ref)
-    print(f"[ref] {os.path.relpath(ref_path, REPO)}  CSS {len(css)}B / ENGINE {len(engine)}B")
+    region_blocks = {label: extract_marked_css(ref, begin, end, label)
+                     for begin, end, label in SYNC_CSS_REGIONS}
+    sizes = " / ".join(f"{k} {len(v)}B" for k, v in region_blocks.items())
+    print(f"[ref] {os.path.relpath(ref_path, REPO)}  CSS {len(css)}B / {sizes} / ENGINE {len(engine)}B")
 
     n_changed = 0
     for t in targets:
         with open(t, "rb") as f:
             raw = f.read()
-        use_crlf = b"\r\n" in raw           # 生成物HTMLはCRLF・autocrlf=false。改行を保持する
-        html = raw.decode("utf-8").replace("\r\n", "\n")
-        new, changed = inject(html, css, engine)
+        # 生成物 HTML は LF/CRLF が混在しうる（歴代ツールの書き戻し差）。全体正規化すると
+        # 全行差分になるので、原文の改行はそのまま保持し、差し込み箇所だけ局所様式に合わせる。
+        html = raw.decode("utf-8")
+        new, changed = inject(html, css, engine, region_blocks)
         rel = os.path.relpath(os.path.abspath(t), REPO)
         if new != html:
             n_changed += 1
             if not dry:
-                out = new.replace("\n", "\r\n") if use_crlf else new
                 with open(t, "w", encoding="utf-8", newline="") as f:
-                    f.write(out)
+                    f.write(new)
             print(f"[{'DRY' if dry else 'OK '}] {rel}: {', '.join(changed)}")
         else:
             print(f"[==] {rel}: 変更なし（既に土台導入済み）")

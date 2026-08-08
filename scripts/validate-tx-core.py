@@ -58,6 +58,12 @@ spec: spec/tx-v11.0.0-core.md 第7項
       「そもそも作らなかった」型は素通りしていた。公式（PDF 由来の原文）と対照して欠落を ERROR、
       原文層（.tx-original-block／.tx-original-lead）が一つも無い `_lex` を WARNING で可視化する。
       復元は scripts/tx-restore-original.py（公式を単一情報源に逐語移送・冪等）。
+  G76 正誤表コア列 v2（2026-08-08・TX-VERDICT-CORE2）：旧版は 5点フロー（文言・趣旨・射程・
+      切断点・転用）のうち転用行だけを『コア』の名で 1 行出し、残り 4 行はインライン周回の
+      `.final-answer{display:none}` で一度も露出しなかった（corpus 実測 2,334 行 × 4 行）。
+      v2 は外した行に「切断点＋転用」、取れた行に「転用」を実体名ラベルで出し（未回答は記述の
+      正誤で振る）、残りを既定閉じ details から表内で開けるようにする。正誤表だけで周回を
+      完結させる運用（ユーザー指示）の構造担保。伝播＝scripts/tx-lex-verdict-redesign.py。
   廃止：G17・G18（PART D 関連）
 
 使い方：
@@ -1659,10 +1665,9 @@ class Validator:
             "formatInlineVerdict",
             "setInlineVerdict",
             "compactReviewTableClone",
-            "extractReviewCoreSummary",
+            "extractReviewCoreLines",       # v2（TX-VERDICT-CORE2）：旧 extractReviewCoreSummary の後継
             "tx-user-answer-cell",
             "tx-inline-answer-table-panel",
-            "tx-review-core-summary",
             "setInlineResult(area, ok, correct)",
         ]
         missing_review = [sig for sig in answer_review_required if sig not in scripts and sig not in self.html]
@@ -2238,6 +2243,33 @@ class Validator:
                              "置き換わっている疑いがある（§v13r 原文不可侵）。入力 PDF を見て"
                              "原文の設問・選択肢一覧を復元し、操作指示は別段落に分ける。")
 
+    def g76_verdict_core_lines(self):
+        """G76（ERROR・2026-08-08）＝正誤表コア列が v2（実体名ラベル＋残り法理 details）か。
+
+        旧実装は 5点フロー（文言・趣旨・射程・切断点・転用）のうち転用行だけを『コア』の名で
+        1行出し、残り 4 行はインライン周回では `.final-answer{display:none}` により**一度も
+        露出しなかった**（corpus 実測 2,334 行 × 4 行）。正誤表だけで周回を完結させる運用
+        （ユーザー指示 2026-08-08）に対して、外した行の「どこで正誤が分かれたか＝切断点」が
+        表に出ないため、毎回カードへ飛ぶしかなかった。
+
+        v2（TX-VERDICT-CORE2）＝外した行は「切断点＋転用」、取れた行は「転用」を実体名ラベルで
+        出し（未回答は記述の正誤で振る）、残りは既定閉じの details から表内で開ける。
+        伝播＝`python scripts/tx-lex-verdict-redesign.py <file>`（決定論・冪等・本文不変）。
+        インライン周回ファイル（.tx-inline-card あり）だけを見る＝旧デザインは対象外。"""
+        if not self.is_lex_target():
+            return
+        if not self.soup.select_one(".tx-inline-card"):
+            return
+        missing = [sig for sig in ("function extractReviewCoreLines(", "function appendCoreLines(",
+                                   "TX-VERDICT-CORE2:BEGIN", ".tx-verdict-brief .tx-vb-rest")
+                   if sig not in self.html]
+        if missing:
+            self.err("G76", "正誤表コア列が v2（TX-VERDICT-CORE2）でない: "
+                            + ", ".join(missing)
+                            + "。旧版は転用行を『コア』の名で1行だけ出し、文言・趣旨・射程・切断点は"
+                              "周回画面に一度も出ない。`python scripts/tx-lex-verdict-redesign.py "
+                              "<file>` で正典から載せ替える。")
+
     def g63_inline_pool_alignment(self):
         """G63（ERROR・2026-07-11 監査対応）＝インラインカード⇄SM2プール⇄answer-key の三点整合。
 
@@ -2794,6 +2826,7 @@ class Validator:
         self.g62_original_block_stmt_count()
         self.g74_shared_premise_hidden()
         self.g75_source_text_present()
+        self.g76_verdict_core_lines()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
@@ -2832,7 +2865,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G75, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G76, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")

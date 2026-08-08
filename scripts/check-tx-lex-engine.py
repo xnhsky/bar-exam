@@ -330,6 +330,11 @@ def main() -> int:
         #     だけ＝`python scripts/tx-restore-original.py --apply <file>` で必ず直る（誤爆ゼロ）。
         #     原文層なし・要内容照合は WARNING（PDF 照合が要り決定論ツール化できないため）。
         v.g75_source_text_present()
+        # G76＝正誤表コア列の v2（TX-VERDICT-CORE2）。旧版は 5点フローの転用行だけを『コア』の名で
+        #     1行出し、文言・趣旨・射程・切断点は inline 周回（.final-answer{display:none}）で
+        #     一度も露出しなかった。v2 は外した行に切断点＋転用を出し、残りは details で表内から開く。
+        #     伝播＝`python scripts/tx-lex-verdict-redesign.py <file>`（決定論・冪等・本文不変）。
+        v.g76_verdict_core_lines()
         # G19＝解答前に常時見える設問エリア（設問リード／不可侵原文ブロック／解法ナビ）の正解露出。
         #     設問・問題文エリアは原文のまま不可侵とし、正解の先出しを書かない（ユーザー指示 2026-08-04）。
         #     素の <p> リードは .problem-text の display:none に当たらずインライン周回でも出続ける
