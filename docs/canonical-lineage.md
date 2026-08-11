@@ -99,7 +99,7 @@
 |---|---|---|---|
 | **RX**（論証カード・1論点1HTML） | **`canonical/AXIOM.html`**（v1.0・2026-06-20 新設） | `prompts/new-rx-headless.md`（複製方式） | `scripts/validate-rx.py`（R1〜R10） |
 | **TREE**（樹形図・ARBOR 仕様） | `canonical/ARBOR.html`（gold TREE 複製） | `prompts/new-arb-headless.md` | `scripts/validate-tree.py`（T1〜T9） |
-| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（**v1.4.0 ARENA-PURE・2026-07-11 active**／旧 v1.3.0 TXLEX-UNIFY・v1.2.0 PLACEHOLDER-LOCK は系譜） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A40）＋`scripts/check-ariadne-quiz-dedup.py`（corpus）＋`scripts/check-ariadne-canonical.py` |
+| **ARIADNE**（解法ナビ＋答案構成周回） | **`canonical/ARIADNE.html`**＋**`canonical/ARIADNE.placeholder.html`**（**v1.5.0 LOOP-MODE・2026-08-11 active**／旧 v1.4.0 ARENA-PURE・v1.3.0 TXLEX-UNIFY・v1.2.0 PLACEHOLDER-LOCK は系譜） | `/new-ariadne` / `prompts/new-ariadne-headless.md` | `scripts/validate-ariadne.py`（A1〜A43）＋`scripts/check-ariadne-quiz-dedup.py`（corpus）＋`scripts/check-ariadne-canonical.py` |
 
 - **AXIOM（RX 正典・2026-06-20）**：従来 RX は正典を持たず自由生成で CSS が 58 種に割れていた。
   gold 刑RX001_1 を基に AXIOM を新設し、**作り込みフォント（TX/JX と同一 Google Fonts）・規範レモン
@@ -112,18 +112,36 @@
   ACTIVE ベースカラー（EASY/STD/HARD）の難易度選択のみ。恒久対策は `validate-ariadne.py` A30/A31/A32 と
   `check-ariadne-canonical.py`、同期前 `check-lexia-preflight.py` に組込み済み。最新法令・判例・学説レビューも必須で、
   新旧差分時は `ariadne-current-law-note` に立法経緯/改正経緯・改正趣旨を含める。
-- **ARIADNE v1.4.0 ARENA-PURE（2026-07-11・現行 active）**：v1.3.0 を全面継承し、**周回ドリルの arena 純度**を
+- **ARIADNE v1.5.0 LOOP-MODE（2026-08-11・現行 active）**：v1.4.0 を全面継承し、**周回ごとに読む量を落とす
+  段階フェード**を正典化した minor 改定。背景＝corpus 実測で ARIADNE 1 本は本文 約20,000字（周回層 約11,500字
+  ＝問題文644／解法ナビ7手4,392／答案作法2,845／下書き＋骨子1,713／照合413／模範答案1,501 ＋ 深掘り8,531）で、
+  **2周目・3周目も同じ物量を通る設計**だった（周回教材なのに周回ごとの減量機構が無い）。ユーザー実機の
+  「1問に時間がかかりすぎ周回できない」の構造的原因。**`.wrap[data-loop="1|2|3"]` の3モード**を導入し、
+  ①1周目＝フル ②2周目＝作法・下書き・講師プルクオート・ヒント箱・ページ内ドリルを伏せ「問題文＋解法ナビの一手＋
+  骨子＋照合＋模範答案」 ③3周目＝さらに解法ナビも伏せ「問題文＋骨子＋照合＋模範答案」。実測の可視文字数は
+  1周目 約8,500字 → 2周目 約4,000字（−53%）→ 3周目 約2,400字（−71%）。**要素は DOM から消さず display だけ**で
+  制御する（折りたたみ＝DOM温存の鉄則と同じ理由：Lexia の復習プール抽出・validate の DOM 走査・RX/TREE 生成が
+  無改修で動く。実機でも DOM 内ドリル15枚が全モードで保持されることを確認）。**周回ごとの案内文（.lm-guide）は
+  現在モードのぶんを常時表示**＝ユーザー指示「毎回確認したい」。1周目＝「解こうとしない・型を写す・詰まったら
+  5分で▶を開く・全文起案しない」、2周目＝「解くが答案構成まで・5分で論点見出し・取れた論点は読み返さない・
+  外した論点だけ降りる」、3周目＝「3分で口頭構成」。文言は全問共通の固定文（問題固有スロットではない＝placeholder 契約）。
+  ゲート三層＝①canonical/placeholder 契約（作らせない）②`validate-ariadne.py` **A43**（CSS区画・UI・JS・
+  `data-loop="1"` 既定値・1/2/3 の案内文とボタンの欠落＝ERROR）③`check-ariadne-canonical.py` に loop-mode 3 ブロックの
+  存在検査を追加。既存一括伝播＝**`scripts/ariadne-loop-mode.py`**（決定論・冪等・本文不変・改行様式保持・
+  canonical から3ブロックを逐語抽出＝単一情報源）で全133ファイルへ 2026-08-11 適用済み（1ファイルあたり
+  +158行／本文差分ゼロ）。版マーカー＝`ARIADNE v1.5.0 LOOP-MODE`／契約＝`ARIADNE_SLOT_CONTRACT v1.5.0 LOOP-MODE`。
+- **ARIADNE v1.4.0 ARENA-PURE（2026-07-11・系譜）**：v1.3.0 を全面継承し、**周回ドリルの arena 純度**を
   正典化した minor 改定。2026-07-11 監査（74ファイル1544枚中、完全一致の横断重複436枚＝28%・作法エリア95%重複・
   全問に「構成順を予測」等の答案入門命題が平均6枚ずつ data-arena でプール直行）への恒久対策。原則＝**arena
   （`data-arena="1"`＝Lexia SM-2 プール対象）に載せてよいのは当該問題の法的実体（規範・要件・判別基準・判例の
   射程・条文）だけ**。①bc-wrap（答案構成の作法）のドリルは data-arena を外しページ内確認専用に。②科目共通の
   答案方法論（体系順・4点セット・評価語 等＝`scripts/ariadne_arena_rules.py` METHOD_RE が単一情報源）を arena で
   問うことを禁止し、正典のステップ例文3枚を法的実体型（未必の故意／不作為犯の着手時期／排他的支配の自己の意思）へ
-  差替。③ゲート＝validate A40（ERROR）・A13 bc除外・A27 ドリル枚数強制撤廃・A36 v1.4.0、**corpus 横断
+  差替。③ゲート＝validate A40（ERROR）・A13 bc除外・A27 ドリル枚数強制撤廃・A36 版スタンプ、**corpus 横断
   `check-ariadne-quiz-dedup.py`**（同一設問3ファイル以上=ERROR・`check-ariadne-canonical.py` が毎回実行）。
   ④既存74ファイルは `scripts/ariadne-arena-pure.py`（冪等・生テキスト編集で改行不変）で一括是正
   （bc-arena除去370・方法論ドリル削除112・スタンプ更新222＋自殺不可罰×5クラスタの個別是正）。
-  版マーカー＝`ARIADNE v1.4.0 ARENA-PURE`／契約＝`ARIADNE_SLOT_CONTRACT v1.4.0 ARENA-PURE`。
+  当時の版マーカー＝`ARIADNE v1.4.0 ARENA-PURE`（現行は v1.5.0 LOOP-MODE）。
   **qa-mark パッチ（2026-07-26・版据置）**＝周回ドリル答えの円バッジ CSS `.quiz-answer b:first-child` が
   想起型の文中最初の `<b>` 長文にも誤マッチし 1.5em 円へ縦落ち（実害＝刑JX020・iPad実機）→
   **`b.qa-mark` 契約**（冒頭○×専用）へ移行＋`.recall .quiz-btn` の「書けなかった」2行折れ修正。
@@ -157,7 +175,7 @@
 | `validate-tx.py` | TX v8.x〜v9.x | S1〜S91（legacy） |
 | `validate-jx.py` | JX | J1〜J21＋JC1〜JD1(v4)＋JSB（タグ均衡） |
 | `validate-rx.py` / `validate-tts.py` | RX論証 / TTS台本 | 各系 |
-| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A39／canonical＋全出力横断（A34 骨子 SIMPLE-BONE・**A35 深掘りテンプレ流用 ERROR**・A36-A39 版/未定義box/draft逐語/bc-inst 2カラム・`.ariadne-current-law-note` 正典CSS/slot allowance 含む） |
+| `validate-ariadne.py` / `check-ariadne-canonical.py` | ARIADNE | A1〜A43（**A43 周回モード LOOP-MODE ERROR**）／canonical＋全出力横断（A34 骨子 SIMPLE-BONE・**A35 深掘りテンプレ流用 ERROR**・A36-A39 版/未定義box/draft逐語/bc-inst 2カラム・`.ariadne-current-law-note` 正典CSS/slot allowance 含む） |
 
 ---
 
