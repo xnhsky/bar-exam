@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;600;700;800&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Old+Mincho:wght@400;600;700&family=Noto+Serif+JP:wght@400;500;700&family=Source+Code+Pro:wght@500;600;700&family=M+PLUS+1p:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-/* ARIADNE v1.4.0 ARENA-PURE ― JX 解法ナビ＋周回 正典（試作：刑JX001）｜誌面風
+/* ARIADNE v1.5.0 LOOP-MODE ― JX 解法ナビ＋周回 正典（試作：刑JX001）｜誌面風
    フレーム＋機能色＝TX v11 GENESIS（V3 Twilight Violet・刑TX327）を見本に統一
    バイオレット #8E6E9A ＋ ダスティティール #79A6A6 ＋ 暖クリーム ＋ 緑（recall）
    フォントは TX 12 役割と同ファミリー（Shippori Mincho B1 / Zen Kaku Gothic Antique 等） */
@@ -825,10 +825,56 @@ a.xref:hover{color:#fff; background:#3a4a78; border-bottom-color:#3a4a78}
 /* 導入文(.lead)＝白カード＋左罫＋影でクリーム背景から浮かせる */
 .lead{color:var(--ink); background:#fff; border:1px solid var(--line-2); border-left:3px solid var(--a-head-lt); border-radius:11px; padding:12px 18px; margin:3px 0 16px; box-shadow:0 3px 10px -4px rgba(70,58,80,.16)}
 /* === ARIADNE-SECHEAD-CONTRAST v1 (auto) END === */
+/* ===== ARIADNE-LOOPMODE:BEGIN v1.5.0 LOOP-MODE（周回モード・固定エンジン／<style>末尾＝最終勝ち） =====
+   周回ごとに読む量を落とす段階フェード。`.wrap[data-loop="1|2|3"]` で切替え、
+   要素は **DOM から消さず display だけ** で制御する（折りたたみ＝DOM温存の鉄則と同じ理由：
+   Lexia の復習プール抽出・validate の DOM 走査・RX/TREE 生成が無改修で動く）。
+   `data-lm-max="N"` は「N周目までは表示」の意味で、末尾 JS が読込時に付与する。
+   案内文（.lm-guide）は現在モードのぶんを **常時表示**（毎回読ませる＝トグルで隠さない）。 */
+.loop-mode{background:var(--paper); border:1px solid var(--li-line); border-left:6px solid var(--li);
+  border-radius:14px; padding:14px 16px 16px; margin:14px 0 18px; box-shadow:0 5px 16px rgba(74,53,86,.10)}
+.lm-head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; margin-bottom:10px}
+.lm-kick{font-family:var(--f-code); font-size:11px; letter-spacing:.18em; color:var(--li-deep);
+  background:var(--li-soft); border:1px solid var(--li-line); border-radius:999px; padding:2px 10px}
+.lm-title{font-family:var(--f-soft); font-weight:700; font-size:14.5px; color:var(--li-deep)}
+.lm-btns{display:flex; gap:8px; flex-wrap:wrap}
+.lm-btn{flex:1 1 160px; display:flex; flex-direction:column; gap:2px; align-items:flex-start; text-align:left;
+  background:var(--sheet); border:1px solid var(--line-2); border-radius:10px; padding:8px 12px;
+  font-family:var(--f-soft); color:var(--ink); line-height:1.5; cursor:pointer}
+.lm-btn b{font-size:14px; font-weight:700}
+.lm-btn small{font-size:11px; color:var(--ink-soft)}
+.lm-btn:hover{border-color:var(--li-line); background:var(--li-soft)}
+.lm-btn[aria-pressed="true"]{background:var(--li); border-color:var(--li); color:#fff; box-shadow:0 3px 10px rgba(74,53,86,.22)}
+.lm-btn[aria-pressed="true"] small{color:rgba(255,255,255,.88)}
+.lm-guide{display:none; margin-top:12px; border-top:1px dashed var(--line-2); padding-top:10px;
+  font-family:var(--f-body); font-size:13.5px; line-height:1.95}
+.lm-guide h4{margin:.2em 0 .5em; font-family:var(--f-soft); font-size:14.5px; color:var(--li-deep)}
+.lm-guide p{margin:.4em 0}
+.lm-guide ol,.lm-guide ul{margin:.3em 0 .2em; padding-left:1.4em}
+.lm-guide li{margin:.15em 0}
+.lm-do,.lm-dont,.lm-goal{border-radius:0 8px 8px 0; padding:7px 12px; margin:.6em 0}
+.lm-do{background:var(--gr-soft); border-left:4px solid var(--gr)}
+.lm-dont{background:var(--shu-soft); border-left:4px solid var(--shu)}
+.lm-goal{background:var(--gd-soft); border-left:4px solid var(--gd)}
+.lm-time{font-family:var(--f-code); font-size:11.5px; color:var(--ink-soft); margin:.4em 0 0}
+.wrap[data-loop="1"] .lm-guide[data-loop-guide="1"],
+.wrap[data-loop="2"] .lm-guide[data-loop-guide="2"],
+.wrap[data-loop="3"] .lm-guide[data-loop-guide="3"]{display:block}
+/* 段階フェード本体（display のみ・DOM 温存） */
+.wrap[data-loop="2"] [data-lm-max="1"],
+.wrap[data-loop="3"] [data-lm-max="1"],
+.wrap[data-loop="3"] [data-lm-max="2"]{display:none}
+@media print{.loop-mode{display:none} [data-lm-max]{display:revert !important}}
+@media (max-width:600px){
+  .loop-mode{padding:12px 12px 14px; border-radius:12px}
+  .lm-btn{flex:1 1 100%}
+  .lm-guide{font-size:13px}
+}
+/* ===== ARIADNE-LOOPMODE:END ===== */
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" data-loop="1">
 
   <!-- ===== マストヘッド（ATHENA プラム） ===== -->
   <header class="masthead" id="top">
@@ -852,6 +898,56 @@ a.xref:hover{color:#fff; background:#3a4a78; border-bottom-color:#3a4a78}
   </header>
 
   <main class="sheet">
+<!-- ARIADNE-LOOPMODE-UI:BEGIN v1.5.0 LOOP-MODE ― 固定シェル（文言も全問共通の固定文＝問題固有スロットではない・書き換え禁止） -->
+  <div class="loop-mode" id="loop-mode">
+    <div class="lm-head"><span class="lm-kick">LOOP MODE</span><span class="lm-title">今日は何周目？ ― 押すと、その周でやることだけが残ります</span></div>
+    <div class="lm-btns" role="group" aria-label="周回モードの切替">
+      <button type="button" class="lm-btn" data-loop-set="1" aria-pressed="true"><b>1周目 ｜ 解かない</b><small>型を写して覚える・25〜35分</small></button>
+      <button type="button" class="lm-btn" data-loop-set="2" aria-pressed="false"><b>2周目 ｜ 構成まで</b><small>論点を挙げて骨子・10〜15分</small></button>
+      <button type="button" class="lm-btn" data-loop-set="3" aria-pressed="false"><b>3周目〜 ｜ 口頭</b><small>3分で口に出す・5分</small></button>
+    </div>
+
+    <div class="lm-guide" data-loop-guide="1">
+      <h4>1周目のやり方 ― この問題を「解こう」としないでください</h4>
+      <p>初見の事例は、考えても答えが出てきません。出てこないのは実力不足ではなく、まだ<b>型（何を・どの順で書くか）</b>を持っていないからです。ここで粘るのが時間を溶かす最大の原因になります。1周目の仕事は答えを出すことではなく、<span class="emb">型を写して自分の中に置くこと</span>です。</p>
+      <div class="lm-do"><b>やること（この順に）</b>
+        <ol>
+          <li>問題文を読み、<b>登場人物と「引っかかる行為」だけ</b>書き出す（5分）。</li>
+          <li>解法ナビを上から順に。各ステップで<b>まず自分で一つ出し</b>、すぐ「▶自分で答えてから開く」を開いて答え合わせ。<b>詰まったら5分粘らずに開く</b>。</li>
+          <li>骨子（答案構成）まで来たら、<b>見出しと結論の一行</b>だけ紙に写す。</li>
+          <li>照合欄で自己採点 → 最後に模範答案を開き、書き方の差だけ見る。</li>
+        </ol>
+      </div>
+      <div class="lm-dont"><b>やらないこと</b>：全文起案（答案を最後まで書く）／深掘り層を最初から読む／わからない論点を10分以上考え込む。どれも1周目には早すぎます。</div>
+      <div class="lm-goal"><b>ゴール</b>：この問題で「<b>何を、どの順で書くか</b>」が言えること。知識の完全な理解ではありません。理解は2周目以降に回数で入ります。</div>
+      <p class="lm-time">目安 25〜35分／終えたら日付をメモし、数日〜2週間あけて2周目へ。</p>
+    </div>
+
+    <div class="lm-guide" data-loop-guide="2">
+      <h4>2周目のやり方 ― 今度は解きます。ただし「答案構成まで」</h4>
+      <p>ここからが本当の周回です。読み直すのではなく<span class="emb">思い出す</span>。ただし全文は書きません。合否を分けるのは<b>論点の抜け漏れ</b>と<b>規範を言えるか</b>で、その2つは答案構成までで判定できるからです。この画面では作法・下書き・ページ内ドリルを隠しています（1周目で済んだ作業です）。</p>
+      <div class="lm-do"><b>やること（この順に）</b>
+        <ol>
+          <li>問題文を読み、<b>5分で論点の見出しだけ</b>紙に挙げる（規範やあてはめはまだ書かない）。</li>
+          <li>骨子（穴埋めパズル）で、順序と結論を自分で組み立てる。</li>
+          <li>照合欄で自己採点。ここで<b>取れた論点は終了</b>＝解説は読み返さない。</li>
+          <li><b>外した論点だけ</b>、その手（▶）か深掘り層へ降りて確認する。</li>
+        </ol>
+      </div>
+      <div class="lm-dont"><b>やらないこと</b>：頭から全部読み直す／取れた論点の解説を「念のため」読む／全文起案。時間はここで溶けます。</div>
+      <div class="lm-goal"><b>ゴール</b>：論点の抜け漏れゼロ＋各論点の<b>規範を口で言える</b>こと。外した論点は復習カードに任せ、この問題自体は次へ進みます。</div>
+      <p class="lm-time">目安 10〜15分／<b>初めて見る問題は「1周目」に戻してください</b>（隠れている部分が必要です）。</p>
+    </div>
+
+    <div class="lm-guide" data-loop-guide="3">
+      <h4>3周目以降 ― 開かずに、口で言えるかだけ</h4>
+      <p>問題文を見て、<b>3分で口頭構成</b>（論点 → 条文 → 規範 → 結論）を声に出す。言えたらその問題は終わりです。解法ナビ・作法・下書き・ドリルはこの周では隠しています。</p>
+      <div class="lm-do"><b>やること</b>：①問題文を読む ②口頭で構成する ③骨子と照合欄で答え合わせ。言葉に詰まった論点だけ、その場で確認する。</div>
+      <div class="lm-goal"><b>ゴール</b>：試験当日に再現できる速度（1問3分）。ここまで来た問題は月1回の確認で十分です。</div>
+      <p class="lm-time">目安 3〜5分／うまく言えない論点が2つ以上あれば「2周目」に戻す。</p>
+    </div>
+  </div>
+<!-- ARIADNE-LOOPMODE-UI:END -->
 
   <!-- ===== 問題文 ===== -->
   <div class="sec-h" id="sec-prob"><div class="kick">事案</div><div class="ttl"><span class="ico">📄</span>問題文を読む</div></div>
@@ -1674,7 +1770,7 @@ a.xref:hover{color:#fff; background:#3a4a78; border-bottom-color:#3a4a78}
 
   <div class="foot">
     <div class="rb"></div>
-    <b>ARIADNE v1.4.0 ARENA-PURE</b> ｜ 解法ナビ＋周回（Lexia連携）― 刑JX026<br>
+    <b>ARIADNE v1.5.0 LOOP-MODE</b> ｜ 解法ナビ＋周回（Lexia連携）― 刑JX026<br>
     フレーム＝ATHENA プラム基調／内側＝ゼブラ マイルドライナー
   </div>
 
@@ -1946,7 +2042,65 @@ a.xref:hover{color:#fff; background:#3a4a78; border-bottom-color:#3a4a78}
 
 /* ==== KP-PEEK-MOVE ==== peek を末尾へ（想起型「自分で答え/挙げ・チェックポイント」のみ。前提・理由「なぜ〜」型は元位置=冒頭のまま） */
 (function(){var RE=/自分で(答え|挙げ)|チェックポイント/;function mv(){var s=document.querySelectorAll(".step");for(var i=0;i<s.length;i++){var p=s[i].querySelectorAll(":scope > details.peek");for(var j=0;j<p.length;j++){var sm=p[j].querySelector("summary");if(sm&&RE.test(sm.textContent||""))s[i].appendChild(p[j]);}}}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mv);else mv();})();
+/* ==== ARIADNE-LOOPMODE-JS:BEGIN v1.5.0 LOOP-MODE（周回モード・固定エンジン） ====
+   ① 段階フェード対象へ data-lm-max を付与（DOM は消さず display 制御だけ＝Lexia 抽出・validate 走査は無傷）
+   ② .lm-btn で .wrap[data-loop] を切替（localStorage 保存・既定＝1周目・JS 不動作時は全表示にフォールバック）
+   ③ 案内文は現在モードのぶんを常時表示（毎回読ませる＝トグルで隠さない） */
+(function(){
+  "use strict";
+  var KEY = 'ariadne:loopMode';
+  function tag(el, n){ if(el && !el.hasAttribute('data-lm-max')) el.setAttribute('data-lm-max', String(n)); }
+  function tagAll(sel, n){ Array.prototype.forEach.call(document.querySelectorAll(sel), function(el){ tag(el, n); }); }
+  function tagHead(id, n){
+    var h = document.getElementById(id); if(!h) return;
+    tag(h, n);
+    var s = h.nextElementSibling;
+    while(s && s.classList && (s.classList.contains('lead') || s.classList.contains('to-top'))){ tag(s, n); s = s.nextElementSibling; }
+  }
+  function classify(){
+    /* 1周目だけ＝答案作法・下書き・講師プルクオート・ヒント箱・ページ内ドリル */
+    tagHead('sec-build', 1);
+    tagAll('.bc-wrap', 1);
+    tagAll('.drafting', 1);
+    tagAll('.pull', 1);
+    tagAll('.box-tip', 1);
+    tagAll('.self-check-quiz', 1);
+    /* 2周目まで＝解法ナビ本体（3周目は問題文・骨子・照合・模範答案だけ残す） */
+    tagHead('sec-nav', 2);
+    tagAll('.steps-rail', 2);
+    tagAll('.step', 2);
+    /* 目次リンクは飛び先に追随（隠れた節へのリンクを残さない） */
+    Array.prototype.forEach.call(document.querySelectorAll('.toc-nav a[href^="#"]'), function(a){
+      var t = document.getElementById((a.getAttribute('href') || '#').slice(1));
+      if(t && t.hasAttribute('data-lm-max')) tag(a, t.getAttribute('data-lm-max'));
+    });
+  }
+  function setMode(m, save){
+    var w = document.querySelector('.wrap'); if(!w) return;
+    w.setAttribute('data-loop', String(m));
+    Array.prototype.forEach.call(document.querySelectorAll('.lm-btn'), function(b){
+      b.setAttribute('aria-pressed', b.getAttribute('data-loop-set') === String(m) ? 'true' : 'false');
+    });
+    if(save){ try{ localStorage.setItem(KEY, String(m)); }catch(e){} }
+  }
+  function boot(){
+    if(!document.getElementById('loop-mode')) return;
+    classify();
+    var saved = '1';
+    try{ saved = localStorage.getItem(KEY) || '1'; }catch(e){}
+    if(['1','2','3'].indexOf(saved) < 0) saved = '1';
+    setMode(saved, false);
+    document.addEventListener('click', function(ev){
+      var b = ev.target && ev.target.closest ? ev.target.closest('.lm-btn') : null;
+      if(!b) return;
+      ev.preventDefault();
+      setMode(b.getAttribute('data-loop-set') || '1', true);
+    });
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
+})();
+/* ==== ARIADNE-LOOPMODE-JS:END ==== */
 </script>
-<p class="footer-date lexia-genmeta" style="text-align:center" data-generated="2026-06-18T22:47+09:00">Generated: 2026-06-18 22:47 / ARIADNE v1.4.0 ARENA-PURE</p>
+<p class="footer-date lexia-genmeta" style="text-align:center" data-generated="2026-06-18T22:47+09:00">Generated: 2026-06-18 22:47 / ARIADNE v1.5.0 LOOP-MODE</p>
 </body>
 </html>
