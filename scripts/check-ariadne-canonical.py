@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""ARIADNE v1.4.0 ARENA-PURE canonical guard.
+"""ARIADNE v1.5.0 LOOP-MODE canonical guard.
 
 Run validate-ariadne.py over the active skeleton and generated ARIADNE files,
 then run the corpus-wide quiz dedup gate (check-ariadne-quiz-dedup.py) so that
@@ -23,8 +23,8 @@ except Exception:
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate-ariadne.py"
 DEFAULT_GLOB = "outputs/ux/001_ARIADNE/**/*_ARIADNE.html"
-CANONICAL_VERSION = "ARIADNE v1.4.0 ARENA-PURE"
-SLOT_CONTRACT_VERSION = "ARIADNE_SLOT_CONTRACT v1.4.0 ARENA-PURE"
+CANONICAL_VERSION = "ARIADNE v1.5.0 LOOP-MODE"
+SLOT_CONTRACT_VERSION = "ARIADNE_SLOT_CONTRACT v1.5.0 LOOP-MODE"
 CORPUS_DEDUP = ROOT / "scripts" / "check-ariadne-quiz-dedup.py"
 
 
@@ -91,6 +91,10 @@ def check_canonical_version() -> int:
     if "ariadne-current-law-note" not in text:
         print("[ERROR] canonical/ARIADNE.html missing .ariadne-current-law-note CSS")
         return 1
+    for marker in ("ARIADNE-LOOPMODE:BEGIN", "ARIADNE-LOOPMODE-UI:BEGIN", "ARIADNE-LOOPMODE-JS:BEGIN"):
+        if marker not in text:
+            print(f"[ERROR] canonical/ARIADNE.html missing loop-mode block: {marker}")
+            return 1
     print(f"[OK] canonical/ARIADNE.html version marker: {CANONICAL_VERSION}")
     return 0
 

@@ -2,7 +2,7 @@
 
 あなたは司法試験対策の最高峰教授兼フロントエンド実装者。**検証済み JX（ATHENA）HTML** を一次情報源に、
 初学者向けの「解法ナビ＋周回」教材 **ARIADNE** を1問分生成する。正典は `spec/jx-ariadne-v1.2.0-core.md`。
-現行版は **ARIADNE v1.4.0 ARENA-PURE**。HTML/CSS/JS の構造は固定し、AI は問題固有スロットと
+現行版は **ARIADNE v1.5.0 LOOP-MODE**（v1.4.0 ARENA-PURE の内容規律を全面継承）。HTML/CSS/JS の構造は固定し、AI は問題固有スロットと
 難易度別 ACTIVE ベースカラー選択だけを判断する。**arena（`data-arena="1"`＝Lexia復習プール対象）に
 載せてよいのは当該問題の法的実体（規範・要件・判別基準・判例の射程・条文）だけ**（v1.4.0・spec §4）。
 
@@ -14,7 +14,7 @@
 - `{NNN}`：3桁問題番号
 - `{PROBLEM_ID}`：問題ID（例 `刑JX029`）＝ sentinel に使う
 - `{JX_HTML}`：検証済み JX（ATHENA）HTML の実パス（ランナー注入・一次情報源）
-- `{SKELETON}`：`canonical/ARIADNE.html`（固定HTML/CSS/JS複製起点・v1.4.0 ARENA-PURE active）
+- `{SKELETON}`：`canonical/ARIADNE.html`（固定HTML/CSS/JS複製起点・v1.5.0 LOOP-MODE active）
 - `{SLOT_CONTRACT}`：`canonical/ARIADNE.placeholder.html`（AIが置換してよい `{{{...}}}` スロット契約）
 - `{OUT}`：`outputs/ux/001_ARIADNE/{00N_科目}/{PROBLEM_ID}_ARIADNE.html`
   （科目→フォルダは 001_刑法/002_刑事訴訟法/003_民法/004_商法/005_民事訴訟法/006_行政法/007_憲法）
@@ -69,7 +69,13 @@
    - 設問文を Lexia メタ除去 regex（`(本問|本設問)[0-20字]正解｜正解は肢｜正解はどれ｜正解の組`）に当てない。
    - `<script>` 内に `</body>` リテラルを書かない（「`</`+`body>`」等で回避）。
 5. **体裁強化を冪等付与（必須）**：`python scripts/ariadne-enhance.py {OUT}`（①深層部 条文の「N項」バッジ化＋項を点線区切り／③マストヘッド目次ジャンプTOC／④各セクション区切り＋深掘り前に「▲先頭へ戻る」）→ `python scripts/ariadne-autolink.py {OUT}`（②本文インライン相互リンク＝条文・判例・学説・用語を語そのままリンク・解法ナビ⇄深層部・カード間相互）。両者**冪等**。
-6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A40 ERROR 0**（A34＝骨子 SIMPLE-BONE・matrix 使用時のみ WARN／**A35＝深掘りテンプレ流用は ERROR**＝本問に無い人物記号が深掘りに出たら別問題流用として落とす／A36-A39＝版スタンプ・未定義box・draft逐語・bc-inst 2カラムは WARN・§17／**A40＝arena純度（方法論ドリル・bc-wrap の data-arena）は ERROR**）。続けて `python -X utf8 scripts/check-ariadne-quiz-dedup.py` で **corpus 横断の同一設問複製（3ファイル以上=ERROR）が増えていない**ことを確認。ERROR は該当部を修正して再検証。
+5-bis. **周回モード（v1.5.0 LOOP-MODE・逐語コピー・書き換え禁止）** ─ {SKELETON} の
+   `ARIADNE-LOOPMODE-UI:BEGIN〜END`（`<main class="sheet">` 直後）・`ARIADNE-LOOPMODE:BEGIN〜END`（`<style>` 末尾）・
+   `ARIADNE-LOOPMODE-JS:BEGIN〜END`（末尾 `</script>` 直前）と `<div class="wrap" data-loop="1">` を**そのまま複製**する。
+   3つの案内文（1周目=解かない／2周目=構成まで／3周目=口頭）は**全問共通の固定文＝問題固有スロットではない**ので、
+   要約・言い換え・トグル化をしない（現在モードのぶんが毎回露出することがユーザー要件）。複製漏れは
+   validate-ariadne **A43 ERROR**。後追い修復は `python scripts/ariadne-loop-mode.py --apply {OUT}`（冪等・本文不変）。
+6. **検証**：`python scripts/validate-ariadne.py {OUT}` を実行し **A1〜A43 ERROR 0**（A34＝骨子 SIMPLE-BONE・matrix 使用時のみ WARN／**A35＝深掘りテンプレ流用は ERROR**＝本問に無い人物記号が深掘りに出たら別問題流用として落とす／A36-A39＝版スタンプ・未定義box・draft逐語・bc-inst 2カラムは WARN・§17／**A40＝arena純度（方法論ドリル・bc-wrap の data-arena）は ERROR**／**A43＝周回モード LOOP-MODE の3ブロック欠落は ERROR**）。続けて `python -X utf8 scripts/check-ariadne-quiz-dedup.py` で **corpus 横断の同一設問複製（3ファイル以上=ERROR）が増えていない**ことを確認。ERROR は該当部を修正して再検証。
 7. **完了 sentinel を echo**（下記節のいずれか1つ）してから終了。本文は返さない。
 
 ## 注意

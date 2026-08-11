@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""validate-ariadne.py — ARIADNE v1.4.0 ARENA-PURE（JX 解法ナビ＋周回・Lexia連携）HTML の検証。
+"""validate-ariadne.py — ARIADNE v1.5.0 LOOP-MODE（JX 解法ナビ＋周回・Lexia連携）HTML の検証。
 
 ARIADNE は ATHENA（百科事典型 JX 正典）と役割分担する別正典。
 本検証器は「構造（誌面の骨格）」「Lexia 周回契約（自己完結○×が復習プールに乗るか）」
 「Lexia 安全制約（</body>リテラル・メタ除去regex）」を機械検査する。
 v1.4.0 ARENA-PURE（2026-07-11）：arena（プール対象）は当該問題の法的実体のみ。
 科目共通の答案方法論ドリルと bc-wrap 作法ドリルの data-arena は A40 で ERROR。
+v1.5.0 LOOP-MODE（2026-08-11）：周回モード（1周目フル／2周目 論点＋骨子／3周目 口頭）の
+段階フェード・エンジンと周回ごとの案内文の実装を A43 で ERROR 検査する。
 
 使い方:  python scripts/validate-ariadne.py outputs/ux/001_ARIADNE/001_刑法/刑JX001_ARIADNE.html
 ERROR が 1 件でもあれば exit 1。WARNING は配信可。
@@ -563,13 +565,13 @@ def main():
             P('A35', '深掘り層に本問外の人物記号なし（テンプレ流用の兆候なし）')
 
     # ---- A36 版スタンプ整合（旧版残置検出・§17・2026-07-02・WARN）----
-    old_ver = sorted(set(re.findall(r'ARIADNE v(?:0\.\d+|1\.0\.\d+|1\.1\.\d+|1\.2\.\d+|1\.3\.\d+)[0-9A-Za-z .\-]*', html)))
+    old_ver = sorted(set(re.findall(r'ARIADNE v(?:0\.\d+|1\.0\.\d+|1\.1\.\d+|1\.2\.\d+|1\.3\.\d+|1\.4\.\d+)[0-9A-Za-z .\-]*', html)))
     if old_ver:
-        W('A36', '旧版スタンプ残置（現行は ARIADNE v1.4.0 ARENA-PURE・CSS先頭/フッター/lexia-genmeta を更新）: ' + '／'.join(v.strip() for v in old_ver[:5]))
-    elif 'ARIADNE v1.4.0' not in html:
-        W('A36', '版スタンプに ARIADNE v1.4.0 が見当たらない（genmeta/フッター/CSS へ現行版を刻む）')
+        W('A36', '旧版スタンプ残置（現行は ARIADNE v1.5.0 LOOP-MODE・CSS先頭/フッター/lexia-genmeta を更新）: ' + '／'.join(v.strip() for v in old_ver[:5]))
+    elif 'ARIADNE v1.5.0' not in html:
+        W('A36', '版スタンプに ARIADNE v1.5.0 が見当たらない（genmeta/フッター/CSS へ現行版を刻む）')
     else:
-        P('A36', '版スタンプは現行 ARIADNE v1.4.0')
+        P('A36', '版スタンプは現行 ARIADNE v1.5.0')
 
     # ---- A37 未定義 box/card クラス（.warn-box 等の素描画検出・2026-07-02・WARN）----
     style_css = ''.join(re.findall(r'<style[^>]*>(.*?)</style>', html, re.S))
@@ -601,6 +603,31 @@ def main():
             W('A39', f'.bc-inst が .bi 2カラム未実装（{nobi}箇所）＝ラベル横に本文直置き（§12-1・<div class="bi">本文</div> で包む）')
         else:
             P('A39', f'.bc-inst {len(bcinst)}件すべて .bi 2カラム')
+
+    # ---- A43 周回モード・エンジン（v1.5.0 LOOP-MODE・2026-08-11・ERROR）----
+    # 1本＝約2万字を 2周目・3周目も全部通る設計だったのを、`.wrap[data-loop]` の段階フェードで解く。
+    # DOM 温存（display 制御のみ）が前提なので、Lexia の復習プール抽出・本検証器の DOM 走査は無傷。
+    # 伝播ツール＝scripts/ariadne-loop-mode.py（canonical から3ブロックを逐語コピー・冪等）。
+    a43_missing = []
+    if 'ARIADNE-LOOPMODE:BEGIN' not in html or 'ARIADNE-LOOPMODE:END' not in html:
+        a43_missing.append('CSS区画(ARIADNE-LOOPMODE)')
+    if 'ARIADNE-LOOPMODE-UI:BEGIN' not in html or 'class="loop-mode"' not in html:
+        a43_missing.append('周回モードUI(.loop-mode)')
+    if 'ARIADNE-LOOPMODE-JS:BEGIN' not in html or 'data-lm-max' not in html:
+        a43_missing.append('切替エンジンJS(data-lm-max 付与)')
+    if not re.search(r'<div class="wrap"[^>]*\bdata-loop="1"', html):
+        a43_missing.append('.wrap の data-loop="1" 既定値')
+    guides = set(re.findall(r'data-loop-guide="([123])"', html))
+    if guides != {'1', '2', '3'}:
+        a43_missing.append('周回ごとの案内文（1/2/3 の .lm-guide・毎回表示）')
+    btns = set(re.findall(r'data-loop-set="([123])"', html))
+    if btns != {'1', '2', '3'}:
+        a43_missing.append('モード切替ボタン（1/2/3）')
+    if a43_missing:
+        E('A43', '周回モード（v1.5.0 LOOP-MODE）が未実装/欠落: ' + '／'.join(a43_missing)
+                 + '（修復＝python scripts/ariadne-loop-mode.py --apply <file>）')
+    else:
+        P('A43', '周回モード実装OK（段階フェード＋1/2/3周目の案内文を常時表示）')
 
     for line in passes + warns + errors:
         print(line)

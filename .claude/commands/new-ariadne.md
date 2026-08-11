@@ -3,7 +3,7 @@
 **用途**：既存の検証済み JX（ATHENA）から、初学者向けの「解法ナビ＋周回」教材 ARIADNE を1問生成する。
 ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/TREE と同じく検証済み JX から蒸留）。
 
-> **【現行版 ARIADNE v1.4.0 ARENA-PURE・2026-07-11】正典は `canonical/ARIADNE.html`（複製起点）＋
+> **【現行版 ARIADNE v1.5.0 LOOP-MODE・2026-08-11】正典は `canonical/ARIADNE.html`（複製起点）＋
 > `spec/jx-ariadne-v1.2.0-core.md` 冒頭の v1.4.0 節。**周回ドリルの arena 純度が最重要**：`data-arena="1"`
 > （Lexia 復習プール対象）に載せてよいのは**当該問題の法的実体（規範・要件・判別基準・判例の射程・条文）だけ**。
 > 科目共通の答案方法論（体系順・4点セット・評価語 等＝`scripts/ariadne_arena_rules.py`）は arena 禁止、
@@ -15,7 +15,7 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
 > （`python scripts/ariadne-txlex-theme.py --apply {file}` ＋ 必要に応じ
 > `ariadne-case-unify.py`/`ariadne-hy-to-cx.py`/`ariadne-convert-compact.py`/`ariadne-convert-residual.py`/
 > `ariadne-unify-case-structure.py`/`ariadne-jiken-to-labeled.py`/`ariadne-problem-restyle.py`/`ariadne-sechead-contrast.py`・
-> 全て冪等・本文不変・LF保持）。検証は `check-ariadne-canonical.py`（版マーカー `ARIADNE v1.4.0 ARENA-PURE`・
+> 全て冪等・本文不変・LF保持）。検証は `check-ariadne-canonical.py`（版マーカー `ARIADNE v1.5.0 LOOP-MODE`・
 > validate A1〜A40 ＋ corpus 横断 `check-ariadne-quiz-dedup.py`＝同一設問3ファイル以上で ERROR）。
 
 ## 使い方
