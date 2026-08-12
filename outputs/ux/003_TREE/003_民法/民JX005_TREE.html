@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>錯誤取消しと権限外の表見代理 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. V <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">錯誤取消しと権限外の表見代理 <em>— Mistake &amp; Apparent Authority beyond Scope</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">錯誤取消しと<br>権限外の表見代理</h2>
+      <div class="mm-root-en">Mistake &amp; Apparent Authority</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法（総則）<br>
+        <em>Origin</em>重要問題演習 第5問 · 平成29年改正法<br>
+        <em>Form</em>条文選択・要件提示型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法総則の二大頻出領域を1問で横断する。設問1は<strong>意思表示の錯誤（95条）</strong>、設問2は<strong>無権代理と権限外の表見代理（109条・112条）</strong>。いずれも<strong>平成29年改正で明文化された条文</strong>の解釈・適用を試す、改正法運用の試金石。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>総則頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★☆☆</span>
+              </div>
+              <p>基本構造は素直だが、<strong>原則を当てはめると要件を満たさず、隣接制度で救済されるかを問う「関門突破型」</strong>。関門（重過失・表示要件・権限外）を丁寧に論じられるかで差がつく。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。錯誤を主張する側は<strong>重過失・表示要件</strong>で、代金請求する側は<strong>権限外行為</strong>で阻まれる。原則どおり結論を出すと総崩れになる、<strong>関門の存在に気づけるか</strong>が分水嶺。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>心裡留保（93条）・虚偽表示（94条）・詐欺（96条）との区別／動機の錯誤法理／無権代理人責任（117条）・追認（116条）・催告取消権（114・115条）／110条単独型との違い。とりわけ<strong>「消滅後＝112条2項／授与表示＝109条2項」の条文選択</strong>が本問の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">設問1の核（錯誤・AB間）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aが販売業者Bの店頭で高級車「AGR」（定価500万円）を購入。<strong>(1)</strong> 表示は「キャンペーン価格300万円」だが期間経過済みで、Bが定価に戻すのを<strong>失念</strong>していた（＝Bの表示錯誤）。<strong>(2)</strong> Aは「世界で数台の希少モデル」と誤信して購入を決意（実際は数万台製造・＝Aの動機の錯誤）。各場合は独立。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">設問2の核（表見代理・XYZ）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>ZがYの代理人と称し、X所有の甲土地を代金<strong>5000万円</strong>で売買。契約当時Zに買受けの代理権なし。<strong>(1)</strong> かつてYはZに<strong>抵当権設定</strong>の代理権を与えたが取消し（消滅）済み。<strong>(2)</strong> YはXに「Zを抵当権設定の代理人に選定する予定」と<strong>授与表示</strong>していた。XはYに代金請求できるか。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 設問1(1)＝<strong>1号錯誤</strong>だが3項<strong>重過失</strong>の関門を越えるか。<br>② 設問1(2)＝<strong>2号錯誤</strong>だが2項<strong>基礎事情の表示</strong>要件を満たすか。<br>③ 設問2(1)＝消滅した代理権を超える売買＝<strong>112条2項</strong>か。<br>④ 設問2(2)＝授与表示を超える売買＝<strong>109条2項</strong>か。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 0 · 共通の型（誰の意思表示か→原則→関門→救済）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>両設問に通じる愚直な処理手順は、<strong>①誰のどの意思表示・法律行為が問題か → ②原則の条文をあてはめる → ③原則では不都合が出る箇所（関門）を特定 → ④救済・制限規定を検討 → ⑤結論</strong>。「法律関係を論じよ／請求できるか」型はこの流れで迷わない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 錯誤の類型判別（1号か2号か）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>錯誤答案で最初に決めるのが類型。<strong>表示と効果意思がズレる＝1号（表示錯誤）／購入の理由（動機）が現実と食い違う＝2号（基礎事情錯誤）</strong>。設問1(1)は表示300万／内心500万で<strong>1号</strong>、(2)は「希少だから買う」の動機齟齬で<strong>2号</strong>。ここを取り違えると先の要件が丸ごとズレる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 錯誤の関門（重過失／表示要件）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>(1)の関門は<strong>3項の重過失</strong>。Bは「失念」＝重過失があり原則取消不可。例外（相手方Aの悪意・重過失＝3項1号）も、「キャンペーン価格」表示ゆえAを責められず不成立。(2)の関門は<strong>2項「表示」</strong>。単なる表示では足りず<strong>相手方に了解され契約内容化</strong>を要する（内容化説）。本問は表示自体が乏しく、いずれも<strong>取消不可</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 無権代理の原則＝表見代理へ橋渡し</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設問2はまず原則から。Zに買受けの代理権はなく<strong>無権代理＝本人Yに効果不帰属</strong>（113条1項）。追認もないから、Xの代金請求は<strong>表見代理が成立する場合のみ</strong>。この骨格を先に立てると答案が締まる。いきなり表見代理から書かない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 条文選択（1項ではなく2項）→正当理由</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>基本権限（消滅前の代理権／授与表示）は<strong>「抵当権設定」に限定</strong>され、今回の<strong>「売買」はその範囲外</strong>。よって1項では捕捉できず、110条の趣旨を取り込んだ<strong>(1)＝112条2項／(2)＝109条2項</strong>による。要件<strong>「正当な理由＝善意無過失」</strong>を提示し、あてはめ材料の乏しさを正直に指摘して締める。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 錯誤（95条）
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①錯誤<span class="mm-name-en">Mistake · Art. 95</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 1号と2号の区別基準</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>1号＝意思表示に対応する意思を欠く錯誤（表示錯誤）</strong>。言い間違い・書き間違い・表示の意味の取違え。<strong>2号＝表意者が法律行為の基礎とした事情の認識が真実に反する錯誤（基礎事情＝動機の錯誤）</strong>。効果意思と表示のズレの有無で振り分ける。</p><div class="norm">錯誤は、意思表示に対応する意思を欠く錯誤（95条1項1号）と、表意者が法律行為の基礎とした事情についての認識が真実に反する錯誤（同項2号）に分かれる。<span class="norm-cite">— 二元論（改正法の立場・通説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 柱書＝因果性・重要性</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>1号・2号いずれも、その錯誤が<strong>法律行為の目的及び取引上の社会通念に照らして重要</strong>（1項柱書）で、意思表示がその錯誤に基づくものであるときに取り消せる。「重要」＝<strong>通常人ならその錯誤がなければ意思表示をしなかった客観的重要性</strong>。設問1(1)は代金差200万円で優に充足。</p><div class="norm">「重要」性とは、通常人であればその錯誤がなければ意思表示をしなかったといえる客観的重要性をいう。<span class="norm-cite">— 95条1項柱書</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 2項「表示」＝内容化説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>2号取消しには基礎事情が「法律行為の基礎とされていることが表示されていた」（2項）ことを要する。<strong>単に表示されただけでは足りず、相手方に了解され法律行為の内容となっていることを要する（内容化説・有力）</strong>。取引安全と相手方の予測可能性を確保するため。旧法「動機の表示による要素性」判例を承継。</p><div class="norm">単に基礎事情が相手方に表示されただけでは足りず、当該事情が相手方に了解され、法律行為の内容となっていたことを要すると解する。<span class="norm-cite">— 内容化説（合意内容説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-D · 3項重過失と例外／改正の効果転換</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>表意者に<strong>重過失</strong>があると原則取消不可（3項柱書）。例外＝①相手方の悪意・重過失（3項1号）、②共通錯誤（3項2号）。設問1(1)はBの「失念」＝重過失、Aの悪意・重過失なし＝取消不可。<br><em>改正</em> — 効果は「無効」→<strong>「取消し」</strong>へ。「錯誤無効」と書くと旧法知識の露呈。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 表見代理（109条2項・112条2項）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②表見代理<span class="mm-name-en">Apparent Authority</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 無権代理の原則（113条1項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>代理権なくしてした行為は、本人が追認しなければ本人に効力を生じない。相手方が本人に履行を求めるには<strong>追認か表見代理</strong>を要する。本問は追認なし＝表見代理のみが救済経路。</p><div class="norm">代理人が代理権なくしてした行為は、本人が追認しなければ、本人に対してその効力を生じない（113条1項）。無権代理の相手方が本人に履行を求めるには、追認があるか表見代理が成立することを要する。<span class="norm-cite">— 無権代理の大原則</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 消滅後＋権限外＝112条2項〔設問2(1)〕</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>消滅前の代理権（抵当権設定）を<strong>基本代理権</strong>とし、消滅後の<strong>越権行為（売買）</strong>を捕捉する。前提として第三者が<strong>消滅の事実を善意無過失</strong>（1項）であること。旧法の112条＋110条重畳適用を改正が明文化。</p><div class="norm">代理権消滅後にその範囲を超えて代理人がした行為について、第三者が代理権があると信ずべき正当な理由があるときは、本人が責任を負う（112条2項）。前提として第三者が消滅につき善意無過失であることを要する。<span class="norm-cite">— 最判昭45.12.24 → 112条2項</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 授与表示＋権限外＝109条2項〔設問2(2)〕</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「Zを抵当権設定の代理人にする予定」との言明は<strong>代理権授与の表示</strong>（109条1項）。だが売買は表示範囲外だから、<strong>越権部分の正当理由</strong>を要件とする109条2項による。旧法の109条＋110条重畳適用を改正が明文化。</p><div class="norm">代理権授与の表示をした者は、表示した代理権の範囲を超えてされた行為について、第三者に正当な理由があるときは、その責任を負う（109条2項）。<span class="norm-cite">— 最判昭45.7.28ほか → 109条2項</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-D · 「正当な理由」＝善意無過失／あてはめの作法</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>2項の「正当な理由」は110条と同義で<strong>越権部分につき代理権ありと信じ、そう信じることに過失がないこと（善意無過失）</strong>。本問には正当理由を基礎づける具体的事情（登記・書類・Yの言動等）が乏しい。<strong>事実を捏造せず「与えられた事実からは断定できない」と要件提示中心</strong>でまとめるのが正しい姿勢。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">S-1 · 錯誤の類型と柱書要件</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">錯誤は、意思表示に対応する意思を欠く錯誤（95条1項1号）と、表意者が法律行為の基礎とした事情についての認識が真実に反する錯誤（同項2号）に分かれる。いずれも、その錯誤が法律行為の目的及び取引上の社会通念に照らして重要（同項柱書）であり、意思表示がその錯誤に基づくものであるときは取り消すことができる。<span class="norm-cite">— 論証S-1・必須</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">S-2 · 2項「表示」の意義（内容化説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">基礎事情錯誤による取消しには、その事情が法律行為の基礎とされていることが「表示されていた」ことを要する（95条2項）。もっとも、単に基礎事情が相手方に表示されただけでは足りず、当該事情が相手方に了解され、法律行為の内容となっていたことを要すると解する。取引の安全を図りつつ、相手方の予測可能性を確保するためである。<span class="norm-cite">— 論証S-2・必須</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">D-1 · 無権代理の原則→表見代理へ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">代理人が代理権なくしてした行為は、本人が追認しなければ、本人に対してその効力を生じない（113条1項）。したがって、無権代理行為の相手方が本人に履行を求めるには、本人の追認があるか、表見代理が成立することを要する。<span class="norm-cite">— 論証D-1・必須</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">D-2/D-3 · 消滅後＝112条2項／授与表示＝109条2項</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">かつて代理権を与えた者は、代理権消滅後にその範囲を超えて代理人がした行為について、第三者が代理権があると信ずべき正当な理由があるときは、その責任を負う（112条2項）。前提として第三者が消滅につき善意無過失であることを要する。授与表示型も、表示範囲を超える行為につき正当な理由があれば本人が責任を負う（109条2項）。「正当な理由」とは越権部分につき代理権ありと信じ、そう信じることに過失がないこと（善意無過失）をいう。<span class="norm-cite">— 論証D-2・D-3・必須</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 設問1(1)＝1号錯誤＋重過失</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>表示「300万円で売る」と効果意思「500万円で売る」のズレ＝<strong>1号該当</strong>／代金差200万円＝<strong>重要性</strong>充足／Bが「定価に戻すのを失念」＝<strong>3項重過失</strong>（価格管理を業とする販売業者の落ち度）／「キャンペーン価格」の記載＝Aは安値を疑えず<strong>Aの悪意・重過失なし（3項1号例外の不成立）</strong>。<br>──結論：取消不可。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 設問1(2)＝2号錯誤＋表示要件</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「希少価値が高いことから購入しようと考えた」＝<strong>動機の齟齬＝2号該当</strong>／実際は数万台製造＝認識が真実に反する／もっともAが<strong>希少性の認識をBに伝えた事情も、Bが了解した事情もない</strong>＝2項の表示（内容化）要件を欠く。<br>──結論：取消不可（内容化説でも単純表示説でも同結論）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 設問2(1)＝112条2項の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>消滅前の代理権は<strong>「抵当権設定」に限定</strong>／本件行為は<strong>「売買」＝範囲外</strong>＝112条1項でなく2項／XはZと抵当権設定を交渉した者＝消滅前代理権の存在は認識／<strong>消滅の善意無過失（1項）と越権部分の正当理由を基礎づける具体的事情は問題文に乏しい</strong>。<br>──要件提示中心でまとめる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 設問2(2)＝109条2項の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「甲土地の抵当権設定についてZを代理人に選定する予定なので交渉を進めてほしい」＝<strong>代理権授与の表示（109条1項）</strong>／本件売買は<strong>表示範囲外</strong>＝109条2項／<strong>越権部分につきXが代理権ありと信ずべき正当理由（善意無過失）を基礎づける事情は乏しい</strong>。<br>──正当理由の充足を条件にXはYに代金請求可。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 4 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>錯誤類型</strong> — 1号（表示錯誤）／2号（基礎事情＝動機）を最初に判別<br>② <strong>2項表示</strong> — 単なる表示では足りず相手方了解・内容化を要する（内容化説）<br>③ <strong>3項重過失</strong> — 原則取消不可、例外＝相手方の悪意重過失／共通錯誤<br>④ <strong>表見代理</strong> — 無権代理は不帰属、越権は2項（112条2項／109条2項）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">大判大3.12.15ほか</span> — 動機の表示による要素性（→95条2項の母法）<br>② <span class="case-name">最判昭45.12.24</span> — 112条＋110条の重畳適用（→112条2項）<br>③ <span class="case-name">最判昭45.7.28ほか</span> — 109条＋110条の重畳適用（→109条2項）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">条文暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 錯誤 — 95条（1項1号／2号・柱書／2項／3項柱書・1号・2号／4項第三者）<br>· 無権代理原則 — 113条1項<br>· 消滅後＋権限外 — 112条2項（前提＝1項善意無過失）<br>· 授与表示＋権限外 — 109条2項<br>· 母法 — 110条（正当理由＝善意無過失）／117条（無権代理人責任）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「意思表示に対応する意思を欠く」＝1号<br>· 「法律行為の基礎とした事情」＝2号<br>· 「表示され、了解され、内容となった」＝内容化説<br>· 「範囲を超える＝1項でなく2項」<br>· 「正当な理由＝善意無過失」<br>· 「与えられた事実からは断定できない」＝要件提示の作法</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 心裡留保・虚偽表示との区別（93・94条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>心裡留保（93条）は表意者が意思と表示の不一致を<strong>知っている</strong>点で、不一致を知らない錯誤と異なる。虚偽表示（94条）は相手方と<strong>通謀</strong>して虚偽の外観を作る点で、単独の内心の齟齬たる錯誤と異なる。意思表示の瑕疵の全体系での位置づけを押さえる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 詐欺・消費者契約法（96条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aの希少価値の誤信が<strong>Bの欺罔</strong>によって生じたなら詐欺（96条）や消費者契約法4条（不実告知）の検討余地。もっとも本問はBが希少性を積極的に述べた事情はなくAの一方的誤信にとどまるため、<strong>95条2号の枠内で処理すれば足りる</strong>（無用に深入りしない）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 錯誤取消しと第三者（95条4項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>95条4項は錯誤取消しを<strong>善意無過失の第三者</strong>に対抗できないとする。取消し前の転得者を保護する規定で、96条3項（詐欺の第三者保護）と平仄が合う。本問は第三者不登場ゆえ問題とならないが、事例発展時の頻出論点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 無権代理人責任・追認・催告（117・116・114条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>表見代理が不成立なら、XはZに<strong>履行又は損害賠償</strong>を請求しうる（117条1項）。判例（最判昭62.7.7）は相手方が表見代理と117条を<strong>選択できる</strong>とする。Yが追認すれば遡及的に有効（116条）。相手方Xは催告（114条）・取消し（115条）も可能。本問はYへのX請求に絞られる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 1号と2号を取り違える</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設問1(1)を2号錯誤、(2)を1号錯誤と<strong>類型を取り違える</strong>のが最大の失点（−10〜15点）。以降の要件（2項の要否・3項の当否）が総崩れになる。<strong>表示と内心のズレ＝1号／購入の理由の齟齬＝2号</strong>を最初に確定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 重要性まで認定して取消しを認める</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設問1(1)で200万円差＝重要性を認定して満足し、<strong>3項の重過失を落として取消しを認める</strong>のは典型的失点（−10〜15点）。Bの「失念」＝重過失を必ず検討し、さらに<strong>例外（3項1号）まで一言</strong>触れて取消しを否定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 設問1(2)で2項を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>2号錯誤なのに<strong>2項の表示要件を検討しない</strong>のは重大な失点（−10〜15点）。「表示」の意義を規範（内容化説か単純表示説か）として示し、表示・了解の不存在をあてはめる。「錯誤無効」と旧法用語で書くのも減点（改正で「取消し」）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 無権代理原則を書かず表見代理へ直行</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設問2でいきなり表見代理から書くと骨格が崩れる（−5〜8点）。<strong>無権代理→効果不帰属（113条1項）→追認なし→表見代理のみ救済</strong>という原則を先に示す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 1項・110条単独を適用／事情の捏造</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>越権行為なのに<strong>112条1項・109条1項や110条単独</strong>を挙げるのは条文選択ミス（−10〜15点）。基本代理権が現存しない本問で110条単独は誤り。<strong>「範囲を超えるから2項」</strong>の一言を落とさない。また正当理由の事情を<strong>捏造してあてはめる</strong>のも失点（−5〜8点）。事情不足は正直に指摘する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じておく。錯誤（類型→関門）→無権代理→表見代理の条文選択という流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。<strong>1号/2号の限界</strong>と<strong>1項でなく2項を選ぶ理由</strong>を意識。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。<strong>要件提示中心・事情の乏しさの処理</strong>を訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。内容化説・112条2項/109条2項の規範を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。3 判例と条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照条文判例<span class="mm-name-en">Sources</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法95条</span><span class="mm-leaf-sub"><em>Civil Code, art. 95 · Mistake</em> · 短答★★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>1項＝1号（表示錯誤）・2号（基礎事情錯誤）・柱書（重要性）／2項＝基礎事情の表示／3項＝重過失と例外（1号相手方悪意重過失・2号共通錯誤）／4項＝善意無過失の第三者保護。<em>射程</em> — 設問1の中心条文。<strong>改正で「無効」→「取消し」</strong>、動機の錯誤を明文化。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法109条</span><span class="mm-leaf-sub"><em>art. 109 · Authority by Representation</em> · 短答★★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>1項＝代理権授与表示の範囲内で本人が責任（ただし相手方悪意過失は免責）。<strong>2項＝範囲外の行為につき正当理由があれば本人が責任</strong>。<em>射程</em> — 設問2(2)の中心。旧法の109条＋110条重畳適用を改正が明文化。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法110条</span><span class="mm-leaf-sub"><em>art. 110 · Beyond Authority</em> · 短答★★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>基本代理権が<strong>現存</strong>する場合の権限外行為の表見代理。正当理由（善意無過失）で本人へ帰責。<em>射程</em> — 本問では<strong>単独では使わない</strong>（基本代理権が現存しないため）が、109条2項・112条2項の「範囲外」「正当理由」の母法として意義を理解する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法112条</span><span class="mm-leaf-sub"><em>art. 112 · After Termination</em> · 短答★★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>1項＝消滅前代理権の範囲内で、消滅を善意無過失の第三者に本人が責任。<strong>2項＝1項の前提の下、範囲外の行為につき正当理由があれば本人が責任</strong>。<em>射程</em> — 設問2(1)の中心。<strong>2項は1項（消滅の善意無過失）を前提</strong>とする点に注意。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法113条</span><span class="mm-leaf-sub"><em>art. 113 · Unauthorized Agency</em> · 短答★★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「代理権を有しない者が他人の代理人としてした契約は、本人がその追認をしなければ、本人に対してその効力を生じない」（1項）。<em>射程</em> — 設問2の冒頭で示す大原則。表見代理・117条・追認の出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法117条</span><span class="mm-leaf-sub"><em>art. 117 · Liability of Agent</em> · 短答★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>他人の代理人として契約した者は、代理権の証明・本人の追認がない限り、相手方の選択に従い履行又は損害賠償の責任を負う（1項）。<em>射程</em> — 表見代理不成立時にXがZに請求しうる。判例上、相手方は表見代理と117条を選択可能。本問はYへのX請求に絞る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">大判大正3年12月15日ほか</span><span class="mm-leaf-sub"><em>Motive Expressed → Element</em> · 短答★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>動機の表示による要素性</strong>。「意思表示の動機は、相手方に表示されて意思表示の内容となった場合でなければ、法律行為の要素の錯誤とすることはできない」（趣旨）。<em>射程</em> — 改正95条2項「基礎とされていることが表示されていた」の母法。設問1(2)の出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和45年12月24日</span><span class="mm-leaf-sub"><em>Art.112 + 110 Overlap</em> · 短答★★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>112条＋110条の重畳適用</strong>。「代理権消滅後にその範囲を超えてされた代理行為について、相手方が代理権消滅の事実を知らず、かつ当該行為につき代理権があると信ずべき正当な理由があるときは、本人がその責任を負う」（趣旨）。<em>射程</em> — 設問2(1)の直接の根拠。改正112条2項に明文化。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和45年7月28日ほか</span><span class="mm-leaf-sub"><em>Art.109 + 110 Overlap</em> · 短答★</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>109条＋110条の重畳適用</strong>。本人が代理権授与の表示をした場合において、表示された代理権の範囲を超える行為がされたときも、相手方に正当な理由があれば本人が責任を負う。<em>射程</em> — 設問2(2)の根拠。改正109条2項に明文化。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">内容化説（合意内容説）</span><span class="mm-leaf-sub"><em>Contract-Content Doctrine</em> · 有力</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>95条2項の「表示」＝単に表示されただけでは足りず、<strong>相手方に了解され法律行為の内容になっている</strong>ことを要する。論拠＝取引安全と表意者保護の調和・相手方の予測可能性。<em>採否</em> — 本問採用。設問1(2)で表示・了解の不存在をあてはめる（単純表示説でも同結論）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">善意無過失説（正当な理由）</span><span class="mm-leaf-sub"><em>Good Faith &amp; No Negligence</em> · 通説・判例</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>109条2項・112条2項・110条の「正当な理由」＝<strong>相手方が越権部分につき代理権ありと信じ、かつそう信じることに過失がないこと</strong>。<em>採否</em> — 本問採用。設問2で規範として提示し、あてはめ材料の乏しさを指摘する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">95条1項の1号錯誤と2号錯誤は、それぞれ何か？</span></summary>
+                  <div class="mm-q-answer">1号＝<span class="kw">意思表示に対応する意思を欠く錯誤（表示錯誤）</span>。2号＝<span class="kw">表意者が法律行為の基礎とした事情についての認識が真実に反する錯誤（基礎事情＝動機の錯誤）</span>。効果意思と表示のズレの有無で区別する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">2号錯誤で取消しに追加で必要な要件（2項）と、その解釈は？</span></summary>
+                  <div class="mm-q-answer">その事情が法律行為の基礎とされていることが「<span class="kw">表示されていた</span>」こと（2項）。単に表示されただけでは足りず、<span class="verb">相手方に了解され法律行為の内容となっていること</span>を要する（内容化説）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">表意者に重過失があるときの原則と例外（3項）は？</span></summary>
+                  <div class="mm-q-answer">原則<span class="kw">取消不可</span>（3項柱書）。例外＝①相手方が悪意・重過失（3項1号）、②<span class="kw">共通錯誤</span>（3項2号）のとき取消しできる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">無権代理の原則（113条1項）と、本人へ効果を帰属させる二経路は？</span></summary>
+                  <div class="mm-q-answer">本人が追認しなければ本人に<span class="kw">効果不帰属</span>（113条1項）。本人へ帰属させる経路は<span class="kw">①追認</span>か<span class="kw">②表見代理の成立</span>のみ。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">設問1(1)で、もしAが「キャンペーンは終わっているのでは」と気づける事情があったら結論はどう動くか？</span></summary>
+                  <div class="mm-q-answer">Aが表示価格を疑うべきだったといえれば、<span class="kw">相手方の悪意・重過失（3項1号）</span>が認められ、Bの重過失にもかかわらず<span class="kw">例外的に取消し可</span>となりうる。本問は「キャンペーン価格」表示ゆえAを責められず、例外不成立で取消不可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">設問2(1)で、なぜ112条1項ではなく112条2項なのか？</span></summary>
+                  <div class="mm-q-answer">消滅前の代理権は<span class="kw">「抵当権設定」に限定</span>され、本件<span class="kw">「売買」はその範囲外</span>。1項は範囲内の行為しか捕捉できないため、110条の趣旨を取り込んだ<span class="verb">2項（消滅後＋権限外）</span>による。「範囲を超えるから2項」の一言が条文選択の理由。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">設問2で「正当理由の事情が乏しい」とき、答案はどう締めるのが正しいか？</span></summary>
+                  <div class="mm-q-answer">事実を<span class="kw">捏造せず</span>、要件（善意無過失）を提示したうえで「<span class="verb">正当な理由を基礎づける具体的事情は与えられた事実からは断定できない</span>」と留保する。正当理由が認められる限りでXはYに代金請求可、と条件付きで結論する。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">95条2項「表示」の意義（内容化説）の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">基礎事情錯誤による取消しには、その事情が法律行為の基礎とされていることが「表示されていた」ことを要するが（95条2項）、単に相手方に表示されただけでは足りず、当該事情が相手方に了解され、法律行為の内容となっていたことを要すると解する。取引の安全を図りつつ相手方の予測可能性を確保するためである。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">消滅後＋権限外（112条2項）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">かつて代理権を与えた者は、代理権消滅後にその範囲を超えて代理人が第三者との間でした行為について、第三者がその代理権があると信ずべき正当な理由があるときは、その責任を負う（112条2項）。前提として、第三者が代理権消滅の事実を知らず、かつ過失なくして知らなかったこと（1項）を要する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">授与表示＋権限外（109条2項）の規範と「正当な理由」の意義を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">代理権授与の表示をした者は、その代理権の範囲を超えて他人が第三者との間でした行為について、第三者がその行為につき代理権があると信ずべき正当な理由があるときは、その責任を負う（109条2項）。「正当な理由」とは、越権部分につき代理権ありと信じ、かつそう信じることに過失がないこと（善意無過失）をいう。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">設問1を答案でどの順序・分量で構成する？</span></summary>
+                  <div class="mm-q-answer">(1)＝<span class="kw">1号→重要性（200万円差）→3項重過失→例外（3項1号）不成立</span>（500〜600字）。(2)＝<span class="kw">2号→2項規範（内容化説）→表示・了解の不存在</span>（400〜500字）。結論はいずれも取消不可で揃う。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">設問2を答案でどの順序で構成する？条文選択の核は？</span></summary>
+                  <div class="mm-q-answer">冒頭に<span class="kw">無権代理→不帰属（113条1項）→表見代理のみ</span>（150字）。(1)＝<span class="kw">112条2項</span>、(2)＝<span class="kw">109条2項</span>を、いずれも「基本権限（抵当権設定）を超える売買だから2項」という<span class="verb">条文選択の理由</span>とともに選び、正当理由を要件提示して締める。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">表示300万／内心500万 → ？</span></summary>
+                  <div class="mm-q-answer">1号錯誤。ただしBの重過失で取消不可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">希少と誤信（Bに未表示） → ？</span></summary>
+                  <div class="mm-q-answer">2号錯誤。2項の内容化を欠き取消不可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">消滅した抵当権設定の代理権＋売買 → ？／授与表示＋売買 → ？</span></summary>
+                  <div class="mm-q-answer">112条2項／109条2項（越権＝2項）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. V — 錯誤取消しと権限外の表見代理 · 13 chapters · 3 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-08-12T22:55+09:00">Generated: 2026-08-12 22:55 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
