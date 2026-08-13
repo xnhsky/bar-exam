@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>相続・取得時効と占有 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">相続・取得時効と占有 <em>— On Succession, Possession &amp; Adverse Possession</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">3</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">占有の承継と<br>相続の新権原</h2>
+      <div class="mm-root-en">Succession &amp; New Title</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法<br>
+        <em>Origin</em>重要問題 第12問 · 最判平8・11・12（百選Ⅰ67）<br>
+        <em>Form</em>一問形式（請求の当否）
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法物権・占有（<strong>185条 新権原・186条1項 所有の意思の推定・187条1項 占有の承継</strong>）と時効（<strong>162条2項 短期取得時効</strong>）、相続（<strong>896条 包括承継</strong>）が交差する横断論点。他人物の賃借人を相続した者が、承継した占有を自主占有へ転換して<strong>短期取得時効</strong>で所有権を取得できるかを問う。占有法と時効法の連結が主題。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>時効・占有頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>「所有の意思」を客観的に基礎づける自主占有事情のあてはめと、その<strong>主張立証責任の所在</strong>（百選Ⅰ67）の理解の深さで差がつく。短答でも論文でも問われる最重要域。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。取得時効の4要件のうち<strong>「所有の意思」だけが唯一の主戦場</strong>で構造は素直だが、承継した権利が<strong>賃借権＝他主占有</strong>である一点を外すと、取得原因・自主占有転換の全論点が崩れる罠型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>占有の分離・併合（187Ⅰ）／所有の意思の推定と客観説（186Ⅰ）／185条前段「所有の意思の表示」／共同相続と自主占有事情／取得時効の善意無過失（162Ⅱ）。とりわけ<strong>「相続＝新権原＋自主占有事情の立証責任は占有者」</strong>は短答頻出の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Yは所有する<strong>甲建物</strong>をAに賃料月額10万円で賃貸（2020.4.1）。Aは<strong>翌年交通事故で死亡</strong>（2021.4.1）。唯一の相続人Xは<strong>2021.4.15から甲建物に居住を開始</strong>し、<strong>相続で自己所有になったと過失なく信じ、自己名義で公租公課を支払った</strong>。真の所有者Yは、Xの居住を認識しつつ<strong>公租公課に異議を述べず賃料も取り立てなかった</strong>。2031.5.1、Xは登記名義がY名義と気付き、Yに<strong>所有権移転登記手続</strong>を求めた。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Y（甲建物の所有者・登記名義人・賃貸人）／A（賃借人＝<strong>他主占有</strong>・2021.4.1死亡）／<strong>X（Aの唯一の相続人・自ら居住し公租公課を負担・本問の請求者）</strong>。<strong>Xが承継したのは賃借権＝他主占有</strong>であることが全論点を貫く鍵。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① Xは所有権移転登記請求の前提として<strong>短期取得時効（162Ⅱ）</strong>で所有権を取得したか。<br>② 包括承継人Xは<strong>自己固有の占有のみ（187Ⅰ）</strong>を主張できるか。<br>③ 承継した他主占有は<strong>相続＝「新たな権原」（185）</strong>により自主占有へ転換したか。<br>④ その<strong>自主占有事情の主張立証責任</strong>は誰にあるか。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 請求の性質と取得原因の確定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Xの請求は<strong>所有権に基づく移転登記手続請求</strong>（登記名義はY）。その前提としてXの所有権取得が必要。Xが承継したのは<strong>賃借権にすぎない</strong>から、承継取得では所有権を得られず、<strong>自己固有の取得原因＝短期取得時効（162Ⅱ）</strong>を立てる。時効の4要件のうち争いは<strong>「所有の意思」の一点</strong>と絞り込むのが出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 誰の占有を主張するか（187Ⅰ）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aの占有は賃借権に基づく<strong>他主占有</strong>だから、これを併せて主張（187Ⅰ）しても所有の意思を欠く。そこでXは<strong>自己固有の占有のみ</strong>を主張する。187条1項の「占有者の承継人」に<strong>相続の如き包括承継人も含まれる</strong>（<span class="case-name">最判昭37.5.18</span>）から、これは可能。論点1は<strong>入口を開ける議論</strong>にすぎず1〜2文で肯定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 自主占有への転換（185・本問の山場）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>自己固有の占有も相続で承継した以上<strong>原則として他主占有</strong>。もっとも、事実的支配が<strong>外形的客観的にみて相続人独自の所有の意思に基づくと解される事情（自主占有事情）</strong>があれば、相続は185条の「新たな権原」に当たり自主占有へ転換する（<span class="case-name">最判昭46.11.30</span>）。所有の意思は<strong>客観的に判断</strong>する（客観説）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 立証責任＋あてはめ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>自主占有事情の<strong>主張立証責任は占有者X側</strong>にある（<span class="case-name">最判平8.11.12・百選Ⅰ67</span>）。X自身が積極的に立証する構造で書く。あてはめは①<strong>居住＝事実的支配</strong>②<strong>自己名義での公租公課の負担＝所有者なら当然の行動</strong>③<strong>Yの不作為（異議・取立てなし）＝間接事実</strong>の三つ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 5 · 時効完成 → 結論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>自主占有への転換で<strong>「所有の意思」を充足</strong>。起算点は現実占有開始の<strong>2021.4.15</strong>、善意無過失＋平穏公然も認められ、<strong>2031.4.15に10年の短期取得時効が完成</strong>（162Ⅱ）。Xは時効を援用して所有権を取得し、Yに移転登記手続を請求できる。よって<strong>Xの請求は認められる</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 占有者の承継人（187Ⅰ）
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Succession 187(1)</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 「占有者の承継人」の意義（187Ⅰ）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>占有者の承継人は、その<strong>選択に従い、自己の占有のみを主張し、又は自己の占有に前の占有者の占有を併せて主張することができる</strong>（187条1項）。前者は起算点が新しくなり、後者は占有期間を通算できる。本問でAの占有は他主占有だから、併せて主張しても所有の意思を欠く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 包括承継人への適用（昭37.5.18）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>187条1項の「承継人」は<strong>相続の如き包括承継人にも及ぶ</strong>。相続人は被相続人の占有の善意悪意・自主他主の地位を<strong>そのまま承継しなくてよく</strong>、自己の占有のみを切り出して主張できる。</p><div class="norm">民法187条1項は相続の如き包括承継の場合にも適用され、相続人は必ずしも被相続人の占有についての地位をそのまま承継するものではなく、その選択に従い自己の占有のみを主張し又は被相続人の占有に自己の占有を併せて主張することができる。<span class="norm-cite">— 最判昭37.5.18</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 本問の帰結（入口を開ける議論）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Xは唯一の相続人＝包括承継人（896条）。Aの他主占有を併せて主張する意味はないから、Xは<strong>自己固有の占有のみ</strong>を主張する（187Ⅰ）。もっとも自己固有の占有も相続で承継した以上<strong>原則は他主占有</strong>であり、これを自主占有へ転換できるかが<strong>論点2の主戦場</strong>。論点1はいわば入口を開ける議論にすぎず、1〜2文で肯定して次へ進む。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 相続と「新たな権原」（185）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">New Title 185</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 所有の意思の判断方法（客観説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>所有の意思の有無は、占有者の内心ではなく<strong>占有取得の原因（権原）の客観的性質、または占有に関する事情から外形的客観的に</strong>決する（客観説）。占有者は所有の意思をもつと推定されるが（186Ⅰ）、権原の性質上他主占有の場合は推定が働かず、転換には185条の要件を要する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 相続＝新権原＋自主占有事情（昭46.11.30）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>相続は包括承継ゆえ原則として占有の性質を変える「新たな権原」に当たらない。もっとも、相続人が<strong>所有の意思をもって新たに事実的支配を開始し、客観的に自主占有とみられる事情</strong>があれば、185条の「新たな権原」に当たり自主占有へ転換する。</p><div class="norm">相続人が新たに相続財産を事実上支配することによって占有を開始し、その事実的支配が外形的客観的にみて独自の所有の意思に基づくものと解される事情があるときは、相続は民法185条にいう新権原に当たり、所有の意思をもってする占有への転換を認めることができる。<span class="norm-cite">— 最判昭46.11.30（自主占有事情の枠組み）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 立証責任は占有者側（平8.11.12・百選Ⅰ67）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>自主占有事情の<strong>主張立証責任は、時効成立を争う相手方ではなく占有者たる相続人</strong>にある。相手方が他主占有事情を立証するのではない点に注意。</p><div class="norm">他主占有者の相続人が独自の占有に基づく取得時効を主張する場合、その占有が所有の意思に基づくといい得るためには、占有者である当該相続人において、その事実的支配が外形的客観的にみて独自の所有の意思に基づくものと解される事情を自ら証明すべきである。<span class="norm-cite">— 最判平8.11.12【百選Ⅰ67】</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">起 · 取得原因と占有の選択</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">Xが承継したのは賃借権にすぎず、これを根拠に所有権移転登記手続を求めることはできない。そこでXは自己固有の所有権取得原因として取得時効（162条2項）を主張する。Aの占有は賃借権に基づく他主占有であり併せて主張しても所有の意思を欠くから、Xは187条1項により自己固有の占有のみを主張する（同項は包括承継人にも適用される）。<span class="norm-cite">— 試験本番想定・導入形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 相続＝新権原・自主占有転換</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">相続は包括承継であるから占有の態様に変化はなく、Xは他主占有を承継するのが原則である。もっとも、所有の意思の有無は占有の態様によって客観的に定めるべきであり、事実的支配が外形的客観的にみて相続人独自の所有の意思に基づくものと解される事情がある場合には、相続は185条の「新たな権原」に当たり、自主占有への転換を認めるべきである。<span class="norm-cite">— 自主占有事情説・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 立証責任の所在</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">かかる自主占有事情の存否は、取得時効の成立を争う相手方ではなく、占有者である当該相続人において、その事実的支配が外形的客観的にみて独自の所有の意思に基づくものと解される事情を自ら主張・立証すべきである。<span class="norm-cite">— 立証責任・占有者負担型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · あてはめ・時効完成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">Xは甲建物に居住して事実上支配し、また固定資産税等の公租公課を自己名義で負担しているところ、これは所有者であれば当然とるべき行動である。加えて真の所有者Yが異議も賃料の取立てもしなかった事実は、Xの支配が独自の所有の意思に基づくことを推認させる。よって自主占有への転換が認められ、2021年4月15日の占有開始から10年を経た2031年4月15日、162条2項の短期取得時効が完成する。<span class="norm-cite">— あてはめ・結論形</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 他主占有の承継（転換前提材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aの占有は<strong>賃借権に基づく他主占有</strong>／Xは唯一の相続人として<strong>包括承継</strong>（896条）し、その他主占有を観念的に承継／承継した権利は賃借権にすぎず所有権ではない。<br>──ゆえにXは自己固有の占有のみを主張し（187Ⅰ）、自主占有への転換を要する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 自主占有事情（転換肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Xは<strong>2021.4.15から甲建物に居住</strong>＝事実的支配を開始／<strong>自己名義で固定資産税等の公租公課を支払う</strong>＝所有者であれば当然の行動／相続で自己所有になったと<strong>過失なく信じていた</strong>（善意無過失も基礎づけ）。<br>──外形的客観的にX独自の所有の意思に基づくと解される事情。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ Yの不作為（間接事実）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>真の所有者Yは、Xの居住を<strong>認識しつつ</strong>／公租公課の支払に<strong>異議を述べず</strong>／甲建物の<strong>賃料も取り立てなかった</strong>。<br>──Xの事実的支配が外形的客観的に独自の所有の意思に基づくことを<strong>推認させる間接事実</strong>として位置づける（占有者側の立証を補強）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>承継人</strong> — 187Ⅰは包括承継人にも適用／自己固有の占有のみ主張可<br>② <strong>新権原</strong> — 相続でも自主占有事情があれば185条の「新たな権原」＝自主占有へ転換（所有の意思は客観的に判断）<br>③ <strong>立証責任</strong> — 自主占有事情は占有者（相続人）が主張立証</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判昭37.5.18</span> — 187Ⅰは包括承継人にも適用<br>② <span class="case-name">最判昭46.11.30</span> — 相続＋自主占有事情＝新権原・自主占有転換<br>③ <span class="case-name">最判平8.11.12</span> — 自主占有事情の立証責任は占有者（百選Ⅰ67）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 短期取得時効 — 162条2項（善意無過失・10年）<br>· 所有の意思の推定 — 186条1項<br>· 占有の性質の変更 — 185条（表示／新たな権原）<br>· 占有の承継 — 187条1項<br>· 相続（包括承継） — 896条<br>· 起算 2021.4.15 ／ 完成 2031.4.15 ／ 甲賃料 月10万円</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「その選択に従い自己の占有のみを主張」<br>· 「外形的客観的にみて独自の所有の意思に基づく事情」<br>· 「相続は185条にいう新権原」<br>· 「占有者において自ら証明すべき」<br>· 「所有者であれば当然とるべき行動」<br>· 「所有の意思は客観的に定まる」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 187Ⅰ（分離・併合）と185（性質変更）の峻別</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>187条1項は<strong>「いつから数えるか」</strong>（誰の占有を主張し起算点を分離・併合するか）、185条は<strong>「自主占有か他主占有か」</strong>（占有の性質）を規律する<strong>別次元</strong>の問題。本問では両方が順に問題となるが、論点としては峻別する。混同すると論点が一段つぶれる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 所有の意思の推定（186Ⅰ）と客観説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>占有者は所有の意思をもって占有すると推定される（186Ⅰ）が、<strong>権原の性質上他主占有</strong>の場合はこの推定が及ばない。本問は賃借権承継＝他主占有で推定が働かないため、185条の転換を積極的に基礎づける必要がある。所有の意思の有無は<strong>客観的</strong>に判断する（客観説）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 185条前段「所有の意思の表示」</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>185条は転換方法を二つ定める。<strong>前段</strong>＝占有をさせた者に対する所有の意思の<strong>明示の表示</strong>、<strong>後段</strong>＝<strong>新たな権原</strong>による占有開始。本問は前段の表示がないため、<strong>後段の「新たな権原」（＝相続＋自主占有事情）</strong>で処理する。前段・後段の振り分けを明示できると理解が伝わる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 共同相続の場合の自主占有事情</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>相続人が複数いる共同相続では、他の共同相続人の持分を排除する外形（単独所有としての支配）が別途問題になりうる。本問は<strong>Xが唯一の相続人</strong>ゆえその問題は生じず、居住・公租公課負担で足りる。射程の違いを一言添えると差がつく。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 承継した権利を所有権と誤認</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Xが承継したのは<strong>賃借権</strong>にすぎないのに、これを所有権と扱って承継取得で処理すると全論点が崩れる。承継取得では所有権を得られないから<strong>自己固有の取得原因＝取得時効（162Ⅱ）</strong>を立てる、という筋を最初に固定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 187Ⅰと185を混同</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「誰の占有を主張するか（187Ⅰ）」と「占有が自主か他主か（185）」を<strong>ごちゃ混ぜ</strong>にする典型ミス。前者は起算点、後者は性質。順に峻別して論じる。論点1で満足して自主占有転換（論点2）を落とすと山場を失う。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 内心だけで所有の意思を認定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「Xは自分の物と信じていたから所有の意思あり」と<strong>内心のみ</strong>で片付けるのは誤り。所有の意思は<strong>客観説</strong>で判断するから、必ず<strong>外形的事実</strong>（居住・公租公課の自己名義負担・Yの不作為）で基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 立証責任の所在を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本問の<strong>配点重心</strong>の一つ。自主占有事情の<strong>主張立証責任が占有者X側</strong>にある点（百選Ⅰ67）に触れずに転換を認めると薄い答案になる。<strong>相手方が他主占有事情を立証するのではない</strong>ことを明示する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 相続を無限定に新権原とする</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「相続したのだから新権原＝自主占有」と<strong>無限定に転換</strong>を認めるのは誤り。判例は<strong>①自主占有事情の存在＋②占有者側の立証責任</strong>という二つのしぼりをかけている。この二段のしぼりを落とさず書くと判例に忠実な処理になる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じておく。取得時効→承継人（187Ⅰ）→新権原（185）→時効完成の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。<strong>客観説と自主占有事情の立証責任</strong>の射程を意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。三つの自主占有事情（居住・公租公課・Yの不作為）のあてはめを訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。187Ⅰと185の峻別・新権原の規範・立証責任を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。3 判例と数字（162Ⅱ・185・187Ⅰ・186Ⅰ・896）を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和37年5月18日</span><span class="mm-leaf-sub"><em>Universal Succession · Art. 187(1)</em> · 占有の承継</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>包括承継人への187条1項の適用を認めた判例</strong>。「民法187条1項は、相続の如き包括承継の場合にも適用せられ、相続人は必ずしも被相続人の占有についての善意悪意の地位をそのまま承継するものではなく、その選択に従い自己の占有のみを主張し又は被相続人の占有に自己の占有を併せて主張することができる」。<em>射程</em> — Xが自己固有の占有のみを主張できる根拠。論点1の入口を開ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和46年11月30日</span><span class="mm-leaf-sub"><em>Inheritance as New Title · Adverse Possession</em> · 自主占有事情</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>相続と「新たな権原」・自主占有事情の枠組みを示した中心判例</strong>。相続人が新たに相続財産を事実上支配し、その支配が外形的客観的に独自の所有の意思に基づくと解される事情があるときは、相続は185条にいう新権原に当たり自主占有への転換を認める。<em>射程</em> — 本問はこの枠組みで処理。居住・公租公課負担・Yの不作為を自主占有事情として認定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成8年11月12日</span><span class="mm-leaf-sub"><em>Burden of Proof on Possessor</em> · 百選Ⅰ67</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>自主占有事情の立証責任を占有者に負わせた判例</strong>。「他主占有者の相続人が独自の占有に基づく取得時効の成立を主張する場合……占有者である当該相続人において、その事実的支配が外形的客観的にみて独自の所有の意思に基づくものと解される事情を自ら証明すべきである」。<em>射程</em> — 立証責任の所在を明示。X自身が自主占有事情を積極立証する構造で書く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法162条2項</span><span class="mm-leaf-sub"><em>art. 162(2) · Short-term Acquisitive Prescription</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「10年間、所有の意思をもって、平穏に、かつ、公然と他人の物を占有した者は、その占有の開始の時に、善意であり、かつ、過失がなかったときは、その所有権を取得する」。<em>射程</em> — Xの所有権取得原因。争いは「所有の意思」の一点。起算 2021.4.15・完成 2031.4.15。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法185条</span><span class="mm-leaf-sub"><em>art. 185 · Change in Nature of Possession</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「権原の性質上占有者に所有の意思がないものとされる場合には、その占有者が、自己に占有をさせた者に対して所有の意思があることを表示し、又は新たな権原により更に所有の意思をもって占有を始めるのでなければ、占有の性質は、変わらない」。<em>射程</em> — 他主占有→自主占有の転換要件。本問は後段「新たな権原」で処理する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法186条1項</span><span class="mm-leaf-sub"><em>art. 186(1) · Presumption of Intent to Own</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「占有者は、所有の意思をもって、善意で、平穏に、かつ、公然と占有をするものと推定する」。<em>射程</em> — 所有の意思の推定規定。もっとも権原の性質上他主占有の本問では推定が及ばず、185条の転換を要する。客観説の位置づけを示す条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法187条1項</span><span class="mm-leaf-sub"><em>art. 187(1) · Succession of Possession</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「占有者の承継人は、その選択に従い、自己の占有のみを主張し、又は自己の占有に前の占有者の占有を併せて主張することができる」。<em>射程</em> — 論点1の中心条文。包括承継人にも適用（最判昭37.5.18）。Xは他主占有を併合せず自己固有の占有のみを主張する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法896条</span><span class="mm-leaf-sub"><em>art. 896 · Universal Succession by Inheritance</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「相続人は、相続開始の時から、被相続人の財産に属した一切の権利義務を承継する」。<em>射程</em> — Xが唯一の相続人としてAの地位（賃借権＝他主占有を含む）を包括承継する根拠。占有の性質を承継するからこそ185条の転換が問題となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">客観説（所有の意思）</span><span class="mm-leaf-sub"><em>Objective Theory of Intent to Own</em> · 判例・通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>所有の意思の有無は占有者の内心ではなく、<strong>占有取得の原因（権原）の客観的性質、または占有に関する事情から外形的客観的に</strong>決するとする通説・判例。内心に立ち入らず占有秩序の安定に資する。主観説（内心基準）は立証困難・恣意的で採られない。<em>射程</em> — 自主占有事情のあてはめを外形的事実で行う理論的支柱。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">自主占有事情説（新権原）</span><span class="mm-leaf-sub"><em>Self-Possession Circumstances Doctrine</em> · 判例</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>相続は原則として「新たな権原」に当たらないが、<strong>相続人独自の所有の意思を外形的客観的に基礎づける事情</strong>があれば新権原に当たり自主占有へ転換するとする判例の立場。無限定な転換を避け、<strong>①自主占有事情＋②占有者の立証責任</strong>で転換範囲を限定する。否定説（相続は新権原でない）との対比で理解する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">Xが承継したのは何権で、所有権取得のために何を主張するか？</span></summary>
+                  <div class="mm-q-answer">承継したのは<span class="kw">賃借権</span>にすぎない。所有権を得るには自己固有の取得原因＝<span class="kw">短期取得時効（162条2項）</span>を主張する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">187条1項で相続人が主張できる占有と、包括承継人への適用の可否は？</span></summary>
+                  <div class="mm-q-answer">その選択に従い<span class="kw">自己の占有のみ</span>を主張し又は前主の占有を併せて主張できる。同項は<span class="kw">包括承継人にも適用</span>される（最判昭37.5.18）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">相続が185条の「新たな権原」に当たるための事情は？</span></summary>
+                  <div class="mm-q-answer">事実的支配が外形的客観的にみて相続人<span class="verb">独自の所有の意思に基づくと解される事情（自主占有事情）</span>があること（最判昭46.11.30）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">自主占有事情の主張立証責任は誰にあるか？根拠判例は？</span></summary>
+                  <div class="mm-q-answer">時効成立を争う相手方ではなく<span class="kw">占有者（相続人）</span>側にある（<span class="kw">最判平8.11.12・百選Ⅰ67</span>）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">Xが「自分の物と信じていた」とだけ書いて所有の意思を認めるのはなぜ危ういか？</span></summary>
+                  <div class="mm-q-answer">所有の意思は<span class="kw">客観説</span>で判断するから、内心のみでは足りない。居住・自己名義の公租公課負担・Yの不作為など<span class="kw">外形的事実</span>で基礎づける必要がある。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">Aの他主占有をXが併せて主張（187Ⅰ後段）したらどうなるか？</span></summary>
+                  <div class="mm-q-answer">併合すると<span class="kw">他主占有</span>を取り込み<span class="kw">所有の意思を欠く</span>。よって併合の意味はなく、Xは自己固有の占有のみを主張して自主占有への転換を論じる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">Yが賃料を取り立てず公租公課に異議も述べなかった事実は、どう位置づけるか？</span></summary>
+                  <div class="mm-q-answer">Xの支配が独自の所有の意思に基づくことを<span class="kw">推認させる間接事実</span>。占有者側の立証を補強する材料として使う（Yの態度そのものが転換要件なのではない）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">所有の意思の判断方法（客観説）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">所有の意思の有無は、占有者の内心の意思によってではなく、占有取得の原因たる権原の客観的性質又は占有に関する事情から外形的客観的に決する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">相続と「新たな権原」（自主占有事情説）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">相続は包括承継ゆえ原則として占有の性質を変えないが、相続人の事実的支配が外形的客観的にみて独自の所有の意思に基づくものと解される事情がある場合には、相続は185条の「新たな権原」に当たり、自主占有への転換を認める。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">自主占有事情の立証責任に関する規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">他主占有者の相続人が独自の占有に基づく取得時効を主張する場合、その事実的支配が外形的客観的にみて独自の所有の意思に基づくものと解される事情は、時効成立を争う相手方ではなく、占有者である当該相続人が自ら証明すべきである。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">取得原因の設定（取得時効162Ⅱ・所有の意思のみ争点）→ <span class="kw">187Ⅰで自己固有の占有（15%）→ 185新権原・客観説の規範（25%）→ 立証責任＋自主占有事情のあてはめ（40%）→ 時効完成・結論（20%）</span>。山場は<span class="kw">自主占有事情のあてはめ</span>。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">あてはめで挙げるべき三つの自主占有事情は？</span></summary>
+                  <div class="mm-q-answer">①<span class="kw">甲建物への居住＝事実的支配</span>／②<span class="kw">自己名義での公租公課の負担＝所有者なら当然の行動</span>／③<span class="kw">Yの不作為（異議・取立てなし）＝間接事実</span>。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">承継した権利は賃借権 → ？</span></summary>
+                  <div class="mm-q-answer">取得原因は自己固有の取得時効（162Ⅱ）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">相続＋自主占有事情 → ？</span></summary>
+                  <div class="mm-q-answer">185条の新権原＝自主占有へ転換。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">自主占有事情の立証責任 → ？</span></summary>
+                  <div class="mm-q-answer">占有者（相続人）が負う（百選Ⅰ67）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XII — 相続・取得時効と占有 · 13 chapters · 3 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-08-14T03:03+09:00">Generated: 2026-08-14 03:03 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
