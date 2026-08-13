@@ -28,17 +28,24 @@ TESSERACT = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 TESSDATA = r"C:\Users\OWNER\bar-exam\_tessdata"
 
 
-def find_src():
-    pdfs = [n for n in os.listdir(SRC_DIR)
+def find_src(src_dir=None, src_name=None):
+    src_dir = src_dir or SRC_DIR
+    pdfs = [n for n in os.listdir(src_dir)
             if n.lower().endswith(".pdf") and not re.fullmatch(r"\d+\.pdf", n)]
+    if src_name:
+        hits = [n for n in pdfs if src_name in n]
+        assert len(hits) == 1, f"src_name '{src_name}' matched {hits} of {pdfs}"
+        return os.path.join(src_dir, hits[0])
     assert len(pdfs) == 1, f"source PDF ambiguous: {pdfs}"
-    return os.path.join(SRC_DIR, pdfs[0])
+    return os.path.join(src_dir, pdfs[0])
 
 
 def wide_band_rows(page, thresh=0.55):
-    """ヘッダー帯（y3〜12%）の幅広暗帯行数"""
+    """ヘッダー帯（y3〜20%）の幅広暗帯行数。
+    編扉/共通問題で出典バーが下方へずれる問題ページも拾うため y20% まで見る
+    （y12% だと第N編・第N章の扉ページ問題を取りこぼす＝民法2 p123/No.363 等）。"""
     r = page.rect
-    clip = fitz.Rect(0, r.height * 0.03, r.width, r.height * 0.12)
+    clip = fitz.Rect(0, r.height * 0.03, r.width, r.height * 0.20)
     pix = page.get_pixmap(dpi=150, clip=clip, colorspace=fitz.csGRAY)
     w, h = pix.width, pix.height
     buf = pix.samples
@@ -78,10 +85,21 @@ def main():
                     help="最初の問題ページ（この偶奇を右ページと見なす）")
     ap.add_argument("--extra-starts", type=str, default="",
                     help="帯検出をすり抜けた問題ページをカンマ区切りで強制追加")
+    ap.add_argument("--src-dir", type=str, default=None,
+                    help="ソース PDF のあるフォルダ（既定は旧 SRC_DIR）")
+    ap.add_argument("--out-dir", type=str, default=None,
+                    help="分割 PDF の出力先（既定は src-dir）")
+    ap.add_argument("--src-name", type=str, default=None,
+                    help="複数 PDF がある時のソースファイル名（民法1/2 等）")
+    ap.add_argument("--start-seq", type=int, default=1,
+                    help="出力ファイル連番の開始（分冊の続き番号用）")
+    ap.add_argument("--no-ocr", action="store_true",
+                    help="No箱OCRを省く（検証は bar_check 等で別途行う前提・高速化）")
     ap.add_argument("--write", action="store_true")
     args = ap.parse_args()
 
-    src = find_src()
+    out_dir = args.out_dir or args.src_dir or OUT_DIR
+    src = find_src(args.src_dir, args.src_name)
     doc = fitz.open(src)
 
     if args.probe:
@@ -118,8 +136,9 @@ def main():
     with tempfile.TemporaryDirectory() as tmpdir:
         for k, first in enumerate(starts):
             last = starts[k + 1] - 1 if k + 1 < len(starts) else args.end_page - 1
-            no = ocr_no(doc[first], tmpdir, k)
-            groups.append({"seq": k + 1, "first": first, "last": last, "no": no})
+            no = None if args.no_ocr else ocr_no(doc[first], tmpdir, k)
+            groups.append({"seq": k + 1, "out": args.start_seq + k,
+                           "first": first, "last": last, "no": no})
 
     # 3) 検証＋一覧
     warns = []
@@ -145,11 +164,11 @@ def main():
               "|---|---|---|---|---|"]
     for g in groups:
         est = first_no + g["seq"] - 1 if first_no else "?"
-        report.append(f"| {g['seq']}.pdf | No.{est} | {g['no'] or '?'} "
+        report.append(f"| {g['out']}.pdf | No.{est} | {g['no'] or '?'} "
                       f"| p{g['first']+1}–p{g['last']+1} | {g['last']-g['first']+1} |")
     if warns:
         report += ["", "## 要確認", ""] + [f"- {w}" for w in warns]
-    rpt = os.path.join(OUT_DIR, "_分割一覧.md")
+    rpt = os.path.join(out_dir, "_分割一覧.md")
     with open(rpt, "w", encoding="utf-8") as f:
         f.write("\n".join(report))
     print(f"groups={len(groups)} warnings={len(warns)} -> {rpt}")
@@ -161,12 +180,12 @@ def main():
         for g in groups:
             out = fitz.open()
             out.insert_pdf(doc, from_page=g["first"], to_page=g["last"])
-            path = os.path.join(OUT_DIR, f"{g['seq']}.pdf")
+            path = os.path.join(out_dir, f"{g['out']}.pdf")
             out.save(path, garbage=3, deflate=True)
             out.close()
-            if g["seq"] % 50 == 0:
-                print(f"  wrote {g['seq']}.pdf ...")
-        print(f"done: {len(groups)} files -> {OUT_DIR}")
+            if g["out"] % 50 == 0:
+                print(f"  wrote {g['out']}.pdf ...")
+        print(f"done: {len(groups)} files -> {out_dir}")
 
 
 if __name__ == "__main__":
