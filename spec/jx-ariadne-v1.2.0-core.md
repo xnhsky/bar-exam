@@ -429,6 +429,13 @@ corpus 横断の複製は `scripts/check-ariadne-quiz-dedup.py`（`check-ariadne
 `.quiz-answer`（模範）＋`.quiz-btns.recall-grade` に `.quiz-btn[data-value="○"]`書けた/`[data-value="×"]`書けなかった。
 Lexia は `data-recall` を読み復習プールで「答えを見る→自己採点」UIに分岐（○=書けた=正解＝SM-2 卒業に前進）。
 
+**「答えを見る」の onclick は必須（2026-08-14・A44）**：末尾JSの委譲ハンドラは `.quiz-btn` と `.go-athena`
+だけを拾うため、`.recall-reveal` は **canonical/ARIADNE.html の inline onclick を逐語コピー**する
+（`.quiz-answer` の `hidden` を外し `.revealed` を付けてボタンを隠す）。onclick を落とすとボタンが
+無反応になり、白紙想起の照合ができない（実害＝刑JX035_ARIADNE・全ゲート PASS のまま出荷）。
+ゲート＝`validate-ariadne.py` **A44**（onclick も `.recall-reveal` の委譲も無い／開示対象 `.quiz-answer`
+欠落＝ERROR）。
+
 **`data-rx`＝対応 RX 論証カードのリンク（2026-06-25・Lexia LXA_FEAT_008）**：各想起カードに、その想起が問う論点に
 対応する RX 論証カードのコードを `data-rx="{科目prefix}RX{NNN}_{論点序号}"`（科目prefix込み・拡張子なし、例 `刑RX004_2`）で持たせる。
 `{論点序号}` は JX 論点①②③の順＝同JX配下 `outputs/ux/002_RX/{00N_科目}/{科目}JX{NNN}/` の `_1/_2/_3` に一致。
