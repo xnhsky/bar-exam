@@ -604,6 +604,34 @@ def main():
         else:
             P('A39', f'.bc-inst {len(bcinst)}件すべて .bi 2カラム')
 
+    # ---- A44 想起カードの「答えを見る」が実際に開くか（2026-08-14・LEX・ERROR）----
+    # 実害＝刑JX035_ARIADNE：`.recall-reveal` に onclick も委譲ハンドラも無く、押しても
+    # `.quiz-answer` が開かない（全43ゲート PASS のまま出荷）。末尾JSの委譲は .quiz-btn と
+    # .go-athena だけを見るため、reveal は正典どおり inline onclick を持たせるのが契約。
+    a44_errors = []
+    reveal_btns = re.findall(r'<button[^>]*class="[^"]*\brecall-reveal\b[^"]*"[^>]*>', html)
+    reveal_btns += [t for t in re.findall(r'<button[^>]*>', html)
+                    if 'recall-reveal' in t and t not in reveal_btns]
+    if reveal_btns:
+        # ハンドラ＝inline onclick（正典形）／末尾JSの委譲（.recall-reveal を拾う実装）のどちらか。
+        delegated = bool(re.search(r"closest\(\s*'\.recall-reveal'\s*\)|closest\(\s*\"\.recall-reveal\"\s*\)", html))
+        dead = [t for t in reveal_btns if 'onclick' not in t]
+        if dead and not delegated:
+            a44_errors.append(f'「答えを見る」{len(dead)}/{len(reveal_btns)}個が無反応'
+                              '（onclick も .recall-reveal の委譲ハンドラも無い）')
+        # 開示対象が無ければ押しても何も出ない。
+        recall_cards = extract_divs(html, 'self-check-quiz recall')
+        noans = sum(1 for _t, inner in recall_cards
+                    if 'recall-reveal' in inner and 'quiz-answer' not in inner)
+        if noans:
+            a44_errors.append(f'想起カード {noans} 枚に開示対象 .quiz-answer が無い')
+        if a44_errors:
+            E('A44', '／'.join(a44_errors)
+                     + '（正典＝canonical/ARIADNE.html の recall-reveal を逐語コピー：'
+                       "onclick で .quiz-answer の hidden を外し revealed を付ける）")
+        else:
+            P('A44', f'想起カードの「答えを見る」{len(reveal_btns)}個すべてに開示ハンドラあり')
+
     # ---- A43 周回モード・エンジン（v1.5.0 LOOP-MODE・2026-08-11・ERROR）----
     # 1本＝約2万字を 2周目・3周目も全部通る設計だったのを、`.wrap[data-loop]` の段階フェードで解く。
     # DOM 温存（display 制御のみ）が前提なので、Lexia の復習プール抽出・本検証器の DOM 走査は無傷。
