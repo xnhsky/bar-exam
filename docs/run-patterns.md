@@ -190,6 +190,35 @@ inputs/001_JX/{科目}/重問PDF/NN.pdf
 inputs/001_JX/{科目}/講義逐語/{科目}_重問逐語NN.txt
 ```
 
+## 入力の取り込み（PC 間セットアップ・Drive→ローカル）
+
+**入力 PDF と講義逐語は `.gitignore` 対象**（2026-07-09 方針転換・CLAUDE.md §4-5-bis）なので、
+`git pull` では降りてこない。**新しい PC／未取込の科目では、まず Drive から取り込まないと
+TJR-T・TJR-J が「該当なし」で永久にスキップされる**（実害＝xnrg2 PC で民法以降の T/J が
+ずっと空振り・2026-08-15 に導線を新設して解消）。
+
+```powershell
+# TX 入力（1問1PDF）: Drive「1 TX_短 答\{00N_科目}\抽出PDF\」→ inputs\000_TX\{00N_科目}\
+pwsh -NoProfile -File scripts/tx-pull-inputs-from-drive.ps1            # 全科目
+pwsh -NoProfile -File scripts/tx-pull-inputs-from-drive.ps1 -Subject 民
+pwsh -NoProfile -File scripts/tx-pull-inputs-from-drive.ps1 -DryRun    # コピーせず確認
+
+# JX 入力（重問PDF＋講義逐語）: Drive「2 JX_論 文\{00N_科目}\{重問PDF,講義逐語}\」→ inputs\001_JX\…
+pwsh -NoProfile -File scripts/jx-pull-inputs-from-drive.ps1            # 全科目
+pwsh -NoProfile -File scripts/jx-pull-inputs-from-drive.ps1 -Subject 民
+```
+
+- どちらも **Drive マウント先を自動検出**・**既存ファイルはスキップ（冪等・ローカル優先）**・
+  **一方向（Drive→ローカル・ローカルの余剰は消さない）**。上書きは `-Force`。
+- TX 側は **ステム全体が数字の 1問1PDF だけ**を取り込む。分割前の原本
+  （`2026 短答過去問パーフェクト民法1.pdf` 等）は数字始まりでも取り込まない＝
+  番号抽出 `^\d+` が 2026 を拾って `民TX2026` を生成する事故を防ぐため（原本は
+  `-IncludeSource` で `_原本\` へ）。`抽出PDF` に 1問1PDF が無い科目で `別PDF` 等の
+  別系統がある場合は件数だけ報告し、既定では取り込まない（番号体系不明のため・`-IncludeAlt`）。
+- **Drive 側が未分割なら取り込むものが無い**（2026-08-15 時点：TX は刑法 445・民法 150 のみ。
+  商法・民訴・行政法・憲法の TX は Drive にも 1問1PDF が無い＝分割待ち）。
+- JX は取り込み後、`逐語-PDF対応表.md`（git 管理＝pull 済み）の番号規則で同番号ペアリングされる。
+
 ## 成果物の配置（J＝JX の ⑥ deploy・Drive＋repo ミラー）
 
 JX バッチは末尾 ⑥ で成果物を **2 系統**へ自動配置する（`scripts/jx-deploy.ps1`）。
