@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>動産の即時取得 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XIX <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">動産の即時取得 <em>— On the Bona Fide Acquisition of Movables</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">5</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">動産の<br>即時取得</h2>
+      <div class="mm-root-en">Bona Fide Acquisition</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法<br>
+        <em>Origin</em>重要問題 第19問 · 自動車3台の事例<br>
+        <em>Form</em>要件あてはめ型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法物権編・<strong>即時取得（192条）</strong>の中核論点。無権利者から動産を譲り受けた者が、占有への信頼を保護する<strong>公信の原則</strong>によって所有権を原始取得できるかを問う。178条（対抗要件としての引渡し）と役割を分担しつつ、動産取引の動的安全を担う制度である。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>物権頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>要件（取引行為・動産・占有取得・善意無過失）の骨格は易しいが、「動産」性（登録の有無）と「占有を始めた」（引渡方法）の二つの関門で一気に差がつく。短答でも論文でも問われる最重要域。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。本問の骨格は<strong>「目的物の性質（登録の有無）× 引渡方法（占有の現実性）」という二次元マトリクス</strong>。3台の自動車で関門が違い、「支配領域を離れて流通したか」の一本の軸で切り分ける構造的な訓練である。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>現実の引渡し・簡易の引渡し（182条）／占有改定（183条）／指図による占有移転（184条）／対抗要件としての引渡し（178条）／盗品・遺失物の回復（193・194条）／善意無過失の推定（186条1項・188条）。とりわけ<strong>178条（対抗要件）と192条（公信力）の役割分担</strong>は本論点の理解の深さを示す。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aは甲（A名義で<strong>登録済</strong>）・乙・丙（いずれも<strong>未登録</strong>）の3台を購入し、自動車販売業者Bに保管を依頼して引き渡した。Bは無断で処分。<strong>甲</strong>＝名義を偽造してCに売却・現実に引渡し。<strong>乙</strong>＝Dに売却するも自ら保管を継続（占有改定）。<strong>丙</strong>＝Aの承諾を得てEに保管委託・引渡し後、Fに売却しEに「以後Fのため保管せよ」と指示（指図による占有移転）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>A（所有者・3台を購入）／B（<a>無権利者</a>・自動車販売業者・保管を受託した占有代理人）／C（甲の譲受人）／D（乙の譲受人）／E（丙の受寄者・直接占有者）／F（丙の譲受人）。所有者Aは一人だが目的物は3台で、それぞれ引渡しの態様が異なる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 登録済の甲は192条の<strong>「動産」</strong>に当たるか。<br>② 占有改定（乙）は「<strong>占有を始めた</strong>」に当たるか。<br>③ 指図による占有移転（丙）は「占有を始めた」に当たるか。<br>④ 乙（否定）と丙（肯定）で結論が分かれる理由を<strong>統一的に説明</strong>できるか。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 承継取得の否定 → 即時取得へ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Bは保管を委ねられた<strong>無権利者</strong>にすぎず、譲受人（C・D・F）は原則として所有権を<strong>承継取得できない</strong>（何人も自己が有する以上の権利を移転できない）。取得できるとすれば原始取得たる<strong>即時取得（192条）</strong>によるほかない——各目的物でまずこれを宣言する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 「動産」該当性（登録の有無）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>即時取得の客体は「動産」。<strong>登録という完備した公示方法</strong>を備えた財産は、占有に公信力を与える必要がなく「動産」から除かれる（<span class="case-name">最判昭62.4.24</span>）。甲＝登録済み → 対象外。乙・丙＝未登録 → 「動産」に該当。<strong>ここで甲は決着</strong>する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 「占有を始めた」＝支配領域離脱</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「占有を始めた」といえるには、当該動産が<strong>所有者の支配領域を離れて流通するに至る</strong>こと、すなわち<strong>一般外観上従来の占有状態に変更を生ずる占有取得</strong>を要する。占有改定（乙）＝外観変更なし → 否定。指図による占有移転（丙）＝現実占有が第三者へ移り間接占有喪失 → 肯定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 善意無過失 → 結論帰属</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>平穏・公然・善意は<strong>186条1項</strong>で、無過失も<strong>188条</strong>の本権推定を介して推定される。甲・乙＝即時取得せず所有権はAに残る。丙＝<strong>Fが善意無過失である限り</strong>即時取得成立、所有権はFに帰属。乙と丙の帰結の分岐を統一基準で締める。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 登録済自動車の「動産」性
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点① 動産性<span class="mm-name-en">Issue · Movable?</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点 · 登録済自動車は「動産」か</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>192条の「動産」は86条2項の動産一般をそのまま指すのか、それとも<strong>登録・登記等の公示制度が備わった財産</strong>は有体の動産であっても即時取得の客体から除かれるのか。即時取得の趣旨（公信の原則）から<strong>限定解釈</strong>すべきかが問われる。甲だけがこの関門で決着する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 · 公示完備 → 除外</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">即時取得制度は、動産の占有という公示方法の不完全さを公信の原則により補う制度である。登録という公示方法が完備された登録済自動車については、これを即時取得により保護する必要がなく、192条の「動産」に当たらない。<span class="norm-cite">— 最判昭62.4.24（民集41-3-490）</span></div>
+              <p>登録簿によって権利者を確知でき、占有に公信力を与えて取引安全を図る必要がないから、<strong>公示方法の完備が即時取得の適用を排除する</strong>。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">不実の登録名義の評価</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Bは書類を偽造して自己名義に登録を移しているが、これは<strong>無権利者による不実の登録</strong>にすぎず、甲が登録済自動車であるという性質を左右しない。むしろCは登録簿を確認すればBが真の権利者でないことを知りえたのであり、占有に公信力を認める必要はいっそう乏しい。<strong>甲の所有権はAに帰属したまま</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 「占有を始めた」（占有改定 vs 指図）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点② 占有取得<span class="mm-name-en">Issue · Taking Possession</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">統一基準 · 支配領域を離れて流通</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>即時取得は、占有という外形を信頼し<strong>所有者の支配領域を離れて流通するに至った動産</strong>に支配を確立した者を保護する制度。ゆえに「占有を始めた」といえるには<strong>一般外観上従来の占有状態に変更を生ずる占有取得</strong>を要する。この一本の基準で占有改定・指図の帰結が一貫して導ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">占有改定（乙）＝否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Dは乙をBに引き続き保管させ、<strong>占有改定（183条）</strong>による占有を得たにとどまる。外観上従来の占有状態に変更がなく、物は依然譲渡人Bの手元にあり<strong>支配領域を離れていない</strong>。ゆえに「占有を始めた」に当たらず即時取得は成立しない（<span class="case-name">最判昭35.2.11</span>・百選I68）。乙の所有権はAに残る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">指図による占有移転（丙）＝肯定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>丙は現実の占有が<strong>受寄者Eに移り</strong>、BがEに「以後Fのため保管せよ」と指図（184条）。BのFへの譲渡でBが間接占有を喪失し、それに依拠したAの間接占有も<strong>完全に喪失</strong>する。外観上の変更があり支配領域を離れたといえるから、Fが善意無過失である限り即時取得が成立する（<span class="case-name">最判昭57.9.7</span>）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Norms</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 承継取得の否定 → 192条へ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">目的物はA所有に属し、処分権限を有しない無権利者Bから譲り受けた譲受人は、その所有権を承継取得することができないのが原則である。もっとも、即時取得（192条）が成立すれば、原始取得としてその所有権を取得する。<span class="norm-cite">— 各目的物共通の書き出し</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">論証① · 登録済自動車の除外</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">即時取得の対象は「動産」であるところ、同制度は動産の占有という公示方法の不完全さを公信の原則により補う制度である。そうすると、登録という公示方法が完備されている登録済自動車については即時取得によって保護する必要がなく、「動産」に当たらないと解する。<span class="norm-cite">— 甲（最判昭62.4.24）</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">論証② · 占有改定は「占有を始めた」に非該当</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">即時取得制度は、占有という外形を信頼し、所有者の支配領域を離れて流通するに至った動産に支配を確立した者を保護する制度である。ゆえに「占有を始めた」といえるには、一般外観上従来の占有状態に変更を生ずる占有取得を要する。占有改定は外観に変更がなく、①支配領域を離れず、②帰責性のない真の所有者に酷であり、③法律関係の早期確定の要請にも反するから、これに含まれない。<span class="norm-cite">— 乙（最判昭35.2.11）</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">論証③ · 支配領域離脱基準（指図型）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">所有者の支配領域を離れるとは、所有者が間接占有を含め当該物に対する一切の占有を失うことを意味する。指図による占有移転の結果、およそ所有者の占有（間接占有を含む）が失われる場合には、一般外観上従来の占有状態に変更を生ずる占有取得として即時取得を肯定し、失われない場合には否定すべきである。<span class="norm-cite">— 丙（最判昭57.9.7／大判昭8・9との整合）</span></div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Application</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">甲 · 登録済＋不実の名義変更</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲はA名義で<strong>登録済み</strong>＝道路運送車両法上の登録済自動車。Bの名義変更は書類偽造による<strong>不実の登録</strong>にすぎず、登録済自動車という性質を左右しない。∴「動産」に当たらず、Cは善意無過失を問うまでもなく即時取得せず。<strong>甲はA所有のまま</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">乙 · Bが自ら保管継続＝外観不変</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙は<strong>未登録＝「動産」</strong>。「Dが駐車場を見つけるまでBが自ら保管」＝<strong>占有改定</strong>。現実の占有は依然Bの元にとどまり外観に変化がない。∴Dは「占有を始めた」とはいえず即時取得不成立。<strong>乙はA所有のまま</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">丙 · E直接占有→A間接占有の完全喪失</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>丙は<strong>未登録＝「動産」</strong>。Eが直接占有し、AはB・Eを通じて間接占有。BのFへの譲渡（指図による占有移転）でBが間接占有を失い、それに依拠したAの占有も<strong>完全に喪失</strong>。外観上の変更あり。∴Fは「占有を始めた」といえ、186条1項で平穏・公然に反する事実なし。<strong>Fが善意無過失なら丙はF所有</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範3点 · 焼付</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>登録済自動車は「動産」に当たらない</strong>（公示完備 → 公信力不要）。② 即時取得の「占有を始めた」は<strong>一般外観上従来の占有状態に変更を生ずる占有取得</strong>を要する。③ 支配領域離脱＝<strong>間接占有を含む一切の占有の喪失</strong>。この3つで甲・乙・丙が全部処理できる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例3点 · 焼付</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>最判昭62.4.24</strong>＝登録済自動車の除外（甲）。<strong>最判昭35.2.11（百選I68）</strong>＝占有改定否定（乙）。<strong>最判昭57.9.7</strong>＝指図による占有移転の肯定（丙）。否定側の大判昭8.2.13・昭9.11.20は「外観変更なし」の事案として射程外に置く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字・条文 · 焼付</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>192条</strong>（即時取得）／<strong>182条</strong>（現実・簡易の引渡し）／<strong>183条</strong>（占有改定）／<strong>184条</strong>（指図による占有移転）／<strong>186条1項</strong>（平穏・公然・善意の推定）／<strong>188条</strong>（本権の推定＝無過失）／<strong>178条</strong>（対抗要件）／193・194条（盗品・遺失物）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ · 焼付</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「<strong>目的物ごとに図を書き、独立に処理</strong>」「登録という公示があれば占有に公信力を与える必要はない」「<strong>支配領域を離れて流通したか</strong>＝一般外観上従来の占有状態に変更を生じたか」「占有改定は物が手元＝否定／指図で現実占有が移り間接占有喪失＝肯定」。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">178条（対抗要件）との役割分担</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>178条の引渡しは<strong>対抗要件</strong>（有権利者間の優劣）で、占有改定でも足りる。192条の「占有を始めた」は<strong>公信力</strong>による原始取得の要件で、占有改定では足りない。両者を混同せず「対抗要件としての引渡し ≠ 即時取得の占有取得」と切り分けられると理解の深さが出る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">盗品・遺失物の回復（193・194条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>目的物が<strong>盗品・遺失物</strong>だった場合、即時取得は成立しつつ、被害者・遺失者は2年間<strong>回復請求</strong>でき（193条）、競売・公の市場等での善意取得者には<strong>代価弁償</strong>が必要（194条）。本問は保管委託物で盗品ではないため適用されないが、想定外出題の受け皿。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">善意無過失の推定（186条1項・188条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>平穏・公然・善意は<strong>186条1項</strong>で推定。無過失も、188条が占有者の本権を推定することを介して<strong>判例上推定</strong>される（立証責任は真の権利者側）。買主に前主の無権利を疑うべき事情があれば、<strong>調査確認義務の懈怠＝過失</strong>が問題となり推定が覆る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">集合動産譲渡担保と占有改定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>集合動産譲渡担保では担保権者が<strong>占有改定による占有</strong>を取得するにとどまる場面が多く、昭35判決の否定説が現代的取引にも維持されるか（<span class="case-name">最判昭57.9.7</span>）が問われた。占有改定と即時取得の関係を扱う判例群の応用場面。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 三台を混同（−15〜20点）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>甲・乙・丙をまとめて「Bは無権利者だから即時取得を検討」と一括処理すると、各目的物固有の論点（甲＝動産性／乙＝占有改定／丙＝指図）が埋没して大幅失点。<strong>冒頭で第1（甲）／第2（乙）／第3（丙）と項目を立てる</strong>のが答案作法。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 甲を理由づけなく切る（−10〜15点）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「登録済だから即時取得できない」で終わらせる。<strong>公示方法完備 → 公信の原則で補う必要なし</strong>という理由づけと最判昭62.4.24を示し、名義変更を「不実の登録にすぎない」と評価するところまで書く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 乙の占有改定否定の理由省略（−5〜10点）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>結論だけで理由づけを飛ばす。<strong>①支配領域を離れない、②帰責性のない真の所有者に酷、③法律関係の早期確定</strong>の三点を書く。最判昭35.2.11（百選I68）の規範を正確に再現する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 丙の判例分岐・整合性に無自覚（−5〜10点）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>指図による占有移転を巡り肯定例（昭57）と否定例（大判昭8・昭9）が分かれることに触れず、また乙（否定）と丙（肯定）が分かれる整合性に一言も触れない。<strong>「支配領域離脱の有無」の同一基準</strong>で矛盾なく説明する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 丙でA間接占有喪失を書かない／善意無過失漏れ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「指図がされたから即時取得成立」と結論だけ書き、<strong>E直接占有 → B間接占有喪失 → A間接占有喪失</strong>の連鎖のあてはめを欠く（−5〜8点）。加えて丙の結論を「Fが善意無過失である限り」と<strong>186条1項の推定</strong>で留保しないと小幅減点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別 (fixed 6)
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 全体俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>マップを開いて13分枝を通読。<strong>「目的物の性質 × 引渡方法」の二次元マトリクス</strong>で即時取得の可否が決まる骨格を掴む。甲・乙・丙で関門が違うことを意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 基礎再生</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>分枝13のLV I（4問）で即時取得の要件・登録済除外・占有改定否定など基礎知識を確認。目標7割。曖昧な語は分枝4〜8へ戻る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>LV II（3問）で「もし現実の引渡しなら」「盗品なら」等の反実仮想・射程比較。占有改定と指図の分岐を統一基準で説明できるか試す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 答案設計</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>LV IV（2問）で配点・分量配分を確認。丙（指図・統一基準）45点・乙（占有改定）25点・甲（動産性）20点。<strong>目的物ごとに項を立てる</strong>構成を固める。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 規範再生</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>LV III（3問）で登録済除外・占有改定否定・支配領域離脱基準の規範を一句一文で口頭再生。分枝6の論証文言と照合。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 速記フラッシュ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>LV V（3問）で30字以内の即答。「登録済→動産でない」「占有改定→外観不変→否定」「指図で間接占有喪失→肯定」を反射で出せるまで。直前期の最終確認。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Authorities</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和62年4月24日</span><span class="mm-leaf-sub"><em>Registered Car · Not a "Movable"</em> · 民集41-3-490</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>登録済自動車の除外</strong>。「道路運送車両法による登録を受けている自動車については、民法192条の適用がなく、これについて即時取得を主張することはできない」。<em>射程</em> — 甲はA名義で登録済みで直球該当。公示方法の完備が即時取得を排除する枠組みを確立。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和35年2月11日</span><span class="mm-leaf-sub"><em>Constructive Possession · Denied</em> · 民集14-2-168 · 百選I68</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>占有改定否定の代表判例</strong>。「一般外観上従来の占有状態に変更を生ずるがごとき占有を取得することを要し、……いわゆる占有改定の方法による取得をもってしては足らない」。<em>射程</em> — 乙は占有改定の事例で直接に及ぶ。支配領域離脱基準の出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和57年9月7日</span><span class="mm-leaf-sub"><em>Delivery by Instruction · Affirmed</em> · 民集36-8-1527</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>指図による占有移転の肯定判例</strong>。寄託中の動産につき、寄託者から譲渡を受けた者が受寄者に以後譲受人のため占有すべき旨を指示し受寄者が承諾した事案で即時取得を肯定。<em>射程</em> — 丙と事案構造がほぼ一致。現実の占有が第三者にあり外観変更ありと評価できる場合に及ぶ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">大判昭和8年2月13日／昭和9年11月20日</span><span class="mm-leaf-sub"><em>Instruction · Denied (Old Precedent)</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>指図による占有移転の否定大審院判例</strong>。もっとも、いずれも<strong>現実の占有状態に外観上の変更が生じていない事案</strong>と理解できる。<em>射程</em> — 本問はEに現実占有が移り外観が変更されているため<strong>射程外</strong>。肯定例（昭57）と「外観変更の有無」で切り分ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法192条</span><span class="mm-leaf-sub"><em>Civil Code, art. 192 · Bona Fide Acquisition</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「取引行為によって、平穏に、かつ、公然と<strong>動産の占有を始めた</strong>者は、善意であり、かつ、過失がないときは、即時にその動産について行使する権利を取得する」。<em>射程</em> — 本問全体の中心条文。「動産」と「占有を始めた」の二つの文言が甲・乙丙の関門になる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法183条</span><span class="mm-leaf-sub"><em>art. 183 · Constructive Possession</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>占有改定。代理人が自己の占有物を以後本人のために占有する意思を表示したとき、本人が占有を取得する。<em>射程</em> — 乙。外観に変更がなく物が譲渡人の手元にとどまるため「占有を始めた」に当たらない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法184条</span><span class="mm-leaf-sub"><em>art. 184 · Delivery by Instruction</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>指図による占有移転。代理人により占有をする本人が、その代理人に以後第三者のため占有すべき旨を命じ、第三者が承諾したときに移転する。<em>射程</em> — 丙。現実占有が受寄者に移り間接占有者が交替する事案で即時取得を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法182条</span><span class="mm-leaf-sub"><em>art. 182 · Actual / Simplified Delivery</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>現実の引渡し（1項）・簡易の引渡し（2項）。<em>射程</em> — 甲のBC間は現実の引渡し（この点は争いなし）。現実・簡易の引渡しは外観の変更が明白で即時取得の占有取得として争いなく肯定される（占有改定・指図との対比軸）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法186条1項・188条</span><span class="mm-leaf-sub"><em>arts. 186(1), 188 · Presumptions</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>186条1項＝占有者は所有の意思をもって平穏・公然・善意で占有するものと推定。188条＝占有者が占有物につき行使する権利は適法に有するものと推定（無過失推定の根拠）。<em>射程</em> — 丙の結論を「Fが善意無過失である限り」と留保する根拠。立証責任は真の権利者側。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">即時取得（192条）の要件を挙げよ。</span></summary>
+                  <div class="mm-q-answer">①<span class="kw">取引行為</span>によって、②平穏・公然と、③<span class="kw">動産</span>の占有を始め、④<span class="kw">善意・無過失</span>であること。前主が無権利者であることが前提。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">登録済自動車は192条の「動産」に当たるか。代表判例は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">当たらない</span>。登録という公示方法が完備され、占有に公信力を与える必要がないから（<span class="kw">最判昭62.4.24</span>）。未登録車は「動産」に該当する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">占有改定（183条）で「占有を始めた」といえるか。代表判例は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">いえない（否定説）</span>。一般外観上従来の占有状態に変更を生ずる占有取得を要するところ、占有改定では外観に変更がないから（<span class="kw">最判昭35.2.11</span>・百選I68）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">善意・無過失はどの条文で推定されるか。</span></summary>
+                  <div class="mm-q-answer">平穏・公然・善意は<span class="kw">186条1項</span>で推定。無過失も、<span class="kw">188条</span>が占有者の本権を推定することを介して推定される。立証責任は真の権利者側。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">乙（占有改定＝否定）と丙（指図＝肯定）で結論が分かれるのは矛盾か。</span></summary>
+                  <div class="mm-q-answer">矛盾ではない。<span class="kw">動産が所有者の支配領域を離れて流通したか</span>という一本の基準で説明できる。占有改定は物がBの手元＝離れず、指図は現実占有がEに移りAの間接占有が失われる＝離れる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">丙で、Bが指図後もEを介して自ら占有を継続していたら結論はどう変わるか。</span></summary>
+                  <div class="mm-q-answer">売主（B）が間接占有を保持し「<span class="kw">一切の占有喪失</span>」に至らないから、外観に変更がなく即時取得は<span class="kw">否定</span>（占有改定に準じる）。大判昭8・昭9の射程内となる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">目的物が盗品・遺失物だった場合、処理はどう変わるか。</span></summary>
+                  <div class="mm-q-answer">即時取得は成立しつつ、被害者・遺失者は2年間<span class="kw">回復請求</span>できる（193条）。競売・公の市場等での取得者には<span class="kw">代価弁償</span>が必要（194条）。本問は保管委託物で盗品ではない。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">登録済自動車が「動産」に当たらない旨の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">即時取得制度は動産の占有という公示方法の不完全さを公信の原則により補う制度であるから、登録という公示方法が完備されている登録済自動車については即時取得により保護する必要がなく、192条の「動産」に当たらない。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">「占有を始めた」の意義（占有改定否定）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">即時取得は所有者の支配領域を離れて流通するに至った動産に支配を確立した者を保護する制度であるから、「占有を始めた」といえるには一般外観上従来の占有状態に変更を生ずる占有取得を要し、外観に変更のない占有改定はこれに当たらない。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">指図による占有移転の即時取得（支配領域離脱基準）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">所有者の支配領域を離れるとは所有者が間接占有を含め一切の占有を失うことをいい、指図による占有移転の結果、所有者の占有（間接占有を含む）が失われる場合には一般外観上従来の占有状態に変更を生ずる占有取得として即時取得を肯定し、失われない場合には否定する。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">目的物ごとに項を立てる：<span class="kw">第1 甲（動産性・20点）／第2 乙（占有改定・25点）／第3 丙（指図・統一基準・45点）</span>＋論理構成10点。丙のあてはめ（A間接占有喪失）が最大の配点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">上位答案とB・C答案を分ける決定打は？</span></summary>
+                  <div class="mm-q-answer">乙（否定）と丙（肯定）を<span class="kw">「支配領域を離れたか」の同一基準</span>で無理なく説明できるか。C答案は三台を混同、B答案は乙の理由づけが薄く整合性に触れない。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">登録済自動車 → ？</span></summary>
+                  <div class="mm-q-answer">「動産」でない＝即時取得の対象外。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">占有改定 → ？</span></summary>
+                  <div class="mm-q-answer">外観不変＝支配領域を離れず否定。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">指図で現実占有が第三者へ → ？</span></summary>
+                  <div class="mm-q-answer">間接占有喪失＝支配領域離脱で肯定。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XIX — 動産の即時取得 · 13 chapters · 5 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-08-16T01:43+09:00">Generated: 2026-08-16 01:43 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
