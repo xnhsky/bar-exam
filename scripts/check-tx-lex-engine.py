@@ -281,6 +281,7 @@ def main() -> int:
     depth_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G56/G57 助言（非ブロッキング・§v13m 深さ）
     fact_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G65 助言（非ブロッキング・ox-stmt 要件事実完全性）
     prop_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G70 助言（非ブロッキング・ox-stmt 断定命題形式）
+    role_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G77 助言（非ブロッキング・BASIS 役割フォント割当て）
     palette_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G72 助言（非ブロッキング・§5 パレット宣言なし）
     for f in files:
         if f.stem.endswith("_lex") is False:
@@ -398,6 +399,15 @@ def main() -> int:
         _props = [(c, m) for c, m in v.warnings[before_g70:] if c == "G70"]
         if _props:
             prop_notes.append((f, _props))
+        # G77＝BASIS カード種別（条文／判例 is-case／学説 is-theory）と本文の役割フォントの食い違い。
+        #     判定は決定論（tx_basis_roles）だが、刑訴以外（刑法22本・民法1本）に同型が残るため
+        #     当面は非ブロッキング助言（push は止めない）。全科目是正後に gate_errs へ昇格する。
+        #     修復＝scripts/tx-basis-role-fix.py（本文不変・冪等）。2026-08-17 追加（LEX-441）。
+        before_g77 = len(v.warnings)
+        v.g77_basis_role_font()
+        _roles = [(c, m) for c, m in v.warnings[before_g77:] if c == "G77"]
+        if _roles:
+            role_notes.append((f, _roles))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
             if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74")
@@ -491,6 +501,17 @@ def main() -> int:
             for code, m in notes:
                 print(f"       - [{code}] {m.split('。')[0]}")
         print("  → 末尾ヒューリスティックゆえ push は止めない（WARNING）。要件事実込みの断定完結命題（文末は句点）へ書き換える（spec 第5-bis-2項・実害＝刑TX395/397）。")
+
+    if role_notes:
+        print(f"\n[G77 助言・非ブロッキング] BASIS の役割フォント割当てがカード種別と不一致（判旨が答案書体／判旨本文なのに条文枠／学説が判旨書体）{len(role_notes)} ファイル:")
+        for f, notes in role_notes[:20]:
+            rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+            print(f"  ⚠️ {rel}")
+            for code, m in notes:
+                print(f"       - [{code}] {m.split('（例')[0]}")
+        if len(role_notes) > 20:
+            print(f"  … ほか {len(role_notes) - 20} ファイル")
+        print("  → 刑訴以外に同型が残るため当面 push は止めない（WARNING）。修復＝python -X utf8 scripts/tx-basis-role-fix.py <file>（本文不変・冪等）。")
 
     if palette_notes:
         print(f"\n[G72 助言・非ブロッキング] §5 パレット選定宣言なし（正答率帯との整合を機械検証できない）{len(palette_notes)} ファイル:")

@@ -43,6 +43,11 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G68 フォント変数の未定義参照（2026-07-14・LEX-388）：var(--font-*) 参照に定義が無い＝全フォントが
       ブラウザ既定へフォールバック（実害＝刑TX003 公式＋_lex：パレットを第1 :root＝フォント12変数
       ブロックへ誤上書き）。公式・_lex 両系統 ERROR。
+  G77 BASIS の役割フォント割当て（2026-08-17・LEX-441）：カード種別（条文／判例 is-case／学説 is-theory）と
+      本文の役割フォントの食い違い。判旨は judgment-text（--font-judgment）、条文・学説は役割クラス無し。
+      実害＝刑訴 13ファイル49件（判旨が答案書体／判旨本文なのに条文枠／学説が判旨書体）。
+      判定は tx_basis_roles（単一情報源）、修復は scripts/tx-basis-role-fix.py（本文不変・冪等）。
+      他科目に同型が残るため当面 WARNING。
   G69 体系マップSVG文字の同一行重なり（2026-07-16・LEX-395）：親ツリー見出し帯に <text> 2本を固定 x で
       並置し、見出しが長いと2本目に文字が重なる（実害＝刑TX395_lex「職務の適法性」×「要件・現在性」ほか
       10ファイル/16件）。重なり 6px 超＝ERROR／2〜6px＝WARNING。正典形は 1 <text>＋<tspan>（中央寄せ・
@@ -94,6 +99,13 @@ try:
     import tx_palette_rules as _palette_rules
 except Exception:
     _palette_rules = None
+
+# BASIS カード種別⇄本文の役割フォント割当て（G77）は tx_basis_roles（単一情報源）を共用。
+# 判定式を修復ツール scripts/tx-basis-role-fix.py と共有する（検出と修復のズレを構造的に防ぐ）。
+try:
+    import tx_basis_roles as _basis_roles
+except Exception:
+    _basis_roles = None
 
 if hasattr(sys.stdout, "reconfigure"):
     try:
@@ -2683,6 +2695,34 @@ class Validator:
                             "第1 :root のフォント12変数ブロック（canonical/GENESIS-CORE.html 冒頭 :root）が"
                             "欠落／パレットで誤上書きされていないか確認する（パレットは3番目の :root＝--accent を含む方）。")
 
+    # --- G77（2026-08-17・LEX-441）：BASIS カード種別⇄本文の役割フォント割当て ---
+
+    def g77_basis_role_font(self):
+        """G77：📚BASIS のカード種別（条文／判例 is-case／学説 is-theory）と本文の役割フォントの
+        食い違いを検出する。判例の判旨本文は judgment-text（--font-judgment＝Zen Old Mincho）、
+        条文・学説の本文は役割クラス無し（親 .tx-inline-explain の --font-answer を継承）が規約。
+        実害（2026-08-17 監査・刑訴）＝判旨が答案書体で出る 18 件（刑訴TX006/016/033）、
+        判旨本文なのにカードが条文枠（ブルー）で出る 16 件（刑訴TX038/045/079/126/269/289）、
+        学説が判旨書体で出る 15 件（刑訴TX111/252/253/254）。G68 は「未定義変数の参照」しか
+        見ないため、役割の取り違えはどのゲートにも掛からなかった。
+        公式・_lex の両系統に適用。修復＝scripts/tx-basis-role-fix.py（本文不変・冪等）。
+        他科目（刑法22本・民法1本）に同型が残るため当面 WARNING（全科目是正後に ERROR 化）。"""
+        if _basis_roles is None:
+            return
+        issues = _basis_roles.find_issues(self.html)
+        if not issues:
+            return
+        by_kind = {}
+        for i in issues:
+            by_kind.setdefault(i.kind, []).append(i)
+        label = {"A": "判例の判旨に判旨フォント未割当",
+                 "B": "判旨本文なのにカード種別が条文",
+                 "C": "学説カードの本文に判旨フォント"}
+        summary = "／".join(f"{label[k]} {len(v)}件" for k, v in sorted(by_kind.items()))
+        head = issues[0].detail
+        self.warn("G77", f"BASIS の役割フォント割当てが種別と不一致: {summary}（例: {head}）。"
+                         "修復は python -X utf8 scripts/tx-basis-role-fix.py <file>（本文不変・冪等）。")
+
     # --- G71/G72（2026-07-21・LEX-403）：難易度帯パレットの不履行 ---
 
     def _palette_gate_target(self):
@@ -2832,6 +2872,7 @@ class Validator:
         self.g65_ox_stmt_fact_completeness()
         self.g70_ox_stmt_proposition_form()
         self.g68_font_vars_defined()
+        self.g77_basis_role_font()
         self.g71_palette_not_default()
         self.g72_palette_declaration_band()
 
@@ -2865,7 +2906,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G76, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G77, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
