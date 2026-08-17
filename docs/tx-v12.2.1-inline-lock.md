@@ -606,3 +606,58 @@ G45（v12.2.1 表示LOCK）の必須シグネチャも `extractReviewCoreSummary
   引き出しは一段弱い階層として読める（pale bg + dark text の原則も守る）。
 - **読む順を 文言 → 趣旨 → 射程 → 切断点 に固定**（エンジンが並べ替える）。DOM 順の揺れを吸収し、
   「条文の言葉 → なぜ → どこまで → 分かれ目」の思考順で読める。
+
+---
+
+## §v13u BASIS の役割フォント割当て（2026-08-17・LEX-441・ユーザー指摘）
+
+実機（刑訴 `_lex`）で「フォント種類の割り当てがルールに沿っていない」との指摘。監査したところ、
+**フォント12変数（LEX-388/G68）・Google Fonts リンク・font-family を持つ CSS 232 セレクタは
+刑訴 334 本すべて `canonical/GENESIS-CARD.html` とバイト一致**で、逸脱は CSS ではなく
+**📚BASIS のカード種別と本文クラスの対応**（＝どの役割フォントが当たるか）に出ていた。
+
+### 規約（v13 LOOP-CARD）
+
+| BASIS アイテム種別 | 本文の役割クラス | 実効フォント |
+|---|---|---|
+| 判例 `.tx-basis-item.is-case` | `judgment-text`（`p` 直付け／`p.hanging` なら `.hang-body` に併記） | `--font-judgment`（Zen Old Mincho 700） |
+| 条文（種別なし） | 役割クラス無し（`p.hanging`＋`.para-num`／`.hang-body`） | 親 `.tx-inline-explain` の `--font-answer` を継承 |
+| 学説 `.tx-basis-item.is-theory` | 役割クラス無し（`p.hanging` または素の `p`） | 同上 |
+
+`judgment-text` は**判旨専用**。学説・条文の本文に付けない。逆に判旨へ付け忘れると、
+判旨だけ答案書体で流れて「判例の引用」に見えなくなる。
+
+### 実害（2026-08-17 監査）
+
+| 型 | 症状 | 刑訴の該当（`_lex`／公式ミラー） |
+|---|---|---|
+| A | 判例カードの判旨に `judgment-text` が無い＝判旨が答案書体 | 刑訴TX006(14)／TX033(3)／TX016(1)＝**18 件** |
+| B | 中身は判旨なのにアイテムが種別なし＝**枠・見出しがブルー（条文）で出る** | 刑訴TX038(2)／TX045(1)／TX079(3)／TX126(2)／TX269(3)／TX289(5)＝**16 件** |
+| C | 学説カードに `judgment-text`＝学説が判旨書体 | 刑訴TX111(5)／TX252(8)／TX253(1)／TX254(1)＝**15 件** |
+
+正例は **刑訴TX302_lex**（`<p class="hanging"><span class="para-num">判旨</span>
+<span class="hang-body judgment-text">…`）。A 型はこの形へ揃える。
+`theory` の素の `<p>`（クラス無し）は `p.hanging` と実効フォントが同じ（どちらも継承）ため逸脱ではない。
+
+### 恒久ゲート三層
+
+| 層 | 実装 | 効果 |
+|---|---|---|
+| 作らせない | 種別と本文クラスの対応表（本節） | 生成時に迷わない |
+| 弾く | `validate-tx-core.py` **G77**（判定＝`scripts/tx_basis_roles.py` 単一情報源） | 種別⇄役割フォントの不一致を検出（当面 WARNING） |
+| 止める | push 前 `check-tx-lex-engine.py` の G77 助言 | 非ブロッキング（刑法22本・民法1本の同型が残るため。全科目是正後に ERROR 昇格） |
+
+**既存一括是正＝`python -X utf8 scripts/tx-basis-role-fix.py <files>`**（決定論・冪等・本文不変・
+CRLF 保存・`--check` で検出のみ）。刑訴 668 ファイルへ 2026-08-17 適用済み（86 件・23 ファイル・
+本文テキスト差分 0）。**刑法22本71件・民法1本1件は未修正＝TJR 付随で消化**（ユーザー指示：今回は刑訴のみ）。
+
+### 併せて確認した「層1」（正典そのものの役割割当て・未修正）
+
+12役割マトリクス（`spec/jx-v3.2-master.md` §6-4）と TX v13 実装のズレ。**今回は変更していない**
+（誌面が全問変わるため、着手時は実機確認が必要）。記録として残す：
+
+- ④ 条文 `--font-statute`（Noto Serif JP）… 条文**本文**には当たっておらず（`--font-answer` 継承／
+  静的版は `.basis-card-body` の `--font-quote`）、`.para-num`・`.ron-mark`・強調マーカーのみ。
+- ① 本文 `--font-body`（A1 Gothic）… `body` は後段で `var(--ed-sans)` に上書き。生きているのは SVG ノード 5 規則のみ。
+- ⑦ KEY `--font-keyword`（Kaisei Decol）… 参照 0 件＝役割が未使用。
+- ⑩ 教授 `--font-professor` … CSS 2 規則あるが v13 カードに実体なし。
