@@ -674,6 +674,62 @@ TJR 付随で消化**（旧検出式での 108／2 から、穴 1・2 の是正�
 > 例えば 刑訴051〜064 は論点が勾留の条文知識に寄っていて**判例カードが 1 枚も無い**帯であり、
 > 条文本文には `--font-statute` が当たらない（`--font-answer` を継承する）ため、
 > 誌面全体が Shippori Antique 一色になる（実機の computed style で確認）。逸脱ではなく仕様どおりの帰結。
+### §v13u-2／v13u-3　12 役割タイポグラフィの割当て是正（2026-08-19・LEX-442・ユーザー再指摘）
+
+実機指摘「刑訴TX054 …フォントちがうくない？」「ほぼすべてのフォントが割り当て通りになってない」。
+`spec/jx-v3.2-master.md` 第6項 12 役割マトリクスと TX v13 実装を **computed style で全数照合**した。
+
+#### 根本原因：12 役割の外にある第2フォント系統
+
+正典 CSS に `--ed-serif` / `--ed-sans` / `--ed-quote` の 3 変数が存在し（§6-7 禁則
+「11 役割を無視した独自の追加フォントの新設」に該当）、①本文・⑤引用を後段から上書きしていた。
+スタックは 12 役割の別名で、`--ed-serif`＝`--font-display`／`--ed-sans`＝`--font-note`／
+**`--ed-quote`＝`--font-statute`（游明朝ではなく Noto Serif JP）**。
+
+#### 実測（刑訴TX054・computed style）と是正
+
+| # | 役割 | 変数 | 是正前の実測 | 是正後 | 誌面への影響 |
+|---|---|---|---|---|---|
+| ① | 本文 | `--font-body` | `body` が `--ed-sans`＝Zen Kaku Gothic Antique | `--font-body` | 衛生是正（A1 Gothic は端末に無くフォールバック先が同一） |
+| ② | 柔強調 | `--font-soft` | h3〜h5・タグ＝Zen Maru Gothic | 変更なし | ✅ |
+| ③ | 見出し | `--font-display` | Shippori Mincho B1（`--ed-serif` 経由） | 役割名へ寄せる | 見た目不変 |
+| ④ | 条文 | `--font-statute` | **条文本文＝Shippori Antique（答案書体）**・当たるのは `.para-num` 等の飾りだけ | BASIS 条文カード本文＋`.tx-mini-law-text` へ | **実効** |
+| ⑤ | 引用 | `--font-quote` | `.syn-orig`＝Noto Serif JP（`--ed-quote`）／`.tx-inline-stmt`＝游明朝＝**割れていた** | 游明朝へ統一 | **実効** |
+| ⑥ | 答案 | `--font-answer` | **解説カード全域**（`.tx-inline-explain`／5点フロー／詳説） | 答案圧縮・模範答案・`.final-answer` のみ | **実効・最大** |
+| ⑦ | KEY | `--font-keyword` | **参照 0**（`.key-phrase-box`・`.kp-strong` は `--font-impact`＝M PLUS 1p） | Kaisei Decol へ | **実効** |
+| ⑧ | 判旨 | `--font-judgment` | Zen Old Mincho | 変更なし | ✅ |
+| ⑨ | 注釈 | `--font-note` | `--ed-sans` 別名 | 役割名へ寄せる | 見た目不変 |
+| ⑩ | 教授 | `--font-professor` | CSS 2 規則あるが v13 カードに**実体 0**（`.sub-card.professor` が存在しない） | 未着手（コンテンツ側の話） | — |
+| ⑪ | 等幅 | `--font-mono` | Source Code Pro | KEY ラベル `::before` を mono へ（§6-6-8） | 軽微 |
+| ⑫ | impact | `--font-impact` | ⑦を潰していた | 大型数字専用へ戻す | **実効** |
+
+これで「書体＝情報種別のラベル」（§6-1）が成立する：**条文＝Noto Serif JP ／ 判旨＝Zen Old Mincho ／
+記述原文・提示文＝游明朝 ／ 答案圧縮＝しっぽりアンチック ／ 解説の地の文＝本文ゴシック**。
+
+#### ツール（決定論・冪等・本文不変）
+
+| ツール | 役割 |
+|---|---|
+| `scripts/tx-font-roles-recanon.py` | ①④⑤⑥⑦⑨⑪⑫ の font-family 宣言を置換（`--check` / `--apply` / `--all`） |
+| `scripts/tx-basis-statute-font.py` | ④ を BASIS 条文カード本文へ当てる CSS 区画 `TX-BASIS-STATUTE` を正典から逐語伝播 |
+
+**改行様式の注意**：TX の HTML は CRLF と LF が**同一ファイル内で混在**する（CSS 区画は LF・本文は CRLF 等）。
+「CRLF が 1 つでもあれば全部 CRLF」と決め打ちすると該当箇所を取り逃がすため、両ツールとも
+**LF 版・CRLF 版の両方を試し、当たった側の様式を保つ**（`tx-lex-verdict-redesign.py` の同型バグの再発防止）。
+
+#### 適用実績（2026-08-19）
+
+`--all` で **1,616 ファイル**（公式＋`_lex`）へ適用。font-roles 19,990 箇所／BASIS 区画 1,083 ファイル
+（BASIS を持たない 532 ファイルは対象外）。**本文テキスト差分 0**（style/script を除いた抽出で照合）。
+`validate-tx-core` G1〜G77 PASS ／ `check-tx-lex-engine` PASS ／ `check-font-vars` 2,529 ファイル [OK] ／
+`check-duplicates` PASS。
+
+> **実機確認が必要**：生成環境（コンテナ）は Google Fonts を取得できず `document.fonts.size = 0` のため、
+> スクリーンショットでの視覚検証はできない（computed style での役割照合までが機械的に可能な範囲）。
+> とくに ⑥（解説の地の文が答案明朝 → 本文ゴシック）は誌面の印象が最も変わるため、端末での確認を要する。
+> 戻す場合は `scripts/tx-font-roles-recanon.py` の `SUBS` のうち **⑥ を付した 3 エントリ**を前後入替して
+> `--apply --all` を再実行する（冪等）。
+
 ### 併せて確認した「層1」（正典そのものの役割割当て・未修正）
 
 12役割マトリクス（`spec/jx-v3.2-master.md` §6-4）と TX v13 実装のズレ。**今回は変更していない**
