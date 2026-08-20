@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>質権のシステマティック解法 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XXIII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">質権のシステマティック解法 <em>— On Pledge: Bona Fide Acquisition, Return &amp; Sub-pledge</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">2</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Phrases</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Related</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Authorities</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">質権をめぐる<br>三つの限界</h2>
+      <div class="mm-root-en">Pledge · Three Frontiers</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法（動産質）<br>
+        <em>Origin</em>重要問題 第23問 · 旧司法試験 平成2年度 第2問<br>
+        <em>Form</em>場面分析・規範定立型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法物権法・担保物権の中の<strong>動産質</strong>。同じ「茶器」を舞台に、<strong>即時取得（192条）</strong>・<strong>質物返還と対抗力（345条・352条）</strong>・<strong>責任転質（348条）</strong>の三論点が交差する複合問題。質権は出題頻度こそ低いが、一度体系を押さえれば出たとき大きく差がつく分野。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>質権＝希少・条文は短答頻出</span>
+                <span><em>重要度</em>★★★★☆</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>「占有を要素とする物権」という質権の本質理解で全論点が貫かれる。192条・352条・348条は短答でも問われる中核条文。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限。骨格はシンプル（常に問いは「<strong>Cはいくら弁済を受けられるか</strong>」）だが、<strong>同じ100万円でも場面ごとに取れる額が全く違う</strong>という捻りで難化する。当事者/第三者、担保価値50万円の上限を取り違えると総崩れ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>即時取得の目的物範囲（193条・194条の盗品遺失物特則）／占有改定と即時取得／動産物権変動（178条）／権利質・債権質（364条）／転抵当（376条）／占有回収の訴え（353条・200条）。<strong>「占有への公信力」と「対抗要件としての占有」</strong>が串刺しになる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aは<strong>B所有の茶器</strong>を所持し、Cから100万円を借りるにあたりこれをCに質入れした。<strong>小問1</strong>ではAはBから<strong>預かっていたにすぎない無権利者</strong>（無断で自己の物として質入れ）で、茶器の所在が(1)C／(2)A／(3)Bと分岐する。<strong>小問2</strong>ではAは<strong>Bから適法に質入れを受けた正当な質権者</strong>（被担保債権50万円）が、Bの承諾なく更にCへ転質した。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>B（茶器の所有者／小問2では原質権設定者）／A（小問1＝無権利の受寄者・小問2＝原質権者→転質人）／C（貸主・質権者／転質権者、被担保債権100万円）。<strong>小問1と小問2でAの立場が正反対</strong>な点が最大の読みどころ。ここを取り違えると全部崩れる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 無権利者Aから質権を取得できるか＝<strong>質権の即時取得</strong>（小問1(1)）。<br>② 質権者Cが質物を設定者側へ返した後、質権を主張できるか＝<strong>効力存続か対抗力喪失か</strong>（小問1(2)(3)）。<br>③ 承諾なき転質で転質権者はいくら取れるか＝<strong>責任転質の効力範囲</strong>（小問2）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 0 · 共通の問い方</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>各場面で常に<strong>①Cは質権を取得したか → ②その質権を今の占有状態で対抗できるか → ③取れる金額はいくらか</strong>の3段で追う。まず<strong>小問1と小問2でAの立場が正反対</strong>（無権利者か正当な質権者か）を確定してから中身に入る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 小問1(1) 即時取得</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>原則＝担保物権も物権ゆえ<strong>無権利者Aからは取得できない</strong>と一言置く。例外＝192条「動産について行使する権利」に質権が含まれると規範を立て（342条・344条＝占有を成立要件）、善意無過失を<strong>条件付きで</strong>認定。Cが所持する(1)は<strong>100万円弁済可</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 小問1(2)(3) 返還と対抗力</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>345条を<strong>効力存続要件ではなく対抗要件</strong>と性質決定（<span class="case-name">大判大5.12.25</span>）。返しても質権は消えず、352条の第三者対抗力を失うだけ。あとは相手が<strong>当事者A(2)＝対抗不要で100万円可／第三者B(3)＝継続占有なく対抗不可で弁済不可</strong>と振り分けるだけ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 小問2 責任転質</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Bの承諾なき転質＝<strong>責任転質（348条）</strong>と認定。<strong>質物質入説</strong>（原質物の交換価値を質入れ）で、Aが把握する担保価値＝<strong>原質権の被担保債権50万円</strong>が上限。原質権設定者Bを害せないので<strong>BのAに対する債務の弁済期到来後</strong>にのみ実行可。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 例外＝即時取得の再利用</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>小問2でも、Cが<strong>担保価値50万円と知らず</strong>善意無過失で100万円の質権を取得したと信じた場合は、Step 1 と同じ<strong>質権の即時取得（192条）</strong>で100万円まで弁済を受けられる。論点1の型がそのまま効く「型の再利用」がこの問題の妙。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 質権の即時取得
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点① 即時取得<span class="mm-name-en">Bona Fide Acq.</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">①-A · 原則＝無権利者から取得できない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>質権も担保「物権」である以上、処分権限のない<strong>無権利者Aから設定を受けても取得できない</strong>のが原則。Aは茶器を「預かっていたにすぎない」＝処分権限を欠く。この論理の出発点を一言書いてから例外へ進む（省くと減点）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">①-B · 例外＝192条「行使する権利」に質権を含む</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>192条は「動産について<strong>行使する権利</strong>を取得する」と定め、所有権に限定しない。質権は目的物の占有を成立要件とする物権であり（342条・344条）、占有への公信力による保護になじむ。よって質権も即時取得の対象に含まれると解する（通説・判例）。</p><div class="norm">192条の「動産について行使する権利」は所有権に限られず、占有を成立要件とする質権を含む。無権利者から質権の設定を受けた者も、平穏・公然・善意・無過失で占有を取得すれば質権を即時取得する。<span class="norm-cite">— 肯定説（通説・判例）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">①-C · あてはめ＝条件付き認定と帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cは取引行為（質権設定＋100万円交付）により茶器の引渡しを受け占有している。<strong>善意・無過失は問題文に明示がない</strong>ので「Cが善意・無過失で引渡しを受けたのであれば」と<strong>条件付きで</strong>認定すれば足りる（無条件断定は減点）。帰結＝小問1(1)は<strong>質権を即時取得し100万円全額の弁済可</strong>。この型は小問2でも再利用する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 質物の返還と対抗力
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点② 返還と対抗力<span class="mm-name-en">Return &amp; Perfection</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">②-A · 345条の性質決定（本問の山場）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>345条「質権者は、質権設定者に、自己に代わって質物を占有させることができない」を、(a)<strong>効力存続要件</strong>（返還で質権消滅）と読むか、(b)<strong>対抗要件の問題</strong>（352条の第三者対抗力を失うだけ）と読むかが分岐点。質権の本質は<strong>優先弁済的効力</strong>にあり、留置的作用（占有継続）は優先弁済を確保・促進する補助手段にすぎない。ゆえに(b)＝<strong>対抗要件説</strong>を採る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">②-B · 判例＝効力存続・対抗力のみ喪失</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><span class="case-name">大判大正5年12月25日</span>は、設定者への任意返還につき質権は消滅せず対抗力のみ失うとした（現在の通説的理解を基礎づける代表判例）。353条（占有を「奪われた」場合の占有回収の訴え）とは区別され、<strong>任意返還は端的に対抗力喪失の問題</strong>となる。</p><div class="norm">質権者が質物を質権設定者に返還したときは、質権は、これをもって第三者に対抗することができなくなるにとどまり、質権そのものは消滅しない。<span class="norm-cite">— 大判大5.12.25</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">②-C · 当事者/第三者の振り分け＝(2)(3)の帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>小問1(2)＝Aが所持</strong>：Aは質権設定の<strong>当事者</strong>。352条の「第三者」に設定者は含まれず対抗要件不要 → Cは質権を実行でき<strong>100万円弁済可</strong>。<br><strong>小問1(3)＝Bが所持</strong>：Bは<strong>第三者</strong>。Cは占有を失い継続占有（352条）を欠くため対抗できず<strong>弁済を受けられない</strong>。ひとつの判例を相手の地位で振り分けるだけ。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論点③ 責任転質
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論点③ 責任転質<span class="mm-name-en">Sub-pledge</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③-A · 責任転質の認定と性質論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aは正当な質権者（被担保債権50万円）だが、Bの承諾なく更にCへ質入れ＝<strong>責任転質（348条・自己の責任で）</strong>。何が質入れされるかにつき、<strong>質物質入説</strong>（原質権者が把握する質物の交換価値そのものを質入れ／通説）と<strong>共同質入説</strong>（質物＋原質権の被担保債権）が対立。被担保債権を質入れしたいなら端的に権利質を構成すれば足りるとして質物質入説を採る。</p><div class="norm">転質の客体は質物の交換価値であり（質物質入説）、転質権者は原質権者が把握していた担保価値の範囲でのみ権利を取得し、これを超えて権利を設定することはできない。<span class="norm-cite">— 質物質入説（通説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③-B · 効力範囲＝50万円・弁済期到来後</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aが把握する担保価値は<strong>原質権の被担保債権50万円</strong>にとどまる。ゆえにCは100万円のうち<strong>50万円の限度でのみ</strong>優先弁済を受けうる。かつ原質権設定者Bを害せないから、<strong>BのAに対する債務の弁済期が到来するまで</strong>転質を実行できない。<em>被担保債権の当事者を混同しない</em>（原質権はA→B債権が被担保、実行の起点はB→A債務の弁済期）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③-C · 両説の差は一点＋即時取得の例外</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>質物質入説と共同質入説で<strong>取れる金額（50万円）も実行時期も同じ</strong>。<strong>唯一の差</strong>は、共同質入説では被担保債権も質入れ対象ゆえ<strong>Cは原債権そのものにも質権を実行できる</strong>のに対し、質物質入説ではできない点だけ。<br>例外＝Cが担保価値50万円を知らず善意無過失で100万円の質権を取得したと信じた場合は、<strong>質権の即時取得（192条）</strong>で100万円まで弁済可（論点1の応用）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 質権の即時取得</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">担保物権もまた物権である以上、無権利者から質権の設定を受けても、これを取得できないのが原則である。もっとも、192条は「動産について行使する権利を取得する」と定め、この「権利」は所有権に限られない。質権は目的物の占有を成立要件とする物権であって（342条・344条）、占有に対する信頼を保護する即時取得の趣旨がそのまま妥当する。そこで、質権も即時取得の対象に含まれると解する。<span class="norm-cite">— 論証1-1・完成形 約180字</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 345条＝対抗要件（返還と効力）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">質権の本質は優先弁済的効力にあり、目的物の占有を継続する留置的作用は優先弁済を確保・促進する補助的手段にすぎない。したがって、設定者に質物を返還しても質権の効力それ自体は失われず、352条により第三者に対する対抗力を失うにとどまる。当事者たる設定者との関係では、そもそも対抗の問題を生じない。<span class="norm-cite">— 対抗要件説・大判大5.12.25 型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 責任転質の効力範囲</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">責任転質（348条）において何が質入れされるかにつき、思うに、転質は原質権者が把握する質物の交換価値そのものを担保として提供する行為であり、被担保債権を質入れするのであれば端的に権利質を構成すれば足りる。そこで、質物の交換価値が質入れされると解する（質物質入説）。したがって、転質権者は原質権者が把握した担保価値の範囲でのみ権利を取得し、また原質権設定者を害せないから、原質権の被担保債権の弁済期が到来するまで転質を実行できない。<span class="norm-cite">— 論証3-1・完成形 約240字</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 即時取得の条件付き認定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">本件において、Cは、無権利者Aとの質権設定契約という取引行為により、茶器の引渡しを受けてこれを占有している。したがって、Cが善意かつ無過失で引渡しを受けたのであれば、Cは質権を即時取得し、その実行により100万円の弁済を受けることができる。<span class="norm-cite">— あてはめ・条件付き認定 約120字</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>即時取得</strong> — 192条「行使する権利」に質権を含む（占有を成立要件＝公信力）<br>② <strong>返還と対抗力</strong> — 345条は対抗要件／返還で効力存続・対抗力のみ喪失<br>③ <strong>責任転質</strong> — 質物質入説／担保価値の範囲・原質権の弁済期到来後に実行</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">場面別・取れる金額</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 1(1) Cが所持 → 即時取得<strong>100万円</strong><br>· 1(2) Aが所持（当事者）→ 対抗不要<strong>100万円</strong><br>· 1(3) Bが所持（第三者）→ 継続占有なし<strong>弁済不可</strong><br>· 2 転質 → 原則<strong>50万円</strong>（弁済期到来後）／即時取得なら100万円</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">条文番号セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 即時取得 — 192条（原始取得）<br>· 質権の内容/設定 — 342条・344条（占有＝成立要件）<br>· 占有をさせる禁止 — 345条<br>· 転質 — 348条（責任転質・加重責任）<br>· 動産質の対抗要件 — 352条（継続占有）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「動産について行使する権利」＝所有権に限らない<br>· 「占有を成立要件とする物権」（342・344）<br>· 「効力は存続し対抗力のみ喪失」<br>· 「352条の第三者に設定者は含まれない」<br>· 「質物の交換価値の質入れ」＝質物質入説</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 無権利＋占有取得（即時取得材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>AはBから茶器を「預かっていたにすぎない」＝処分権限の欠如＝無権利者／Cは質権設定契約という取引行為で茶器の引渡しを受け現に所持（占有への外形的信頼）／善意・無過失は明示なし＝条件付き認定。<br>──192条の客観的要件を基礎づけ、質権の即時取得（100万円）を導く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 任意返還と相手の地位（対抗力材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>(2)CはAの懇願に負け茶器をAに任意に引き渡した＝「奪われた」（353条）ではなく任意返還／(2)のAは質権設定の<strong>当事者</strong>／(3)のBは質権にとって<strong>第三者</strong>で、Cは継続占有（352条）を喪失。<br>──(2)は対抗不要で実行可、(3)は対抗不可で弁済不可を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 担保価値50万円と弁済期（転質材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aが「Bの承諾なしに」更に質入れ＝自己責任の責任転質／原質権の被担保債権はAのBに対する<strong>50万円</strong>＝Aが把握する担保価値の上限／Cの被担保債権100万円のうち50万円超は無担保／実行の起点はBのAに対する債務の弁済期。<br>──転質権の効力範囲（50万円・弁済期到来後）を基礎づける。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 原則を書かずいきなり即時取得</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「担保物権も物権 → 無権利者から取得不可」の<strong>原則を飛ばして</strong>いきなり即時取得に入ると、論理の出発点が抜ける。まず原則、次に例外（192条）の順を崩さない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 善意無過失を無条件で断定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>問題文にない善意・無過失を<strong>無条件で認定</strong>するのは減点。「Cが善意・無過失であれば」と<strong>条件付き</strong>にとどめる。逆に、それを理由に即時取得の検討自体を省くのも誤り。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 返還で質権が消滅したと即断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設定者への返還で<strong>質権自体が消滅</strong>したと結論づけるのは効力存続要件説の誤採用。判例（大判大5.12.25）は効力存続・<strong>対抗力のみ喪失</strong>。345条の性質決定を落とすと(2)(3)の振り分けが崩れる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 転質で100万円取れると即断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cの被担保債権が100万円だからと<strong>100万円取れる</strong>とするのは最大の失点。Aが把握する担保価値は<strong>50万円</strong>が上限。さらに<strong>実行時期の制約（B債務の弁済期）</strong>を落とすと原質権設定者保護の視点が欠ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 両説の差を金額差と誤解／当事者混同</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>質物質入説と共同質入説の差を「<strong>取れる金額が変わる</strong>」と誤解するのは誤り。差は<strong>原債権への質権実行の可否</strong>だけ。また被担保債権の当事者混同（原質権はA→B債権が被担保、実行の起点はB→A債務の弁済期）にも注意。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 占有改定と即時取得・345条</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>判例は<strong>占有改定による即時取得を否定</strong>。質権は345条により占有改定による設定自体が禁じられ現実の引渡しを要するから、即時取得でも占有改定による取得は認められず、Cの現実の占有取得が要件となる（加点要素）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 盗品・遺失物の特則（193・194）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本問の茶器は<strong>寄託物</strong>であり盗品・遺失物ではないため、回復請求（193条）・代価弁償（194条）の特則の適用はない。即時取得の目的物範囲として押さえる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 抵当権との対比（占有の有無）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権は<strong>占有を伴わず登記で公示</strong>されるため即時取得の対象とならない。占有を成立要件とする質権との違いが、192条適用可否・352条（継続占有＝対抗要件）を貫く軸。転抵当（376条）も登記公示型で転質と対をなす。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 権利質（債権質）と共同質入説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>共同質入説は、実質的に<strong>被担保債権を目的とする権利質（債権質・364条）に接近</strong>する。被担保債権への実行を望むなら端的に権利質を構成すれば足りる、という質物質入説の論拠と表裏。占有概念になじまない担保の対比例。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照条文・判例・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照条文判例<span class="mm-name-en">Authorities</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">大判大正5年12月25日</span><span class="mm-leaf-sub"><em>Return of Pledge · Perfection Only</em> · 代表判例</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>質物返還と質権の効力の基本判例</strong>。「質権者が質物を質権設定者に返還したときは、質権はこれをもって第三者に対抗することができなくなるにとどまり、質権そのものは消滅しない」。<em>射程</em> — 345条・352条の関係につき<strong>対抗要件説</strong>を採用。小問1(2)(3)の直接根拠（当事者Aには対抗不要、第三者Bには対抗不可）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">質権の即時取得の判例法理</span><span class="mm-leaf-sub"><em>Pledge falls within art. 192</em> · 通説判例</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>質権を即時取得の対象に含める到達点</strong>。192条の「動産について行使する権利」に所有権のみならず質権も含まれ、無権利者から質権の設定を受けた者も、平穏・公然・善意・無過失で占有を取得すれば質権を即時取得する（古くから判例・通説の認めるところ）。<em>射程</em> — 小問1(1)の直接根拠。小問2の「担保価値を知らず取得した場合」にも応用。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法192条</span><span class="mm-leaf-sub"><em>art. 192 · Bona Fide Acquisition</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「取引行為によって、平穏に、かつ、公然と動産の占有を始めた者は、善意であり、かつ、過失がないときは、即時にその動産について行使する権利を取得する」。<em>射程</em> — 「行使する権利」に質権を含めて原始取得を導く小問1(1)・小問2例外の中心条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法342条</span><span class="mm-leaf-sub"><em>art. 342 · Content of Pledge</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「質権者は、その債権の担保として債務者又は第三者から受け取った物を占有し、かつ、その物について他の債権者に先立って自己の債権の弁済を受ける権利を有する」。<em>射程</em> — 留置的効力（占有）と<strong>優先弁済的効力（本質）</strong>を定め、345条の性質決定の背骨。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法344条</span><span class="mm-leaf-sub"><em>art. 344 · Creation = Delivery</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「質権の設定は、債権者にその目的物を引き渡すことによって、その効力を生ずる」（要物契約）。占有改定は不可（345条）。<em>射程</em> — 質権が<strong>占有を成立要件とする物権</strong>であることの根拠。即時取得の可否・占有改定排除の場面で摘示。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法345条</span><span class="mm-leaf-sub"><em>art. 345 · No Possession by Settlor</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「質権者は、質権設定者に、自己に代わって質物の占有をさせることができない」。<em>射程</em> — 小問1(2)(3)の中心条文。判例は<strong>効力存続要件ではなく対抗要件（352条）の問題</strong>と性質決定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法348条</span><span class="mm-leaf-sub"><em>art. 348 · Sub-pledge</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「質権者は、その権利の存続期間内において、自己の責任で、質物について、転質をすることができる。……不可抗力によるものであっても、その責任を負う」。<em>射程</em> — 小問2の中心条文。<strong>責任転質</strong>の認定＋質物質入説による効力範囲（担保価値50万円・弁済期到来後）＋加重責任。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法352条</span><span class="mm-leaf-sub"><em>art. 352 · Perfection = Continued Possession</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「動産質権者は、継続して質物を占有しなければ、その質権をもって第三者に対抗することができない」。<em>射程</em> — 「第三者」に<strong>設定者（当事者）は含まれない</strong>。小問1(2)＝当事者Aには対抗可、(3)＝第三者Bには継続占有を欠き対抗不可。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法353条 ／ 347条</span><span class="mm-leaf-sub"><em>arts. 353 &amp; 347 · Recovery / Retention</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>353条＝占有を「奪われた」ときは占有回収の訴え（200条）によってのみ回復。<strong>任意返還は本条の対象外</strong>で端的に対抗力喪失の問題（小問1(2)との区別）。347条＝留置的効力は優先弁済を促進する補助作用にすぎず質権の本質でない、という性質決定の背景。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">質物質入説 ／ 共同質入説</span><span class="mm-leaf-sub"><em>Two Theories of Sub-pledge</em> · 通説対立</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>質物質入説</strong>（通説）＝転質の客体は質物の交換価値そのもの／原債権への質権実行は不可。<strong>共同質入説</strong>（債権質入説）＝質物＋原質権の被担保債権を一体質入れ／原債権への質権実行が可。<em>射程</em> — 取れる金額（50万円）・実行時期は<strong>両説同じ</strong>で、差は原債権への実行可否の一点のみ。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">無権利者から質権の設定を受けた者は質権を取得できるか。根拠条文は？</span></summary>
+                  <div class="mm-q-answer">原則は取得不可だが、<span class="kw">質権の即時取得</span>（<span class="kw">192条</span>）が可能。192条の「動産について行使する権利」は所有権に限られず質権を含むから。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">質権者が質物を設定者に返還すると質権はどうなるか（判例）？</span></summary>
+                  <div class="mm-q-answer">質権自体は消滅せず、<span class="kw">第三者への対抗力を失うにとどまる</span>（大判大5.12.25）。345条は効力存続要件ではなく対抗要件（352条）の問題。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">動産質の第三者対抗要件は？設定者はそこにいう「第三者」か？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">継続占有</span>（<span class="kw">352条</span>）。質権設定の当事者たる設定者は「第三者」に<span class="verb">含まれない</span>ため、当事者には継続占有なしでも対抗できる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">設定者の承諾なき転質を何というか。根拠条文は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">責任転質</span>（<span class="kw">348条</span>）。質権者が「自己の責任で」質物について転質でき、転質による損失は不可抗力でも責任を負う（加重責任）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">小問1(2)Aが所持と(3)Bが所持で、Cの帰結が分かれるのはなぜか？</span></summary>
+                  <div class="mm-q-answer">相手の地位が違うから。(2)のAは<span class="kw">当事者</span>で対抗要件不要 → 実行可（100万円）。(3)のBは<span class="kw">第三者</span>でCは継続占有（352条）を欠き対抗不可 → 弁済不可。判例は同じ、振り分けだけが違う。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">責任転質でCの被担保債権は100万円なのに、なぜ取れるのは50万円までか？</span></summary>
+                  <div class="mm-q-answer">質物質入説では転質の客体は<span class="kw">原質権者Aが把握する担保価値</span>。それは原質権の被担保債権<span class="kw">50万円</span>にとどまるから、Cは50万円の限度でしか優先弁済を受けられない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">質物質入説と共同質入説で、実際に結論が変わるのはどの一点か？</span></summary>
+                  <div class="mm-q-answer">金額（50万円）も実行時期（B債務の弁済期到来後）も同じ。差は<span class="kw">原債権そのものへの質権実行の可否</span>だけ——共同質入説は可、質物質入説は不可。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">質権の即時取得の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">担保物権も物権である以上無権利者から取得できないのが原則であるが、192条は「動産について行使する権利」を取得すると定め所有権に限られず、質権は占有を成立要件とする物権であるから（342条・344条）、質権も即時取得の対象たる「行使する権利」に含まれる。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">設定者への質物返還と質権の効力の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">質権の本質は優先弁済的効力にあり占有継続は補助的作用にすぎないから、設定者に返還しても質権の効力自体は失われず、352条により第三者への対抗力を失うにとどまる。当事者との関係では対抗の問題を生じない。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">責任転質の法的性質と効力範囲の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">転質は原質権者が把握する質物の交換価値そのものを質入れするものであり（質物質入説）、転質権者は原質権者が把握した担保価値の範囲でのみ権利を取得し、原質権設定者を害せないから原質権の被担保債権の弁済期到来まで転質を実行できない。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">小問番号どおり：<span class="kw">1(1)即時取得（厚め）→ 1(2)(3)返還と対抗力（理屈一本で短く）→ 2責任転質（厚め）</span>。1(2)(3)は同じ判例を当事者/第三者で振り分けるだけなのでまとめて処理し時間を節約する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">小問2で必ず添えるべき「例外」は何か？</span></summary>
+                  <div class="mm-q-answer">Cが担保価値50万円を知らず善意無過失で100万円の質権を取得したと信じた場合の<span class="kw">質権の即時取得（192条）</span>。この例外なら<span class="kw">100万円</span>まで弁済可。論点1の型の再利用。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">無権利者Aから質入れ・Cが所持 → ？</span></summary>
+                  <div class="mm-q-answer">善意無過失なら質権を即時取得＝100万円。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">質物を第三者Bが所持 → ？</span></summary>
+                  <div class="mm-q-answer">継続占有なく対抗不可＝弁済不可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">承諾なき転質・原質権50万円 → ？</span></summary>
+                  <div class="mm-q-answer">弁済期到来後、50万円の限度で。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XXIII — 質権のシステマティック解法（即時取得・返還と対抗力・責任転質） · 13 chapters · 2 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-08-20T17:25+09:00">Generated: 2026-08-20 17:25 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
