@@ -479,9 +479,23 @@ Lv2タグ/おとり/下書き/想起は**推奨**（機械必須にはしない�
 - **CSS のみのリスキンは無害**（役割未タグ段落は従来表示）。役割タグ＋fact/eval は**段落ごとの内容判断**で付与する。
 - `<details class="reveal-answer">` の折りたたみ・`<u>` 結論下線・印刷時展開は不変。
 
+### 10-3-bis. `.pn`／`.pb` は `p.role` の直下（2026-08-20・A45・LEX）
+`.model-answer p.role` は **flex** で、`> .pn`（段落番号・`flex:0 0 auto`）と `> .pb`（本文・`flex:1 1 auto;
+min-width:0`）の **直下セレクタ**で2カラムを組む。したがって段落は必ず
+`<span class="pn"><b>N</b></span><span class="pb">本文…</span>` の形で書き、**見出しの `<b>` は `.pb` の
+内側で閉じる**（`<span class="pb"><b>第1暴行</b>　…`）。
+
+`<span class="pn"><b>2</span><span class="pb">第1暴行</b>` のように **`<b>` が `.pn`／`.pb` をまたぐ**と、
+HTML パーサの整合処理（adoption agency）で `.pb` が `p` の直下から外れ、本文の各 `<span class="fact">` 等が
+**それぞれ flex アイテム**になる。CJK は任意位置で折返すため各アイテムが1文字幅まで潰れ、**答案が縦帯の
+羅列**になる（実害＝刑JX037_ARIADNE・全44ゲート PASS のまま出荷・実機スクショで発覚）。
+
 ### 10-4. 検証
 `validate-ariadne.py` A24：リスキンCSS（`MA-ROLE-RESTYLE` マーカー）の有無と、模範答案に役割クラス
 （`r-issue/r-norm/r-apply/r-concl`）が付いているかを確認（当面 WARNING・fact/eval は推奨）。
+
+`validate-ariadne.py` **A45**（ERROR・2026-08-20）：`p.role` 段落内のタグ交差（入れ子をまたぐ閉じタグ・
+閉じ忘れ）と、`.pb` が `p.role` 直下にない構造を機械検出する。corpus 151 本で誤検出 0。
 
 ---
 

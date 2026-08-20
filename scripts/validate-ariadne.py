@@ -9,6 +9,7 @@ v1.4.0 ARENA-PURE（2026-07-11）：arena（プール対象）は当該問題の
 科目共通の答案方法論ドリルと bc-wrap 作法ドリルの data-arena は A40 で ERROR。
 v1.5.0 LOOP-MODE（2026-08-11）：周回モード（1周目フル／2周目 論点＋骨子／3周目 口頭）の
 段階フェード・エンジンと周回ごとの案内文の実装を A43 で ERROR 検査する。
+模範答案 role 段落のタグ交差（.pn/.pb 直下契約の破れ＝誌面が縦帯に潰れる）は A45 で ERROR。
 
 使い方:  python scripts/validate-ariadne.py outputs/ux/001_ARIADNE/001_刑法/刑JX001_ARIADNE.html
 ERROR が 1 件でもあれば exit 1。WARNING は配信可。
@@ -631,6 +632,53 @@ def main():
                        "onclick で .quiz-answer の hidden を外し revealed を付ける）")
         else:
             P('A44', f'想起カードの「答えを見る」{len(reveal_btns)}個すべてに開示ハンドラあり')
+
+    # ---- A45 模範答案 role 段落のタグ交差＝誌面崩壊（2026-08-20・LEX・ERROR）----
+    # 実害＝刑JX037_ARIADNE：`<span class="pn"><b>2</span><span class="pb">第1暴行</b>` と
+    # <b> が .pn／.pb をまたいで閉じており、HTML パーサの整合処理で .pb が p 直下から外れる。
+    # `.model-answer p.role{display:flex}` は `> .pn` / `> .pb` の直下契約で2カラムを組むため、
+    # 契約から外れた本文の各 <span> がそれぞれ flex アイテム化＝CJK が1文字幅の縦帯に潰れる
+    # （実機スクショで判明・全44ゲート PASS のまま出荷）。タグ交差を段落単位で機械検出する。
+    a45_errors = []
+    void_tags = {'br', 'img', 'hr', 'input', 'wbr'}
+    tag_re = re.compile(r'<(/?)([a-zA-Z][a-zA-Z0-9]*)\b[^>]*?(/?)>')
+    for m in re.finditer(r'<p class="role[^"]*">(.*?)</p>', html, re.S):
+        inner = m.group(1)
+        stack, crossed = [], None
+        for t in tag_re.finditer(inner):
+            closing, name, selfclose = t.group(1), t.group(2).lower(), t.group(3)
+            if name in void_tags or selfclose:
+                continue
+            if not closing:
+                stack.append(name)
+            elif stack and stack[-1] == name:
+                stack.pop()
+            elif name in stack:
+                crossed = name
+                break
+            else:
+                crossed = name
+                break
+        if crossed:
+            a45_errors.append(f'`</{crossed}>` が入れ子をまたいで閉じている: '
+                              + re.sub(r'\s+', ' ', inner)[:48] + '…')
+        elif stack:
+            a45_errors.append('閉じられていないタグ <' + '><'.join(stack[:3]) + '>: '
+                              + re.sub(r'\s+', ' ', inner)[:48] + '…')
+    # .pn / .pb は p.role の直下（flex アイテム）であることが契約。
+    for m in re.finditer(r'<p class="role[^"]*">(.*?)</p>', html, re.S):
+        inner = m.group(1)
+        if 'class="pb"' in inner and not re.match(r'\s*(<span class="pn">.*?</span>)?\s*<span class="pb">',
+                                                 inner, re.S):
+            a45_errors.append('`.pb` が p.role の直下にない（flex 2カラム契約から外れる）: '
+                              + re.sub(r'\s+', ' ', inner)[:48] + '…')
+    if a45_errors:
+        E('A45', f'模範答案 role 段落の構造破損 {len(a45_errors)} 件: '
+                 + '／'.join(a45_errors[:4]) + (f'／他{len(a45_errors)-4}件' if len(a45_errors) > 4 else '')
+                 + '（正典形＝<span class="pn"><b>N</b></span><span class="pb">…</span>・'
+                   '見出しの <b> は .pb の内側で閉じる）')
+    else:
+        P('A45', '模範答案 role 段落の .pn/.pb 直下契約OK（タグ交差なし）')
 
     # ---- A43 周回モード・エンジン（v1.5.0 LOOP-MODE・2026-08-11・ERROR）----
     # 1本＝約2万字を 2周目・3周目も全部通る設計だったのを、`.wrap[data-loop]` の段階フェードで解く。
