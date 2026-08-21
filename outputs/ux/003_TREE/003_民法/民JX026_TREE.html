@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抵当権に基づく物上代位 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XXVI <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">抵当権に基づく物上代位 <em>— Subrogation over Sublease Rent</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">5</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">抵当権に基づく<br>物上代位</h2>
+      <div class="mm-root-en">Subrogation of Mortgage</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法<br>
+        <em>Origin</em>重要問題 第26問 · 最決平12・4・14／最判平10・1・30<br>
+        <em>Form</em>規範定立型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法・担保物権の中核。<strong>抵当権に基づく物上代位（372条が準用する304条）</strong>の総合事例で、①物上代位の「債務者」の範囲（前段）と②目的債権の譲渡後も物上代位できるか（後段）という、<strong>304条1項の二つの文言解釈</strong>が交差する。賃料への物上代位・法人格の濫用・債権譲渡の対抗要件を横断する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>担保物権頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>物上代位は論文・短答の両方で問われる最重要域。前段の「原則否定＋例外肯定」を例外で切れるか、後段の「趣旨から解き起こす」ができるかで差がつく。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。条文操作は易しいが、<strong>前段を原則（賃借人＝非「債務者」）で切って否定して終わる</strong>と一気に失点する。法人格濫用の例外を拾えるかが勝負を分ける罠型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>賃料債権への物上代位／敷金による当然充当（最判平14.3.28）／物上代位と相殺（最判平13.3.13）／物上代位と一般債権者の差押えとの優劣／動産売買先取特権に基づく物上代位（最判平17.2.22）。とりわけ<strong>「抵当権＝登記公示あり／先取特権＝公示なし」で結論が逆転する</strong>対比が本論点の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>AはBに動産を売却・引渡し、<strong>売買代金債権を担保するためB所有の甲建物に抵当権を設定・登記</strong>した。Bは甲建物を<strong>C社に賃貸</strong>し、C社はこれを<strong>Dへ転貸</strong>。売買代金債権の弁済期が経過しても弁済されないため、AはC社のDに対する<strong>転貸賃料債権に物上代位</strong>できるか（前段）。さらに転貸賃料債権が<strong>Eに譲渡され内容証明郵便で通知</strong>された場合はどうか（後段）。<strong>C社はBを代表取締役とする実体のない会社</strong>で、転貸賃料はBの生活費に充てられていた。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>A（抵当権者・動産売買代金債権者）／B（甲建物所有者・抵当権設定者／C社の代表取締役）／C社（賃借人＝転貸人・<strong>実体のない会社</strong>）／D（転借人＝第三債務者）／E（転貸賃料債権の譲受人）。BとC社は<strong>実質的に同一体</strong>で、転貸賃料はBに帰属していた。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 転貸賃料債権の債権者C社は304条1項の「<strong>債務者</strong>」に含まれるか（前段）。<br>② 含まれないのが原則としても、<strong>法人格濫用</strong>の本問では例外的に物上代位できるか。<br>③ 目的債権のEへの譲渡（対抗要件具備）は304条1項ただし書の「<strong>払渡し又は引渡し</strong>」に当たるか（後段）。<br>④ 担保が<strong>抵当権</strong>である点は結論にどう影響するか（先取特権との差異）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 条文操作（372条→304条準用）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権には物上代位の直接規定がない。<strong>372条が先取特権の304条を準用</strong>することで抵当権にも物上代位が認められる、という二段階構造をまず正確に示す。ここを飛ばすといきなり減点。そのうえで対象が「賃料」一般ではなく<strong>賃借人C社の転貸賃料債権</strong>である点を特定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 前段＝「債務者」の意義</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>304条1項の「債務者」に賃借人（転貸人）は<strong>原則として含まれない</strong>（∵所有者は物的責任を負うが賃借人は負わない）。もっとも<strong>所有者と同視することを相当とする場合</strong>（法人格濫用・賃貸借仮装）には例外的に肯定。本問はC社が実体のない会社・賃料がBの生活費＝<strong>例外の典型</strong>。原則で切らないのが鉄則。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 後段＝「払渡し又は引渡し」</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>目的債権がEに譲渡され対抗要件（467条2項）が備わっても物上代位できるか。差押えの趣旨を<strong>第三債務者の二重弁済回避（第三債務者保護説）</strong>と捉え、そこから「払渡し又は引渡し」に<strong>債権譲渡は含まれない</strong>と解釈する。結論だけ暗記せず<strong>趣旨→結論の論理の橋</strong>を架けるのがコツ（<span class="case-name">最判平10.1.30</span>）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 担保の種類による切り分け＋結論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>被担保債権が動産売買代金債権である点に引きずられ<strong>動産売買先取特権（最判平17.2.22＝物上代位不可）</strong>の結論を持ち込まない。本問の担保は<strong>登記された抵当権</strong>だから、譲受人は負担を予測でき、対抗要件具備後も物上代位できる。<strong>結論＝前段・後段いずれもクリアし、Aは転貸賃料債権に物上代位できる</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 前段（転貸賃料への物上代位）
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①前段<span class="mm-name-en">Sublease Rent</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 条文操作と対象の特定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権に物上代位の直接規定はないが、<strong>372条が304条を準用</strong>する。賃料一般への物上代位（304条「賃貸」）は争いがないが、本問の対象は<strong>賃借人C社がDに対して持つ転貸賃料債権</strong>。所有者Bの賃料ではない点で「賃料」一般と別問題になる。</p><div class="norm">抵当権には物上代位の直接規定がないが、372条が304条を準用するから、抵当権者も物上代位権を行使しうる。<span class="norm-cite">— 条文操作の出発点</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 原則＝賃借人は「債務者」に非該当</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>304条1項の「債務者」には<strong>原則として抵当不動産の賃借人（転貸人）は含まれない</strong>。所有者は被担保債権につき<strong>抵当不動産をもって物的責任を負担</strong>するのに対し、賃借人はそのような責任を負わず、<strong>自己に属する債権を被担保債権の弁済に供されるべき立場にない</strong>から。</p><div class="norm">304条1項の「債務者」には、原則として抵当不動産の賃借人（転貸人）は含まれない。所有者は物的責任を負担するが、賃借人は自己の債権を他人の債務の弁済に供する立場にないからである。<span class="norm-cite">— 最決平12.4.14・原則</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 例外＝所有者と同視相当な場合</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>もっとも、所有者の取得すべき賃料を減少させ又は抵当権の行使を妨げるために、<strong>法人格を濫用し、又は賃貸借を仮装した上で転貸借関係を作出</strong>したなど、賃借人を<strong>所有者と同視することを相当とする場合</strong>には例外的に物上代位を許す。本問のC社は<strong>この例示そのもの</strong>で判例の射程が正面から及ぶ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-D · 本問のあてはめ・帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>C社は「Bを代表取締役とする<strong>実体のない会社</strong>」＝法人格の濫用。転貸賃料は「<strong>Bの生活費</strong>」に充てられ実質的にBの賃料。所有者Bが自己の取得すべき賃料を潜脱するため法人格を濫用して転貸借関係を作出したもので、<strong>C社を所有者Bと同視することを相当とする場合</strong>に当たる。<strong>よってAは転貸賃料債権に物上代位できる</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 後段（物上代位と債権譲渡の優劣）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②後段<span class="mm-name-en">Assignment</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 争点＝「払渡し又は引渡し」の外延</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>目的債権がEに譲渡され、内容証明郵便＝<strong>確定日付のある証書による通知（467条2項）</strong>で第三者対抗要件が具備されている。そこで<strong>目的債権の譲渡が304条1項ただし書の「払渡し又は引渡し」に当たるか</strong>が争点。当たれば譲渡後は物上代位不可、当たらなければ譲渡後も差押えれば物上代位可となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 差押えの趣旨（第三債務者保護説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押えを要件とした趣旨は、<strong>第三債務者（D）が抵当権設定者に弁済しても目的債権消滅を抵当権者に対抗できないという不安定な地位</strong>を避け、<strong>二重弁済の危険から第三債務者を保護</strong>する点にある。差押えは第三債務者の弁済先を明確にする制度であって、譲受人（E）を保護するためのものではない。</p><div class="norm">差押えを物上代位権行使の要件とした趣旨は、二重弁済を強いられる危険から第三債務者を保護する点にある。<span class="norm-cite">— 最判平10.1.30・第三債務者保護説</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 趣旨からの解釈と帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>この趣旨からは「払渡し又は引渡し」に<strong>債権譲渡は含まれない</strong>。よって抵当権者は、目的債権が譲渡され第三者対抗要件が備えられた後でも<strong>自ら目的債権を差し押さえて物上代位できる</strong>。結論だけを判例として引かず、<strong>趣旨→含まれない、の論理の橋</strong>を必ず架けるのが上位答案。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-D · 担保の種類による切り分け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権は<strong>登記により公示</strong>され譲受人は負担を予測しうるから、対抗要件具備後の物上代位を認めても不当でない。公示方法を欠く<strong>動産売買先取特権（最判平17.2.22）</strong>では譲受人保護の要請が高く結論が逆（物上代位不可）。本問は登記された抵当権だから<strong>Aは対抗要件具備後も物上代位できる</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">条文操作 · 372条→304条準用の書き出し</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">抵当権には物上代位に関する直接の規定がないが、372条が304条を準用しており、抵当権者も物上代位権を行使しうる。もっとも、物上代位の対象とされるのは抵当不動産の賃借人であるC社がDに対して有する転貸賃料債権であるから、C社が304条1項の「債務者」に当たるかが問題となる。<span class="norm-cite">— 試験本番想定・書き出し標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">前段核心 · 原則規範＋例外規範</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">304条1項の「債務者」には、原則として抵当不動産の賃借人（転貸人）は含まれない。所有者は被担保債権につき抵当不動産をもって物的責任を負担するのに対し、賃借人はかかる責任を負担せず、自己に属する債権を被担保債権の弁済に供されるべき立場にないからである。もっとも、法人格を濫用し又は賃貸借を仮装した上で転貸借関係を作出したなど、賃借人を所有者と同視することを相当とする場合には、例外的に物上代位を許すべきである。<span class="norm-cite">— 制限的肯定説（判例）型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">後段核心 · 第三債務者保護説からの解釈</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">差押えを物上代位権行使の要件とした趣旨は、第三債務者が抵当権設定者に弁済しても目的債権消滅を抵当権者に対抗できないという不安定な地位に置かれるのを避け、二重弁済の危険から第三債務者を保護する点にある。かかる趣旨からすれば、「払渡し又は引渡し」に債権譲渡は含まれず、抵当権者は目的債権が譲渡され対抗要件が備えられた後も、自ら差し押さえて物上代位できる。<span class="norm-cite">— 趣旨から解き起こす型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 先取特権との差異（加点）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">動産売買先取特権では公示方法がなく譲受人保護の要請が高いため、対抗要件具備後の物上代位は否定される。しかし、抵当権は登記により公示され、譲受人は負担を予測しうるから、本件のように担保が抵当権である場合には、対抗要件具備後も物上代位を認めてよい。<span class="norm-cite">— 平17判決との切り分け型</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 前段・例外肯定材料（法人格濫用）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>C社は「Bを代表取締役とする<strong>実体のない株式会社</strong>」＝独立した経済主体の実質を欠く／賃借人と所有者の<strong>人的同一性</strong>（代表がB）／転貸賃料は「<strong>Bの生活費</strong>」に充当＝賃料が実質的に所有者へ帰属。<br>──いずれも「法人格を濫用し転貸借関係を作出した」＝<strong>所有者と同視することを相当とする場合</strong>を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 後段・対抗要件と公示の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>C社からDへ<strong>内容証明郵便による債権譲渡通知</strong>＝確定日付のある証書（467条2項）→Eは第三者対抗要件を具備／Aの抵当権は<strong>登記済み</strong>＝公示された優先的地位→譲受人Eは負担を予測可能／Dは<strong>第三債務者</strong>＝差押命令送達前は設定者側へ弁済すれば足りる。<br>──差押えの趣旨＝第三債務者保護／抵当権の公示による調整を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 前提事実（担保構造の確認）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aの被担保債権は<strong>動産売買代金債権</strong>だが、担保は<strong>甲建物への抵当権</strong>（登記あり）である／被担保債権の弁済期は経過し不履行。<br>──「動産売買代金債権」に引きずられ先取特権の結論（物上代位不可）を持ち込まないための<strong>切り分けの起点</strong>。本問は抵当権ゆえ物上代位可。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>条文操作</strong> — 抵当権に直接規定なし／372条が304条を準用<br>② <strong>前段</strong> — 「債務者」に賃借人は原則非該当（物的責任は所有者）／例外＝所有者と同視相当（法人格濫用・賃貸借仮装）<br>③ <strong>後段</strong> — 差押えの趣旨＝第三債務者保護／ゆえに債権譲渡は「払渡し又は引渡し」に含まれない</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最決平12.4.14</span> — 転貸賃料への物上代位＝原則否定＋例外肯定（前段の中心）<br>② <span class="case-name">最判平10.1.30</span> — 第三債務者保護説／債権譲渡後も物上代位可（後段の中心）<br>③ <span class="case-name">最判平17.2.22</span> — 動産売買先取特権では譲渡後は不可（対比・結論逆転）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 物上代位 — 304条1項（本文＝対象／ただし書＝差押え）<br>· 抵当権への準用 — 372条<br>· 債権譲渡の対抗要件 — 467条（2項＝確定日付ある証書＝第三者対抗）<br>· 前段判例 — 最決平12.4.14／後段判例 — 最判平10.1.30<br>· 対比判例 — 最判平17.2.22（先取特権）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「物的責任を負担するのは所有者」<br>· 「所有者と同視することを相当とする場合」<br>· 「法人格を濫用し……転貸借関係を作出」<br>· 「二重弁済の危険から第三債務者を保護」<br>· 「払渡し又は引渡しに債権譲渡は含まれない」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 動産売買先取特権と物上代位（平17）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>同じ「物上代位と債権譲渡」でも担保が<strong>動産売買先取特権</strong>なら結論は逆。<span class="case-name">最判平17.2.22</span>は、目的債権が譲渡され対抗要件が備えられた後は<strong>物上代位できない</strong>とした。理由は<strong>先取特権に公示方法がなく</strong>譲受人その他の第三者の取引安全を保護する必要が高いこと。抵当権（登記あり＝平10）との対比が本問の到達点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 賃料債権への物上代位と敷金（平14）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権者が賃料債権に物上代位し差押えをした後でも、賃貸借終了・明渡し時には<strong>賃料債権は敷金の充当により当然に消滅</strong>する（<span class="case-name">最判平14.3.28</span>）。物上代位による差押えは<strong>敷金充当を妨げない</strong>。物上代位の効力の限界を示す関連判例。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 物上代位と相殺（平13）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>賃借人が<strong>抵当権設定登記後に取得した賃貸人に対する債権</strong>を自働債権とする相殺は、物上代位により差し押さえた抵当権者に<strong>対抗できない</strong>（<span class="case-name">最判平13.3.13</span>）。抵当権の登記による公示を軸に、後発の相殺期待を劣後させる。本問の「登記公示」の一貫した重みを示す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 物上代位と一般債権者の差押え</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権者の物上代位と一般債権者の差押えが競合する場合、<strong>抵当権設定登記と一般債権者の差押命令送達の先後</strong>で優劣を決するのが判例の理解。本問は債権「譲渡」との優劣で局面は異なるが、いずれも<strong>抵当権の登記による公示</strong>を軸に処理される点で一貫する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 前段を原則で切って否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「賃借人は『債務者』に含まれない」で<strong>物上代位を否定して終わる</strong>のが最大の失点（−15〜20点）。本問は法人格濫用の<strong>例外事由が明示的例示そのもの</strong>。原則を提示したら必ず例外を検討し、C社の無実体性・賃料のB帰属を評価語で拾って肯定へ導く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 条文操作（372→304準用）を書かない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>抵当権に物上代位規定がないことと<strong>372条による304条の準用</strong>を書かずにいきなり物上代位を論ずると中程度減点（−5〜8点）。物上代位は<strong>まず条文操作から</strong>が鉄則。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 後段で趣旨を書かず結論だけ引く</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「判例は債権譲渡を含まないとする」と<strong>結論だけ暗記で書く</strong>と大幅減点（−10〜15点）。差押えの趣旨＝<strong>第三債務者保護</strong>を定立し、<strong>趣旨→含まれない</strong>の論理の橋を必ず架ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 抵当権と先取特権を同視して結論を誤る</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>被担保債権が動産売買代金債権である点に引きずられ、<span class="case-name">最判平17.2.22</span>（先取特権＝物上代位不可）の結論を持ち込むと大幅減点（−10点）。本問の担保は<strong>登記された抵当権</strong>だから物上代位<strong>可</strong>。公示の有無で結論が分かれる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 「賃料」と「転貸賃料」を区別しない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>所有者Bの賃料への物上代位は争いがなく、本問の<strong>争点は「転貸」賃料</strong>＝賃借人C社の債権である点にある。両者を混同すると論点が一段つぶれる（−5点）。対象の特定を丁寧に。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフはすべて閉じておく。条文操作→前段（転貸賃料）→後段（債権譲渡）の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。<strong>原則と例外の切り分け／趣旨から結論への橋</strong>を意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。前段のあてはめを評価語で厚く、後段は端的に、を訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。原則例外規範・第三債務者保護説の規範を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。3 判例と条文番号を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最決平成12年4月14日</span><span class="mm-leaf-sub"><em>Sublease Rent · Subrogation</em> · 前段の中心</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>転貸賃料債権への物上代位の可否</strong>。「372条によって準用される304条1項の『債務者』には、原則として抵当不動産の賃借人（転貸人）は含まれない。……もっとも、法人格を濫用し、又は賃貸借を仮装した上で転貸借関係を作出したものであるなど、抵当不動産の賃借人を所有者と同視することを相当とする場合には、物上代位権を行使することを許すべきである」。<em>射程</em> — 例外事由の例示に本問のC社が正面から当たる典型事案。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成10年1月30日</span><span class="mm-leaf-sub"><em>Assignment · Third-Debtor Protection</em> · 後段の中心</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>物上代位と債権譲渡の優劣</strong>。差押要件の趣旨を<strong>二重弁済の危険から第三債務者を保護する点</strong>にあるとし、「304条1項の『払渡又ハ引渡』には債権譲渡は含まれず、抵当権者は、目的債権が譲渡され対抗要件が備えられた後においても、自ら目的債権を差し押さえて物上代位権を行使することができる」とした。<em>射程</em> — 本問の内容証明通知（対抗要件具備）後の物上代位を正面から根拠づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成17年2月22日</span><span class="mm-leaf-sub"><em>Statutory Lien · Opposite Result</em> · 対比</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>動産売買先取特権に基づく物上代位と債権譲渡</strong>。目的債権が譲渡され<strong>第三者対抗要件が備えられた後は物上代位できない</strong>とした。理由は先取特権に<strong>公示方法がなく</strong>譲受人その他の第三者の取引安全を保護する必要が高いこと。<em>射程</em> — 抵当権（平10・登記公示あり＝可）との<strong>結論逆転</strong>の対比軸。本問は抵当権ゆえ結論を異にする。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成14年3月28日</span><span class="mm-leaf-sub"><em>Rent · Security Deposit</em> · 関連</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>賃料債権への物上代位と敷金の充当</strong>。物上代位による差押え後でも、賃貸借終了・明渡し時には賃料債権は<strong>敷金の充当により当然に消滅</strong>し、物上代位はこれを妨げないとした。<em>射程</em> — 物上代位の効力の限界を示す関連判例（本問では直接問題にならないが体系上の位置づけ）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成13年3月13日</span><span class="mm-leaf-sub"><em>Subrogation · Set-off</em> · 関連</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>物上代位と相殺</strong>。賃借人が<strong>抵当権設定登記後に取得した賃貸人に対する債権</strong>を自働債権とする相殺は、物上代位により差し押さえた抵当権者に<strong>対抗できない</strong>とした。<em>射程</em> — 抵当権の登記による公示を軸に後発の相殺期待を劣後させる。本問の「登記公示」の重みと一貫。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法304条1項</span><span class="mm-leaf-sub"><em>Civil Code, art. 304(1) · Subrogation</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「先取特権は、その目的物の売却、賃貸、滅失又は損傷によって<strong>債務者</strong>が受けるべき金銭その他の物に対しても、行使することができる。ただし、先取特権者は、その<strong>払渡し又は引渡し</strong>の前に差押えをしなければならない」。<em>射程</em> — 本文の「債務者」（前段）とただし書の「払渡し又は引渡し」（後段）が本問の二大争点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法372条</span><span class="mm-leaf-sub"><em>art. 372 · Application to Mortgage</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>先取特権に関する規定（304条を含む）を抵当権に準用する条文。抵当権には物上代位の直接規定がないため、<strong>372条→304条の準用</strong>が物上代位の条文上の根拠となる。答案の書き出しで必ず示す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法467条2項</span><span class="mm-leaf-sub"><em>art. 467(2) · Assignment · Perfection</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「前項の通知又は承諾は、<strong>確定日付のある証書</strong>によってしなければ、債務者以外の第三者に対抗することができない」。本問の<strong>内容証明郵便による通知</strong>が確定日付ある証書に当たり、Eは第三者対抗要件を具備する。後段の前提事実を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">制限的肯定説（判例）</span><span class="mm-leaf-sub"><em>Restrictive Affirmation</em> · 前段の通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>転貸賃料への物上代位につき<strong>原則否定＋所有者と同視相当な場合は肯定</strong>とする説（判例）。全面肯定説（正常な転借人・転貸人の利益を害する）と全面否定説（執行妨害を許す）の中間で、担保法の基本構造と実質的妥当性を両立させる。「同視相当」の判断基準がなお不明確との指摘はあるが本問は明示的例示に該当。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">第三債務者保護説（判例）</span><span class="mm-leaf-sub"><em>Third-Debtor Protection</em> · 後段の通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>差押えの趣旨を<strong>第三債務者を二重弁済の危険から保護すること</strong>に求める説（判例）。ここから債権譲渡は「払渡し又は引渡し」に含まれない＝対抗要件具備後も物上代位可を導く。特定性維持説（含みうる＝担保権者に酷）・優先権保全説（公示・先後で決する）と対立。譲受人保護に薄いとの批判は抵当権の登記公示で調整。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">抵当権に基づく物上代位の条文上の根拠は？</span></summary>
+                  <div class="mm-q-answer">抵当権には直接規定がなく、<span class="kw">372条が先取特権の304条を準用</span>する。書き出しで必ずこの二段階の条文操作を示す。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">304条1項の「債務者」に賃借人（転貸人）は含まれるか。原則とその理由は？</span></summary>
+                  <div class="mm-q-answer">原則として<span class="kw">含まれない</span>。所有者は物的責任を負担するが、賃借人は自己に属する債権を被担保債権の弁済に供されるべき立場にないから。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">賃借人でも例外的に物上代位が及ぶのはどんな場合か？</span></summary>
+                  <div class="mm-q-answer">法人格を濫用し又は賃貸借を仮装して転貸借関係を作出したなど、<span class="kw">賃借人を所有者と同視することを相当とする場合</span>（最決平12.4.14）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">目的債権が譲渡され対抗要件が備わった後、抵当権者は物上代位できるか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">できる</span>。差押えの趣旨は第三債務者保護にあり、「払渡し又は引渡し」に<span class="verb">債権譲渡は含まれない</span>から（最判平10.1.30）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">もしC社が実体のある独立した会社で、通常の事業として転貸していたら、前段の結論は？</span></summary>
+                  <div class="mm-q-answer">原則どおり<span class="kw">物上代位できない</span>。「所有者と同視することを相当とする場合」に当たらず、賃借人C社の転貸賃料債権は304条の対象外。本問との差は<span class="verb">法人格濫用の有無</span>の一点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">担保が抵当権ではなく動産売買先取特権だったら、後段の結論はどう変わるか？</span></summary>
+                  <div class="mm-q-answer">対抗要件具備後は<span class="kw">物上代位できない</span>（最判平17.2.22）。先取特権は<span class="verb">公示方法を欠き</span>譲受人保護の要請が高いから。抵当権は登記公示があるため結論が逆転する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">後段で「差押えと対抗要件具備の先後で決する」と書くのはなぜ危ういか？</span></summary>
+                  <div class="mm-q-answer">それは<span class="kw">優先権保全説</span>的な発想で、判例（第三債務者保護説）の筋とずれる。本問の争点は先後ではなく<span class="verb">「払渡し又は引渡し」の文言解釈</span>であり、趣旨から含まれないと導くのが正解。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">前段の原則規範（「債務者」に賃借人は含まれない理由）を一句で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">304条1項の「債務者」には原則として抵当不動産の賃借人は含まれない。所有者は被担保債権につき抵当不動産をもって物的責任を負担するのに対し、賃借人はかかる責任を負担せず、自己に属する債権を被担保債権の弁済に供されるべき立場にないからである。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">前段の例外規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">所有者の取得すべき賃料を減少させ又は抵当権の行使を妨げるために、法人格を濫用し、又は賃貸借を仮装した上で転貸借関係を作出したなど、賃借人を所有者と同視することを相当とする場合には、その賃借人が取得すべき転貸賃料債権に対して物上代位権を行使することを許すべきである。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">後段の規範（差押えの趣旨→帰結）を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">差押えを物上代位権行使の要件とした趣旨は二重弁済の危険から第三債務者を保護する点にあるから、「払渡し又は引渡し」に債権譲渡は含まれず、抵当権者は目的債権が譲渡され対抗要件が備えられた後も、自ら差し押さえて物上代位できる。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・分量で構成する？</span></summary>
+                  <div class="mm-q-answer">設問順に<span class="kw">前段（第1）→後段（第2）</span>。前段を厚く（900〜1,100字＝条文操作＋原則＋例外＋あてはめ）、後段は端的に（500〜700字＝趣旨定立中心＋先取特権対比は加点一段落）。<span class="verb">前段の例外あてはめ</span>が最大の配点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">後段で上位答案が加点を取る一手は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">動産売買先取特権（最判平17.2.22）との結論の違いを公示方法の有無から説明</span>する一段落。被担保債権が動産売買代金債権である点に引きずられず「本件は登記された抵当権だから物上代位可」と切り分けると差がつく。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">実体なき会社・賃料は所有者の生活費 → ？</span></summary>
+                  <div class="mm-q-answer">所有者と同視相当＝転貸賃料に物上代位可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">差押えの趣旨は？ → だから債権譲渡は？</span></summary>
+                  <div class="mm-q-answer">第三債務者保護＝「払渡し等」に含まれない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">抵当権と先取特権、譲渡後の物上代位は？</span></summary>
+                  <div class="mm-q-answer">抵当権＝可（登記）／先取特権＝不可（公示なし）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XXVI — 抵当権に基づく物上代位 · 13 chapters · 5 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-08-21T22:36+09:00">Generated: 2026-08-21 22:36 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
