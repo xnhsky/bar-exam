@@ -1,0 +1,3066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>民JX028　抵当権に基づく妨害排除請求のシステマティック解法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;500;700;800&family=Shippori+Antique&family=Zen+Old+Mincho:wght@400;500;700;900&family=Zen+Kaku+Gothic+Antique:wght@400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&family=Noto+Serif+JP:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&family=Kaisei+Decol:wght@400;500;700&family=Kosugi+Maru&family=Source+Code+Pro:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@500;700;800&family=M+PLUS+1p:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* ==========================================
+     配色 V3（民法アンカー・第5-1表準拠）
+     雰囲気選定：深プラム×ローズ（抵当権の交換価値把握・競売妨害という
+     利害の緊張感と、担保法理の落ち着いた重厚さに呼応）
+     役割：ベース70% / メイン25% / アクセント5% / サブ×2
+     ========================================== */
+  --accent:#582341;            /* メイン25%：深プラム（見出し・ヘッダー・白文字背景／民アンカー） */
+  --mid:#a53d59;               /* アクセント5%：ローズ（badge・強調／民アンカー） */
+  --base:#faf5f5;              /* ベース70%：極淡ローズホワイト（body 地色） */
+  --soft:#f6e9d9;              /* サブ1：サンド（テーブル縞・柔背景） */
+  --light:#ecd6d9;             /* サブ2：ローズグレー（key-box / back-refs） */
+  --paper:#fffdfb;             /* 温白（カード内地色・小面積） */
+  --text:#2b2630;              /* 本文：ダークプラムグレー（純黒回避・text-dark L<40） */
+  --bg-dark:#47203a;           /* 暗プラム（重要結論・白文字背景） */
+  --accent-3:#faf5f5;          /* para-num 極淡背景 */
+  --border-soft:#dcc0cb;       /* 淡ローズ境界線 */
+  --shadow-soft:rgba(88,35,65,.10);
+  --shadow-mid:rgba(88,35,65,.18);
+
+  /* ==========================================
+     12 色固定指標（全科目共通・不変）
+     ========================================== */
+  --hl-super:#ffd54f; --hl-high:#aed581; --hl-std:#90caf9;
+  --tan-super:#c62828; --tan-high:#ef6c00; --tan-std:#1565c0;
+  --rank-A:#c62828; --rank-B:#e65100; --rank-C:#1565c0; --rank-D:#333333;
+
+  /* ==========================================
+     11 役割タイポグラフィ（v3.2・改変禁止）
+     ========================================== */
+  /* ① 本文ゴシック */
+  --font-body:    "A1 Gothic","A-OTF A1ゴシック Std","Zen Kaku Gothic Antique","Hiragino Sans","Yu Gothic Medium","Noto Sans JP",sans-serif;
+  /* ② 柔強調・タグ・中見出し */
+  --font-soft:    "Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic Medium",sans-serif;
+  /* ③ 大見出し・カバー */
+  --font-display: "Shippori Mincho B1","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ④ 条文 */
+  --font-statute: "Noto Serif JP","Yu Mincho","Hiragino Mincho ProN",serif;
+  /* ⑤ 引用一般 */
+  --font-quote:   "Yu Mincho","游明朝","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑥ 模範答案・論証 */
+  --font-answer:  "Shippori Antique","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑦ KEY フレーズ */
+  --font-keyword: "Kaisei Decol","M PLUS Rounded 1c","Yu Mincho",serif;
+  /* ⑧ 判旨原文 */
+  --font-judgment:"Zen Old Mincho","Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif;
+  /* ⑨ 注釈・補足 */
+  --font-note:    "Zen Kaku Gothic Antique","Yu Gothic","Hiragino Sans",sans-serif;
+  /* ⑩ 教授コメント */
+  --font-professor:"Kosugi Maru","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  /* ⑪ 等幅・ラベル */
+  --font-mono:    "Source Code Pro","Consolas","Menlo",monospace;
+  /* ⑫ インパクト（M PLUS 1p・TX 由来・任意使用） */
+  --font-impact:  "M PLUS 1p","Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:20px}
+
+body{
+  font-family:var(--font-body);
+  font-weight:500;
+  line-height:2.0;
+  font-size:16px;
+  letter-spacing:.04em;
+  font-feature-settings:"palt" 1;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+  background:var(--base);
+  color:var(--text);
+  margin:0;padding:0;
+}
+
+/* ==========================================
+   見出し階層
+   ========================================== */
+h1{font-family:var(--font-display);font-weight:700;letter-spacing:.06em;line-height:1.4;}
+h2{
+  font-family:var(--font-display);
+  color:var(--accent);font-size:1.6em;font-weight:700;
+  letter-spacing:.06em;
+  margin:0 0 18px 0;
+  padding:10px 16px;
+  background:var(--soft);
+  border-left:8px solid var(--accent);
+  border-radius:4px;
+  line-height:1.4;
+}
+h3{
+  font-family:var(--font-soft);
+  color:var(--accent);font-size:1.25em;font-weight:700;
+  letter-spacing:.04em;
+  margin:26px 0 14px 0;
+  padding:7px 14px;
+  background:var(--light);
+  border-left:5px solid var(--mid);
+}
+h4{
+  font-family:var(--font-soft);
+  color:var(--mid);font-size:1.08em;font-weight:700;
+  margin:18px 0 10px 0;
+  padding-bottom:4px;
+  border-bottom:1.5px dashed var(--mid);
+  letter-spacing:.03em;
+}
+h5{
+  font-family:var(--font-soft);
+  color:var(--accent);font-size:1em;font-weight:700;
+  margin:14px 0 8px 0;letter-spacing:.03em;
+}
+
+/* 第5部スキーマ用 点線見出し */
+section[id^="ref-"] h3,
+section[id^="part5"] h3{
+  border-bottom:3px dotted var(--accent);
+  padding-bottom:14px;margin-bottom:28px;
+  background:transparent;border-left:none;padding-left:0;
+}
+section[id^="ref-"] h4{
+  border-bottom:2px dotted var(--border-soft);
+  padding-bottom:6px;
+}
+
+/* ==========================================
+   ヘッダー：右上 ID タグ
+   ========================================== */
+.doc-header{
+  position:absolute;
+  top:14px;right:18px;
+  z-index:100;
+  display:inline-block;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;
+  padding:6px 14px;
+  border-radius:8px;
+  font-family:var(--font-mono);
+  font-weight:600;font-size:16px;letter-spacing:.10em;
+  border:1.5px solid rgba(255,255,255,.65);
+  box-shadow:0 2px 6px rgba(0,0,0,.20);
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+
+/* カバーヘッダー */
+header.cover{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;padding:70px 32px 44px 32px;text-align:center;
+  border-radius:0 0 20px 20px;margin-bottom:24px;
+  position:relative;overflow:hidden;
+}
+header.cover::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at top right, rgba(255,255,255,.12) 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(0,0,0,.10) 0%, transparent 60%);
+}
+header.cover h1{
+  margin:0 0 10px 0;
+  font-family:var(--font-display);
+  font-size:1.9em;font-weight:700;letter-spacing:.06em;
+  color:#fff;line-height:1.45;
+}
+header.cover h2{
+  margin:0 0 10px 0;
+  font-family:var(--font-display);
+  font-size:1.7em;font-weight:700;letter-spacing:.04em;
+  color:#fff;line-height:1.45;
+  background:transparent;border:none;padding:0;
+}
+header.cover .subtitle{
+  margin:0;
+  font-family:var(--font-quote);
+  font-size:1em;opacity:.94;color:#fff;
+  font-weight:400;
+}
+header.cover .subject-tag{
+  display:inline-block;margin-bottom:14px;padding:4px 14px;
+  background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.45);
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-size:.78em;font-weight:700;letter-spacing:.18em;
+}
+
+/* ==========================================
+   レイアウト：container + section カード
+   ========================================== */
+.container{
+  max-width:1320px;
+  margin:0 auto;
+  padding:0 16px 32px 16px;
+  background:transparent;
+  position:relative;
+}
+@media (min-width:769px){
+  .container{padding:0 24px 48px 24px;}
+}
+
+.container > section,
+.container > nav.toc,
+.container > nav#toc{
+  background:var(--paper);
+  border-radius:14px;
+  padding:28px 30px;
+  margin:24px 0;
+  box-shadow:0 4px 14px var(--shadow-soft);
+  border:none;
+}
+section section,
+section .card{
+  background:transparent;padding:0;
+  margin:24px 0 0 0;box-shadow:none;border-radius:0;
+}
+/* 内側 .card は薄い区切りを演出（v3.2 準拠：透明＋ラインのみ） */
+section .card{
+  background:transparent;
+  border-top:1px solid var(--border-soft);
+  padding-top:18px;margin-top:32px;
+}
+section .card:first-of-type{
+  border-top:none;padding-top:0;margin-top:24px;
+}
+
+/* ==========================================
+   本文インデント設計（第23項）
+   ========================================== */
+section > p,
+section > ul,
+section > ol,
+.card > p,
+.card > ul,
+.card > ol,
+.ref-entry > p,
+.ref-entry > ul,
+.ref-entry > ol{
+  padding-left:1.4em;
+}
+section > h2,
+section > h3,
+section > h4,
+section > h5,
+.card > h3,
+.card > h4,
+.card > h5,
+section > .key-box,
+section > .note-box,
+section > .warn-box,
+section > .success-box,
+section > .danger-box,
+section > .lecturer-advice,
+section > .arg-card,
+section > .model-answer,
+section > .grading,
+section > .svg-wrap,
+section > blockquote,
+section > .timeline,
+section > table,
+section > .flow,
+.card > .key-box,
+.card > .note-box,
+.card > .warn-box,
+.card > .success-box,
+.card > .danger-box,
+.card > .lecturer-advice,
+.card > .arg-card,
+.card > .model-answer,
+.card > .grading,
+.card > .svg-wrap,
+.card > blockquote,
+.card > .timeline,
+.card > table,
+.card > .flow{
+  margin-left:0;
+}
+
+/* ==========================================
+   key-box（KTX v6.19 流豪華装飾・specificity 防御）
+   ========================================== */
+.key-box,
+.section .key-box,
+.container .key-box,
+section .key-box,
+.card .key-box{
+  position:relative;
+  background:linear-gradient(135deg,#fff8f0 0%,var(--light) 60%,var(--soft) 100%);
+  border:2px solid var(--accent);
+  border-radius:8px;
+  padding:56px 44px 38px 72px;
+  margin:30px 0 24px;
+  font-family:var(--font-keyword);
+  font-size:1.05rem;
+  font-weight:500;
+  line-height:2.0;
+  letter-spacing:.04em;
+  color:var(--text);
+  box-shadow:
+    0 4px 14px rgba(0,0,0,.10),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.key-box::before{
+  content:'🔑 KEY';
+  position:absolute;top:-14px;left:22px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--mid) 100%);
+  color:#fff;
+  padding:5px 16px 4px;
+  border-radius:4px;
+  font-family:var(--font-mono);
+  font-size:.80rem;font-weight:600;letter-spacing:.14em;
+  box-shadow:0 2px 6px rgba(0,0,0,.20);
+  white-space:nowrap;
+}
+.key-box::after{
+  content:'';position:absolute;top:0;right:0;
+  width:64px;height:64px;
+  background:radial-gradient(circle at top right, rgba(0,0,0,.08), transparent 70%);
+  border-radius:0 8px 0 64px;
+  pointer-events:none;
+}
+.key-box p{margin:.4em 0;}
+.key-box .kp-strong{
+  font-weight:700;color:var(--accent);
+  font-size:1.10rem;letter-spacing:.05em;
+}
+
+/* ==========================================
+   状況伝達系：ラベル付きカード（v3.2 全周 border + ::before）
+   ========================================== */
+.note-box, .warn-box, .success-box, .danger-box{
+  position:relative;
+  margin:18px 0;
+  padding:20px 22px 16px;
+  border-radius:8px;
+  font-family:var(--font-note);
+  font-weight:500;
+  line-height:1.95;
+  letter-spacing:.03em;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,.06),
+    inset 0 0 0 1px rgba(255,255,255,.6);
+}
+.note-box   {background:#e7f1ff;border:1px solid rgba(21,101,192,.30);}
+.warn-box   {background:#fff7e0;border:1px solid rgba(239,108,0,.32);}
+.success-box{background:#e8f5e9;border:1px solid rgba(46,125,50,.32);}
+.danger-box {background:#ffeef0;border:1px solid rgba(198,40,40,.32);}
+
+.note-box::before, .warn-box::before, .success-box::before, .danger-box::before{
+  display:inline-block;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;
+  color:#fff;
+  padding:3px 10px 2px;
+  border-radius:3px;
+  margin-bottom:10px;margin-right:8px;
+  vertical-align:2px;
+  box-shadow:0 1px 2px rgba(0,0,0,.18);
+}
+.note-box::before   {content:'ℹ NOTE';   background:linear-gradient(135deg,#0d47a1,#1565c0);}
+.warn-box::before   {content:'⚠ WARN';   background:linear-gradient(135deg,#bf360c,#ef6c00);}
+.success-box::before{content:'✓ TIP';    background:linear-gradient(135deg,#1b5e20,#2e7d32);}
+.danger-box::before {content:'✗ NG';     background:linear-gradient(135deg,#7f0000,#c62828);}
+
+.note-box h4, .warn-box h4, .success-box h4, .danger-box h4{
+  display:inline;font-family:var(--font-soft);
+  font-size:1em;font-weight:700;margin:0;
+  border:none;padding:0;color:inherit;
+}
+.note-box p, .warn-box p, .success-box p, .danger-box p{margin:.5em 0;}
+.note-box ul, .warn-box ul, .success-box ul, .danger-box ul{margin:.6em 0;padding-left:1.4em;}
+.note-box ol, .warn-box ol, .success-box ol, .danger-box ol{margin:.6em 0;padding-left:1.4em;}
+
+/* ==========================================
+   講師のアドバイス（講義逐語ベース・教授ボイス／Kosugi Maru）
+   ========================================== */
+.lecturer-advice{
+  position:relative;
+  margin:30px 0 26px;
+  padding:28px 26px 18px 28px;
+  border-radius:10px;
+  background:linear-gradient(135deg, #ece0e8 0%, #f4ebf0 58%, var(--paper) 100%);
+  border:1px solid rgba(92,69,102,.42);
+  border-left:7px solid var(--accent);
+  font-family:var(--font-professor);
+  font-weight:500;
+  line-height:1.95;
+  letter-spacing:.02em;
+  color:var(--text);
+  box-shadow:
+    0 4px 16px rgba(92,69,102,.20),
+    inset 0 0 0 1px rgba(255,255,255,.55);
+}
+.lecturer-advice::before{
+  content:'🎓 講師のアドバイス';
+  position:absolute;top:-15px;left:20px;
+  font-family:var(--font-mono);
+  font-size:.84rem;font-weight:700;letter-spacing:.13em;
+  color:#fff;
+  padding:6px 18px 5px;
+  border-radius:5px;
+  background:linear-gradient(135deg, var(--accent) 0%, var(--mid) 100%);
+  box-shadow:0 3px 9px rgba(92,69,102,.42);
+  white-space:nowrap;
+}
+.lecturer-advice .la-lead{
+  display:block;
+  font-family:var(--font-soft);font-weight:700;
+  color:var(--accent);
+  font-size:1.04em;letter-spacing:.03em;
+  margin:.2em 0 .6em;
+}
+.lecturer-advice p{margin:.55em 0;}
+.lecturer-advice ul{margin:.6em 0;padding-left:1.45em;}
+.lecturer-advice li{margin:.34em 0;}
+.lecturer-advice .la-key{
+  font-family:var(--font-keyword);font-weight:700;
+  color:var(--accent);letter-spacing:.02em;
+}
+.lecturer-advice .la-quote{
+  font-family:var(--font-quote);
+  color:var(--bg-dark);font-style:normal;
+  background:rgba(92,69,102,.07);
+  padding:1px 6px;border-radius:3px;
+}
+
+/* ==========================================
+   テーブル
+   ========================================== */
+table{
+  width:100%;border-collapse:collapse;margin:18px 0;font-size:.96em;
+  page-break-inside:avoid;
+}
+th,td{
+  border:1px solid var(--border-soft);
+  padding:10px 12px;text-align:left;vertical-align:top;
+}
+th{
+  background:var(--accent);color:#fff;
+  font-family:var(--font-soft);font-weight:700;letter-spacing:.04em;
+}
+/* ヘッダーセル内のリンクは白（濃い --accent 背景と同化させない） */
+th a, th a.xref{color:#fff;text-decoration-color:rgba(255,255,255,.6);}
+th a.xref:hover{background:rgba(255,255,255,.18);color:#fff;}
+tr:nth-child(even) td{background:var(--soft);}
+
+/* ==========================================
+   タイムライン
+   ========================================== */
+.timeline{position:relative;padding-left:32px;margin:18px 0;}
+.timeline::before{
+  content:'';position:absolute;left:10px;top:0;bottom:0;
+  width:3px;background:var(--mid);border-radius:2px;
+}
+.timeline-item{position:relative;margin-bottom:18px;padding-left:18px;}
+.timeline-item::before{
+  content:'';position:absolute;left:-26px;top:8px;
+  width:14px;height:14px;background:var(--accent);
+  border-radius:50%;border:3px solid var(--light);
+}
+.timeline-label{
+  display:block;font-family:var(--font-soft);font-weight:700;
+  color:var(--accent);font-size:1.02em;letter-spacing:.04em;
+  margin-bottom:4px;
+}
+.timeline p{margin:.3em 0;}
+
+/* ==========================================
+   SVG ラップ
+   ========================================== */
+.svg-wrap{
+  text-align:center;margin:24px 0;
+  background:var(--paper);border-radius:10px;
+  padding:18px;overflow-x:auto;page-break-inside:avoid;
+  border:1px solid var(--border-soft);
+}
+.svg-wrap svg{max-width:100%;height:auto;}
+.svg-wrap h3{
+  background:transparent;border-left:none;
+  text-align:left;padding:0 0 12px 0;
+  border-bottom:none;
+}
+
+/* フローボックス */
+.flow{
+  background:var(--soft);border:1.5px solid var(--mid);
+  border-radius:8px;padding:20px 24px;margin:18px 0;
+  page-break-inside:avoid;
+}
+.flow .step{
+  margin:6px 0;padding:8px 0;
+  border-bottom:1px dashed var(--border-soft);
+  font-weight:500;font-family:var(--font-note);
+  line-height:1.85;
+}
+.flow .step:last-child{border-bottom:none;}
+.flow .arrow{
+  text-align:center;color:var(--mid);
+  font-weight:700;font-size:1.1em;margin:4px 0;
+}
+
+/* ==========================================
+   学習指標（v3.2 潰れ防止強化）
+   ========================================== */
+.tan{
+  display:inline-block;
+  font-family:var(--font-soft);
+  font-size:.78em;padding:2px 9px;border-radius:4px;
+  color:#fff;font-weight:700;margin-right:4px;
+  letter-spacing:.08em;vertical-align:1px;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.tan-super{background:var(--tan-super);border:2px solid #8a1818;}
+.tan-high {background:var(--tan-high);}
+.tan-std  {background:var(--tan-std);}
+
+.rank-A{color:var(--rank-A);font-weight:700;letter-spacing:.04em;}
+.rank-B{color:var(--rank-B);font-weight:700;letter-spacing:.04em;}
+.rank-C{color:var(--rank-C);font-weight:500;letter-spacing:.04em;}
+.rank-D{color:var(--rank-D);font-weight:500;letter-spacing:.04em;}
+
+.arg-tier{
+  display:inline-block;
+  font-family:var(--font-soft);
+  font-size:.78em;font-weight:700;
+  padding:2px 9px;border-radius:4px;color:#fff;
+  margin-right:6px;letter-spacing:.08em;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;
+}
+.arg-required, .arg-must         {background:#c62828;border:2px solid #8a1818;}
+.arg-recommended, .arg-recommend {background:#ef6c00;}
+.arg-advanced, .arg-develop      {background:#1565c0;}
+
+/* ハイライト */
+.hl-super{
+  background:linear-gradient(transparent 55%,rgba(255,213,79,.55) 55%);
+  padding:0 4px 1px;font-weight:700;letter-spacing:.08em;
+}
+.hl-high{
+  background:linear-gradient(transparent 60%,rgba(174,213,129,.55) 60%);
+  padding:0 4px 1px;font-weight:700;letter-spacing:.08em;
+}
+.hl-std{
+  background:linear-gradient(transparent 70%,rgba(144,202,249,.50) 70%);
+  padding:0 4px 1px;font-weight:500;letter-spacing:.06em;
+}
+
+/* exam-mark */
+.exam-mark{
+  background-size:100% 100%;background-repeat:no-repeat;
+  padding:0 4px 1px;font-weight:700;letter-spacing:.09em;
+  margin:0 1px;-webkit-font-smoothing:antialiased;
+}
+.exam-mark.freq-high{background:linear-gradient(transparent 55%,rgba(198,40,40,.42) 55%);color:#8a1818;}
+.exam-mark.freq-mid {background:linear-gradient(transparent 55%,rgba(239,108,0,.42) 55%);color:#a04500;}
+.exam-mark.freq-low {background:linear-gradient(transparent 55%,rgba(21,101,192,.36) 55%);color:#1565c0;}
+
+/* 条文・判例の行内強調（v3.2 border-bottom 廃止） */
+.statute-emphasis{font-family:var(--font-statute);font-weight:700;padding:0 3px;letter-spacing:.06em;}
+.case-emphasis{font-family:var(--font-statute);font-weight:700;font-style:italic;padding:0 3px;letter-spacing:.06em;}
+
+/* ==========================================
+   第〇項 網掛け
+   ========================================== */
+.para-num{
+  display:inline-block;
+  background:var(--accent-3);
+  color:var(--accent);
+  padding:2px 10px;
+  border-radius:3px;
+  font-family:var(--font-statute);
+  font-weight:700;font-size:.96em;
+  margin-right:8px;
+  border:1px solid var(--border-soft);
+  letter-spacing:.04em;
+}
+
+/* ==========================================
+   引用：条文（薄グレー）／判例（薄ピンク）／問題文
+   ========================================== */
+blockquote{
+  margin:14px 0;padding:14px 18px;
+  background:var(--soft);border-left:5px solid var(--accent);
+  border-radius:6px;
+  font-family:var(--font-quote);font-weight:400;line-height:1.95;
+}
+blockquote p{margin:.4em 0;}
+
+blockquote.statute{
+  background:#f3f4f6;
+  border:1px solid rgba(0,0,0,.10);
+  border-left:4px solid #6b7280;
+  border-radius:6px;padding:14px 18px;
+  font-family:var(--font-statute);
+  font-weight:500;letter-spacing:.04em;
+}
+blockquote.case,
+blockquote.case-law{
+  background:#ffeef1;
+  border:1px solid rgba(0,0,0,.10);
+  border-left:4px solid var(--mid);
+  border-radius:6px;padding:14px 18px;
+  font-family:var(--font-quote);
+}
+blockquote.problem{
+  background:var(--soft);
+  border:1px solid var(--border-soft);
+  border-left:4px solid var(--mid);
+  border-radius:6px;padding:18px 22px;
+  font-family:var(--font-quote);
+  font-weight:400;line-height:2.0;
+}
+
+.judgment-text{
+  font-family:var(--font-judgment);
+  font-weight:700;letter-spacing:.03em;line-height:1.95;
+}
+
+/* ==========================================
+   論証カード
+   ========================================== */
+.arg-card{
+  background:var(--paper);
+  border:2px solid var(--mid);
+  border-radius:10px;
+  padding:22px 24px;margin:20px 0;
+  page-break-inside:avoid;
+  box-shadow:0 4px 12px var(--shadow-soft);
+}
+.arg-card h5{
+  margin-top:0;color:var(--accent);
+  border-bottom:1.5px dashed var(--mid);
+  padding-bottom:6px;
+  font-family:var(--font-soft);font-weight:700;font-size:1.05em;
+}
+.arg-card .arg-meta{
+  font-family:var(--font-mono);
+  font-size:.78em;font-weight:600;letter-spacing:.10em;
+  color:var(--mid);
+  margin:0 0 12px 0;
+}
+.arg-card .arg-body{
+  font-family:var(--font-answer);
+  font-weight:400;line-height:2.05;letter-spacing:.02em;
+  background:var(--light);
+  padding:16px 18px;border-radius:6px;
+  border-left:3px solid var(--mid);
+  margin:8px 0 10px 0;
+}
+.arg-card p{margin:.5em 0;font-family:var(--font-note);font-size:.92em;}
+
+/* ==========================================
+   模範答案
+   ========================================== */
+.model-answer, blockquote.model-answer{
+  position:relative;
+  background:linear-gradient(180deg,var(--light) 0%,var(--paper) 100%);
+  border:2px solid var(--accent);border-radius:10px;
+  padding:38px 30px 28px 30px;margin:24px 0;
+  font-family:var(--font-answer);
+  font-weight:400;line-height:2.05;letter-spacing:.02em;
+  page-break-inside:avoid;
+  box-shadow:0 4px 14px var(--shadow-soft);
+}
+.model-answer::before{
+  content:'MODEL ANSWER';
+  position:absolute;top:-12px;left:24px;
+  background:linear-gradient(135deg,var(--accent),var(--mid));
+  color:#fff;padding:4px 14px 3px;
+  border-radius:3px;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:600;letter-spacing:.18em;
+  box-shadow:0 2px 5px rgba(0,0,0,.18);
+}
+.model-answer h4, .model-answer h5{
+  font-family:var(--font-display);
+  color:var(--accent);letter-spacing:.04em;
+  margin-top:0;border-bottom:1.5px dashed var(--mid);
+  padding-bottom:6px;
+}
+.model-answer p{margin:.7em 0;line-height:2.0;font-weight:400;}
+
+/* ==========================================
+   採点講評
+   ========================================== */
+.grading{
+  position:relative;
+  background:#fff8e1;
+  border:1px solid rgba(255,179,0,.45);
+  border-radius:10px;
+  padding:34px 24px 22px;margin:22px 0;
+  page-break-inside:avoid;
+  box-shadow:0 2px 6px rgba(255,179,0,.12);
+}
+.grading::before{
+  content:'GRADING';
+  position:absolute;top:-12px;left:24px;
+  background:linear-gradient(135deg,#bf6b00,#ef6c00);
+  color:#fff;padding:4px 14px 3px;
+  border-radius:3px;
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:600;letter-spacing:.18em;
+  box-shadow:0 2px 5px rgba(0,0,0,.18);
+}
+.grading h4{
+  font-family:var(--font-soft);
+  color:#bf6b00;margin-top:0;
+  border-bottom:1.5px solid rgba(255,179,0,.45);
+  padding-bottom:6px;
+}
+.grading h5{
+  font-family:var(--font-soft);
+  color:#bf6b00;
+}
+.grading p{margin:.5em 0;}
+
+/* ==========================================
+   目次
+   ========================================== */
+nav.toc, nav#toc{
+  background:var(--paper);
+  border:2px solid var(--mid);
+  border-radius:14px;
+  padding:24px 28px;margin:24px 0;
+  box-shadow:0 4px 14px var(--shadow-soft);
+}
+nav.toc h2, nav#toc h2{
+  margin-top:0;
+  font-family:var(--font-display);
+  background:transparent;border-left:none;
+  border-bottom:3px solid var(--accent);
+  border-radius:0;padding:0 0 8px 0;
+  font-size:1.3em;
+}
+nav.toc ul, nav#toc ul{list-style:none;padding-left:0;margin:8px 0;}
+nav.toc li, nav#toc li{margin:6px 0;line-height:1.6;font-family:var(--font-soft);}
+nav.toc a, nav#toc a{
+  color:var(--accent);text-decoration:none;
+  border-bottom:1px dotted transparent;
+  transition:.2s;font-weight:700;
+  letter-spacing:.02em;
+}
+nav.toc a:hover, nav#toc a:hover{
+  color:var(--mid);border-bottom:1px dotted var(--mid);
+}
+nav.toc .l2, nav#toc .l2{padding-left:18px;font-size:.96em;}
+nav.toc .l3, nav#toc .l3{padding-left:36px;font-size:.92em;color:#555;}
+nav.toc .l3 a, nav#toc .l3 a{color:#555;font-weight:500;}
+
+/* ==========================================
+   相互リンク
+   ========================================== */
+a.xref{
+  text-decoration:underline;
+  text-decoration-thickness:2px;
+  text-underline-offset:3px;
+  color:var(--accent);font-weight:700;
+  border-radius:2px;padding:0 2px;
+  transition:.18s;
+}
+a.xref:hover{background:var(--light);color:var(--accent);}
+
+.back-refs{
+  margin-top:14px;padding:10px 14px;
+  background:var(--light);border-radius:6px;
+  font-size:.92em;font-weight:700;
+  border-left:3px solid var(--accent);
+  font-family:var(--font-note);
+}
+.back-refs::before{content:'📌 ';font-size:1.1em;}
+.back-refs a{
+  color:var(--accent);text-decoration:none;
+  margin:0 6px;
+  border-bottom:1px dotted var(--accent);
+  font-weight:700;
+}
+.back-refs a:hover{color:var(--mid);border-bottom-color:var(--mid);}
+
+/* ==========================================
+   戻るリンク
+   ========================================== */
+.back-to-toc{
+  display:inline-block;margin:18px 0 4px 0;
+  padding:8px 18px;
+  background:var(--accent);color:#fff;
+  border-radius:999px;
+  font-family:var(--font-soft);
+  font-size:.85em;text-decoration:none;font-weight:700;
+  letter-spacing:.05em;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+  transition:.2s;
+}
+.back-to-toc:hover{background:var(--mid);}
+
+/* ==========================================
+   凡例（コンパクト版・3 カラム横並び）
+   ========================================== */
+.legend-card{
+  background:var(--paper);
+  border:1.5px solid var(--mid);
+  border-radius:10px;
+  padding:18px 20px;margin:18px 0;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;
+}
+.legend-card .legend-block{
+  padding:12px 14px;background:var(--soft);
+  border-radius:6px;
+}
+.legend-card .legend-block h4{
+  margin:0 0 8px 0;font-size:.95em;color:var(--accent);
+  border:none;padding:0 0 4px 0;
+  border-bottom:1px solid var(--border-soft);
+}
+.legend-card .legend-block ul{
+  list-style:none;padding:0;margin:6px 0 0 0;
+}
+.legend-card .legend-block li{
+  padding:3px 0;font-size:.85em;line-height:1.55;font-weight:500;
+}
+
+/* ==========================================
+   チェックリスト
+   ========================================== */
+.checklist{margin:14px 0;padding-left:0;list-style:none;}
+.checklist li{
+  margin:6px 0;padding:8px 10px 8px 32px;position:relative;
+  background:var(--light);border-radius:4px;
+  font-family:var(--font-note);font-weight:500;line-height:1.85;
+}
+.checklist li::before{
+  content:'☐';position:absolute;left:10px;top:7px;
+  font-size:1.15em;color:var(--accent);font-weight:700;
+}
+
+/* ==========================================
+   ref-entry（第5部用）
+   ========================================== */
+.ref-entry{
+  background:var(--paper);
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  padding:22px 24px;margin:22px 0;
+  page-break-inside:avoid;
+}
+.ref-entry h4{
+  margin-top:0;
+  font-family:var(--font-soft);
+  color:var(--accent);
+  border-bottom:1.5px solid var(--mid);
+  border-bottom-style:solid;
+  padding-bottom:8px;
+  font-size:1.1em;
+}
+.ref-entry h5{
+  margin-top:18px;
+  font-family:var(--font-soft);
+  color:var(--mid);font-size:.98em;
+}
+.ref-entry p{margin:.4em 0;}
+.ref-entry.arg-card .arg-body{
+  font-family:var(--font-answer);
+}
+
+/* ==========================================
+   フッター
+   ========================================== */
+footer{
+  background:linear-gradient(135deg,var(--accent),var(--mid));
+  color:#fff;text-align:center;
+  padding:32px 24px;
+  margin:48px 0 0 0;
+  border-radius:16px 16px 0 0;
+}
+footer p{
+  margin:.5em 0;
+  font-family:var(--font-quote);
+  font-weight:400;color:#fff;line-height:1.95;
+}
+footer .closing{
+  font-family:var(--font-display);
+  font-weight:700;letter-spacing:.1em;
+}
+
+/* ==========================================
+   印刷最適化
+   ========================================== */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  body{background:#fff;font-size:11pt;line-height:1.85;color:var(--text);letter-spacing:.02em;}
+  .container{max-width:100%;padding:0;}
+  .container > section, .container > nav#toc, .container > nav.toc{
+    box-shadow:none;border-radius:0;padding:14px 0;margin:14px 0;
+  }
+  @page{size:A4;margin:20mm 15mm;}
+  .doc-header{position:absolute;top:8mm;right:8mm;font-size:13px;padding:4px 10px;box-shadow:none;}
+  header.cover{background:var(--accent)!important;color:#fff!important;padding:24px 20px;border-radius:0;margin-bottom:18px;}
+  .back-to-toc, .back-to-top{display:none!important;}
+  h2,h3,h4{page-break-after:avoid;}
+  .key-box, .note-box, .warn-box, .success-box, .danger-box, .lecturer-advice,
+  .model-answer, blockquote, blockquote.statute, blockquote.case, blockquote.problem,
+  table, .svg-wrap, .legend-card, .arg-card, .grading, .ref-entry, .timeline, .flow{
+    page-break-inside:avoid;
+  }
+  .hl-super,.hl-high,.hl-std,.tan,.rank-A,.rank-B,.rank-C,.arg-tier,.exam-mark,.para-num{
+    -webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;
+  }
+  a{color:var(--accent);text-decoration:none;}
+  a.xref{text-decoration:underline;}
+  details{display:block;} details > summary{display:none;}
+  footer{margin:24px 0 0 0;border-radius:0;}
+}
+
+/* ==========================================
+   レスポンシブ
+   ========================================== */
+@media screen and (max-width:768px){
+  body{font-size:15px;line-height:1.92;}
+  .container{padding:0 10px 28px 10px;}
+  .doc-header{top:10px;right:12px;font-size:13px;padding:4px 10px;}
+  header.cover{padding:60px 16px 30px;}
+  header.cover h1, header.cover h2{font-size:1.4em;letter-spacing:.04em;}
+  .container > section, .container > nav#toc, .container > nav.toc{padding:22px 14px;}
+  h2{font-size:1.25em;}
+  h3{font-size:1.1em;}
+  .key-box{padding:46px 24px 28px 28px;font-size:1rem;}
+  .note-box, .warn-box, .success-box, .danger-box{padding:18px 18px 14px;}
+  .lecturer-advice{padding:20px 18px 14px 18px;}
+  .model-answer{padding:32px 20px 22px;}
+  .arg-card{padding:18px 18px;}
+  .ref-entry{padding:18px 18px;}
+  table{font-size:.88em;display:block;width:max-content;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;} th,td{padding:7px;}
+}
+
+/* ==========================================
+   v4 LOOP-FOLD：reveal（模範答案）／deep-dive（深掘り層）折りたたみ・照合ナビ・口頭骨格
+   ※印刷は @media print の details{display:block}/summary{display:none} で全文強制展開
+   ========================================== */
+details.reveal-answer, details#deep-dive{
+  border:2px dashed var(--accent,#7c4a12); border-radius:12px; margin:24px 0;
+}
+details.reveal-answer > summary, details#deep-dive > summary{
+  cursor:pointer; list-style:none; padding:15px 20px; font-weight:700;
+  color:var(--accent,#7c4a12); font-size:1.05em; line-height:1.6; border-radius:10px;
+}
+details#deep-dive > summary{ background:var(--accent,#7c4a12); color:#fff; }
+details.reveal-answer > summary::-webkit-details-marker,
+details#deep-dive > summary::-webkit-details-marker{ display:none; }
+details.reveal-answer > summary::before,
+details#deep-dive > summary::before{ content:"▶  "; }
+details.reveal-answer[open] > summary::before,
+details#deep-dive[open] > summary::before{ content:"▼  "; }
+details.reveal-answer[open] > summary, details#deep-dive[open] > summary{
+  border-bottom:1px solid rgba(0,0,0,.12); border-radius:10px 10px 0 0;
+}
+.collation-nav{
+  border:1px solid var(--accent,#7c4a12); border-left:5px solid var(--accent,#7c4a12);
+  border-radius:0 10px 10px 0; padding:14px 20px; margin:22px 0;
+}
+.collation-nav h4{ margin:0 0 10px; }
+.collation-nav ol{ margin:0 0 0 1.4em; } .collation-nav li{ margin-bottom:.5em; }
+.oral-skeleton{
+  border-top:1px dashed rgba(0,0,0,.25); margin-top:14px; padding-top:10px; font-size:.96em;
+}
+.oral-skeleton .os-label{ font-weight:700; color:var(--accent,#7c4a12); }
+
+/* ==========================================
+   本文の字下げ（段落一字下げ・クラス無し <p> のみ／矢印・規範ボックス等は対象外）
+   ========================================== */
+.container p:not([class]){ text-indent:1em; }
+@media print{ .container p:not([class]){ text-indent:1em; } }
+</style>
+</head>
+<body>
+
+<!-- 右上 ID タグ -->
+<div class="doc-header">民JX028</div>
+
+<header class="cover">
+  <span class="subject-tag">民　法</span>
+  <h1>抵当権に基づく妨害排除請求のシステマティック解法</h1>
+  <p class="subtitle">競売妨害目的の賃借人・抵当権者への直接明渡し ― 担保物権事例問題の体系的攻略</p>
+</header>
+
+<div class="container">
+<!-- ============================================
+     第0部　本書の使い方・凡例
+     ============================================ -->
+<section id="part0">
+<h2>第0部　本書の使い方・凡例</h2>
+
+<div class="legend-card">
+
+  <div class="legend-block">
+    <h4>論文式試験 出題頻度マーカー</h4>
+    <ul>
+      <li><span class="hl-super">超頻出</span>（5回以上）　濃イエロー</li>
+      <li><span class="hl-high">頻出</span>（3〜4回）　グリーン</li>
+      <li><span class="hl-std">標準</span>（1〜2回）　ライトブルー</li>
+      <li>未出題（0回）　マーカーなし</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>短答式試験 出題頻度マーク</h4>
+    <ul>
+      <li><span class="tan tan-super">短答★★★</span> 超頻出(7回以上)</li>
+      <li><span class="tan tan-high">短答★★</span> 頻出（4〜6回）</li>
+      <li><span class="tan tan-std">短答★</span> 標準（1〜3回）</li>
+      <li>未出題（0回）　表記なし</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>重要度（文字色）</h4>
+    <ul>
+      <li><span class="rank-A">最重要A</span> 通説・判例として確立</li>
+      <li><span class="rank-B">重要B</span> 出題実績あり＋実務上重要</li>
+      <li><span class="rank-C">標準C</span> 基本論点</li>
+      <li><span class="rank-D">参考D</span> 知識の幅を広げる補足</li>
+    </ul>
+  </div>
+
+  <div class="legend-block">
+    <h4>答案必要度（論証ブロック）</h4>
+    <ul>
+      <li><span class="arg-tier arg-required">必須</span> 省略不可・大幅減点</li>
+      <li><span class="arg-tier arg-recommended">推奨</span> 上位答案には必要・加点</li>
+      <li><span class="arg-tier arg-advanced">発展</span> 余裕があれば・差をつける一手</li>
+    </ul>
+  </div>
+
+</div>
+</section>
+
+<!-- ============================================
+     目次
+     ============================================ -->
+<nav class="toc" id="toc">
+<h2>目次（Table of Contents）</h2>
+<ul>
+  <li><a href="#part0">第0部　本書の使い方・凡例</a></li>
+  <li><a href="#part1">第1部　問題のシステマティック分析</a></li>
+  <li class="l2"><a href="#case-overview">本問の事案概要</a></li>
+  <li class="l2"><a href="#relationship-diagram">登場人物・法律関係図</a></li>
+  <li class="l2"><a href="#timeline">時系列整理</a></li>
+  <li class="l2"><a href="#fact-analysis">ファクトの仕分け</a></li>
+  <li class="l2"><a href="#issue-extraction">論点の自動抽出と構造化</a></li>
+  <li><a href="#part2">第2部　論点別 詳細解説</a></li>
+  <li class="l2"><a href="#issue-bogai">論点1　抵当権に基づく妨害排除請求の可否（総論・侵害要件）</a></li>
+  <li class="l3"><a href="#B1-A">A. 条文分析（論点固有の視点）</a></li>
+  <li class="l3"><a href="#B1-B">B. 判例法理の展開</a></li>
+  <li class="l3"><a href="#B1-C">C. 学説の整理</a></li>
+  <li class="l3"><a href="#B1-D">D. 解法アルゴリズムと答案構成</a></li>
+  <li class="l3"><a href="#B1-E">E. 関連論点との比較</a></li>
+  <li class="l3"><a href="#B1-F">F. 答案表現集</a></li>
+  <li class="l3"><a href="#B1-G">G. 頻出論証ブロック</a></li>
+  <li class="l3"><a href="#B1-H">H. 失点回避チェックリスト</a></li>
+  <li class="l2"><a href="#issue-senyu">論点2　占有権原ある第三者への妨害排除請求（競売妨害目的）</a></li>
+  <li class="l3"><a href="#B2-A">A. 条文分析（論点固有の視点）</a></li>
+  <li class="l3"><a href="#B2-B">B. 判例法理の展開</a></li>
+  <li class="l3"><a href="#B2-C">C. 学説の整理</a></li>
+  <li class="l3"><a href="#B2-D">D. 解法アルゴリズムと答案構成</a></li>
+  <li class="l3"><a href="#B2-E">E. 関連論点との比較</a></li>
+  <li class="l3"><a href="#B2-F">F. 答案表現集</a></li>
+  <li class="l3"><a href="#B2-G">G. 頻出論証ブロック</a></li>
+  <li class="l3"><a href="#B2-H">H. 失点回避チェックリスト</a></li>
+  <li class="l2"><a href="#issue-jiko">論点3　抵当権者自身への直接明渡請求の可否（管理占有）</a></li>
+  <li><a href="#part3">第3部　模範答案全文</a></li>
+  <li class="l2"><a href="#answer-full">完成答案</a></li>
+  <li class="l2"><a href="#grading-comment">採点講評</a></li>
+  <li><a href="#part4">第4部　知識の体系化と実践的補足</a></li>
+  <li class="l2"><a href="#correlation-map">4-1. 論点相関マップ</a></li>
+  <li class="l2"><a href="#flowchart">思考フローチャート</a></li>
+  <li class="l2"><a href="#priority-flow">4-2. 論点間の優先順位フロー</a></li>
+  <li class="l2"><a href="#column-comprehensive">4-3. コラム：網羅的思考（法的構成の選択）</a></li>
+  <li class="l2"><a href="#column-memory">4-4. コラム：実践的記憶術</a></li>
+  <li class="l2"><a href="#column-history">4-5. コラム：歴史的背景</a></li>
+  <li class="l2"><a href="#column-practice">4-6. コラム：実務との架橋</a></li>
+  <li class="l2"><a href="#exam-strategy">試験戦略アドバイス</a></li>
+  <li><a href="#part5">第5部　参考資料</a></li>
+  <li class="l2"><a href="#ref-statute">5-1　条文集</a></li>
+  <li class="l2"><a href="#ref-case">5-2　判例集</a></li>
+  <li class="l2"><a href="#ref-theory">5-3　学説一覧</a></li>
+  <li class="l2"><a href="#ref-arg">5-4　答案論証集</a></li>
+  <li class="l2"><a href="#ref-term">5-5　用語集</a></li>
+  <li class="l2"><a href="#ref-abbrev">5-6　略語・出典一覧</a></li>
+</ul>
+</nav>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+
+<!-- ============================================
+     第1部　問題のシステマティック分析
+     ============================================ -->
+<section id="part1">
+<h2>第1部　問題のシステマティック分析</h2>
+
+<div class="card" id="case-overview">
+<h3>本問の事案概要</h3>
+
+<h4>問題文原文</h4>
+<blockquote class="problem">
+<p>Xは、A社に対して1億円を貸し付けるとともに、A社に対する貸金債権を被担保債権として、A社所有の甲建物について抵当権の設定を受け、その旨の登記を経由した。その際、XA社間では、甲建物を他に賃貸する場合には、Xの承諾を得ることを合意していた。</p>
+<p>ところが、A社は、かかる合意に反して、Xの承諾を得ずに、A社の代表取締役であるYに対して、甲建物を賃料月額1万円、期間30年、敷金3億円の約定で貸し渡した。なお、甲建物の適正賃料は、月額100万円程度である。</p>
+<p>その後、弁済期を過ぎてもA社が1億円の返済をしようとしないので、Xは、抵当権の実行としての競売手続を開始した。しかし、競売手続の中で、甲建物の最低売却価額は引き下げられる一方であるにもかかわらず、甲建物の買い手は一向に現れる気配がない。</p>
+<p>そこで、Xは、Yに対して、Xに対して甲建物を明け渡すよう求めた。Xの請求は認められるか。</p>
+<p style="text-align:right">（重要問題 第28問）</p>
+</blockquote>
+
+<h4>設問の分析</h4>
+<p>設問は「Xの請求は認められるか」という単一の問いだが、請求内容（Yに対する明渡し）と法的根拠を分解すると、以下の三段階の論点が順に立ち現れる。Xは甲建物につき抵当権と登記を有するから、その請求は<span class="hl-super">抵当権に基づく物権的請求権</span>（妨害排除請求）を根拠とする。</p>
+<ul>
+  <li><span class="rank-A">論点1</span>：<span class="hl-super">抵当権に基づく妨害排除請求</span>がそもそも認められるか（抵当権は<a class="xref" href="#ref-term-hisenyu">非占有担保</a>だが、交換価値の実現が妨げられる場合に妨害状態を観念できるか）</li>
+  <li><span class="rank-A">論点2</span>：Yは単なる不法占有者ではなく<span class="hl-high">占有権原ある賃借人</span>である。正当な占有権原を有する第三者に対しても妨害排除を認めうるか（<a class="xref" href="#ref-term-keibaibogai">競売妨害目的</a>という加重要件）</li>
+  <li><span class="rank-A">論点3</span>：抵当権者X<span class="hl-high">自身への直接明渡し</span>を認めうるか（原則は設定者A社への返還／例外＝<a class="xref" href="#ref-term-kanrishihai">管理占有</a>）</li>
+</ul>
+<div class="key-box">
+<p><strong>【検討順序の必然性】</strong>本問の三論点は<strong>論理的な入れ子構造</strong>をなす。①「そもそも抵当権に妨害排除を観念できるか（総論）」→②「占有権原ある者にまで及ぶか（要件の加重）」→③「効果として誰への明渡しを求めうるか（効果）」の順でしか論じられない。要件（①②）を満たして初めて効果（③）に進める。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="svg-wrap" id="relationship-diagram">
+<h3>登場人物・法律関係図</h3>
+<svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="500" fill="#f8f2f2"/>
+  <circle cx="130" cy="120" r="52" fill="#9d7ba6" stroke="#5c4566" stroke-width="2"/>
+  <text x="130" y="115" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">X</text>
+  <text x="130" y="135" text-anchor="middle" font-size="11" fill="#fff">抵当権者・債権者</text>
+  <text x="130" y="150" text-anchor="middle" font-size="10" fill="#fff">（登記あり）</text>
+  <circle cx="670" cy="120" r="52" fill="#5c4566" stroke="#4a3556" stroke-width="2"/>
+  <text x="670" y="115" text-anchor="middle" font-size="18" font-weight="bold" fill="#fff">A社</text>
+  <text x="670" y="135" text-anchor="middle" font-size="11" fill="#fff">所有者・設定者</text>
+  <text x="670" y="150" text-anchor="middle" font-size="10" fill="#fff">・債務者</text>
+  <rect x="330" y="230" width="140" height="70" rx="8" fill="#e6dcb8" stroke="#a16f00" stroke-width="2"/>
+  <text x="400" y="262" text-anchor="middle" font-size="17" font-weight="bold" fill="#333">甲建物</text>
+  <text x="400" y="283" text-anchor="middle" font-size="10" fill="#555">適正賃料 月100万円</text>
+  <circle cx="670" cy="400" r="50" fill="#a53d59" stroke="#582341" stroke-width="2"/>
+  <text x="670" y="395" text-anchor="middle" font-size="20" font-weight="bold" fill="#fff">Y</text>
+  <text x="670" y="415" text-anchor="middle" font-size="11" fill="#fff">賃借人（占有）</text>
+  <text x="670" y="430" text-anchor="middle" font-size="10" fill="#fff">＝A社代表取締役</text>
+  <defs>
+    <marker id="ar-r" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#9d7ba6"/></marker>
+    <marker id="ar-p" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#5c4566"/></marker>
+    <marker id="ar-b" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#a53d59"/></marker>
+  </defs>
+  <line x1="185" y1="130" x2="615" y2="130" stroke="#5c4566" stroke-width="2" stroke-dasharray="8,5"/>
+  <text x="400" y="118" text-anchor="middle" font-size="13" fill="#5c4566" font-weight="bold">貸金1億円・抵当権設定（承諾特約あり）</text>
+  <path d="M 168 160 Q 260 220 328 250" fill="none" stroke="#9d7ba6" stroke-width="2.5" marker-end="url(#ar-r)"/>
+  <text x="150" y="215" font-size="12" fill="#9d7ba6" font-weight="bold">①抵当権（交換価値把握）</text>
+  <path d="M 632 165 Q 560 250 470 275" fill="none" stroke="#5c4566" stroke-width="2.5" marker-end="url(#ar-p)"/>
+  <text x="500" y="205" font-size="12" fill="#5c4566" font-weight="bold">②承諾なく賃貸</text>
+  <text x="500" y="221" font-size="11" fill="#5c4566">月1万円・敷金3億・30年</text>
+  <path d="M 660 350 Q 600 320 470 290" fill="none" stroke="#a53d59" stroke-width="2.5" marker-end="url(#ar-b)"/>
+  <text x="500" y="345" font-size="12" fill="#a53d59" font-weight="bold">③占有（買い手つかず）</text>
+  <path d="M 400 300 Q 300 380 175 165" fill="none" stroke="#582341" stroke-width="2" stroke-dasharray="6,4" marker-end="url(#ar-p)"/>
+  <text x="200" y="400" font-size="12" fill="#582341" font-weight="bold">④妨害排除請求（本問）</text>
+  <text x="200" y="416" font-size="11" fill="#582341">Xへの直接明渡しを求める</text>
+  <rect x="20" y="450" width="360" height="42" fill="#fff" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="466" font-size="11" font-weight="bold" fill="#333">【凡例】</text>
+  <line x1="90" y1="463" x2="120" y2="463" stroke="#582341" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="128" y="466" font-size="10" fill="#333">本問の請求</text>
+  <text x="260" y="466" font-size="10" fill="#333">Y・A社は実質同一体</text>
+</svg>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="timeline">
+<h3>時系列整理</h3>
+<div class="timeline">
+  <div class="timeline-item">
+    <span class="timeline-label">時点①　貸付け・抵当権設定</span>
+    <p>Xは、A社に1億円を貸し付け、その貸金債権を被担保債権として、A社所有の<strong>甲建物に抵当権の設定を受け、登記を経由</strong>した。あわせて、甲建物を他に賃貸するにはXの承諾を要する旨を合意（<strong>賃貸承諾特約</strong>）。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点②　背信的な賃貸（占有権原の設定）</span>
+    <p>A社は特約に反し、Xの承諾を得ずに、<strong>代表取締役Y</strong>に対し、<strong>賃料月額1万円（適正額は月100万円）・期間30年・敷金3億円</strong>という著しく不合理な条件で甲建物を賃貸した。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点③　抵当権の実行（競売開始）</span>
+    <p>弁済期を過ぎてもA社が1億円を返済しないため、Xは<strong>抵当権の実行としての競売手続を開始</strong>した。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点④　交換価値の実現阻害</span>
+    <p>競売手続中、甲建物の<strong>最低売却価額は引き下げられる一方</strong>で、<strong>買い手が一向に現れない</strong>（＝交換価値の実現が現実に妨げられている状態）。</p>
+  </div>
+  <div class="timeline-item">
+    <span class="timeline-label">時点⑤　本問の請求</span>
+    <p>Xは、占有者Yに対し、<strong>X自身に甲建物を明け渡すよう</strong>求めた。この請求が認められるかが問われる。</p>
+  </div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="fact-analysis">
+<h3>ファクトの仕分け</h3>
+
+<h4>確定事実（評価の余地のない事実）</h4>
+<ul>
+  <li>Xは被担保債権1億円につき甲建物に抵当権を有し、その登記を経由している</li>
+  <li>XA社間に「賃貸にはXの承諾を要する」旨の特約がある</li>
+  <li>A社は承諾を得ずにYへ甲建物を賃貸した</li>
+  <li>賃料は月額1万円（適正賃料は月額100万円）、期間30年、敷金3億円である</li>
+  <li>YはA社の代表取締役である</li>
+  <li>弁済期後もA社は返済せず、Xは競売手続を開始した</li>
+  <li>最低売却価額は下がり続け、買い手が現れない</li>
+  <li>XはY自身に対しXへの明渡しを求めている</li>
+</ul>
+
+<h4>評価を要する事実（法的評価が必要な事実）</h4>
+<table>
+  <tr><th>事実</th><th>法的評価のポイント</th></tr>
+  <tr><td>最低売却価額の低下・買い手不在</td><td><span class="rank-A">交換価値の実現が妨げられ優先弁済請求権の行使が困難</span>という<a class="xref" href="#ref-doctrine-shingai">侵害要件</a>の充足</td></tr>
+  <tr><td>賃料月1万円・敷金3億円・期間30年という異常な条件</td><td><span class="rank-A">競売手続を妨害する目的</span>の間接事実</td></tr>
+  <tr><td>YがA社の代表取締役であること</td><td>A社とYの<span class="rank-A">実質的同一性</span>／妨害目的の徴表</td></tr>
+  <tr><td>承諾特約違反の賃貸</td><td>賃貸借の<span class="rank-B">背信性</span>・妨害目的の間接事実</td></tr>
+  <tr><td>Yに占有権原（賃借権）があること</td><td><span class="rank-A">加重要件（競売妨害目的）</span>を要するか否かの分岐</td></tr>
+  <tr><td>A社に適切な維持管理を期待できない事情</td><td><span class="rank-A">自己への直接明渡し</span>を基礎づける評価</td></tr>
+</table>
+
+<h4>トリガーファクト（特定論点を起動させる事実）</h4>
+<table>
+  <tr><th>事実</th><th>起動する論点</th></tr>
+  <tr><td>抵当権は非占有担保である</td><td>→ <span class="hl-super">そもそも占有者に妨害排除を観念できるか</span>（論点1・総論）</td></tr>
+  <tr><td>交換価値の実現が妨げられている</td><td>→ <span class="hl-super">妨害排除請求の侵害要件</span>（最大判平11.11.24）</td></tr>
+  <tr><td>Yは賃借人＝占有権原がある</td><td>→ <span class="hl-high">占有権原ある第三者への妨害排除＋競売妨害目的</span>（論点2・最判平17.3.10）</td></tr>
+  <tr><td>異常な賃貸条件・代表取締役への賃貸</td><td>→ <span class="hl-high">競売妨害目的の認定</span></td></tr>
+  <tr><td>Xが「自己への」明渡しを求めている</td><td>→ <span class="hl-high">抵当権者自身への直接明渡しの可否・管理占有</span>（論点3）</td></tr>
+  <tr><td>A社とYの実質的同一性</td><td>→ <span class="hl-std">設定者への返還では実効性がない</span>という評価</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<div class="card" id="issue-extraction">
+<h3>論点の自動抽出と構造化</h3>
+
+<h4>[1] 抵当権に基づく妨害排除請求の可否（総論・侵害要件）</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>請求の法的根拠</td><td><span class="rank-A">抵当権（<a class="xref" href="#ref-stat-minp-369">民法369条</a>）に基づく物権的請求権（妨害排除請求）</span></td></tr>
+  <tr><td>核心論点①</td><td><span class="hl-super">非占有担保である抵当権に「妨害状態」を観念できるか</span></td></tr>
+  <tr><td>核心論点②</td><td><span class="hl-super">侵害要件</span>＝交換価値の実現が妨げられ優先弁済請求権の行使が困難となる状態（最大判平11.11.24）</td></tr>
+  <tr><td>構成の選択</td><td><span class="hl-high">抵当権自体に基づく妨害排除／<a class="xref" href="#ref-stat-minp-423">債権者代位（423条）</a>による所有者の請求権の代位行使</span>の2構成</td></tr>
+</table>
+
+<h4>[2] 占有権原ある第三者への妨害排除請求（競売妨害目的）</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>問題の所在</td><td><span class="rank-A">Yは不法占有者ではなく賃借人＝正当な占有権原あり</span></td></tr>
+  <tr><td>加重要件</td><td>①占有権原の設定に<span class="hl-super">競売手続を妨害する目的</span>＋②侵害要件（最判平17.3.10）</td></tr>
+  <tr><td>妨害目的の認定材料</td><td>異常な賃貸条件（月1万円・敷金3億・30年）／YはA社代表取締役／承諾特約違反</td></tr>
+  <tr><td>本問の結論</td><td>妨害目的肯定 → 妨害排除請求権を行使できる</td></tr>
+</table>
+
+<h4>[3] 抵当権者自身への直接明渡請求の可否（管理占有）</h4>
+<table>
+  <tr><th style="width:30%">項目</th><th>内容</th></tr>
+  <tr><td>原則</td><td><span class="rank-B">抵当権は非占有担保 → 明渡しは所有者（設定者A社）に対してのみ</span></td></tr>
+  <tr><td>例外要件</td><td>所有者において適切な維持管理を<span class="hl-high">期待できない</span>場合 → 抵当権者自身への直接明渡しが可能（最判平17.3.10）</td></tr>
+  <tr><td>法的性質</td><td><a class="xref" href="#ref-term-kanrishihai">管理占有</a>（使用収益権ではなく競売の円滑化のための占有）</td></tr>
+  <tr><td>本問の結論</td><td>A社とYの実質的同一性等 → 期待できない → X自身への明渡し可 → 請求認容</td></tr>
+</table>
+
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第2部　論点別 詳細解説
+     ============================================ -->
+<section id="part2">
+<h2>第2部　論点別 詳細解説</h2>
+
+<div class="lecturer-advice">
+<span class="la-lead">総論：請求 → 法的根拠 → 要件 → 効果の順に分解する</span>
+<p>設問は「Xの請求は認められるか」の一問だけですが、<span class="la-key">①請求内容の特定 → ②法的根拠の確定 → ③要件の検討 → ④効果の検討</span>という物権的請求権の処理手順を踏めば、自然に三論点が立ち上がります。まず請求内容は「Yに対する甲建物の明渡し」で特定済み。次に法的根拠ですが、XはA社と契約関係にありYとは無関係ですから、<strong>債権的請求は無理</strong>。もっぱら<span class="la-key">抵当権に基づく物権的請求権</span>で組み立てます。</p>
+<p>ここで最大の障害は、<span class="la-quote">抵当権は非占有担保だ</span>という点。占有が誰であっても交換価値（＝建物の値段）は原則動かないはずで、そもそも「妨害状態」を観念しにくい。しかし<strong>判例は例外的に、交換価値の実現が妨げられ優先弁済請求権の行使が困難になる状態</strong>があれば妨害排除を認めます（論点1）。さらに本問のYは<strong>単なる不法占拠者ではなく賃借人＝占有権原あり</strong>なので、認めるには<span class="la-key">競売妨害目的</span>という厳しい要件が要る（論点2）。最後に効果として、原則は設定者A社への返還ですが、A社に適切な管理を期待できないなら<strong>抵当権者X自身への明渡し</strong>も認められる（論点3）。この①総論②要件加重③効果の三段を、要件→効果の順で崩さず論じます。</p>
+</div>
+
+<!-- ====== 論点1：妨害排除請求の可否（総論・侵害要件） ====== -->
+<div class="card" id="issue-bogai">
+<h3>論点1　抵当権に基づく妨害排除請求の可否（総論・侵害要件）　<span class="rank-A">A</span></h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">出発点 — 「非占有担保に妨害排除はなじまない」を乗り越える論理</span>
+<p>抵当権は目的物の交換価値のみを把握する<span class="la-key">非占有担保</span>です。だから「誰が占有しても値段は変わらない → 妨害状態はない」というのが素直な発想。実際、原則としてはそのとおりで、単に第三者が占有しているだけでは妨害排除は認められません。</p>
+<p>ところが本問は<strong>競売手続の中で最低売却価額が下がり続け、買い手がつかない</strong>。これはまさに<span class="la-quote">交換価値の実現が妨げられ、優先弁済請求権の行使が困難になっている状態</span>です。<a class="xref" href="#ref-case-saihan-h11-11-24">最大判平成11年11月24日</a>はこの例外を認めました。答案では「原則否定 → しかし例外的に侵害を観念できる場合がある → その侵害要件を定立 → 本問はこれを充たす」という流れで書きます。なお同判決は、抵当権自体に基づく妨害排除のほか、<strong>所有者の妨害排除請求権を<a class="xref" href="#ref-stat-minp-423">債権者代位（423条）</a>で行使する構成</strong>にも言及した点が理論的に重要です。</p>
+</div>
+
+<!-- A. 条文分析 -->
+<div id="B1-A">
+<h4>A. 条文分析（論点固有の視点）</h4>
+
+<p>本論点の出発条文は<a class="xref" href="#ref-stat-minp-369">民法369条1項</a>（抵当権）である。同項は抵当権者が「他の債権者に先立って自己の債権の弁済を受ける権利」を有すると規定するが、<strong>妨害排除請求権を定める明文はない</strong>。抵当権が<a class="xref" href="#ref-term-bukkenteki">物権</a>である以上、その円満な支配状態を回復するための物権的請求権が認められるかを、条文の趣旨から導く必要がある。条文全文・要件効果は<a class="xref" href="#ref-stat-minp-369">第5-1</a>を参照。</p>
+
+<h5>当該論点で問題となる要件の特定</h5>
+<table>
+  <tr><th>要件</th><th>本問における争点</th></tr>
+  <tr><td>抵当権の存在</td><td>Xは被担保債権1億円につき甲建物に抵当権＋登記（<a class="xref" href="#ref-stat-minp-177">177条</a>）→ 争いなし</td></tr>
+  <tr><td><span class="rank-A">妨害状態（侵害）の存在</span></td><td><span class="hl-super">非占有担保に妨害状態を観念できるか</span>＝本論点の核心</td></tr>
+  <tr><td>妨害排除請求権の根拠</td><td>抵当権自体に基づく構成か、<a class="xref" href="#ref-stat-minp-423">債権者代位</a>構成か</td></tr>
+  <tr><td>相手方・効果</td><td>占有者に対する明渡し（誰への明渡しかは論点3）</td></tr>
+</table>
+
+<h5>当該論点における要件解釈の争点</h5>
+<div class="key-box">
+<p><strong>【争点①】非占有担保である抵当権に「妨害状態」を観念できるか</strong></p>
+<p>抵当権者は目的物を占有せず、交換価値のみを把握する。占有者が誰であっても交換価値は原則として下がらないため、占有それ自体は抵当権の侵害とならないのが原則である。</p>
+
+<p><strong>【争点②】例外的に侵害を認める基準（侵害要件）</strong></p>
+<p>いかなる場合に例外的に妨害状態を認めるか。判例は「交換価値の実現が妨げられ、抵当権者の優先弁済請求権の行使が困難となるような状態」を基準とする。</p>
+
+<p><strong>【争点③】妨害排除請求権の法的構成</strong></p>
+<p>抵当権自体に基づく物権的請求権として構成するか、<a class="xref" href="#ref-stat-minp-423">債権者代位権（423条）</a>により所有者の妨害排除請求権を代位行使する構成をとるか。最大判平11.11.24は両構成を認めた。</p>
+</div>
+
+<h5>答案上の認定戦略（どの事実を要件にあてはめるか）</h5>
+<table>
+  <tr><th>要件</th><th>本問での認定材料</th></tr>
+  <tr><td>抵当権＋対抗力</td><td>被担保債権1億円・甲建物への設定登記</td></tr>
+  <tr><td>交換価値の実現の阻害</td><td>競売手続中、最低売却価額が下がり続ける</td></tr>
+  <tr><td>優先弁済請求権行使の困難</td><td>買い手が一向に現れない</td></tr>
+  <tr><td>妨害状態の帰責先</td><td>Yの占有が買受け意欲を阻害している（論点2で加重要件）</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- B. 判例法理の展開 -->
+<div id="B1-B">
+<h4>B. 判例法理の展開（論点固有の視点）</h4>
+
+<p>本論点の到達点は、<a class="xref" href="#ref-case-saihan-h11-11-24">最大判平成11年11月24日</a>が、従来消極的に解されていた抵当権に基づく妨害排除請求を、一定の要件の下で正面から認めたことにある。判例の事案詳細・出典は<a class="xref" href="#ref-case-saihan-h11-11-24">第5-2</a>を参照。</p>
+
+<h5><a class="xref" href="#ref-case-saihan-h11-11-24"><span class="tan tan-super">短答★★★</span><span class="rank-A">最大判平成11年11月24日（民集53巻8号1899頁）</span></a>の規範のコア</h5>
+<blockquote class="case">
+<p class="judgment-text">『第三者が抵当不動産を不法占有することにより、抵当不動産の交換価値の実現が妨げられ、抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権に基づく妨害排除請求として、抵当権者が右状態の排除を求めることも許される』</p>
+</blockquote>
+<div class="key-box">
+<p><strong>【規範のコア部分の意義】</strong>抵当権が非占有担保であっても、<span class="hl-super">交換価値の実現が妨げられ優先弁済請求権の行使が困難</span>という侵害要件を充たせば、抵当権自体に基づく妨害排除が認められることを最高裁大法廷が明示した。抵当権侵害論の現代的到達点である。</p>
+<p><strong>【債権者代位構成の併用】</strong>同判決はさらに、抵当権者は<span class="rank-A">所有者（抵当権設定者）が不法占有者に対して有する妨害排除請求権を、<a class="xref" href="#ref-stat-minp-423">債権者代位権（423条）</a>により行使できる</span>とした（被保全債権＝抵当権の価値維持を求める請求権）。抵当権自体構成と代位構成の二本立てを示した点に理論的重要性がある。</p>
+<p><strong>【本論点への射程】</strong>本判決は<span class="rank-A">不法占有者</span>の事案であり、本問のYのように<strong>占有権原ある賃借人</strong>には直接及ばない。占有権原ある者への拡張は論点2（最判平17.3.10）が担う。もっとも、侵害要件（交換価値実現の阻害）の定式は本問でもそのまま用いる。</p>
+</div>
+
+<h5>侵害要件のあてはめ手順</h5>
+<div class="flow">
+<p class="step"><strong>手順1：</strong>原則の確認 → 抵当権は非占有担保、占有それ自体は侵害でない</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順2：</strong>例外基準の定立 → 交換価値の実現が妨げられ優先弁済請求権の行使が困難な状態か</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順3：</strong>あてはめ → 競売中に最低売却価額が下落・買い手不在 → 侵害要件充足</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順4：</strong>構成の選択 → 抵当権自体に基づく妨害排除（本問では占有権原ある者ゆえ論点2の加重要件へ）</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- C. 学説の整理 -->
+<div id="B1-C">
+<h4>C. 学説の整理（論点固有の視点）</h4>
+
+<p>本論点の学説対立は、①そもそも抵当権に基づく妨害排除を認めるか（消極説⇔積極説）と、②認める場合の法的構成（抵当権自体構成⇔債権者代位構成）の二層である。各説の文献の詳細は<a class="xref" href="#ref-doctrine-bogaiseikyu">第5-3</a>を参照。</p>
+
+<h5>第一層：妨害排除を認めるか</h5>
+<table>
+  <tr><th style="width:25%">学説</th><th>結論</th><th>論拠・批判</th></tr>
+  <tr>
+    <td><span class="rank-C">消極説</span>（旧来の理解）</td>
+    <td>占有者への妨害排除は認めない</td>
+    <td>抵当権は非占有担保で交換価値のみ把握。占有は交換価値を左右しない ⇔ 現実には占有が買受けを阻害し交換価値の実現を妨げる</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-shingai"><span class="rank-A">積極説（侵害要件説）</span></a>（判例・通説）</td>
+    <td>交換価値の実現が妨げられ優先弁済請求権の行使が困難な場合に限り認める</td>
+    <td>抵当権も物権である以上、その円満な価値支配が害されれば物権的請求権を生じる。要件で処罰（保護）範囲を限定</td>
+  </tr>
+</table>
+
+<h5>第二層：法的構成 ― <span class="rank-A">本問で意識すべき対立</span></h5>
+<div class="warn-box">
+<table>
+  <tr><th>構成</th><th>内容</th><th>特徴</th></tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-bogaiseikyu"><span class="rank-A">抵当権自体構成</span></a></td>
+    <td>抵当権という物権の効力として、直接、妨害排除請求権を認める</td>
+    <td>端的で明快。占有権原ある第三者への拡張（論点2）もこの構成で処理しやすい</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-daii"><span class="rank-B">債権者代位構成</span></a></td>
+    <td><a class="xref" href="#ref-stat-minp-423">423条</a>により、所有者が有する妨害排除請求権を抵当権者が代位行使する</td>
+    <td>所有権に基づく請求権を借りるため、抵当権に固有の妨害排除を認めなくても結論を導ける。もっとも所有者の請求権に依存する限界がある</td>
+  </tr>
+</table>
+</div>
+
+<h5>採用説とその選択理由</h5>
+<div class="success-box">
+<p><strong>【採用説】抵当権自体構成（積極説）</strong></p>
+<ol>
+  <li><strong>判例との整合</strong>：最大判平11.11.24・最判平17.3.10がいずれも抵当権自体に基づく妨害排除を認めている</li>
+  <li><strong>論述の一貫性</strong>：論点2（占有権原ある第三者への拡張）・論点3（自己への明渡し）へ滑らかに接続できる</li>
+  <li><strong>物権の性質との整合</strong>：物権の円満な支配状態の回復という物権的請求権の本質に適う</li>
+</ol>
+</div>
+
+<h5>答案での書き方</h5>
+<p>「抵当権は非占有担保であり占有それ自体は侵害とならないのが原則である。しかし、抵当権も物権である以上、交換価値の実現が妨げられ優先弁済請求権の行使が困難となる状態が生じたときは、抵当権に基づく妨害排除請求が認められると解する」と規範を立て、本問の競売阻害状態を端的にあてはめる。代位構成は「なお」書きで一言触れれば足りる。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- D. 解法アルゴリズム -->
+<div id="B1-D">
+<h4>D. 解法アルゴリズムと答案構成</h4>
+
+<h5>思考のフローチャート（If-Thenルール）</h5>
+<div class="flow">
+<p class="step"><strong>[第1段階：請求と法的根拠の特定]</strong><br>Yに対する甲建物の明渡し請求 → XはA社とのみ契約関係 → <span class="rank-A">抵当権（<a class="xref" href="#ref-stat-minp-369">369条</a>）に基づく物権的請求権</span>で構成</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第2段階：妨害排除の可否（総論）]</strong><br>抵当権は非占有担保 → 占有それ自体は原則侵害でない<br>→ 例外的に妨害排除を認めうるか</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第3段階：侵害要件の定立]</strong><br>交換価値の実現が妨げられ、優先弁済請求権の行使が困難となる状態か（最大判平11.11.24）</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第4段階：あてはめ]</strong><br>競売手続中、最低売却価額が下落・買い手不在 → <span class="rank-A">侵害要件を充足</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第5段階：占有権原の有無で分岐]</strong><br>Yは賃借人＝占有権原あり → <span class="rank-A">論点2（競売妨害目的の加重要件）へ</span></p>
+</div>
+
+<h5>規範の暗記事項</h5>
+<div class="key-box">
+<p><strong>【コア部分（必ず書く）】</strong></p>
+<ol>
+  <li>抵当権は非占有担保 → 占有それ自体は原則侵害でない（原則）</li>
+  <li>侵害要件：<a class="xref" href="#ref-term-kokanchi">交換価値</a>の実現が妨げられ<a class="xref" href="#ref-term-yusenbensai">優先弁済請求権</a>の行使が困難となる状態</li>
+  <li>この状態があれば抵当権に基づく妨害排除請求が認められる</li>
+</ol>
+<p><strong>【周辺部分（書ければ加点）】</strong></p>
+<ul>
+  <li><a class="xref" href="#ref-stat-minp-423">債権者代位（423条）</a>構成の併用可能性</li>
+  <li>物権的請求権の本質（円満な支配状態の回復）からの理由づけ</li>
+</ul>
+</div>
+
+<h5>あてはめのコツ（トリガーファクト・評価語の引き出し）</h5>
+<table>
+  <tr><th>事実</th><th>評価語</th><th>結論</th></tr>
+  <tr><td>最低売却価額が下がり続ける</td><td>担保価値の現実化の阻害</td><td>交換価値の実現が妨げられている</td></tr>
+  <tr><td>買い手が一向に現れない</td><td>換価による満足の困難</td><td>優先弁済請求権の行使が困難</td></tr>
+  <tr><td>被担保債権1億円・登記あり</td><td>保護に値する担保権の存在</td><td>妨害排除の主体たりうる</td></tr>
+</table>
+
+<h5>採点者視点（A答案・B答案・C答案の差異）</h5>
+<table>
+  <tr><th>段階</th><th>A答案（上位2割）</th><th>B答案（中位）</th><th>C答案（下位）</th></tr>
+  <tr><td>原則の指摘</td><td>「非占有担保ゆえ占有は原則侵害でない」と原則を立てる</td><td>いきなり例外から書く</td><td>原則・例外の枠組みなし</td></tr>
+  <tr><td>侵害要件</td><td>判例の文言を正確に定立</td><td>要件を提示</td><td>要件を書かず結論のみ</td></tr>
+  <tr><td>あてはめ</td><td>「価額下落」「買い手不在」を要件に丁寧に対応</td><td>事実を引用するのみ</td><td>事実の対応が不明確</td></tr>
+  <tr><td>構成の選択</td><td>抵当権自体構成を明示し代位構成にも言及</td><td>構成を意識せず</td><td>—</td></tr>
+</table>
+
+<h5>陥りやすいミス</h5>
+<div class="danger-box">
+<ul>
+  <li><span class="rank-A">ミス①</span>：原則（占有は侵害でない）を飛ばして例外から書く → 原則・例外の論理構造を示す</li>
+  <li><span class="rank-A">ミス②</span>：侵害要件を「交換価値が下がる」と雑にまとめる → 「優先弁済請求権の行使が困難」まで正確に</li>
+  <li><span class="rank-B">ミス③</span>：Yを不法占有者扱いして論点2（占有権原ある者への加重）を落とす → Yは賃借人であることを見落とさない</li>
+  <li><span class="rank-C">ミス④</span>：物上代位（<a class="xref" href="#ref-term-daiiken">304条</a>）と混同する → 本問は妨害排除であり物上代位ではない</li>
+</ul>
+</div>
+
+<h5>時間配分の目安</h5>
+<p>論点1（総論・侵害要件）は<strong>構成5分・記述15分</strong>。原則・例外の枠組みと侵害要件の定立・あてはめに集中し、占有権原の分岐で論点2へ橋渡しする。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- E. 関連論点との比較 -->
+<div id="B1-E">
+<h4>E. 関連論点との比較</h4>
+
+<h5><span class="tan tan-high">短答★★</span>妨害排除請求と物上代位（<a class="xref" href="#ref-term-daiiken">304条</a>）の区別</h5>
+<table>
+  <tr><th>観点</th><th>抵当権に基づく妨害排除請求</th><th>物上代位</th></tr>
+  <tr><td>目的</td><td>交換価値実現の阻害状態の排除（占有の除去等）</td><td>目的物の売却代金・賃料等への価値の追及</td></tr>
+  <tr><td>典型場面</td><td>不法占有・競売妨害目的の占有</td><td>賃料債権・保険金・売買代金への差押え</td></tr>
+  <tr><td>本問</td><td><span class="rank-A">こちらで処理</span>（占有除去を求める）</td><td>—</td></tr>
+</table>
+
+<h5>抵当権侵害に基づく損害賠償・期限の利益喪失との関係</h5>
+<p>交換価値を害する行為には、妨害排除請求のほか、<a class="xref" href="#ref-term-teitoken">抵当権</a>侵害を理由とする不法行為に基づく損害賠償請求（709条）や、増担保請求・期限の利益喪失（137条2号類推）も観念しうる。本問は明渡請求（妨害排除）が問われているため、これらは芋づる知識にとどめる。</p>
+
+<h5>芋づる式関連知識</h5>
+<ul>
+  <li><span class="rank-B">抵当権に基づく返還請求と妨害排除請求</span>：抵当権者が占有を取得する権能を有しない以上、原則は「妨害排除」構成。ただし本問の自己への明渡し（論点3）で議論が交錯する</li>
+  <li><span class="rank-C">短期賃貸借保護制度の廃止</span>：かつての395条（短期賃貸借の保護）は平成15年改正で廃止され、現行<a class="xref" href="#ref-stat-minp-395">395条</a>は明渡猶予制度に置き換わった（歴史的背景で詳述）</li>
+  <li><span class="rank-C">債権者代位権の転用</span>：最大判平11.11.24の代位構成は、423条の「債務者の無資力」を要しない転用事例の一つ</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- F. 答案表現集 -->
+<div id="B1-F">
+<h4>F. 答案表現集</h4>
+
+<h5>論点提起の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>根拠特定型</td><td>「Xの請求は、甲建物についての抵当権に基づく物権的請求権（妨害排除請求）を根拠とする。」</td></tr>
+  <tr><td>問題提起型</td><td>「では、非占有担保である抵当権に基づき、占有者に対して妨害排除を請求できるか。」</td></tr>
+  <tr><td>原則提示型</td><td>「抵当権は目的物の交換価値のみを把握する非占有担保であり、占有それ自体は原則として抵当権の侵害とならない。」</td></tr>
+</table>
+
+<h5>規範定立例（短縮版・完全版）</h5>
+<div class="arg-card">
+<h5><span class="arg-tier arg-required">必須論証</span>妨害排除の侵害要件（短縮版）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約100字</div>
+<div class="arg-body">抵当権は非占有担保だが、第三者の占有により交換価値の実現が妨げられ、抵当権者の優先弁済請求権の行使が困難となる状態があるときは、抵当権に基づく妨害排除請求が認められると解する。</div>
+</div>
+
+<div class="arg-card">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>妨害排除の侵害要件（完全版）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約220字</div>
+<div class="arg-body">抵当権は目的物の交換価値のみを把握する非占有担保であり、抵当権者は目的物を占有する権能を有しない。したがって、第三者が抵当不動産を占有しても、それ自体は交換価値を左右せず、原則として抵当権の侵害とならない。もっとも、抵当権も物権である以上、その円満な価値支配が害された場合には物権的請求権が生じると解すべきである。そこで、第三者の占有により交換価値の実現が妨げられ、抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権に基づく妨害排除請求として、その状態の排除を求めることができると解する。</div>
+</div>
+
+<h5>あてはめ表現例（事実→評価語→結論）</h5>
+<div class="arg-card">
+<h5><span class="arg-tier arg-required">必須論証</span>侵害要件の認定（あてはめ）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約130字</div>
+<div class="arg-body">本件では、競売手続の中で甲建物の最低売却価額は引き下げられる一方であるにもかかわらず、買い手が一向に現れない。これは、目的物の交換価値の実現が現実に妨げられ、Xの優先弁済請求権の行使が困難となっている状態にほかならない。したがって、侵害要件を充たす。</div>
+</div>
+
+<h5>結論部分の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>橋渡し型</td><td>「もっとも、Yは賃借人であり正当な占有権原を有するから、さらに要件が加重される（論点2）。」</td></tr>
+  <tr><td>標準型</td><td>「よって、侵害要件が充たされる以上、抵当権に基づく妨害排除請求の前提は満たされる。」</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- G. 頻出論証ブロック -->
+<div id="B1-G">
+<h4>G. 頻出論証ブロック</h4>
+
+<p>本論点で答案に転記可能な頻出論証を、完成形・簡略版・発展版の3層で提示する。各論証の出典・使用条文・判例は<a class="xref" href="#ref-arg">第5-4答案論証集</a>を参照。</p>
+
+<div class="arg-card" id="arg-B1-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証B1-1：抵当権に基づく妨害排除請求の可否と侵害要件</h5>
+<div class="arg-meta"><strong>出題実績：</strong>司法試験 平成20年・平成28年／予備試験 令和2年（担保物権）　<strong>想定文字数：</strong>完成形 約230字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">抵当権は目的物の交換価値のみを把握する非占有担保であり、抵当権者は目的物を占有する権能を有しない。したがって、第三者の占有それ自体は原則として抵当権の侵害とならない。もっとも、抵当権も物権である以上、その円満な価値支配が害された場合には物権的請求権が生じる。そこで、第三者の占有により抵当不動産の交換価値の実現が妨げられ、抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権に基づく妨害排除請求として、その状態の排除を求めることができると解する。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">抵当権は非占有担保だが、占有により交換価値の実現が妨げられ、優先弁済請求権の行使が困難となる状態があるときは、抵当権に基づく妨害排除請求が認められる。</div>
+<p><strong>【発展版（加点要素）】</strong></p>
+<div class="arg-body">最大判平成11年11月24日は、この場合に抵当権自体に基づく妨害排除を認めるほか、<a class="xref" href="#ref-stat-minp-423">債権者代位権（423条）</a>により所有者の妨害排除請求権を代位行使する構成も認めた。もっとも、抵当権自体構成によれば所有者の請求権に依存せず端的に処理できる。</div>
+</div>
+
+<div class="arg-card" id="arg-B1-2">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>論証B1-2：債権者代位構成（転用型）</h5>
+<div class="arg-meta"><strong>出題実績：</strong>債権法・担保物権の融合問題　<strong>想定文字数：</strong>完成形 約120字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">抵当権者は、その担保価値を維持するため、抵当不動産の所有者が占有者に対して有する妨害排除請求権を、<a class="xref" href="#ref-stat-minp-423">債権者代位権（423条）</a>により代位行使することができる。この場合、被保全債権は抵当権の価値維持を求める請求権であり、債務者（所有者）の無資力は要しない。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">抵当権者は、担保価値維持のため、所有者の妨害排除請求権を423条により代位行使できる（無資力不要）。</div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- H. 失点回避チェックリスト -->
+<div id="B1-H">
+<h4>H. 失点回避チェックリスト</h4>
+
+<h5>論点漏れチェック（必ず触れるべきサブ論点）</h5>
+<ul class="checklist">
+  <li>請求の法的根拠を「抵当権に基づく物権的請求権」と特定したか</li>
+  <li>抵当権が非占有担保であるという原則を示したか</li>
+  <li>占有それ自体は原則侵害でないと述べたか</li>
+  <li>侵害要件（交換価値実現の阻害＋優先弁済請求権行使の困難）を定立したか</li>
+  <li>本問の競売阻害状態を侵害要件にあてはめたか</li>
+  <li>Yに占有権原があることを指摘し論点2へ橋渡ししたか</li>
+</ul>
+
+<h5>規範の正確性チェック（判例表現の正確引用）</h5>
+<ul class="checklist">
+  <li>「交換価値の実現が妨げられ」「優先弁済請求権の行使が困難となる」という文言を正確に書いたか</li>
+  <li>「抵当権に基づく妨害排除請求」と構成を明示したか</li>
+  <li>債権者代位構成（<a class="xref" href="#ref-stat-minp-423">423条</a>）に言及するなら、被保全債権を意識したか</li>
+</ul>
+
+<h5>あてはめチェック（拾うべき事実・評価語の妥当性）</h5>
+<ul class="checklist">
+  <li>「最低売却価額が下がり続ける」を交換価値実現の阻害と結合させたか</li>
+  <li>「買い手が現れない」を優先弁済請求権行使の困難と結合させたか</li>
+</ul>
+
+<h5>形式チェック（ナンバリング・条文番号の正確性）</h5>
+<ul class="checklist">
+  <li>条文番号は<a class="xref" href="#ref-stat-minp-369">369条</a>・<a class="xref" href="#ref-stat-minp-177">177条</a>・<a class="xref" href="#ref-stat-minp-423">423条</a>を正確に書いたか</li>
+  <li>物上代位（304条）と妨害排除を混同していないか</li>
+  <li>第1、1、（1）、ア の階層的ナンバリングを守ったか</li>
+</ul>
+
+<div class="oral-skeleton">
+<span class="os-label">🗣 口頭骨格（3周目以降・3〜5分で言い切る）</span>
+<ol>
+  <li><strong>論点</strong>：非占有担保である抵当権に基づく妨害排除請求の可否</li>
+  <li><strong>条文</strong>：369条（＋423条の代位構成）</li>
+  <li><strong>規範</strong>：原則＝占有は侵害でない／例外＝交換価値の実現が妨げられ優先弁済請求権の行使が困難な状態なら妨害排除可</li>
+  <li><strong>結論</strong>：競売中の価額下落・買い手不在 → 侵害要件充足 → 妨害排除の前提を満たす（占有権原ある賃借人ゆえ論点2へ）</li>
+</ol>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</div><!-- /論点1 -->
+
+
+<!-- ====== 論点2：占有権原ある第三者への妨害排除（競売妨害目的） ====== -->
+<div class="card" id="issue-senyu">
+<h3>論点2　占有権原ある第三者への妨害排除請求（競売妨害目的）　<span class="rank-A">A</span></h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">本問の山場 — 賃借人（占有権原あり）にまで妨害排除を及ぼす「競売妨害目的」</span>
+<p>論点1で侵害要件はクリアしましたが、本問のYは<strong>単なる不法占拠者ではなく賃借人＝正当な占有権原がある</strong>点が難所です。占有権原がある以上、原則として妨害排除は及ばない。ところが<a class="xref" href="#ref-case-saihan-h17-3-10">最判平成17年3月10日</a>は、<span class="la-key">占有権原の設定に競売手続を妨害する目的があり、かつ交換価値の実現が妨げられて優先弁済請求権の行使が困難な状態がある</span>ときは、占有権原ある者に対しても妨害排除ができるとしました。平成11年判決の侵害要件に<strong>「競売妨害目的」というプラスαの要件を上乗せ</strong>する構造です。</p>
+<p>本問は<span class="la-quote">競売妨害目的の典型事案</span>です。①YはA社の代表取締役で両者は実質同一体、②承諾特約に反する賃貸、③適正賃料月100万円に対し<strong>月1万円・敷金3億円・期間30年</strong>という常識外れの条件——これはもはや単なる不法占拠と変わりません。これだけ揃えば妨害目的の認定に困りません。答案では、加重要件の規範を立て、これらの間接事実を評価語（「著しく不合理」「実質的同一」）と結びつけて厚く当てはめます。</p>
+</div>
+
+<!-- A. 条文分析 -->
+<div id="B2-A">
+<h4>A. 条文分析（論点固有の視点）</h4>
+
+<p>本論点も<a class="xref" href="#ref-stat-minp-369">民法369条</a>（抵当権）に基づく妨害排除請求の一場面だが、相手方が<a class="xref" href="#ref-stat-minp-601">賃借権（601条）</a>という正当な占有権原を有する点で、論点1（不法占有者）と要件が異なる。Yの賃借権はA社の代表取締役（<a class="xref" href="#ref-stat-kaisha-349">会社法349条</a>）に対して設定されたものである。条文全文・要件効果は<a class="xref" href="#ref-stat-minp-369">第5-1</a>を参照。</p>
+
+<h5>当該論点で問題となる要件の特定</h5>
+<table>
+  <tr><th>要件</th><th>本問における争点</th></tr>
+  <tr><td>侵害要件（論点1で充足済み）</td><td>交換価値の実現の阻害・優先弁済請求権行使の困難</td></tr>
+  <tr><td><span class="rank-A">占有権原の存在</span></td><td>Yは<a class="xref" href="#ref-stat-minp-601">賃借人（601条）</a> → 正当な占有権原あり → 原則、妨害排除は及ばない</td></tr>
+  <tr><td><span class="rank-A">競売妨害目的（加重要件）</span></td><td><span class="hl-super">占有権原の設定に競売手続を妨害する目的があるか</span>＝本論点の核心</td></tr>
+  <tr><td>妨害目的の間接事実</td><td>異常な賃貸条件・代表取締役への賃貸・承諾特約違反</td></tr>
+</table>
+
+<h5>当該論点における要件解釈の争点</h5>
+<div class="key-box">
+<p><strong>【争点①】占有権原ある第三者に妨害排除が及ぶか</strong></p>
+<p>不法占有者と異なり、賃借人には正当な占有権原がある。占有権原がある以上、その占有は原則として適法であり、抵当権に基づく妨害排除は原則として及ばない。</p>
+
+<p><strong>【争点②】例外を認める加重要件</strong></p>
+<p>いかなる場合に例外的に占有権原ある者への妨害排除を認めるか。判例は、①占有権原の設定に<strong>競売手続を妨害する目的</strong>が認められ、②その占有により交換価値の実現が妨げられ優先弁済請求権の行使が困難となる状態がある場合とする。論点1の侵害要件に「競売妨害目的」を上乗せする構造である。</p>
+
+<p><strong>【争点③】妨害目的の認定方法</strong></p>
+<p>妨害目的という主観的要件は、賃貸条件の不合理性・当事者の関係・特約違反等の<strong>間接事実</strong>から推認する。</p>
+</div>
+
+<h5>答案上の認定戦略</h5>
+<table>
+  <tr><th>要件</th><th>本問での認定材料</th></tr>
+  <tr><td>占有権原</td><td>YはA社から甲建物を賃借（賃貸借契約）</td></tr>
+  <tr><td>競売妨害目的</td><td>月1万円（適正100万円）・敷金3億円・期間30年の異常条件／Y＝A社代表取締役／承諾特約違反</td></tr>
+  <tr><td>侵害要件</td><td>論点1と共通（価額下落・買い手不在）</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- B. 判例 -->
+<div id="B2-B">
+<h4>B. 判例法理の展開（論点固有の視点）</h4>
+
+<p>本論点の到達点は、<a class="xref" href="#ref-case-saihan-h17-3-10">最判平成17年3月10日</a>が、占有権原ある第三者に対しても、競売妨害目的という加重要件の下で抵当権に基づく妨害排除請求を認めたことにある。判例の事案詳細・出典は<a class="xref" href="#ref-case-saihan-h17-3-10">第5-2</a>を参照。</p>
+
+<h5><a class="xref" href="#ref-case-saihan-h17-3-10"><span class="tan tan-super">短答★★★</span><span class="rank-A">最判平成17年3月10日（民集59巻2号356頁・百選I89）</span></a>の規範のコア</h5>
+<blockquote class="case">
+<p class="judgment-text">『抵当権設定登記後に抵当不動産の所有者から占有権原の設定を受けてこれを占有する者についても、その占有権原の設定に抵当権の実行としての競売手続を妨害する目的が認められ、その占有により抵当不動産の交換価値の実現が妨げられて抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権者は、当該占有者に対し、抵当権に基づく妨害排除請求として、上記状態の排除を求めることができる』</p>
+</blockquote>
+<div class="key-box">
+<p><strong>【規範のコア部分の意義】</strong>平成11年判決（不法占有者）の侵害要件に、<span class="hl-super">「占有権原の設定に競売手続を妨害する目的」</span>という加重要件を上乗せすることで、占有権原ある第三者にまで妨害排除を拡張した。抵当権侵害論の射程を確定した重要判例。</p>
+<p><strong>【自己への明渡しも判示】</strong>本判決は続けて、所有者において抵当権に対する侵害が生じないように<strong>適切に維持管理することが期待できない場合</strong>には、抵当権者は占有者に対し<strong>直接自己への明渡し</strong>を求めることができるとした（この点は論点3）。</p>
+<p><strong>【本論点への射程】</strong>Yは占有権原ある賃借人であり、本判決が<span class="rank-A">直接の射程</span>を持つ。事案構造（設定登記後の背信的賃貸・競売妨害）が本問とほぼ同型である。</p>
+</div>
+
+<h5>妨害目的認定のあてはめ手順</h5>
+<div class="flow">
+<p class="step"><strong>手順1：</strong>占有権原の確認 → Yは賃借人 → 原則、妨害排除は及ばない</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順2：</strong>加重要件の定立 → 占有権原の設定に競売妨害目的＋侵害要件</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順3：</strong>間接事実の摘示 → 異常な賃貸条件・代表取締役への賃貸・承諾特約違反</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順4：</strong>評価 → 実質的に不法占拠と変わらない → 競売妨害目的を推認</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>手順5：</strong>結論 → 加重要件充足 → 占有権原ある者にも妨害排除請求が及ぶ</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- C. 学説 -->
+<div id="B2-C">
+<h4>C. 学説の整理（論点固有の視点）</h4>
+
+<p>本論点の学説は、占有権原ある第三者への妨害排除を認めるか、認める場合の限定要件をどう設定するかに集約される。各説の詳細は<a class="xref" href="#ref-doctrine-shingai">第5-3</a>を参照。</p>
+
+<h5><span class="tan tan-high">短答★★</span>占有権原ある第三者への妨害排除をめぐる立場</h5>
+<table>
+  <tr><th style="width:22%">立場</th><th>結論</th><th>論拠・限定</th></tr>
+  <tr>
+    <td><span class="rank-C">消極説</span></td>
+    <td>占有権原がある以上、妨害排除は及ばない</td>
+    <td>適法な占有を抵当権者が排除できるとすると、賃借人の地位を不当に害する</td>
+  </tr>
+  <tr>
+    <td><a class="xref" href="#ref-doctrine-shingai"><span class="rank-A">加重要件説</span></a>（判例・通説）</td>
+    <td>競売妨害目的＋侵害要件があれば及ぶ</td>
+    <td>占有権原の設定自体が競売妨害を目的とする場合、その占有はもはや保護に値せず、実質的に不法占有と同視できる</td>
+  </tr>
+</table>
+
+<h5>「競売妨害目的」の位置づけをめぐる議論</h5>
+<div class="warn-box">
+<table>
+  <tr><th>論点</th><th>内容</th></tr>
+  <tr><td>目的の主体</td><td>占有権原の「設定」段階での妨害目的。所有者・占有者の双方（本問は実質同一体）に見いだせるかを検討</td></tr>
+  <tr><td>目的の認定</td><td>賃貸条件の著しい不合理性・当事者間の特殊関係・特約違反等の客観的間接事実から推認（内心の直接立証は不要）</td></tr>
+  <tr><td>侵害要件との関係</td><td>妨害目的は侵害要件を代替せず、両者を重畳的に要求する（加重）</td></tr>
+</table>
+</div>
+
+<h5>採用説とその選択理由</h5>
+<div class="success-box">
+<p><strong>【採用説】加重要件説（判例）</strong></p>
+<ol>
+  <li><strong>判例との整合</strong>：最判平17.3.10が正面から採用</li>
+  <li><strong>利益衡量の妥当性</strong>：正当な賃借人の保護と、妨害目的の占有の排除とを、加重要件によって適切に切り分けられる</li>
+  <li><strong>本問への適合</strong>：本問は妨害目的の徴表事実が揃った典型事案であり、加重要件説で無理なく処理できる</li>
+</ol>
+</div>
+
+<h5>答案での書き方</h5>
+<p>「占有権原ある第三者であっても、占有権原の設定に競売手続を妨害する目的が認められ、かつ侵害要件を充たすときは、抵当権に基づく妨害排除請求が認められる」と加重要件の規範を立て、本問の間接事実（異常条件・代表取締役・特約違反）を評価語で束ねて妨害目的を厚く認定する。ここが本問の配点の中心である。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- D. 解法アルゴリズム -->
+<div id="B2-D">
+<h4>D. 解法アルゴリズムと答案構成</h4>
+
+<h5>思考のフローチャート</h5>
+<div class="flow">
+<p class="step"><strong>[第1段階：占有権原の確認]</strong><br>Yは<a class="xref" href="#ref-stat-minp-601">賃借人（601条）</a> → 正当な占有権原あり<br>→ 原則、抵当権に基づく妨害排除は及ばない</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第2段階：加重要件の定立]</strong><br>①占有権原の設定に競売手続を妨害する目的＋②侵害要件（交換価値実現の阻害）（最判平17.3.10）</p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第3段階：妨害目的のあてはめ]</strong></p>
+<p class="step">　①<strong>賃貸条件の異常性</strong>：適正月100万円に対し月1万円・敷金3億円・期間30年 → <span class="rank-A">著しく不合理</span></p>
+<p class="step">　②<strong>当事者の関係</strong>：YはA社の代表取締役（<a class="xref" href="#ref-stat-kaisha-349">会社法349条</a>） → <span class="rank-A">実質的同一体</span></p>
+<p class="step">　③<strong>特約違反</strong>：Xの承諾なく賃貸 → <span class="rank-A">背信性</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第4段階：評価]</strong><br>これらから、占有権原の設定は競売妨害を目的とするものと推認 → <span class="rank-A">競売妨害目的肯定</span></p>
+<p class="arrow">↓</p>
+<p class="step"><strong>[第5段階：結論]</strong><br>加重要件を充足 → <span class="rank-A">占有権原ある Y に対しても妨害排除請求が及ぶ</span>（効果＝論点3へ）</p>
+</div>
+
+<h5>規範の暗記事項</h5>
+<div class="key-box">
+<p><strong>【コア部分】</strong></p>
+<ol>
+  <li>占有権原ある第三者には、原則として妨害排除は及ばない</li>
+  <li>加重要件：①占有権原の設定に<a class="xref" href="#ref-term-keibaibogai">競売手続を妨害する目的</a>＋②侵害要件（交換価値実現の阻害・優先弁済請求権行使の困難）</li>
+  <li>妨害目的は間接事実から推認する</li>
+</ol>
+<p><strong>【周辺部分】</strong></p>
+<ul>
+  <li>妨害目的は「占有権原の設定」段階で判断する</li>
+  <li>侵害要件を代替せず重畳的に要求する</li>
+</ul>
+</div>
+
+<h5>あてはめのコツ</h5>
+<table>
+  <tr><th>事実</th><th>評価語</th><th>結論</th></tr>
+  <tr><td>賃料月1万円（適正100万円）・敷金3億円・期間30年</td><td>賃貸借の実体を欠く著しく不合理な条件</td><td>実質的に不法占拠と同視／妨害目的の徴表</td></tr>
+  <tr><td>YはA社の代表取締役</td><td>賃貸人と賃借人が実質的に同一</td><td>通謀による妨害目的の推認</td></tr>
+  <tr><td>Xの承諾を得ない賃貸（特約違反）</td><td>背信的な占有権原の設定</td><td>正当な賃借とはいえない</td></tr>
+</table>
+
+<h5>採点者視点（A答案・B答案・C答案の差異）</h5>
+<table>
+  <tr><th>段階</th><th>A答案</th><th>B答案</th><th>C答案</th></tr>
+  <tr><td>占有権原の意識</td><td>Yが賃借人であることを捉え、加重要件の必要性を論じる</td><td>不法占有者として処理してしまう</td><td>占有権原を看過</td></tr>
+  <tr><td>加重要件の規範</td><td>妨害目的＋侵害要件を正確に定立</td><td>妨害目的のみ言及</td><td>規範なし</td></tr>
+  <tr><td>妨害目的のあてはめ</td><td>3つの間接事実を評価語で束ねて厚く推認</td><td>条件の不合理性のみ指摘</td><td>結論のみ</td></tr>
+</table>
+
+<h5>陥りやすいミス</h5>
+<div class="danger-box">
+<ul>
+  <li><span class="rank-A">ミス①</span>：Yを不法占有者として扱い、加重要件（競売妨害目的）を落とす → 賃借人＝占有権原ありを見落とさない</li>
+  <li><span class="rank-A">ミス②</span>：妨害目的を「なんとなく怪しい」で済ませる → 3つの間接事実を具体的に摘示して推認する</li>
+  <li><span class="rank-B">ミス③</span>：侵害要件（論点1）を書き忘れ、妨害目的だけで結論を出す → 両要件の重畳を意識</li>
+  <li><span class="rank-C">ミス④</span>：代表取締役の代表権（<a class="xref" href="#ref-stat-kaisha-349">会社法349条</a>）論に深入りしすぎる → 実質的同一性の一事実として簡潔に</li>
+</ul>
+</div>
+
+<h5>時間配分の目安</h5>
+<p>論点2は<strong>本問の配点の中心</strong>。<strong>構成8分・記述22分</strong>を配分し、妨害目的のあてはめを最も厚く書く。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- E. 関連論点 -->
+<div id="B2-E">
+<h4>E. 関連論点との比較</h4>
+
+<h5>不法占有者（平11判決）と占有権原ある者（平17判決）の要件比較</h5>
+<table>
+  <tr><th>観点</th><th>不法占有者（最大判平11.11.24）</th><th>占有権原ある者（最判平17.3.10）</th></tr>
+  <tr><td>占有の適法性</td><td>占有権原なし（不法占有）</td><td>賃借権等の占有権原あり</td></tr>
+  <tr><td>要件</td><td>侵害要件（交換価値実現の阻害）</td><td>侵害要件＋<span class="rank-A">競売妨害目的</span>（加重）</td></tr>
+  <tr><td>本問の相手方</td><td>—</td><td>Y（賃借人）＝<span class="rank-A">こちらで処理</span></td></tr>
+</table>
+
+<h5>賃借人保護制度（<a class="xref" href="#ref-stat-minp-395">395条</a>）との関係</h5>
+<p>現行<a class="xref" href="#ref-stat-minp-395">民法395条</a>は、抵当権者に対抗できない賃借人でも、競売の買受人の買受け時から6か月間は明渡しを猶予する（<strong>抵当建物使用者の引渡し猶予</strong>）。もっとも、この保護は正常な賃借人を想定したものであり、本問のような競売妨害目的の占有者には及ばない（妨害目的の占有は保護に値しない）。旧短期賃貸借保護制度の廃止経緯は歴史的背景で詳述。</p>
+
+<h5>芋づる式関連知識</h5>
+<ul>
+  <li><span class="rank-B">通謀虚偽表示（94条1項）構成</span>：賃貸借が仮装であれば94条1項で無効とし占有権原自体を否定する構成もありうるが、判例は妨害目的の枠組みで処理する</li>
+  <li><span class="rank-B">担保不動産収益執行（民執180条2号）</span>：賃料収取型の妨害には収益執行という別の手段もある。本問は占有除去型なので妨害排除で処理</li>
+  <li><span class="rank-C">法人格否認の法理</span>：A社とYの実質的同一性は、厳密には法人格否認とは別次元だが、妨害目的推認の一材料となる</li>
+</ul>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- F. 答案表現集 -->
+<div id="B2-F">
+<h4>F. 答案表現集</h4>
+
+<h5>論点提起の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>占有権原指摘型</td><td>「もっとも、Yは甲建物の賃借人であり、正当な占有権原を有する。そこで、占有権原ある第三者に対しても妨害排除を請求できるかが問題となる。」</td></tr>
+  <tr><td>加重要件提示型</td><td>「占有権原ある者に対して妨害排除を認めるには、いかなる要件が必要か。」</td></tr>
+</table>
+
+<h5>規範定立例</h5>
+<div class="arg-card">
+<h5><span class="arg-tier arg-required">必須論証</span>占有権原ある者への妨害排除（加重要件）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約170字</div>
+<div class="arg-body">抵当権設定登記後に所有者から占有権原の設定を受けてこれを占有する者についても、その占有権原の設定に抵当権の実行としての競売手続を妨害する目的が認められ、その占有により抵当不動産の交換価値の実現が妨げられて抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権者は、当該占有者に対し、抵当権に基づく妨害排除請求として、その状態の排除を求めることができると解する。</div>
+</div>
+
+<h5>あてはめ表現例（妨害目的の推認）</h5>
+<div class="arg-card">
+<h5><span class="arg-tier arg-required">必須論証</span>競売妨害目的の認定</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>約200字</div>
+<div class="arg-body">本件についてみると、A社は、Xとの承諾特約に反して甲建物を賃貸していること、賃借人YはA社の代表取締役であって両者は実質的に同一とみうること、さらに、適正賃料が月額100万円である甲建物について、賃料月額1万円・期間30年・敷金3億円という賃貸条件は賃貸借の実体を欠くほど著しく不合理であることが認められる。これらの事情からすれば、上記占有権原の設定には、抵当権の実行としての競売手続を妨害する目的があったと認められる。</div>
+</div>
+
+<h5>結論部分の表現</h5>
+<table>
+  <tr><th>類型</th><th>表現例</th></tr>
+  <tr><td>標準型</td><td>「したがって、加重要件を充たすから、Xは、占有権原あるYに対しても抵当権に基づく妨害排除請求をすることができる。」</td></tr>
+  <tr><td>効果橋渡し型</td><td>「もっとも、その効果として誰への明渡しを求めうるかがさらに問題となる（論点3）。」</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- G. 頻出論証ブロック -->
+<div id="B2-G">
+<h4>G. 頻出論証ブロック</h4>
+
+<div class="arg-card" id="arg-B2-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証B2-1：占有権原ある第三者への妨害排除（競売妨害目的）</h5>
+<div class="arg-meta"><strong>出題実績：</strong>司法試験 平成20年・平成28年／予備試験 令和2年　<strong>想定文字数：</strong>完成形 約210字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">占有権原ある第三者の占有は、原則として適法であり、抵当権に基づく妨害排除は及ばない。もっとも、抵当権設定登記後に所有者から占有権原の設定を受けてこれを占有する者についても、その占有権原の設定に抵当権の実行としての競売手続を妨害する目的が認められ、その占有により抵当不動産の交換価値の実現が妨げられて抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権者は、当該占有者に対し、抵当権に基づく妨害排除請求として、その状態の排除を求めることができると解する。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">占有権原ある者でも、占有権原の設定に競売妨害目的があり、かつ交換価値の実現が妨げられ優先弁済請求権の行使が困難な状態があれば、抵当権に基づく妨害排除が及ぶ。</div>
+<p><strong>【発展版（加点要素）】</strong></p>
+<div class="arg-body">妨害目的の設定による占有はもはや保護に値する占有権原とはいえず、実質的に不法占有と同視できる。ゆえに、正当な占有権原ある者との利益衡量上、妨害目的という加重要件を課したうえで妨害排除を認めるのが相当である。</div>
+</div>
+
+<div class="arg-card" id="arg-B2-2">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>論証B2-2：競売妨害目的の間接事実からの推認</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>完成形 約150字</div>
+<p><strong>【完成形】</strong></p>
+<div class="arg-body">競売妨害目的は内心の事情であるが、①賃貸条件が賃貸借の実体を欠くほど著しく不合理であること、②賃貸人と賃借人が実質的に同一であること、③抵当権者の承諾を要する特約に反する賃貸であること等の客観的間接事実から推認される。本件はこれらがすべて認められ、妨害目的が優に肯定される。</div>
+<p><strong>【簡略版】</strong></p>
+<div class="arg-body">妨害目的は、異常な賃貸条件・当事者の実質的同一性・特約違反等の間接事実から推認できる。</div>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- H. 失点回避チェックリスト -->
+<div id="B2-H">
+<h4>H. 失点回避チェックリスト</h4>
+
+<h5>論点漏れチェック</h5>
+<ul class="checklist">
+  <li>Yが賃借人＝占有権原を有することを指摘したか</li>
+  <li>占有権原ある者には原則妨害排除が及ばないと述べたか</li>
+  <li>加重要件（競売妨害目的＋侵害要件）を定立したか</li>
+  <li>妨害目的を間接事実から推認したか</li>
+  <li>加重要件充足の結論を示し、効果（論点3）へ橋渡ししたか</li>
+</ul>
+
+<h5>規範の正確性チェック</h5>
+<ul class="checklist">
+  <li>「占有権原の設定に……競売手続を妨害する目的」という文言を正確に書いたか</li>
+  <li>侵害要件と妨害目的を重畳的に要求したか（一方だけで結論を出していないか）</li>
+</ul>
+
+<h5>あてはめチェック</h5>
+<ul class="checklist">
+  <li>「月1万円・敷金3億円・期間30年」の異常性を評価語で示したか</li>
+  <li>「YはA社の代表取締役」を実質的同一性として使ったか</li>
+  <li>「承諾特約違反」を背信性の材料に使ったか</li>
+</ul>
+
+<h5>形式チェック</h5>
+<ul class="checklist">
+  <li>相手方（Y・賃借人）を正確に特定したか</li>
+  <li>会社法349条（代表取締役）に触れるなら簡潔にとどめたか</li>
+  <li>論点1（侵害要件）を前提としつつ本論点で加重要件を論じたか</li>
+</ul>
+
+<div class="oral-skeleton">
+<span class="os-label">🗣 口頭骨格（3周目以降・3〜5分で言い切る）</span>
+<ol>
+  <li><strong>論点</strong>：占有権原ある第三者（賃借人）への抵当権に基づく妨害排除の可否</li>
+  <li><strong>条文</strong>：369条（＋601条の賃借権・会社法349条）</li>
+  <li><strong>規範</strong>：原則＝占有権原ある者には及ばない／例外＝占有権原の設定に競売妨害目的＋侵害要件があれば及ぶ</li>
+  <li><strong>結論</strong>：異常条件・代表取締役・特約違反 → 妨害目的肯定 → Yにも妨害排除が及ぶ（効果は論点3へ）</li>
+</ol>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</div><!-- /論点2 -->
+
+<!-- ====== 論点3：抵当権者自身への直接明渡し（管理占有） ====== -->
+<div class="card" id="issue-jiko">
+<h3>論点3　抵当権者自身への直接明渡請求の可否（管理占有）　<span class="rank-A">A</span></h3>
+
+<div class="lecturer-advice">
+<span class="la-lead">効果の詰め — 「Xへの明渡し」は原則ダメ、例外で救う</span>
+<p>論点1・2で妨害排除の要件は満たしました。次は<strong>効果＝誰に明け渡させるか</strong>です。抵当権は非占有担保ですから、抵当権者Xが自分で使うわけにいかない。したがって<span class="la-key">原則は設定者（所有者）A社に返還させる</span>のが筋です。Xが「自分に明け渡せ」と求めるのは、原則としては認められません。</p>
+<p>しかし、本問でA社に返しても意味がない。<span class="la-quote">A社とYは実質同一体</span>で、また同じような妨害をするだけ。そこで判例（<a class="xref" href="#ref-case-saihan-h17-3-10">最判平17.3.10</a>）は、<strong>所有者において適切に維持管理することが期待できない場合</strong>には、抵当権者自身への直接明渡しを認めます。これは使用収益権を認めるものではなく、競売を円滑に進めるための<span class="la-key">管理占有</span>にすぎない点に注意。本問は例外要件を満たすので、結論としてXの請求は認められます。答案の締めとして、原則→例外→あてはめ→請求認容、と一気に書き切りましょう。</p>
+</div>
+
+<h4>該当判例（効果論の規範）</h4>
+<blockquote class="case">
+<p class="judgment-text">『抵当不動産の所有者において抵当権に対する侵害が生じないように抵当不動産を適切に維持管理することが期待できない場合には、抵当権者は、占有者に対し、直接自己への抵当不動産の明渡しを求めることができる』（<a class="xref" href="#ref-case-saihan-h17-3-10">最判平成17年3月10日</a>）</p>
+</blockquote>
+<p>判例の完全プロファイルは<a class="xref" href="#ref-case-saihan-h17-3-10">第5-2</a>を参照。</p>
+
+<h4>直接明渡しの可否 ― 原則と例外</h4>
+<div class="key-box">
+<p><strong>【原則】</strong>抵当権は非占有担保であり、抵当権者は目的物を使用収益する権能を有しない。したがって、妨害排除の効果としての明渡しは、<span class="hl-high">目的物の所有者（抵当権設定者）に対してのみ</span>認められるのが原則である。</p>
+<p><strong>【例外】</strong>もっとも、所有者において抵当権に対する侵害が生じないように<span class="hl-high">適切に維持管理することが期待できない場合</span>には、抵当権者は占有者に対し<span class="rank-A">直接自己への明渡し</span>を求めることができる。</p>
+</div>
+
+<h4>「管理占有」の法的性質</h4>
+<p>この場合に抵当権者が取得する占有は、<a class="xref" href="#ref-term-kanrishihai">管理占有</a>と呼ばれる。<span class="rank-A">抵当権者が目的物を使用収益できるという趣旨ではなく、競売手続を円滑に進めるために目的物を維持管理するための占有</span>にとどまる。したがって、抵当権者は取得した占有を自己の利益のために利用することはできない。</p>
+
+<h4>本問への当てはめ</h4>
+<p>本問では、A社は、Xとの承諾特約に反して代表取締役Yに背信的な賃貸をしており、しかも<span class="rank-A">A社とYは実質的に同一体</span>とみられる。この状況下でA社に甲建物を返還させても、A社が再び同様の妨害的占有を作り出すおそれが高く、<span class="rank-A">抵当権に対する侵害が生じないように適切に維持管理することは期待できない</span>。したがって、Xは、Yに対し、直接自己への甲建物の明渡しを求めることができる。</p>
+<p>よって、<span class="rank-A">Xの請求は認められる</span>。</p>
+
+<h4>頻出論証ブロック</h4>
+<div class="arg-card" id="arg-B3-1">
+<h5><span class="arg-tier arg-required">必須論証</span>論証B3-1：抵当権者自身への直接明渡し（管理占有）</h5>
+<div class="arg-meta"><strong>想定文字数：</strong>完成形 約160字</div>
+<div class="arg-body">抵当権は非占有担保であり、抵当権者は目的物を使用収益する権能を有しないから、妨害排除の効果としての明渡しは、原則として所有者に対してのみ認められる。もっとも、所有者において抵当権に対する侵害が生じないように抵当不動産を適切に維持管理することが期待できない場合には、抵当権者は、占有者に対し、直接自己への明渡しを求めることができる。この占有は使用収益権ではなく、競売手続を円滑に進めるための管理占有にとどまる。</div>
+</div>
+
+<h4>陥りやすいミス</h4>
+<div class="danger-box">
+<ul>
+  <li><span class="rank-A">ミス①</span>：いきなり「Xへ明け渡せ」と認めてしまう → 原則は設定者への返還であることを必ず示す</li>
+  <li><span class="rank-A">ミス②</span>：例外要件（適切な維持管理が期待できない）を書かずに結論を出す → 例外の規範とあてはめを明示</li>
+  <li><span class="rank-B">ミス③</span>：管理占有を使用収益権と誤解する → 抵当権者は使用収益できない旨を明記</li>
+  <li><span class="rank-C">ミス④</span>：論点1・2を飛ばして効果だけ論じる → 要件（侵害＋妨害目的）を満たして初めて効果に進める</li>
+</ul>
+</div>
+
+<div class="oral-skeleton">
+<span class="os-label">🗣 口頭骨格（3周目以降・3〜5分で言い切る）</span>
+<ol>
+  <li><strong>論点</strong>：抵当権者自身への直接明渡しの可否（効果論・管理占有）</li>
+  <li><strong>規範</strong>：原則＝設定者への返還／例外＝適切な維持管理が期待できない場合は自己への直接明渡し可（管理占有）</li>
+  <li><strong>結論</strong>：A社とYは実質同一・再度の妨害のおそれ → 維持管理を期待できない → Xへの直接明渡し可 → 請求認容</li>
+</ol>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第3部　模範答案全文
+     ============================================ -->
+<section id="part3">
+<h2>第3部　模範答案全文</h2>
+
+<nav class="collation-nav" id="collation-nav">
+<h4>📋 照合ナビ ― 自分の答案構成を確定してから下の模範答案を開く</h4>
+<ol>
+  <li><strong>① 論点の過不足</strong>：<a href="#issue-extraction">第1部 論点抽出</a>と各論点の <strong>H（失点回避チェックリスト）</strong>で、拾うべき論点を数え合わせる。</li>
+  <li><strong>② 規範の正確性</strong>：各論点の <strong>G（頻出論証ブロック＝規範コア）</strong>・<strong>A（条文分析）</strong>で、立てた規範のズレを照合する。</li>
+  <li><strong>③ あてはめに使った事実</strong>：各論点の <strong>D（解法アルゴリズム）</strong>・<strong>F（答案表現集）</strong>で、評価に使う事実の過不足を照合する。</li>
+</ol>
+<p style="margin:8px 0 0;font-size:.9em">3周目以降は各 H 末尾の口頭骨格だけで「論点→条文→規範→結論」を3〜5分で言い切る。</p>
+</nav>
+
+<div class="card" id="answer-full">
+<h3>本試験形式・完成答案</h3>
+
+<div class="key-box">
+<p><strong>【想定文字数・枚数】</strong></p>
+<ul>
+  <li>本問の予想答案分量：<span class="rank-B">約1,600〜2,000字（3〜4頁程度）</span></li>
+  <li>本試験では、答案用紙3〜4枚（1枚600字程度）を想定</li>
+  <li>第1：妨害排除の可否（総論・侵害要件）／第2：占有権原ある者への妨害排除（競売妨害目的・最厚め）／第3：自己への直接明渡し（管理占有）</li>
+</ul>
+</div>
+
+<details class="reveal-answer">
+<summary>✋ 自分の答案構成を確定してから開く（模範答案＋採点講評）</summary>
+<div class="model-answer">
+<h4>解答</h4>
+
+<p><strong>第1　Xの請求の法的根拠</strong></p>
+
+<p>Xは、Yに対して甲建物の明渡しを求めている。XはYとの間に契約関係を有しないから、その請求は、甲建物について有する抵当権（<a class="xref" href="#ref-stat-minp-369">369条</a>）に基づく物権的請求権（妨害排除請求）を根拠とする。以下、その可否を検討する。</p>
+
+<p style="margin-top:1.5em"><strong>第2　抵当権に基づく妨害排除請求の可否（総論）</strong></p>
+
+<p><strong>1</strong>　抵当権は目的物の交換価値のみを把握する非占有担保であり、抵当権者は目的物を占有する権能を有しない。したがって、第三者が抵当不動産を占有しても、それ自体は交換価値を左右せず、原則として抵当権の侵害とはならない。</p>
+
+<p><strong>2</strong>　もっとも、抵当権も物権である以上、その円満な価値支配が害された場合には物権的請求権が生じる。そこで、第三者の占有により抵当不動産の交換価値の実現が妨げられ、抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権に基づく妨害排除請求として、その状態の排除を求めることができると解する（→ <a class="xref" href="#arg-B1-1">論証B1-1</a>）。</p>
+
+<p><strong>3</strong>　本件では、競売手続の中で、甲建物の最低売却価額は引き下げられる一方であるにもかかわらず、買い手が一向に現れない。これは、甲建物の交換価値の実現が現実に妨げられ、Xの優先弁済請求権の行使が困難となっている状態にほかならない。したがって、侵害要件を充たす。</p>
+
+<p style="margin-top:1.5em"><strong>第3　占有権原ある第三者への妨害排除請求（競売妨害目的）</strong></p>
+
+<p><strong>1</strong>　もっとも、Yは甲建物の賃借人であり、正当な占有権原を有する。占有権原ある者の占有は原則として適法であり、抵当権に基づく妨害排除は及ばないのが原則である。そこで、占有権原ある第三者に対しても妨害排除を請求できるかが問題となる。</p>
+
+<p><strong>2</strong>　抵当権設定登記後に所有者から占有権原の設定を受けてこれを占有する者についても、その占有権原の設定に抵当権の実行としての競売手続を妨害する目的が認められ、その占有により抵当不動産の交換価値の実現が妨げられて抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権者は、当該占有者に対し、抵当権に基づく妨害排除請求をすることができると解する（→ <a class="xref" href="#arg-B2-1">論証B2-1</a>）。</p>
+
+<p><strong>3</strong>　本件についてみると、①A社は、Xの承諾を要する旨の特約に反して甲建物を賃貸していること、②賃借人YはA社の代表取締役（<a class="xref" href="#ref-stat-kaisha-349">会社法349条</a>）であって、A社とYは実質的に同一とみうること、③適正賃料が月額100万円である甲建物について、賃料月額1万円・期間30年・敷金3億円という条件は、賃貸借の実体を欠くほど著しく不合理であることが認められる。</p>
+
+<p>これらの事情からすれば、上記占有権原の設定には、抵当権の実行としての競売手続を妨害する目的があったと認められる（→ <a class="xref" href="#arg-B2-2">論証B2-2</a>）。侵害要件は前述のとおり充たされている。</p>
+
+<p><strong>4</strong>　したがって、Xは、占有権原あるYに対しても、抵当権に基づく妨害排除請求をすることができる。</p>
+
+<p style="margin-top:1.5em"><strong>第4　抵当権者自身への直接明渡請求の可否（効果）</strong></p>
+
+<p><strong>1</strong>　次に、Xは、Y自身に対しX自身への明渡しを求めているところ、抵当権は非占有担保であり、抵当権者は目的物を使用収益する権能を有しない。したがって、妨害排除の効果としての明渡しは、原則として所有者（設定者）に対してのみ認められる。</p>
+
+<p><strong>2</strong>　もっとも、所有者において抵当権に対する侵害が生じないように抵当不動産を適切に維持管理することが期待できない場合には、抵当権者は、占有者に対し、直接自己への明渡しを求めることができると解する。この占有は、抵当権者による使用収益を認める趣旨ではなく、競売手続を円滑に進めるための管理占有にとどまる（→ <a class="xref" href="#arg-B3-1">論証B3-1</a>）。</p>
+
+<p><strong>3</strong>　本件では、A社は承諾特約に反して代表取締役Yに背信的な賃貸をしており、A社とYは実質的に同一体とみられる。この状況下でA社に甲建物を返還させても、再び同様の妨害的占有が作り出されるおそれが高く、A社において甲建物を適切に維持管理することは期待できない。したがって、Xは、Yに対し、直接自己への甲建物の明渡しを求めることができる。</p>
+
+<p style="margin-top:1.5em"><strong>第5　結論</strong></p>
+
+<p>以上より、<u>Xの請求は認められる</u>。</p>
+
+<p style="text-align:right;margin-top:2em"><strong>以上</strong></p>
+</div>
+
+<!-- 採点講評（reveal 内・模範答案と一体） -->
+<div class="grading" id="grading-comment">
+<h4>採点講評</h4>
+
+<h5>A答案として評価されるポイント（上位2割）</h5>
+<ul class="checklist">
+  <li><strong>第2（総論）</strong>：抵当権が非占有担保である原則から出発し、「占有それ自体は原則侵害でない」と枠組みを立てている点。侵害要件を判例の文言どおり正確に定立している点。</li>
+  <li><strong>第3（加重要件）</strong>：Yが賃借人＝占有権原ある者であることを的確に捉え、競売妨害目的という加重要件の必要性を論じている点。妨害目的を3つの間接事実（異常条件・実質的同一性・特約違反）から厚く推認している点。</li>
+  <li><strong>第4（効果）</strong>：原則（設定者への返還）→例外（自己への直接明渡し）の順で論じ、管理占有の性質（使用収益権ではない）まで指摘している点。</li>
+  <li><strong>全体</strong>：要件（第2・第3）→効果（第4）の論理的順序を崩さず、一貫した論述になっている点。</li>
+</ul>
+
+<h5>減点リスク（避けるべき失点パターン）</h5>
+<table>
+  <tr><th>失点パターン</th><th>減点幅の目安</th><th>対策</th></tr>
+  <tr><td>Yを不法占有者扱いし、競売妨害目的を落とす</td><td><span class="rank-A">大幅減点（−15〜20点）</span></td><td>Yが賃借人＝占有権原ありを見落とさない</td></tr>
+  <tr><td>侵害要件を「交換価値が下がる」と雑にまとめる</td><td><span class="rank-A">大幅減点（−10〜15点）</span></td><td>「優先弁済請求権の行使が困難」まで正確に</td></tr>
+  <tr><td>妨害目的を間接事実から推認せず結論だけ</td><td><span class="rank-B">中程度減点（−8〜12点）</span></td><td>3つの間接事実を具体的に摘示</td></tr>
+  <tr><td>効果（自己への明渡し）で原則・例外を示さず認容</td><td><span class="rank-B">中程度減点（−5〜10点）</span></td><td>原則＝設定者への返還を必ず示す</td></tr>
+  <tr><td>管理占有を使用収益権と誤解</td><td><span class="rank-C">小幅減点（−3〜5点）</span></td><td>使用収益できない旨を明記</td></tr>
+  <tr><td>物上代位（304条）と混同</td><td><span class="rank-B">中程度減点（−5〜8点）</span></td><td>本問は妨害排除であり物上代位ではない</td></tr>
+  <tr><td>条文番号の誤り</td><td><span class="rank-C">−1〜2点／箇所</span></td><td><a class="xref" href="#ref-stat-minp-369">369条</a>・<a class="xref" href="#ref-stat-minp-423">423条</a>を正確に</td></tr>
+</table>
+
+<h5>分量のバランス（上位答案の分配）</h5>
+<table>
+  <tr><th>項目</th><th>分量目安</th><th>備考</th></tr>
+  <tr><td>第2（総論・侵害要件）</td><td>400〜500字</td><td>原則・例外の枠組みと侵害要件のあてはめ</td></tr>
+  <tr><td>第3（占有権原ある者・妨害目的）</td><td>700〜900字</td><td><span class="rank-A">本問の中心</span>。妨害目的の推認を最も厚く</td></tr>
+  <tr><td>第4（自己への直接明渡し）</td><td>300〜400字</td><td>原則→例外→あてはめを簡潔に</td></tr>
+</table>
+
+<h5>本問特有の評価ポイント</h5>
+<div class="success-box">
+<p><strong>平11判決と平17判決の役割分担</strong>：最大判平11.11.24（不法占有者・侵害要件）と最判平17.3.10（占有権原ある者・競売妨害目的の加重、自己への明渡し）の射程の違いを意識して使い分けられているかが、上位答案を分ける。本問の相手方は賃借人だから、後者が主役である。</p>
+<p><strong>債権者代位構成への一言</strong>：抵当権自体構成を採りつつ、「なお、<a class="xref" href="#ref-stat-minp-423">債権者代位（423条）</a>により所有者の妨害排除請求権を代位行使する構成もある」と一言触れると、理論的な厚みを示せる（必須ではない）。</p>
+</div>
+</div>
+</details>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<details id="deep-dive">
+<summary class="deep-summary">📚 深掘り層（第4部 体系化＋第5部 条文・判例・学説・論証集）｜ 1周目は開かない・同じ論点を2回ズラしたら／直前期に開く</summary>
+
+<!-- ============================================
+     第4部　知識の体系化と実践的補足
+     ============================================ -->
+<section id="part4">
+<h2>第4部　知識の体系化と実践的補足</h2>
+
+<!-- 論点相関マップ -->
+<div class="svg-wrap" id="correlation-map">
+<h3>4-1. 論点相関マップ</h3>
+<svg viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+  <rect width="900" height="600" fill="#f8f2f2"/>
+  <ellipse cx="450" cy="300" rx="150" ry="58" fill="#5c4566" stroke="#4a3556" stroke-width="3"/>
+  <text x="450" y="295" text-anchor="middle" font-size="16" font-weight="bold" fill="#fff">抵当権に基づく妨害排除請求</text>
+  <text x="450" y="316" text-anchor="middle" font-size="12" fill="#fff">（本問の核心・369条）</text>
+  <rect x="360" y="65" width="180" height="60" rx="10" fill="#e6dcb8" stroke="#a16f00" stroke-width="2"/>
+  <text x="450" y="90" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">非占有担保という原則</text>
+  <text x="450" y="108" text-anchor="middle" font-size="10" fill="#555">占有それ自体は原則侵害でない</text>
+  <line x1="450" y1="125" x2="450" y2="242" stroke="#888" stroke-width="2"/>
+  <rect x="60" y="135" width="180" height="86" rx="10" fill="#9d7ba6" stroke="#5c4566" stroke-width="2"/>
+  <text x="150" y="160" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">論点1：侵害要件</text>
+  <text x="150" y="179" text-anchor="middle" font-size="10" fill="#fff">交換価値の実現の阻害</text>
+  <text x="150" y="195" text-anchor="middle" font-size="10" fill="#fff">優先弁済請求権行使の困難</text>
+  <text x="150" y="211" text-anchor="middle" font-size="10" fill="#fff">（最大判平11.11.24）</text>
+  <line x1="240" y1="178" x2="315" y2="278" stroke="#5c4566" stroke-width="2"/>
+  <rect x="660" y="135" width="180" height="86" rx="10" fill="#c4a0b4" stroke="#582341" stroke-width="2"/>
+  <text x="750" y="160" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">論点2：加重要件</text>
+  <text x="750" y="179" text-anchor="middle" font-size="10" fill="#fff">占有権原ある賃借人</text>
+  <text x="750" y="195" text-anchor="middle" font-size="10" fill="#fff">＋競売妨害目的</text>
+  <text x="750" y="211" text-anchor="middle" font-size="10" fill="#fff">（最判平17.3.10）</text>
+  <line x1="660" y1="178" x2="585" y2="278" stroke="#582341" stroke-width="2"/>
+  <rect x="360" y="470" width="180" height="70" rx="10" fill="#9d7ba6" stroke="#5c4566" stroke-width="2"/>
+  <text x="450" y="498" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">論点3：効果</text>
+  <text x="450" y="517" text-anchor="middle" font-size="10" fill="#fff">自己への直接明渡し（管理占有）</text>
+  <text x="450" y="533" text-anchor="middle" font-size="10" fill="#fff">原則＝設定者への返還</text>
+  <line x1="450" y1="470" x2="450" y2="358" stroke="#5c4566" stroke-width="2"/>
+  <rect x="80" y="385" width="180" height="76" rx="10" fill="#e6dcb8" stroke="#a16f00" stroke-width="2"/>
+  <text x="170" y="410" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">妨害目的の間接事実</text>
+  <text x="170" y="428" text-anchor="middle" font-size="10" fill="#333">月1万・敷金3億・30年</text>
+  <text x="170" y="444" text-anchor="middle" font-size="10" fill="#333">Y＝A社代表取締役</text>
+  <text x="170" y="457" text-anchor="middle" font-size="10" fill="#333">承諾特約違反</text>
+  <line x1="260" y1="420" x2="315" y2="325" stroke="#a16f00" stroke-width="2"/>
+  <rect x="640" y="385" width="180" height="76" rx="10" fill="#c4e8e8" stroke="#1565c0" stroke-width="2"/>
+  <text x="730" y="410" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">結論</text>
+  <text x="730" y="430" text-anchor="middle" font-size="11" fill="#333">Xへの直接明渡し可</text>
+  <text x="730" y="450" text-anchor="middle" font-size="11" fill="#c62828" font-weight="bold">⇒ 請求認容</text>
+  <line x1="640" y1="420" x2="585" y2="325" stroke="#1565c0" stroke-width="2"/>
+  <ellipse cx="70" cy="300" rx="58" ry="34" fill="#fff" stroke="#5c4566" stroke-width="2"/>
+  <text x="70" y="295" text-anchor="middle" font-size="11" font-weight="bold" fill="#5c4566">債権者代位</text>
+  <text x="70" y="312" text-anchor="middle" font-size="9" fill="#555">（423条・別構成）</text>
+  <line x1="128" y1="300" x2="300" y2="300" stroke="#5c4566" stroke-width="1" stroke-dasharray="5,4"/>
+  <ellipse cx="835" cy="300" rx="58" ry="34" fill="#fff" stroke="#1565c0" stroke-width="2"/>
+  <text x="835" y="296" text-anchor="middle" font-size="11" font-weight="bold" fill="#1565c0">物上代位</text>
+  <text x="835" y="313" text-anchor="middle" font-size="9" fill="#555">（304条・別制度）</text>
+  <line x1="777" y1="300" x2="600" y2="300" stroke="#1565c0" stroke-width="1" stroke-dasharray="5,4"/>
+  <rect x="20" y="548" width="290" height="46" fill="#fff" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="30" y="564" font-size="11" font-weight="bold" fill="#333">【凡例】</text>
+  <line x1="90" y1="561" x2="120" y2="561" stroke="#333" stroke-width="2"/>
+  <text x="128" y="564" font-size="10" fill="#333">直接的関係（要件・効果）</text>
+  <line x1="90" y1="580" x2="120" y2="580" stroke="#333" stroke-width="1" stroke-dasharray="5,3"/>
+  <text x="128" y="583" font-size="10" fill="#333">間接的関係（別構成・別制度）</text>
+</svg>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 思考フローチャート -->
+<div class="svg-wrap" id="flowchart">
+<h3>思考フローチャート（抵当権に基づく妨害排除請求の検討）</h3>
+<svg viewBox="0 0 800 760" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="760" fill="#f8f2f2"/>
+  <defs>
+    <marker id="arr-k" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#333"/></marker>
+    <marker id="arr-r" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#c62828"/></marker>
+    <marker id="arr-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0,10 3.5,0 7" fill="#2e7d32"/></marker>
+  </defs>
+  <ellipse cx="400" cy="40" rx="110" ry="26" fill="#5c4566" stroke="#4a3556" stroke-width="2"/>
+  <text x="400" y="46" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff">START（明渡請求の根拠＝抵当権）</text>
+  <rect x="260" y="90" width="280" height="58" rx="6" fill="#e6dcb8" stroke="#a16f00" stroke-width="2"/>
+  <text x="400" y="114" text-anchor="middle" font-size="12" fill="#333">交換価値の実現が妨げられ</text>
+  <text x="400" y="132" text-anchor="middle" font-size="12" fill="#333">優先弁済請求権の行使が困難か？（侵害要件）</text>
+  <line x1="400" y1="66" x2="400" y2="90" stroke="#333" stroke-width="2" marker-end="url(#arr-k)"/>
+  <path d="M 400 148 L 400 175 L 200 175 L 200 205" fill="none" stroke="#c62828" stroke-width="2" marker-end="url(#arr-r)"/>
+  <text x="265" y="170" font-size="11" fill="#c62828">なし</text>
+  <path d="M 400 148 L 400 175 L 580 175 L 580 205" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-g)"/>
+  <text x="500" y="170" font-size="11" fill="#2e7d32">あり</text>
+  <rect x="100" y="205" width="200" height="44" rx="6" fill="#ffebee" stroke="#c62828" stroke-width="2"/>
+  <text x="200" y="232" text-anchor="middle" font-size="12" fill="#c62828" font-weight="bold">妨害排除請求できない</text>
+  <rect x="460" y="205" width="240" height="58" rx="6" fill="#c4e8e8" stroke="#1565c0" stroke-width="2"/>
+  <text x="580" y="229" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">占有者に占有権原があるか？</text>
+  <text x="580" y="248" text-anchor="middle" font-size="10" fill="#333">（不法占有 or 賃借人）</text>
+  <path d="M 580 263 L 580 290 L 400 290 L 400 320" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arr-k)"/>
+  <text x="430" y="285" font-size="10" fill="#333">権原あり（本問Y）</text>
+  <path d="M 580 263 L 580 300 L 700 300 L 700 330" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arr-k)"/>
+  <text x="612" y="292" font-size="10" fill="#333">不法占有</text>
+  <rect x="270" y="320" width="260" height="60" rx="6" fill="#9d7ba6" stroke="#5c4566" stroke-width="2"/>
+  <text x="400" y="345" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff">占有権原の設定に</text>
+  <text x="400" y="364" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff">競売妨害目的があるか？</text>
+  <rect x="620" y="330" width="150" height="44" rx="6" fill="#c4e8e8" stroke="#1565c0" stroke-width="2"/>
+  <text x="695" y="357" text-anchor="middle" font-size="11" fill="#333">妨害排除可（平11）</text>
+  <path d="M 400 380 L 400 405 L 220 405 L 220 435" fill="none" stroke="#c62828" stroke-width="2" marker-end="url(#arr-r)"/>
+  <text x="285" y="400" font-size="11" fill="#c62828">なし</text>
+  <path d="M 400 380 L 400 405 L 560 405 L 560 435" fill="none" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-g)"/>
+  <text x="480" y="400" font-size="11" fill="#2e7d32">あり</text>
+  <rect x="120" y="435" width="200" height="44" rx="6" fill="#ffebee" stroke="#c62828" stroke-width="2"/>
+  <text x="220" y="462" text-anchor="middle" font-size="12" fill="#c62828" font-weight="bold">妨害排除できない</text>
+  <rect x="450" y="435" width="240" height="58" rx="6" fill="#e6dcb8" stroke="#a16f00" stroke-width="2"/>
+  <text x="570" y="459" text-anchor="middle" font-size="12" font-weight="bold" fill="#333">効果：誰への明渡しか？</text>
+  <text x="570" y="478" text-anchor="middle" font-size="10" fill="#333">原則＝設定者への返還</text>
+  <path d="M 570 493 L 570 530" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arr-k)"/>
+  <text x="580" y="516" font-size="10" fill="#333">維持管理を期待できない</text>
+  <rect x="440" y="530" width="260" height="58" rx="6" fill="#9d7ba6" stroke="#5c4566" stroke-width="2"/>
+  <text x="570" y="555" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff">自己への直接明渡し（管理占有）</text>
+  <text x="570" y="574" text-anchor="middle" font-size="10" fill="#fff">使用収益権ではない</text>
+  <line x1="570" y1="588" x2="570" y2="625" stroke="#2e7d32" stroke-width="2" marker-end="url(#arr-g)"/>
+  <ellipse cx="570" cy="660" rx="120" ry="30" fill="#5c4566" stroke="#4a3556" stroke-width="2"/>
+  <text x="570" y="658" text-anchor="middle" font-size="13" font-weight="bold" fill="#fff">Xの請求は認められる</text>
+  <text x="570" y="676" text-anchor="middle" font-size="10" fill="#fff">（本問の結論）</text>
+</svg>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 論点間の優先順位フロー（v2.6新設） -->
+<div class="card" id="priority-flow">
+<h3>4-2. 論点間の優先順位フロー（複数論点の処理順序）</h3>
+
+<p>本問は <strong>論点1（妨害排除の可否・侵害要件）</strong>・<strong>論点2（占有権原ある者への加重要件・競売妨害目的）</strong>・<strong>論点3（効果・自己への直接明渡し）</strong> の三論点が<strong>入れ子構造</strong>をなす。答案では、要件→効果という論理的順序でしか論じられない。以下に必然的な順序とその理由を示す。</p>
+
+<div class="key-box">
+<h4>【必然的順序】総論（侵害要件）→ 加重要件（妨害目的）→ 効果（明渡しの相手方）</h4>
+<p style="text-align:center;font-size:1.1em;font-weight:700">
+　第1段　妨害排除の可否・侵害要件（論点1）<br>
+　　　　　　↓<br>
+　第2段　占有権原ある者への加重要件・競売妨害目的（論点2）<br>
+　　　　　　↓<br>
+　第3段　効果：自己への直接明渡しの可否（論点3）
+</p>
+</div>
+
+<h4>順序選択の理由</h4>
+<table>
+  <tr><th>順序</th><th>選択理由</th><th>避けるべき順序</th></tr>
+  <tr><td><strong>第1段 ＝ 侵害要件</strong></td><td>そもそも抵当権に妨害排除を観念できるか（総論）を先に固めなければ、以下の議論の土台が定まらない。</td><td>いきなり妨害目的から書くと、非占有担保という原則の枠組みが欠落する</td></tr>
+  <tr><td><strong>第2段 ＝ 加重要件</strong></td><td>Yは<strong>占有権原ある賃借人</strong>なので、侵害要件だけでは足りず競売妨害目的の加重要件を要する。第1段の侵害要件を前提として上乗せする関係。</td><td>Yを不法占有者と扱うと、加重要件を丸ごと落とす（最大の失点）</td></tr>
+  <tr><td><strong>第3段 ＝ 効果</strong></td><td>要件（第1・第2段）を充たして初めて、効果として誰への明渡しを求めうるかを論じられる。<strong>効果の検討は要件充足を前提とする</strong>。</td><td>効果（自己への明渡し）を先に論じると、要件の検討が空中に浮く</td></tr>
+</table>
+
+<h4>共通要素の処理</h4>
+<p>侵害要件（交換価値実現の阻害）は論点1で詳細に認定し、論点2では「前述のとおり侵害要件は充たされる」と短縮して、妨害目的の推認に紙幅を集中させるのが効率的である。重複記述は時間ロスかつ「冗長」と評価される。</p>
+
+<h4>債権者代位構成を併記するパターン（発展）</h4>
+<div class="warn-box">
+<p>抵当権自体構成を主軸としつつ、論点1の末尾で<strong>「なお、抵当権者は所有者の妨害排除請求権を<a class="xref" href="#ref-stat-minp-423">債権者代位（423条）</a>により行使する構成もとりうる」</strong>と一言触れると、理論的な厚みを示せる。ただし本問は抵当権自体構成で完結できるため、深入りは不要である。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- コラム：網羅的思考 -->
+<div class="card" id="column-comprehensive">
+<h3>4-3. コラム：網羅的思考（法的構成の選択）</h3>
+
+<h4>Xの明渡請求について検討しうる法的構成</h4>
+<table>
+  <tr><th>法的構成</th><th>採否</th><th>理由</th></tr>
+  <tr><td><span class="rank-A">抵当権に基づく妨害排除請求（<a class="xref" href="#ref-stat-minp-369">369条</a>）</span></td><td>○ 採用</td><td>Xは甲建物に抵当権＋登記を有する。占有権原ある者への加重要件を充たす</td></tr>
+  <tr><td>債権者代位（<a class="xref" href="#ref-stat-minp-423">423条</a>）による所有者の請求権の代位行使</td><td>△ 併用可</td><td>抵当権自体構成で足りるが、なお書きで併記すると加点。無資力不要の転用型</td></tr>
+  <tr><td>債権的請求（賃貸借の終了・返還請求）</td><td>× 不採用</td><td>XはYと契約関係になく、賃貸借はA社Y間のもの。Xは当事者でない</td></tr>
+  <tr><td>物上代位（<a class="xref" href="#ref-term-daiiken">304条</a>）</td><td>× 不採用</td><td>賃料等への価値の追及であって、占有除去（明渡し）とは別制度</td></tr>
+  <tr><td>所有権に基づく返還請求</td><td>× 不採用</td><td>Xは所有者ではない（所有者はA社）</td></tr>
+</table>
+
+<h4>妨害排除を認める場合の構成の選択</h4>
+<table>
+  <tr><th>構成</th><th>採否</th><th>理由</th></tr>
+  <tr><td><span class="rank-A">抵当権自体構成</span></td><td>○ 主軸</td><td>端的・明快。占有権原ある者への拡張・自己への明渡しへ滑らかに接続</td></tr>
+  <tr><td><a class="xref" href="#ref-doctrine-daii">債権者代位構成</a></td><td>△ 補助</td><td>所有者の請求権に依存する限界があるが、判例（平11）が認めた構成</td></tr>
+</table>
+
+<div class="note-box">
+<p><strong>【ポイント】</strong>構成選択の鍵は、<span class="hl-super">①請求者Xと相手方Yの関係（契約関係の有無）</span>と<span class="hl-super">②Xの有する権利（抵当権＝非占有担保）</span>を正確に捉えること。Xは抵当権者にすぎず所有者でも契約当事者でもないから、物権的請求権のうち<strong>抵当権に基づく妨害排除請求</strong>が唯一の本筋となる。</p>
+</div>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- コラム：記憶術 -->
+<div class="card" id="column-memory">
+<h3>4-4. コラム：実践的記憶術</h3>
+
+<h4>妨害排除の侵害要件：「コウ・ユウ・コン」で覚える</h4>
+<div class="key-box">
+<p style="font-size:1.25em;text-align:center"><strong>コウ</strong>換価値の実現の阻害 → <strong>ユウ</strong>先弁済請求権の → <strong>コン</strong>難</p>
+<p style="text-align:center;font-size:.95em">（交換価値・優先弁済・困難 → コウ・ユウ・コン）</p>
+</div>
+
+<h4>三論点の入れ子構造：「ソウ・カ・コウ」で覚える</h4>
+<div class="key-box">
+<p style="font-size:1.2em;text-align:center"><strong>ソウ</strong>論（侵害要件） → <strong>カ</strong>重要件（妨害目的） → <strong>コウ</strong>果（自己への明渡し）</p>
+<p style="text-align:center;font-size:.95em">要件 → 要件の加重 → 効果、の順は絶対に崩さない</p>
+</div>
+
+<h4>2つの判例の役割分担：「不法は11・権原は17」</h4>
+<div class="key-box">
+<p><strong>平成<strong>11</strong>年（大法廷）</strong>：<strong>不</strong>法占有者 → 侵害要件のみ</p>
+<p><strong>平成<strong>17</strong>年（百選I89）</strong>：占有<strong>権</strong>原ある者 → ＋競売妨害目的（加重）＋自己への明渡し</p>
+</div>
+
+<h4>妨害目的の間接事実：「ジョウ・ドウ・トク」</h4>
+<div class="key-box">
+<p style="text-align:center"><strong>ジョウ</strong>件の異常（月1万・敷金3億・30年） × <strong>ドウ</strong>一体（Y＝代表取締役） × <strong>トク</strong>約違反（無承諾賃貸）</p>
+<p style="text-align:center;font-size:.92em">この3点が揃えば競売妨害目的は優に認定できる</p>
+</div>
+
+<h4>管理占有の性質（引っかけ注意）</h4>
+<table>
+  <tr><th>誤解</th><th>正しい理解</th></tr>
+  <tr><td>抵当権者が使用収益できる</td><td><span class="rank-A">×</span> 使用収益権ではない</td></tr>
+  <tr><td>競売円滑化のための維持管理の占有</td><td><span class="rank-A">○</span> これが管理占有の本質</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- コラム：歴史 -->
+<div class="card" id="column-history">
+<h3>4-5. コラム：歴史的背景</h3>
+
+<h4>抵当権に基づく妨害排除論の展開</h4>
+<p>かつては、抵当権は非占有担保であって占有者に対する妨害排除はなじまないと消極的に解されていた。バブル崩壊後、抵当不動産に暴力団関係者等が居座り競売を妨害する「<strong>占有屋</strong>」による執行妨害が社会問題化する中、<a class="xref" href="#ref-case-saihan-h11-11-24"><span class="rank-A">最大判平成11年11月24日</span></a>が、交換価値の実現が妨げられ優先弁済請求権の行使が困難な場合に、抵当権自体に基づく妨害排除および債権者代位構成を認めた。これが抵当権侵害論の転機となった。</p>
+<p>続く<a class="xref" href="#ref-case-saihan-h17-3-10"><span class="rank-A">最判平成17年3月10日</span></a>は、占有権原ある第三者に対しても、競売妨害目的という加重要件の下で妨害排除を認め、あわせて抵当権者自身への直接明渡し（管理占有）を認めた。本問はこの平成17年判決とほぼ同型の事案である。</p>
+
+<h4>短期賃貸借保護制度の廃止（平成15年改正）</h4>
+<p>かつての<a class="xref" href="#ref-stat-minp-395">民法395条</a>は、抵当権に対抗できない短期賃貸借（建物は3年以下等）を保護していたが、この制度が執行妨害目的の濫用的賃貸借（いわゆる<strong>濫用的短期賃貸借</strong>）に悪用された。そこで平成15年の担保・執行法制の改正により短期賃貸借保護制度は廃止され、現行395条の<strong>抵当建物使用者の引渡し猶予制度</strong>（買受け時から6か月の明渡猶予）に置き換えられた。</p>
+
+<h4>本問の判例的位置づけ</h4>
+<p>本問は、平成11年判決（不法占有）と平成17年判決（占有権原ある者・自己への明渡し）という抵当権侵害論の二大判例の到達点を、一つの事案の中で総合的に問うものである。競売妨害目的の認定と管理占有の理解が、担保物権分野の応用力を測る試金石となっている。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- コラム：実務との架橋 -->
+<div class="card" id="column-practice">
+<h3>4-6. コラム：実務との架橋（判例法理が実務でどう現れるか）</h3>
+
+<h4>1. 執行妨害への実務的対抗手段</h4>
+<p>抵当不動産の競売妨害は、実務上きわめて深刻な問題であった。抵当権者・買受希望者は、妨害排除請求のほかにも複数の手段を組み合わせて対抗する。</p>
+<table>
+  <tr><th>手段</th><th>根拠</th><th>機能</th></tr>
+  <tr><td>抵当権に基づく妨害排除請求</td><td><a class="xref" href="#ref-stat-minp-369">369条</a>（判例法理）</td><td>妨害的占有の除去（本問）</td></tr>
+  <tr><td>売却のための保全処分</td><td>民事執行法55条</td><td>執行手続内で占有移転を禁止・保全</td></tr>
+  <tr><td>担保不動産収益執行</td><td>民事執行法180条2号</td><td>賃料等の収益から回収（占有除去とは別ルート）</td></tr>
+  <tr><td>引渡命令</td><td>民事執行法83条</td><td>買受人が代金納付後に占有者を排除</td></tr>
+</table>
+
+<h4>2. 判例法理の実務上の定着</h4>
+<table>
+  <tr><th>論点</th><th>判例</th><th>実務での運用</th></tr>
+  <tr><td>不法占有者への妨害排除</td><td>最大判平11.11.24</td><td>侵害要件（交換価値実現の阻害）を立証して妨害排除を求める運用が定着</td></tr>
+  <tr><td>占有権原ある者への妨害排除</td><td>最判平17.3.10</td><td>賃貸条件の不合理性等から<strong>競売妨害目的を間接事実で立証</strong>する実務が確立</td></tr>
+  <tr><td>自己への直接明渡し</td><td>最判平17.3.10</td><td>設定者に管理を期待できない事情（実質的同一性等）を主張し、<strong>管理占有</strong>として直接明渡しを求める</td></tr>
+</table>
+
+<h4>3. 本問の事案が実務に提起する問題</h4>
+<div class="note-box">
+<p>本問は、債務者会社（A社）が代表者個人（Y）に濫用的な賃貸をして競売を妨害する、実務でよくみられる執行妨害の典型である。実務では次のように処理される：</p>
+<ul>
+<li><strong>X（抵当権者）</strong>：抵当権に基づく妨害排除請求＋自己への明渡しを本案訴訟で求めるとともに、民事執行法上の保全処分を併用して占有の固定化を防ぐ。</li>
+<li><strong>妨害目的の立証</strong>：賃貸借契約書（月1万円・敷金3億円・30年）や登記簿・商業登記（Y＝代表取締役）等の客観的資料から立証する。</li>
+<li><strong>A社・Y</strong>：賃借権の対抗（<a class="xref" href="#ref-stat-minp-395">395条</a>の明渡猶予）を主張するが、妨害目的の占有には保護が及ばない。</li>
+</ul>
+</div>
+
+<h4>4. 受験生として押さえるべき視点</h4>
+<p>司法試験では民事実体法（妨害排除の可否・要件・効果）が問われるが、実務では「<strong>実体法上の妨害排除＋民事執行法上の保全・引渡命令</strong>」を組み合わせて執行妨害に対抗することを知っておくと、論点感覚が立体的になる。とりわけ、妨害排除請求と担保不動産収益執行・引渡命令が<strong>別個の制度</strong>であることを区別しておくこと。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- 試験戦略 -->
+<div class="card" id="exam-strategy">
+<h3>試験戦略アドバイス</h3>
+
+<h4>出題傾向分析</h4>
+<table>
+  <tr><th>論点</th><th>出題実績・重要度</th><th>今後の出題可能性</th></tr>
+  <tr><td><span class="hl-super">抵当権に基づく妨害排除請求</span></td><td>担保物権の最重要判例論点（百選登載）</td><td><span class="rank-A">高</span></td></tr>
+  <tr><td><span class="hl-super">競売妨害目的（占有権原ある者）</span></td><td>平17判決は頻出。執行妨害の典型</td><td><span class="rank-A">高</span></td></tr>
+  <tr><td><span class="hl-high">自己への直接明渡し・管理占有</span></td><td>効果論として問われる</td><td><span class="rank-B">中〜高</span></td></tr>
+  <tr><td><span class="hl-high">債権者代位の転用</span></td><td>債権法との融合問題で出題</td><td><span class="rank-B">中</span></td></tr>
+  <tr><td><span class="hl-std">物上代位との区別</span></td><td>短答で頻出</td><td><span class="rank-B">中</span></td></tr>
+</table>
+
+<h4>配点予想と時間配分</h4>
+<table>
+  <tr><th>項目</th><th>配点目安</th><th>時間配分</th></tr>
+  <tr><td>論点1（妨害排除の可否・侵害要件）</td><td>25点／100点</td><td>構成 5分・記述15分</td></tr>
+  <tr><td>論点2（占有権原ある者・競売妨害目的）</td><td>45点／100点</td><td>構成 8分・記述22分</td></tr>
+  <tr><td>論点3（自己への直接明渡し・管理占有）</td><td>20点／100点</td><td>構成 4分・記述10分</td></tr>
+  <tr><td>全体の論理構成・文章力</td><td>10点／100点</td><td>—</td></tr>
+</table>
+
+<h4>合格ラインの目安</h4>
+<div class="success-box">
+<p><strong>【合格答案の要件】</strong></p>
+<ul>
+  <li>請求の根拠を抵当権に基づく物権的請求権と正しく特定できている</li>
+  <li>侵害要件（交換価値実現の阻害・優先弁済請求権行使の困難）を正確に定立できている</li>
+  <li>Yが占有権原ある賃借人であることを捉え、競売妨害目的の加重要件を論じている</li>
+  <li>効果として原則（設定者への返還）→例外（自己への明渡し）を論じている</li>
+</ul>
+</div>
+
+<div class="warn-box">
+<p><strong>【上位答案の要件 ― 差がつくポイント】</strong></p>
+<ul>
+  <li><span class="rank-A">競売妨害目的を3つの間接事実（異常条件・実質的同一性・特約違反）から厚く推認できるか</span></li>
+  <li>非占有担保という原則から出発し、原則・例外の枠組みを崩さず論じられるか</li>
+  <li>管理占有の性質（使用収益権ではない）まで正確に指摘できるか</li>
+  <li>債権者代位構成（423条・無資力不要の転用）に一言触れられるか</li>
+</ul>
+</div>
+
+<h4>想定外出題への対応戦略</h4>
+<p>本問の延長線上で問われうる出題パターンを以下に示す。</p>
+<table>
+  <tr><th>想定出題</th><th>処理方針</th></tr>
+  <tr><td>相手方が不法占有者（賃借権なし）の事案</td><td>加重要件（競売妨害目的）不要 → 侵害要件のみで妨害排除可（最大判平11.11.24）</td></tr>
+  <tr><td>賃料に対する追及が問われる事案</td><td>物上代位（<a class="xref" href="#ref-term-daiiken">304条</a>）による賃料債権への差押えを検討（妨害排除とは別ルート）</td></tr>
+  <tr><td>正常な賃借人（妨害目的なし）の事案</td><td>妨害排除は及ばない。<a class="xref" href="#ref-stat-minp-395">395条</a>の明渡猶予制度の適用を検討</td></tr>
+  <tr><td>抵当権侵害による損害賠償が問われる事案</td><td>不法行為（709条）＋抵当権の担保価値減少の損害の算定</td></tr>
+</table>
+
+<h4>本問が学習する全受験生に伝える論点感覚</h4>
+<p>本問は、<span class="hl-super">「非占有担保である抵当権に、占有除去という強力な効果をどこまで認めるか」</span>という担保物権のもっとも繊細な部分を直撃する事案である。平成11年判決（不法占有・侵害要件）と平成17年判決（占有権原ある者・競売妨害目的・自己への明渡し）の射程を正確に整理し、要件→効果の順で崩さず論じられるかが、平均的答案と上位答案を分ける。この二大判例を押さえれば、抵当権侵害の類似事案にすべて応用できる。</p>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+
+<!-- ============================================
+     第5部　参考資料
+     ============================================ -->
+<section id="part5">
+<h2>第5部　参考資料</h2>
+
+<!-- =====================================
+     5-1. 条文集
+     ===================================== -->
+<div class="card" id="ref-statute">
+<h3>5-1　条文集</h3>
+<p style="font-size:.95em;color:#555">本問に登場した全条文の完全プロファイル。スキーマ：識別／視覚マーク／全文／体系的位置／要件・効果一覧／立法趣旨／改正履歴／関連条文網／答案での使い方／本編出現箇所。</p>
+
+<!-- 民法369条 -->
+<section class="ref-entry" id="ref-stat-minp-369">
+<h4><span class="rank-A">民法369条（抵当権の内容）</span><span class="tan tan-super">短答★★★</span></h4>
+<blockquote class="statute"><p><span class="para-num">第1項</span>抵当権者は、債務者又は第三者が占有を移転しないで債務の担保に供した不動産について、他の債権者に先立って自己の債権の弁済を受ける権利を有する。</p><p><span class="para-num">第2項</span>地上権及び永小作権も、抵当権の目的とすることができる。この場合においては、この章の規定を準用する。</p></blockquote>
+
+<h5>体系的位置</h5>
+<p>民法第2編（物権）・第10章（抵当権）の冒頭規定。約定担保物権の中核であり、目的物の占有を設定者に残したまま交換価値のみを把握する<a class="xref" href="#ref-term-hisenyu">非占有担保</a>の代表である。</p>
+
+<h5>要件・効果</h5>
+<table>
+  <tr><th>要件</th><th>効果</th></tr>
+  <tr><td>①被担保債権の存在（付従性）</td><td>他の債権者に先立つ優先弁済（<a class="xref" href="#ref-term-yusenbensai">優先弁済的効力</a>）</td></tr>
+  <tr><td>②不動産等への抵当権設定契約</td><td>目的物の交換価値の把握</td></tr>
+  <tr><td>③占有を移転しない</td><td>設定者は使用収益を継続（非占有担保）</td></tr>
+</table>
+
+<h5>立法趣旨</h5>
+<p>設定者に目的物の使用収益を残しつつ、債権者には交換価値による優先弁済を確保させることで、不動産の担保価値を有効に活用する。占有を伴わないため、侵害排除の可否が本問の論点となる。</p>
+
+<h5>改正履歴</h5>
+<p>制定以来、本条の実質的改正なし。もっとも、平成15年の担保・執行法制の改正（短期賃貸借保護の廃止・<a class="xref" href="#ref-stat-minp-395">395条</a>の新設）や、判例による妨害排除請求の承認によって、抵当権の効力の運用は大きく変化した。</p>
+
+<h5>関連条文網</h5>
+<p>370条（抵当権の効力の及ぶ範囲）、372条・304条（物上代位）、177条（対抗要件）、388条（法定地上権）、<a class="xref" href="#ref-stat-minp-395">395条</a>（明渡猶予）。妨害排除請求は明文なく判例法理による。</p>
+
+<h5>答案での使い方</h5>
+<p>抵当権に基づく物権的請求権を論ずる際の出発条文として摘示。「Xは甲建物につき抵当権（369条）を有する」と請求の根拠を特定し、非占有担保という性質を原則論の起点とする。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-extraction">第1部 論点抽出</a> ／
+<a href="#issue-bogai">第2部 論点1 A</a> ／
+<a href="#part3">第3部 模範答案</a></div>
+</section>
+
+<!-- 民法177条 -->
+<section class="ref-entry" id="ref-stat-minp-177">
+<h4><span class="rank-B">民法177条（不動産に関する物権の変動の対抗要件）</span><span class="tan tan-high">短答★★</span></h4>
+<blockquote class="statute"><p>不動産に関する物権の得喪及び変更は、不動産登記法……その他の登記に関する法律の定めるところに従いその登記をしなければ、第三者に対抗することができない。</p></blockquote>
+
+<h5>体系的位置</h5>
+<p>民法第2編・第1章（総則）。不動産物権変動の対抗要件を定める基本条文。抵当権の設定も登記を対抗要件とする。</p>
+
+<h5>要件・効果</h5>
+<table>
+  <tr><th>要件</th><th>効果</th></tr>
+  <tr><td>登記の具備</td><td>第三者に物権変動を対抗できる</td></tr>
+  <tr><td>登記の不存在</td><td>第三者に対抗できない</td></tr>
+</table>
+
+<h5>立法趣旨</h5>
+<p>公示の原則を通じて取引の安全を図る。本問では、Xの抵当権が登記を経ており、後に設定された賃借権に対抗できることが前提となる。</p>
+
+<h5>関連条文網</h5>
+<p><a class="xref" href="#ref-stat-minp-369">369条</a>（抵当権）、605条（不動産賃貸借の対抗要件）、借地借家法10条・31条。</p>
+
+<h5>答案での使い方</h5>
+<p>抵当権の対抗力を確認する場面で摘示。「Xは抵当権設定登記を経由しているから、これを第三者に対抗できる（177条）」と用いる。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-bogai">第2部 論点1 A</a></div>
+</section>
+
+<!-- 民法423条 -->
+<section class="ref-entry" id="ref-stat-minp-423">
+<h4><span class="rank-B">民法423条（債権者代位権の要件）</span><span class="tan tan-high">短答★★</span></h4>
+<blockquote class="statute"><p><span class="para-num">第1項</span>債権者は、自己の債権を保全するため必要があるときは、債務者に属する権利（以下「被代位権利」という。）を行使することができる。ただし、債務者の一身に専属する権利及び差押えを禁じられた権利は、この限りでない。</p></blockquote>
+
+<h5>体系的位置</h5>
+<p>民法第3編（債権）・第1章（総則）・第2節（債権の効力）。責任財産の保全のための制度だが、判例上、特定債権の保全のための「転用」が広く認められている。</p>
+
+<h5>要件・効果</h5>
+<table>
+  <tr><th>要件（本来型）</th><th>効果</th></tr>
+  <tr><td>①被保全債権の存在②保全の必要性（債務者の無資力）③被代位権利の存在④債務者の権利不行使</td><td>債務者に属する権利を債権者が代位行使できる</td></tr>
+  <tr><td>転用型（登記請求権・妨害排除等）</td><td>無資力要件が不要となる</td></tr>
+</table>
+
+<h5>立法趣旨</h5>
+<p>本来は債務者の責任財産を保全するための制度。もっとも、判例は特定債権保全の場面で無資力要件を外して転用を認めており、抵当権者による所有者の妨害排除請求権の代位行使もその一場面である（最大判平11.11.24）。</p>
+
+<h5>改正履歴</h5>
+<p>平成29年債権法改正で、判例法理を明文化し「被代位権利」概念を導入。転用型（登記等）は423条の7等に整理された。</p>
+
+<h5>関連条文網</h5>
+<p>423条の7（登記・登録請求権の代位行使）、<a class="xref" href="#ref-stat-minp-369">369条</a>（抵当権）。抵当権自体構成（判例）とは別の構成として位置づけられる。</p>
+
+<h5>答案での使い方</h5>
+<p>抵当権に基づく妨害排除の別構成として摘示。「なお、抵当権者は所有者の妨害排除請求権を423条により代位行使することもできる（無資力不要の転用型）」と補助的に用いる。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-bogai">第2部 論点1 B・C</a> ／
+<a href="#column-comprehensive">第4部 網羅的思考</a></div>
+</section>
+
+<!-- 民法395条 -->
+<section class="ref-entry" id="ref-stat-minp-395">
+<h4><span class="rank-C">民法395条（抵当建物使用者の引渡しの猶予）</span><span class="tan tan-std">短答★</span></h4>
+<blockquote class="statute"><p><span class="para-num">第1項</span>抵当権者に対抗することができない賃貸借により抵当権の目的である建物の使用又は収益をする者……であって次に掲げるもの（次項において「抵当建物使用者」という。）は、その建物の競売における買受人の買受けの時から六箇月を経過するまでは、その建物を買受人に引き渡すことを要しない。（各号略）</p></blockquote>
+
+<h5>体系的位置</h5>
+<p>民法第2編・第10章（抵当権）。平成15年改正で廃止された短期賃貸借保護制度（旧395条）に代わる、抵当建物使用者の明渡猶予制度。</p>
+
+<h5>要件・効果</h5>
+<table>
+  <tr><th>要件</th><th>効果</th></tr>
+  <tr><td>抵当権に対抗できない賃貸借による建物使用者（競売開始前からの使用者等）</td><td>買受け時から6か月間、買受人への引渡しを猶予</td></tr>
+</table>
+
+<h5>立法趣旨</h5>
+<p>正常な建物利用者に明渡しの準備期間を保障する。もっとも、この保護は<strong>正常な賃借人</strong>を想定したものであり、競売妨害目的の濫用的占有には及ばない。</p>
+
+<h5>改正履歴</h5>
+<p>平成15年改正で、濫用が問題化した旧短期賃貸借保護制度を廃止し、本条の明渡猶予制度を新設した。</p>
+
+<h5>関連条文網</h5>
+<p>旧395条（短期賃貸借保護・廃止）、<a class="xref" href="#ref-stat-minp-601">601条</a>（賃貸借）、605条（賃貸借の対抗要件）。</p>
+
+<h5>答案での使い方</h5>
+<p>賃借人保護制度との関係を論ずる際に摘示。「395条の明渡猶予は正常な賃借人を想定したもので、競売妨害目的の占有には及ばない」と限定に用いる。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-senyu">第2部 論点2 E</a> ／
+<a href="#column-history">第4部 歴史的背景</a></div>
+</section>
+
+<!-- 民法601条 -->
+<section class="ref-entry" id="ref-stat-minp-601">
+<h4><span class="rank-C">民法601条（賃貸借）</span><span class="tan tan-std">短答★</span></h4>
+<blockquote class="statute"><p>賃貸借は、当事者の一方がある物の使用及び収益を相手方にさせることを約し、相手方がこれに対してその賃料を支払うこと及び引渡しを受けた物を契約が終了したときに返還することを約することによって、その効力を生ずる。</p></blockquote>
+
+<h5>体系的位置</h5>
+<p>民法第3編・第2章（契約）・第7節（賃貸借）。賃借権は債権であるが、対抗要件を備えれば物権的な効力を持ちうる。本問のYの占有権原はこの賃借権に基づく。</p>
+
+<h5>要件・効果</h5>
+<table>
+  <tr><th>要件</th><th>効果</th></tr>
+  <tr><td>使用収益させる合意＋賃料支払・返還の合意</td><td>賃借人に使用収益権（占有権原）が生じる</td></tr>
+</table>
+
+<h5>立法趣旨</h5>
+<p>他人の物を対価を払って利用する関係を規律する。本問では、Yに正当な占有権原を与えるがゆえに、抵当権に基づく妨害排除には競売妨害目的という加重要件が必要となる。</p>
+
+<h5>改正履歴</h5>
+<p>平成29年債権法改正で、返還義務が要素として明文化された。</p>
+
+<h5>関連条文網</h5>
+<p>605条（対抗要件）、<a class="xref" href="#ref-stat-minp-395">395条</a>（明渡猶予）、借地借家法。</p>
+
+<h5>答案での使い方</h5>
+<p>Yの占有権原を基礎づける条文として摘示。「YはA社との賃貸借（601条）により正当な占有権原を有する」と用い、加重要件の必要性へつなぐ。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-senyu">第2部 論点2 A・D</a></div>
+</section>
+
+<!-- 会社法349条 -->
+<section class="ref-entry" id="ref-stat-kaisha-349">
+<h4><span class="rank-D">会社法349条（株式会社の代表）</span><span class="tan tan-std">短答★</span></h4>
+<blockquote class="statute"><p><span class="para-num">第1項</span>取締役は、株式会社を代表する。ただし、他に代表取締役その他株式会社を代表する者を定めた場合は、この限りでない。</p><p><span class="para-num">第4項</span>代表取締役は、株式会社の業務に関する一切の裁判上又は裁判外の行為をする権限を有する。</p></blockquote>
+
+<h5>体系的位置</h5>
+<p>会社法第2編（株式会社）・第4章（機関）。代表取締役の代表権を定める。本問では、YがA社の代表取締役であることが、A社とYの実質的同一性・妨害目的推認の一材料となる。</p>
+
+<h5>答案での使い方</h5>
+<p>本問では深入りせず、「YはA社の代表取締役（会社法349条）であり、A社と実質的に同一とみうる」と間接事実の一つとして簡潔に用いる。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-senyu">第2部 論点2 A・D</a> ／
+<a href="#part3">第3部 模範答案</a></div>
+</section>
+
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- =====================================
+     5-2. 判例集
+     ===================================== -->
+<div class="card" id="ref-case">
+<h3>5-2　判例集</h3>
+<p style="font-size:.95em;color:#555">本問の中核判例の完全プロファイル。スキーマ：識別／視覚マーク／事案／判旨（判旨原文）／規範のコア／射程／学説上の評価／本編出現箇所。</p>
+
+<!-- 最大判平11.11.24 -->
+<section class="ref-entry" id="ref-case-saihan-h11-11-24">
+<h4><span class="rank-A">最大判平成11年11月24日（抵当権に基づく妨害排除・不法占有）</span><span class="tan tan-super">短答★★★</span></h4>
+<p style="font-size:.9em;color:#555">民集53巻8号1899頁</p>
+
+<h5>事案</h5>
+<p>抵当不動産を第三者が不法に占有し、抵当権の実行（競売）が事実上困難となっていた事案。抵当権者が占有者に対して明渡し等を求めた。</p>
+
+<h5>判旨（規範のコア）</h5>
+<blockquote class="case">
+<p class="judgment-text">『第三者が抵当不動産を不法占有することにより、抵当不動産の交換価値の実現が妨げられ、抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権に基づく妨害排除請求として、抵当権者が右状態の排除を求めることも許される』</p>
+<p class="judgment-text">『抵当権者は、右占有者に対し、直接自己への抵当不動産の明渡しを求めることができる場合があるほか、抵当不動産の所有者が右占有者に対して有する妨害排除請求権を代位行使（民法423条）することができる』</p>
+</blockquote>
+
+<h5>規範のコアの意義</h5>
+<p>従来消極に解されていた抵当権に基づく妨害排除を、<a class="xref" href="#ref-doctrine-shingai">侵害要件</a>（交換価値の実現の阻害・優先弁済請求権行使の困難）の下で正面から承認した大法廷判決。さらに<a class="xref" href="#ref-doctrine-daii">債権者代位構成</a>も併せて認めた点で理論的に重要。</p>
+
+<h5>射程</h5>
+<p><span class="rank-A">不法占有者</span>に関する判例であり、占有権原ある賃借人には直接及ばない。占有権原ある者への拡張は最判平17.3.10が担う。侵害要件の定式は本問でもそのまま用いる。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-bogai">第2部 論点1 B</a> ／
+<a href="#column-history">第4部 歴史的背景</a> ／
+<a href="#part3">第3部 模範答案</a></div>
+</section>
+
+<!-- 最判平17.3.10 -->
+<section class="ref-entry" id="ref-case-saihan-h17-3-10">
+<h4><span class="rank-A">最判平成17年3月10日（占有権原ある者への妨害排除・自己への明渡し）</span><span class="tan tan-super">短答★★★</span></h4>
+<p style="font-size:.9em;color:#555">民集59巻2号356頁／判例百選I 89</p>
+
+<h5>事案</h5>
+<p>抵当権設定登記後に、抵当不動産の所有者から占有権原（賃借権）の設定を受けた者が、競売手続を妨害する目的で占有していた事案。抵当権者が占有者に対し自己への明渡しを求めた。</p>
+
+<h5>判旨（規範のコア）</h5>
+<blockquote class="case">
+<p class="judgment-text">『抵当権設定登記後に抵当不動産の所有者から占有権原の設定を受けてこれを占有する者についても、その占有権原の設定に抵当権の実行としての競売手続を妨害する目的が認められ、その占有により抵当不動産の交換価値の実現が妨げられて抵当権者の優先弁済請求権の行使が困難となるような状態があるときは、抵当権者は、当該占有者に対し、抵当権に基づく妨害排除請求として、上記状態の排除を求めることができる』</p>
+<p class="judgment-text">『抵当不動産の所有者において抵当権に対する侵害が生じないように抵当不動産を適切に維持管理することが期待できない場合には、抵当権者は、占有者に対し、直接自己への抵当不動産の明渡しを求めることができる』</p>
+</blockquote>
+
+<h5>規範のコアの意義</h5>
+<p>平成11年判決の侵害要件に、<span class="hl-super">占有権原の設定に競売手続を妨害する目的</span>という加重要件を上乗せし、占有権原ある第三者にまで妨害排除を拡張した。あわせて、所有者に適切な維持管理を期待できない場合の<a class="xref" href="#ref-term-kanrishihai">自己への直接明渡し（管理占有）</a>を認めた。</p>
+
+<h5>射程</h5>
+<p><span class="rank-A">占有権原ある占有者</span>（賃借人等）に関する判例。本問のYが賃借人であることから、<strong>直接の射程</strong>を持つ。事案構造（設定登記後の背信的賃貸・競売妨害）が本問とほぼ同型。</p>
+
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-senyu">第2部 論点2 B</a> ／
+<a href="#issue-jiko">第2部 論点3</a> ／
+<a href="#part3">第3部 模範答案</a></div>
+</section>
+
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- =====================================
+     5-3. 学説一覧
+     ===================================== -->
+<div class="card" id="ref-theory">
+<h3>5-3　学説一覧</h3>
+<p style="font-size:.95em;color:#555">本問に関連する学説の一覧。妨害排除の可否・構成・効果に関する諸説を整理する。</p>
+
+<section class="ref-entry" id="ref-doctrine-shingai">
+<h4><span class="rank-A">侵害要件説（加重要件説）</span></h4>
+<table>
+  <tr><th>内容</th><td>抵当権に基づく妨害排除は、交換価値の実現が妨げられ優先弁済請求権の行使が困難となる侵害要件を要する。占有権原ある者にはさらに競売妨害目的を要求（加重）</td></tr>
+  <tr><th>論拠</th><td>抵当権も物権であり、円満な価値支配が害されれば物権的請求権を生じる。要件で保護範囲を限定</td></tr>
+  <tr><th>地位</th><td>判例（最大判平11.11.24・最判平17.3.10）・通説</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-bogai">論点1 C</a> ／ <a href="#issue-senyu">論点2 C</a></div>
+</section>
+
+<section class="ref-entry" id="ref-doctrine-bogaiseikyu">
+<h4><span class="rank-A">抵当権自体構成</span></h4>
+<table>
+  <tr><th>内容</th><td>抵当権という物権の効力として、直接、妨害排除請求権を認める構成</td></tr>
+  <tr><th>特徴</th><td>端的・明快。占有権原ある者への拡張・自己への明渡しへ滑らかに接続できる</td></tr>
+  <tr><th>本問</th><td>主軸として採用</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-bogai">論点1 C</a></div>
+</section>
+
+<section class="ref-entry" id="ref-doctrine-daii">
+<h4><span class="rank-B">債権者代位構成（転用型）</span></h4>
+<table>
+  <tr><th>内容</th><td><a class="xref" href="#ref-stat-minp-423">423条</a>により、所有者が占有者に対して有する妨害排除請求権を、抵当権者が代位行使する構成</td></tr>
+  <tr><th>特徴</th><td>被保全債権は抵当権の価値維持を求める請求権であり、債務者（所有者）の無資力は不要。もっとも所有者の請求権に依存する限界がある</td></tr>
+  <tr><th>地位</th><td>最大判平11.11.24が抵当権自体構成と併せて認めた</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-bogai">論点1 C</a> ／ <a href="#column-comprehensive">第4部 網羅的思考</a></div>
+</section>
+
+<section class="ref-entry" id="ref-doctrine-kanrishihai">
+<h4><span class="rank-B">管理占有の法的性質</span></h4>
+<table>
+  <tr><th>内容</th><td>所有者に適切な維持管理を期待できない場合に抵当権者が取得する占有の性質。使用収益権ではなく、競売の円滑化のための維持管理の占有</td></tr>
+  <tr><th>論点</th><td>この占有の法的構成（占有の性質・法的位置づけ）には議論があるが、いずれにせよ使用収益とは切り離された概念とされる</td></tr>
+  <tr><th>本問</th><td>Xへの直接明渡しを基礎づける</td></tr>
+</table>
+<div class="back-refs">📌 本編出現箇所：
+<a href="#issue-jiko">論点3</a></div>
+</section>
+
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- =====================================
+     5-4. 答案論証集
+     ===================================== -->
+<div class="card" id="ref-arg">
+<h3>5-4　答案論証集</h3>
+<p style="font-size:.95em;color:#555">本問で用いる主要論証を一覧化。各論証の詳細（完成形・簡略版・発展版）は第2部Gの該当箇所を参照。</p>
+
+<section class="ref-entry arg-card" id="ref-arg-b1-1">
+<h5><span class="arg-tier arg-required">必須論証</span>抵当権に基づく妨害排除請求の可否と侵害要件</h5>
+<div class="arg-body">抵当権は非占有担保であり占有それ自体は原則侵害でないが、占有により交換価値の実現が妨げられ優先弁済請求権の行使が困難となる状態があるときは、抵当権に基づく妨害排除請求が認められる。</div>
+<div class="back-refs">📌 詳細：<a href="#arg-B1-1">第2部 論点1 G 論証B1-1</a></div>
+</section>
+
+<section class="ref-entry arg-card" id="ref-arg-b2-1">
+<h5><span class="arg-tier arg-required">必須論証</span>占有権原ある第三者への妨害排除（競売妨害目的）</h5>
+<div class="arg-body">占有権原ある者でも、占有権原の設定に競売妨害目的が認められ、かつ交換価値の実現が妨げられ優先弁済請求権の行使が困難な状態があるときは、抵当権に基づく妨害排除が及ぶ。</div>
+<div class="back-refs">📌 詳細：<a href="#arg-B2-1">第2部 論点2 G 論証B2-1</a></div>
+</section>
+
+<section class="ref-entry arg-card" id="ref-arg-b2-2">
+<h5><span class="arg-tier arg-recommended">推奨論証</span>競売妨害目的の間接事実からの推認</h5>
+<div class="arg-body">妨害目的は、①賃貸条件の著しい不合理性、②賃貸人と賃借人の実質的同一性、③承諾特約違反等の客観的間接事実から推認できる。</div>
+<div class="back-refs">📌 詳細：<a href="#arg-B2-2">第2部 論点2 G 論証B2-2</a></div>
+</section>
+
+<section class="ref-entry arg-card" id="ref-arg-b3-1">
+<h5><span class="arg-tier arg-required">必須論証</span>抵当権者自身への直接明渡し（管理占有）</h5>
+<div class="arg-body">明渡しは原則として所有者に対してのみ認められるが、所有者に適切な維持管理を期待できない場合には、抵当権者は占有者に対し直接自己への明渡しを求めることができる。この占有は使用収益権ではなく管理占有にとどまる。</div>
+<div class="back-refs">📌 詳細：<a href="#arg-B3-1">第2部 論点3 論証B3-1</a></div>
+</section>
+
+</div>
+
+</section>
+
+</details><!-- /#deep-dive 深掘り層ここまで -->
+
+<!-- ============================================
+     用語集・略語（毎周クイック参照・折りたたみ外）
+     ============================================ -->
+<section id="part5-ref">
+<h2>用語集・略語（クイック参照）</h2>
+
+<!-- =====================================
+     5-5. 用語集
+     ===================================== -->
+<div class="card" id="ref-term">
+<h3>5-5　用語集</h3>
+<p style="font-size:.95em;color:#555">本問に登場した主要用語を五十音順に近い形で整理。各語の定義・本問での意味を掲げる。</p>
+
+<section class="ref-entry" id="ref-term-teitoken">
+<h4>抵当権（ていとうけん）</h4>
+<table>
+  <tr><th>定義</th><td>債務者又は第三者が占有を移転しないで債務の担保に供した不動産等について、他の債権者に先立って優先弁済を受ける約定担保物権（<a class="xref" href="#ref-stat-minp-369">369条</a>）</td></tr>
+  <tr><th>本問</th><td>Xが甲建物に有する権利。妨害排除請求の根拠</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-hisenyu">
+<h4>非占有担保（ひせんゆうたんぽ）</h4>
+<table>
+  <tr><th>定義</th><td>目的物の占有を担保権者に移さず、設定者に使用収益を残したまま交換価値のみを把握する担保。抵当権が典型</td></tr>
+  <tr><th>本問</th><td>「占有それ自体は原則侵害でない」という原則の根拠</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1 A</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-bukkenteki">
+<h4>物権的請求権（ぶっけんてきせいきゅうけん）</h4>
+<table>
+  <tr><th>定義</th><td>物権の円満な支配状態が妨げられた場合に、その回復を求める権利。返還・妨害排除・妨害予防請求の三類型</td></tr>
+  <tr><th>本問</th><td>抵当権に基づく妨害排除請求として構成される</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-kokanchi">
+<h4>交換価値（こうかんかち）</h4>
+<table>
+  <tr><th>定義</th><td>目的物を換価（売却）した場合に得られる価値。抵当権が把握するのはこの交換価値である</td></tr>
+  <tr><th>本問</th><td>競売での価額下落・買い手不在により「実現が妨げられている」状態</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1 D</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-yusenbensai">
+<h4>優先弁済請求権（ゆうせんべんさいせいきゅうけん）</h4>
+<table>
+  <tr><th>定義</th><td>担保権者が他の債権者に先立って目的物の換価代金から弁済を受ける権利（<a class="xref" href="#ref-stat-minp-369">369条</a>）</td></tr>
+  <tr><th>本問</th><td>その「行使が困難となる状態」が侵害要件の一内容</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1 D</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-bogaihaijo">
+<h4>妨害排除請求（ぼうがいはいじょせいきゅう）</h4>
+<table>
+  <tr><th>定義</th><td>物権に対する占有以外の方法による妨害の除去を求める物権的請求権。本問では占有による交換価値実現の阻害の排除を求める</td></tr>
+  <tr><th>本問</th><td>Xの明渡請求の法的性質</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-senyukengen">
+<h4>占有権原（せんゆうけんげん）</h4>
+<table>
+  <tr><th>定義</th><td>他人の物を占有することを正当化する法律上の原因（賃借権・地上権等）。これがなければ不法占有となる</td></tr>
+  <tr><th>本問</th><td>Yは賃借権という占有権原を有するため、加重要件（競売妨害目的）が必要となる</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-senyu">論点2 A</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-keibaibogai">
+<h4>競売妨害目的（けいばいぼうがいもくてき）</h4>
+<table>
+  <tr><th>定義</th><td>抵当権の実行としての競売手続を妨害する目的。占有権原ある者への妨害排除を認める加重要件</td></tr>
+  <tr><th>認定</th><td>賃貸条件の不合理性・当事者の実質的同一性・特約違反等の間接事実から推認</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-senyu">論点2</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-keibai">
+<h4>競売（けいばい）</h4>
+<table>
+  <tr><th>定義</th><td>抵当権の実行等として、裁判所が目的不動産を売却して債権者に配当する手続（担保不動産競売）</td></tr>
+  <tr><th>本問</th><td>Xが開始した手続。価額下落・買い手不在が侵害要件の認定材料</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-kanrishihai">
+<h4>管理占有（かんりしはい／かんりせんゆう）</h4>
+<table>
+  <tr><th>定義</th><td>抵当権者への直接明渡しが認められる場合の占有の性質。使用収益権ではなく、競売手続を円滑に進めるための維持管理のための占有</td></tr>
+  <tr><th>本問</th><td>Xへの直接明渡しの効果を基礎づける（使用収益はできない）</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-jiko">論点3</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-daiiken">
+<h4>物上代位（ぶつじょうだいい）</h4>
+<table>
+  <tr><th>定義</th><td>担保目的物の売却・賃貸・滅失等によって設定者が受けるべき金銭その他の物に対しても担保権の効力が及ぶこと（372条・304条）。賃料債権等への差押えが典型</td></tr>
+  <tr><th>本問</th><td>妨害排除（占有除去）とは別制度。混同に注意</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1 E</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-shikikin">
+<h4>敷金（しききん）</h4>
+<table>
+  <tr><th>定義</th><td>賃料債務その他賃貸借上の債務を担保するため賃借人が交付する金銭（622条の2）。通常は賃料の数か月分</td></tr>
+  <tr><th>本問</th><td>賃料月1万円に対し敷金3億円という不均衡が、賃貸借の実体を欠く（妨害目的の徴表）</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-senyu">論点2 D</a></div>
+</section>
+
+<section class="ref-entry" id="ref-term-daiikenja">
+<h4>債権者代位権（さいけんしゃだいいけん）</h4>
+<table>
+  <tr><th>定義</th><td>債権者が自己の債権を保全するため債務者に属する権利を行使する権利（<a class="xref" href="#ref-stat-minp-423">423条</a>）。特定債権保全のための転用が認められる</td></tr>
+  <tr><th>本問</th><td>抵当権者が所有者の妨害排除請求権を代位行使する構成（無資力不要）</td></tr>
+</table>
+<div class="back-refs">📌 <a href="#issue-bogai">論点1 C</a></div>
+</section>
+
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+<!-- =====================================
+     5-6. 略語・出典一覧
+     ===================================== -->
+<div class="card" id="ref-abbrev">
+<h3>5-6　略語・出典一覧</h3>
+<p style="font-size:.95em;color:#555">本教材で用いた略語・出典の一覧。</p>
+
+<h4>判例集・法律雑誌</h4>
+<table>
+  <tr><th>略語</th><th>正式名称</th><th>備考</th></tr>
+  <tr><td>民集</td><td>最高裁判所民事判例集</td><td>最高裁民事判例の公式判例集</td></tr>
+  <tr><td>集民</td><td>最高裁判所裁判集民事</td><td>判例集未登載の民事裁判</td></tr>
+  <tr><td>判時</td><td>判例時報</td><td>判例時報社</td></tr>
+  <tr><td>判タ</td><td>判例タイムズ</td><td>判例タイムズ社</td></tr>
+  <tr><td>金法</td><td>金融法務事情</td><td>金融・担保実務の専門誌</td></tr>
+  <tr><td>最判解民事篇</td><td>最高裁判所判例解説 民事篇</td><td>調査官解説。法曹会刊</td></tr>
+  <tr><td>百選</td><td>判例百選</td><td>有斐閣『民法判例百選I 総則・物権』等</td></tr>
+</table>
+
+<h4>裁判所の略称</h4>
+<table>
+  <tr><th>略</th><th>正式名称</th></tr>
+  <tr><td>最大判</td><td>最高裁判所大法廷判決</td></tr>
+  <tr><td>最判</td><td>最高裁判所判決（小法廷）</td></tr>
+  <tr><td>最決</td><td>最高裁判所決定</td></tr>
+  <tr><td>高判</td><td>高等裁判所判決</td></tr>
+  <tr><td>地判</td><td>地方裁判所判決</td></tr>
+</table>
+
+<h4>法令略称</h4>
+<table>
+  <tr><th>略</th><th>正式名称</th></tr>
+  <tr><td>民</td><td>民法</td></tr>
+  <tr><td>会</td><td>会社法</td></tr>
+  <tr><td>民執</td><td>民事執行法</td></tr>
+  <tr><td>不登</td><td>不動産登記法</td></tr>
+  <tr><td>借地借家</td><td>借地借家法</td></tr>
+</table>
+
+<h4>主要教科書・体系書略語</h4>
+<table>
+  <tr><th>略称</th><th>正式書名</th></tr>
+  <tr><td>我妻・担保物権</td><td>我妻榮『新訂 担保物権法（民法講義III）』岩波書店</td></tr>
+  <tr><td>道垣内・担保物権</td><td>道垣内弘人『担保物権法〔第4版〕』有斐閣</td></tr>
+  <tr><td>松井・担保物権</td><td>松井宏興『担保物権法〔第2版〕』成文堂</td></tr>
+  <tr><td>内田・民法III</td><td>内田貴『民法III〔第4版〕債権総論・担保物権』東京大学出版会</td></tr>
+  <tr><td>佐久間・物権</td><td>佐久間毅『民法の基礎2 物権〔第3版〕』有斐閣</td></tr>
+  <tr><td>安永・物権担保物権</td><td>安永正昭『講義 物権・担保物権法〔第4版〕』有斐閣</td></tr>
+  <tr><td>百選I</td><td>『民法判例百選I 総則・物権〔第9版〕』有斐閣</td></tr>
+</table>
+
+<h4>主要学者略称</h4>
+<table>
+  <tr><th>略</th><th>氏名</th></tr>
+  <tr><td>我妻</td><td>我妻榮</td></tr>
+  <tr><td>道垣内</td><td>道垣内弘人</td></tr>
+  <tr><td>内田</td><td>内田貴</td></tr>
+  <tr><td>佐久間</td><td>佐久間毅</td></tr>
+  <tr><td>安永</td><td>安永正昭</td></tr>
+  <tr><td>松岡</td><td>松岡久和</td></tr>
+</table>
+</div>
+
+<a href="#toc" class="back-to-toc">▲ 目次に戻る</a>
+
+</section>
+
+<footer>
+<p>本教材は、司法試験・予備試験の上位合格を目指す受験生のために作成された一元化教材である。</p>
+<p>抵当権に基づく妨害排除請求は担保物権の最重要論点の一つであり、本教材で示した侵害要件（交換価値の実現の阻害・優先弁済請求権行使の困難）と、占有権原ある者への加重要件（競売妨害目的）、自己への直接明渡し（管理占有）のシステマティックな運用を身につけることで、どのような執行妨害事例にも対応できる応用力が養われる。</p>
+<p>本問の核心である「非占有担保にどこまで占有除去を認めるか」という難所を、最大判平成11年11月24日（不法占有）と最判平成17年3月10日（占有権原ある者・自己への明渡し）の二大判例の射程理解に基づいて突破できれば、類似事案にも自在に応用できる。一冊の教材を完全消化することが、十冊の参考書を流し読みすることよりも遥かに学力を伸ばすことを、ここに記しておく。</p>
+<p class="closing" style="margin-top:18px;font-size:1.05em">― 一日一論点の積み重ねが、必ず合格の扉を開く。あなたの努力は、必ず報われる。―</p>
+<p class="footer-date lexia-genmeta" data-generated="2026-08-21T22:36+09:00">Generated: 2026-08-21 22:36 / JX v4.0.0 LOOP-FOLD</p>
+</footer>
+
+</div><!-- /.container -->
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var t=document.querySelector(this.getAttribute('href'));
+      if(t){
+        e.preventDefault();
+        // xref が閉じた details（deep-dive / reveal-answer）内を指す場合、祖先 details を全て開いてからスクロール
+        var d=t.closest&&t.closest('details');
+        while(d){ d.open=true; d=d.parentElement&&d.parentElement.closest&&d.parentElement.closest('details'); }
+        t.scrollIntoView({behavior:'smooth',block:'start'});
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
