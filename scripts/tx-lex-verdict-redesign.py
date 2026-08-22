@@ -5,14 +5,16 @@
 注入する汎用インフラ（問題固有でない部分＝機械的に伝播できる部分）:
   1. CSS 一式（体系マップ規範核バッジ .nb-badge / 正誤表パネルの成績バッジ・タイトル行 /
      印付き原文＋法理コアの verdict-brief / 額装フレーム・金プレート見出し等の重厚感 / ラベル字下げ解除）。
-  2. エンジン JS（makeBriefLine ＋ compactReviewTableClone[印付き原文対応] ＋ computeInlineScore ＋
-     renderInlineAnswerTablePanel[成績バナー]）。旧 2 関数を丸ごと差し替える。
+  2. エンジン JS（makeBriefLine ＋ appendStoryLine ＋ compactReviewTableClone[印付き原文対応] ＋
+     computeInlineScore ＋ renderInlineAnswerTablePanel[成績バナー]）。旧 2 関数を丸ごと差し替える。
   3. 体系マップの「本問の帰結（○×）」ネタバレ箱を削除（設計方針＝結論を先出ししない）。
 
 問題固有で本ツールが触らない部分（生成/移行時に手で鋳造する）:
   - 体系マップ各ノードの ✍規範核バッジ（<rect class="nb-badge">＋text）とノード高さ・viewBox。
   - 親カテゴリ箱の本文中央寄せ・子ノードのタイトル縮小（マップごとに要否が違う）。
   - 正誤表各行の data-brief-mark（印付き原文の要約＝記述ごとに執筆）。
+  - 正誤表各行の data-brief-story（📖 ものがたり＝物語全体＋当該記述の要約と具体例。記述ごとに執筆。
+    属性が無い行では帯そのものが出ない＝土台だけ入れても壊れない）。
 
 参照元（--ref）から CSS/エンジンを実体抽出して注入するので、正典改定時は --ref を新正典にすれば追従する。
 **同期型（2026-08-08〜）**：マーカー付き CSS 区画（TX-VERDICT-CORE2／TX-ANSCOMP）とエンジン塊は、
@@ -57,6 +59,9 @@ CORE2_ENG_FN = "function extractReviewCoreLines("            # v2 エンジン�
 SYNC_CSS_REGIONS = [
     (CORE2_CSS_START, CORE2_CSS_END, "CSS2"),
     ("/* TX-ANSCOMP:BEGIN", "/* TX-ANSCOMP:END */", "ANSCOMP"),
+    # TX-VERDICT-STORY＝正誤表の帯区切り＋「📖 ものがたり」帯（2026-08-22・§v13v）。CORE2 の後ろに置く
+    # （.tx-vb-story のパディング・字下げは CORE2 のぶら下げ規則を上書きするため、順序が意味を持つ）。
+    ("/* TX-VERDICT-STORY:BEGIN", "/* TX-VERDICT-STORY:END */", "STORY"),
 ]
 
 
