@@ -1,0 +1,189 @@
+# v13v-runner.ps1 — TJR-S（§v13v「📖 ものがたり」付随・特別枠）エンジン（2026-08-22 新設）
+#   正誤表の各記述に data-brief-story（物語全体＋当該記述の要約＋具体例）が未執筆の `_lex` を、
+#   **民法を最優先・次に刑法**の順に若番から MaxProblems 件ずつ headless（claude -p）で執筆 →
+#   validate-tx-core／check-tx-lex-engine PASS 時のみ 1 問ずつ git commit/push する。
+#   土台（TX-VERDICT-STORY の CSS＋appendStoryLine）が無いファイルは、実行前に決定論ツール
+#   scripts/tx-lex-verdict-redesign.py で注入してから執筆させる（刑法は未伝播のためここで入る）。
+#   残件ゼロ＝「該当なし」で即終了（過渡ストリーム＝完遂で消滅）。
+#   正典：docs/v13v-handover.md（レシピ）／docs/run-patterns.md（S 節）。プロンプト：prompts/v13v-headless.md。
+#   二台衝突対策：tjr-claim（予約 ID = {問題ID}_v13v・リモート版が既に執筆済みなら SKIP）。
+param(
+    [int]$MaxProblems = 10,            # 1 バッチの処理件数（TJR 特別枠の既定＝10・ユーザー指示 2026-08-22）
+    [ValidateSet('', '民法', '刑法', '刑訴')]
+    [string]$Subject = '',             # 空＝優先順（民法→刑法→刑訴）で自動充当
+    [int]$FromNumber = 0,
+    [int]$ToNumber = 0,
+    [string]$Model = 'claude-opus-5',  # Q と同じく Opus 5 固定
+    [switch]$NoPush,
+    [switch]$NoCommit,
+    [switch]$DryRun,
+    [string]$ProjectRoot = ''
+)
+
+$DefaultProjectRoot = Split-Path -Parent $PSScriptRoot
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $env:BAREXAM_PROJECT_ROOT }
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) { $ProjectRoot = $DefaultProjectRoot }
+$ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
+
+. (Join-Path $ProjectRoot 'scripts\tjr-claim.ps1')
+
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
+# 科目の優先順（ユーザー指示 2026-08-22＝民法を優先的に、次いで刑法。刑訴はセッション側で消化中）
+$SubjectOrder = @(
+    [pscustomobject]@{ Key = '民法'; Rel = 'outputs/ux/000_TX/003_民法';         Prefix = '民TX' },
+    [pscustomobject]@{ Key = '刑法'; Rel = 'outputs/ux/000_TX/001_刑法';         Prefix = '刑TX' },
+    [pscustomobject]@{ Key = '刑訴'; Rel = 'outputs/ux/000_TX/002_刑事訴訟法';   Prefix = '刑訴TX' }
+)
+if ($Subject) { $SubjectOrder = @($SubjectOrder | Where-Object { $_.Key -eq $Subject }) }
+
+$PromptFile  = Join-Path $ProjectRoot 'prompts\v13v-headless.md'
+$ValidatePy  = Join-Path $ProjectRoot 'scripts\validate-tx-core.py'
+$EnginePy    = Join-Path $ProjectRoot 'scripts\check-tx-lex-engine.py'
+$BasePy      = Join-Path $ProjectRoot 'scripts\tx-lex-verdict-redesign.py'
+$LedgerPath  = Join-Path $ProjectRoot 'logs\v13v-ledger.json'
+$ReportPath  = Join-Path $ProjectRoot 'logs\tjr-repair-report.md'
+foreach ($p in @($PromptFile, $ValidatePy, $EnginePy, $BasePy)) {
+    if (-not (Test-Path $p)) { Write-Host "[S] 前提ファイル不在: $p" -ForegroundColor Red; exit 1 }
+}
+if (-not (Test-Path (Join-Path $ProjectRoot 'logs'))) { New-Item -ItemType Directory -Path (Join-Path $ProjectRoot 'logs') | Out-Null }
+
+# === 失敗台帳（同一問題 2 回失敗で ESCALATE＝以後スキップ・Q/F と同じ無限再挑戦防止）===
+function Read-SLedger {
+    if (Test-Path $LedgerPath) { try { return (Get-Content -Raw -Encoding UTF8 $LedgerPath | ConvertFrom-Json -AsHashtable) } catch { } }
+    return @{}
+}
+function Save-SLedger { param($Ledger)
+    $Ledger | ConvertTo-Json -Depth 4 | Out-File -FilePath $LedgerPath -Encoding utf8
+}
+
+# === 対象検出：data-brief-story を 1 つも持たない `_lex`（科目優先順→若番）===
+#   正誤表（statement-verdict-table）が無いファイルは対象外（ものがたり帯の置き場所が無い）。
+function Get-STargets {
+    $items = @()
+    foreach ($subj in $SubjectOrder) {
+        $dir = Join-Path $ProjectRoot ($subj.Rel -replace '/', '\')
+        if (-not (Test-Path $dir)) { continue }
+        Get-ChildItem -LiteralPath $dir -Filter '*_lex.html' | ForEach-Object {
+            $m = [regex]::Match($_.Name, 'TX(\d+)_lex\.html$')
+            if (-not $m.Success) { return }
+            $n = [int]$m.Groups[1].Value
+            if ($FromNumber -gt 0 -and $n -lt $FromNumber) { return }
+            if ($ToNumber   -gt 0 -and $n -gt $ToNumber)   { return }
+            if (-not (Select-String -LiteralPath $_.FullName -Pattern 'statement-verdict-table' -Quiet)) { return }
+            if (Select-String -LiteralPath $_.FullName -Pattern 'data-brief-story=' -Quiet) { return }
+            $items += [pscustomobject]@{
+                Subject = $subj.Key; Num = $n; Name = $_.Name; Abs = $_.FullName
+                Rel = "$($subj.Rel)/$($_.Name)"; Id = ('{0}{1:d3}' -f $subj.Prefix, $n)
+            }
+        }
+    }
+    # 科目は SubjectOrder の並び（民法→刑法→刑訴）を保ったまま、科目内は若番順
+    $rank = @{}
+    for ($i = 0; $i -lt $SubjectOrder.Count; $i++) { $rank[$SubjectOrder[$i].Key] = $i }
+    return @($items | Sort-Object @{Expression = { $rank[$_.Subject] } }, Num)
+}
+
+if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
+
+$targets = Get-STargets
+if ($targets.Count -eq 0) {
+    Write-Host "[S] 該当なし＝§v13v 特別枠は完遂（対象科目の全 _lex にものがたり帯あり）" -ForegroundColor Green
+    exit 0
+}
+$ledger = Read-SLedger
+$queue = @($targets | Where-Object { [int]($ledger["$($_.Id)"] ?? 0) -lt 2 } | Select-Object -First $MaxProblems)
+$escalated = @($targets | Where-Object { [int]($ledger["$($_.Id)"] ?? 0) -ge 2 })
+$byS = ($targets | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
+Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件（model={4}）" -f `
+    $targets.Count, $byS, $escalated.Count, $queue.Count, $Model) -ForegroundColor Cyan
+if ($queue.Count -eq 0) {
+    Write-Host "[S] 残件は全て ESCALATE 済（logs\tjr-repair-report.md 参照）。人手判断待ち。" -ForegroundColor Yellow
+    exit 0
+}
+if ($DryRun) {
+    $queue | ForEach-Object { Write-Host ("  [DRY] {0} {1}" -f $_.Id, $_.Rel) }
+    exit 0
+}
+
+$promptTemplate = Get-Content -Raw -Encoding UTF8 $PromptFile
+$rcAll = 0
+foreach ($t in $queue) {
+    Write-Host "`n———— S: $($t.Id) （$($t.Rel)）————" -ForegroundColor Green
+
+    # 二台衝突：リモート版が既に執筆済みなら pull 追随して SKIP
+    if (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $t.Rel -Pattern 'data-brief-story=') {
+        Write-Host "[S] $($t.Id) はリモートで執筆済み → pull 追随して SKIP" -ForegroundColor Yellow
+        [void](Invoke-TjrSafePull -ProjectRoot $ProjectRoot)
+        continue
+    }
+    $claim = Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)_v13v" -Stream 'S'
+    if ($claim -notin @('CLAIMED','CLAIMED_OFFLINE')) {
+        Write-Host "[S] $($t.Id) claim=$claim → SKIP（次バッチで再判定）" -ForegroundColor Yellow
+        continue
+    }
+
+    # 土台（CSS＋エンジン）が無ければ決定論ツールで先に注入（刑法は未伝播）
+    if (-not (Select-String -LiteralPath $t.Abs -Pattern 'TX-VERDICT-STORY:BEGIN' -Quiet)) {
+        Write-Host "[S] $($t.Id) 土台なし → tx-lex-verdict-redesign.py で注入"
+        & python -X utf8 $BasePy $t.Abs 2>&1 | Out-Host
+    }
+
+    $prompt = $promptTemplate.Replace('{FILE}', $t.Rel)
+    $claudeArgs = @('-p','--model',$Model,'--output-format','json','--permission-mode','acceptEdits','--allowedTools','Write,Edit,Read,Bash,Glob,Grep')
+    Write-Host "[S] claude -p 起動中（推定 5-10 分）..."
+    Push-Location $ProjectRoot
+    try { $out = $prompt | & claude @claudeArgs 2>&1; $code = $LASTEXITCODE } catch { $out = "$_"; $code = -1 }
+    finally { Pop-Location }
+
+    # === ランナー側の決定論検証（agent の自己申告に依存しない）===
+    #   ものがたり帯は「全記述に入って初めて完成」＝行数と data-brief-story 数の一致を要求する。
+    $rows  = @(Select-String -LiteralPath $t.Abs -Pattern '<tr data-stmt="' -AllMatches | ForEach-Object { $_.Matches.Count } | Measure-Object -Sum).Sum
+    $story = @(Select-String -LiteralPath $t.Abs -Pattern 'data-brief-story=' -AllMatches | ForEach-Object { $_.Matches.Count } | Measure-Object -Sum).Sum
+    if ($null -eq $rows)  { $rows = 0 }
+    if ($null -eq $story) { $story = 0 }
+    $ok = $false
+    if ($rows -gt 0 -and $story -ge $rows) {
+        & python $ValidatePy $t.Abs 2>&1 | Out-Null; $v1 = $LASTEXITCODE
+        & python $EnginePy   $t.Abs 2>&1 | Out-Null; $v2 = $LASTEXITCODE
+        $ok = ($v1 -eq 0 -and $v2 -eq 0)
+        Write-Host ("[S] 検証 rows={0} story={1} validate={2} engine={3}" -f $rows, $story, $v1, $v2)
+    } else {
+        Write-Host "[S] $($t.Id) 執筆痕が足りない（rows=$rows story=$story・claude exit=$code）" -ForegroundColor Yellow
+    }
+
+    if ($ok) {
+        if ($NoCommit) {
+            Write-Host "[S] $($t.Id) PASS（-NoCommit のため作業ツリーに保持）" -ForegroundColor Green
+        } else {
+            & git -C $ProjectRoot add -- $t.Rel
+            & git -C $ProjectRoot commit -m "feat($($t.Id)): 正誤表に📖ものがたり帯を執筆（§v13v・TJR-S）" 2>&1 | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                if (-not $NoPush) { [void](Invoke-TjrSafePush -ProjectRoot $ProjectRoot -Label "S $($t.Id)") }
+                Write-Host "[S] $($t.Id) commit 完了" -ForegroundColor Green
+            } else {
+                Write-Host "[S] $($t.Id) commit 失敗" -ForegroundColor Red; $rcAll = 1
+            }
+        }
+        if ($ledger.ContainsKey("$($t.Id)")) { $ledger.Remove("$($t.Id)"); Save-SLedger $ledger }
+    } else {
+        # 失敗＝部分状態を残さない（土台注入ごと戻す）
+        & git -C $ProjectRoot checkout -- $t.Rel 2>&1 | Out-Null
+        $s = [int]($ledger["$($t.Id)"] ?? 0) + 1
+        $ledger["$($t.Id)"] = $s
+        Save-SLedger $ledger
+        Write-Host "[S] $($t.Id) 失敗（strike $s/2）→ ロールバック" -ForegroundColor Yellow
+        if ($s -ge 2) {
+            $line = "- ESCALATE(S) $($t.Id): §v13v ものがたり執筆が 2 回失敗（$(Get-Date -Format 'yyyy-MM-dd HH:mm')）。人手または個別セッションで対応。"
+            Add-Content -Path $ReportPath -Value $line -Encoding utf8
+            Write-Host "[S] $($t.Id) ESCALATE（logs\tjr-repair-report.md）" -ForegroundColor Red
+        }
+        $rcAll = 1
+    }
+    Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)_v13v" -Reason $(if ($ok) { '完了' } else { '失敗' }) -NoPush:$NoPush
+}
+
+$remain = (Get-STargets).Count
+Write-Host "`n[S] バッチ終了 exit=$rcAll 残=$remain 件" -ForegroundColor Cyan
+exit $rcAll
