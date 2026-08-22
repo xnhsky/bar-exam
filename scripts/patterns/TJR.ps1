@@ -165,9 +165,10 @@ function Get-QPending {
 function Get-SPending {
     # S（§v13v「📖 ものがたり」付随・特別枠・過渡）：正誤表の記述に data-brief-story が
     # 1 つも入っていない _lex の残数。科目は 民法 → 刑法 の優先順（2026-08-22 ユーザー指示）で、
-    # 刑訴はセッション側で消化中のため S の自動充当からは外す（-Subject 刑訴 で明示指定は可）。
+    # 刑訴はセッション側で消化中だが、残りが出た場合に取りこぼさないよう優先順の最後尾に置く
+    # （ランナー側の SubjectOrder も 民法→刑法→刑訴。二重処理は claim ＋リモート執筆済み検知で回避）。
     $c = 0
-    foreach ($folder in @('003_民法', '001_刑法')) {
+    foreach ($folder in @('003_民法', '001_刑法', '002_刑事訴訟法')) {
         $dir = Join-Path $ProjectRoot "outputs\ux\000_TX\$folder"
         if (-not (Test-Path $dir)) { continue }
         foreach ($lex in @(Get-ChildItem $dir -Filter '*_lex.html' -File -ErrorAction SilentlyContinue)) {
