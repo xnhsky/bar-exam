@@ -64,7 +64,7 @@ def main():
                 continue
             k = head.index('data-brief-story="')
             e = head.index('"', k + len('data-brief-story="')) + 1
-            while head[e] == ' ':
+            while e < len(head) and head[e] == ' ':
                 e += 1
             html = html[:i + k] + html[i + e:]
             j = html.index('data-brief-mark=', i)
