@@ -14,6 +14,7 @@ param(
     [int]$FromNumber = 0,
     [int]$ToNumber = 0,
     [string]$Model = 'claude-opus-5',  # Q と同じく Opus 5 固定
+    [switch]$Rewrite,                  # 旧型（出題構造型・2026-08-27 以前）の data-brief-story を新型へ書き直す
     [switch]$NoPush,
     [switch]$NoCommit,
     [switch]$DryRun,
@@ -58,6 +59,21 @@ function Save-SLedger { param($Ledger)
     $Ledger | ConvertTo-Json -Depth 4 | Out-File -FilePath $LedgerPath -Encoding utf8
 }
 
+# === 旧型（出題構造型）判定：ものがたり本文が短い＝2026-08-27 以前の型（新型は 250〜400字）===
+#   新型（体系・趣旨・コツ・実務の4層）は必ず 200 字を超える。1 行でも 200 字未満なら旧型とみなす。
+function Test-V13vLegacy {
+    param([string]$Path)
+    $raw = Get-Content -Raw -Encoding UTF8 -LiteralPath $Path
+    foreach ($m in [regex]::Matches($raw, 'data-brief-story="([^"]*)"')) {
+        $body = $m.Groups[1].Value
+        $i = $body.IndexOf("<span class='tx-vb-ex'")
+        if ($i -ge 0) { $body = $body.Substring(0, $i) }
+        $body = [regex]::Replace($body, '<[^>]+>', '')
+        if ($body.Length -lt 200) { return $true }
+    }
+    return $false
+}
+
 # === 対象検出：data-brief-story を 1 つも持たない `_lex`（科目優先順→若番）===
 #   正誤表（statement-verdict-table）が無いファイルは対象外（ものがたり帯の置き場所が無い）。
 function Get-STargets {
@@ -72,7 +88,11 @@ function Get-STargets {
             if ($FromNumber -gt 0 -and $n -lt $FromNumber) { return }
             if ($ToNumber   -gt 0 -and $n -gt $ToNumber)   { return }
             if (-not (Select-String -LiteralPath $_.FullName -Pattern 'statement-verdict-table' -Quiet)) { return }
-            if (Select-String -LiteralPath $_.FullName -Pattern 'data-brief-story=' -Quiet) { return }
+            $hasStory = Select-String -LiteralPath $_.FullName -Pattern 'data-brief-story=' -Quiet
+            if ($Rewrite) {
+                if (-not $hasStory) { return }
+                if (-not (Test-V13vLegacy -Path $_.FullName)) { return }
+            } elseif ($hasStory) { return }
             $items += [pscustomobject]@{
                 Subject = $subj.Key; Num = $n; Name = $_.Name; Abs = $_.FullName
                 Rel = "$($subj.Rel)/$($_.Name)"; Id = ('{0}{1:d3}' -f $subj.Prefix, $n)
@@ -89,12 +109,13 @@ if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
 $targets = Get-STargets
 if ($targets.Count -eq 0) {
-    Write-Host "[S] 該当なし＝§v13v 特別枠は完遂（対象科目の全 _lex にものがたり帯あり）" -ForegroundColor Green
+    Write-Host $(if ($Rewrite) { "[S] 該当なし＝旧型のものがたり帯は残っていない（-Rewrite）" } else { "[S] 該当なし＝§v13v 特別枠は完遂（対象科目の全 _lex にものがたり帯あり）" }) -ForegroundColor Green
     exit 0
 }
+$ledgerSuffix = if ($Rewrite) { '#rw' } else { '' }
 $ledger = Read-SLedger
-$queue = @($targets | Where-Object { [int]($ledger["$($_.Id)"] ?? 0) -lt 2 } | Select-Object -First $MaxProblems)
-$escalated = @($targets | Where-Object { [int]($ledger["$($_.Id)"] ?? 0) -ge 2 })
+$queue = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -lt 2 } | Select-Object -First $MaxProblems)
+$escalated = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -ge 2 })
 $byS = ($targets | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
 Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件（model={4}）" -f `
     $targets.Count, $byS, $escalated.Count, $queue.Count, $Model) -ForegroundColor Cyan
@@ -113,12 +134,12 @@ foreach ($t in $queue) {
     Write-Host "`n———— S: $($t.Id) （$($t.Rel)）————" -ForegroundColor Green
 
     # 二台衝突：リモート版が既に執筆済みなら pull 追随して SKIP
-    if (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $t.Rel -Pattern 'data-brief-story=') {
+    if (-not $Rewrite -and (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $t.Rel -Pattern 'data-brief-story=')) {
         Write-Host "[S] $($t.Id) はリモートで執筆済み → pull 追随して SKIP" -ForegroundColor Yellow
         [void](Invoke-TjrSafePull -ProjectRoot $ProjectRoot)
         continue
     }
-    $claim = Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)_v13v" -Stream 'S'
+    $claim = Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)$(if ($Rewrite) { '_v13v2' } else { '_v13v' })" -Stream 'S'
     if ($claim -notin @('CLAIMED','CLAIMED_OFFLINE')) {
         Write-Host "[S] $($t.Id) claim=$claim → SKIP（次バッチで再判定）" -ForegroundColor Yellow
         continue
@@ -131,6 +152,13 @@ foreach ($t in $queue) {
     }
 
     $prompt = $promptTemplate.Replace('{FILE}', $t.Rel)
+    if ($Rewrite) {
+        $prompt = $prompt + "`n`n## 今回は旧型の書き直し（-Rewrite）`n" +
+            "対象ファイルには 2026-08-27 以前の旧型（出題構造型）の data-brief-story が既に入っている。" +
+            "全記述を新型（体系・趣旨・コツ・実務＋具体例）で書き直し、注入は必ず --force を付けて実行する" +
+            "（python -X utf8 scripts/v13v-inject.py " + $t.Rel + " <payload> --force）。" +
+            "--force なしでは既存行がスキップされ、旧型が残る。`n"
+    }
     $claudeArgs = @('-p','--model',$Model,'--output-format','json','--permission-mode','acceptEdits','--allowedTools','Write,Edit,Read,Bash,Glob,Grep')
     Write-Host "[S] claude -p 起動中（推定 5-10 分）..."
     Push-Location $ProjectRoot
@@ -158,7 +186,7 @@ foreach ($t in $queue) {
             Write-Host "[S] $($t.Id) PASS（-NoCommit のため作業ツリーに保持）" -ForegroundColor Green
         } else {
             & git -C $ProjectRoot add -- $t.Rel
-            & git -C $ProjectRoot commit -m "feat($($t.Id)): 正誤表に📖ものがたり帯を執筆（§v13v・TJR-S）" 2>&1 | Out-Null
+            & git -C $ProjectRoot commit -m $(if ($Rewrite) { "feat($($t.Id)): 📖ものがたり帯を体系・趣旨・実務型へ改訂（§v13v・TJR-S）" } else { "feat($($t.Id)): 正誤表に📖ものがたり帯を執筆（§v13v・TJR-S）" }) 2>&1 | Out-Null
             if ($LASTEXITCODE -eq 0) {
                 if (-not $NoPush) { [void](Invoke-TjrSafePush -ProjectRoot $ProjectRoot -Label "S $($t.Id)") }
                 Write-Host "[S] $($t.Id) commit 完了" -ForegroundColor Green
@@ -166,12 +194,12 @@ foreach ($t in $queue) {
                 Write-Host "[S] $($t.Id) commit 失敗" -ForegroundColor Red; $rcAll = 1
             }
         }
-        if ($ledger.ContainsKey("$($t.Id)")) { $ledger.Remove("$($t.Id)"); Save-SLedger $ledger }
+        if ($ledger.ContainsKey("$($t.Id)$ledgerSuffix")) { $ledger.Remove("$($t.Id)$ledgerSuffix"); Save-SLedger $ledger }
     } else {
         # 失敗＝部分状態を残さない（土台注入ごと戻す）
         & git -C $ProjectRoot checkout -- $t.Rel 2>&1 | Out-Null
-        $s = [int]($ledger["$($t.Id)"] ?? 0) + 1
-        $ledger["$($t.Id)"] = $s
+        $s = [int]($ledger["$($t.Id)$ledgerSuffix"] ?? 0) + 1
+        $ledger["$($t.Id)$ledgerSuffix"] = $s
         Save-SLedger $ledger
         Write-Host "[S] $($t.Id) 失敗（strike $s/2）→ ロールバック" -ForegroundColor Yellow
         if ($s -ge 2) {
@@ -181,7 +209,7 @@ foreach ($t in $queue) {
         }
         $rcAll = 1
     }
-    Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)_v13v" -Reason $(if ($ok) { '完了' } else { '失敗' }) -NoPush:$NoPush
+    Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)$(if ($Rewrite) { '_v13v2' } else { '_v13v' })" -Reason $(if ($ok) { '完了' } else { '失敗' }) -NoPush:$NoPush
 }
 
 $remain = (Get-STargets).Count

@@ -449,12 +449,14 @@ function Invoke-QStream {
 }
 
 function Invoke-SStream {
-    param([int]$Max)
+    param([int]$Max, [switch]$Rewrite)
     if (-not (Test-Path $SRunner)) { Write-Host "[SKIP] S エンジン不在: $SRunner" -ForegroundColor Yellow; return 0 }
     $p = @{ MaxProblems = $Max; ProjectRoot = $ProjectRoot }
     if ($NoPush) { $p.NoPush = $true }
     if ($DryRun) { $p.DryRun = $true }
-    Write-Host "`n———————— S（§v13v ものがたり付随・民法優先） 開始 ————————" -ForegroundColor Green
+    if ($Rewrite) { $p.Rewrite = $true }
+    $label = if ($Rewrite) { 'S（§v13v ものがたり・旧型を新型へ改訂）' } else { 'S（§v13v ものがたり付随・民法優先）' }
+    Write-Host "`n———————— $label 開始 ————————" -ForegroundColor Green
     & $SRunner @p | Out-Host
     return $LASTEXITCODE
 }
@@ -536,7 +538,11 @@ for ($b = 1; $b -le $batchCount; $b++) {
     $rcS = 0
     if ($runS) {
         if ($sPend -gt 0) { $rcS = Invoke-SStream -Max $MaxS }
-        else { Write-Host "`n[SKIP] S：民法・刑法とも残なし＝§v13v 特別枠は完遂（過渡ストリーム）" -ForegroundColor Yellow }
+        else {
+            # 未執筆が尽きたら、旧型（出題構造型・2026-08-27 以前）の書き直しへ自動フォールバック
+            # （ユーザー指示 2026-08-28「その他は TJR の付随で処理」。旧型ゼロならランナーが即「該当なし」）
+            $rcS = Invoke-SStream -Max $MaxS -Rewrite
+        }
     }
 
     Write-Host "`n———————— TJR バッチ $b 集計 ————————" -ForegroundColor Cyan
