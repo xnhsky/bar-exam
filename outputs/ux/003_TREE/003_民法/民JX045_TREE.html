@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手付解除・同時履行・即時取得 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XLV <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">手付解除・同時履行・即時取得 <em>— Deposit, Simultaneous Performance & Bona Fide Acquisition</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">4</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">手付・同時履行<br>と即時取得</h2>
+      <div class="mm-root-en">Deposit · Defence · Acquisition</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法<br>
+        <em>Origin</em>重要問題 第45問 · 動産二重売買<br>
+        <em>Form</em>請求→反論→再反論型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法・財産法の<strong>契約法と物権法を横断</strong>する総合問題。一個の動産（腕時計）の<strong>二重売買</strong>を素材に、設問1で契約法（<strong>手付解除557条・同時履行の抗弁権533条</strong>）、設問2で物権法（<strong>動産物権変動178条・即時取得192条・承継取得</strong>）を問う。奪取罪ならぬ「取引の安全」の体系理解を試す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>財産法頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>各論点は基本判例で固まっているが、<strong>「一つの反論が潰れても次の反論を検討する」</strong>攻防の厚みと、<strong>占有改定の二面性</strong>（対抗要件では足りるが即時取得では足りない）を書き分けられるかで差がつく最重要域。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。個々の規範は易しいが、<strong>手付解除を封じて終わりにせず同時履行へ進む</strong>／<strong>占有改定を場面で使い分ける</strong>／<strong>悪意Dに飛びつかない</strong>という三つの捻りで一気に難化する。素直に書くと失点する罠型。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>債務不履行解除（541条）／弁済の提供（492条・493条）／受領遅滞（413条）／留置権（295条）／盗品・遺失物の特則（193条・194条）／94条2項類推／不動産の二重譲渡（177条）。とりわけ<strong>「対抗要件としての引渡し」と「即時取得の占有取得」で占有改定の扱いが分かれる</strong>点が本論点の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>AはBに高級腕時計を<strong>100万円で売却</strong>し、手付金10万円を受領すると同時に<strong>占有改定で引渡し</strong>（手付は違約手付の確認あり・解約手付排除の特約なし）。その後<strong>CがAに150万円</strong>を申し出たため、Aは履行日にBが残代金90万円を持参・提供した際、<strong>Bに20万円を提供して解除を主張</strong>。Bは20万円の受領を拒否。一方、事情を知らずAを所有者と信じた<strong>Cが150万円で買い現実の引渡しを受け</strong>、その後Cは<strong>悪意のDへ転売・引渡し</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>A（売主・時計の元所有者）／B（第1買主・手付金交付＋占有改定で引渡しを受けた者）／C（第2買主・<strong>善意無過失</strong>で現実の引渡しを受けた者）／D（転得者・一連の事情に<strong>悪意</strong>）。時計は盗品・遺失物ではなくAが正当に占有していた動産。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>【設問1】BはAに引渡しを請求できるか。<br>① 違約手付の確認があっても<strong>解約手付</strong>を兼ねるか。<br>② Bの残代金持参は<strong>「履行の着手」</strong>か（手付解除の遮断）。<br>③ 弁済提供後もAは<strong>同時履行の抗弁権</strong>を主張できるか。<br>【設問2】BはDに引渡しを請求できるか。<br>④ Cに<strong>即時取得</strong>が成立するか（占有改定の可否）。<br>⑤ 悪意のDは<strong>承継取得</strong>できるか。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 手付の性質決定（設問1）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Bの引渡請求（555条）に対しAが手付解除（557条1項）を主張。まず手付の性質を決める。手付は反対の特約なき限り<strong>解約手付と推定</strong>され、違約手付の約定があっても、それだけでは解約手付性を排除する意思表示とはならず<strong>兼併する</strong>（<span class="case-name">最判昭24.10.4</span>）。本問は排除特約なし → 解約手付性を肯定。ここは一言で足り、深入りしない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 「履行の着手」→手付解除の遮断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>557条1項ただし書は<strong>相手方の履行着手後の解除を封じる</strong>。「履行の着手」とは、客観的に外部から認識し得る形で履行行為の一部をなし、又は履行の提供に欠くことのできない前提行為をした場合をいう（<span class="case-name">最大判昭40.11.24</span>）。解除者Aの相手方Bが<strong>残代金90万円を持参・提供</strong>＝着手済み。よって<strong>Aの手付解除は認められない</strong>（20万円の倍返しの当否は着手後ゆえ論ずるまでもない）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 同時履行の抗弁権（設問1の山場）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>手付解除が封じられても、Aには<strong>同時履行の抗弁権</strong>（533条）が残る。時計引渡債務と残代金債務は対価的牽連関係。Bは一度90万円を提供したが受領拒絶で持ち帰り<strong>提供を継続していない</strong>。抗弁権消滅の本来的効果は提供の継続を要する（<span class="case-name">最判昭34.5.14</span>）→ <strong>Aの抗弁は生き残り</strong>、Bは残代金と<strong>引換給付</strong>でのみ引渡しを受けられる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 即時取得（設問2の核）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Bは占有改定でも<strong>178条の対抗要件を具備</strong>し確定的に所有者 → Aは無権利者。Cは無権利者から買ったにすぎず承継取得できないから、<strong>即時取得（192条）</strong>で処理。即時取得の占有取得は<strong>現実の引渡し等の外観変更</strong>を要し占有改定では足りない（<span class="case-name">最判昭35.2.11</span>）。Cは善意無過失＋<strong>現実の引渡し</strong> → 即時取得成立。Cが確定的所有者に。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 5 · 承継取得→結論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cが完全な権利者となった以上、Cから買ったDは<strong>承継取得の一般原則</strong>で所有権を取得する。前主が権利者なら<strong>承継人の善悪は問わない</strong>から、Dが悪意でも取得は妨げられない（192条を持ち出すまでもない）。<br>帰結＝所有権はDに帰属し、<strong>BはDに引渡しを請求できない</strong>。「Dは悪意だから保護されない」は誤り。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 手付解除
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Deposit Rescission</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 解約手付と違約手付の兼併</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>手付は反対の特約なき限り<strong>解約手付と推定</strong>される。違約手付の定めがあっても、それだけでは解約手付性を排除する反対の意思表示とはならず、両者は<strong>兼併</strong>する。本問は「違約手付である旨の確認」はあるが解約手付を排除する特約はない → 解約手付性を肯定。</p><div class="norm">手付は、反対の特約がない限り解約手付と推定され、違約手付の定めがあっても、それだけでは解約手付性を排除する趣旨とはいえないから、両者は兼併しうる。<span class="norm-cite">— 最判昭24.10.4（民集3-10-437）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 「履行の着手」の意義（客観説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>557条1項ただし書は、相手方が契約の履行に着手した後の手付解除を封じる。「履行の着手」は<strong>客観的基準</strong>で判断する。ただし書は着手により費用・労力を費やした当事者の不測の損害を防ぐ趣旨。</p><div class="norm">「契約の履行に着手」とは、客観的に外部から認識し得るような形で履行行為の一部をなし、又は履行の提供をするために欠くことのできない前提行為をした場合を指す。<span class="norm-cite">— 最大判昭40.11.24（民法百選）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 相手方の着手→解除封じ（本問の帰結）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>ただし書が保護するのは着手した当事者。ゆえに<strong>着手した当事者自身からの解除は妨げられず、その「相手方」が着手したときにのみ解除は封じられる</strong>。本問で解除を主張するのはA、その相手方Bが<strong>残代金90万円を持参・提供</strong>＝履行行為の一部・前提行為。客観的に外部から認識しうる → Bは着手済み → <strong>Aの手付解除は認められない</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-D · 倍返し20万円の扱い（深入り禁物）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>売主の解除は倍額（手付10万×2＝20万円）の<strong>現実の提供</strong>を要する（557条1項本文・平成29年改正で明文化＝旧判例 最判平6.3.22 の明文化）。Aは20万円を提供しており方法は一応充たすが、<strong>そもそも相手方Bの着手後で解除できない</strong>以上、倍返しの当否は結論に影響せず論ずるまでもない。ここに紙幅を割かないのが答案作法。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 同時履行の抗弁権
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Simultaneous Perf.</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 牽連性と抗弁権の存在（533条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>手付解除が封じられても、Aには<strong>同時履行の抗弁権</strong>（533条）が残る。Aの時計引渡債務とBの残代金支払債務は<strong>同一の双務契約（売買）から生じ対価的牽連関係</strong>に立つから、両債務は同時履行の関係にある。抗弁権の存在自体は明らかで、争点は「Bの弁済提供でこの抗弁が消えたか」の一点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 弁済提供の二層効果</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>弁済提供の効果は二層に分かれる。<strong>①存在効果</strong>＝相手方を履行遅滞に陥らせ（受領遅滞・413条）、自らは遅滞責任を免れる（492条）。一回の提供で確定的に生じ<strong>不可逆</strong>。<strong>②本来的効果</strong>＝相手方の履行拒絶権能（同時履行の抗弁権）そのものを消す効果。こちらは<strong>提供を継続しない限り生じず維持されない＝可逆</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 提供不継続→抗弁復活・引換給付</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Bは履行期に90万円を現実に提供したが、Aに受領を拒まれ<strong>持ち帰り提供を継続していない</strong>。よって本来的効果（抗弁権消滅）は維持されず、<strong>Aは再び同時履行の抗弁権を主張できる</strong>。帰結＝Bの引渡請求は認められるが、Aは残代金90万円の支払と<strong>引換給付</strong>としてのみ引渡義務を負う（請求棄却ではなく引換給付判決）。</p><div class="norm">双務契約の当事者の一方は、相手方の履行の提供があっても、その提供が継続されない限り、同時履行の抗弁権を失うものではない。<span class="norm-cite">— 最判昭34.5.14（民集13-5-609）</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論点③ 即時取得・承継取得
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論点③<span class="mm-name-en">Bona Fide Acq.</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-A · Bの対抗要件具備（占有改定でも足りる）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>A→B売買でBは意思表示により所有権を取得（176条）。178条の対抗要件たる「引渡し」には、現実の引渡し（182条1項）だけでなく<strong>占有改定（183条）も含まれる</strong>（判例）。ゆえにBは占有改定により<strong>対抗要件を具備し確定的に所有者</strong>となり、以後Aは無権利者となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-B · Cの承継取得の否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aは既に無権利者であるから、CはAから<strong>承継取得することはできない</strong>。無権利者からの譲受けは原則として無権利。ここを一言否定してから、Cが所有権を得る唯一の道である即時取得（192条）へ進むのが論理の順序。承継取得の否定を落とすと論理が飛ぶ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-C · 即時取得の要件（192条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>即時取得は、<strong>①取引行為</strong>（A・C間の売買）<strong>②平穏・公然③善意・無過失④占有の取得</strong>により成立する。Cは<strong>A・B間の事情を知らずAを所有者と信じており善意・無過失</strong>。取引行為・平穏公然も充たす。残る占有取得の質が次の分岐点。</p><div class="norm">取引行為によって、平穏に、かつ、公然と動産の占有を始めた者は、善意であり、かつ、過失がないときは、即時にその動産について行使する権利を取得する。<span class="norm-cite">— 民法192条</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-D · 占有改定は占有取得に足りない</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>即時取得の「占有を始めた」には<strong>占有改定は含まれず</strong>、一般外観上従来の占有状態に変更を生ずる占有取得（現実の引渡し等）を要する。占有改定では譲渡人が現実占有を続け外観変更がないからである。<strong>本問のCは現実の引渡しを受けている</strong>ため、この要件を充たし即時取得が成立。Cが確定的所有者に。</p><div class="norm">即時取得が成立するためには、一般外観上従来の占有状態に変更を生ずるがごとき占有を取得することを要し、いわゆる占有改定による取得のごときは、これに該当しない。<span class="norm-cite">— 最判昭35.2.11（民集14-2-168）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">03-E · Dの承継取得（悪意でも可）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cが即時取得により<strong>完全な権利者</strong>となった以上、Cから譲り受けたDは<strong>承継取得の一般原則</strong>で所有権を取得する。前主Cが権利者である以上、Dが即時取得の要件（善意無過失）を充たす必要はなく、<strong>Dが悪意であっても取得は妨げられない</strong>。帰結＝所有権はDに帰属し、<strong>BはDに引渡しを請求できない</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 解約手付と違約手付の兼併</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">手付は、反対の特約がない限り解約手付と推定される。違約手付の定めがあっても、それだけでは解約手付性を排除する趣旨とはいえないから、両者は兼併しうる。本問では解約手付を排除する特約がないから、本件手付は解約手付たる性質を有する。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 「履行の着手」＝解除の遮断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">「契約の履行に着手」（557条1項ただし書）とは、客観的に外部から認識し得るような形で履行行為の一部をなし、又は履行の提供をするために欠くことのできない前提行為をした場合をいう。同ただし書は着手した当事者の不測の損害を防ぐ趣旨であるから、解除者の相手方が着手したときに解除は封じられる。<span class="norm-cite">— 履行着手・客観説型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 弁済提供後の同時履行の抗弁</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">弁済の提供によって相手方は受領遅滞に陥り、提供者は遅滞責任を免れる。もっとも、同時履行の抗弁権を消滅させる本来的効果は、履行の提供が継続されない限り生じない。したがって、一度提供した者が提供を継続していないときは、相手方はなお同時履行の抗弁権を行使できる。<span class="norm-cite">— 提供継続必要説型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 即時取得と承継取得</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">即時取得（192条）が成立するには、一般外観上従来の占有状態に変更を生ずるような占有の取得を要し、占有改定はこれに当たらないが、現実の引渡しを受けた者はこれを充たす。前主が即時取得により完全な権利者となった以上、これから譲り受けた者は、その善意・悪意を問わず所有権を承継取得する。<span class="norm-cite">— 即時取得＋承継取得・標準形</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>手付</strong> — 特約なき限り解約手付と推定・違約手付と兼併／「履行の着手」＝客観的に外部から認識しうる履行行為の一部・前提行為・相手方の着手で解除不可<br>② <strong>同時履行</strong> — 抗弁権消滅の本来的効果は提供の継続を要する（存在効果は不可逆・本来的効果は可逆）<br>③ <strong>物権</strong> — 占有改定は対抗要件（178条）には足りるが即時取得（192条）の占有取得には足りない／前主権利者なら承継人の善悪不問</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 4 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判昭24.10.4</span> — 違約手付と解約手付の兼併<br>② <span class="case-name">最大判昭40.11.24</span> — 「履行の着手」の定義（民法百選）<br>③ <span class="case-name">最判昭34.5.14</span> — 提供の継続なき限り同時履行の抗弁権は失われない<br>④ <span class="case-name">最判昭35.2.11</span> — 占有改定による即時取得の否定</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 売買 — 555条／手付 — 557条1項（＋ただし書）<br>· 同時履行の抗弁権 — 533条／受領遅滞 — 413条／弁済提供 — 492条・493条<br>· 物権変動意思主義 — 176条／動産対抗要件 — 178条／占有改定 — 183条<br>· 即時取得 — 192条／盗品遺失物特則 — 193条・194条<br>· 金額 — 代金100万・手付10万・倍返し20万・残代金90万・第2売買150万</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「客観的に外部から認識し得る形で履行行為の一部」<br>· 「相手方の着手により解除は封じられる」<br>· 「提供が継続されない限り抗弁権を失わない」<br>· 「存在効果は不可逆・本来的効果は可逆」<br>· 「占有改定は対抗要件には足りるが即時取得には足りない」<br>· 「前主が権利者なら承継人の善悪を問わない」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 手付解除を封じる事実</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「違約手付である旨の確認」はあるが<strong>解約手付を排除する特約はない</strong>（→ 兼併・解約手付性肯定）／Bが<strong>履行期に残代金90万円を現実に持参し支払を申し出た</strong>（→ 相手方Bの「履行の着手」）。<br>──解除者Aの相手方が着手済み＝Aの手付解除は封じられる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 同時履行の抗弁を残す事実</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>時計引渡債務と残代金債務は<strong>同一売買契約から生じ牽連関係</strong>／Bは90万円を提供したがAが<strong>受領を拒絶</strong>し、Bは<strong>これを持ち帰り提供を継続していない</strong>。<br>──本来的効果は維持されず、Aの同時履行の抗弁権は生き残る＝引換給付。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 即時取得を基礎づける事実</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Bへの引渡しは<strong>占有改定</strong>（→ 178条の対抗要件は具備・Aは無権利者）／CはA・B間の事情を<strong>何も知らずAを所有者と信じた</strong>（→ 善意・無過失）／Cは本件時計の<strong>現実の引渡し</strong>を受けた（→ 外観変更ある占有取得）。<br>──Cに即時取得が成立し確定的所有者となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 承継取得に関わる事実（Dの悪意は無害）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cは即時取得後、<strong>一連のやりとりに悪意のD</strong>へ売却・引渡し。<br>──前主Cが完全な権利者である以上、Dの悪意は結論を左右せず、Dは承継取得する。BはDに請求できない。時計は盗品・遺失物ではないため193条の回復請求も生じない。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 違約手付＝解約手付でないと即断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「違約手付の確認があるから解約手付ではない」と結論づけるのは誤り。<strong>両者は兼併しうる</strong>（最判昭24.10.4）。ただし対立が激しい論点ではないので、兼併を一言指摘すれば足り、長く書くと逆に印象を損なう。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 「履行の着手」の規範を立てず即あてはめ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>残代金持参の事実だけで結論を出すのは危険。<strong>最大判昭40.11.24の定義を明示</strong>し、さらに<strong>「着手した当事者からは解除可・その相手方の着手で不可」</strong>の区別を落とさない。本問はAの相手方Bが着手した点が要。ここが配点の山。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 手付解除で筆を止める</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「手付解除は封じられるから終わり」で止めるのが最大の取りこぼし。一つの反論が潰れても相手方には次の反論がある。<strong>同時履行の抗弁権（533条）へ必ず進む</strong>のが本問の二段構え。事前の抗弁を常に検討する姿勢が答案の厚みを生む。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 一度の提供で同時履行の抗弁が消えたと即断／請求棄却</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「Bが一度払うと言ったから抗弁は消えた」は誤り。<strong>本来的効果は提供の継続を要する</strong>（最判昭34.5.14）。存在効果と本来的効果を分けて論ずるのが得点源。また抗弁が認められる帰結は<strong>請求棄却ではなく引換給付判決</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 占有改定の二面性を混同／悪意Dに飛びつく</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>占有改定を<strong>対抗要件（足りる）と即時取得（足りない）で書き分けない</strong>と設問2が崩れる。Cが現実の引渡しを受けた事実を必ず拾う。最後に<strong>「Dは悪意だから保護されない」と早とちりしない</strong>——Cが完全な所有者となった以上、Dは悪意でも承継取得する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5・6 の見出しのみ通読。リーフはすべて閉じておく。設問1（手付解除→同時履行）と設問2（即時取得→承継取得）の二本の流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。「解約手付推定→着手→提供継続→占有改定→承継」の骨格を暗唱。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5・6 のサブ論点を開き、LV 2（3 問）を解く。<strong>着手した当事者／相手方の区別</strong>と<strong>占有改定の二面性</strong>を意識して差のつく論点を潰す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 7（論証文言）・Branch 9（事実）・LV 4（2 問）で答案骨格を仕上げる。存在効果と本来的効果、引換給付の帰結まで書き切る訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 10（失点パターン）・LV 3（3 問）で規範の口頭再生を完成。「相手方の着手」「提供の継続」「占有改定の二面性」を声に出して確認する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外はすべて閉じる。4 判例と条文番号・金額を高速回転させる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例条文<span class="mm-name-en">Cases &amp; Codes</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和24年10月4日</span><span class="mm-leaf-sub"><em>Deposit · Penalty &amp; Rescission</em> · 民集3-10-437</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>違約手付と解約手付の兼併の基本判例</strong>。違約手付の条項があるだけでは（特に手付が違約のためのみに授受されたと表れない限り）解約手付を否定する反対の意思表示とはならないとした。<em>射程</em> — 手付は反証なき限り解約手付と推定される。本問の解約手付性肯定の根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最大判昭和40年11月24日</span><span class="mm-leaf-sub"><em>Commencement of Performance</em> · 民集19-8-2019・百選</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>「履行の着手」の定義判例</strong>。着手とは「客観的に外部から認識し得るような形で履行行為の一部をなし又は履行の提供をするために欠くことのできない前提行為をした場合」。着手した当事者自身からの解除は妨げられない。<em>射程</em> — Bの残代金持参・提供を「相手方の着手」と評価し、Aの手付解除を封じる直接の根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和34年5月14日</span><span class="mm-leaf-sub"><em>Continuation of Tender</em> · 民集13-5-609</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>弁済提供と同時履行の抗弁権の消長</strong>。相手方の履行の提供があっても、その提供が継続されない限り同時履行の抗弁権を失わないとした。<em>射程</em> — 弁済提供の存在効果（不可逆）と本来的効果（可逆）を分ける前提。Bの提供不継続によりAの抗弁権が生き残る根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和35年2月11日</span><span class="mm-leaf-sub"><em>Bona Fide Acq. · Constructive Delivery</em> · 民集14-2-168</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>占有改定による即時取得の否定判例</strong>。即時取得には「一般外観上従来の占有状態に変更を生ずるがごとき占有」の取得を要し、占有改定はこれに該当しないとした。<em>射程</em> — 占有改定では即時取得は成立しない。本問のCは<strong>現実の引渡し</strong>を受けているため要件を充たす、と分岐させる根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法557条1項</span><span class="mm-leaf-sub"><em>Civil Code, art. 557(1) · Earnest Money</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>買主は手付を放棄し、売主はその倍額を<strong>現実に提供して</strong>契約を解除できる（本文）。ただし相手方が履行に着手した後はこの限りでない（ただし書）。<em>射程</em> — 「現実に提供」は平成29年改正で明文化（旧・最判平6.3.22）。本問はAの相手方Bの着手ゆえただし書で解除不可。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法533条</span><span class="mm-leaf-sub"><em>art. 533 · Defence of Simultaneous Performance</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>双務契約の当事者は、相手方が債務の履行を提供するまでは自己の債務の履行を拒める。<em>射程</em> — 時計引渡債務と残代金債務の対価的牽連関係が基礎。Bの提供が継続しない以上、Aは引換給付の限度でのみ引渡義務を負う。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法178条・183条</span><span class="mm-leaf-sub"><em>arts. 178 &amp; 183 · Delivery / Constructive Possession</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>178条は動産物権変動の対抗要件を「引渡し」とし、183条は占有改定を定める。<em>射程</em> — 判例上178条の「引渡し」には<strong>占有改定も含まれる</strong>。ゆえにBは占有改定で対抗要件を具備し確定的所有者となり、Aは無権利者となる。即時取得（192条）とは占有改定の扱いが逆になる点が核心。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法192条</span><span class="mm-leaf-sub"><em>art. 192 · Immediate Acquisition</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>取引行為により平穏・公然・善意・無過失で動産の占有を始めた者は即時に権利を取得する。<em>射程</em> — 動産の占有への信頼を保護し取引の安全を図る制度。真の権利者から権利を奪う強力な制度ゆえ、占有取得は現実の引渡し等の外観変更を要する（最判昭35.2.11）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法176条・177条</span><span class="mm-leaf-sub"><em>arts. 176 &amp; 177 · Real Rights</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>176条は物権変動の意思主義（A→Bの意思表示でBが所有権取得）、177条は不動産の対抗要件（登記）。<em>射程</em> — 不動産には即時取得の適用がなく登記で公示する。動産特有の即時取得制度との対比で本問の位置づけを確認する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">承継取得の一般原則（前主権利者説）</span><span class="mm-leaf-sub"><em>Derivative Acquisition</em> · 通説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>前主が完全な権利者である場合、承継人はその<strong>善意・悪意を問わず</strong>権利を承継取得する。<em>射程</em> — Cが即時取得で完全な所有者となった以上、Cから買った悪意のDも所有権を取得する（192条を要しない）。「悪意だから保護されない」との早とちりを断つ根拠。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">違約手付の確認がある手付は、解約手付たりうるか？</span></summary>
+                  <div class="mm-q-answer">たりうる。手付は特約なき限り<span class="kw">解約手付と推定</span>され、違約手付の定めがあっても解約手付性を排除する趣旨とはいえず<span class="kw">兼併</span>する（最判昭24.10.4）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">557条1項ただし書の「履行の着手」の定義は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">客観的に外部から認識し得る形で履行行為の一部をなし、又は履行の提供に欠くことのできない前提行為をした</span>場合（最大判昭40.11.24）。<span class="verb">相手方</span>が着手すると解除は封じられる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">一度弁済提供すれば同時履行の抗弁権は確定的に消えるか？</span></summary>
+                  <div class="mm-q-answer">消えない。抗弁権消滅の<span class="kw">本来的効果は提供の継続を要する</span>（最判昭34.5.14）。存在効果（遅滞責任の消長）は一回で確定するが、抗弁権自体は<span class="verb">提供不継続</span>なら復活。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">即時取得の占有取得に占有改定は含まれるか？</span></summary>
+                  <div class="mm-q-answer">含まれない。<span class="kw">一般外観上従来の占有状態に変更を生ずる占有取得</span>（現実の引渡し等）を要する（最判昭35.2.11）。占有改定では即時取得は成立しない。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">解除を主張するA自身が履行に着手していた場合、Aは手付解除できるか？</span></summary>
+                  <div class="mm-q-answer">できる。ただし書は<span class="kw">着手した当事者の不測の損害を防ぐ趣旨</span>だから、着手した当事者自身からの解除は妨げられない。封じられるのは<span class="verb">相手方が着手したとき</span>のみ。本問は相手方Bが着手ゆえA不可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">同時履行の抗弁権が認められると、判決主文はどうなるか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">引換給付判決</span>（「被告は原告から90万円の支払を受けるのと引換えに時計を引き渡せ」）。請求棄却ではない点に注意。本問のBの引渡請求は引換給付の限度で認容される。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">もしCが占有改定で引渡しを受けていたら、即時取得は成立するか？</span></summary>
+                  <div class="mm-q-answer">成立しない（最判昭35.2.11）。占有改定では外観変更がないため。本問のCは<span class="kw">現実の引渡し</span>を受けているから成立する。<span class="verb">占有改定は対抗要件（178条）には足りるが即時取得には足りない</span>という非対称が核心。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">「履行の着手」＋着手当事者の保護の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">「契約の履行に着手」とは、客観的に外部から認識し得るような形で履行行為の一部をなし、又は履行の提供をするために欠くことのできない前提行為をした場合をいい、ただし書は着手した当事者を保護する趣旨であるから、解除者の相手方が着手したときに解除は封じられる。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">弁済提供後の同時履行の抗弁権の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">弁済の提供によって相手方は受領遅滞に陥り提供者は遅滞責任を免れるが、同時履行の抗弁権を消滅させる本来的効果は履行の提供が継続されない限り生じないから、提供を継続していない者に対しては、相手方はなお同時履行の抗弁権を行使できる。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">占有改定の二面性＋承継取得の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">178条の対抗要件たる引渡しには占有改定も含まれるが、即時取得（192条）の占有取得には一般外観上従来の占有状態に変更を生ずる占有を要し占有改定は当たらない。前主が即時取得により完全な権利者となった以上、承継人はその善悪を問わず所有権を取得する。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">設問1を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">Bの引渡請求（555条）→ <span class="kw">反論①手付解除（解約手付性は一言・「履行の着手」のあてはめ 30%）→ 反論②同時履行の抗弁（存在効果と本来的効果の区別＋提供不継続 35%）→ 引換給付の帰結 15%</span>。手付解除で止めない二段構えが要。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">設問2でCの承継取得を先に否定するのはなぜか？</span></summary>
+                  <div class="mm-q-answer">Bが占有改定で対抗要件を具備しAは<span class="kw">無権利者</span>となるから、CはAから承継取得できない。まず承継取得を否定し、Cが所有権を得る唯一の道である<span class="verb">即時取得（192条）</span>へ進む論理の順序を示すため。ここを飛ばすと論理が飛ぶ。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">相手方が残代金を持参・提供 → ？</span></summary>
+                  <div class="mm-q-answer">相手方の履行の着手＝手付解除不可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">提供したが受領拒絶で持ち帰り → ？</span></summary>
+                  <div class="mm-q-answer">提供不継続＝同時履行の抗弁は生存・引換給付。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">現実の引渡し＋善意無過失 → 前主権利者から悪意者へ → ？</span></summary>
+                  <div class="mm-q-answer">Cが即時取得、悪意Dも承継取得。BはDに請求不可。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XLV — 手付解除・同時履行・即時取得 · 13 chapters · 4 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-08-30T07:26+09:00">Generated: 2026-08-30 07:26 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
