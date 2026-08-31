@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""v13v-inject.py ── §v13v「📖 ものがたり」の決定論注入。
+"""v13v-inject.py ── §v13v/§v13w「📖 CONTEXT」帯の決定論注入。
 
 usage: python3 v13v-inject.py <file.html> <payload.json> [--force]
 
@@ -8,8 +8,9 @@ payload 形式:
 {
   "stmts": [
     {"n": "1",
-     "story": "…物語全体の物差し＋当該記述の要約 2〜3文（HTML 可・<b> のみ）…",
-     "example": "…具体例 1〜3文（たとえば小箱の中身）…"},
+     "story": "…体系的位置づけ→趣旨→考え方のコツ（HTML 可・<b> のみ）…",
+     "practice": "…⚙ IN PRACTICE 小箱＝実務での動き方 1〜2文（省略可）…",
+     "example": "…\U0001F4C1 CASE FILE 小箱＝実名の具体例 1〜3文（省略可）…"},
     ...全記述分
   ]
 }
@@ -25,7 +26,8 @@ import io
 import json
 import sys
 
-EX = "<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>{}</span>"
+PRAC = "<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>\u2699 IN PRACTICE</span>{}</span>"
+EX = "<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>\U0001F4C1 CASE FILE</span>{}</span>"
 
 
 def main():
@@ -49,8 +51,13 @@ def main():
     for item in payload['stmts']:
         stmt = str(item['n'])
         story = item['story'].strip()
+        practice = (item.get('practice') or '').strip()
         example = (item.get('example') or '').strip()
-        body = story + (EX.format(example) if example else '')
+        body = story
+        if practice:
+            body += PRAC.format(practice)
+        if example:
+            body += EX.format(example)
         assert '"' not in body, '記述%s: 二重引用符は属性を壊す。「」を使う' % stmt
 
         key = '<tr data-stmt="%s" data-verdict=' % stmt
