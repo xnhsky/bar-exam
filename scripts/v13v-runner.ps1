@@ -59,15 +59,20 @@ function Save-SLedger { param($Ledger)
     $Ledger | ConvertTo-Json -Depth 4 | Out-File -FilePath $LedgerPath -Encoding utf8
 }
 
-# === 旧型（出題構造型）判定：ものがたり本文が短い＝2026-08-27 以前の型（新型は 250〜400字）===
-#   新型（体系・趣旨・コツ・実務の4層）は必ず 200 字を超える。1 行でも 200 字未満なら旧型とみなす。
+# === 旧型判定（2026-08-31 §v13w 対応）===
+#   ①3枚化されていない（⚙ IN PRACTICE の .tx-vb-prac が無い）＝§v13w 以前 → 旧型。
+#   ②地の文（practice / CASE FILE を除いた本体）が 200 字未満＝2026-08-27 以前の出題構造型 → 旧型。
+#   1 行でも該当すればそのファイルを旧型とみなす。
 function Test-V13vLegacy {
     param([string]$Path)
     $raw = Get-Content -Raw -Encoding UTF8 -LiteralPath $Path
     foreach ($m in [regex]::Matches($raw, 'data-brief-story="([^"]*)"')) {
         $body = $m.Groups[1].Value
-        $i = $body.IndexOf("<span class='tx-vb-ex'")
-        if ($i -ge 0) { $body = $body.Substring(0, $i) }
+        if ($body -notmatch "tx-vb-prac") { return $true }
+        foreach ($cls in @("tx-vb-prac", "tx-vb-ex")) {
+            $i = $body.IndexOf("<span class='$cls'")
+            if ($i -ge 0) { $body = $body.Substring(0, $i) }
+        }
         $body = [regex]::Replace($body, '<[^>]+>', '')
         if ($body.Length -lt 200) { return $true }
     }
@@ -154,7 +159,7 @@ foreach ($t in $queue) {
     $prompt = $promptTemplate.Replace('{FILE}', $t.Rel)
     if ($Rewrite) {
         $prompt = $prompt + "`n`n## 今回は旧型の書き直し（-Rewrite）`n" +
-            "対象ファイルには 2026-08-27 以前の旧型（出題構造型）の data-brief-story が既に入っている。" +
+            "対象ファイルには旧型（出題構造型、または §v13w 以前の1枚もの）の data-brief-story が既に入っている。" +
             "全記述を新型（体系・趣旨・コツ・実務＋具体例）で書き直し、注入は必ず --force を付けて実行する" +
             "（python -X utf8 scripts/v13v-inject.py " + $t.Rel + " <payload> --force）。" +
             "--force なしでは既存行がスキップされ、旧型が残る。`n"
@@ -186,7 +191,7 @@ foreach ($t in $queue) {
             Write-Host "[S] $($t.Id) PASS（-NoCommit のため作業ツリーに保持）" -ForegroundColor Green
         } else {
             & git -C $ProjectRoot add -- $t.Rel
-            & git -C $ProjectRoot commit -m $(if ($Rewrite) { "feat($($t.Id)): 📖ものがたり帯を体系・趣旨・実務型へ改訂（§v13v・TJR-S）" } else { "feat($($t.Id)): 正誤表に📖ものがたり帯を執筆（§v13v・TJR-S）" }) 2>&1 | Out-Null
+            & git -C $ProjectRoot commit -m $(if ($Rewrite) { "feat($($t.Id)): 📖CONTEXT帯を3枚化＋実名CASE FILEへ改訂（§v13w・TJR-S）" } else { "feat($($t.Id)): 正誤表に📖CONTEXT帯を執筆（§v13v/§v13w・TJR-S）" }) 2>&1 | Out-Null
             if ($LASTEXITCODE -eq 0) {
                 if (-not $NoPush) { [void](Invoke-TjrSafePush -ProjectRoot $ProjectRoot -Label "S $($t.Id)") }
                 Write-Host "[S] $($t.Id) commit 完了" -ForegroundColor Green
