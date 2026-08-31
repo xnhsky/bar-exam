@@ -1,6 +1,8 @@
 # v13v-runner.ps1 — TJR-S（§v13v「📖 ものがたり」付随・特別枠）エンジン（2026-08-22 新設）
 #   正誤表の各記述に data-brief-story（物語全体＋当該記述の要約＋具体例）が未執筆の `_lex` を、
-#   **民法を最優先・次に刑法**の順に若番から MaxProblems 件ずつ headless（claude -p）で執筆 →
+#   **2 レーン並行**（2026-08-31 ユーザー指示）で若番から headless（claude -p）で執筆 →
+#     ①これから学習する科目レーン＝**刑訴 → 民法 → 民訴 → 商法 → 憲法 → 行政法**（MaxProblems 件）
+#     ②学習済みの過去分レーン＝**刑法**（MaxKeiho 件・既定 10）。両レーンを毎バッチ同時に流す。
 #   validate-tx-core／check-tx-lex-engine PASS 時のみ 1 問ずつ git commit/push する。
 #   土台（TX-VERDICT-STORY の CSS＋appendStoryLine）が無いファイルは、実行前に決定論ツール
 #   scripts/tx-lex-verdict-redesign.py で注入してから執筆させる（刑法は未伝播のためここで入る）。
@@ -8,9 +10,10 @@
 #   正典：docs/v13v-handover.md（レシピ）／docs/run-patterns.md（S 節）。プロンプト：prompts/v13v-headless.md。
 #   二台衝突対策：tjr-claim（予約 ID = {問題ID}_v13v・リモート版が既に執筆済みなら SKIP）。
 param(
-    [int]$MaxProblems = 10,            # 1 バッチの処理件数（TJR 特別枠の既定＝10・ユーザー指示 2026-08-22）
-    [ValidateSet('', '民法', '刑法', '刑訴')]
-    [string]$Subject = '',             # 空＝優先順（民法→刑法→刑訴）で自動充当
+    [int]$MaxProblems = 10,            # 学習科目レーンの 1 バッチ件数（既定 10）
+    [int]$MaxKeiho = 10,               # 刑法レーン（学習済みの過去分）の 1 バッチ件数（既定 10・ユーザー指示 2026-08-31）
+    [ValidateSet('', '刑訴', '民法', '民訴', '商法', '憲法', '行政法', '刑法')]
+    [string]$Subject = '',             # 空＝2 レーン並行／明示時はその科目だけを流す
     [int]$FromNumber = 0,
     [int]$ToNumber = 0,
     [string]$Model = 'claude-opus-5',  # Q と同じく Opus 5 固定
@@ -31,13 +34,27 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-# 科目の優先順（ユーザー指示 2026-08-22＝民法を優先的に、次いで刑法。刑訴はセッション側で消化中）
-$SubjectOrder = @(
-    [pscustomobject]@{ Key = '民法'; Rel = 'outputs/ux/000_TX/003_民法';         Prefix = '民TX' },
-    [pscustomobject]@{ Key = '刑法'; Rel = 'outputs/ux/000_TX/001_刑法';         Prefix = '刑TX' },
-    [pscustomobject]@{ Key = '刑訴'; Rel = 'outputs/ux/000_TX/002_刑事訴訟法';   Prefix = '刑訴TX' }
+# === 科目レーン（ユーザー指示 2026-08-31）=========================================
+# レーン①「これから学習する科目」＝②刑訴 ③民法 ④民訴 ⑤商法 ⑥憲法 ⑦行政法 の順（TJR の科目検知順から
+#   ①刑法を抜いたもの）。既存分と将来生成される分を、この順で若番から消化する。
+# レーン②「学習済みの過去分」＝刑法。量が大きい（_lex 427 本）ので独立レーンにし、毎バッチ MaxKeiho 件
+#   （既定 10）を並行して流す。レーン①の進み具合に影響されない。
+$LearningOrder = @(
+    [pscustomobject]@{ Key = '刑訴';   Rel = 'outputs/ux/000_TX/002_刑事訴訟法'; Prefix = '刑訴TX' },
+    [pscustomobject]@{ Key = '民法';   Rel = 'outputs/ux/000_TX/003_民法';       Prefix = '民TX' },
+    [pscustomobject]@{ Key = '民訴';   Rel = 'outputs/ux/000_TX/005_民事訴訟法'; Prefix = '民訴TX' },
+    [pscustomobject]@{ Key = '商法';   Rel = 'outputs/ux/000_TX/004_商法';       Prefix = '商TX' },
+    [pscustomobject]@{ Key = '憲法';   Rel = 'outputs/ux/000_TX/007_憲法';       Prefix = '憲TX' },
+    [pscustomobject]@{ Key = '行政法'; Rel = 'outputs/ux/000_TX/006_行政法';     Prefix = '行政TX' }
 )
-if ($Subject) { $SubjectOrder = @($SubjectOrder | Where-Object { $_.Key -eq $Subject }) }
+$KeihoLane = @(
+    [pscustomobject]@{ Key = '刑法'; Rel = 'outputs/ux/000_TX/001_刑法'; Prefix = '刑TX' }
+)
+if ($Subject) {
+    $LearningOrder = @($LearningOrder | Where-Object { $_.Key -eq $Subject })
+    $KeihoLane     = @($KeihoLane     | Where-Object { $_.Key -eq $Subject })
+    if ($KeihoLane.Count -gt 0) { $MaxKeiho = $MaxProblems }   # -Subject 刑法 は刑法だけを MaxProblems 件
+}
 
 $PromptFile  = Join-Path $ProjectRoot 'prompts\v13v-headless.md'
 $ValidatePy  = Join-Path $ProjectRoot 'scripts\validate-tx-core.py'
@@ -82,8 +99,9 @@ function Test-V13vLegacy {
 # === 対象検出：data-brief-story を 1 つも持たない `_lex`（科目優先順→若番）===
 #   正誤表（statement-verdict-table）が無いファイルは対象外（ものがたり帯の置き場所が無い）。
 function Get-STargets {
+    param([object[]]$Subjects)
     $items = @()
-    foreach ($subj in $SubjectOrder) {
+    foreach ($subj in $Subjects) {
         $dir = Join-Path $ProjectRoot ($subj.Rel -replace '/', '\')
         if (-not (Test-Path $dir)) { continue }
         Get-ChildItem -LiteralPath $dir -Filter '*_lex.html' | ForEach-Object {
@@ -104,26 +122,35 @@ function Get-STargets {
             }
         }
     }
-    # 科目は SubjectOrder の並び（民法→刑法→刑訴）を保ったまま、科目内は若番順
+    # 科目はレーン内の並びを保ったまま、科目内は若番順
     $rank = @{}
-    for ($i = 0; $i -lt $SubjectOrder.Count; $i++) { $rank[$SubjectOrder[$i].Key] = $i }
+    for ($i = 0; $i -lt $Subjects.Count; $i++) { $rank[$Subjects[$i].Key] = $i }
     return @($items | Sort-Object @{Expression = { $rank[$_.Subject] } }, Num)
 }
 
 if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
-$targets = Get-STargets
+# 2 レーンを別々に集め、それぞれの上限で切ってから合流する（刑法がレーン①を押し出さない）
+$learnTargets = if ($LearningOrder.Count) { @(Get-STargets -Subjects $LearningOrder) } else { @() }
+$keihoTargets = if ($KeihoLane.Count)     { @(Get-STargets -Subjects $KeihoLane)     } else { @() }
+$targets = @($learnTargets) + @($keihoTargets)
 if ($targets.Count -eq 0) {
     Write-Host $(if ($Rewrite) { "[S] 該当なし＝旧型のものがたり帯は残っていない（-Rewrite）" } else { "[S] 該当なし＝§v13v 特別枠は完遂（対象科目の全 _lex にものがたり帯あり）" }) -ForegroundColor Green
     exit 0
 }
 $ledgerSuffix = if ($Rewrite) { '#rw' } else { '' }
 $ledger = Read-SLedger
-$queue = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -lt 2 } | Select-Object -First $MaxProblems)
+$notEscalated = { param($x) [int]($ledger["$($x.Id)$ledgerSuffix"] ?? 0) -lt 2 }
+$queue = @(
+    @($learnTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxProblems) +
+    @($keihoTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxKeiho)
+)
 $escalated = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -ge 2 })
 $byS = ($targets | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
-Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件（model={4}）" -f `
-    $targets.Count, $byS, $escalated.Count, $queue.Count, $Model) -ForegroundColor Cyan
+Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件＝学習レーン {4}＋刑法レーン {5}（model={6}）" -f `
+    $targets.Count, $byS, $escalated.Count, $queue.Count,
+    @($queue | Where-Object { $_.Subject -ne '刑法' }).Count,
+    @($queue | Where-Object { $_.Subject -eq '刑法' }).Count, $Model) -ForegroundColor Cyan
 if ($queue.Count -eq 0) {
     Write-Host "[S] 残件は全て ESCALATE 済（logs\tjr-repair-report.md 参照）。人手判断待ち。" -ForegroundColor Yellow
     exit 0

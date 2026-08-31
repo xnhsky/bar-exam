@@ -71,7 +71,8 @@ param(
     [int]$MaxF  = 3,              # F の TX 修復再生成 上限/バッチ（回収コミットは無制限＝安価なため）
     [int]$MaxFJx = 1,             # F の JX 修復再生成 上限/バッチ（JX は 1〜2 時間/問のため既定 1）
     [int]$MaxQ  = 10,             # Q の基本単位（2026-07-28 ユーザー指示＝10個ずつ・完遂まで）
-    [int]$MaxS  = 10,             # S の基本単位（2026-08-22 ユーザー指示＝民法優先で10個ずつ）
+    [int]$MaxS  = 10,             # S 学習科目レーン（刑訴→民法→民訴→商法→憲法→行政法）の基本単位
+    [int]$MaxSKeiho = 10,         # S 刑法レーン（学習済みの過去分）の基本単位（2026-08-31 ユーザー指示＝10個ずつ並行）
     [switch]$NoPush,
     [switch]$DryRun,
     [string]$ProjectRoot = ''
@@ -455,7 +456,7 @@ function Invoke-SStream {
     if ($NoPush) { $p.NoPush = $true }
     if ($DryRun) { $p.DryRun = $true }
     if ($Rewrite) { $p.Rewrite = $true }
-    $label = if ($Rewrite) { 'S（§v13v ものがたり・旧型を新型へ改訂）' } else { 'S（§v13v ものがたり付随・民法優先）' }
+    $label = if ($Rewrite) { 'S（§v13w CONTEXT・旧型を新型へ改訂）' } else { 'S（§v13w CONTEXT 付随・学習科目レーン＋刑法レーン並行）' }
     Write-Host "`n———————— $label 開始 ————————" -ForegroundColor Green
     & $SRunner @p | Out-Host
     return $LASTEXITCODE
@@ -537,11 +538,11 @@ for ($b = 1; $b -le $batchCount; $b++) {
     }
     $rcS = 0
     if ($runS) {
-        if ($sPend -gt 0) { $rcS = Invoke-SStream -Max $MaxS }
+        if ($sPend -gt 0) { $rcS = Invoke-SStream -Max $MaxS -MaxKeiho $MaxSKeiho }
         else {
             # 未執筆が尽きたら、旧型（出題構造型・2026-08-27 以前）の書き直しへ自動フォールバック
             # （ユーザー指示 2026-08-28「その他は TJR の付随で処理」。旧型ゼロならランナーが即「該当なし」）
-            $rcS = Invoke-SStream -Max $MaxS -Rewrite
+            $rcS = Invoke-SStream -Max $MaxS -MaxKeiho $MaxSKeiho -Rewrite
         }
     }
 
