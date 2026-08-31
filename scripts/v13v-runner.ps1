@@ -1,6 +1,10 @@
 # v13v-runner.ps1 — TJR-S（§v13v「📖 ものがたり」付随・特別枠）エンジン（2026-08-22 新設）
 #   正誤表の各記述に data-brief-story（物語全体＋当該記述の要約＋具体例）が未執筆の `_lex` を、
-#   **民法を最優先・次に刑法**の順に若番から MaxProblems 件ずつ headless（claude -p）で執筆 →
+#   **仕事のある科目へ均等に配る**（ラウンドロビン・2026-08-31 ユーザー指示）。1 バッチ MaxProblems 件を
+#   科目へ 1 本ずつ順に配り、科目内は若番から headless（claude -p）で執筆 →
+#   全教科を順に回して一巡したらまた戻る、という学習の仕方に合わせ、**どの科目も同じペースで改訂される**
+#   ようにする。学習の進度を手で設定に書かない（書くと更新が止まった瞬間に実態とズレる）。
+#   いま学習中の科目へ寄せたいときだけ -Subject を添える（「TJR処理 刑訴」）。
 #   validate-tx-core／check-tx-lex-engine PASS 時のみ 1 問ずつ git commit/push する。
 #   土台（TX-VERDICT-STORY の CSS＋appendStoryLine）が無いファイルは、実行前に決定論ツール
 #   scripts/tx-lex-verdict-redesign.py で注入してから執筆させる（刑法は未伝播のためここで入る）。
@@ -8,9 +12,9 @@
 #   正典：docs/v13v-handover.md（レシピ）／docs/run-patterns.md（S 節）。プロンプト：prompts/v13v-headless.md。
 #   二台衝突対策：tjr-claim（予約 ID = {問題ID}_v13v・リモート版が既に執筆済みなら SKIP）。
 param(
-    [int]$MaxProblems = 10,            # 1 バッチの処理件数（TJR 特別枠の既定＝10・ユーザー指示 2026-08-22）
-    [ValidateSet('', '民法', '刑法', '刑訴')]
-    [string]$Subject = '',             # 空＝優先順（民法→刑法→刑訴）で自動充当
+    [int]$MaxProblems = 10,            # 1 バッチの処理件数（既定 10）。仕事のある科目へ均等に配る。
+    [ValidateSet('', '刑訴', '民法', '民訴', '商法', '憲法', '行政法', '刑法')]
+    [string]$Subject = '',             # 空＝2 レーン並行／明示時はその科目だけを流す
     [int]$FromNumber = 0,
     [int]$ToNumber = 0,
     [string]$Model = 'claude-opus-5',  # Q と同じく Opus 5 固定
@@ -31,12 +35,22 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-# 科目の優先順（ユーザー指示 2026-08-22＝民法を優先的に、次いで刑法。刑訴はセッション側で消化中）
+# === 科目の並び（ラウンドロビンの配り順・2026-08-31 ユーザー指示）=======================
+#   既定は「仕事のある科目へ均等に配る」。学習の進度を設定に書かないので、更新の手間も、
+#   実態とズレたまま回り続ける事故も起きない（全教科を順に回して一巡したらまた戻る運用に合わせた）。
+#   いま学習中の科目へ寄せたいときは -Subject を明示する（TJR からは「TJR処理 刑訴」で伝わる）。
+#   この並びは配る順序と表示順を決めるだけで、優先度の重みではない（配分は均等）。
+#   正典＝docs/run-patterns.md「既存展開の配り方（仕事のある科目へ均等に配る）」。
 $SubjectOrder = @(
-    [pscustomobject]@{ Key = '民法'; Rel = 'outputs/ux/000_TX/003_民法';         Prefix = '民TX' },
-    [pscustomobject]@{ Key = '刑法'; Rel = 'outputs/ux/000_TX/001_刑法';         Prefix = '刑TX' },
-    [pscustomobject]@{ Key = '刑訴'; Rel = 'outputs/ux/000_TX/002_刑事訴訟法';   Prefix = '刑訴TX' }
+    [pscustomobject]@{ Key = '刑法';   Rel = 'outputs/ux/000_TX/001_刑法';       Prefix = '刑TX' },
+    [pscustomobject]@{ Key = '刑訴';   Rel = 'outputs/ux/000_TX/002_刑事訴訟法'; Prefix = '刑訴TX' },
+    [pscustomobject]@{ Key = '民法';   Rel = 'outputs/ux/000_TX/003_民法';       Prefix = '民TX' },
+    [pscustomobject]@{ Key = '民訴';   Rel = 'outputs/ux/000_TX/005_民事訴訟法'; Prefix = '民訴TX' },
+    [pscustomobject]@{ Key = '商法';   Rel = 'outputs/ux/000_TX/004_商法';       Prefix = '商TX' },
+    [pscustomobject]@{ Key = '憲法';   Rel = 'outputs/ux/000_TX/007_憲法';       Prefix = '憲TX' },
+    [pscustomobject]@{ Key = '行政法'; Rel = 'outputs/ux/000_TX/006_行政法';     Prefix = '行政TX' }
 )
+# -Subject 明示時＝いま学習中の科目へ寄せる。その科目だけを全番号あたる。
 if ($Subject) { $SubjectOrder = @($SubjectOrder | Where-Object { $_.Key -eq $Subject }) }
 
 $PromptFile  = Join-Path $ProjectRoot 'prompts\v13v-headless.md'
@@ -104,7 +118,7 @@ function Get-STargets {
             }
         }
     }
-    # 科目は SubjectOrder の並び（民法→刑法→刑訴）を保ったまま、科目内は若番順
+    # 科目は SubjectOrder の並びを保ったまま、科目内は若番順
     $rank = @{}
     for ($i = 0; $i -lt $SubjectOrder.Count; $i++) { $rank[$SubjectOrder[$i].Key] = $i }
     return @($items | Sort-Object @{Expression = { $rank[$_.Subject] } }, Num)
@@ -112,18 +126,42 @@ function Get-STargets {
 
 if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
-$targets = Get-STargets
+$targets = @(Get-STargets)
 if ($targets.Count -eq 0) {
     Write-Host $(if ($Rewrite) { "[S] 該当なし＝旧型のものがたり帯は残っていない（-Rewrite）" } else { "[S] 該当なし＝§v13v 特別枠は完遂（対象科目の全 _lex にものがたり帯あり）" }) -ForegroundColor Green
     exit 0
 }
 $ledgerSuffix = if ($Rewrite) { '#rw' } else { '' }
 $ledger = Read-SLedger
-$queue = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -lt 2 } | Select-Object -First $MaxProblems)
+$notEscalated = { param($x) [int]($ledger["$($x.Id)$ledgerSuffix"] ?? 0) -lt 2 }
+# === ラウンドロビン配分：仕事のある科目へ 1 本ずつ順に配り、上限まで埋める ===
+#   科目が尽きたら飛ばして次へ回るので、枠が余らない（残 1 科目なら全枠がそこへ行く）。
+#   科目内は若番順。ESCALATE 済みは飛ばす。
+$pool = @{}
+foreach ($t in $targets) {
+    if (-not $pool.ContainsKey($t.Subject)) { $pool[$t.Subject] = New-Object System.Collections.ArrayList }
+    [void]$pool[$t.Subject].Add($t)
+}
+$rrOrder = @($SubjectOrder | Where-Object { $pool.ContainsKey($_.Key) } | ForEach-Object { $_.Key })
+$cursor = @{}; foreach ($k in $rrOrder) { $cursor[$k] = 0 }
+$queue = @()
+while ($queue.Count -lt $MaxProblems) {
+    $added = $false
+    foreach ($k in $rrOrder) {
+        if ($queue.Count -ge $MaxProblems) { break }
+        $list = $pool[$k]
+        while ($cursor[$k] -lt $list.Count) {
+            $cand = $list[$cursor[$k]]; $cursor[$k]++
+            if (& $notEscalated $cand) { $queue += $cand; $added = $true; break }
+        }
+    }
+    if (-not $added) { break }   # どの科目からも取れなくなった＝全部 ESCALATE 済み
+}
 $escalated = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -ge 2 })
 $byS = ($targets | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
-Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件（model={4}）" -f `
-    $targets.Count, $byS, $escalated.Count, $queue.Count, $Model) -ForegroundColor Cyan
+$byQ = ($queue | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
+Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件（{4}）（model={5}）" -f `
+    $targets.Count, $byS, $escalated.Count, $queue.Count, $byQ, $Model) -ForegroundColor Cyan
 if ($queue.Count -eq 0) {
     Write-Host "[S] 残件は全て ESCALATE 済（logs\tjr-repair-report.md 参照）。人手判断待ち。" -ForegroundColor Yellow
     exit 0
