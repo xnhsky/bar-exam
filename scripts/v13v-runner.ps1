@@ -1,9 +1,9 @@
 # v13v-runner.ps1 — TJR-S（§v13v「📖 ものがたり」付随・特別枠）エンジン（2026-08-22 新設）
 #   正誤表の各記述に data-brief-story（物語全体＋当該記述の要約＋具体例）が未執筆の `_lex` を、
 #   **2 レーン並行**（2026-08-31 ユーザー指示）で若番から headless（claude -p）で執筆 →
-#     ①これから学習する科目レーン＝**刑訴101以降 → 民法 → 民訴 → 商法 → 憲法 → 行政法**（MaxProblems 件）
-#     ②学習済みの過去分レーン＝**刑法（全番号）→ 刑訴073 以下**（MaxKeiho 件・既定 10）
-#     学習の区切りは刑訴TX074。両レーンを毎バッチ同時に流す。
+#     ①これから学習する科目レーン＝**学習の区切りより先**（MaxProblems 件）
+#     ②学習済みの過去分レーン＝**学習の区切りまで**（MaxKeiho 件・既定 10）
+#     区切りは $FullyLearned / $LearnedUpTo（下の単一情報源）で決まる。両レーンを毎バッチ同時に流す。
 #   validate-tx-core／check-tx-lex-engine PASS 時のみ 1 問ずつ git commit/push する。
 #   土台（TX-VERDICT-STORY の CSS＋appendStoryLine）が無いファイルは、実行前に決定論ツール
 #   scripts/tx-lex-verdict-redesign.py で注入してから執筆させる（刑法は未伝播のためここで入る）。
@@ -35,25 +35,49 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-# === 科目レーン（ユーザー指示 2026-08-31）=========================================
-# 学習の区切り＝**刑訴TX074 まで学習済み**。これを境に 2 レーンへ振り分ける。
-# レーン①「これから学習する科目」＝**刑訴101 以降** → ③民法 → ④民訴 → ⑤商法 → ⑥憲法 → ⑦行政法。
-#   （刑訴074-100 は 2026-08-31 に §v13w で執筆済みのため、この帯の残りは 101 以降になる）
-# レーン②「学習済みの過去分」＝**刑法（全番号）→ 刑訴073 以下**。刑法を先に潰し、尽きたら刑訴の
-#   若い帯へフォールスルーする。毎バッチ MaxKeiho 件（既定 10）をレーン①と並行して流す。
+# === 学習の進度＝単一情報源（ユーザー指示で更新する。ここだけ書き換えれば全体が追従する）=========
+#   既存ファイルへの展開（§v13w のような正典改定の後追い）は、**学習の区切りで 2 レーンに割る**。
+#   これは S ストリームに限らず、以後の「既存分の修正依頼」に共通する考え方とする
+#   （正典＝docs/run-patterns.md「既存展開の優先順（学習の区切りで2レーンに割る）」）。
+#
+#   $FullyLearned … 全番号が学習済みの科目（＝丸ごと過去分レーン）
+#   $LearnedUpTo  … 途中まで学習済みの科目と、その到達番号（その番号までが過去分／それ以降が学習レーン）
+#   表に無い科目 … まだ学習していない＝全番号が学習レーン
+#
+#   2026-08-31 時点：刑法は一巡し、刑訴は TX074 まで学習済み。
+#   学習が進んだらこの 2 行だけを更新する（レーンの番号境界は下で自動的に導出される）。
+$FullyLearned = @('刑法')
+$LearnedUpTo  = @{ '刑訴' = 74 }
+
+# 科目の定義（Key / 出力先 / 接頭辞）と、レーン内の並び順。
+#   学習レーン＝TJR の科目検知順から「学習済み科目」を除いた順（②刑訴 ③民法 ④民訴 ⑤商法 ⑥憲法 ⑦行政法）
+#   過去分レーン＝①刑法 → ②刑訴（学習順のうち学習済みの帯）。刑法を先に潰し、尽きたら刑訴の若い帯へ。
+$AllSubjects = @(
+    [pscustomobject]@{ Key = '刑法';   Rel = 'outputs/ux/000_TX/001_刑法';       Prefix = '刑TX' },
+    [pscustomobject]@{ Key = '刑訴';   Rel = 'outputs/ux/000_TX/002_刑事訴訟法'; Prefix = '刑訴TX' },
+    [pscustomobject]@{ Key = '民法';   Rel = 'outputs/ux/000_TX/003_民法';       Prefix = '民TX' },
+    [pscustomobject]@{ Key = '民訴';   Rel = 'outputs/ux/000_TX/005_民事訴訟法'; Prefix = '民訴TX' },
+    [pscustomobject]@{ Key = '商法';   Rel = 'outputs/ux/000_TX/004_商法';       Prefix = '商TX' },
+    [pscustomobject]@{ Key = '憲法';   Rel = 'outputs/ux/000_TX/007_憲法';       Prefix = '憲TX' },
+    [pscustomobject]@{ Key = '行政法'; Rel = 'outputs/ux/000_TX/006_行政法';     Prefix = '行政TX' }
+)
+function New-SLaneEntry { param($Subj, [int]$Min, [int]$Max)
+    [pscustomobject]@{ Key = $Subj.Key; Rel = $Subj.Rel; Prefix = $Subj.Prefix; Min = $Min; Max = $Max }
+}
 # Min/Max は科目ごとの番号境界（0＝制限なし）。-FromNumber/-ToNumber は全体にさらに掛かる。
-$LearningOrder = @(
-    [pscustomobject]@{ Key = '刑訴';   Rel = 'outputs/ux/000_TX/002_刑事訴訟法'; Prefix = '刑訴TX'; Min = 101; Max = 0 },
-    [pscustomobject]@{ Key = '民法';   Rel = 'outputs/ux/000_TX/003_民法';       Prefix = '民TX';   Min = 0;   Max = 0 },
-    [pscustomobject]@{ Key = '民訴';   Rel = 'outputs/ux/000_TX/005_民事訴訟法'; Prefix = '民訴TX'; Min = 0;   Max = 0 },
-    [pscustomobject]@{ Key = '商法';   Rel = 'outputs/ux/000_TX/004_商法';       Prefix = '商TX';   Min = 0;   Max = 0 },
-    [pscustomobject]@{ Key = '憲法';   Rel = 'outputs/ux/000_TX/007_憲法';       Prefix = '憲TX';   Min = 0;   Max = 0 },
-    [pscustomobject]@{ Key = '行政法'; Rel = 'outputs/ux/000_TX/006_行政法';     Prefix = '行政TX'; Min = 0;   Max = 0 }
-)
-$KeihoLane = @(
-    [pscustomobject]@{ Key = '刑法'; Rel = 'outputs/ux/000_TX/001_刑法';         Prefix = '刑TX';   Min = 0; Max = 0 },
-    [pscustomobject]@{ Key = '刑訴'; Rel = 'outputs/ux/000_TX/002_刑事訴訟法';   Prefix = '刑訴TX'; Min = 0; Max = 73 }
-)
+$LearningOrder = @()
+$KeihoLane     = @()
+foreach ($subj in $AllSubjects) {
+    if ($FullyLearned -contains $subj.Key) {
+        $KeihoLane += New-SLaneEntry $subj 0 0                       # 全番号が過去分
+    } elseif ($LearnedUpTo.ContainsKey($subj.Key)) {
+        $upTo = [int]$LearnedUpTo[$subj.Key]
+        $KeihoLane     += New-SLaneEntry $subj 0 $upTo               # ～到達番号＝過去分
+        $LearningOrder += New-SLaneEntry $subj ($upTo + 1) 0         # 到達番号の次～＝学習レーン
+    } else {
+        $LearningOrder += New-SLaneEntry $subj 0 0                   # 未学習＝全番号が学習レーン
+    }
+}
 if ($Subject) {
     # -Subject 明示時は番号境界も外す（その科目を全番号あたる）。刑訴は両レーンに現れるため、
     # 学習レーン側だけを残して二重計上を避ける。
