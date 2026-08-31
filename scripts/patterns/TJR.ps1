@@ -71,8 +71,7 @@ param(
     [int]$MaxF  = 3,              # F の TX 修復再生成 上限/バッチ（回収コミットは無制限＝安価なため）
     [int]$MaxFJx = 1,             # F の JX 修復再生成 上限/バッチ（JX は 1〜2 時間/問のため既定 1）
     [int]$MaxQ  = 10,             # Q の基本単位（2026-07-28 ユーザー指示＝10個ずつ・完遂まで）
-    [int]$MaxS  = 10,             # S 学習科目レーン（刑訴101以降→民法→民訴→商法→憲法→行政法）の基本単位
-    [int]$MaxSKeiho = 10,         # S 過去分レーン（刑法→刑訴073以下）の基本単位（2026-08-31 ユーザー指示＝10個ずつ並行）
+    [int]$MaxS  = 10,             # S の基本単位（仕事のある科目へ均等に配る・2026-08-31 ユーザー指示）
     [switch]$NoPush,
     [switch]$DryRun,
     [string]$ProjectRoot = ''
@@ -164,12 +163,12 @@ function Get-QPending {
     return $c
 }
 function Get-SPending {
-    # S（§v13v「📖 ものがたり」付随・特別枠・過渡）：正誤表の記述に data-brief-story が
-    # 1 つも入っていない _lex の残数。科目は 民法 → 刑法 の優先順（2026-08-22 ユーザー指示）で、
-    # 刑訴はセッション側で消化中だが、残りが出た場合に取りこぼさないよう優先順の最後尾に置く
-    # （ランナー側の SubjectOrder も 民法→刑法→刑訴。二重処理は claim ＋リモート執筆済み検知で回避）。
+    # S（§v13w「📖 CONTEXT」付随・特別枠・過渡）：正誤表の記述に data-brief-story が
+    # 1 つも入っていない _lex の残数を**全科目**で合算する。ランナーは仕事のある科目へ均等に配る
+    # （ラウンドロビン・2026-08-31 ユーザー指示）ので、ここは「どこかに仕事があるか」だけを見る。
+    # 二重処理は claim ＋リモート執筆済み検知で回避。
     $c = 0
-    foreach ($folder in @('003_民法', '001_刑法', '002_刑事訴訟法')) {
+    foreach ($folder in @('001_刑法', '002_刑事訴訟法', '003_民法', '005_民事訴訟法', '004_商法', '007_憲法', '006_行政法')) {
         $dir = Join-Path $ProjectRoot "outputs\ux\000_TX\$folder"
         if (-not (Test-Path $dir)) { continue }
         foreach ($lex in @(Get-ChildItem $dir -Filter '*_lex.html' -File -ErrorAction SilentlyContinue)) {
@@ -449,14 +448,20 @@ function Invoke-QStream {
     return $LASTEXITCODE
 }
 
+# TJR の科目キー（刑/民/…）→ S ランナーの科目キー（刑法/民法/…）への写像。
+$SSubjectMap = @{ '刑'='刑法'; '刑訴'='刑訴'; '民'='民法'; '民訴'='民訴'; '商'='商法'; '憲'='憲法'; '行政'='行政法' }
 function Invoke-SStream {
-    param([int]$Max, [switch]$Rewrite)
+    param([int]$Max, [string]$Subj = '', [switch]$Rewrite)
     if (-not (Test-Path $SRunner)) { Write-Host "[SKIP] S エンジン不在: $SRunner" -ForegroundColor Yellow; return 0 }
     $p = @{ MaxProblems = $Max; ProjectRoot = $ProjectRoot }
+    # 「TJR処理 刑訴」のような科目指定を S にも伝える（2026-08-31）。従来は渡っておらず、
+    # いま学習中の科目へ寄せる号令が S だけ効いていなかった。
+    if ($Subj -and $SSubjectMap.ContainsKey($Subj)) { $p.Subject = $SSubjectMap[$Subj] }
     if ($NoPush) { $p.NoPush = $true }
     if ($DryRun) { $p.DryRun = $true }
     if ($Rewrite) { $p.Rewrite = $true }
-    $label = if ($Rewrite) { 'S（§v13w CONTEXT・旧型を新型へ改訂）' } else { 'S（§v13w CONTEXT 付随・学習科目レーン＋過去分レーン並行）' }
+    $label = if ($Rewrite) { 'S（§v13w CONTEXT・旧型を新型へ改訂）' } else { 'S（§v13w CONTEXT 付随・科目へ均等配分）' }
+    if ($p.ContainsKey('Subject')) { $label += "・{0}優先" -f $p.Subject }
     Write-Host "`n———————— $label 開始 ————————" -ForegroundColor Green
     & $SRunner @p | Out-Host
     return $LASTEXITCODE
@@ -538,11 +543,11 @@ for ($b = 1; $b -le $batchCount; $b++) {
     }
     $rcS = 0
     if ($runS) {
-        if ($sPend -gt 0) { $rcS = Invoke-SStream -Max $MaxS -MaxKeiho $MaxSKeiho }
+        if ($sPend -gt 0) { $rcS = Invoke-SStream -Max $MaxS -Subj $Subject }
         else {
             # 未執筆が尽きたら、旧型（出題構造型・2026-08-27 以前）の書き直しへ自動フォールバック
             # （ユーザー指示 2026-08-28「その他は TJR の付随で処理」。旧型ゼロならランナーが即「該当なし」）
-            $rcS = Invoke-SStream -Max $MaxS -MaxKeiho $MaxSKeiho -Rewrite
+            $rcS = Invoke-SStream -Max $MaxS -Subj $Subject -Rewrite
         }
     }
 

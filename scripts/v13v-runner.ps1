@@ -1,9 +1,10 @@
 # v13v-runner.ps1 — TJR-S（§v13v「📖 ものがたり」付随・特別枠）エンジン（2026-08-22 新設）
 #   正誤表の各記述に data-brief-story（物語全体＋当該記述の要約＋具体例）が未執筆の `_lex` を、
-#   **2 レーン並行**（2026-08-31 ユーザー指示）で若番から headless（claude -p）で執筆 →
-#     ①これから学習する科目レーン＝**学習の区切りより先**（MaxProblems 件）
-#     ②学習済みの過去分レーン＝**学習の区切りまで**（MaxKeiho 件・既定 10）
-#     区切りは $FullyLearned / $LearnedUpTo（下の単一情報源）で決まる。両レーンを毎バッチ同時に流す。
+#   **仕事のある科目へ均等に配る**（ラウンドロビン・2026-08-31 ユーザー指示）。1 バッチ MaxProblems 件を
+#   科目へ 1 本ずつ順に配り、科目内は若番から headless（claude -p）で執筆 →
+#   全教科を順に回して一巡したらまた戻る、という学習の仕方に合わせ、**どの科目も同じペースで改訂される**
+#   ようにする。学習の進度を手で設定に書かない（書くと更新が止まった瞬間に実態とズレる）。
+#   いま学習中の科目へ寄せたいときだけ -Subject を添える（「TJR処理 刑訴」）。
 #   validate-tx-core／check-tx-lex-engine PASS 時のみ 1 問ずつ git commit/push する。
 #   土台（TX-VERDICT-STORY の CSS＋appendStoryLine）が無いファイルは、実行前に決定論ツール
 #   scripts/tx-lex-verdict-redesign.py で注入してから執筆させる（刑法は未伝播のためここで入る）。
@@ -11,8 +12,7 @@
 #   正典：docs/v13v-handover.md（レシピ）／docs/run-patterns.md（S 節）。プロンプト：prompts/v13v-headless.md。
 #   二台衝突対策：tjr-claim（予約 ID = {問題ID}_v13v・リモート版が既に執筆済みなら SKIP）。
 param(
-    [int]$MaxProblems = 10,            # 学習科目レーンの 1 バッチ件数（既定 10）
-    [int]$MaxKeiho = 10,               # 過去分レーン（刑法→刑訴073以下）の 1 バッチ件数（既定 10・ユーザー指示 2026-08-31）
+    [int]$MaxProblems = 10,            # 1 バッチの処理件数（既定 10）。仕事のある科目へ均等に配る。
     [ValidateSet('', '刑訴', '民法', '民訴', '商法', '憲法', '行政法', '刑法')]
     [string]$Subject = '',             # 空＝2 レーン並行／明示時はその科目だけを流す
     [int]$FromNumber = 0,
@@ -35,24 +35,13 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
-# === 学習の進度＝単一情報源（ユーザー指示で更新する。ここだけ書き換えれば全体が追従する）=========
-#   既存ファイルへの展開（§v13w のような正典改定の後追い）は、**学習の区切りで 2 レーンに割る**。
-#   これは S ストリームに限らず、以後の「既存分の修正依頼」に共通する考え方とする
-#   （正典＝docs/run-patterns.md「既存展開の優先順（学習の区切りで2レーンに割る）」）。
-#
-#   $FullyLearned … 全番号が学習済みの科目（＝丸ごと過去分レーン）
-#   $LearnedUpTo  … 途中まで学習済みの科目と、その到達番号（その番号までが過去分／それ以降が学習レーン）
-#   表に無い科目 … まだ学習していない＝全番号が学習レーン
-#
-#   2026-08-31 時点：刑法は一巡し、刑訴は TX074 まで学習済み。
-#   学習が進んだらこの 2 行だけを更新する（レーンの番号境界は下で自動的に導出される）。
-$FullyLearned = @('刑法')
-$LearnedUpTo  = @{ '刑訴' = 74 }
-
-# 科目の定義（Key / 出力先 / 接頭辞）と、レーン内の並び順。
-#   学習レーン＝TJR の科目検知順から「学習済み科目」を除いた順（②刑訴 ③民法 ④民訴 ⑤商法 ⑥憲法 ⑦行政法）
-#   過去分レーン＝①刑法 → ②刑訴（学習順のうち学習済みの帯）。刑法を先に潰し、尽きたら刑訴の若い帯へ。
-$AllSubjects = @(
+# === 科目の並び（ラウンドロビンの配り順・2026-08-31 ユーザー指示）=======================
+#   既定は「仕事のある科目へ均等に配る」。学習の進度を設定に書かないので、更新の手間も、
+#   実態とズレたまま回り続ける事故も起きない（全教科を順に回して一巡したらまた戻る運用に合わせた）。
+#   いま学習中の科目へ寄せたいときは -Subject を明示する（TJR からは「TJR処理 刑訴」で伝わる）。
+#   この並びは配る順序と表示順を決めるだけで、優先度の重みではない（配分は均等）。
+#   正典＝docs/run-patterns.md「既存展開の配り方（仕事のある科目へ均等に配る）」。
+$SubjectOrder = @(
     [pscustomobject]@{ Key = '刑法';   Rel = 'outputs/ux/000_TX/001_刑法';       Prefix = '刑TX' },
     [pscustomobject]@{ Key = '刑訴';   Rel = 'outputs/ux/000_TX/002_刑事訴訟法'; Prefix = '刑訴TX' },
     [pscustomobject]@{ Key = '民法';   Rel = 'outputs/ux/000_TX/003_民法';       Prefix = '民TX' },
@@ -61,33 +50,8 @@ $AllSubjects = @(
     [pscustomobject]@{ Key = '憲法';   Rel = 'outputs/ux/000_TX/007_憲法';       Prefix = '憲TX' },
     [pscustomobject]@{ Key = '行政法'; Rel = 'outputs/ux/000_TX/006_行政法';     Prefix = '行政TX' }
 )
-function New-SLaneEntry { param($Subj, [int]$Min, [int]$Max)
-    [pscustomobject]@{ Key = $Subj.Key; Rel = $Subj.Rel; Prefix = $Subj.Prefix; Min = $Min; Max = $Max }
-}
-# Min/Max は科目ごとの番号境界（0＝制限なし）。-FromNumber/-ToNumber は全体にさらに掛かる。
-$LearningOrder = @()
-$KeihoLane     = @()
-foreach ($subj in $AllSubjects) {
-    if ($FullyLearned -contains $subj.Key) {
-        $KeihoLane += New-SLaneEntry $subj 0 0                       # 全番号が過去分
-    } elseif ($LearnedUpTo.ContainsKey($subj.Key)) {
-        $upTo = [int]$LearnedUpTo[$subj.Key]
-        $KeihoLane     += New-SLaneEntry $subj 0 $upTo               # ～到達番号＝過去分
-        $LearningOrder += New-SLaneEntry $subj ($upTo + 1) 0         # 到達番号の次～＝学習レーン
-    } else {
-        $LearningOrder += New-SLaneEntry $subj 0 0                   # 未学習＝全番号が学習レーン
-    }
-}
-if ($Subject) {
-    # -Subject 明示時は番号境界も外す（その科目を全番号あたる）。刑訴は両レーンに現れるため、
-    # 学習レーン側だけを残して二重計上を避ける。
-    $LearningOrder = @($LearningOrder | Where-Object { $_.Key -eq $Subject } |
-                       ForEach-Object { $_.Min = 0; $_.Max = 0; $_ })
-    $KeihoLane     = @($KeihoLane     | Where-Object { $_.Key -eq $Subject } |
-                       ForEach-Object { $_.Min = 0; $_.Max = 0; $_ })
-    if ($LearningOrder.Count -gt 0) { $KeihoLane = @() }
-    elseif ($KeihoLane.Count -gt 0) { $MaxKeiho = $MaxProblems }
-}
+# -Subject 明示時＝いま学習中の科目へ寄せる。その科目だけを全番号あたる。
+if ($Subject) { $SubjectOrder = @($SubjectOrder | Where-Object { $_.Key -eq $Subject }) }
 
 $PromptFile  = Join-Path $ProjectRoot 'prompts\v13v-headless.md'
 $ValidatePy  = Join-Path $ProjectRoot 'scripts\validate-tx-core.py'
@@ -132,9 +96,8 @@ function Test-V13vLegacy {
 # === 対象検出：data-brief-story を 1 つも持たない `_lex`（科目優先順→若番）===
 #   正誤表（statement-verdict-table）が無いファイルは対象外（ものがたり帯の置き場所が無い）。
 function Get-STargets {
-    param([object[]]$Subjects)
     $items = @()
-    foreach ($subj in $Subjects) {
+    foreach ($subj in $SubjectOrder) {
         $dir = Join-Path $ProjectRoot ($subj.Rel -replace '/', '\')
         if (-not (Test-Path $dir)) { continue }
         Get-ChildItem -LiteralPath $dir -Filter '*_lex.html' | ForEach-Object {
@@ -143,8 +106,6 @@ function Get-STargets {
             $n = [int]$m.Groups[1].Value
             if ($FromNumber -gt 0 -and $n -lt $FromNumber) { return }
             if ($ToNumber   -gt 0 -and $n -gt $ToNumber)   { return }
-            if ($subj.Min   -gt 0 -and $n -lt $subj.Min)   { return }   # レーンごとの番号境界
-            if ($subj.Max   -gt 0 -and $n -gt $subj.Max)   { return }
             if (-not (Select-String -LiteralPath $_.FullName -Pattern 'statement-verdict-table' -Quiet)) { return }
             $hasStory = Select-String -LiteralPath $_.FullName -Pattern 'data-brief-story=' -Quiet
             if ($Rewrite) {
@@ -157,18 +118,15 @@ function Get-STargets {
             }
         }
     }
-    # 科目はレーン内の並びを保ったまま、科目内は若番順
+    # 科目は SubjectOrder の並びを保ったまま、科目内は若番順
     $rank = @{}
-    for ($i = 0; $i -lt $Subjects.Count; $i++) { $rank[$Subjects[$i].Key] = $i }
+    for ($i = 0; $i -lt $SubjectOrder.Count; $i++) { $rank[$SubjectOrder[$i].Key] = $i }
     return @($items | Sort-Object @{Expression = { $rank[$_.Subject] } }, Num)
 }
 
 if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
-# 2 レーンを別々に集め、それぞれの上限で切ってから合流する（刑法がレーン①を押し出さない）
-$learnTargets = if ($LearningOrder.Count) { @(Get-STargets -Subjects $LearningOrder) } else { @() }
-$keihoTargets = if ($KeihoLane.Count)     { @(Get-STargets -Subjects $KeihoLane)     } else { @() }
-$targets = @($learnTargets) + @($keihoTargets)
+$targets = @(Get-STargets)
 if ($targets.Count -eq 0) {
     Write-Host $(if ($Rewrite) { "[S] 該当なし＝旧型のものがたり帯は残っていない（-Rewrite）" } else { "[S] 該当なし＝§v13v 特別枠は完遂（対象科目の全 _lex にものがたり帯あり）" }) -ForegroundColor Green
     exit 0
@@ -176,14 +134,34 @@ if ($targets.Count -eq 0) {
 $ledgerSuffix = if ($Rewrite) { '#rw' } else { '' }
 $ledger = Read-SLedger
 $notEscalated = { param($x) [int]($ledger["$($x.Id)$ledgerSuffix"] ?? 0) -lt 2 }
-$learnQueue = @($learnTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxProblems)
-$keihoQueue = @($keihoTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxKeiho)
-$queue = @($learnQueue) + @($keihoQueue)
+# === ラウンドロビン配分：仕事のある科目へ 1 本ずつ順に配り、上限まで埋める ===
+#   科目が尽きたら飛ばして次へ回るので、枠が余らない（残 1 科目なら全枠がそこへ行く）。
+#   科目内は若番順。ESCALATE 済みは飛ばす。
+$pool = @{}
+foreach ($t in $targets) {
+    if (-not $pool.ContainsKey($t.Subject)) { $pool[$t.Subject] = New-Object System.Collections.ArrayList }
+    [void]$pool[$t.Subject].Add($t)
+}
+$rrOrder = @($SubjectOrder | Where-Object { $pool.ContainsKey($_.Key) } | ForEach-Object { $_.Key })
+$cursor = @{}; foreach ($k in $rrOrder) { $cursor[$k] = 0 }
+$queue = @()
+while ($queue.Count -lt $MaxProblems) {
+    $added = $false
+    foreach ($k in $rrOrder) {
+        if ($queue.Count -ge $MaxProblems) { break }
+        $list = $pool[$k]
+        while ($cursor[$k] -lt $list.Count) {
+            $cand = $list[$cursor[$k]]; $cursor[$k]++
+            if (& $notEscalated $cand) { $queue += $cand; $added = $true; break }
+        }
+    }
+    if (-not $added) { break }   # どの科目からも取れなくなった＝全部 ESCALATE 済み
+}
 $escalated = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -ge 2 })
 $byS = ($targets | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
-Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件＝学習レーン {4}＋過去分レーン {5}（model={6}）" -f `
-    $targets.Count, $byS, $escalated.Count, $queue.Count,
-    $learnQueue.Count, $keihoQueue.Count, $Model) -ForegroundColor Cyan
+$byQ = ($queue | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
+Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件（{4}）（model={5}）" -f `
+    $targets.Count, $byS, $escalated.Count, $queue.Count, $byQ, $Model) -ForegroundColor Cyan
 if ($queue.Count -eq 0) {
     Write-Host "[S] 残件は全て ESCALATE 済（logs\tjr-repair-report.md 参照）。人手判断待ち。" -ForegroundColor Yellow
     exit 0
