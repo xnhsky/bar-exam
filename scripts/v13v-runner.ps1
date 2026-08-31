@@ -1,8 +1,9 @@
 # v13v-runner.ps1 — TJR-S（§v13v「📖 ものがたり」付随・特別枠）エンジン（2026-08-22 新設）
 #   正誤表の各記述に data-brief-story（物語全体＋当該記述の要約＋具体例）が未執筆の `_lex` を、
 #   **2 レーン並行**（2026-08-31 ユーザー指示）で若番から headless（claude -p）で執筆 →
-#     ①これから学習する科目レーン＝**刑訴 → 民法 → 民訴 → 商法 → 憲法 → 行政法**（MaxProblems 件）
-#     ②学習済みの過去分レーン＝**刑法**（MaxKeiho 件・既定 10）。両レーンを毎バッチ同時に流す。
+#     ①これから学習する科目レーン＝**刑訴101以降 → 民法 → 民訴 → 商法 → 憲法 → 行政法**（MaxProblems 件）
+#     ②学習済みの過去分レーン＝**刑法（全番号）→ 刑訴073 以下**（MaxKeiho 件・既定 10）
+#     学習の区切りは刑訴TX074。両レーンを毎バッチ同時に流す。
 #   validate-tx-core／check-tx-lex-engine PASS 時のみ 1 問ずつ git commit/push する。
 #   土台（TX-VERDICT-STORY の CSS＋appendStoryLine）が無いファイルは、実行前に決定論ツール
 #   scripts/tx-lex-verdict-redesign.py で注入してから執筆させる（刑法は未伝播のためここで入る）。
@@ -11,7 +12,7 @@
 #   二台衝突対策：tjr-claim（予約 ID = {問題ID}_v13v・リモート版が既に執筆済みなら SKIP）。
 param(
     [int]$MaxProblems = 10,            # 学習科目レーンの 1 バッチ件数（既定 10）
-    [int]$MaxKeiho = 10,               # 刑法レーン（学習済みの過去分）の 1 バッチ件数（既定 10・ユーザー指示 2026-08-31）
+    [int]$MaxKeiho = 10,               # 過去分レーン（刑法→刑訴073以下）の 1 バッチ件数（既定 10・ユーザー指示 2026-08-31）
     [ValidateSet('', '刑訴', '民法', '民訴', '商法', '憲法', '行政法', '刑法')]
     [string]$Subject = '',             # 空＝2 レーン並行／明示時はその科目だけを流す
     [int]$FromNumber = 0,
@@ -35,25 +36,33 @@ $ProjectRoot = (Resolve-Path -LiteralPath $ProjectRoot).Path
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 # === 科目レーン（ユーザー指示 2026-08-31）=========================================
-# レーン①「これから学習する科目」＝②刑訴 ③民法 ④民訴 ⑤商法 ⑥憲法 ⑦行政法 の順（TJR の科目検知順から
-#   ①刑法を抜いたもの）。既存分と将来生成される分を、この順で若番から消化する。
-# レーン②「学習済みの過去分」＝刑法。量が大きい（_lex 427 本）ので独立レーンにし、毎バッチ MaxKeiho 件
-#   （既定 10）を並行して流す。レーン①の進み具合に影響されない。
+# 学習の区切り＝**刑訴TX074 まで学習済み**。これを境に 2 レーンへ振り分ける。
+# レーン①「これから学習する科目」＝**刑訴101 以降** → ③民法 → ④民訴 → ⑤商法 → ⑥憲法 → ⑦行政法。
+#   （刑訴074-100 は 2026-08-31 に §v13w で執筆済みのため、この帯の残りは 101 以降になる）
+# レーン②「学習済みの過去分」＝**刑法（全番号）→ 刑訴073 以下**。刑法を先に潰し、尽きたら刑訴の
+#   若い帯へフォールスルーする。毎バッチ MaxKeiho 件（既定 10）をレーン①と並行して流す。
+# Min/Max は科目ごとの番号境界（0＝制限なし）。-FromNumber/-ToNumber は全体にさらに掛かる。
 $LearningOrder = @(
-    [pscustomobject]@{ Key = '刑訴';   Rel = 'outputs/ux/000_TX/002_刑事訴訟法'; Prefix = '刑訴TX' },
-    [pscustomobject]@{ Key = '民法';   Rel = 'outputs/ux/000_TX/003_民法';       Prefix = '民TX' },
-    [pscustomobject]@{ Key = '民訴';   Rel = 'outputs/ux/000_TX/005_民事訴訟法'; Prefix = '民訴TX' },
-    [pscustomobject]@{ Key = '商法';   Rel = 'outputs/ux/000_TX/004_商法';       Prefix = '商TX' },
-    [pscustomobject]@{ Key = '憲法';   Rel = 'outputs/ux/000_TX/007_憲法';       Prefix = '憲TX' },
-    [pscustomobject]@{ Key = '行政法'; Rel = 'outputs/ux/000_TX/006_行政法';     Prefix = '行政TX' }
+    [pscustomobject]@{ Key = '刑訴';   Rel = 'outputs/ux/000_TX/002_刑事訴訟法'; Prefix = '刑訴TX'; Min = 101; Max = 0 },
+    [pscustomobject]@{ Key = '民法';   Rel = 'outputs/ux/000_TX/003_民法';       Prefix = '民TX';   Min = 0;   Max = 0 },
+    [pscustomobject]@{ Key = '民訴';   Rel = 'outputs/ux/000_TX/005_民事訴訟法'; Prefix = '民訴TX'; Min = 0;   Max = 0 },
+    [pscustomobject]@{ Key = '商法';   Rel = 'outputs/ux/000_TX/004_商法';       Prefix = '商TX';   Min = 0;   Max = 0 },
+    [pscustomobject]@{ Key = '憲法';   Rel = 'outputs/ux/000_TX/007_憲法';       Prefix = '憲TX';   Min = 0;   Max = 0 },
+    [pscustomobject]@{ Key = '行政法'; Rel = 'outputs/ux/000_TX/006_行政法';     Prefix = '行政TX'; Min = 0;   Max = 0 }
 )
 $KeihoLane = @(
-    [pscustomobject]@{ Key = '刑法'; Rel = 'outputs/ux/000_TX/001_刑法'; Prefix = '刑TX' }
+    [pscustomobject]@{ Key = '刑法'; Rel = 'outputs/ux/000_TX/001_刑法';         Prefix = '刑TX';   Min = 0; Max = 0 },
+    [pscustomobject]@{ Key = '刑訴'; Rel = 'outputs/ux/000_TX/002_刑事訴訟法';   Prefix = '刑訴TX'; Min = 0; Max = 73 }
 )
 if ($Subject) {
-    $LearningOrder = @($LearningOrder | Where-Object { $_.Key -eq $Subject })
-    $KeihoLane     = @($KeihoLane     | Where-Object { $_.Key -eq $Subject })
-    if ($KeihoLane.Count -gt 0) { $MaxKeiho = $MaxProblems }   # -Subject 刑法 は刑法だけを MaxProblems 件
+    # -Subject 明示時は番号境界も外す（その科目を全番号あたる）。刑訴は両レーンに現れるため、
+    # 学習レーン側だけを残して二重計上を避ける。
+    $LearningOrder = @($LearningOrder | Where-Object { $_.Key -eq $Subject } |
+                       ForEach-Object { $_.Min = 0; $_.Max = 0; $_ })
+    $KeihoLane     = @($KeihoLane     | Where-Object { $_.Key -eq $Subject } |
+                       ForEach-Object { $_.Min = 0; $_.Max = 0; $_ })
+    if ($LearningOrder.Count -gt 0) { $KeihoLane = @() }
+    elseif ($KeihoLane.Count -gt 0) { $MaxKeiho = $MaxProblems }
 }
 
 $PromptFile  = Join-Path $ProjectRoot 'prompts\v13v-headless.md'
@@ -110,6 +119,8 @@ function Get-STargets {
             $n = [int]$m.Groups[1].Value
             if ($FromNumber -gt 0 -and $n -lt $FromNumber) { return }
             if ($ToNumber   -gt 0 -and $n -gt $ToNumber)   { return }
+            if ($subj.Min   -gt 0 -and $n -lt $subj.Min)   { return }   # レーンごとの番号境界
+            if ($subj.Max   -gt 0 -and $n -gt $subj.Max)   { return }
             if (-not (Select-String -LiteralPath $_.FullName -Pattern 'statement-verdict-table' -Quiet)) { return }
             $hasStory = Select-String -LiteralPath $_.FullName -Pattern 'data-brief-story=' -Quiet
             if ($Rewrite) {
@@ -141,16 +152,14 @@ if ($targets.Count -eq 0) {
 $ledgerSuffix = if ($Rewrite) { '#rw' } else { '' }
 $ledger = Read-SLedger
 $notEscalated = { param($x) [int]($ledger["$($x.Id)$ledgerSuffix"] ?? 0) -lt 2 }
-$queue = @(
-    @($learnTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxProblems) +
-    @($keihoTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxKeiho)
-)
+$learnQueue = @($learnTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxProblems)
+$keihoQueue = @($keihoTargets | Where-Object { & $notEscalated $_ } | Select-Object -First $MaxKeiho)
+$queue = @($learnQueue) + @($keihoQueue)
 $escalated = @($targets | Where-Object { [int]($ledger["$($_.Id)$ledgerSuffix"] ?? 0) -ge 2 })
 $byS = ($targets | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
-Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件＝学習レーン {4}＋刑法レーン {5}（model={6}）" -f `
+Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件＝学習レーン {4}＋過去分レーン {5}（model={6}）" -f `
     $targets.Count, $byS, $escalated.Count, $queue.Count,
-    @($queue | Where-Object { $_.Subject -ne '刑法' }).Count,
-    @($queue | Where-Object { $_.Subject -eq '刑法' }).Count, $Model) -ForegroundColor Cyan
+    $learnQueue.Count, $keihoQueue.Count, $Model) -ForegroundColor Cyan
 if ($queue.Count -eq 0) {
     Write-Host "[S] 残件は全て ESCALATE 済（logs\tjr-repair-report.md 参照）。人手判断待ち。" -ForegroundColor Yellow
     exit 0
