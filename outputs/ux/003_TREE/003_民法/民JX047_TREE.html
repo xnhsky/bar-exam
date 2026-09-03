@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>賃貸借解除と転貸借の帰趨 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. XLVII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">賃貸借解除と転貸借の帰趨 <em>— On the Fate of a Sublease after Termination</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">5</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">賃貸借解除と<br>転貸借の帰趨</h2>
+      <div class="mm-root-en">Sublease after Termination</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法<br>
+        <em>Origin</em>重要問題 第47問 · 慶應LS平21改題 · 最判平9・2・25<br>
+        <em>Form</em>請求権パノラマ型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法債権各論・賃貸借の中核。<strong>原賃貸借の債務不履行解除と適法転貸借の帰趨</strong>という三面関係（賃貸人A→相続人B／賃借人・転貸人C／転借人D）を扱う。解除（541条）・転貸借（613条）・不当利得（703・704条）・留置権（295条）・敷金（622条の2）が交差する総合問題。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>賃貸借頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>「相手方（C／D）× 時的区分（解除・明渡請求の二線）」のマトリクスで請求権を洗い出せるかで差がつく。旧司平成10年でもほぼ同型が出題された王道論点。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中〜難 × 高重要」象限の TARGET 領域。骨格は素直だが、<strong>解除後〜明渡請求までの②期間で利得消滅を落とす</strong>と結論が真逆になる罠型。最判平9.2.25の「明渡請求時終了」を軸に据えられるかが分水嶺。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>賃貸人たる地位の相続承継（896条）／履行遅滞解除・信頼関係破壊の法理（541条）／有益費償還請求権に基づく留置権（295・608・196条）／敷金（622条の2）／善意占有者の果実収取（189・190条）／無断転貸（612条）。とりわけ<strong>「②利得消滅 ⇔ ③不法占拠」の反転構造</strong>が本論点の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>AがCに本件建物を賃貸（月20万・敷金300万）。Cは<strong>Aの承諾を得て630万円で改装</strong>し、さらに<strong>Aの承諾を得てDに転貸</strong>（月30万・敷金150万＝適法転貸）。Cは<strong>2022年9月分以降の賃料を全く支払わず</strong>、Aの死亡（2023.1.28）で相続した唯一の相続人Bが催告のうえ<strong>2023.3.25に原賃貸借を解除</strong>。他方Dは延滞ゼロで、解除も不払も<strong>知らずに使用・賃料をCへ振込み続けている</strong>（善意）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>A（賃貸人・所有者・2023.1.28死亡）／B（Aの唯一の相続人・896条で賃貸人の地位を承継）／C（賃借人・転貸人・賃料不払の当事者）／D（適法転借人・善意・解除を知らず賃料をCへ支払継続）。<strong>B→Dには直接の契約関係がなく</strong>、613条と所有権が接点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① BのCへの<strong>目的物返還請求と抗弁</strong>（敷金・有益費留置権）・未払賃料／解除後の不当利得・相殺。<br>② BのDへの<strong>建物明渡請求</strong>（転借人への催告の要否・転貸借の帰趨）。<br>③ BのDへの<strong>賃料・使用利益の不当利得</strong>を、解除・明渡請求の二線で<strong>三期間</strong>に分けて処理。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 相続承継と解除の確定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>まず<strong>BのCへの主張</strong>を確定する。BはAを相続で包括承継し賃貸人の地位に立つ（896条本文）。Cは6か月超の賃料不払であり、催告後相当期間の経過で解除有効（541条）。信頼関係が破壊されていないとみるべき特段の事情もない。<strong>解除の有効性を先に固めないとDへの主張の前提が宙に浮く</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · Dへの明渡請求（催告不要・基礎喪失）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>613条1項の<strong>義務の片面性</strong>（転借人は賃貸人に直接義務を負うが逆はない）から、解除に際し<strong>転借人Dへの催告は不要</strong>（最判昭37.3.29）。原賃貸借の債務不履行解除で<strong>転貸借は基礎を失い</strong>、Dは占有権原を対抗できない（最判昭36.12.21・613条3項ただし書）。よってBはDに<strong>無条件で建物明渡し</strong>を請求できる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 三期間分析（②③の分岐）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>DへのＢの賃料・使用利益請求を<strong>解除（①②境）と明渡請求（②③境）の二線で三分割</strong>。①解除前＝613条1項前段で月20万（既払で対抗）／②解除後〜明渡請求＝<strong>転貸借存続で利得消滅・請求不可</strong>／③明渡請求後＝<strong>転貸借終了・不法占拠・悪意で月30万の不当利得可</strong>。分岐点は<span class="case-name">最判平9.2.25</span>の「明渡請求時終了」。<strong>期間を区切らず一律処理すると②③が真逆になる</strong>のが最大の罠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · Cの抗弁と清算</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cの抗弁を振り分ける。敷金の当然充当は賃借人から請求不可（622条の2第2項）＝×／敷金返還請求権は明渡し後発生で留置権の被担保債権にならない（622条の2第1項1号・大判大9.9.28）＝×／<strong>有益費償還請求権（630万・608条2項・196条2項）は「物に関して生じた債権」で弁済期到来ゆえ留置権○</strong>。有益費償還請求権を自働債権とする相殺（505条）でBの不当利得請求は減額。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 明渡請求・転貸借の帰趨
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Eviction / Sublease</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 転借人への催告の要否（613条の片面性）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>613条1項は<strong>転借人が賃貸人に直接義務を負う</strong>ことを定めるにとどまり、賃貸人が転借人に義務を負うことは定めていない。この<strong>義務の片面性</strong>からすれば、賃貸人は転借人に履行の機会を与える必要がなく、原賃貸借を債務不履行解除するにも転借人への催告を要しない。</p><div class="norm">賃貸人が賃借人の債務不履行を理由に賃貸借を解除するには、賃借人に催告すれば足り、転借人に賃料支払の機会を与えるため通知等をする必要はない。<span class="norm-cite">— 催告不要説（判例・通説）／最判昭37.3.29</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 転貸借の基礎喪失（昭36.12.21）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>原賃貸借が賃借人の債務不履行を理由に解除されると、<strong>転貸借はその基礎を失い</strong>、転借人は賃貸人に転借権をもって対抗できなくなる。改正法も、賃貸人が債務不履行解除権を有していたときは解除を転借人に対抗できるとする（613条3項ただし書）。</p><div class="norm">賃貸借契約が賃借人の債務不履行を理由として解除された場合には、転貸借はその基礎を失い、転借人は賃貸人に対し転借権をもって対抗することができなくなる。<span class="norm-cite">— 最判昭36.12.21</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 転貸借の終了時期＝明渡請求時（平9.2.25）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>もっとも、転貸借は原賃貸借とは<strong>別個独立の契約</strong>であり、解除により<strong>当然に終了するのではない</strong>。賃貸人が転借人に目的物返還を請求した時に、転貸人の使用収益させる債務が<strong>履行不能となって終了</strong>する（<span class="case-name">最判平9.2.25</span>）。占有権原の対抗不能（解除で直ちに明渡請求可）と<strong>契約の終了時期</strong>を区別するのが要点で、これが三期間②③の分岐点になる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-D · Dの敷金抗弁の否定（大9.9.28）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>DはCに敷金150万を差し入れているが、<strong>敷金返還請求権はBに対しては有しない</strong>（敷金関係はCD間）。しかも敷金返還請求権は「その物に関して生じた債権」（295条1項本文）に当たらず、明渡し後に発生する（622条の2第1項1号）。よってDは<strong>発生時期如何を問わず同時履行・留置権を主張して明渡しを拒めない</strong>（大判大9.9.28）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 解除後の不当利得（三期間）
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Three Periods</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · ①解除前＝613条直接請求（月20万）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>解除まではBはDに<strong>原賃貸借に基づく直接賃料請求</strong>ができ（613条1項前段）、額は<strong>原賃貸借基準の月20万</strong>（低い方）。もっともDは<strong>Cへの既払をもって対抗</strong>できる（同項後段の反対解釈）。Cに差し入れた敷金から控除せよとは主張できない（622条の2第2項）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · ②解除後〜明渡請求＝利得消滅（請求不可）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>この期間は<strong>CD間の転貸借がなお存続</strong>し（平9.2.25＝明渡請求時終了）、<strong>他人物賃貸借に類似</strong>する状況。他人物借主が貸主に賃料を支払った場合、その利得は消滅し所有者は不当利得返還を請求できない。DがCに賃料を支払っている以上<strong>Dの利得は消滅</strong>（703条）＝BのDへの請求は認められない。</p><div class="norm">他人物借主が貸主に賃料を支払った場合、借主の利得は消滅し、所有者は借主に不当利得返還を請求できない（703条「利益の存する限度」）。<span class="norm-cite">— 利得消滅構成（通説）／最判平7.9.19と発想を共有</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · ②補助構成＝189条善意占有者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Dは解除の意思表示を知らず、<strong>果実を収取する権利のある本権をもつと誤信</strong>していた（「善意」）から、<strong>善意占有者の果実収取権</strong>（189条1項）でも請求を拒める。もっとも「他人物借主はいずれにせよ貸主へ賃料を支払うべき立場にあるから189条の適用はない」とする<strong>否定説も有力</strong>。<strong>いずれの説でも②の結論（請求不可）は一致</strong>し、否定説に一言触れると上位答案。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-D · ③明渡請求後＝不法占拠・悪意（月30万・可）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>明渡請求で<strong>CD間の転貸借も終了</strong>（平9.2.25）。DがCに支払っても<strong>契約関係のない第三者への給付</strong>にすぎず利得は消滅しない。かつ明渡請求後は本権誤信といえず<strong>悪意占有者</strong>となり果実（使用利益）を収取できない（190条）。よってBはDに<strong>賃料相当額（月30万）の不当利得返還</strong>を請求できる（704条・不法行為709条での構成も可）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 転借人への催告不要</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">613条1項は転借人が賃貸人に対して直接義務を負うことを定めるにとどまり、賃貸人が転借人に義務を負うことは定めていない。かかる義務の片面性からすれば、賃貸人は転借人に履行の機会を与える必要はなく、原賃貸借を債務不履行解除するに際し転借人への催告を要しないと解する。<span class="norm-cite">— 試験本番想定・標準形</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 転貸借の終了時期（明渡請求時終了）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">転貸借は原賃貸借とは別個独立の契約であるから、原賃貸借の解除によって当然に終了するのではなく、賃貸人が転借人に対して目的物の返還を請求した時に、転貸人の転借人に対する債務が履行不能となって終了する。<span class="norm-cite">— 明渡請求時終了説型・最判平9.2.25</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · ②利得消滅（他人物賃貸借類似）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">解除後〜明渡請求までの期間は転貸借がなお存続し、他人物賃貸借と同様の状況が生じている。他人物借主が貸主に賃料を支払った場合には借主の利得は消滅すると解されるから、転借人が転貸人に賃料を支払っている以上、その利得は消滅しており、所有者は転借人に不当利得返還を請求できない。<span class="norm-cite">— ②期間・利得消滅型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · ③明渡後の不当利得・有益費留置権</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">明渡請求後は転貸借も終了し、転借人の転貸人への支払は契約関係なき第三者への給付にすぎず利得は消滅しない。また転借人は悪意占有者となり果実を収取できない（190条）から、所有者は賃料相当額の不当利得返還を請求できる（704条）。／有益費償還請求権は「その物に関して生じた債権」であり弁済期も到来しているから、これを被担保債権とする留置権が成立する（295条1項）。<span class="norm-cite">— ③期間＋抗弁処理・標準形</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 明渡し・解除を基礎づける（肯定材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cは<strong>2022年9月分以降まったく賃料を支払わず</strong>（6か月超）、信頼関係破壊を否定する特段の事情なし／BはCに催告し<strong>1か月以上経過後に解除</strong>／Aの承諾ある<strong>適法転貸</strong>だがDは転借権を対抗できない（基礎喪失）。<br>──896条の承継・541条の解除・無条件明渡しを基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ ②利得消滅を基礎づける（善意・支払継続）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Dは<strong>1度も延滞せず約定どおり毎月Cに賃料を振込</strong>／<strong>所有者にはCが当然賃料を支払っていると信じていた</strong>／BからCへの<strong>解除の意思表示を知らなかった</strong>。<br>──②期間の利得消滅（Cへの支払）＋善意占有（189条）を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ ③不当利得・有益費留置を基礎づける</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>明渡請求で転貸借終了＝Dの<strong>Cへの支払は第三者給付</strong>で利得非消滅／明渡請求後は<strong>悪意占有者</strong>（190条）／<strong>転貸賃料は月30万</strong>＝客観的使用利益の認定材料／Cは<strong>Aの承諾を得て630万で改装</strong>＝有益費（608条2項・196条2項）で留置権の被担保債権。<br>──③の月30万不当利得とCの有益費留置権・相殺を基礎づける。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>催告不要</strong> — 613条1項の片面性／転借人に履行機会不要<br>② <strong>終了時期</strong> — 転貸借は解除で当然終了せず「明渡請求時」に履行不能で終了<br>③ <strong>三期間</strong> — ①613条(20万)／②利得消滅(不可)／③不法占拠・悪意(30万・可)</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判平9.2.25</span> — 明渡請求時終了・明渡請求後の使用利益（百選II64）<br>② <span class="case-name">最判昭36.12.21</span> — 転貸借は基礎を失う（明渡し根拠）<br>③ <span class="case-name">最判昭37.3.29</span> — 転借人への催告不要（大判昭6.3.18承継）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 相続 — 896条本文（包括承継）<br>· 解除 — 541条（催告解除）<br>· 転貸 — 613条1項前段(直接請求)・後段(既払対抗)・3項ただし書<br>· 不当利得 — 703条(利得消滅)・704条(悪意受益者)<br>· 果実 — 189条(善意)／190条(悪意)<br>· 抗弁 — 295条(留置権)・622条の2(敷金)・505条(相殺)<br>· 数字 — 賃料20万／転貸30万／敷金300万・150万／有益費630万</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「613条1項の片面性 → 催告不要」<br>· 「転貸借は基礎を失う」<br>· 「明渡請求時に履行不能で終了」<br>· 「他人物賃貸借類似 → 利得消滅」<br>· 「明渡後は不法占拠・悪意 → 30万」<br>· 「シキ×・ユウ○（敷金は留置不可・有益費は留置可）」</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 賃貸人たる地位の相続承継（896条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aの死亡で唯一の相続人Bが<strong>一身専属権を除く一切の権利義務を包括承継</strong>する（896条本文）。これにより<strong>AC間賃貸借の賃貸人の地位はBに移転</strong>し、Bは催告・解除の主体、返還・賃料・不当利得請求の主体となる。すべての請求の入口の前提問題。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 有益費償還請求権に基づく留置権（295・608・196条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cが承諾を得て投じた<strong>630万の改装費は有益費</strong>（608条2項・196条2項）。有益費償還請求権は<strong>「その物に関して生じた債権」で賃貸借終了時に弁済期到来</strong>ゆえ留置権の被担保債権になる（295条1項）。BはCへの有益費償還を履行しなければ建物返還を請求できない。<strong>敷金（シキ×）と有益費（ユウ○）の振り分け</strong>が要。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 敷金の充当・返還時期（622条の2）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>敷金の充当は<strong>賃貸人の権利</strong>であって賃借人・転借人から充当請求はできない（622条の2第2項）。敷金返還債務は<strong>賃貸借終了かつ明渡し時に発生</strong>（同1項1号）。したがって未払の事実は敷金充当で否定できず、敷金返還請求権を被担保債権とする留置権・同時履行も認められない。2017年改正で判例法理を明文化。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 相殺と最終清算（505条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Cは<strong>有益費償還請求権を自働債権</strong>として、Bの未払賃料・不当利得返還請求権と<strong>相殺</strong>できる（505条1項）。要件に欠けるところはなく、Bの請求はその限度で減額。実務では、Bが得る不当利得（30万系）とCの有益費償還請求権が<strong>どう清算されるか</strong>まで見通すと答案の説得力が増す。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 三期間に分けず一律処理</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>DへのＢの不当利得を<strong>解除・明渡請求の二線で三分割せず一律に処理</strong>するのが最大の失点（−15〜20点）。②（利得消滅で不可）と③（不法占拠で可）で結論が真逆になるため、区切らないと<strong>②③の結論が反転する誤り</strong>を犯す。「カイ（解除）・メイ（明渡請求）」の二本線を必ず引く。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② ②で利得消滅を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>②期間で<strong>利得消滅を論じずDに請求できると即断</strong>するのは大幅減点（−10〜15点）。転貸借存続＝他人物賃貸借類似で、<strong>DのCへの支払</strong>を拾って利得消滅（703条）を導く過程が配点の山。Dが善意で支払継続している事実を必ず使う。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 敷金で留置権・同時履行を認める</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>敷金返還請求権を被担保債権として留置権・同時履行</strong>を認めるのは誤り（−5〜10点）。敷金返還債務は<strong>明渡し後に発生</strong>（622条の2第1項1号）し、「物に関して生じた債権」でもない（大判大9.9.28）。敷金（×）と有益費（○）を混同しない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 転借人Dへの催告を要するとする</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>適法転貸だからと<strong>Dへの催告・通知が必要</strong>としてしまう（−5〜8点）。613条1項の<strong>片面性</strong>から賃貸人は転借人に義務を負わず、履行の機会を保障する必要がない（最判昭37.3.29）。「承諾ある転貸＝保護すべき」という直感に流されない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ ①で20万か30万かを誤る</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>解除前①の直接請求で<strong>額を30万と誤る</strong>（−3〜5点）。①はあくまで<strong>原賃貸借に基づく請求</strong>（613条1項前段）だから<strong>低い方の月20万</strong>が基準。②③の使用利益（月30万）と取り違えない。額の使い分け（20万／30万）はそれ自体が採点ポイント。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・2・3 の見出しのみ通読。リーフは閉じておく。<strong>「BのC → BのD明渡 → BのD三期間」</strong>の骨格と三面関係を掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）を全展開、Branch 13 の LV I（4問）を全問正答するまで反復。三期間②③の反転を体に入れる。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV II（3問）を解く。<strong>明渡請求時終了（平9.2.25）</strong>が②③をどう分けるかを意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV IV（2問）で答案骨格を仕上げる。抗弁の振り分け（敷金×・有益費○）と額の使い分け（20万／30万）を訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV III（3問）で規範の口頭再生を完成。催告不要・終了時期・利得消滅・有益費留置権の規範を声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV V（3問）のみ</strong>を開く。それ以外は閉じる。3判例と条文番号（896・541・613・703・704・189・190・295・622の2・505）を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成9年2月25日</span><span class="mm-leaf-sub"><em>Sublease · Terminates at Return-Demand</em> · 百選II64</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>本問の中核判例</strong>。「賃貸借契約が転貸人の債務不履行を理由とする解除により終了した場合において、賃貸人が転借人に対して直接目的物の返還を請求したときは、転借人は……<strong>遅くとも右返還請求を受けた時点から</strong>返還義務を履行するまでの間の……使用収益について、不法行為による損害賠償義務又は不当利得返還義務を免れない」。<em>射程</em> — ③明渡請求後の不当利得の直接根拠。②（存続＝利得消滅）と③（終了＝返還義務）の分岐点を画す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和36年12月21日</span><span class="mm-leaf-sub"><em>Sublease Loses Its Basis</em> · 明渡し根拠</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>転貸借の基礎喪失</strong>。「賃貸借契約が賃借人の債務不履行を理由として解除された場合には、転貸借はその基礎を失い、転借人は賃貸人に対し、転借権をもって対抗することができなくなる」。<em>射程</em> — BのDへの<strong>無条件明渡請求</strong>の直接根拠。契約自体の終了時期は明示されず、後の平9.2.25が補充した。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和37年3月29日</span><span class="mm-leaf-sub"><em>No Notice to Sub-lessee</em> · 催告不要</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>転借人への催告不要</strong>（大判昭6.3.18を承継）。賃貸人が賃借人の債務不履行を理由に解除するには賃借人に催告すれば足り、転借人に賃料支払の機会を与えるための通知等を要しない。<em>射程</em> — 613条1項の片面性が根拠。本問のDへの催告不要の直接根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">大判大正9年9月28日</span><span class="mm-leaf-sub"><em>Deposit ≠ Retention Claim</em> · 敷金留置否定</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>敷金返還請求権と留置権</strong>。敷金返還請求権は「その物に関して生じた債権」（295条1項本文）に当たらず、これを被担保債権とする留置権・同時履行で目的物返還を拒めない。<em>射程</em> — Dが敷金で明渡しを拒めず、Cも敷金を留置権の被担保債権とできない根拠。改正法（622条の2第1項1号）が結論を条文上裏付ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成7年9月19日</span><span class="mm-leaf-sub"><em>Versio in rem · Bulldozer Case</em> · 比較</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>転用物訴権</strong>（ブルドーザー事件）。所有者が対価関係なしに利益を受けた特段の事情がある場合に限り転用物訴権を認め、原則として契約外の第三者への直接請求を否定。<em>射程</em> — 本問②の利得消滅と<strong>「契約の相手方に給付した以上、第三者への不当利得は原則否定」</strong>という発想を共有する比較判例。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法896条・541条</span><span class="mm-leaf-sub"><em>Succession · Termination for Delay</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>896条本文</strong>＝相続人は被相続人の一切の権利義務を承継（賃貸人の地位承継）。<strong>541条</strong>＝催告後相当期間の経過による解除。6か月超の不払で信頼関係破壊を否定する特段の事情なし。BのCへの解除の有効性の根拠条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法613条</span><span class="mm-leaf-sub"><em>art. 613 · Sublease · Direct Claim</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>1項前段</strong>＝転借人は賃貸人に直接義務を負う（①解除前の直接請求・月20万）。<strong>1項後段の反対解釈</strong>＝転借人はCへの既払で対抗可。<strong>3項本文</strong>＝合意解除は転借人に対抗不可。<strong>3項ただし書</strong>＝債務不履行解除権を有していたときは解除を転借人に対抗できる（明渡し根拠の明文化）。義務の片面性の条文的基礎。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法703条・704条</span><span class="mm-leaf-sub"><em>Unjust Enrichment</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>703条</strong>＝「利益の存する限度」＝②のDの利得消滅の根拠（Cへの支払で現存利益なし）。<strong>704条</strong>＝悪意受益者の返還義務＝③明渡請求後（悪意化したD）への月30万請求、解除後のCへの不当利得請求の根拠。使用利益＝賃料相当額として算定。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法189条・190条</span><span class="mm-leaf-sub"><em>Possessor's Fruits · Good / Bad Faith</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>189条1項</strong>＝善意占有者は果実を取得（②のD＝解除を知らず本権誤信）。<strong>190条</strong>＝悪意占有者は果実返還（③のD＝明渡請求で悪意化）。「善は前を向く・悪は返す」。もっとも189条は<strong>無償で果実を収取する占有者を想定</strong>するため、賃料支払義務ある他人物借主には適用しないとする否定説も有力（②は結論不変）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民法295条・608条・196条・622条の2・505条</span><span class="mm-leaf-sub"><em>Retention · Useful Expense · Deposit · Set-off</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>295条1項</strong>＝留置権（「物に関して生じた債権」＋弁済期）。<strong>608条2項・196条2項</strong>＝有益費償還請求権（630万の改装）＝留置権の被担保債権○。<strong>622条の2</strong>＝敷金の充当（2項・賃借人から請求不可）・返還時期（1項1号・明渡し後）＝敷金の留置権×。<strong>505条1項</strong>＝有益費償還請求権を自働債権とする相殺で減額。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">原賃貸借を債務不履行解除するのに、転借人への催告は必要か。根拠は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">不要</span>。613条1項は転借人が賃貸人に直接義務を負うことを定めるにとどまり、賃貸人は転借人に義務を負わない（<span class="kw">義務の片面性</span>）から、履行の機会を与える必要がない（最判昭37.3.29）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">原賃貸借の債務不履行解除で、転借人の占有権原はどうなるか？</span></summary>
+                  <div class="mm-q-answer">転貸借は<span class="kw">基礎を失い</span>、転借人は賃貸人に転借権を対抗できなくなる（最判昭36.12.21・613条3項ただし書）。よって賃貸人は<span class="kw">無条件で明渡し</span>を請求できる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">原賃貸借の解除で、CD間の転貸借契約自体はいつ終了するか？</span></summary>
+                  <div class="mm-q-answer">解除で当然に終了するのではなく、賃貸人が転借人に<span class="kw">目的物返還を請求した時</span>に、転貸人の債務が<span class="verb">履行不能</span>となって終了する（最判平9.2.25）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">敷金返還請求権を被担保債権として留置権・同時履行を主張できるか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">できない</span>。敷金返還債務は明渡し後に発生し（622条の2第1項1号）、「その物に関して生じた債権」にも当たらない（大判大9.9.28）。他方<span class="kw">有益費</span>償還請求権は留置権の被担保債権になる。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">解除後〜明渡請求までの②期間、BはDに使用利益の不当利得を請求できるか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">できない</span>。この期間はCD間の転貸借がなお存続し他人物賃貸借に類似する。<span class="kw">DがCに賃料を支払っている</span>以上、Dの利得は消滅している（703条）。189条の善意占有者としても拒める。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">明渡請求後の③期間、②と結論が反転するのはなぜか？</span></summary>
+                  <div class="mm-q-answer">明渡請求で<span class="kw">CD間の転貸借も終了</span>するため、DのCへの支払は契約関係なき第三者への給付にすぎず利得は消滅しない。かつDは<span class="kw">悪意占有者</span>（190条）となり果実を収取できない。ゆえに月30万の不当利得返還が認められる（704条）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">もしDがCに賃料を支払っていなかったら、②の結論はどう変わるか？（旧司平10型）</span></summary>
+                  <div class="mm-q-answer">②でも<span class="kw">利得消滅が生じない</span>ため、Bへの不当利得請求が②の期間から可能となる。ただしDがCに対して負う賃料債務との<span class="verb">調整</span>が別途必要になる。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">転借人への催告不要の規範を一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">613条1項は転借人が賃貸人に直接義務を負うことを定めるにとどまり賃貸人が転借人に義務を負うことは定めていないから、かかる義務の片面性からすれば、賃貸人は転借人に履行の機会を与える必要はなく、原賃貸借を債務不履行解除するに際し転借人への催告を要しない。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">転貸借の終了時期（明渡請求時終了）の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">転貸借は原賃貸借とは別個独立の契約であるから、原賃貸借の解除により当然に終了するのではなく、賃貸人が転借人に対して目的物の返還を請求した時に、転貸人の転借人に対する債務が履行不能となって終了する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">②期間の利得消滅の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">解除後〜明渡請求までの期間は転貸借がなお存続し他人物賃貸借と同様の状況が生じているところ、他人物借主が貸主に賃料を支払った場合には借主の利得は消滅すると解されるから、転借人が転貸人に賃料を支払っている以上その利得は消滅しており、所有者は転借人に不当利得返還を請求できない。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">第1 BのC（35点）→ 第2の1 明渡請求（20点）→ 第2の2 三期間（35点）＋構成力10点</span>。原賃貸借の解除を先に確定→明渡しで終了時期を確定→三期間、の順。<span class="kw">三期間②③</span>が配点重心。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">Cの抗弁（敷金・有益費）と①の賃料額はどう処理する？</span></summary>
+                  <div class="mm-q-answer">敷金は<span class="kw">留置権×</span>（明渡し後発生・物に関する債権でない）／有益費は<span class="kw">留置権○</span>（630万・608条2項・196条2項・弁済期到来）。①解除前の直接請求は<span class="kw">原賃貸借基準の月20万</span>（②③の使用利益30万と区別）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">解除後〜明渡請求（②・DはCへ支払継続）→ ？</span></summary>
+                  <div class="mm-q-answer">転貸借存続＝利得消滅で請求不可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">明渡請求後（③）→ ？</span></summary>
+                  <div class="mm-q-answer">転貸借終了・不法占拠・悪意で月30万可。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">Cの抗弁「シキ・ユウ」→ ？</span></summary>
+                  <div class="mm-q-answer">敷金は留置×、有益費は留置○。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. XLVII — 賃貸借解除と転貸借の帰趨 · 13 chapters · 5 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-09-03T10:57+09:00">Generated: 2026-09-03 10:57 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
