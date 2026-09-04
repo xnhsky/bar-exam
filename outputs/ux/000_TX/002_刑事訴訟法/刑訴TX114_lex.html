@@ -5584,7 +5584,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5605,9 +5629,58 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6266,12 +6339,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:o,5:o,6:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは<b>①逮捕には無く、勾留にはある ②準抗告の対象は明文の列挙に限られる</b>の二本。429条1項の対象は限定列挙で、『勾留に関する裁判』は入るが逮捕に関する裁判は入らない。だから逮捕状の発付の裁判に対して準抗告をすることはできない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>逮捕状が出たこと自体を争いたい場面。逮捕は最長72時間で終わり、勾留の審査でまとめて司法のチェックが入るので、別の不服窓口は用意されていない。</span>" data-brief-mark="逮捕状発付の裁判に対して、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>準抗告をすることができる</span><span class='tx-stmt-fix'>→ できない（429条1項の列挙に逮捕は無い）</span>。<span class='tx-anscomp-line'>準抗告（429条1項）の対象となる裁判は同項各号の<strong>限定列挙</strong>であり、「勾留に関する裁判」（2号）は含まれるが、逮捕に関する裁判及びこれに基づく処分はこれに含まれないから、逮捕状の発付の裁判に対して準抗告をすることはできない（最決昭57.8.27）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>準抗告（429条1項）は対象を号で限定列挙し、2号「勾留に関する裁判」は入るが逮捕に関する裁判は入らない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>逮捕は最大72時間と短く、勾留請求の段階で逮捕の適否も司法審査を受け得るため、逮捕独自の不服申立てを置かない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逮捕状発付の裁判・これに基づく処分は準抗告の対象に含まれない（最決昭57.8.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>対象が「逮捕に関する裁判」か「勾留に関する裁判」か。逮捕は列挙外、勾留は列挙内。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準抗告・抗告は対象が明文で列挙された裁判に限られる（対象を選ばない上訴と対比）。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="同じ物差しの二例目。勾留については被告人も被疑者も裁判官へ理由の開示を請求できるが（82条・207条1項）、逮捕にはこれに対応する規定が無い。是正手段（開示・準抗告・取消し）は勾留に整備され、逮捕の段階は制度が薄い。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>逮捕された甲が『なぜ捕まったのか法廷で説明してほしい』と求める場面。この請求は勾留についてしかできない。</span>" data-brief-mark="被疑者が、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>逮捕の理由の開示を請求することができる</span><span class='tx-stmt-fix'>→ できない（開示制度は勾留にしかない）</span>。<span class='tx-anscomp-line'>勾留については、被告人も被疑者も、裁判官に対し<strong>勾留の理由の開示</strong>を請求することができるが（82条・207条1項本文）、逮捕についてはこれに対応する規定が存在しないから、逮捕の理由の開示を請求することはできない。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>勾留理由開示（82条1項・被疑者は207条1項本文で準用）は「勾留」の理由に限られ、逮捕に対応規定はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>勾留の取消し・勾留に対する準抗告の権利行使の準備のため、公開法廷で理由を確認させる制度。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被疑者は、裁判官に対し、逮捕の理由の開示を請求することができる（→誤り）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>開示の対象が勾留か逮捕か。勾留にはあり、逮捕にはない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>是正手段（開示・準抗告・取消し）は勾留に整備され、逮捕段階は制度が薄い。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-story="弁護人の<b>固有権</b>の中心が出る回。身体の拘束を受けている被疑者・被告人は、弁護人または弁護人となろうとする者と立会人なくして接見し、書類や物を授受できる（39条1項）。接見禁止（81条）が禁じ得るのは弁護人以外との接見にとどまる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>接見禁止の付いた甲のもとへ弁護人が行く場面。警察官の立会いなしに、二人だけで話せる。</span>" data-brief-mark="勾留中の被疑者が、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>弁護人と立会人なくして接見することができる</span>（39条1項・最判昭53.7.10）。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者・被告人は、弁護人又は弁護人となろうとする者と<strong>立会人なくして接見</strong>し、書類・物の授受をすることができる（39条1項）。この接見交通権は、被疑者が弁護人の援助を受けるための刑事手続上最も重要な基本的権利である（最判昭53.7.10）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項は身体拘束中の被疑者が弁護人と立会人なくして接見し書類等を授受できると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>憲法34条前段の弁護人依頼権を手続化。捜査機関に聞かれず秘密に相談できることが眼目。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>勾留されている被疑者は、弁護人と立会人なくして接見することができる（→正しい）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>接見禁止決定（81条）は弁護人以外との接見を禁じ得るにとどまり、弁護人との接見交通は禁止対象外。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>接見交通権は弁護人固有権の最も重要なものの一つ（最判昭53.7.10）で、接見指定の限界（39条3項ただし書）を画す基礎。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="不服申立ての宛先を<b>裁判官の裁判か、捜査機関の処分か</b>で切る回。検察官らがした接見指定は<b>処分</b>だから、不服がある者はその検察官らが所属する検察庁に対応する裁判所へ取消し・変更を請求する（430条1項）。裁判官の裁判に対する準抗告（429条）とは条文が違う。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>取調べ中だからと接見の日時を後回しにされた場面。弁護人は裁判所へ、その処分の取消しを求められる。</span>" data-brief-mark="検察官の接見指定の処分に不服がある者が、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>その取消し・変更を裁判所に請求することができる</span>（430条1項・39条3項）。<span class='tx-anscomp-line'>検察官又は検察事務官がした39条3項の処分（接見指定）に不服がある者は、その検察官らが所属する検察庁に対応する裁判所に、その処分の<strong>取消し又は変更</strong>を請求することができる（430条1項）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>430条1項は検察官・検察事務官のした39条3項の処分に不服がある者に、裁判所への取消し・変更請求を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>39条3項の処分（接見指定）は防御に直結し、刑事手続の中で解決するのが合理的。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官のした接見指定の処分に不服がある者は、その取消し又は変更を裁判所に請求することができる（→正しい）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>対象が「裁判官の裁判」か「捜査機関の処分」か。接見指定は処分だから430条（429条ではない）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準抗告は裁判官の裁判＝429条／捜査機関の処分＝430条で対象を切り分ける。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは<b>①逮捕には無く、勾留にはある ②準抗告の対象は明文の列挙に限られる</b>の二本。429条1項の対象は限定列挙で、『勾留に関する裁判』は入るが逮捕に関する裁判は入らない。だから逮捕状の発付の裁判に対して準抗告をすることはできない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>逮捕状が出たこと自体を争いたい場面。逮捕は最長72時間で終わり、勾留の審査でまとめて司法のチェックが入るので、別の不服窓口は用意されていない。</span>" data-brief-mark="逮捕状発付の裁判に対して、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>準抗告をすることができる</span><span class='tx-stmt-fix'>→ できない（429条1項の列挙に逮捕は無い）</span>。<span class='tx-anscomp-line'>準抗告（429条1項）の対象となる裁判は同項各号の<strong>限定列挙</strong>であり、「勾留に関する裁判」（2号）は含まれるが、逮捕に関する裁判及びこれに基づく処分はこれに含まれないから、逮捕状の発付の裁判に対して準抗告をすることはできない（最決昭57.8.27）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>準抗告（429条1項）は対象を号で限定列挙し、2号「勾留に関する裁判」は入るが逮捕に関する裁判は入らない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>逮捕は最大72時間と短く、勾留請求の段階で逮捕の適否も司法審査を受け得るため、逮捕独自の不服申立てを置かない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逮捕状発付の裁判・これに基づく処分は準抗告の対象に含まれない（最決昭57.8.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>対象が「逮捕に関する裁判」か「勾留に関する裁判」か。逮捕は列挙外、勾留は列挙内。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準抗告・抗告は対象が明文で列挙された裁判に限られる（対象を選ばない上訴と対比）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">準抗告の対象は明文の列挙に限られる</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">列挙の内</span><span class="dgm-lane-law">勾留に関する裁判（429条1項2号）</span></p><div class="dgm-lane-body"><p class="dgm-rule">勾留やその<em>期間の延長</em>の裁判は、ここに入る。</p><p class="dgm-case">勾留を認めた裁判官の判断を争う。</p><p class="dgm-verdict is-ok">準抗告できる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">列挙の外</span><span class="dgm-lane-law">逮捕に関する裁判</span></p><div class="dgm-lane-body"><p class="dgm-rule">逮捕状の発付やこれに基づく処分は<em>各号に挙がっていない</em>（最決昭57.8.27）。対象を選ばない上訴とは違う。</p><p class="dgm-case">逮捕状を出した裁判に不服がある場面。</p><p class="dgm-verdict is-ng">準抗告できない</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="同じ物差しの二例目。勾留については被告人も被疑者も裁判官へ理由の開示を請求できるが（82条・207条1項）、逮捕にはこれに対応する規定が無い。是正手段（開示・準抗告・取消し）は勾留に整備され、逮捕の段階は制度が薄い。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>逮捕された甲が『なぜ捕まったのか法廷で説明してほしい』と求める場面。この請求は勾留についてしかできない。</span>" data-brief-mark="被疑者が、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>逮捕の理由の開示を請求することができる</span><span class='tx-stmt-fix'>→ できない（開示制度は勾留にしかない）</span>。<span class='tx-anscomp-line'>勾留については、被告人も被疑者も、裁判官に対し<strong>勾留の理由の開示</strong>を請求することができるが（82条・207条1項本文）、逮捕についてはこれに対応する規定が存在しないから、逮捕の理由の開示を請求することはできない。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>勾留理由開示（82条1項・被疑者は207条1項本文で準用）は「勾留」の理由に限られ、逮捕に対応規定はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>勾留の取消し・勾留に対する準抗告の権利行使の準備のため、公開法廷で理由を確認させる制度。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被疑者は、裁判官に対し、逮捕の理由の開示を請求することができる（→誤り）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>開示の対象が勾留か逮捕か。勾留にはあり、逮捕にはない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>是正手段（開示・準抗告・取消し）は勾留に整備され、逮捕段階は制度が薄い。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">是正手段は勾留に整備され、逮捕の段階は制度が薄い</p><div class="tx-dgm-lanes is-3"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">理由の開示</span><span class="dgm-lane-law">勾留＝82条・207条1項／逮捕＝規定なし</span></p><div class="dgm-lane-body"><p class="dgm-rule">勾留については被告人も被疑者も裁判官へ<em>理由の開示を請求できる</em>。逮捕にはこれに対応する規定がない。</p><p class="dgm-case">なぜ拘束されているのかを法廷で示させる。</p><p class="dgm-verdict is-teal">勾留にはあり、逮捕にはない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">準抗告</span><span class="dgm-lane-law">勾留＝429条1項2号／逮捕＝列挙外</span></p><div class="dgm-lane-body"><p class="dgm-rule">裁判そのものを争う道も、<em>勾留にだけ</em>用意されている。</p><p class="dgm-case">勾留の裁判に不服を申し立てる。</p><p class="dgm-verdict is-teal">勾留にはあり、逮捕にはない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">取消し</span><span class="dgm-lane-law">勾留＝87条1項／逮捕＝規定なし</span></p><div class="dgm-lane-body"><p class="dgm-rule">理由や必要がなくなったときの<em>取消し</em>も勾留の制度。逮捕は時間が短く、勾留の審査へ進む前提の段階だから。</p><p class="dgm-case">事情が変わって拘束の必要が消えた場面。</p><p class="dgm-verdict is-teal">勾留にはあり、逮捕にはない</p></div></div></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="弁護人の<b>固有権</b>の中心が出る回。身体の拘束を受けている被疑者・被告人は、弁護人または弁護人となろうとする者と立会人なくして接見し、書類や物を授受できる（39条1項）。接見禁止（81条）が禁じ得るのは弁護人以外との接見にとどまる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>接見禁止の付いた甲のもとへ弁護人が行く場面。警察官の立会いなしに、二人だけで話せる。</span>" data-brief-mark="勾留中の被疑者が、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>弁護人と立会人なくして接見することができる</span>（39条1項・最判昭53.7.10）。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者・被告人は、弁護人又は弁護人となろうとする者と<strong>立会人なくして接見</strong>し、書類・物の授受をすることができる（39条1項）。この接見交通権は、被疑者が弁護人の援助を受けるための刑事手続上最も重要な基本的権利である（最判昭53.7.10）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項は身体拘束中の被疑者が弁護人と立会人なくして接見し書類等を授受できると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>憲法34条前段の弁護人依頼権を手続化。捜査機関に聞かれず秘密に相談できることが眼目。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>勾留されている被疑者は、弁護人と立会人なくして接見することができる（→正しい）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>接見禁止決定（81条）は弁護人以外との接見を禁じ得るにとどまり、弁護人との接見交通は禁止対象外。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>接見交通権は弁護人固有権の最も重要なものの一つ（最判昭53.7.10）で、接見指定の限界（39条3項ただし書）を画す基礎。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-3"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">接見交通権は禁止の対象外 ── 相手方で線が引かれる</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">弁護人・弁護人となろうとする者</span><span class="dgm-lane-law">39条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule"><em>立会人なくして</em>接見し、書類・物を授受できる。弁護人の援助を受けるための刑事手続上最も重要な基本的権利（最判昭53.7.10）。</p><p class="dgm-case">逮捕直後に選任された弁護人が接見する。</p><p class="dgm-verdict is-ok">禁止の対象にならない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">それ以外の者</span><span class="dgm-lane-law">81条</span></p><div class="dgm-lane-body"><p class="dgm-rule">接見禁止の決定が禁じ得るのは<em>弁護人等以外</em>との接見にとどまる。</p><p class="dgm-case">家族との面会を禁じる決定が出ている。</p><p class="dgm-verdict is-ng">禁止されうる</p></div></div></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="不服申立ての宛先を<b>裁判官の裁判か、捜査機関の処分か</b>で切る回。検察官らがした接見指定は<b>処分</b>だから、不服がある者はその検察官らが所属する検察庁に対応する裁判所へ取消し・変更を請求する（430条1項）。裁判官の裁判に対する準抗告（429条）とは条文が違う。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>取調べ中だからと接見の日時を後回しにされた場面。弁護人は裁判所へ、その処分の取消しを求められる。</span>" data-brief-mark="検察官の接見指定の処分に不服がある者が、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>その取消し・変更を裁判所に請求することができる</span>（430条1項・39条3項）。<span class='tx-anscomp-line'>検察官又は検察事務官がした39条3項の処分（接見指定）に不服がある者は、その検察官らが所属する検察庁に対応する裁判所に、その処分の<strong>取消し又は変更</strong>を請求することができる（430条1項）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>430条1項は検察官・検察事務官のした39条3項の処分に不服がある者に、裁判所への取消し・変更請求を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>39条3項の処分（接見指定）は防御に直結し、刑事手続の中で解決するのが合理的。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官のした接見指定の処分に不服がある者は、その取消し又は変更を裁判所に請求することができる（→正しい）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>対象が「裁判官の裁判」か「捜査機関の処分」か。接見指定は処分だから430条（429条ではない）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準抗告は裁判官の裁判＝429条／捜査機関の処分＝430条で対象を切り分ける。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-4"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">不服申立ての宛先は「裁判官の裁判か、捜査機関の処分か」で切る</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">裁判官の裁判</span><span class="dgm-lane-law">429条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">勾留に関する裁判など、<em>裁判官がした判断</em>を争う道。</p><p class="dgm-case">勾留を認めた裁判を争う。</p><p class="dgm-verdict is-acc">準抗告（429条）</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">捜査機関の処分</span><span class="dgm-lane-law">430条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">検察官・検察事務官がした<em>接見指定</em>（39条3項）は処分だから、その検察官らが所属する検察庁に対応する裁判所へ取消し・変更を請求する。</p><p class="dgm-case">接見の日時を狭く指定されたことを争う。</p><p class="dgm-verdict is-ok">430条による</p></div></div></div></div></div></td></tr>
 <tr data-stmt="5" data-verdict="o" data-brief-story="一つ目の物差しの裏面。429条1項2号の『勾留に関する裁判』には勾留期間の延長の裁判も含まれるから、これに対して準抗告ができる。逮捕（列挙の外）と勾留・その延長（列挙の内）の対比で覚える。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>10日の延長が認められた場面。弁護人はその裁判官の所属する裁判所へ、延長の取消しを求められる。</span>" data-brief-mark="勾留期間の延長の裁判に対して、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>準抗告をすることができる</span>（429条1項2号・勾留に関する裁判）。<span class='tx-anscomp-line'>429条1項2号は「<strong>勾留に関する裁判</strong>」を準抗告の対象とするところ、勾留期間の延長の裁判（208条2項）もこれにあたるから、これに対して準抗告をすることができる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>429条1項2号は準抗告の対象に「勾留に関する裁判」を掲げる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>勾留に関する裁判は身体拘束に直結するため、司法審査による是正の道を開く。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>勾留期間の延長の裁判に対しては、準抗告をすることができる（→正しい）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>勾留期間の延長（208条2項）は「勾留に関する裁判」に当たる（逮捕に関する裁判は列挙外）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>逮捕（列挙外＝×）と勾留・その延長（列挙内＝○）の対比で準抗告の可否を判別する。</p></div></td></tr>
-<tr data-stmt="6" data-verdict="o" data-brief-story="制度ごとの<b>効果の違い</b>を押さえる回。勾留の理由または勾留の必要が無くなったときは、請求により、または職権で勾留を取り消さなければならない（87条1項）。これは被疑者勾留にも被告人勾留にも及び、起訴の前後を問わない（保釈や執行停止は勾留を残したままの一時解除で、別の制度）。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>証拠がすべて押収され、関係者の取調べも終わって罪証隠滅のおそれが消えた場面。起訴後であっても勾留の取消しを請求できる。</span>" data-brief-mark="起訴後において、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>勾留の取消しを請求することができる</span>（87条1項）。<span class='tx-anscomp-line'>勾留の理由又は勾留の必要がなくなったときは、裁判所は、検察官・被告人・弁護人等の請求により、又は職権で、決定で勾留を取り消さなければならない（87条1項）。同条は起訴後の被告人の勾留にも適用されるから、起訴後においても<strong>勾留の取消し</strong>を請求することができる。</span>"><td style="text-align:center;font-weight:700;">6</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>87条1項は勾留の理由・必要がなくなったとき、裁判所が請求により又は職権で勾留を取り消さなければならないと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>身体拘束の重大性に鑑み、勾留後の事情変化に応じて勾留の効力を将来へ消滅させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>起訴後において、勾留の取消しを請求することができる（→正しい）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取消し（効力を将来へ消滅＝撤回）と、保釈・執行停止（勾留を残した一時解除）・準抗告（裁判自体の瑕疵）の区別。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>勾留取消しは被疑者勾留（207条準用）にも被告人勾留にも及び、起訴の前後を問わない。</p></div></td></tr>
+<tr data-stmt="6" data-verdict="o" data-brief-story="制度ごとの<b>効果の違い</b>を押さえる回。勾留の理由または勾留の必要が無くなったときは、請求により、または職権で勾留を取り消さなければならない（87条1項）。これは被疑者勾留にも被告人勾留にも及び、起訴の前後を問わない（保釈や執行停止は勾留を残したままの一時解除で、別の制度）。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>証拠がすべて押収され、関係者の取調べも終わって罪証隠滅のおそれが消えた場面。起訴後であっても勾留の取消しを請求できる。</span>" data-brief-mark="起訴後において、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>勾留の取消しを請求することができる</span>（87条1項）。<span class='tx-anscomp-line'>勾留の理由又は勾留の必要がなくなったときは、裁判所は、検察官・被告人・弁護人等の請求により、又は職権で、決定で勾留を取り消さなければならない（87条1項）。同条は起訴後の被告人の勾留にも適用されるから、起訴後においても<strong>勾留の取消し</strong>を請求することができる。</span>"><td style="text-align:center;font-weight:700;">6</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>87条1項は勾留の理由・必要がなくなったとき、裁判所が請求により又は職権で勾留を取り消さなければならないと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>身体拘束の重大性に鑑み、勾留後の事情変化に応じて勾留の効力を将来へ消滅させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>起訴後において、勾留の取消しを請求することができる（→正しい）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取消し（効力を将来へ消滅＝撤回）と、保釈・執行停止（勾留を残した一時解除）・準抗告（裁判自体の瑕疵）の区別。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>勾留取消しは被疑者勾留（207条準用）にも被告人勾留にも及び、起訴の前後を問わない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-6"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">身柄を解く制度は、効果の違いで三つに分かれる</p><div class="tx-dgm-lanes is-3"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">勾留の取消し</span><span class="dgm-lane-law">87条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">勾留の理由又は必要が<em>なくなったとき</em>、請求により、又は職権で取り消す。勾留そのものが将来に向かって消える。</p><p class="dgm-case">起訴後でも、事情が変われば請求できる。</p><p class="dgm-verdict is-ok">勾留が消滅する</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">保釈・執行停止</span><span class="dgm-lane-law">89条以下・95条</span></p><div class="dgm-lane-body"><p class="dgm-rule">勾留を<em>残したまま</em>身柄を一時的に解く。保証金や条件で出頭を確保する。</p><p class="dgm-case">保証金を納めて釈放される。</p><p class="dgm-verdict is-acc">一時的な解放</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">準抗告</span><span class="dgm-lane-law">429条1項2号</span></p><div class="dgm-lane-body"><p class="dgm-rule">裁判<em>そのものの当否</em>を争う道。事情の変化ではなく、判断の瑕疵を問題にする。</p><p class="dgm-case">勾留の要件を欠くとして裁判を争う。</p><p class="dgm-verdict is-teal">裁判を争う</p></div></div></div></div></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6531,16 +6604,40 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6575,7 +6672,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6588,6 +6690,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6596,12 +6699,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
