@@ -5636,6 +5636,52 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6228,7 +6274,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:x,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは<b>①客体（建造物等以外か・108条の艦船等か）②所有（自己物か他人物か）③故意か失火か</b>で入口の条文を先に決めること。その入口ごとに、条文が求める危険の種類も決まる。110条は条文自身が『よって公共の危険を生じさせた』と書くので、燃やしただけでは足りない具体的危険犯。客体だけで処罰する108条・109条1項（抽象的危険犯）とは、条文の文言で分かれる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>誰もいない空き地に置かれた他人の自転車に火をつけて燃やしたが、燃え移る物も人家も無く公共の危険が生じなかった場面。110条が文言で求める危険が出ていないので、同条では処罰されない。</span>" data-brief-mark="建造物等以外放火罪（110条）について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>抽象的危険犯である</span><span class='tx-stmt-fix'>→ 公共の危険の発生が成立要件＝具体的危険犯</span>。<span class='tx-anscomp-line'>建造物等以外放火罪（刑法110条）は、『よって公共の危険を生じさせた』ことを成立要件とする<strong>具体的危険犯</strong>である（108条・109条1項は抽象的危険犯）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>建造物等以外放火罪（110条）は条文上『よって公共の危険を生じさせた』を成立要件とする具体的危険犯。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>切断点：建造物等以外放火罪（110条）は条文上『よって公共の危険を生じさせた』を成立要件とする 具体的危険犯 。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>建造物等以外放火罪は、抽象的危険犯である。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：建造物等以外放火罪（110条）は条文上『よって公共の危険を生じさせた』を成立要件とする 具体的危険犯 。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文に「よって公共の危険を生じさせた」の文言があるか否かで、抽象的危険犯か具体的危険犯かを機械的に判定する。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは<b>①客体（建造物等以外か・108条の艦船等か）②所有（自己物か他人物か）③故意か失火か</b>で入口の条文を先に決めること。その入口ごとに、条文が求める危険の種類も決まる。110条は条文自身が『よって公共の危険を生じさせた』と書くので、燃やしただけでは足りない具体的危険犯。客体だけで処罰する108条・109条1項（抽象的危険犯）とは、条文の文言で分かれる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>誰もいない空き地に置かれた他人の自転車に火をつけて燃やしたが、燃え移る物も人家も無く公共の危険が生じなかった場面。110条が文言で求める危険が出ていないので、同条では処罰されない。</span>" data-brief-mark="建造物等以外放火罪（110条）について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>抽象的危険犯である</span><span class='tx-stmt-fix'>→ 公共の危険の発生が成立要件＝具体的危険犯</span>。<span class='tx-anscomp-line'>建造物等以外放火罪（刑法110条）は、『よって公共の危険を生じさせた』ことを成立要件とする<strong>具体的危険犯</strong>である（108条・109条1項は抽象的危険犯）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>建造物等以外放火罪（110条）は条文上『よって公共の危険を生じさせた』を成立要件とする具体的危険犯。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>切断点：建造物等以外放火罪（110条）は条文上『よって公共の危険を生じさせた』を成立要件とする 具体的危険犯 。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>建造物等以外放火罪は、抽象的危険犯である。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：建造物等以外放火罪（110条）は条文上『よって公共の危険を生じさせた』を成立要件とする 具体的危険犯 。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文に「よって公共の危険を生じさせた」の文言があるか否かで、抽象的危険犯か具体的危険犯かを機械的に判定する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">条文が「公共の危険」を書いているか ── 抽象的危険犯と具体的危険犯の分かれ目</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">108条・109条1項</span><span class="dgm-lane-law">現住建造物等／他人所有の非現住建造物</span></p><div class="dgm-lane-body"><p class="dgm-rule">条文は客体を挙げるだけで、危険の発生を要件に書かない＝<em>焼損すれば成立</em>する。</p><p class="dgm-case">類型的に危険が大きい客体なので、危険の発生をいちいち問わない。</p><p class="dgm-verdict is-acc">抽象的危険犯</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">110条</span><span class="dgm-lane-law">建造物等以外の物</span></p><div class="dgm-lane-body"><p class="dgm-rule">条文自身が「<em>よって公共の危険を生じさせた</em>」と書く＝燃やしただけでは足りない。</p><p class="dgm-case">空き地の自転車を燃やしたが、燃え移る物も人家も無かった。</p><p class="dgm-verdict is-ng">具体的危険犯（危険が出なければ不成立）</p></div></div></div></div></div></td></tr>
 <tr data-stmt="2" data-verdict="o" data-brief-story="未遂を罰するかは明文の列挙で決まる（44条）。112条が挙げるのは108条と109条1項だけで、110条は入らない。110条は公共の危険の発生が既遂の要件だから、そこに至らない段階を切り出して罰する実益が乏しい——危険の種類（具体的危険犯）と未遂処罰の有無が、同じ入口でつながっている。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>他人の自転車に火をつけたが、すぐ消し止められて公共の危険が生じなかった場面。110条の未遂を罰する規定は無いので、放火罪としては問えない。</span>" data-brief-mark="建造物等以外放火罪（110条）には、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>未遂処罰規定がない</span>（112条は108条・109条1項のみ列挙）。<span class='tx-anscomp-line'>未遂処罰は明文の列挙に限られ（44条・112条）、112条が挙げるのは108条と109条1項のみ。<strong>建造物等以外放火罪（110条）に未遂処罰規定はない</strong>。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>112条は『108条及び109条1項の罪の未遂は、罰する』とのみ規定。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>切断点：112条は『108条及び109条1項の罪の未遂は罰する』とのみ規定し 110条は列挙されず未遂処罰規定がない （危険発生＝既遂要件ゆえ未遂の実益が乏しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>建造物等以外放火罪には、未遂処罰規定がない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：112条は『108条及び109条1項の罪の未遂は罰する』とのみ規定し 110条は列挙されず未遂処罰規定がない （危険発生＝既遂要件ゆえ未遂の実益が乏しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>未遂処罰は明文列挙（112条）に限られ、具体的危険犯は危険発生＝既遂ゆえ未遂処罰の実益が乏しい。</p></div></td></tr>
 <tr data-stmt="3" data-verdict="x" data-brief-story="入口②＝所有関係で切る回。延焼罪（111条）は<b>自己所有物への放火</b>（109条2項・110条2項）が燃え広がった場合の結果的加重犯で、起点が自己物に限られる。他人所有の空き家への放火は109条1項の入口だから、結果として隣家へ燃え移っても111条の枠には入らない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>他人の空き家に火をつけ、その火が隣の住宅へ燃え移った場面。延焼という結果は同じでも、起点が他人所有物なので延焼罪では読まず、109条1項の放火罪の問題として処理する。</span>" data-brief-mark="他人所有の空き家（109条1項）に放火し隣家へ延焼した場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>延焼罪が成立する</span><span class='tx-stmt-fix'>→ 延焼罪の基本犯は自己所有物放火に限られ不成立</span>。<span class='tx-anscomp-line'>延焼罪（刑法111条）の基本犯は<strong>自己所有物への放火</strong>（109条2項・110条2項）に限られ、他人所有の空き家への放火（109条1項）から隣家に延焼しても延焼罪は成立しない。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>延焼罪（111条）の基本犯は自己所有物の具体的危険犯（109条2項・110条2項）に限定。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>切断点：延焼罪（111条）の基本犯は 自己所有物の具体的危険犯（109条2項・110条2項）に限定 。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>人がいない他人所有の空き家に放火し、予期せずその火が現に人が居住する隣家に燃え移ってこれを焼損した場合は、延焼罪が成立する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：延焼罪（111条）の基本犯は 自己所有物の具体的危険犯（109条2項・110条2項）に限定 。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>結果的加重犯である延焼罪の基本犯は、自己所有物放火（109条2項・110条2項）に限定される。</p></div></td></tr>
 <tr data-stmt="4" data-verdict="x" data-brief-story="入口①＝客体の回。現に人がいる艦船は108条が正面から取り込む客体で（大判昭10.2.2は艦船の大小・形状を問わない）、110条は建造物等以外の物を拾う<b>補充規定</b>にすぎない。上位の入口で読める場面を補充規定へ落とさない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>乗客を乗せて航行中のフェリーの船室に火をつけた場面。船だからと110条を探しに行かず、『現に人がいる艦船』として108条の入口で読む。</span>" data-brief-mark="航行中で客が乗る他人所有のフェリーに放火した場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>建造物等以外放火罪が成立する</span><span class='tx-stmt-fix'>→ 現に人がいる艦船で108条が成立</span>。<span class='tx-anscomp-line'>現に人がいる<strong>艦船</strong>（客を乗せ航行中のフェリー）への放火は現住建造物等放火罪（刑法108条・大判昭10.2.2）に当たり、補充規定たる110条の適用余地はない。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>航行中で客が乗るフェリーは『現に人がいる艦船』＝108条（大判昭10.2.2は艦船の大小形状を問わない）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>切断点：航行中で客が乗るフェリーは 『現に人がいる艦船』＝108条 （大判昭10.2.2）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>客を乗せて航行中の他人所有のフェリーに放火した場合は、建造物等以外放火罪が成立する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：航行中で客が乗るフェリーは 『現に人がいる艦船』＝108条 （大判昭10.2.2）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>108条の客体列挙（建造物・汽車・電車・艦船・鉱坑）と、110条の補充規定性を対にして押さえる。</p></div></td></tr>
@@ -6501,6 +6547,29 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
   }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
+  }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
     core.main.forEach(function(item){
@@ -6534,7 +6603,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6547,6 +6621,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6555,12 +6630,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
