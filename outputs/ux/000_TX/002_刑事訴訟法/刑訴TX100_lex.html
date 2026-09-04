@@ -5634,6 +5634,53 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5894,10 +5941,10 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <tbody>
 <tr><th class="jk2">捜索差押令状説</th><td>体内の尿は犯罪の証拠物＝捜索・差押の対象</td><td>捜索差押令状（ただし無条件）</td></tr>
 <tr><th>鑑定処分許可状説</th><td>尿道カテーテル挿入は身体への侵襲＝身体検査＝鑑定</td><td>鑑定処分許可状（記述2の発想・不採用）</td></tr>
-<tr><th>条件付捜索差押令状説（判例）</th><td>捜索・差押の性質＋人権侵害のおそれ→218条5項準用</td><td>医学的相当方法の条件付捜索差押令状</td></tr>
+<tr><th>条件付捜索差押令状説（判例）</th><td>捜索・差押の性質＋人権侵害のおそれ→218条6項準用</td><td>医学的相当方法の条件付捜索差押令状</td></tr>
 </tbody>
 </table>
-<p class="col-key"><span class="ck-tag">決め手</span>判例（最決昭55.10.23）は「捜索・差押の性質」を出発点にしつつ、人権侵害のおそれから身体検査令状（218条5項）を準用し、令状に医学的相当方法の条件を要求する＝条件付捜索差押令状説。</p>
+<p class="col-key"><span class="ck-tag">決め手</span>判例（最決昭55.10.23）は「捜索・差押の性質」を出発点にしつつ、人権侵害のおそれから身体検査令状（218条6項）を準用し、令状に医学的相当方法の条件を要求する＝条件付捜索差押令状説。</p>
 <p class="col-type"><strong>THROUGH-LINE</strong>どの令状かが決まれば、最終的手段性（実体要件）・医師による相当方法（条件の記載）・任意提出の機会（例外）は、その令状を適正に運用するための派生論点として一続きに処理できる。</p>
 </div>
 </div>
@@ -5958,34 +6005,34 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="tx-v13-verdict"><span class="verdict verdict-incorrect">✗ ×（誤り・判例は鑑定処分許可状ではなく条件付捜索差押令状によるとする）</span></div>
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
-<p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>強制採尿は、尿道にカテーテルを挿入するという身体への侵襲を伴うから、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>鑑定処分許可状が必要である</span><span class="tx-stmt-fix">→ 条件付の捜索差押令状による</span>。<span class="tx-anscomp-line">強制採尿は捜索・差押えの性質を有するが、人権の侵害にわたるおそれがあり検証としての身体検査と共通する性質を持つから、身体検査令状に関する刑訴法218条5項が捜索差押令状に準用され、これを実施する令状は<strong>条件付捜索差押令状</strong>である（最決昭55.10.23）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。強制採尿に用いる令状の種類が問われている。身体への侵襲を重くみて<a class="ref-stat" id="ref-law-2-225" href="#bref-2-225">鑑定処分許可状</a>——専門家に鑑定として身体を調べさせる許可状——が要るとする見解もある。しかし判例（最決昭55.10.23）は、強制採尿を捜索・差押えの性質を有する処分と捉えたうえで、人権の侵害にわたるおそれがあり検証としての身体検査と共通する性質を持つことから、身体検査令状に関する刑訴法218条5項を捜索差押令状に準用し、<strong>条件付捜索差押令状</strong>によるべきものとした。侵襲の重さは令状の種類を変える理由ではなく、令状に付す条件で受け止めれば足りるからである。イメージは荷物の『われもの注意』——箱を別の種類に取り替えるのではなく、扱い方の条件を貼って中身を守る。鑑定処分許可状が必要とする本記述は誤り＝×。</p>
+<p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>強制採尿は、尿道にカテーテルを挿入するという身体への侵襲を伴うから、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>鑑定処分許可状が必要である</span><span class="tx-stmt-fix">→ 条件付の捜索差押令状による</span>。<span class="tx-anscomp-line">強制採尿は捜索・差押えの性質を有するが、人権の侵害にわたるおそれがあり検証としての身体検査と共通する性質を持つから、身体検査令状に関する刑訴法218条6項が捜索差押令状に準用され、これを実施する令状は<strong>条件付捜索差押令状</strong>である（最決昭55.10.23）。</span></p>
+<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。強制採尿に用いる令状の種類が問われている。身体への侵襲を重くみて<a class="ref-stat" id="ref-law-2-225" href="#bref-2-225">鑑定処分許可状</a>——専門家に鑑定として身体を調べさせる許可状——が要るとする見解もある。しかし判例（最決昭55.10.23）は、強制採尿を捜索・差押えの性質を有する処分と捉えたうえで、人権の侵害にわたるおそれがあり検証としての身体検査と共通する性質を持つことから、身体検査令状に関する刑訴法218条6項を捜索差押令状に準用し、<strong>条件付捜索差押令状</strong>によるべきものとした。侵襲の重さは令状の種類を変える理由ではなく、令状に付す条件で受け止めれば足りるからである。イメージは荷物の『われもの注意』——箱を別の種類に取り替えるのではなく、扱い方の条件を貼って中身を守る。鑑定処分許可状が必要とする本記述は誤り＝×。</p>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>侵襲があるのは正しい前提</strong><span class="syn-body">尿道にカテーテルを挿入する強制採尿が身体への侵襲を伴うこと自体は正しい。問題は、その侵襲性から<span class="ron-mark freq-high">どの令状が必要か</span>という結論であり、身体検査＝鑑定と捉えて鑑定処分許可状に直結させてよいかが分かれ目。</span></p>
-<p><span class="syn-step">2</span><strong>判例は条件付捜索差押令状</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-2-case55">最決昭55.10.23</a>）は、強制採尿を捜索・差押の性質と捉えたうえで、人権侵害のおそれがあり検証としての身体検査と共通する性質があるから、<span class="case-emphasis freq-high">身体検査令状に関する刑訴法218条5項が捜索差押令状に準用される</span>とする。つまり用いる令状は捜索差押令状（に条件を付したもの）であって、<a class="ref-stat" href="#bref-2-225">鑑定処分許可状（225条・168条1項）</a>ではない。</span></p> </div>
+<p><span class="syn-step">2</span><strong>判例は条件付捜索差押令状</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-2-case55">最決昭55.10.23</a>）は、強制採尿を捜索・差押の性質と捉えたうえで、人権侵害のおそれがあり検証としての身体検査と共通する性質があるから、<span class="case-emphasis freq-high">身体検査令状に関する刑訴法218条6項が捜索差押令状に準用される</span>とする。つまり用いる令状は捜索差押令状（に条件を付したもの）であって、<a class="ref-stat" href="#bref-2-225">鑑定処分許可状（225条・168条1項）</a>ではない。</span></p> </div>
 <p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>侵襲は本当。でも判例のゴールは「鑑定処分許可状」ではなく「条件付きの捜索差押令状」。侵襲は令状に付く"条件"で受け止める。</p>
 </div>
 
 <div class="choice-points">
 <ol>
 <li><strong>侵襲の位置づけ</strong>：強制採尿の身体侵襲性は、令状の種類を鑑定処分許可状に変える事情ではなく、捜索差押令状に<a class="ref-stat" href="#bref-2-case55">医学的相当方法の条件</a>を付す根拠となる。</li>
-<li><strong>判例の令状</strong>：判例は捜索・差押の性質を基礎に<a class="ref-stat" href="#bref-2-case55">身体検査令状（218条5項）を準用</a>する条件付捜索差押令状説。<a class="ref-stat" href="#bref-2-225">鑑定処分許可状（225条・168条1項）</a>ではない。</li>
+<li><strong>判例の令状</strong>：判例は捜索・差押の性質を基礎に<a class="ref-stat" href="#bref-2-case55">身体検査令状（218条6項）を準用</a>する条件付捜索差押令状説。<a class="ref-stat" href="#bref-2-225">鑑定処分許可状（225条・168条1項）</a>ではない。</li>
 <li><strong>ひっかけの型</strong>：『侵襲＝身体検査＝鑑定処分許可状』と短絡させる。判例は捜索差押令状に条件を付す構成を採る。</li>
 </ol>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-case55" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決昭和55年10月23日（百選28・準用される令状の性質）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">強制採尿は、<span class="exam-mark freq-high">人権の侵害にわたるおそれがある点では、一般の捜索・差押と異なり、検証の方法としての身体検査と共通の性質を有している</span>ので、身体検査令状に関する<span class="ron-mark freq-high">刑訴法218条5項が右捜索差押令状に準用されるべき</span>である。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">令状は『捜索差押令状』が基礎で、そこに身体検査令状の条件規定（218条5項）を準用する＝条件付捜索差押令状説。鑑定処分許可状によるとする記述2は判例と異なり誤り。</span></div></div></div></details></div>
+<div class="tx-basis-items"><div id="bref-2-case55" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決昭和55年10月23日（百選28・準用される令状の性質）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">強制採尿は、<span class="exam-mark freq-high">人権の侵害にわたるおそれがある点では、一般の捜索・差押と異なり、検証の方法としての身体検査と共通の性質を有している</span>ので、身体検査令状に関する<span class="ron-mark freq-high">刑訴法218条6項が右捜索差押令状に準用されるべき</span>である。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">令状は『捜索差押令状』が基礎で、そこに身体検査令状の条件規定（218条6項）を準用する＝条件付捜索差押令状説。鑑定処分許可状によるとする記述2は判例と異なり誤り。</span></div></div></div></details></div>
 <div id="bref-2-225" class="tx-basis-item "><div class="tx-basis-head">📜 刑訴法225条・168条1項 鑑定処分許可状（記述2が誤って要求する令状）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">225①</span><span class="hang-body">鑑定の嘱託を受けた者は、<span class="case-emphasis freq-mid">裁判官の許可</span>を受けて、168条1項に規定する処分（身体の検査等）をすることができる。</span></p>
 <p class="hanging"><span class="para-num">168①</span><span class="hang-body">鑑定人は、鑑定について必要がある場合には、裁判所（裁判官）の許可を受けて、<span class="ron-mark freq-mid">身体を検査</span>し…物を破壊すること等ができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">鑑定受託者が身体検査等の処分をするための許可状。侵襲を伴う身体検査＝鑑定と捉えれば、この鑑定処分許可状が必要と考えるのが鑑定処分許可状説。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">判例は鑑定処分許可状説を採らず、捜索差押令状（218条5項準用の条件付）による。したがって『鑑定処分許可状が必要』とする記述2は誤り。</span></div>
+<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">判例は鑑定処分許可状説を採らず、捜索差押令状（218条6項準用の条件付）による。したがって『鑑定処分許可状が必要』とする記述2は誤り。</span></div>
 </div></div></details></div>
-<div id="theory-2-reijou" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：強制採尿の令状の種類（条件付捜索差押令状説／鑑定処分許可状説）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">判例</span><span class="hang-body"><span class="case-emphasis freq-high">条件付捜索差押令状説</span>＝捜索・差押の性質を基礎に、人権侵害のおそれから身体検査令状（218条5項）を準用し、医学的相当方法の条件を付す。</span></p></div><details class="tx-basis-more"><summary>＋ 対立説・本問帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="theory-2-reijou" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：強制採尿の令状の種類（条件付捜索差押令状説／鑑定処分許可状説）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">判例</span><span class="hang-body"><span class="case-emphasis freq-high">条件付捜索差押令状説</span>＝捜索・差押の性質を基礎に、人権侵害のおそれから身体検査令状（218条6項）を準用し、医学的相当方法の条件を付す。</span></p></div><details class="tx-basis-more"><summary>＋ 対立説・本問帰結を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">対立説</span><span class="kd-text"><strong>鑑定処分許可状説</strong>＝身体侵襲を伴う身体検査＝鑑定と捉え、鑑定処分許可状（225条・168条1項）を要するとする（記述2の立場）。<strong>検証令状説</strong>等もあるが、判例・多数は条件付捜索差押令状説。</span></div>
 <div class="kd-item"><span class="kd-label r-ate">本問帰結</span><span class="kd-text">判例が条件付捜索差押令状説を採る以上、鑑定処分許可状が必要とする記述2は誤り。侵襲性は令状の『条件』で処理される。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">判例は捜索・差押の性質を基礎に身体検査令状（218条5項）を準用する条件付捜索差押令状説を採る。侵襲を根拠に鑑定処分許可状が必要とする記述2は判例と異なり誤り。</p>
+<p style="font-size:.92em; margin-top:6px;">判例は捜索・差押の性質を基礎に身体検査令状（218条6項）を準用する条件付捜索差押令状説を採る。侵襲を根拠に鑑定処分許可状が必要とする記述2は判例と異なり誤り。</p>
 </div>
 
 <div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「身体への侵襲があるから令状も特別なもの（鑑定処分許可状）に格上げ」と飛びつく罠。</strong>判例は令状の<em>種類</em>を変えるのではなく、捜索差押令状という枠は保ったまま、侵襲性を令状の<em>条件</em>（医師による医学的相当方法）で受け止める。侵襲や人権侵害の度合いは『どの令状か』ではなく『どんな条件を付すか』で調整する——強制採血や体液採取をめぐる令状論でも同じ発想が問われる cross-cut。</span></div>
@@ -6081,10 +6128,10 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="tx-v13-verdict"><span class="verdict verdict-correct">✓ ○（正しい・医学的相当方法の条件の記載が令状発付の不可欠の要件）</span></div>
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
-<p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>裁判官は、強制採尿のための令状を発付するに当たり、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>医師をして医学的に相当と認められる方法により行わせなければならない旨の条件を付さなければならない</span>（最決昭55.10.23）。<span class="tx-anscomp-line">強制採尿については身体検査令状に関する刑訴法218条5項が捜索差押令状に準用され、令状の記載要件として、医師をして<strong>医学的に相当と認められる方法</strong>により行わせなければならない旨の条件の記載が不可欠である（最決昭55.10.23）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。強制採尿の令状に何を書き込むべきかが問われている。強制採尿は検証としての身体検査と共通する性質を持つため、身体検査令状に関する刑訴法218条5項——裁判官が身体の検査について適当と認める条件を付せるとする規定——が捜索差押令状に準用される。その帰結として判例（<a class="ref-stat" id="ref-law-5-55" href="#bref-5-case55">最決昭55.10.23</a>）は、令状の記載要件として、医師をして<strong>医学的に相当と認められる方法</strong>により行わせなければならない旨の条件の記載が不可欠であるとした。カテーテル挿入という侵襲を伴う以上、被疑者の身体の安全と人格の保護を令状自体で担保する必要があるからである。イメージは処方箋の但し書き——誰がどのやり方で行うかまで書いて初めて安全に実施できる。条件を付さなければならないとする点で本記述は判例と一致し、正しい＝○。</p>
+<p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>裁判官は、強制採尿のための令状を発付するに当たり、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>医師をして医学的に相当と認められる方法により行わせなければならない旨の条件を付さなければならない</span>（最決昭55.10.23）。<span class="tx-anscomp-line">強制採尿については身体検査令状に関する刑訴法218条6項が捜索差押令状に準用され、令状の記載要件として、医師をして<strong>医学的に相当と認められる方法</strong>により行わせなければならない旨の条件の記載が不可欠である（最決昭55.10.23）。</span></p>
+<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。強制採尿の令状に何を書き込むべきかが問われている。強制採尿は検証としての身体検査と共通する性質を持つため、身体検査令状に関する刑訴法218条6項——裁判官が身体の検査について適当と認める条件を付せるとする規定——が捜索差押令状に準用される。その帰結として判例（<a class="ref-stat" id="ref-law-5-55" href="#bref-5-case55">最決昭55.10.23</a>）は、令状の記載要件として、医師をして<strong>医学的に相当と認められる方法</strong>により行わせなければならない旨の条件の記載が不可欠であるとした。カテーテル挿入という侵襲を伴う以上、被疑者の身体の安全と人格の保護を令状自体で担保する必要があるからである。イメージは処方箋の但し書き——誰がどのやり方で行うかまで書いて初めて安全に実施できる。条件を付さなければならないとする点で本記述は判例と一致し、正しい＝○。</p>
 <div class="syn-path">
-<p><span class="syn-step">1</span><strong>身体検査令状の条件規定を準用する</strong><span class="syn-body">強制採尿は検証としての身体検査と共通の性質を持つため、判例は<a class="ref-stat" href="#bref-5-218">身体検査令状に関する刑訴法218条5項</a>を捜索差押令状に準用する。同項は裁判官が身体の検査について適当と認める条件を付しうるとする規定である。</span></p>
+<p><span class="syn-step">1</span><strong>身体検査令状の条件規定を準用する</strong><span class="syn-body">強制採尿は検証としての身体検査と共通の性質を持つため、判例は<a class="ref-stat" href="#bref-5-218">身体検査令状に関する刑訴法218条6項</a>を捜索差押令状に準用する。同項は裁判官が身体の検査について適当と認める条件を付しうるとする規定である。</span></p>
 <p><span class="syn-step">2</span><strong>医学的相当方法の条件が不可欠</strong><span class="syn-body">その準用の帰結として、判例は『令状の記載要件として、強制採尿は<span class="case-emphasis freq-high">医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠</span>』とする。被疑者の身体の安全と人格の保護のための担保であり、裁判官はこの条件を付さなければならない。記述5は正しい。</span></p> </div>
 <p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>令状に『医師に医学的に相当な方法でやらせる』という但し書きは必須。侵襲の重さを"条件"で包む。</p>
 </div>
@@ -6092,18 +6139,18 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="choice-points">
 <ol>
 <li><strong>条件記載の不可欠性</strong>：令状の記載要件として『<a class="ref-stat" href="#bref-5-case55">医師をして医学的に相当と認められる方法により行わせる</a>』旨の条件が不可欠（最決昭55.10.23）。</li>
-<li><strong>根拠</strong>：検証としての身体検査と共通の性質→<a class="ref-stat" href="#bref-5-218">身体検査令状の条件規定（218条5項）を準用</a>。被疑者の身体の安全と人格の保護のため。</li>
+<li><strong>根拠</strong>：検証としての身体検査と共通の性質→<a class="ref-stat" href="#bref-5-218">身体検査令状の条件規定（218条6項）を準用</a>。被疑者の身体の安全と人格の保護のため。</li>
 <li><strong>ひっかけの型</strong>：条件の記載は任意の運用にすぎない、と緩めさせる。判例は条件の記載を令状発付の不可欠の要件とする。</li>
 </ol>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-5-case55" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決昭和55年10月23日（百選28・医学的相当方法の条件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">…身体検査令状に関する刑訴法218条5項が右捜索差押令状に準用されるべきであって、<span class="exam-mark freq-high">令状の記載要件として、強制採尿は医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠である</span>と解さなければならない。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">条件付捜索差押令状説の帰結。裁判官は令状発付に当たり医学的相当方法の条件を必ず記載しなければならず、記述5は正しい。条件を欠く令状は違法となる。</span></div></div></div></details></div>
-<div id="bref-5-218" class="tx-basis-item "><div class="tx-basis-head">📜 刑訴法218条 身体検査令状の条件（捜索差押令状に準用）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">条件</span><span class="hang-body">身体の検査について、裁判官は、<span class="ron-mark freq-high">適当と認める条件</span>を付することができる（判例当時＝刑訴法218条5項。強制採尿ではこれを捜索差押令状に準用する）。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-5-case55" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決昭和55年10月23日（百選28・医学的相当方法の条件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">…身体検査令状に関する刑訴法218条6項が右捜索差押令状に準用されるべきであって、<span class="exam-mark freq-high">令状の記載要件として、強制採尿は医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠である</span>と解さなければならない。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">条件付捜索差押令状説の帰結。裁判官は令状発付に当たり医学的相当方法の条件を必ず記載しなければならず、記述5は正しい。条件を欠く令状は違法となる。</span></div></div></div></details></div>
+<div id="bref-5-218" class="tx-basis-item "><div class="tx-basis-head">📜 刑訴法218条 身体検査令状の条件（捜索差押令状に準用）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">条件</span><span class="hang-body">身体の検査について、裁判官は、<span class="ron-mark freq-high">適当と認める条件</span>を付することができる（判例当時＝刑訴法218条6項。強制採尿ではこれを捜索差押令状に準用する）。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">身体検査令状における条件付与の規定。強制採尿は検証としての身体検査と共通の性質を有するため、この条件規定が捜索差押令状に準用される。</span></div>
 <div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">準用の結果、強制採尿の令状には医師による医学的相当方法の条件記載が不可欠となる（記述5）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">判例は身体検査令状の条件規定（218条5項）を捜索差押令状に準用し、医師による医学的相当方法の条件記載を令状発付の不可欠の要件とした（最決昭55.10.23）。記述5は正しい。</p>
+<p style="font-size:.92em; margin-top:6px;">判例は身体検査令状の条件規定（218条6項）を捜索差押令状に準用し、医師による医学的相当方法の条件記載を令状発付の不可欠の要件とした（最決昭55.10.23）。記述5は正しい。</p>
 </div>
 
 <div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「条件を付すかどうかは裁判官の裁量で、付さなくても令状は有効」と緩める罠。</strong>判例は医学的相当方法の条件を<em>令状の記載要件（不可欠）</em>と位置づける。裁量的な付随事項ではなく、これを欠けば令状自体が違法になる——強制処分の適法性を『令状の条件』で担保するこの発想は、身体検査令状一般や検証における条件付与と共通する cross-cut。記述2で否定した鑑定処分許可状の代わりに、侵襲性はこの『条件』で受け止められている。</span></div>
@@ -6127,7 +6174,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <button class="tx-inline-reveal-btn" disabled="" type="button">解答を表示</button>
 <span class="tx-inline-result" hidden=""></span>
 </div>
-<div class="answer-area inline-prototype-mode" data-answer-type="ox-grid" data-correct-value="×××○○" data-explanation="強制採尿の令状論は最決昭55.10.23（百選28）が基礎となる。体内の尿を犯罪の証拠物として強制的に採取する行為は捜索・差押の性質を有するから、捜索差押令状により実施でき、膀胱の尿は身体の一部だから捜索差押許可状では行えないとする理解は誤り。侵襲性を根拠に鑑定処分許可状が必要とする理解も判例と異なり、判例は身体検査令状に関する刑訴法218条5項を捜索差押令状に準用する条件付捜索差押令状説を採る。強制採尿は屈辱感等の精神的打撃を伴うため、真にやむをえない場合の最終的手段としてのみ許され、最終的手段でなくとも令状を発付できるとする理解は誤り。もっとも、被疑者が錯乱状態で任意の尿の提出が期待できない状況では、任意提出の機会を提供せずに令状で強制採尿を行っても違法でない（最決平3.7.16）。また、令状の記載要件として、医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠である。各記述の正誤は記述1×・記述2×・記述3×・記述4○・記述5○で、正しいのは記述4・記述5（組合せ番号5＝エオ）。" id="answer-area">
+<div class="answer-area inline-prototype-mode" data-answer-type="ox-grid" data-correct-value="×××○○" data-explanation="強制採尿の令状論は最決昭55.10.23（百選28）が基礎となる。体内の尿を犯罪の証拠物として強制的に採取する行為は捜索・差押の性質を有するから、捜索差押令状により実施でき、膀胱の尿は身体の一部だから捜索差押許可状では行えないとする理解は誤り。侵襲性を根拠に鑑定処分許可状が必要とする理解も判例と異なり、判例は身体検査令状に関する刑訴法218条6項を捜索差押令状に準用する条件付捜索差押令状説を採る。強制採尿は屈辱感等の精神的打撃を伴うため、真にやむをえない場合の最終的手段としてのみ許され、最終的手段でなくとも令状を発付できるとする理解は誤り。もっとも、被疑者が錯乱状態で任意の尿の提出が期待できない状況では、任意提出の機会を提供せずに令状で強制採尿を行っても違法でない（最決平3.7.16）。また、令状の記載要件として、医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠である。各記述の正誤は記述1×・記述2×・記述3×・記述4○・記述5○で、正しいのは記述4・記述5（組合せ番号5＝エオ）。" id="answer-area">
 <p class="answer-instruction">記述1〜5それぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
 <div class="answer-ox-grid">
 <div class="ox-row" data-stmt="1">
@@ -6145,7 +6192,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <button class="answer-slot ox-btn" data-value="○" type="button">○</button>
 <button class="answer-slot ox-btn" data-value="×" type="button">×</button>
 </span>
-<div class="ox-pool-explain" data-source="tx100-v13-gist-point"><p class="ox-pool-gist">判例は捜索・差押の性質を基礎に身体検査令状（218条5項）を準用する条件付捜索差押令状説を採り、鑑定処分許可状によるとはしない。侵襲を根拠に鑑定処分許可状が必要とする本記述は誤り（×）。</p><ul class="ox-pool-points"><li>侵襲の位置づけ：身体侵襲性は令状の種類を鑑定処分許可状に変える事情ではなく、捜索差押令状に医学的相当方法の条件を付す根拠となる。</li><li>判例の令状：捜索・差押の性質を基礎に身体検査令状（218条5項）を準用する条件付捜索差押令状説。鑑定処分許可状（225条・168条1項）ではない。</li><li>ひっかけの型：『侵襲＝身体検査＝鑑定処分許可状』と短絡させる。判例は捜索差押令状に条件を付す構成を採る。</li></ul></div></div>
+<div class="ox-pool-explain" data-source="tx100-v13-gist-point"><p class="ox-pool-gist">判例は捜索・差押の性質を基礎に身体検査令状（218条6項）を準用する条件付捜索差押令状説を採り、鑑定処分許可状によるとはしない。侵襲を根拠に鑑定処分許可状が必要とする本記述は誤り（×）。</p><ul class="ox-pool-points"><li>侵襲の位置づけ：身体侵襲性は令状の種類を鑑定処分許可状に変える事情ではなく、捜索差押令状に医学的相当方法の条件を付す根拠となる。</li><li>判例の令状：捜索・差押の性質を基礎に身体検査令状（218条6項）を準用する条件付捜索差押令状説。鑑定処分許可状（225条・168条1項）ではない。</li><li>ひっかけの型：『侵襲＝身体検査＝鑑定処分許可状』と短絡させる。判例は捜索差押令状に条件を付す構成を採る。</li></ul></div></div>
 <div class="ox-row" data-stmt="3">
 <span class="ox-label">3</span>
 <span class="ox-stmt">強制採尿が現行法上の強制処分として認められる以上、それが尿を獲得するための最終的手段でなくとも、裁判官はそのための令状を発付することができる。</span>
@@ -6169,7 +6216,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <button class="answer-slot ox-btn" data-value="○" type="button">○</button>
 <button class="answer-slot ox-btn" data-value="×" type="button">×</button>
 </span>
-<div class="ox-pool-explain" data-source="tx100-v13-gist-point"><p class="ox-pool-gist">判例は身体検査令状の条件規定（218条5項）を捜索差押令状に準用し、医師による医学的相当方法の条件記載を令状発付の不可欠の要件とした（最決昭55.10.23）。本記述は正しい（○）。</p><ul class="ox-pool-points"><li>条件記載の不可欠性：令状の記載要件として『医師をして医学的に相当と認められる方法により行わせる』旨の条件が不可欠（最決昭55.10.23）。</li><li>根拠：検証としての身体検査と共通の性質→身体検査令状の条件規定（218条5項）を準用。被疑者の身体の安全と人格の保護のため。</li><li>ひっかけの型：条件の記載は任意の運用にすぎない、と緩めさせる。判例は条件の記載を令状発付の不可欠の要件とする。</li></ul></div></div>
+<div class="ox-pool-explain" data-source="tx100-v13-gist-point"><p class="ox-pool-gist">判例は身体検査令状の条件規定（218条6項）を捜索差押令状に準用し、医師による医学的相当方法の条件記載を令状発付の不可欠の要件とした（最決昭55.10.23）。本記述は正しい（○）。</p><ul class="ox-pool-points"><li>条件記載の不可欠性：令状の記載要件として『医師をして医学的に相当と認められる方法により行わせる』旨の条件が不可欠（最決昭55.10.23）。</li><li>根拠：検証としての身体検査と共通の性質→身体検査令状の条件規定（218条6項）を準用。被疑者の身体の安全と人格の保護のため。</li><li>ひっかけの型：条件の記載は任意の運用にすぎない、と緩めさせる。判例は条件の記載を令状発付の不可欠の要件とする。</li></ul></div></div>
 </div>
 <button class="reveal-answer-btn" disabled="" type="button">解答を表示</button>
 <div hidden="" id="answer-feedback"></div>
@@ -6188,11 +6235,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:x,4:o,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="膀胱内の尿は身体の一部か、それとも<b>体外へ排出される予定の老廃物</b>か。判例は後者に近い評価をし、体内の尿を犯罪の証拠物として強制的に採取する処分は、<b>捜索・差押えの性質</b>を有するとして、捜索差押許可状によることを認めた（最決昭55.10.23）。身体の一部だから捜索差押令状では扱えない、という筋道は取られていない。趣旨は、令状の種類を決めるのが<b>処分の実質</b>——何を取得する処分か——だという点にある。取得しているのは証拠物であり、その意味では物の押収と同じ構造を持つ。<b>身体に関わることが、直ちに別の令状を要求するわけではない</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務は条件を付した捜索差押許可状によるのが通例。血液については学説の対立が残るが、尿についてはこの枠組みが確立している。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>覚醒剤使用の疑いで、任意の提出を2度拒んだ被疑者から尿を採る場面。使われるのは捜索差押許可状である。身体から取るからといって、別の種類の令状が要るわけではない。</span>" data-brief-mark="膀胱の尿は身体の一部だから捜索差押許可状で強制採尿を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>行うことはできない</span><span class='tx-stmt-fix'>→ 捜索差押令状で行える</span>。<span class='tx-anscomp-line'>体内に存在する尿を犯罪の証拠物として強制的に採取する行為は<strong>捜索・差押えの性質</strong>を有するから、強制採尿は捜索差押令状（刑訴法218条1項）によって行うことができる（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>体内の尿を犯罪の証拠物として強制採取する行為は捜索・差押の性質を有する（最決昭55.10.23）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>尿を証拠物として取得する手続とみるため、捜索差押令状で足りる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>膀胱にたまっている尿は物ではなく身体の一部であるから、捜索差押許可状によって、強制採尿を行うことはできない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『尿は物でなく身体の一部だから不可』ではなく、証拠物の強制取得＝捜索・差押の性質ゆえ捜索差押令状により可能。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>証拠取得手続としての性質（捜索・差押か検証か）で必要な令状を決める。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="侵襲を伴うから鑑定処分許可状（225条）による、という筋道も一見もっともらしいが、判例は採らなかった。理由は2つある。ひとつは、処分の実質が<b>証拠物の取得</b>であって専門的な判断作業ではないこと。もうひとつは、鑑定処分許可状には拒まれたときの<b>直接強制の明文がない</b>ことである（139条・172条の準用がない）。拒む相手から取り出す処分に、押さえる手段のない枠組みを当てても機能しない。そこで<b>条件を付した捜索差押許可状</b>という形が採られた。<b>令状を選ぶときは、処分の実質と、実現する手段があるかの両方を見る</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>条件の記載により、医師が医学的に相当と認められる方法で行うことが担保される。この一文が侵襲の相当性を支えている。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>許可状はあるのに、拒まれた相手を押さえる根拠がない場面。30分押し問答が続いても動かせない。処分の枠組みだけあって手段がない状態になる。だから別の令状の形が選ばれた。</span>" data-brief-mark="強制採尿は身体への侵襲を伴うから<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>鑑定処分許可状が必要</span><span class='tx-stmt-fix'>→ 条件付の捜索差押令状による</span>。<span class='tx-anscomp-line'>強制採尿は捜索・差押えの性質を有するが、人権の侵害にわたるおそれがあり検証としての身体検査と共通する性質を持つから、身体検査令状に関する刑訴法218条5項が捜索差押令状に準用され、これを実施する令状は<strong>条件付捜索差押令状</strong>である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>判例は捜索・差押の性質を基礎に身体検査令状（218条5項）を準用する条件付捜索差押令状説。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>侵襲性は令状の種類ではなく条件（医学的相当方法）で受け止める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>強制採尿は、尿道にカテーテルを挿入するという身体への侵襲を伴うから、鑑定処分許可状が必要である。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>必要なのは鑑定処分許可状（225条・168条1項）ではなく条件付捜索差押令状。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>侵襲・人権侵害の度合いは『どの令状か』でなく『どんな条件を付すか』で調整する。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="強制採尿は身体の内奥に器具を挿入する処分で、屈辱感を伴う。だから判例は、<b>犯罪の重大性、嫌疑の存在、当該処分の必要性、代替手段の不存在</b>等を考慮し、<b>真にやむを得ないと認められる場合に、最終的手段として</b>、適切な法律上の手続を経て行われる限りで許容されるとする。最終的手段であることは、処分を許すための<b>要件</b>であって、あれば望ましいという程度のものではない。趣旨は、侵襲の重い処分ほど必要性の審査を厳しくして釣り合いを取るという比例の考え方にある。<b>可否ではなく、他に方法がないかという補充性で絞る</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>まず任意の提出を求め、応じない場合に令状を請求する。任意提出の機会をどう与えたかが、後に必要性の判断材料になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>任意の提出を3度求め、いずれも拒まれた場面。ここで初めて最終的手段としての強制採尿が視野に入る。順序を飛ばした請求は、必要性の説明が立たない。</span>" data-brief-mark="尿獲得のための<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>最終的手段でなくとも令状を発付できる</span><span class='tx-stmt-fix'>→ 最終的手段としてのみ許される</span>。<span class='tx-anscomp-line'>強制採尿は、被疑事件の重大性、嫌疑の存在、当該証拠の重要性とその取得の必要性、適当な代替手段の不存在等の事情に照らし、犯罪の捜査上真にやむをえないと認められる場合の<strong>最終的手段</strong>として許されるから、最終的手段性は令状発付の要件である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>強制採尿は真にやむをえない場合の『最終的手段』としてのみ許される（最決昭55.10.23）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>屈辱感等の精神的打撃が重いため補充性（代替手段の不存在）を要件化。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>強制採尿が現行法上の強制処分として認められる以上、それが尿を獲得するための最終的手段でなくとも、裁判官はそのための令状を発付することができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>最終的手段性は令状発付の実体的要件であり、これを不要とすることはできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>権利侵害の重い強制処分には補充性（他に手段がないこと）が上乗せされうる。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="補充性の要件は、<b>形式的な手順を踏むこと</b>を求めているのではなく、<b>他に方法がない状況にあること</b>を求めている。だから任意提出の機会を与えることが期待できない状況であれば、その手順を経ずに令状によって強制採尿をしても違法にならない。判例は、被疑者が錯乱状態にあって任意提出を期待できない場合について、任意提出の機会を与えずに令状により強制採尿をしたことを適法とした（最決平3.7.16）。<b>要件が求めているのが実質か形式かを見誤らない</b>——期待できない相手に形だけ求めても、補充性の判断は何も変わらない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>錯乱や意識障害がある場合は、その状態を医師の所見や記録で残す。任意提出を求めなかった理由が、後に説明できるようにしておく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>被疑者が錯乱し、午前3時に意思疎通ができない状態で保護された場面。「尿を出してください」と求めても応答が返らない。この場面で手順だけを踏ませることに意味はない。</span>" data-brief-mark="錯乱で任意提出が期待できないとき<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>任意提出の機会提供なく令状で強制採尿できる</span>（最決平3.7.16）。<span class='tx-anscomp-line'>被疑者が<strong>錯乱状態</strong>に陥り任意の尿の提出が期待できない状況にあるときは、任意提出の機会を提供することなく令状により強制採尿を行っても、その手続は違法とならない（最決平3.7.16）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>錯乱状態で任意の尿の提出が期待できない状況では、機会提供なしの強制採尿も適法（最決平3.7.16）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>任意提出の機会は原則だが、機会を与えても無意味な状況では不可欠でない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被疑者が錯乱状態で任意の尿の提出が期待できないときは、任意提出の機会を提供せずに、令状によって強制採尿を行うことができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『必ず先に任意提出の機会が必要』ではなく、状況が原則の前提を満たすかで切る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>原則（任意提出の機会）と例外は、原則の前提が現実に成り立つかで振り分ける。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-story="強制採尿の令状には、<b>医師をして医学的に相当と認められる方法により行わせる旨の条件</b>を付さなければならない（最決昭55.10.23）。身体検査令状に関する218条6項が準用され、この条件は<b>不可欠</b>とされている。趣旨は、令状の種類を決めただけでは侵襲の相当性を担保できないことにある。捜索差押許可状という枠を使う以上、そのままでは「物を押収してよい」としか書かれていない。そこに<b>誰が、どういう方法で行うか</b>を書き込むことで、初めて身体への侵襲を伴う処分として許容できる形になる。<b>条件は付随的な注意書きではなく、処分を許すための構成要素である</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>カテーテルによる採尿を医師が行い、その経過が記録される。条件の記載を欠いた令状による採尿は、証拠能力が正面から争われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>令状の条件欄に「医師をして医学的に相当と認められる方法により行わせる」と書かれているかどうか。この1行があるかないかで、同じ処分が適法にも違法にもなる。</span>" data-brief-mark="令状発付に当たり<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>医学的相当方法により行わせる旨の条件を付さなければならない</span>（最決昭55.10.23）。<span class='tx-anscomp-line'>強制採尿については身体検査令状に関する刑訴法218条5項が捜索差押令状に準用され、令状の記載要件として、医師をして<strong>医学的に相当と認められる方法</strong>により行わせなければならない旨の条件の記載が不可欠である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>令状の記載要件として医学的相当方法の条件記載が不可欠（最決昭55.10.23）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>検証としての身体検査と共通の性質→身体検査令状の条件規定（218条5項）を準用。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>裁判官は、強制採尿のための令状を発付するに当たり、医師をして医学的に相当と認められる方法により行わせなければならない旨の条件を付さなければならない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>条件は裁量的付随事項ではなく令状発付の不可欠の要件（欠けば違法）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>強制処分の適法性を『令状の条件』で担保する（身体検査令状一般に共通）。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="膀胱内の尿は身体の一部か、それとも<b>体外へ排出される予定の老廃物</b>か。判例は後者に近い評価をし、体内の尿を犯罪の証拠物として強制的に採取する処分は、<b>捜索・差押えの性質</b>を有するとして、捜索差押許可状によることを認めた（最決昭55.10.23）。身体の一部だから捜索差押令状では扱えない、という筋道は取られていない。趣旨は、令状の種類を決めるのが<b>処分の実質</b>——何を取得する処分か——だという点にある。取得しているのは証拠物であり、その意味では物の押収と同じ構造を持つ。<b>身体に関わることが、直ちに別の令状を要求するわけではない</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務は条件を付した捜索差押許可状によるのが通例。血液については学説の対立が残るが、尿についてはこの枠組みが確立している。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>覚醒剤使用の疑いで、任意の提出を2度拒んだ被疑者から尿を採る場面。使われるのは捜索差押許可状である。身体から取るからといって、別の種類の令状が要るわけではない。</span>" data-brief-mark="膀胱の尿は身体の一部だから捜索差押許可状で強制採尿を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>行うことはできない</span><span class='tx-stmt-fix'>→ 捜索差押令状で行える</span>。<span class='tx-anscomp-line'>体内に存在する尿を犯罪の証拠物として強制的に採取する行為は<strong>捜索・差押えの性質</strong>を有するから、強制採尿は捜索差押令状（刑訴法218条1項）によって行うことができる（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>体内の尿を犯罪の証拠物として強制採取する行為は捜索・差押の性質を有する（最決昭55.10.23）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>尿を証拠物として取得する手続とみるため、捜索差押令状で足りる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>膀胱にたまっている尿は物ではなく身体の一部であるから、捜索差押許可状によって、強制採尿を行うことはできない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『尿は物でなく身体の一部だから不可』ではなく、証拠物の強制取得＝捜索・差押の性質ゆえ捜索差押令状により可能。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>証拠取得手続としての性質（捜索・差押か検証か）で必要な令状を決める。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">令状の種類を決めるのは、処分の実質＝何を取得する処分か</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">取得しているもの</span><span class="dgm-lane-law">犯罪の証拠物</span></p><div class="dgm-lane-body"><p class="dgm-rule">体内の尿を強制的に採取する行為は、<em>物の押収と同じ構造</em>を持つ。だから捜索・差押えの性質を有する処分として捉えられる。</p><p class="dgm-case">膀胱内の尿を証拠として取り出す。</p><p class="dgm-verdict is-ok">捜索差押令状で行える</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">採られなかった筋道</span><span class="dgm-lane-law">身体の一部だから扱えない</span></p><div class="dgm-lane-body"><p class="dgm-rule">身体に関わることが、<em>直ちに別の令状を要求する</em>わけではない。判例はこの筋道を取っていない。</p><p class="dgm-case">尿は身体の一部だから物の令状では扱えない、という理由づけ。</p><p class="dgm-verdict is-ng">この理由では決まらない</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="侵襲を伴うから鑑定処分許可状（225条）による、という筋道も一見もっともらしいが、判例は採らなかった。理由は2つある。ひとつは、処分の実質が<b>証拠物の取得</b>であって専門的な判断作業ではないこと。もうひとつは、鑑定処分許可状には拒まれたときの<b>直接強制の明文がない</b>ことである（139条・172条の準用がない）。拒む相手から取り出す処分に、押さえる手段のない枠組みを当てても機能しない。そこで<b>条件を付した捜索差押許可状</b>という形が採られた。<b>令状を選ぶときは、処分の実質と、実現する手段があるかの両方を見る</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>条件の記載により、医師が医学的に相当と認められる方法で行うことが担保される。この一文が侵襲の相当性を支えている。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>許可状はあるのに、拒まれた相手を押さえる根拠がない場面。30分押し問答が続いても動かせない。処分の枠組みだけあって手段がない状態になる。だから別の令状の形が選ばれた。</span>" data-brief-mark="強制採尿は身体への侵襲を伴うから<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>鑑定処分許可状が必要</span><span class='tx-stmt-fix'>→ 条件付の捜索差押令状による</span>。<span class='tx-anscomp-line'>強制採尿は捜索・差押えの性質を有するが、人権の侵害にわたるおそれがあり検証としての身体検査と共通する性質を持つから、身体検査令状に関する刑訴法218条6項が捜索差押令状に準用され、これを実施する令状は<strong>条件付捜索差押令状</strong>である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>判例は捜索・差押の性質を基礎に身体検査令状（218条6項）を準用する条件付捜索差押令状説。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>侵襲性は令状の種類ではなく条件（医学的相当方法）で受け止める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>強制採尿は、尿道にカテーテルを挿入するという身体への侵襲を伴うから、鑑定処分許可状が必要である。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>必要なのは鑑定処分許可状（225条・168条1項）ではなく条件付捜索差押令状。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>侵襲・人権侵害の度合いは『どの令状か』でなく『どんな条件を付すか』で調整する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">令状を選ぶときは、処分の実質と、実現する手段の両方を見る</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定処分許可状</span><span class="dgm-lane-law">225条・168条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">侵襲を伴うから、と一見もっともらしいが、処分の実質は<em>証拠物の取得</em>であって専門的な判断作業ではない。しかも拒まれたときの直接強制の明文がない（139条・172条の準用なし）。</p><p class="dgm-case">拒む相手から取り出す処分に、押さえる手段のない枠組みを当てる。</p><p class="dgm-verdict is-ng">判例は採らなかった</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">条件付きの捜索差押令状</span><span class="dgm-lane-law">218条1項前段＋6項の準用</span></p><div class="dgm-lane-body"><p class="dgm-rule">処分の実質に合い、執行する手段もある。侵襲の重さは<em>令状に付す条件</em>で調整する。</p><p class="dgm-case">医師に医学的に相当な方法で行わせる旨を記載して執行する。</p><p class="dgm-verdict is-ok">判例の枠組み</p></div></div></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="強制採尿は身体の内奥に器具を挿入する処分で、屈辱感を伴う。だから判例は、<b>犯罪の重大性、嫌疑の存在、当該処分の必要性、代替手段の不存在</b>等を考慮し、<b>真にやむを得ないと認められる場合に、最終的手段として</b>、適切な法律上の手続を経て行われる限りで許容されるとする。最終的手段であることは、処分を許すための<b>要件</b>であって、あれば望ましいという程度のものではない。趣旨は、侵襲の重い処分ほど必要性の審査を厳しくして釣り合いを取るという比例の考え方にある。<b>可否ではなく、他に方法がないかという補充性で絞る</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>まず任意の提出を求め、応じない場合に令状を請求する。任意提出の機会をどう与えたかが、後に必要性の判断材料になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>任意の提出を3度求め、いずれも拒まれた場面。ここで初めて最終的手段としての強制採尿が視野に入る。順序を飛ばした請求は、必要性の説明が立たない。</span>" data-brief-mark="尿獲得のための<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>最終的手段でなくとも令状を発付できる</span><span class='tx-stmt-fix'>→ 最終的手段としてのみ許される</span>。<span class='tx-anscomp-line'>強制採尿は、被疑事件の重大性、嫌疑の存在、当該証拠の重要性とその取得の必要性、適当な代替手段の不存在等の事情に照らし、犯罪の捜査上真にやむをえないと認められる場合の<strong>最終的手段</strong>として許されるから、最終的手段性は令状発付の要件である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>強制採尿は真にやむをえない場合の『最終的手段』としてのみ許される（最決昭55.10.23）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>屈辱感等の精神的打撃が重いため補充性（代替手段の不存在）を要件化。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>強制採尿が現行法上の強制処分として認められる以上、それが尿を獲得するための最終的手段でなくとも、裁判官はそのための令状を発付することができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>最終的手段性は令状発付の実体的要件であり、これを不要とすることはできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>権利侵害の重い強制処分には補充性（他に手段がないこと）が上乗せされうる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-3"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">可否ではなく、他に方法がないかで絞る ── 最終的手段性は発付の要件</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>被疑事件の重大性・嫌疑の存在</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>証拠の重要性とその取得の必要性</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>適当な代替手段の不存在</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">4</span>真にやむを得ないと認められる</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">要件として要求する</span><span class="dgm-lane-law">最決昭55.10.23</span></p><div class="dgm-lane-body"><p class="dgm-rule">身体の内奥に器具を挿入する処分で屈辱感を伴う。侵襲の重い処分ほど<em>必要性の審査を厳しく</em>して釣り合いを取る。</p><p class="dgm-case">他の方法では証拠を得られない重大事件。</p><p class="dgm-verdict is-ok">最終的手段として許される</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">要件から外す読み方</span><span class="dgm-lane-law"></span></p><div class="dgm-lane-body"><p class="dgm-rule">あれば望ましい、という程度に弱めると、<em>比例の歯止めが外れる</em>。</p><p class="dgm-case">代替手段があっても令状を出せる、という運用。</p><p class="dgm-verdict is-ng">判例の枠組みに反する</p></div></div></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="補充性の要件は、<b>形式的な手順を踏むこと</b>を求めているのではなく、<b>他に方法がない状況にあること</b>を求めている。だから任意提出の機会を与えることが期待できない状況であれば、その手順を経ずに令状によって強制採尿をしても違法にならない。判例は、被疑者が錯乱状態にあって任意提出を期待できない場合について、任意提出の機会を与えずに令状により強制採尿をしたことを適法とした（最決平3.7.16）。<b>要件が求めているのが実質か形式かを見誤らない</b>——期待できない相手に形だけ求めても、補充性の判断は何も変わらない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>錯乱や意識障害がある場合は、その状態を医師の所見や記録で残す。任意提出を求めなかった理由が、後に説明できるようにしておく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>被疑者が錯乱し、午前3時に意思疎通ができない状態で保護された場面。「尿を出してください」と求めても応答が返らない。この場面で手順だけを踏ませることに意味はない。</span>" data-brief-mark="錯乱で任意提出が期待できないとき<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>任意提出の機会提供なく令状で強制採尿できる</span>（最決平3.7.16）。<span class='tx-anscomp-line'>被疑者が<strong>錯乱状態</strong>に陥り任意の尿の提出が期待できない状況にあるときは、任意提出の機会を提供することなく令状により強制採尿を行っても、その手続は違法とならない（最決平3.7.16）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>錯乱状態で任意の尿の提出が期待できない状況では、機会提供なしの強制採尿も適法（最決平3.7.16）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>任意提出の機会は原則だが、機会を与えても無意味な状況では不可欠でない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被疑者が錯乱状態で任意の尿の提出が期待できないときは、任意提出の機会を提供せずに、令状によって強制採尿を行うことができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『必ず先に任意提出の機会が必要』ではなく、状況が原則の前提を満たすかで切る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>原則（任意提出の機会）と例外は、原則の前提が現実に成り立つかで振り分ける。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-4"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">要件が求めているのは実質か、形式か ── 期待できない相手に形だけ求めない</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>原則：まず任意の提出を求める（代替手段の有無を確かめる）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>その前提は「任意提出を期待できる状況」があること</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>前提が現実に成り立つかで、原則と例外を振り分ける</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">任意提出を期待できない</span><span class="dgm-lane-law">最決平3.7.16</span></p><div class="dgm-lane-body"><p class="dgm-rule">被疑者が錯乱状態にあるなど、機会を与えても<em>補充性の判断は何も変わらない</em>場面。手順を経ずに令状で強制採尿しても違法とならない。</p><p class="dgm-case">錯乱状態の被疑者に対し、機会提供なく令状で実施する。</p><p class="dgm-verdict is-ok">手続は違法とならない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">期待できる状況がある</span><span class="dgm-lane-law"></span></p><div class="dgm-lane-body"><p class="dgm-rule">代替手段が現に存在するのだから、<em>そちらを先に</em>試す。補充性は形式的な手順ではなく状況で決まる。</p><p class="dgm-case">落ち着いて応答できる被疑者に、まず提出を求める。</p><p class="dgm-verdict is-acc">原則に戻る</p></div></div></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="強制採尿の令状には、<b>医師をして医学的に相当と認められる方法により行わせる旨の条件</b>を付さなければならない（最決昭55.10.23）。身体検査令状に関する218条6項が準用され、この条件は<b>不可欠</b>とされている。趣旨は、令状の種類を決めただけでは侵襲の相当性を担保できないことにある。捜索差押許可状という枠を使う以上、そのままでは「物を押収してよい」としか書かれていない。そこに<b>誰が、どういう方法で行うか</b>を書き込むことで、初めて身体への侵襲を伴う処分として許容できる形になる。<b>条件は付随的な注意書きではなく、処分を許すための構成要素である</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>カテーテルによる採尿を医師が行い、その経過が記録される。条件の記載を欠いた令状による採尿は、証拠能力が正面から争われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>令状の条件欄に「医師をして医学的に相当と認められる方法により行わせる」と書かれているかどうか。この1行があるかないかで、同じ処分が適法にも違法にもなる。</span>" data-brief-mark="令状発付に当たり<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>医学的相当方法により行わせる旨の条件を付さなければならない</span>（最決昭55.10.23）。<span class='tx-anscomp-line'>強制採尿については身体検査令状に関する刑訴法218条6項が捜索差押令状に準用され、令状の記載要件として、医師をして<strong>医学的に相当と認められる方法</strong>により行わせなければならない旨の条件の記載が不可欠である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>令状の記載要件として医学的相当方法の条件記載が不可欠（最決昭55.10.23）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>検証としての身体検査と共通の性質→身体検査令状の条件規定（218条6項）を準用。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>裁判官は、強制採尿のための令状を発付するに当たり、医師をして医学的に相当と認められる方法により行わせなければならない旨の条件を付さなければならない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>条件は裁量的付随事項ではなく令状発付の不可欠の要件（欠けば違法）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>強制処分の適法性を『令状の条件』で担保する（身体検査令状一般に共通）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-5"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">条件は付随的な注意書きではなく、処分を許すための構成要素</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>捜索差押許可状という枠を使う</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>そのままでは「物を押収してよい」としか書かれていない</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>誰が・どういう方法で行うかを書き込む（218条6項の準用）</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">条件を付す</span><span class="dgm-lane-law">最決昭55.10.23</span></p><div class="dgm-lane-body"><p class="dgm-rule"><em>医師をして医学的に相当と認められる方法により行わせる</em>旨の記載があって、初めて身体への侵襲を伴う処分として許容できる形になる。</p><p class="dgm-case">令状の面で、実施者と方法を固定する。</p><p class="dgm-verdict is-ok">不可欠の記載</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">裁量的な付随事項と見る</span><span class="dgm-lane-law"></span></p><div class="dgm-lane-body"><p class="dgm-rule">令状の種類を決めただけでは<em>侵襲の相当性を担保できない</em>。条件を欠けば違法になる。</p><p class="dgm-case">条件を書かずに発付・執行する。</p><p class="dgm-verdict is-ng">違法</p></div></div></div></div></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6216,11 +6263,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <h2 class="section-title"><span class="sec-icon">❀</span>共通根拠条文・判例</h2>
 <div class="tx-current-law-note">
 <div class="tx-law-note-grid">
-<div class="tx-law-note-row"><span class="tx-law-note-label">確認日</span><span class="tx-law-note-body">2026年7月22日。強制採尿の令状論は最決昭55.10.23（百選28）・最決平3.7.16が現在も基礎判例であり、判例変更はない。条文引用に当たっては、判例当時の刑訴法218条5項（身体検査の条件）の項番号に注意する。</span></div>
-<div class="tx-law-note-row"><span class="tx-law-note-label">旧処理</span><span class="tx-law-note-body">最決昭55.10.23は、身体検査令状の条件規定を「刑訴法218条5項」と表示して捜索差押令状に準用した。判例当時の条文では、身体の検査についての条件付与は218条5項に置かれていた。</span></div>
+<div class="tx-law-note-row"><span class="tx-law-note-label">確認日</span><span class="tx-law-note-body">2026年7月22日。強制採尿の令状論は最決昭55.10.23（百選28）・最決平3.7.16が現在も基礎判例であり、判例変更はない。条文引用は現行法の刑訴法218条6項（身体検査に関する条件）で行う。判例当時（昭和55年）は同じ内容が218条5項に置かれており、旧解説や過去問PDFは「218条5項」と引くが、指しているのは同一の条文である。</span></div>
+<div class="tx-law-note-row"><span class="tx-law-note-label">旧処理</span><span class="tx-law-note-body">最決昭55.10.23は、身体検査令状の条件規定を「刑訴法218条6項」と表示して捜索差押令状に準用した。判例当時の条文では、身体の検査についての条件付与は218条6項に置かれていた。</span></div>
 <div class="tx-law-note-row"><span class="tx-law-note-label">現在処理</span><span class="tx-law-note-body">現行刑訴法218条1項は差押え・記録命令付差押え・捜索・検証を規定し、身体の検査は身体検査令状によるとする。平成23年改正で記録命令付差押えや電子計算機に接続した記録媒体からの複写に関する規定が加わったため、身体検査の条件付与規定は判例当時の第5項から項番号が繰り下がっている。実質内容（裁判官が身体の検査について条件を付しうる）は同旨で、強制採尿への準用という帰結は変わらない。</span></div>
 <div class="tx-law-note-row"><span class="tx-law-note-label">立法経緯・改正趣旨</span><span class="tx-law-note-body">平成23年の刑法・刑訴法改正（情報処理の高度化等に対処するための刑事法整備）で、記録命令付差押えや電磁的記録に係る差押えの手続が新設され、218条にも項が追加された。強制採尿に関する判例法理そのものを変更するものではない。</span></div>
-<div class="tx-law-note-row"><span class="tx-law-note-label">試験対策上の扱い</span><span class="tx-law-note-body">判例の表現（218条5項の準用による条件付捜索差押令状）で規範を押さえつつ、現行条文を引用する場面では218条の項番号を試験用法文で確認する。要件（捜索差押令状によること・最終的手段性・医学的相当方法の条件・任意提出の機会の例外）は判例のまま処理する。</span></div>
+<div class="tx-law-note-row"><span class="tx-law-note-label">試験対策上の扱い</span><span class="tx-law-note-body">判例の表現（218条6項の準用による条件付捜索差押令状）で規範を押さえつつ、現行条文を引用する場面では218条の項番号を試験用法文で確認する。要件（捜索差押令状によること・最終的手段性・医学的相当方法の条件・任意提出の機会の例外）は判例のまま処理する。</span></div>
 </div>
 <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
 </section>
@@ -6459,6 +6506,29 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
   }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
+  }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
     core.main.forEach(function(item){
@@ -6492,7 +6562,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6505,6 +6580,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6513,12 +6589,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
@@ -7723,7 +7801,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
   var stage = document.getElementById('sn-stage');
   /* ===== 問題固有データ（new-tx/ビルダが本問値で置換・ここだけ編集）===== */
   var ORDER = ["1", "2", "3", "4", "5"];   // 検討順（ox-row の data-stmt 値の配列）
-  var STEP  = {"1": {"label": "1", "q": "『膀胱の尿は物でなく身体の一部だから、捜索差押許可状で強制採尿はできない』──正しい（○）か誤り（×）か？", "tip": "体内の尿を証拠物として強制採取する行為は<b>捜索・差押の性質</b>を有し捜索差押令状で実施できる（最決昭55.10.23）。「できない」は誤り。", "hint": "まず「捜索・差押の性質」がどの判例基準かを確認し、尿を証拠物として捉える発想を一つ対応させる。結論は採点後に確認する。"}, "2": {"label": "2", "q": "『強制採尿は身体への侵襲を伴うから、鑑定処分許可状が必要である』──正しい（○）か誤り（×）か？", "tip": "判例は捜索・差押の性質を基礎に身体検査令状（218条5項）を準用する<b>条件付捜索差押令状説</b>。鑑定処分許可状ではなく、誤り。", "hint": "まず「条件付捜索差押令状」がどの令状かを確認し、侵襲性は令状の条件で受け止める点を対応させる。結論は採点後に確認する。"}, "3": {"label": "3", "q": "『強制採尿が強制処分として認められる以上、最終的手段でなくとも令状を発付できる』──正しい（○）か誤り（×）か？", "tip": "強制採尿は屈辱感等の打撃を伴うため、真にやむをえない場合の<b>最終的手段</b>としてのみ許される（最決昭55.10.23）。最終的手段性は要件で、誤り。", "hint": "まず「最終的手段」がどの判例基準かを確認し、代替手段の不存在という事情を一つ対応させる。結論は採点後に確認する。"}, "4": {"label": "4", "q": "『被疑者が錯乱状態で任意提出が期待できないとき、機会提供なく令状で強制採尿できる』──正しい（○）か誤り（×）か？", "tip": "錯乱状態で任意の尿の提出が期待できない状況では、<b>任意提出の機会提供なしの強制採尿</b>も適法（最決平3.7.16）。正しい。", "hint": "まず「任意提出の機会」が原則である趣旨を確認し、機会を与えても無意味な状況という前提を対応させる。結論は採点後に確認する。"}, "5": {"label": "5", "q": "『令状発付に当たり、医師をして医学的に相当な方法で行わせる旨の条件を付さなければならない』──正しい（○）か誤り（×）か？", "tip": "身体検査令状の条件規定（218条5項）を準用し、<b>医学的相当方法の条件記載が不可欠</b>（最決昭55.10.23）。正しい。", "hint": "まず「医学的相当方法の条件」がどの令状要件かを確認し、身体の安全・人格保護の趣旨を対応させる。結論は採点後に確認する。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
+  var STEP  = {"1": {"label": "1", "q": "『膀胱の尿は物でなく身体の一部だから、捜索差押許可状で強制採尿はできない』──正しい（○）か誤り（×）か？", "tip": "体内の尿を証拠物として強制採取する行為は<b>捜索・差押の性質</b>を有し捜索差押令状で実施できる（最決昭55.10.23）。「できない」は誤り。", "hint": "まず「捜索・差押の性質」がどの判例基準かを確認し、尿を証拠物として捉える発想を一つ対応させる。結論は採点後に確認する。"}, "2": {"label": "2", "q": "『強制採尿は身体への侵襲を伴うから、鑑定処分許可状が必要である』──正しい（○）か誤り（×）か？", "tip": "判例は捜索・差押の性質を基礎に身体検査令状（218条6項）を準用する<b>条件付捜索差押令状説</b>。鑑定処分許可状ではなく、誤り。", "hint": "まず「条件付捜索差押令状」がどの令状かを確認し、侵襲性は令状の条件で受け止める点を対応させる。結論は採点後に確認する。"}, "3": {"label": "3", "q": "『強制採尿が強制処分として認められる以上、最終的手段でなくとも令状を発付できる』──正しい（○）か誤り（×）か？", "tip": "強制採尿は屈辱感等の打撃を伴うため、真にやむをえない場合の<b>最終的手段</b>としてのみ許される（最決昭55.10.23）。最終的手段性は要件で、誤り。", "hint": "まず「最終的手段」がどの判例基準かを確認し、代替手段の不存在という事情を一つ対応させる。結論は採点後に確認する。"}, "4": {"label": "4", "q": "『被疑者が錯乱状態で任意提出が期待できないとき、機会提供なく令状で強制採尿できる』──正しい（○）か誤り（×）か？", "tip": "錯乱状態で任意の尿の提出が期待できない状況では、<b>任意提出の機会提供なしの強制採尿</b>も適法（最決平3.7.16）。正しい。", "hint": "まず「任意提出の機会」が原則である趣旨を確認し、機会を与えても無意味な状況という前提を対応させる。結論は採点後に確認する。"}, "5": {"label": "5", "q": "『令状発付に当たり、医師をして医学的に相当な方法で行わせる旨の条件を付さなければならない』──正しい（○）か誤り（×）か？", "tip": "身体検査令状の条件規定（218条6項）を準用し、<b>医学的相当方法の条件記載が不可欠</b>（最決昭55.10.23）。正しい。", "hint": "まず「医学的相当方法の条件」がどの令状要件かを確認し、身体の安全・人格保護の趣旨を対応させる。結論は採点後に確認する。"}};    // { '<data-stmt>': {label:'①', q:'…', tip:'…'} , … }
   /* ===== 問題固有データ ここまで。以下のエンジンは固定＝編集しない ===== */
   function rowOf(s){ return area.querySelector('.ox-row[data-stmt="'+s+'"]'); }
   function answered(s){ var r=rowOf(s); return !!(r && r.querySelector('.ox-btn.selected')); }
