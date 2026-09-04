@@ -5583,7 +5583,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5604,9 +5628,58 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6166,11 +6239,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:x,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは<b>逮捕・勾留という強制処分が無い限り、取調べは任意が原則</b>という土台。供述調書は閲覧させ又は読み聞かせて誤りの有無を問い、誤りが無いと申し立てたときに署名押印を<b>求めることができる</b>にとどまり、拒まれれば強制できない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>読み聞かされた調書の内容に間違いは無いと認めた甲が、それでも署名は嫌だと断る場面。警察官は署名させることができず、その旨を記載して終える。</span>" data-brief-mark="供述調書に誤りなしと申し立てても、被疑者は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>署名押印しなければならない</span><span class='tx-stmt-fix'>→ 求めることができるだけ（拒絶は自由）</span>。<span class='tx-anscomp-line'>司法警察職員は、被疑者の供述を録取した調書を被疑者に閲覧させ又は読み聞かせて誤りの有無を問い、被疑者が誤りのないことを申し立てたときは、これに署名押印することを<strong>求めることができる</strong>にとどまり、被疑者がこれを拒絶したときは署名押印を強制することはできない（刑訴法198条4項・5項）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>198条5項は署名押印を『求めることができる』と規定し、ただし書で拒絶を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>供述を被疑者自身の意思で確定させ、供述の任意性を担保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>閲覧・読み聞かせによる内容確認（4項）はできるが、署名押印の強制はできない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>署名押印は義務か任意かで結論が分かれる。誤りなしと認めても『求められる』だけで拒絶は自由。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>被疑者取調べは任意処分が原則で、出頭拒否・退去・署名押印はいずれも強制されない。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="<b>準用リストに何が入っているか</b>で切る回。参考人取調べの223条2項が準用するのは198条1項ただし書と3項から5項までにとどまり、供述拒否権の告知を定める198条2項は入っていない。だから参考人に告知する義務はない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>目撃者から話を聞く前に、警察官が『答えたくないことは答えなくてよい』と告げなかった場面。被疑者の取調べと違い、告知の義務は無い。</span>" data-brief-mark="参考人取調べで、配偶者等の刑事訴追のおそれある供述を拒める旨を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>告げなければならない</span><span class='tx-stmt-fix'>→ 告知義務はない（223条2項の準用外）</span>。<span class='tx-anscomp-line'>司法警察職員は、犯罪の捜査をするについて必要があるときは被疑者以外の者の出頭を求めてこれを取り調べることができるが、223条2項が準用するのは198条1項ただし書及び3項から5項までにとどまり、参考人の取調べに際して<strong>供述拒否権を告知する義務はない</strong>（刑訴法223条1項・2項）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>223条2項は198条1項ただし書・3〜5項のみを準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>黙秘権告知（198条2項）は被疑者特有の保障で、参考人には及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>参考人取調べに供述拒否権を告げる義務はない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>準用リストに198条2項があるか否かで告知義務の有無が分かれる（準用外＝なし）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>被疑者の黙秘権告知（198条2項）／公判証人の証言拒絶権（146条・147条）／参考人取調べ（告知なし）を場面で振り分ける。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="任意が原則という土台をそのまま読む回。被疑者は、逮捕または勾留されている場合を除いて、<b>出頭を拒み、出頭後もいつでも退去できる</b>（198条1項ただし書）。退去だけでなく、出頭そのものを断ることもできる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>在宅の被疑者が呼出しに『行きません』と答える場面。警察官は出頭も滞留も強制できない（実質的に身柄を拘束すれば違法な逮捕の問題になる）。</span>" data-brief-mark="逮捕勾留のない被疑者は、その<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>出頭を拒むことはできない</span><span class='tx-stmt-fix'>→ 出頭も退去も拒める（198条1項但）</span>が、退去はできる。<span class='tx-anscomp-line'>被疑者は、逮捕又は勾留されている場合を除いては、出頭を拒み、又は出頭後何時でも退去することができ、捜査機関は出頭も滞留も<strong>強制することができない</strong>（刑訴法198条1項ただし書）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>198条1項ただし書は『出頭を拒み、又は出頭後、何時でも退去することができる』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>逮捕・勾留がなければ取調べは任意で、出頭・滞留を強制できない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逮捕勾留のない被疑者は出頭拒否と退去の両方が自由。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>退去だけでなく出頭拒否も認められるかで結論が分かれる（両方可）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>任意同行・任意取調べも実質的に身柄を拘束するに至れば実質的逮捕として違法となりうる。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="任意の限界を<b>裁判官の手続で補う</b>回。取調べで任意に供述した参考人が、公判では前と異なる供述をするおそれがあり、かつその供述が犯罪の証明に欠くことができないと認められるときは、検察官は第一回公判期日前に限り、裁判官へ証人尋問を請求できる（227条1項）。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>取調べでは詳しく話した目撃者が、法廷では口をつぐみそうな場面。検察官が裁判官の前で証言させ、供述を保全しておく。</span>" data-brief-mark="任意供述した参考人が公判で翻すおそれ＋証明に不可欠なら、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>第1回公判期日前に限り検察官が裁判官に証人尋問を請求できる</span>（227条1項）。<span class='tx-anscomp-line'>223条1項の取調べに際して任意の供述をした被疑者以外の者が、公判期日においては前にした供述と異なる供述をするおそれがあり、かつ、その者の供述が犯罪の証明に欠くことができないと認められる場合には、検察官は、<strong>第1回の公判期日前に限り</strong>、裁判官にその者の証人尋問を請求することができる（刑訴法227条1項）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>227条1項は第1回公判期日前に限り検察官が裁判官に証人尋問を請求できると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>覆るおそれのある重要供述を、裁判官面前の供述として保全する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>対象は223条1項の取調べで任意供述をした被疑者以外の者。請求主体は検察官のみ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>要件（供述変更のおそれ＋証明に不可欠）と時期（第1回公判期日前）を満たすかで請求の可否が決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>226条（出頭・供述を拒んだ者）と227条（任意供述したが翻すおそれ）を対象者で区別する。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="警察と検察の関係を<b>上下の服従ではなく協力・補完</b>で捉える回。身柄を拘束した被疑者を検察官へ送致した後も司法警察職員の固有の捜査権は失われないから、検察官の指示を受けた場合のほか、自ら被疑者を取り調べることができる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>送致の後に新たな証拠が出て、裏付けを取る必要が生じた場面。警察は検察官の指示を待たずに被疑者を取り調べられる。</span>" data-brief-mark="被疑者を検察官送致した後、司法警察職員は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>取り調べることができない（指示があれば別）</span><span class='tx-stmt-fix'>→ 指示がなくても自ら取り調べできる</span>。<span class='tx-anscomp-line'>司法警察員が身体を拘束された被疑者を検察官に送致した後も、司法警察職員の<strong>固有の捜査権</strong>は失われず、公訴を維持するに足りる証拠が収集されていないと思料するときは、検察官の指示を受けた場合のほか、自ら被疑者を取り調べることができる（刑訴法203条1項・193条）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>203条1項の送致で事件は検察官の下に置かれ、司法警察職員は193条の指揮に服する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>送致は捜査の主宰を検察官へ移すが、第一次捜査機関の権限を奪うものではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>送致後も司法警察職員は固有の捜査権（189条2項）を失わない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>送致後の取調べに検察官の指示が必要かで結論が分かれる（不要・自ら取調べ可）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>司法警察職員と検察官は上下の服従でなく協力・補完の関係（192条）で捜査を進める。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは<b>逮捕・勾留という強制処分が無い限り、取調べは任意が原則</b>という土台。供述調書は閲覧させ又は読み聞かせて誤りの有無を問い、誤りが無いと申し立てたときに署名押印を<b>求めることができる</b>にとどまり、拒まれれば強制できない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>読み聞かされた調書の内容に間違いは無いと認めた甲が、それでも署名は嫌だと断る場面。警察官は署名させることができず、その旨を記載して終える。</span>" data-brief-mark="供述調書に誤りなしと申し立てても、被疑者は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>署名押印しなければならない</span><span class='tx-stmt-fix'>→ 求めることができるだけ（拒絶は自由）</span>。<span class='tx-anscomp-line'>司法警察職員は、被疑者の供述を録取した調書を被疑者に閲覧させ又は読み聞かせて誤りの有無を問い、被疑者が誤りのないことを申し立てたときは、これに署名押印することを<strong>求めることができる</strong>にとどまり、被疑者がこれを拒絶したときは署名押印を強制することはできない（刑訴法198条4項・5項）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>198条5項は署名押印を『求めることができる』と規定し、ただし書で拒絶を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>供述を被疑者自身の意思で確定させ、供述の任意性を担保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>閲覧・読み聞かせによる内容確認（4項）はできるが、署名押印の強制はできない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>署名押印は義務か任意かで結論が分かれる。誤りなしと認めても『求められる』だけで拒絶は自由。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>被疑者取調べは任意処分が原則で、出頭拒否・退去・署名押印はいずれも強制されない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">調書は「求めることができる」まで ── 署名押印は強制できない</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>調書を閲覧させ、又は読み聞かせる（198条4項）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>誤りの有無を問い、増減変更の申立てがあれば録取する</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>誤りがないと申し立てたとき、署名押印を求める（198条5項）</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">求めることができる</span><span class="dgm-lane-law">198条5項</span></p><div class="dgm-lane-body"><p class="dgm-rule">条文が置いているのは<em>求める</em>という行為まで。応じるかどうかは相手の側にある。</p><p class="dgm-case">内容に誤りがないと述べた被疑者に、署名押印を求める。</p><p class="dgm-verdict is-acc">ここまでが捜査機関の権限</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">拒絶された場合</span><span class="dgm-lane-law"></span></p><div class="dgm-lane-body"><p class="dgm-rule">取調べは任意処分が原則で、<em>署名押印を強制する根拠がない</em>。誤りがないと認めたことは、署名の義務を生まない。</p><p class="dgm-case">署名を断られたので、その旨を記載して終える。</p><p class="dgm-verdict is-ng">強制できない</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="<b>準用リストに何が入っているか</b>で切る回。参考人取調べの223条2項が準用するのは198条1項ただし書と3項から5項までにとどまり、供述拒否権の告知を定める198条2項は入っていない。だから参考人に告知する義務はない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>目撃者から話を聞く前に、警察官が『答えたくないことは答えなくてよい』と告げなかった場面。被疑者の取調べと違い、告知の義務は無い。</span>" data-brief-mark="参考人取調べで、配偶者等の刑事訴追のおそれある供述を拒める旨を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>告げなければならない</span><span class='tx-stmt-fix'>→ 告知義務はない（223条2項の準用外）</span>。<span class='tx-anscomp-line'>司法警察職員は、犯罪の捜査をするについて必要があるときは被疑者以外の者の出頭を求めてこれを取り調べることができるが、223条2項が準用するのは198条1項ただし書及び3項から5項までにとどまり、参考人の取調べに際して<strong>供述拒否権を告知する義務はない</strong>（刑訴法223条1項・2項）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>223条2項は198条1項ただし書・3〜5項のみを準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>黙秘権告知（198条2項）は被疑者特有の保障で、参考人には及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>参考人取調べに供述拒否権を告げる義務はない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>準用リストに198条2項があるか否かで告知義務の有無が分かれる（準用外＝なし）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>被疑者の黙秘権告知（198条2項）／公判証人の証言拒絶権（146条・147条）／参考人取調べ（告知なし）を場面で振り分ける。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">告知義務は場面ごとに条文で振り分ける</p><div class="tx-dgm-lanes is-3"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">被疑者の取調べ</span><span class="dgm-lane-law">198条2項</span></p><div class="dgm-lane-body"><p class="dgm-rule">あらかじめ、自己の意思に反して供述をする必要がない旨を<em>告げなければならない</em>。</p><p class="dgm-case">取調べの冒頭で黙秘権を告げる。</p><p class="dgm-verdict is-ok">告知義務がある</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">参考人の取調べ</span><span class="dgm-lane-law">223条2項＝準用外</span></p><div class="dgm-lane-body"><p class="dgm-rule">223条2項が準用するのは198条1項ただし書と3項から5項まで。<em>198条2項は入っていない</em>。</p><p class="dgm-case">被疑者以外の者から事情を聴く。</p><p class="dgm-verdict is-ng">告知義務はない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">公判の証人</span><span class="dgm-lane-law">146条・147条</span></p><div class="dgm-lane-body"><p class="dgm-rule">自己や近親者が<em>刑事訴追を受けるおそれ</em>のある証言は拒める。裁判所がこれを告げる場面。</p><p class="dgm-case">証人尋問で証言拒絶権が問題になる。</p><p class="dgm-verdict is-acc">証言拒絶権として保障</p></div></div></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="任意が原則という土台をそのまま読む回。被疑者は、逮捕または勾留されている場合を除いて、<b>出頭を拒み、出頭後もいつでも退去できる</b>（198条1項ただし書）。退去だけでなく、出頭そのものを断ることもできる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>在宅の被疑者が呼出しに『行きません』と答える場面。警察官は出頭も滞留も強制できない（実質的に身柄を拘束すれば違法な逮捕の問題になる）。</span>" data-brief-mark="逮捕勾留のない被疑者は、その<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>出頭を拒むことはできない</span><span class='tx-stmt-fix'>→ 出頭も退去も拒める（198条1項但）</span>が、退去はできる。<span class='tx-anscomp-line'>被疑者は、逮捕又は勾留されている場合を除いては、出頭を拒み、又は出頭後何時でも退去することができ、捜査機関は出頭も滞留も<strong>強制することができない</strong>（刑訴法198条1項ただし書）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>198条1項ただし書は『出頭を拒み、又は出頭後、何時でも退去することができる』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>逮捕・勾留がなければ取調べは任意で、出頭・滞留を強制できない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逮捕勾留のない被疑者は出頭拒否と退去の両方が自由。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>退去だけでなく出頭拒否も認められるかで結論が分かれる（両方可）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>任意同行・任意取調べも実質的に身柄を拘束するに至れば実質的逮捕として違法となりうる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-3"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">任意が原則という土台 ── 断てるのは退去だけではない</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">逮捕・勾留されていない</span><span class="dgm-lane-law">198条1項ただし書</span></p><div class="dgm-lane-body"><p class="dgm-rule"><em>出頭を拒み</em>、出頭後も何時でも退去できる。退去だけが認められているのではない。</p><p class="dgm-case">呼出しに応じないまま在宅で捜査が進む。</p><p class="dgm-verdict is-ok">出頭も滞留も強制されない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">逮捕・勾留されている</span><span class="dgm-lane-law">198条1項本文</span></p><div class="dgm-lane-body"><p class="dgm-rule">身体の拘束がある以上、<em>この但書の適用がない</em>場面として扱われる。ここから取調受忍義務の議論が始まる。</p><p class="dgm-case">勾留中の被疑者を取調室へ呼ぶ。</p><p class="dgm-verdict is-teal">議論の分かれ目</p></div></div></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="任意の限界を<b>裁判官の手続で補う</b>回。取調べで任意に供述した参考人が、公判では前と異なる供述をするおそれがあり、かつその供述が犯罪の証明に欠くことができないと認められるときは、検察官は第一回公判期日前に限り、裁判官へ証人尋問を請求できる（227条1項）。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>取調べでは詳しく話した目撃者が、法廷では口をつぐみそうな場面。検察官が裁判官の前で証言させ、供述を保全しておく。</span>" data-brief-mark="任意供述した参考人が公判で翻すおそれ＋証明に不可欠なら、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>第1回公判期日前に限り検察官が裁判官に証人尋問を請求できる</span>（227条1項）。<span class='tx-anscomp-line'>223条1項の取調べに際して任意の供述をした被疑者以外の者が、公判期日においては前にした供述と異なる供述をするおそれがあり、かつ、その者の供述が犯罪の証明に欠くことができないと認められる場合には、検察官は、<strong>第1回の公判期日前に限り</strong>、裁判官にその者の証人尋問を請求することができる（刑訴法227条1項）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>227条1項は第1回公判期日前に限り検察官が裁判官に証人尋問を請求できると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>覆るおそれのある重要供述を、裁判官面前の供述として保全する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>対象は223条1項の取調べで任意供述をした被疑者以外の者。請求主体は検察官のみ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>要件（供述変更のおそれ＋証明に不可欠）と時期（第1回公判期日前）を満たすかで請求の可否が決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>226条（出頭・供述を拒んだ者）と227条（任意供述したが翻すおそれ）を対象者で区別する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-4"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">対象者で切り分ける ── 拒む人か、いったん話した人か</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">そもそも拒む参考人</span><span class="dgm-lane-law">226条</span></p><div class="dgm-lane-body"><p class="dgm-rule">捜査に欠くことのできない知識を有すると明らかに認められる者が<em>出頭又は供述を拒んだ</em>とき。</p><p class="dgm-case">事情聴取そのものに応じない目撃者。</p><p class="dgm-verdict is-acc">拒否型</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">任意に供述した参考人</span><span class="dgm-lane-law">227条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">いったん話した者が公判で<em>前と異なる供述をするおそれ</em>があり、かつその供述が犯罪の証明に欠くことができないとき。</p><p class="dgm-case">供述は得たが、公判で覆される見込みがある。</p><p class="dgm-verdict is-ok">変心型（第一回公判期日前に限る）</p></div></div></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="警察と検察の関係を<b>上下の服従ではなく協力・補完</b>で捉える回。身柄を拘束した被疑者を検察官へ送致した後も司法警察職員の固有の捜査権は失われないから、検察官の指示を受けた場合のほか、自ら被疑者を取り調べることができる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>送致の後に新たな証拠が出て、裏付けを取る必要が生じた場面。警察は検察官の指示を待たずに被疑者を取り調べられる。</span>" data-brief-mark="被疑者を検察官送致した後、司法警察職員は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>取り調べることができない（指示があれば別）</span><span class='tx-stmt-fix'>→ 指示がなくても自ら取り調べできる</span>。<span class='tx-anscomp-line'>司法警察員が身体を拘束された被疑者を検察官に送致した後も、司法警察職員の<strong>固有の捜査権</strong>は失われず、公訴を維持するに足りる証拠が収集されていないと思料するときは、検察官の指示を受けた場合のほか、自ら被疑者を取り調べることができる（刑訴法203条1項・193条）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>203条1項の送致で事件は検察官の下に置かれ、司法警察職員は193条の指揮に服する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>送致は捜査の主宰を検察官へ移すが、第一次捜査機関の権限を奪うものではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>送致後も司法警察職員は固有の捜査権（189条2項）を失わない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>送致後の取調べに検察官の指示が必要かで結論が分かれる（不要・自ら取調べ可）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>司法警察職員と検察官は上下の服従でなく協力・補完の関係（192条）で捜査を進める。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-5"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">警察と検察は上下の服従ではなく、協力・補完の関係</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">送致後も残るもの</span><span class="dgm-lane-law">司法警察職員の固有の捜査権（193条）</span></p><div class="dgm-lane-body"><p class="dgm-rule">身柄を検察官へ送致した後も<em>捜査権は失われない</em>。公訴を維持するに足りる証拠が集まっていないと思料するときは、自ら取り調べられる。</p><p class="dgm-case">送致後に新たな裏付けが必要になった場面。</p><p class="dgm-verdict is-ok">指示がなくても取り調べられる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">採られていない見方</span><span class="dgm-lane-law">指示がなければ動けない関係</span></p><div class="dgm-lane-body"><p class="dgm-rule">上下の服従関係として読むと、<em>協力・補完という条文の建て付け</em>から外れる。</p><p class="dgm-case">検察官の指示を待たなければ何もできない、という理解。</p><p class="dgm-verdict is-ng">条文の関係とは違う</p></div></div></div></div></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6428,16 +6501,40 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6472,7 +6569,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6485,6 +6587,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6493,12 +6596,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
