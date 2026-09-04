@@ -5583,7 +5583,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5604,9 +5628,58 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6175,11 +6248,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは二段で、<b>①処分の目的（身体の状態の観察か・物探しか・専門的検査か）で令状を選ぶ ②立会いや直接強制などの付随ルールは、準用の条文がどこまで届くかで確かめる</b>。女子の身体検査に医師または成年の女子の立会いを求める規定は、222条1項により捜査機関の身体検査にも準用されるので、裁判所の場合と同じく立会いが要る。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>警察官が身体検査令状で女性の身体を検査する場面。裁判所が行う検証と同じく、女性の立会いか医師の立会いが必要になる。</span>" data-brief-mark="女子の身体検査は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>裁判所でも捜査機関でも医師又は成年の女子の立会が必要</span>（131条2項を222条1項が捜査機関の身体検査へ準用）。<span class='tx-anscomp-line'>女子の身体を検査するには<strong>医師又は成年の女子</strong>をこれに立ち会わせなければならず（刑訴法131条2項）、この規律は222条1項により捜査機関が身体検査令状によってする身体検査にも準用されるから、裁判所の場合と同じく立会が必要である。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>131条2項『女子の身体を検査する場合には、医師又は成年の女子をこれに立ち会わせなければならない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>被検査者の羞恥心・人格的利益を保護する手続保障。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>222条1項が131条を捜査機関の検証（身体検査令状による身体検査）へ準用。裁判所も捜査機関も同じ立会義務。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>準用されるのは222条1項が列挙する条文に限られ、鑑定受託者の身体検査（225条）は別系統。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>検証の付随規律（立会・強制方法）は、222条の準用の射程を確かめてから捜査へ及ぼす。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="無令状の例外は<b>明文の範囲・態様</b>に限る回。身体の拘束を受けている被疑者の指紋・足型の採取、身長・体重の測定、写真の撮影は<b>裸にしない限り</b>身体検査令状によることを要しない（218条3項）。裸にして撮影する場合には原則へ戻り、令状が要る。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>勾留中の甲の顔写真を撮る場面は令状が要らないが、身体の入れ墨を確認するため裸にして撮るなら令状が要る。</span>" data-brief-mark="身体拘束中の被疑者の写真撮影は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>必ず身体検査令状による</span><span class='tx-stmt-fix'>→ 裸にしない限り令状によることを要しない</span>。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者について指紋若しくは足型を採取し、身長若しくは体重を測定し、又は写真を撮影するには、<strong>裸にしない限り</strong>身体検査令状によることを要しない（刑訴法218条3項）。裸にして撮影する場合に初めて同条1項の令状が必要となる。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>218条3項『指紋若しくは足型を採取し、身長若しくは体重を測定し、又は写真を撮影するには、被疑者を裸にしない限り、第一項の令状によることを要しない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>適法な身体拘束に伴う受忍。裸にしない範囲の同一性確認は無令状で許す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>身体拘束を受けている被疑者の指紋・足型・身長体重・写真。裸にしない限り無令状。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>裸にする撮影は原則に戻り218条1項の身体検査令状が必要。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>令状主義の原則に対する無令状の例外は、明文の範囲・態様に限る（逮捕に伴う無令状処分と同型）。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="『身体に及ぶ＝身体検査令状』ではなく<b>目的で令状を決める</b>回。身体検査令状が要るのは身体の状態そのものを観察する検証で、ズボンのポケットを捜して物を差し押さえるのは物の発見・押収を目的とする身体の捜索だから、捜索差押許可状だけで足りる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>捜索で、被疑者のポケットに入っていた小袋を取り出して押さえる場面。身体検査令状を重ねて取る必要はない。</span>" data-brief-mark="ズボンのポケットを捜索して物を差し押さえるのに、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>身体検査令状の発付も必要</span><span class='tx-stmt-fix'>→ 捜索差押許可状のみで足りる</span>。<span class='tx-anscomp-line'>身体検査令状を要するのは検証としての身体検査、すなわち身体の状態そのものを観察する処分であり、着衣のポケット内を捜索して物を差し押さえる行為は物の発見・押収を目的とする<strong>身体の捜索</strong>であるから、捜索差押許可状のみで足り、身体検査令状の発付を重ねて受ける必要はない（刑訴法218条1項）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>218条1項。捜索・差押えは捜索差押許可状、検証としての身体検査は身体検査令状による。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>物の発見を目的とする処分と、身体の状態を観察する処分を、目的に応じ別の令状に振り分ける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>着衣・身体からの物の発見・押収は身体の捜索＝捜索差押許可状で足りる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>身体の状態そのものを観察する検証としての身体検査に至れば、身体検査令状が必要。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『身体に及ぶ＝身体検査令状』ではなく、処分の目的で令状の種類を決める。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="同じ身体検査でも<b>通る条文ルート</b>で直接強制の可否が変わる回。拒む者への直接強制を認める139条は、222条1項により捜査機関自身の検証としての身体検査に準用されるにとどまり、鑑定処分許可状に基づく鑑定受託者の身体検査には準用がない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>嘱託を受けた医師が、診察を拒む被疑者を押さえて検査しようとする場面。許可状はあっても、直接強制の根拠が無い。</span>" data-brief-mark="鑑定処分許可状による鑑定受託者の身体検査で、拒む者に<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>直接強制ができる</span><span class='tx-stmt-fix'>→ 直接強制はできない（139条の準用なし）</span>。<span class='tx-anscomp-line'>身体検査を拒む者に対する<strong>直接強制</strong>を認める刑訴法139条は、222条1項により捜査機関自身の検証としての身体検査に準用されるにとどまり、鑑定処分許可状（225条）に基づく鑑定受託者の身体検査には準用がないから、拒否された場合に直接強制をすることはできない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>139条『身体の検査を拒む者を…そのまま、身体の検査を行うことができる』（直接強制）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>間接強制（過料・刑）が効かないときの最終手段としての直接強制。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>222条1項により捜査機関自身の検証としての身体検査へ準用される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>鑑定処分許可状（225条4項＝168条2〜4項・6項準用）には139条が含まれず、172条の請求もない。鑑定受託者は直接強制できない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>同じ身体検査でも、どの条文ルートを通るかで直接強制の可否が変わる。準用の射程を条文で確かめる。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-story="複数の性質を併せ持つ処分は<b>基本令状に他の令状の要件を条件として接ぎ木する</b>回。強制採尿は捜索・差押えの性質だから捜索差押令状によるが、人権侵害のおそれの点で検証としての身体検査と共通するので、医師に医学的に相当と認められる方法で行わせる旨の条件の記載が不可欠になる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>強制採尿の令状に、実施者を医師に限る条件が書き込まれている場面。条件が抜けていれば、その令状による採尿は違法になる。</span>" data-brief-mark="強制採尿の捜索差押許可状には、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>医師をして医学的に相当な方法で行わせる旨の条件記載が不可欠</span>（最決昭55.10.23）。<span class='tx-anscomp-line'>強制採尿は捜索・差押えの性質を有するから捜索差押令状を要するが、人権侵害のおそれがある点で検証としての身体検査と共通の性質を有するので、身体検査令状の条件付与規定（刑訴法218条6項）が準用され、医師をして医学的に相当と認められる方法により行わせる旨の<strong>条件の記載</strong>が不可欠である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>最決昭55.10.23『令状の記載要件として、強制採尿は医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>体内への侵襲という人権侵害のおそれに対し、実施方法を令状段階で統制する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>強制採尿は捜索・差押えの性質を有し捜索差押令状による。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>ただし検証としての身体検査と共通の性質を持つため、身体検査令状の条件付与（218条6項）を準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>複数の性質を併有する処分は、基本令状に他の令状の要件を条件として接ぎ木する（採尿令状による連行等）。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは二段で、<b>①処分の目的（身体の状態の観察か・物探しか・専門的検査か）で令状を選ぶ ②立会いや直接強制などの付随ルールは、準用の条文がどこまで届くかで確かめる</b>。女子の身体検査に医師または成年の女子の立会いを求める規定は、222条1項により捜査機関の身体検査にも準用されるので、裁判所の場合と同じく立会いが要る。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>警察官が身体検査令状で女性の身体を検査する場面。裁判所が行う検証と同じく、女性の立会いか医師の立会いが必要になる。</span>" data-brief-mark="女子の身体検査は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>裁判所でも捜査機関でも医師又は成年の女子の立会が必要</span>（131条2項を222条1項が捜査機関の身体検査へ準用）。<span class='tx-anscomp-line'>女子の身体を検査するには<strong>医師又は成年の女子</strong>をこれに立ち会わせなければならず（刑訴法131条2項）、この規律は222条1項により捜査機関が身体検査令状によってする身体検査にも準用されるから、裁判所の場合と同じく立会が必要である。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>131条2項『女子の身体を検査する場合には、医師又は成年の女子をこれに立ち会わせなければならない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>被検査者の羞恥心・人格的利益を保護する手続保障。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>222条1項が131条を捜査機関の検証（身体検査令状による身体検査）へ準用。裁判所も捜査機関も同じ立会義務。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>準用されるのは222条1項が列挙する条文に限られ、鑑定受託者の身体検査（225条）は別系統。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>検証の付随規律（立会・強制方法）は、222条の準用の射程を確かめてから捜査へ及ぼす。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">付随ルールは、準用の条文がどこまで届くかで確かめる</p><div class="tx-dgm-lanes is-3"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">裁判所の身体検査</span><span class="dgm-lane-law">131条2項</span></p><div class="dgm-lane-body"><p class="dgm-rule">女子の身体を検査するには<em>医師又は成年の女子</em>を立ち会わせなければならない。</p><p class="dgm-case">公判で身体の状態を確認する場面。</p><p class="dgm-verdict is-acc">立会いが必要</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">捜査機関の身体検査</span><span class="dgm-lane-law">222条1項が131条2項を準用</span></p><div class="dgm-lane-body"><p class="dgm-rule">身体検査令状による検査にも<em>同じ規律が及ぶ</em>。裁判所の場合と変わらない。</p><p class="dgm-case">身体検査令状で女性被疑者の身体を検査する。</p><p class="dgm-verdict is-ok">立会いが必要</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定受託者の身体検査</span><span class="dgm-lane-law">225条＝別系統</span></p><div class="dgm-lane-body"><p class="dgm-rule">222条1項の列挙とは<em>別のルート</em>を通る。準用の射程は条文で確かめる。</p><p class="dgm-case">嘱託を受けた医師が鑑定処分許可状で検査する。</p><p class="dgm-verdict is-teal">射程を条文で確かめる</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="無令状の例外は<b>明文の範囲・態様</b>に限る回。身体の拘束を受けている被疑者の指紋・足型の採取、身長・体重の測定、写真の撮影は<b>裸にしない限り</b>身体検査令状によることを要しない（218条3項）。裸にして撮影する場合には原則へ戻り、令状が要る。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>勾留中の甲の顔写真を撮る場面は令状が要らないが、身体の入れ墨を確認するため裸にして撮るなら令状が要る。</span>" data-brief-mark="身体拘束中の被疑者の写真撮影は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>必ず身体検査令状による</span><span class='tx-stmt-fix'>→ 裸にしない限り令状によることを要しない</span>。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者について指紋若しくは足型を採取し、身長若しくは体重を測定し、又は写真を撮影するには、<strong>裸にしない限り</strong>身体検査令状によることを要しない（刑訴法218条3項）。裸にして撮影する場合に初めて同条1項の令状が必要となる。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>218条3項『指紋若しくは足型を採取し、身長若しくは体重を測定し、又は写真を撮影するには、被疑者を裸にしない限り、第一項の令状によることを要しない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>適法な身体拘束に伴う受忍。裸にしない範囲の同一性確認は無令状で許す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>身体拘束を受けている被疑者の指紋・足型・身長体重・写真。裸にしない限り無令状。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>裸にする撮影は原則に戻り218条1項の身体検査令状が必要。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>令状主義の原則に対する無令状の例外は、明文の範囲・態様に限る（逮捕に伴う無令状処分と同型）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">例外は明文の範囲・態様まで ── 外れれば原則へ戻る</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>原則：身体の検査は身体検査令状による（218条1項後段）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>例外：拘束中の被疑者の指紋・足型・身長体重・写真は令状不要（218条3項）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>ただし裸にしない限り、という態様の限定が付く</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">裸にしない撮影</span><span class="dgm-lane-law">218条3項</span></p><div class="dgm-lane-body"><p class="dgm-rule">同一人性を確かめる基礎的な資料で、拘束に<em>追加される侵襲がごく小さい</em>。</p><p class="dgm-case">着衣のまま顔写真を撮影する。</p><p class="dgm-verdict is-ok">令状によることを要しない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">裸にして撮影</span><span class="dgm-lane-law">原則へ戻る</span></p><div class="dgm-lane-body"><p class="dgm-rule">態様の限定を外れた以上、<em>218条1項の令状</em>が要る。</p><p class="dgm-case">身体の状態を確認するため脱衣させて撮影する。</p><p class="dgm-verdict is-ng">身体検査令状が要る</p></div></div></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="『身体に及ぶ＝身体検査令状』ではなく<b>目的で令状を決める</b>回。身体検査令状が要るのは身体の状態そのものを観察する検証で、ズボンのポケットを捜して物を差し押さえるのは物の発見・押収を目的とする身体の捜索だから、捜索差押許可状だけで足りる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>捜索で、被疑者のポケットに入っていた小袋を取り出して押さえる場面。身体検査令状を重ねて取る必要はない。</span>" data-brief-mark="ズボンのポケットを捜索して物を差し押さえるのに、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>身体検査令状の発付も必要</span><span class='tx-stmt-fix'>→ 捜索差押許可状のみで足りる</span>。<span class='tx-anscomp-line'>身体検査令状を要するのは検証としての身体検査、すなわち身体の状態そのものを観察する処分であり、着衣のポケット内を捜索して物を差し押さえる行為は物の発見・押収を目的とする<strong>身体の捜索</strong>であるから、捜索差押許可状のみで足り、身体検査令状の発付を重ねて受ける必要はない（刑訴法218条1項）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>218条1項。捜索・差押えは捜索差押許可状、検証としての身体検査は身体検査令状による。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>物の発見を目的とする処分と、身体の状態を観察する処分を、目的に応じ別の令状に振り分ける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>着衣・身体からの物の発見・押収は身体の捜索＝捜索差押許可状で足りる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>身体の状態そのものを観察する検証としての身体検査に至れば、身体検査令状が必要。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『身体に及ぶ＝身体検査令状』ではなく、処分の目的で令状の種類を決める。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-3"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">「身体に及ぶ＝身体検査令状」ではない ── 目的で令状を決める</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">物を探す</span><span class="dgm-lane-law">身体の捜索（218条1項前段）</span></p><div class="dgm-lane-body"><p class="dgm-rule">着衣のポケットやその内側を捜して<em>物を発見・押収</em>することが目的。捜索の効力は着衣の内部にも及ぶ。</p><p class="dgm-case">ズボンのポケットの中身を取り出して差し押さえる。</p><p class="dgm-verdict is-ok">捜索差押許可状のみで足りる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">身体の状態を観察する</span><span class="dgm-lane-law">検証としての身体検査（218条1項後段）</span></p><div class="dgm-lane-body"><p class="dgm-rule">対象は物ではなく<em>身体そのものの状態</em>。ここに至れば別に令状が要る。</p><p class="dgm-case">身体に残る傷や注射痕を記録する。</p><p class="dgm-verdict is-ng">身体検査令状が要る</p></div></div></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="同じ身体検査でも<b>通る条文ルート</b>で直接強制の可否が変わる回。拒む者への直接強制を認める139条は、222条1項により捜査機関自身の検証としての身体検査に準用されるにとどまり、鑑定処分許可状に基づく鑑定受託者の身体検査には準用がない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>嘱託を受けた医師が、診察を拒む被疑者を押さえて検査しようとする場面。許可状はあっても、直接強制の根拠が無い。</span>" data-brief-mark="鑑定処分許可状による鑑定受託者の身体検査で、拒む者に<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>直接強制ができる</span><span class='tx-stmt-fix'>→ 直接強制はできない（139条の準用なし）</span>。<span class='tx-anscomp-line'>身体検査を拒む者に対する<strong>直接強制</strong>を認める刑訴法139条は、222条1項により捜査機関自身の検証としての身体検査に準用されるにとどまり、鑑定処分許可状（225条）に基づく鑑定受託者の身体検査には準用がないから、拒否された場合に直接強制をすることはできない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>139条『身体の検査を拒む者を…そのまま、身体の検査を行うことができる』（直接強制）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>間接強制（過料・刑）が効かないときの最終手段としての直接強制。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>222条1項により捜査機関自身の検証としての身体検査へ準用される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>鑑定処分許可状（225条4項＝168条2〜4項・6項準用）には139条が含まれず、172条の請求もない。鑑定受託者は直接強制できない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>同じ身体検査でも、どの条文ルートを通るかで直接強制の可否が変わる。準用の射程を条文で確かめる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-4"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">同じ身体検査でも、通る条文ルートで直接強制の可否が変わる</p><div class="tx-dgm-lanes is-3"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">捜査機関の検証</span><span class="dgm-lane-law">139条を222条1項が準用</span></p><div class="dgm-lane-body"><p class="dgm-rule">検査を拒む者に対して<em>直接強制ができる</em>。処分と手段が同じルートで用意されている。</p><p class="dgm-case">身体検査令状により、拒む相手に対して実施する。</p><p class="dgm-verdict is-ok">直接強制できる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定人</span><span class="dgm-lane-law">172条＝裁判官への請求</span></p><div class="dgm-lane-body"><p class="dgm-rule">自ら押さえるのではなく、<em>裁判官に身体検査を請求する</em>道が開かれている。</p><p class="dgm-case">検査を拒まれた鑑定人が裁判官へ求める。</p><p class="dgm-verdict is-acc">請求という道がある</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定受託者</span><span class="dgm-lane-law">139条も172条も準用なし</span></p><div class="dgm-lane-body"><p class="dgm-rule">225条4項の準用に<em>どちらも入っていない</em>。押さえる手段も、請求する道もない。</p><p class="dgm-case">嘱託を受けた医師が拒まれた場面。</p><p class="dgm-verdict is-ng">直接強制はできない</p></div></div></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="複数の性質を併せ持つ処分は<b>基本令状に他の令状の要件を条件として接ぎ木する</b>回。強制採尿は捜索・差押えの性質だから捜索差押令状によるが、人権侵害のおそれの点で検証としての身体検査と共通するので、医師に医学的に相当と認められる方法で行わせる旨の条件の記載が不可欠になる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>強制採尿の令状に、実施者を医師に限る条件が書き込まれている場面。条件が抜けていれば、その令状による採尿は違法になる。</span>" data-brief-mark="強制採尿の捜索差押許可状には、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>医師をして医学的に相当な方法で行わせる旨の条件記載が不可欠</span>（最決昭55.10.23）。<span class='tx-anscomp-line'>強制採尿は捜索・差押えの性質を有するから捜索差押令状を要するが、人権侵害のおそれがある点で検証としての身体検査と共通の性質を有するので、身体検査令状の条件付与規定（刑訴法218条6項）が準用され、医師をして医学的に相当と認められる方法により行わせる旨の<strong>条件の記載</strong>が不可欠である（最決昭55.10.23）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>最決昭55.10.23『令状の記載要件として、強制採尿は医師をして医学的に相当と認められる方法により行わせなければならない旨の条件の記載が不可欠』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>体内への侵襲という人権侵害のおそれに対し、実施方法を令状段階で統制する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>強制採尿は捜索・差押えの性質を有し捜索差押令状による。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>ただし検証としての身体検査と共通の性質を持つため、身体検査令状の条件付与（218条6項）を準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>複数の性質を併有する処分は、基本令状に他の令状の要件を条件として接ぎ木する（採尿令状による連行等）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-5"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">複数の性質を併せ持つ処分は、基本令状に条件を接ぎ木する</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>本質＝証拠物の取得（捜索・差押え）→ 捜索差押令状を基本にする</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>人権侵害のおそれの点で検証としての身体検査と共通する</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>身体検査令状の条件付与規定（218条6項）を準用する</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">条件を記載する</span><span class="dgm-lane-law">最決昭55.10.23</span></p><div class="dgm-lane-body"><p class="dgm-rule"><em>医師をして医学的に相当と認められる方法により行わせる</em>旨の記載が不可欠。</p><p class="dgm-case">令状の面で実施者と方法を固定して執行する。</p><p class="dgm-verdict is-ok">適法に行える</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">基本令状だけで足りるとする</span><span class="dgm-lane-law"></span></p><div class="dgm-lane-body"><p class="dgm-rule">枠は「物を押収してよい」としか言っていない。<em>侵襲の相当性が担保されない</em>。</p><p class="dgm-case">条件を書かずに強制採尿を行う。</p><p class="dgm-verdict is-ng">許されない</p></div></div></div></div></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6437,16 +6510,40 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6481,7 +6578,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6494,6 +6596,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6502,12 +6605,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
