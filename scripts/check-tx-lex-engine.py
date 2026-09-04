@@ -361,6 +361,10 @@ def main() -> int:
         #     使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・物語⇄カード data-dgm 同期
         #     （同 id 内容不一致）を ERROR で弾く（片側のみ/id無しは WARNING＝ブロックしない）。2026-07-13 追加。
         v.g67_diagram_component()
+        # G78＝正誤表の図解帯（TX-VERDICT-DGM・§v13x・2026-09-04）。図解ソースを持たないファイルは
+        #     素通り＝誤爆ゼロ。使用時の CSS/エンジン欠落・hidden 無し（静的表示へ生 DOM が漏れる）・
+        #     .tx-dgm が1枚でない・置き場所が正誤表行の最終セルでない（帯が出ない）を ERROR で弾く。
+        v.g78_verdict_diagram_band()
         # G73＝答案圧縮（TX-ANSCOMP・§v13q）。片置き・カード⇄正誤表の文不一致・CSS区画欠落は
         #     決定論的な表示/同期崩れなので push を止める。未展開（両方無し）は WARNING＝ブロックしない
         #     （既存 corpus は TJR 付随で消化・2026-07-28 追加）。
@@ -410,7 +414,7 @@ def main() -> int:
             role_notes.append((f, _roles))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74")
+            if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74", "G78")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの

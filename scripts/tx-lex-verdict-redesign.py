@@ -13,6 +13,8 @@
   - 体系マップ各ノードの ✍規範核バッジ（<rect class="nb-badge">＋text）とノード高さ・viewBox。
   - 親カテゴリ箱の本文中央寄せ・子ノードのタイトル縮小（マップごとに要否が違う）。
   - 正誤表各行の data-brief-mark（印付き原文の要約＝記述ごとに執筆）。
+  - 正誤表各行の図解ソース（<div class="tx-vb-dgm-src" hidden> の中身＝§v13x。記述ごとに執筆。
+    ソースが無い行では帯そのものが出ない＝土台だけ入れても壊れない）。
   - 正誤表各行の data-brief-story（📖 ものがたり＝物語全体＋当該記述の要約と具体例。記述ごとに執筆。
     属性が無い行では帯そのものが出ない＝土台だけ入れても壊れない）。
 
@@ -62,6 +64,9 @@ SYNC_CSS_REGIONS = [
     # TX-VERDICT-STORY＝正誤表の帯区切り＋「📖 ものがたり」帯（2026-08-22・§v13v）。CORE2 の後ろに置く
     # （.tx-vb-story のパディング・字下げは CORE2 のぶら下げ規則を上書きするため、順序が意味を持つ）。
     ("/* TX-VERDICT-STORY:BEGIN", "/* TX-VERDICT-STORY:END */", "STORY"),
+    # TX-VERDICT-DGM＝正誤表の図解帯（2026-09-04・§v13x）。STORY の後ろに置く（.tx-vb-dgm は
+    # .tx-vb-line のぶら下げを打ち消すため、順序が意味を持つ）。
+    ("/* TX-VERDICT-DGM:BEGIN", "/* TX-VERDICT-DGM:END */", "DGM"),
 ]
 
 

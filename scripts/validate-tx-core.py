@@ -40,6 +40,8 @@ spec: spec/tx-v11.0.0-core.md 第7項
   G67 図解コンポーネント（TX-DGM・任意スロット）：使用時の CSS 存在・契約許可クラスのみ・inline style 禁止・
       物語⇄カードの data-dgm 同期（同 id 内容不一致=ERROR／片側のみ・id無し=WARNING）
       判定は tx_sysmap_geom（単一情報源）、修正は scripts/tx-sysmap-fit.py（textLength+lengthAdjust・本文不変）。
+  G78 正誤表の図解帯（TX-VERDICT-DGM・任意スロット・§v13x）：使用時の CSS/エンジン存在・ソースの hidden・
+      .tx-dgm 1枚・置き場所（tr[data-stmt] の最終 td）。図解本体の中身は G67 が見る。
   G68 フォント変数の未定義参照（2026-07-14・LEX-388）：var(--font-*) 参照に定義が無い＝全フォントが
       ブラウザ既定へフォールバック（実害＝刑TX003 公式＋_lex：パレットを第1 :root＝フォント12変数
       ブロックへ誤上書き）。公式・_lex 両系統 ERROR。
@@ -2282,6 +2284,58 @@ class Validator:
                               "周回画面に一度も出ない。`python scripts/tx-lex-verdict-redesign.py "
                               "<file>` で正典から載せ替える。")
 
+    def g78_verdict_diagram_band(self):
+        """G78（ERROR・2026-09-04・§v13x）＝正誤表の図解帯（TX-VERDICT-DGM）の整合。
+
+        任意スロットなので、図解ソースを持たないファイルには何も要求しない（誤爆ゼロ）。
+        使っている場合だけ、①CSS 区画とエンジン（appendDiagramBand）の存在 ②ソースが
+        hidden で .tx-dgm をちょうど 1 枚だけ持つこと ③置き場所が正誤表の行の最終セル
+        （論点コア列）であること を見る。②③が崩れると、静的表示に図解の生 DOM が漏れる／
+        エンジンが拾えず帯が出ない、という決定論的な表示事故になる。
+        図解本体の中身（許可クラス・inline style・data-dgm）は G67 が引き続き見る。"""
+        if not self.is_lex_target():
+            return
+        srcs = self.soup.select(".tx-vb-dgm-src")
+        if not srcs:
+            return
+        missing = [sig for sig in ("TX-VERDICT-DGM:BEGIN", "function appendDiagramBand(")
+                   if sig not in self.html]
+        if missing:
+            self.err("G78", "正誤表の図解帯（§v13x）の土台が無い: " + ", ".join(missing)
+                            + "。`python scripts/tx-lex-verdict-redesign.py <file>` で正典から載せ替える"
+                              "（CSS 区画 TX-VERDICT-DGM ＋ エンジン appendDiagramBand）。")
+        bad_hidden, bad_count, bad_place = [], [], []
+        for i, src in enumerate(srcs, 1):
+            where = self._g78_where(src) or f"#{i}"
+            if src.get("hidden") is None:
+                bad_hidden.append(where)
+            n = len(src.select(".tx-dgm"))
+            if n != 1:
+                bad_count.append(f"{where}({n}枚)")
+            row = src.find_parent("tr")
+            cell = src.find_parent("td")
+            ok_place = False
+            if row is not None and cell is not None and row.get("data-stmt") is not None:
+                tds = row.find_all("td", recursive=False)
+                ok_place = bool(tds) and tds[-1] is cell
+            if not ok_place:
+                bad_place.append(where)
+        if bad_hidden:
+            self.err("G78", f"図解ソースに hidden が無い: {bad_hidden[:6]}。静的表示（.final-answer）へ"
+                            "図解が二重に出る＝ソースは常に hidden で置く。")
+        if bad_count:
+            self.err("G78", f"図解ソースの .tx-dgm が 1 枚でない: {bad_count[:6]}。1 行 1 枚"
+                            "（帯に移すのは最初の 1 枚だけ＝残りは黙って消える）。")
+        if bad_place:
+            self.err("G78", f"図解ソースの置き場所が正誤表行の論点コア列（最終 td）でない: {bad_place[:6]}。"
+                            "エンジンは tr[data-stmt] の最終セルからしか拾わない。")
+
+    @staticmethod
+    def _g78_where(src):
+        row = src.find_parent("tr")
+        stmt = (row.get("data-stmt") or "").strip() if row is not None else ""
+        return f"記述{stmt}" if stmt else ""
+
     def g63_inline_pool_alignment(self):
         """G63（ERROR・2026-07-11 監査対応）＝インラインカード⇄SM2プール⇄answer-key の三点整合。
 
@@ -2867,6 +2921,7 @@ class Validator:
         self.g74_shared_premise_hidden()
         self.g75_source_text_present()
         self.g76_verdict_core_lines()
+        self.g78_verdict_diagram_band()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
