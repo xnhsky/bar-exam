@@ -5580,7 +5580,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5601,9 +5625,58 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6161,11 +6234,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは<b>①誰が・何のために請求するか ②誰がどう実施するか</b>の二つと、条文の要件を過不足なく読むこと。226条は対象者を<b>知識の重要性</b>で定めており、その者が当該犯罪の被害者であることは請求の妨げにならない。書かれていない身分の限定を足さない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>被害者が報復を恐れて取調べに応じない場面。その供述が捜査に欠かせないなら、検察官は裁判官へ証人尋問を請求できる。</span>" data-brief-mark="226条は、捜査に欠くことのできない知識を有すると明らかに認められる者が取調べで出頭・供述を拒んだ場合、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>被害者であっても第1回公判期日前に限り証人尋問を請求できる</span>。<span class='tx-anscomp-line'>検察官は、犯罪の捜査に欠くことのできない知識を有すると明らかに認められる者が、223条1項の取調べに対して出頭又は供述を拒んだ場合には、第1回公判期日前に限り、裁判官に証人の尋問を請求することができる（刑訴法226条）。同条は対象者を<strong>知識の重要性</strong>によって定めており、その者が当該犯罪の被害者であることは請求の妨げとならない。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>226条は対象を『犯罪の捜査に欠くことのできない知識を有すると明らかに認められる者』と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>任意の取調べに応じない重要参考人から、公判前に裁判官の関与のもとで供述を保全する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>対象は知識の重要性で画され、被害者・目撃者といった立場では区別しない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>被害者でも知識の重要性が明らかであれば対象になる＝『被害者だから対象外』ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文が挙げた要件だけを拾い、書かれていない身分の限定を勝手に足さない。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="公判前の証人尋問には<b>二系統</b>ある回。捜査機関のルート（226条・227条）とは別に、被告人・被疑者・弁護人が使う証拠保全のルート（179条1項）があり、あらかじめ保全しなければ証拠の使用が困難な事情があるときは、第一回公判期日前に限り請求できる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>重要な目撃者が長期の海外赴任で日本を離れる直前の場面。弁護人が裁判官へ証人尋問を請求して、供述を残しておける。</span>" data-brief-mark="保全しなければ証拠使用が困難な事情（海外渡航のおそれ等）があるときでも、弁護人は公判前に証人尋問を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>請求することはできない</span><span class='tx-stmt-fix'>→ 179条1項により第1回公判期日前に限り請求できる</span>。<span class='tx-anscomp-line'>被告人、被疑者又は弁護人は、あらかじめ証拠を保全しておかなければその証拠を使用することが困難な事情があるときは、<strong>第1回公判期日前に限り</strong>、裁判官に押収、捜索、検証、証人の尋問又は鑑定の処分を請求することができる（刑訴法179条1項）。証人に海外渡航の予定があり後日の尋問が困難となる場合は、この困難な事情に当たる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>179条1項は被告人・被疑者・弁護人に証拠保全としての証人尋問等の請求を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>捜査機関主導の捜査に対し、被告人側にも公判前に有利な証拠を保全する機会を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>あらかじめ保全しなければ証拠使用が困難な事情（証人の海外渡航のおそれ等）があれば足りる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>この場合弁護人は第1回公判期日前に限り請求できる＝『できない』は結論の逆。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>公判前の証人尋問は捜査機関ルート（226・227）と被告人側ルート（179）の二系統がある。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="限定句が<b>現行の条文にあるか</b>を最新の文言で照合する回。227条1項の要件は、任意に供述した者が公判では前と異なる供述をするおそれがあることと、その供述が犯罪の証明に欠くことができないことで、『圧迫を受け』という要件は平成16年改正で削除されている。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>誰かに脅されたわけではないが、法廷では話を変えそうな供述者がいる場面。圧迫の有無を問わず、二つの要件を満たせば請求できる。</span>" data-brief-mark="227条1項による請求は、任意の供述をした者が<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>圧迫を受けて前と異なる供述をするおそれがある場合に限られる</span><span class='tx-stmt-fix'>→ 『圧迫を受け』要件は平成16年改正で削除</span>。<span class='tx-anscomp-line'>検察官は、223条1項の取調べに際して任意の供述をした者が、公判期日においては前にした供述と異なる供述をするおそれがあり、かつ、その者の供述が<strong>犯罪の証明に欠くことができない</strong>と認められる場合には、第1回公判期日前に限り、裁判官に証人の尋問を請求することができる（刑訴法227条1項）。平成16年改正により『圧迫を受け』との要件は削除されている。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>現行227条1項は、公判で前と異なる供述をするおそれ＋供述が証明に欠くことができないことを要件とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判前に供述を保全し、供述の信用性判断を要する場面を減らして裁判の充実・迅速化を図る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>平成16年改正前は『圧迫を受け』が要件だったが、同改正で削除された。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>供述変遷の原因が圧迫であることは要件でない＝『圧迫を受けて…に限り』は削除済み要件を残す誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『…に限り』の限定句が現行条文にあるかを、最新の文言で照合する。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは<b>①誰が・何のために請求するか ②誰がどう実施するか</b>の二つと、条文の要件を過不足なく読むこと。226条は対象者を<b>知識の重要性</b>で定めており、その者が当該犯罪の被害者であることは請求の妨げにならない。書かれていない身分の限定を足さない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>被害者が報復を恐れて取調べに応じない場面。その供述が捜査に欠かせないなら、検察官は裁判官へ証人尋問を請求できる。</span>" data-brief-mark="226条は、捜査に欠くことのできない知識を有すると明らかに認められる者が取調べで出頭・供述を拒んだ場合、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>被害者であっても第1回公判期日前に限り証人尋問を請求できる</span>。<span class='tx-anscomp-line'>検察官は、犯罪の捜査に欠くことのできない知識を有すると明らかに認められる者が、223条1項の取調べに対して出頭又は供述を拒んだ場合には、第1回公判期日前に限り、裁判官に証人の尋問を請求することができる（刑訴法226条）。同条は対象者を<strong>知識の重要性</strong>によって定めており、その者が当該犯罪の被害者であることは請求の妨げとならない。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>226条は対象を『犯罪の捜査に欠くことのできない知識を有すると明らかに認められる者』と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>任意の取調べに応じない重要参考人から、公判前に裁判官の関与のもとで供述を保全する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>対象は知識の重要性で画され、被害者・目撃者といった立場では区別しない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>被害者でも知識の重要性が明らかであれば対象になる＝『被害者だから対象外』ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文が挙げた要件だけを拾い、書かれていない身分の限定を勝手に足さない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">条文が挙げた要件だけを拾う ── 書かれていない身分の限定を足さない</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">条文が定める限定</span><span class="dgm-lane-law">知識の重要性（226条）</span></p><div class="dgm-lane-body"><p class="dgm-rule">対象は「犯罪の捜査に欠くことのできない知識を有すると<em>明らかに認められる者</em>」。基準は知識の側にある。</p><p class="dgm-case">犯行を間近で見ていた者が、事情聴取を拒む。</p><p class="dgm-verdict is-ok">被害者でも対象になる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">書かれていない限定</span><span class="dgm-lane-law">その者の身分</span></p><div class="dgm-lane-body"><p class="dgm-rule">被害者だから対象外、という<em>限定は条文にない</em>。読む側が足してしまう典型。</p><p class="dgm-case">被害者であることを理由に請求を諦める、という判断。</p><p class="dgm-verdict is-ng">この限定は条文にない</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="公判前の証人尋問には<b>二系統</b>ある回。捜査機関のルート（226条・227条）とは別に、被告人・被疑者・弁護人が使う証拠保全のルート（179条1項）があり、あらかじめ保全しなければ証拠の使用が困難な事情があるときは、第一回公判期日前に限り請求できる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>重要な目撃者が長期の海外赴任で日本を離れる直前の場面。弁護人が裁判官へ証人尋問を請求して、供述を残しておける。</span>" data-brief-mark="保全しなければ証拠使用が困難な事情（海外渡航のおそれ等）があるときでも、弁護人は公判前に証人尋問を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>請求することはできない</span><span class='tx-stmt-fix'>→ 179条1項により第1回公判期日前に限り請求できる</span>。<span class='tx-anscomp-line'>被告人、被疑者又は弁護人は、あらかじめ証拠を保全しておかなければその証拠を使用することが困難な事情があるときは、<strong>第1回公判期日前に限り</strong>、裁判官に押収、捜索、検証、証人の尋問又は鑑定の処分を請求することができる（刑訴法179条1項）。証人に海外渡航の予定があり後日の尋問が困難となる場合は、この困難な事情に当たる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>179条1項は被告人・被疑者・弁護人に証拠保全としての証人尋問等の請求を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>捜査機関主導の捜査に対し、被告人側にも公判前に有利な証拠を保全する機会を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>あらかじめ保全しなければ証拠使用が困難な事情（証人の海外渡航のおそれ等）があれば足りる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>この場合弁護人は第1回公判期日前に限り請求できる＝『できない』は結論の逆。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>公判前の証人尋問は捜査機関ルート（226・227）と被告人側ルート（179）の二系統がある。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">公判前の証人尋問には二系統ある ── 捜査機関側と被告人側</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">捜査機関のルート</span><span class="dgm-lane-law">226条・227条</span></p><div class="dgm-lane-body"><p class="dgm-rule">検察官が請求する。<em>拒む参考人</em>か、<em>翻すおそれのある参考人</em>かで条文が分かれる。</p><p class="dgm-case">取調べに応じない目撃者の証人尋問を求める。</p><p class="dgm-verdict is-acc">検察官が請求する</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">被告人側のルート</span><span class="dgm-lane-law">証拠保全（179条1項）</span></p><div class="dgm-lane-body"><p class="dgm-rule">被告人・被疑者・弁護人が請求する。あらかじめ保全しなければ<em>その証拠を使用することが困難</em>な事情があるとき。</p><p class="dgm-case">有利な証言をする証人に、長期の海外渡航の予定がある。</p><p class="dgm-verdict is-ok">弁護人も請求できる</p></div></div></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="限定句が<b>現行の条文にあるか</b>を最新の文言で照合する回。227条1項の要件は、任意に供述した者が公判では前と異なる供述をするおそれがあることと、その供述が犯罪の証明に欠くことができないことで、『圧迫を受け』という要件は平成16年改正で削除されている。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>誰かに脅されたわけではないが、法廷では話を変えそうな供述者がいる場面。圧迫の有無を問わず、二つの要件を満たせば請求できる。</span>" data-brief-mark="227条1項による請求は、任意の供述をした者が<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>圧迫を受けて前と異なる供述をするおそれがある場合に限られる</span><span class='tx-stmt-fix'>→ 『圧迫を受け』要件は平成16年改正で削除</span>。<span class='tx-anscomp-line'>検察官は、223条1項の取調べに際して任意の供述をした者が、公判期日においては前にした供述と異なる供述をするおそれがあり、かつ、その者の供述が<strong>犯罪の証明に欠くことができない</strong>と認められる場合には、第1回公判期日前に限り、裁判官に証人の尋問を請求することができる（刑訴法227条1項）。平成16年改正により『圧迫を受け』との要件は削除されている。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>現行227条1項は、公判で前と異なる供述をするおそれ＋供述が証明に欠くことができないことを要件とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判前に供述を保全し、供述の信用性判断を要する場面を減らして裁判の充実・迅速化を図る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>平成16年改正前は『圧迫を受け』が要件だったが、同改正で削除された。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>供述変遷の原因が圧迫であることは要件でない＝『圧迫を受けて…に限り』は削除済み要件を残す誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『…に限り』の限定句が現行条文にあるかを、最新の文言で照合する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-3"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">「…に限り」の限定句が、現行の条文に残っているかを照合する</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">平成16年改正前</span><span class="dgm-lane-law">「圧迫を受け」が要件</span></p><div class="dgm-lane-body"><p class="dgm-rule">供述が変わる<em>原因</em>まで要件に含まれていた。旧解説はこの文言で説明する。</p><p class="dgm-case">共犯者から働きかけを受けている、という事情。</p><p class="dgm-verdict is-teal">改正前の文言</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">現行の227条1項</span><span class="dgm-lane-law">二つの要件だけ</span></p><div class="dgm-lane-body"><p class="dgm-rule">①任意に供述した者が公判で<em>前と異なる供述をするおそれ</em>があること ②その供述が<em>犯罪の証明に欠くことができない</em>こと。原因は問わない。</p><p class="dgm-case">理由は分からないが、翻す見込みがある場面。</p><p class="dgm-verdict is-ok">「圧迫を受け」は削除済み</p></div></div></div></div></div></td></tr>
 <tr data-stmt="4" data-verdict="x" data-brief-story="<b>裁量規定を義務規定に読み替えない</b>回。226条・227条の請求を受けた裁判官は、捜査に支障を生ずるおそれがないと認めるときは、被告人・被疑者または弁護人を証人尋問に<b>立ち会わせることができる</b>（228条2項）。立ち会わせるかどうかは裁判官の裁量に委ねられている。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>共犯者が逃走中で、立ち会わせると捜査の中身が伝わりかねない場面。裁判官は立会いを認めずに尋問を行える。</span>" data-brief-mark="検察官の請求による公判前の証人尋問で、裁判官は被告人・被疑者・弁護人を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>その尋問に立ち会わせなければならない</span><span class='tx-stmt-fix'>→ 228条2項は立ち会わせることが『できる』（裁量）</span>。<span class='tx-anscomp-line'>226条又は227条の請求を受けた裁判官は、捜査に支障を生ずるおそれがないと認めるときは、被告人、被疑者又は弁護人を証人尋問に立ち会わせることが<strong>できる</strong>（刑訴法228条2項）。立ち会わせるか否かは裁判官の裁量に委ねられており、これを立ち会わせる義務はない。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>228条2項は、捜査に支障がないと認めるとき被告人等を尋問に立ち会わせることが『できる』とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>捜査の密行性に配慮しつつ、必要に応じて防御側の立会いを認める余地を残す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公判での当事者立会権（157条1項）と異なり、公判前尋問の被告人側立会いは義務でない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>立会いは裁判官の裁量＝『立ち会わせなければならない』と義務化するのは誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>裁量規定（できる）を義務規定（しなければならない）に読み替えない。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-story="捜査段階＝任意処分ばかり、という<b>先入観で強制権限を否定しない</b>回。226条・227条の請求を受けた裁判官は証人尋問に関し裁判所または裁判長と同一の権限を有するから（228条1項）、正当な理由なく召喚に応じない証人を更に召喚し、または勾引することができる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>公判前の証人尋問に呼ばれた人物が、理由もなく出頭しない場面。裁判官は呼び直すことも、勾引することもできる。</span>" data-brief-mark="公判前の証人尋問請求で、裁判官は召喚に応じない証人に対し、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>更に召喚し、又は勾引することができる</span>（228条1項が準用する152条）。<span class='tx-anscomp-line'>226条又は227条の請求を受けた裁判官は、証人尋問に関し裁判所又は裁判長と<strong>同一の権限</strong>を有する（刑訴法228条1項）。したがって、証人が正当な理由なく召喚に応じないときは、準用される152条により、更にこれを召喚し、又はこれを勾引することができる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>228条1項は、公判前尋問の裁判官が証人尋問に関し裁判所・裁判長と同一の権限を有するとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判前の証人尋問を実効的に行うため、召喚・勾引等の権限を裁判官に与える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>準用される規定に、正当な理由なく召喚に応じない証人を勾引できる152条が含まれる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>召喚のくり返しも解釈上可能で、召喚するか勾引するかは裁判所の裁量＝更に召喚・勾引できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『捜査段階＝任意処分ばかり』の先入観で強制権限を否定しない。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="捜査段階＝任意処分ばかり、という<b>先入観で強制権限を否定しない</b>回。226条・227条の請求を受けた裁判官は証人尋問に関し裁判所または裁判長と同一の権限を有するから（228条1項）、正当な理由なく召喚に応じない証人を更に召喚し、または勾引することができる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>公判前の証人尋問に呼ばれた人物が、理由もなく出頭しない場面。裁判官は呼び直すことも、勾引することもできる。</span>" data-brief-mark="公判前の証人尋問請求で、裁判官は召喚に応じない証人に対し、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>更に召喚し、又は勾引することができる</span>（228条1項が準用する152条）。<span class='tx-anscomp-line'>226条又は227条の請求を受けた裁判官は、証人尋問に関し裁判所又は裁判長と<strong>同一の権限</strong>を有する（刑訴法228条1項）。したがって、証人が正当な理由なく召喚に応じないときは、準用される152条により、更にこれを召喚し、又はこれを勾引することができる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>228条1項は、公判前尋問の裁判官が証人尋問に関し裁判所・裁判長と同一の権限を有するとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判前の証人尋問を実効的に行うため、召喚・勾引等の権限を裁判官に与える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>準用される規定に、正当な理由なく召喚に応じない証人を勾引できる152条が含まれる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>召喚のくり返しも解釈上可能で、召喚するか勾引するかは裁判所の裁量＝更に召喚・勾引できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『捜査段階＝任意処分ばかり』の先入観で強制権限を否定しない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-5"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">「捜査段階＝任意処分ばかり」の先入観で強制権限を否定しない</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>請求を受けた裁判官は、証人尋問に関し裁判所又は裁判長と同一の権限を有する（228条1項）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>だから公判の証人尋問の規定が準用される</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>正当な理由なく召喚に応じない証人への手段も、そのまま働く</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">更に召喚する／勾引する</span><span class="dgm-lane-law">152条</span></p><div class="dgm-lane-body"><p class="dgm-rule">召喚を繰り返すことも、<em>勾引</em>することもできる。どちらを選ぶかは裁判所の裁量。</p><p class="dgm-case">呼び出しても出頭しない証人に対する措置。</p><p class="dgm-verdict is-ok">強制の手段がある</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">任意の取調べ</span><span class="dgm-lane-law">223条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">こちらは<em>出頭も供述も強制できない</em>。だからこそ226条の手続が用意されている。</p><p class="dgm-case">参考人として事情を聴く場面。</p><p class="dgm-verdict is-acc">強制の手段はない</p></div></div></div></div></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6418,16 +6491,40 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6462,7 +6559,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6475,6 +6577,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6483,12 +6586,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
