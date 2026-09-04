@@ -5634,6 +5634,53 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6231,11 +6278,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:x,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="ここは<b>準用規定をどう読むか</b>で結論が分かれる場面である。222条1項前段は、逮捕に伴う被疑者捜索（220条1項1号）に110条（令状の呈示）を準用する。110条は「捜索状」の呈示を定めた規定だから、これを<b>「逮捕状」と読み替えて字句どおり適用</b>すれば、被疑者を捜索する際に逮捕状を示さなければならない、という結論になる。準用とは、ある規定を別の場面へ持ってくる際に語句を置き換えて当てはめる技術であり、置き換えができるなら適用がある、というのがこの読み方の骨格である。<b>準用の可否そのものが対立点</b>だと押さえると、以下の論拠の向きが読める。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では逮捕状を携帯して赴くのが通常で、示すこと自体は難しくない。争いになるのは、住居主に示す必要があるかという場面である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>逮捕状を持って午前7時に他人の住居へ被疑者を捜しに入る場面。110条の「捜索状」を「逮捕状」と置き換えれば、その紙を示せという規定として読める。準用が効くかどうかが、そのまま呈示の要否になる。</span>" data-brief-mark="222条1項前段が準用する110条を「逮捕状」と読み替え字句どおり読む立場について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>逮捕状の呈示が必要という結論を支える論拠となる</span>（読替準用＝呈示必要説の論拠）。<span class='tx-anscomp-line'>刑訴法222条1項前段は、逮捕に伴う被疑者捜索（220条1項1号）に110条を準用するところ、同条にいう「捜索状」を「逮捕状」と読み替えて字句どおり適用すれば、逮捕状の<strong>呈示</strong>が必要となる。この読替準用は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなければならないとする結論を支える中核的論拠である。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>222条1項前段は220条の捜索について110条（令状は処分を受ける者に示さなければならない）を準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>110条の「捜索状」を「逮捕状」と読み替え字句どおり読めば、逮捕状の呈示が必要になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>準用規定は読み替えの取り方で意味が定まり、読替を肯定すれば呈示必要という結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「準用の余地なし」と読めば呈示不要へ、「逮捕状と読み替えて適用」と読めば呈示必要へ分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準用条文はつねに「何をどの語に読み替えるか」で結論が変わることを意識する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-story="準用を否定する側は、<b>他の逮捕類型との一貫性</b>から出発する。現行犯逮捕、緊急逮捕、逮捕状の緊急執行（201条2項・73条3項）では、被疑者を捜索する時点で<b>示すべき令状がそもそも存在しない</b>。存在しないものについて110条を準用する余地はない。にもかかわらず通常逮捕の場合にだけ準用を認めるのは、同じ220条1項1号の処分を逮捕の種類で分断することになり整合しない。そこで準用そのものを否定し、呈示は不要と読む。<b>解釈は条文全体で一貫するか</b>を物差しにする、という発想がここに出ている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>現行犯逮捕で他人の住居に入る場面は実際に起きる。示す令状がない以上、住居主への説明は口頭で行われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>路上での犯行を現認して追跡し、3軒先の他人の住居へ逃げ込んだ被疑者を捜す場面。この瞬間に示せる令状は1枚もない。通常逮捕のときだけ呈示を求めると、同じ条文の同じ処分が場合ごとに割れる。</span>" data-brief-mark="令状を示せない他の逮捕類型と一貫させ通常逮捕でも110条準用を否定する立場について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>逮捕状の呈示は不要という結論を支える論拠となる</span>（一貫解釈による準用否定＝呈示不要説の論拠）。<span class='tx-anscomp-line'>現行犯逮捕・緊急逮捕・逮捕状の緊急執行（201条2項・73条3項）では、被疑者捜索の時点で示すべき令状が存在せず110条を準用する余地がない以上、通常逮捕の場合にのみ準用を認めるのは<strong>不整合</strong>である。この一貫解釈による準用の否定は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなくてよいとする結論を支える論拠となる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>現行犯逮捕・緊急逮捕・逮捕状の緊急執行では示すべき令状がなく110条準用の余地がない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>これと一貫させ通常逮捕でも準用を否定すれば、逮捕状の呈示義務は生じない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>体系的整合（一貫解釈）は揃える先で向きが決まり、ここでは呈示不要の結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>令状を示せない他類型に揃えるか、通常逮捕だけを特別扱いするかで結論が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>一貫解釈は、どちらの結論に足並みをそろえるかを確認してから使う。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="論拠の向きを読むときは、<b>その弊害がどちらの立場を採ったときに生じるか</b>を特定する。「逮捕状をいちいち呈示していては逮捕が遅れ、被疑者に逃亡されてしまう」という指摘は、<b>呈示を要求する立場を採った場合に生じる</b>不都合である。つまりこれは呈示必要説への批判として働き、結果として<b>呈示不要説を支える</b>論拠になる。弊害の指摘は、その弊害を生む側の反対に味方する——この対応関係を機械的に確認すれば、もっともらしい文言に引かれて向きを取り違えることがなくなる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜索と逮捕が数十秒を争う場面は現実にある。呈示の手順をどこまで求めるかは、この迅速性との折り合いで論じられる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>住居に入った直後、被疑者が2階の窓から逃げようとしている場面。ここで住居主に令状を示す手順を踏めば、その30秒で逃げられる。この不都合は、呈示を求める立場を採ったときに生じる。</span>" data-brief-mark="逮捕が遅れ逃亡されるという弊害の指摘について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>逮捕状の呈示が必要という結論を支える論拠となる</span><span class='tx-stmt-fix'>→ 呈示しなくてよいという結論を支える論拠</span>。<span class='tx-anscomp-line'>逮捕状をいちいち呈示していては逮捕が遅れ被疑者に逃亡されるという弊害は、呈示を要求する立場を採ることによって生じる不都合であり、同立場に対する<strong>批判</strong>として働く。したがってこの弊害の指摘は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなくてよいとする結論を支える論拠である。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>逃亡の弊害は、逮捕状の呈示を要求した場合に生じる副作用である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>ある説の弊害の指摘は、その説への批判＝反対結論の論拠となる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逃亡の弊害は呈示必要説を弱め、逮捕状の呈示は不要という結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>弊害が生じる前提（呈示を要求）を特定すれば、味方は反対側（呈示不要）と分かる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「この説を採ると困る」という指摘は、必ず反対説の論拠として読む。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="ここは<b>準用規定をどう読むか</b>で結論が分かれる場面である。222条1項前段は、逮捕に伴う被疑者捜索（220条1項1号）に110条（令状の呈示）を準用する。110条は「捜索状」の呈示を定めた規定だから、これを<b>「逮捕状」と読み替えて字句どおり適用</b>すれば、被疑者を捜索する際に逮捕状を示さなければならない、という結論になる。準用とは、ある規定を別の場面へ持ってくる際に語句を置き換えて当てはめる技術であり、置き換えができるなら適用がある、というのがこの読み方の骨格である。<b>準用の可否そのものが対立点</b>だと押さえると、以下の論拠の向きが読める。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では逮捕状を携帯して赴くのが通常で、示すこと自体は難しくない。争いになるのは、住居主に示す必要があるかという場面である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>逮捕状を持って午前7時に他人の住居へ被疑者を捜しに入る場面。110条の「捜索状」を「逮捕状」と置き換えれば、その紙を示せという規定として読める。準用が効くかどうかが、そのまま呈示の要否になる。</span>" data-brief-mark="222条1項前段が準用する110条を「逮捕状」と読み替え字句どおり読む立場について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>逮捕状の呈示が必要という結論を支える論拠となる</span>（読替準用＝呈示必要説の論拠）。<span class='tx-anscomp-line'>刑訴法222条1項前段は、逮捕に伴う被疑者捜索（220条1項1号）に110条を準用するところ、同条にいう「捜索状」を「逮捕状」と読み替えて字句どおり適用すれば、逮捕状の<strong>呈示</strong>が必要となる。この読替準用は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなければならないとする結論を支える中核的論拠である。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>222条1項前段は220条の捜索について110条（令状は処分を受ける者に示さなければならない）を準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>110条の「捜索状」を「逮捕状」と読み替え字句どおり読めば、逮捕状の呈示が必要になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>準用規定は読み替えの取り方で意味が定まり、読替を肯定すれば呈示必要という結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「準用の余地なし」と読めば呈示不要へ、「逮捕状と読み替えて適用」と読めば呈示必要へ分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準用条文はつねに「何をどの語に読み替えるか」で結論が変わることを意識する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">準用は「何をどの語に読み替えるか」で結論が変わる ── 222条1項前段→110条</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>222条1項前段が、逮捕に伴う被疑者捜索（220条1項1号）に110条を準用する</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>110条は『捜索状は、処分を受ける者にこれを示さなければならない』</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>この「捜索状」を何と読むかで、呈示の要否が決まる</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">「逮捕状」と読み替える</span><span class="dgm-lane-law">置き換えられる＝適用がある</span></p><div class="dgm-lane-body"><p class="dgm-rule">字句どおり当てはめれば、被疑者を捜索する際に<em>逮捕状を示さなければならない</em>ことになる。</p><p class="dgm-case">逮捕状を持って住居へ入り、住居主へ示してから捜索する。</p><p class="dgm-verdict is-acc">呈示が必要という結論を支える</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">準用の余地なしと読む</span><span class="dgm-lane-law">置き換える対象が無い</span></p><div class="dgm-lane-body"><p class="dgm-rule">示すべき令状が無い場面まで含む処分だから、110条をそのまま持ってこられない、と読む。</p><p class="dgm-case">現行犯逮捕で住居へ入るとき、示す令状はそもそも無い。</p><p class="dgm-verdict is-teal">呈示は不要という結論を支える</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="準用を否定する側は、<b>他の逮捕類型との一貫性</b>から出発する。現行犯逮捕、緊急逮捕、逮捕状の緊急執行（201条2項・73条3項）では、被疑者を捜索する時点で<b>示すべき令状がそもそも存在しない</b>。存在しないものについて110条を準用する余地はない。にもかかわらず通常逮捕の場合にだけ準用を認めるのは、同じ220条1項1号の処分を逮捕の種類で分断することになり整合しない。そこで準用そのものを否定し、呈示は不要と読む。<b>解釈は条文全体で一貫するか</b>を物差しにする、という発想がここに出ている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>現行犯逮捕で他人の住居に入る場面は実際に起きる。示す令状がない以上、住居主への説明は口頭で行われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>路上での犯行を現認して追跡し、3軒先の他人の住居へ逃げ込んだ被疑者を捜す場面。この瞬間に示せる令状は1枚もない。通常逮捕のときだけ呈示を求めると、同じ条文の同じ処分が場合ごとに割れる。</span>" data-brief-mark="令状を示せない他の逮捕類型と一貫させ通常逮捕でも110条準用を否定する立場について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>逮捕状の呈示は不要という結論を支える論拠となる</span>（一貫解釈による準用否定＝呈示不要説の論拠）。<span class='tx-anscomp-line'>現行犯逮捕・緊急逮捕・逮捕状の緊急執行（201条2項・73条3項）では、被疑者捜索の時点で示すべき令状が存在せず110条を準用する余地がない以上、通常逮捕の場合にのみ準用を認めるのは<strong>不整合</strong>である。この一貫解釈による準用の否定は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなくてよいとする結論を支える論拠となる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>現行犯逮捕・緊急逮捕・逮捕状の緊急執行では示すべき令状がなく110条準用の余地がない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>これと一貫させ通常逮捕でも準用を否定すれば、逮捕状の呈示義務は生じない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>体系的整合（一貫解釈）は揃える先で向きが決まり、ここでは呈示不要の結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>令状を示せない他類型に揃えるか、通常逮捕だけを特別扱いするかで結論が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>一貫解釈は、どちらの結論に足並みをそろえるかを確認してから使う。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">同じ220条1項1号の処分を、逮捕の種類で分断しないという読み方</p><div class="tx-dgm-lanes is-3"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">通常逮捕</span><span class="dgm-lane-law">逮捕状がある</span></p><div class="dgm-lane-body"><p class="dgm-rule">この場面だけを見れば、示すべき令状は手元にある。</p><p class="dgm-case">逮捕状を持って被疑者の潜伏先へ向かう。</p><p class="dgm-verdict is-acc">ここだけ準用を認めると…</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">現行犯逮捕・緊急逮捕</span><span class="dgm-lane-law">令状が存在しない</span></p><div class="dgm-lane-body"><p class="dgm-rule">被疑者を捜索する時点で<em>示すべき令状がそもそも無い</em>。無いものについて準用する余地はない。</p><p class="dgm-case">追跡中に他人の住居へ逃げ込んだ被疑者を捜す。</p><p class="dgm-verdict is-teal">準用の余地なし</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">逮捕状の緊急執行</span><span class="dgm-lane-law">令状が手元にない</span></p><div class="dgm-lane-body"><p class="dgm-rule">被疑事実の要旨を告げて先に逮捕し、逮捕状は<em>後から</em>示す（201条2項・73条3項）。</p><p class="dgm-case">急を要して逮捕状の到着を待たずに執行する。</p><p class="dgm-verdict is-teal">準用の余地なし</p></div></div></div><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>同じ処分を逮捕の種類で分断するのは整合しない</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>そこで準用そのものを否定する＝呈示は不要と読む</div></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="論拠の向きを読むときは、<b>その弊害がどちらの立場を採ったときに生じるか</b>を特定する。「逮捕状をいちいち呈示していては逮捕が遅れ、被疑者に逃亡されてしまう」という指摘は、<b>呈示を要求する立場を採った場合に生じる</b>不都合である。つまりこれは呈示必要説への批判として働き、結果として<b>呈示不要説を支える</b>論拠になる。弊害の指摘は、その弊害を生む側の反対に味方する——この対応関係を機械的に確認すれば、もっともらしい文言に引かれて向きを取り違えることがなくなる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜索と逮捕が数十秒を争う場面は現実にある。呈示の手順をどこまで求めるかは、この迅速性との折り合いで論じられる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>住居に入った直後、被疑者が2階の窓から逃げようとしている場面。ここで住居主に令状を示す手順を踏めば、その30秒で逃げられる。この不都合は、呈示を求める立場を採ったときに生じる。</span>" data-brief-mark="逮捕が遅れ逃亡されるという弊害の指摘について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>逮捕状の呈示が必要という結論を支える論拠となる</span><span class='tx-stmt-fix'>→ 呈示しなくてよいという結論を支える論拠</span>。<span class='tx-anscomp-line'>逮捕状をいちいち呈示していては逮捕が遅れ被疑者に逃亡されるという弊害は、呈示を要求する立場を採ることによって生じる不都合であり、同立場に対する<strong>批判</strong>として働く。したがってこの弊害の指摘は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなくてよいとする結論を支える論拠である。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>逃亡の弊害は、逮捕状の呈示を要求した場合に生じる副作用である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>ある説の弊害の指摘は、その説への批判＝反対結論の論拠となる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逃亡の弊害は呈示必要説を弱め、逮捕状の呈示は不要という結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>弊害が生じる前提（呈示を要求）を特定すれば、味方は反対側（呈示不要）と分かる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「この説を採ると困る」という指摘は、必ず反対説の論拠として読む。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-3"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">弊害の指摘は、その弊害を生む立場への批判 ── 味方は反対側になる</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>指摘された弊害：呈示していては逮捕が遅れ、被疑者に逃亡される</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>その弊害はどちらの立場を採ると生じるか＝呈示を要求する立場</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>だから、この指摘が支えるのは反対の結論</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">呈示を要求する立場</span><span class="dgm-lane-law">弊害が生じる側</span></p><div class="dgm-lane-body"><p class="dgm-rule">住居主に令状を示す手間の分だけ逮捕が遅れ、<em>逃亡を許す</em>おそれが出る。名誉が害されるという弊害も同じ側から生じる。</p><p class="dgm-case">追跡してきた警察官が、住居主への呈示のために足を止める。</p><p class="dgm-verdict is-ng">批判される側</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">呈示を不要とする立場</span><span class="dgm-lane-law">弊害を負わない側</span></p><div class="dgm-lane-body"><p class="dgm-rule">弊害の指摘は、その弊害を生まない側を<em>結果として支える</em>。</p><p class="dgm-case">示さずに住居へ入り、被疑者を捜し出して逮捕する。</p><p class="dgm-verdict is-ok">この指摘が支える結論</p></div></div></div></div></div></td></tr>
 <tr data-stmt="4" data-verdict="o" data-brief-story="同じ読み方をもう一つの弊害に当てる。「逮捕状を第三者に示せば、被疑者が逮捕されようとしていることが他人に知られ、<b>名誉が害される</b>」という指摘も、<b>呈示を要求する立場を採った場合に生じる</b>不都合である。したがってこれも呈示必要説への批判であり、呈示不要説を支える論拠になる。逮捕状には被疑事実が書かれているから、それを住居主や近隣に見せることは、まだ有罪と決まっていない人の私事を第三者へ開くことを意味する。<b>弊害の指摘＝その弊害を生む立場への批判＝反対結論の論拠</b>、という対応で一貫している。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>呈示を要求する立場でも、被疑事実の記載部分を伏せて示すといった折衷的な運用が論じられることがある。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>アパートの管理人に逮捕状を示す場面。そこには被疑者の氏名と被疑事実が書かれている。管理人は逮捕の結果を知る前に、嫌疑の中身を知ることになる。この不都合は、呈示を求めたことから生まれる。</span>" data-brief-mark="第三者に示すと名誉が害されるという弊害の指摘について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>逮捕状の呈示は不要という結論を支える論拠となる</span>（名誉侵害の弊害＝呈示必要説への批判＝呈示不要説の論拠）。<span class='tx-anscomp-line'>逮捕状を第三者に示すことで被疑者の名誉が害されるという弊害は、呈示を要求する立場を採ることによって生じる不都合であり、同立場に対する批判として働く。したがってこの弊害の指摘は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなくてよいとする結論を支える<strong>論拠</strong>となる。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>名誉侵害の弊害は、第三者に逮捕状を示した場合に生じる副作用である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>ある説の弊害の指摘は、その説への批判＝反対結論の論拠となる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>名誉侵害の弊害は呈示必要説を弱め、逮捕状の呈示は不要という結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>弊害の指摘（＝批判）は反対結論の論拠であり、ここは正しく呈示不要側に対応している。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>弊害論では、攻撃対象となる説と味方する結論は反対側になる。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="論拠には、弊害を<b>指摘する</b>ものと、指摘された弊害を<b>打ち消す</b>ものがある。「多人数で捜索に赴けば、住居主が被疑者へ連絡したり妨害したりする弊害は生じない」という指摘は、呈示必要説に向けられていた弊害批判を<b>否定する反論</b>である。批判を打ち消すのだから、擁護しているのは批判されていた側——すなわち<b>呈示必要説</b>になる。向きを定めるには二段で見る。①その弊害はどちらの立場から生じるか、②この発言は弊害を指摘しているのか、否定しているのか。二段を通せば、文面の印象に左右されずに味方が決まる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実際の捜索は複数名で行うのが通常で、出入口を押さえながら進む。この体制が、呈示に伴う不都合の大きさをどう見るかに影響する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>5人で赴き、玄関と裏口を押さえたうえで住居主に令状を示す場面。連絡する隙も逃げる隙もない。弊害が起きないなら、呈示を求めることへの批判は力を失う。</span>" data-brief-mark="多人数で赴けば連絡・妨害の弊害はないという反論について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>逮捕状の呈示は不要という結論を支える論拠となる</span><span class='tx-stmt-fix'>→ 呈示しなければならないという結論を支える論拠</span>。<span class='tx-anscomp-line'>多人数で捜索に赴けば住居主による連絡・妨害の弊害は生じないという指摘は、呈示を要求する立場に向けられた弊害批判を打ち消す<strong>反論</strong>であり、同立場を擁護するものである。したがってこの指摘は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなければならないとする結論を支える論拠となる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>否定されている「連絡・妨害の弊害」は、呈示必要説に向けられた批判である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>弊害を指摘すれば批判、弊害を否定・解消すれば擁護になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>呈示必要説への批判を打ち消す反論は、逮捕状の呈示が必要という結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>弊害を「指摘」か「否定」か＋その弊害がどの説に向けられたかの二段で向きが定まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>反論の反論（弊害批判の打消し）は、元の立場を支える論拠になる。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="論拠には、弊害を<b>指摘する</b>ものと、指摘された弊害を<b>打ち消す</b>ものがある。「多人数で捜索に赴けば、住居主が被疑者へ連絡したり妨害したりする弊害は生じない」という指摘は、呈示必要説に向けられていた弊害批判を<b>否定する反論</b>である。批判を打ち消すのだから、擁護しているのは批判されていた側——すなわち<b>呈示必要説</b>になる。向きを定めるには二段で見る。①その弊害はどちらの立場から生じるか、②この発言は弊害を指摘しているのか、否定しているのか。二段を通せば、文面の印象に左右されずに味方が決まる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実際の捜索は複数名で行うのが通常で、出入口を押さえながら進む。この体制が、呈示に伴う不都合の大きさをどう見るかに影響する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>5人で赴き、玄関と裏口を押さえたうえで住居主に令状を示す場面。連絡する隙も逃げる隙もない。弊害が起きないなら、呈示を求めることへの批判は力を失う。</span>" data-brief-mark="多人数で赴けば連絡・妨害の弊害はないという反論について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>逮捕状の呈示は不要という結論を支える論拠となる</span><span class='tx-stmt-fix'>→ 呈示しなければならないという結論を支える論拠</span>。<span class='tx-anscomp-line'>多人数で捜索に赴けば住居主による連絡・妨害の弊害は生じないという指摘は、呈示を要求する立場に向けられた弊害批判を打ち消す<strong>反論</strong>であり、同立場を擁護するものである。したがってこの指摘は、逮捕に伴う被疑者捜索の際に逮捕状を呈示しなければならないとする結論を支える論拠となる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>否定されている「連絡・妨害の弊害」は、呈示必要説に向けられた批判である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>弊害を指摘すれば批判、弊害を否定・解消すれば擁護になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>呈示必要説への批判を打ち消す反論は、逮捕状の呈示が必要という結論を支える。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>弊害を「指摘」か「否定」か＋その弊害がどの説に向けられたかの二段で向きが定まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>反論の反論（弊害批判の打消し）は、元の立場を支える論拠になる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-5"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">二段で向きを定める ── 弊害を「指摘」したのか「打ち消した」のか</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>その弊害はどちらの立場から生じるか（ここでは呈示を要求する立場）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>その発言は弊害を指摘しているか、打ち消しているか</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>打ち消したなら、守られているのは批判されていた側</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">弊害を指摘する</span><span class="dgm-lane-law">攻撃</span></p><div class="dgm-lane-body"><p class="dgm-rule">呈示を要求すると連絡・妨害・逃亡を招く、という指摘は<em>呈示必要説への攻撃</em>。</p><p class="dgm-case">示している間に住居主が被疑者へ知らせてしまう。</p><p class="dgm-verdict is-teal">呈示不要説を支える</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">弊害を打ち消す</span><span class="dgm-lane-law">防御</span></p><div class="dgm-lane-body"><p class="dgm-rule">多人数で赴けばその弊害は生じない、という指摘は攻撃を無力化し、<em>批判されていた側</em>を擁護する。</p><p class="dgm-case">複数の警察官で出入口を固めたうえで呈示する。</p><p class="dgm-verdict is-ok">呈示必要説を支える</p></div></div></div></div></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6505,6 +6552,29 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
   }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
+  }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
     core.main.forEach(function(item){
@@ -6538,7 +6608,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6551,6 +6626,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6559,12 +6635,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
