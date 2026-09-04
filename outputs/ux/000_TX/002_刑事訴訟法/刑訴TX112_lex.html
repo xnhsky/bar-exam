@@ -5584,7 +5584,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5605,9 +5629,58 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6182,11 +6255,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは<b>誰の・どの場面の沈黙か</b>を見分けること。まず被疑者の<b>身体</b>と<b>供述</b>は別の層で、取調べのため出頭し滞留する義務を認めても、それは身体を取調べの場に留めるにとどまり、供述を拒む自由を直ちに奪うことを意味しない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>勾留中の甲が取調室に座っている場面。そこにいることを求められても、質問に答えない自由はそのまま残る。</span>" data-brief-mark="取調受忍義務を認めることは、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>直ちに供述を拒否する自由を奪うことを意味しない</span>（最大判平11.3.24＝百選34事件）。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者について取調べのための出頭・滞留義務（取調受忍義務）を肯定しても、その義務は身体を取調べの場に留めるものにとどまるから、憲法38条1項・刑訴法198条2項が保障する<strong>供述を拒む自由</strong>を直ちに奪うことを意味しない（最大判平11.3.24）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>判例は「取調受忍義務を認めることが直ちに供述を拒否する自由を奪うことを意味しない」とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>黙秘権（憲法38条1項）は供述内容の強要からの自由を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>身体を場に留める義務（受忍義務）と、供述を拒む自由は別次元。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>義務の対象が身体の滞留か供述内容かで、黙秘権侵害の有無が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>身体拘束の可否と防御活動の自由（接見交通権等）は別々に判断する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="権利の効果を語る前に<b>権利の及ぶ範囲</b>を画す回。憲法38条1項が守るのは自己が刑事上の責任を問われるおそれのある事項で、氏名は原則としてここに含まれない。だから氏名を明らかにしない弁護人選任届は、不適法として却下され得る。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>本人の氏名を書かず、番号と拇印だけで提出された選任届。名前は不利益事項ではないので、伏せたままでは受理されない。</span>" data-brief-mark="氏名を明かさず番号・拇印で表示した弁護人選任届は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>却下されることはない</span><span class='tx-stmt-fix'>→ 却下され得る（氏名は黙秘の対象外）</span>。<span class='tx-anscomp-line'>憲法38条1項が供述の強要から保護するのは<strong>自己が刑事上の責任を問われる虞ある事項</strong>についてであり、被告人の氏名は原則としてこれに当たらないから、氏名を明らかにしない弁護人選任届は不適法として却下され得る（最大判昭32.2.20）。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>憲法38条1項は「自己が刑事上の責任を問われる虞ある事項」の供述強要からの自由を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>氏名は原則として不利益な事項ではないため黙秘権が及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>氏名を欠く弁護人選任届は適法な届とはいえず却下され得る（最大判昭32.2.20）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>供述内容が不利益事項か身分事項かで、黙秘権の及ぶ範囲が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>権利の効果を語る前に、権利の及ぶ範囲（不利益事項か）を先に画す。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは<b>誰の・どの場面の沈黙か</b>を見分けること。まず被疑者の<b>身体</b>と<b>供述</b>は別の層で、取調べのため出頭し滞留する義務を認めても、それは身体を取調べの場に留めるにとどまり、供述を拒む自由を直ちに奪うことを意味しない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>勾留中の甲が取調室に座っている場面。そこにいることを求められても、質問に答えない自由はそのまま残る。</span>" data-brief-mark="取調受忍義務を認めることは、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>直ちに供述を拒否する自由を奪うことを意味しない</span>（最大判平11.3.24＝百選34事件）。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者について取調べのための出頭・滞留義務（取調受忍義務）を肯定しても、その義務は身体を取調べの場に留めるものにとどまるから、憲法38条1項・刑訴法198条2項が保障する<strong>供述を拒む自由</strong>を直ちに奪うことを意味しない（最大判平11.3.24）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>判例は「取調受忍義務を認めることが直ちに供述を拒否する自由を奪うことを意味しない」とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>黙秘権（憲法38条1項）は供述内容の強要からの自由を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>身体を場に留める義務（受忍義務）と、供述を拒む自由は別次元。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>義務の対象が身体の滞留か供述内容かで、黙秘権侵害の有無が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>身体拘束の可否と防御活動の自由（接見交通権等）は別々に判断する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">義務の対象が身体か供述かで、黙秘権侵害の有無が分かれる</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">身体を留める義務</span><span class="dgm-lane-law">取調べのための出頭・滞留</span></p><div class="dgm-lane-body"><p class="dgm-rule">その義務が及ぶのは<em>身体を取調べの場に留めること</em>まで。ここで止まる限り、供述の自由には触れない。</p><p class="dgm-case">拘束中の被疑者が取調室に留め置かれる。</p><p class="dgm-verdict is-acc">直ちに黙秘権を奪うものではない（最大判平11.3.24）</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">供述させる義務</span><span class="dgm-lane-law">話すことの強制</span></p><div class="dgm-lane-body"><p class="dgm-rule">憲法38条1項・198条2項が守っているのは<em>供述を拒む自由</em>。ここに手が及べば侵害になる。</p><p class="dgm-case">話すまで終わらせない、という取扱い。</p><p class="dgm-verdict is-ng">黙秘権の侵害</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="権利の効果を語る前に<b>権利の及ぶ範囲</b>を画す回。憲法38条1項が守るのは自己が刑事上の責任を問われるおそれのある事項で、氏名は原則としてここに含まれない。だから氏名を明らかにしない弁護人選任届は、不適法として却下され得る。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>本人の氏名を書かず、番号と拇印だけで提出された選任届。名前は不利益事項ではないので、伏せたままでは受理されない。</span>" data-brief-mark="氏名を明かさず番号・拇印で表示した弁護人選任届は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>却下されることはない</span><span class='tx-stmt-fix'>→ 却下され得る（氏名は黙秘の対象外）</span>。<span class='tx-anscomp-line'>憲法38条1項が供述の強要から保護するのは<strong>自己が刑事上の責任を問われる虞ある事項</strong>についてであり、被告人の氏名は原則としてこれに当たらないから、氏名を明らかにしない弁護人選任届は不適法として却下され得る（最大判昭32.2.20）。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>憲法38条1項は「自己が刑事上の責任を問われる虞ある事項」の供述強要からの自由を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>氏名は原則として不利益な事項ではないため黙秘権が及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>氏名を欠く弁護人選任届は適法な届とはいえず却下され得る（最大判昭32.2.20）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>供述内容が不利益事項か身分事項かで、黙秘権の及ぶ範囲が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>権利の効果を語る前に、権利の及ぶ範囲（不利益事項か）を先に画す。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">権利の効果を語る前に、権利の及ぶ範囲を先に画す</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">保護が及ぶ</span><span class="dgm-lane-law">自己が刑事上の責任を問われるおそれのある事項</span></p><div class="dgm-lane-body"><p class="dgm-rule">憲法38条1項が供述の強要から守るのは<em>不利益事項</em>。ここに当たれば拒める。</p><p class="dgm-case">犯行への関与を問われる質問。</p><p class="dgm-verdict is-ok">供述を拒める</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">原則として及ばない</span><span class="dgm-lane-law">氏名などの身分事項</span></p><div class="dgm-lane-body"><p class="dgm-rule">氏名は原則として不利益事項に当たらない（最大判昭32.2.20）。だから氏名を明らかにしない弁護人選任届は<em>不適法として却下され得る</em>。</p><p class="dgm-case">番号と拇印だけで選任届を出す。</p><p class="dgm-verdict is-ng">却下され得る</p></div></div></div></div></div></td></tr>
 <tr data-stmt="3" data-verdict="x" data-brief-story="準用規定は<b>どの項まで引くか</b>を条番号で確かめる回。223条2項が参考人の取調べに準用するのは198条1項ただし書と3項から5項までで、供述拒否権の告知（198条2項）は入っていない。被疑者と参考人で扱いが分かれる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>参考人として呼ばれた人に、警察官が黙秘権の告知をしないまま質問を始める場面。被疑者の取調べと違い、この点で違法にはならない。</span>" data-brief-mark="参考人を取り調べるに当たり供述拒否権を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>告げなければならない</span><span class='tx-stmt-fix'>→ 223条2項は198条2項を準用せず告知義務なし</span>。<span class='tx-anscomp-line'>刑訴法223条2項は、参考人の取調べについて198条1項但書及び同条3項ないし5項を準用するにとどまり、<strong>供述拒否権の告知を定める198条2項を準用していない</strong>から、捜査機関は参考人を取り調べるに当たり告知義務を負わない。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>223条2項は「198条1項但書及び3項乃至5項」を準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>参考人は自己の犯罪を取り調べられるわけではなく告知の必要がない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>供述拒否権告知の198条2項は参考人取調べに準用されない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>被疑者取調べ（198条2項の告知あり）と参考人取調べ（告知なし）で扱いが分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準用規定は「どの項まで引くか」を条番号で確認する。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="告知の条文は<b>段階で分かれる</b>回。取調べ段階は198条2項、公判段階は291条4項で、裁判長は起訴状の朗読が終わった後、終始沈黙し又は個々の質問に陳述を拒めること等を告げなければならない。法律が根拠を置き、規則が内容を具体化する二段構えになっている。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>第一回公判で、裁判長が被告人に『黙っていてもよい』『述べれば有利にも不利にもなり得る』と告げる場面。</span>" data-brief-mark="裁判長は冒頭手続で黙秘権等（沈黙・陳述拒否・有利不利になり得る旨）を<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>告げなければならない</span>（291条4項・規則197条1項）。<span class='tx-anscomp-line'>裁判長は、刑訴法291条4項・刑訴規則197条1項により、起訴状の朗読が終わった後、被告人に対し、<strong>終始沈黙し又は個々の質問に対し陳述を拒むことができる旨</strong>のほか、陳述をすることもできる旨及び陳述をすれば自己に不利益な証拠ともなり又利益な証拠ともなるべき旨を告げなければならない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>規則197条1項は沈黙・陳述拒否・陳述可・有利不利になり得る旨の告知を定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>冒頭手続の権利告知は黙秘権を公判段階で手続的に確保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>291条4項が根拠を置き、告知内容を規則197条1項が具体化する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取調べ段階（198条2項）と公判段階（291条4項）で告知の条文が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>法律が根拠を置き規則が内容を具体化する二段構えを読む。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="<b>当事者の沈黙と、第三者である証人の拒絶</b>で行使の仕方が変わる回。証人は宣誓のうえ証言する義務を負い、証言拒絶権はその例外だから、拒む者はその<b>事由を示さなければならない</b>（規則122条1項）。被疑者・被告人の黙秘は理由を述べる必要がない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>法廷で証人が『その質問には答えられません』と述べる場面。自分が処罰されるおそれがある、といった事由を示す必要がある。</span>" data-brief-mark="証人は自己負罪の虞ある証言を拒むに当たり、その事由を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>示す必要はない</span><span class='tx-stmt-fix'>→ 拒む事由を示す必要がある（規則122条1項）</span>。<span class='tx-anscomp-line'>証人は宣誓のうえ証言する義務を負い、刑訴法146条の証言拒絶権はその例外であるから、証言を拒む者は<strong>これを拒む事由を示さなければならない</strong>（刑訴規則122条1項）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>規則122条1項は「証言を拒む者は、これを拒む事由を示さなければならない」と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>証人は証言義務が原則で、証言拒絶権はその例外である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>146条の拒絶権を行使するには拒む事由の提示（疎明）を要する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>被疑者・被告人の黙秘（理由不要）と証人の拒絶（事由の提示要）で使い方が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>誰が沈黙するか（当事者か第三者たる証人か）で権利の行使方法が変わる。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="告知の条文は<b>段階で分かれる</b>回。取調べ段階は198条2項、公判段階は291条4項で、裁判長は起訴状の朗読が終わった後、終始沈黙し又は個々の質問に陳述を拒めること等を告げなければならない。法律が根拠を置き、規則が内容を具体化する二段構えになっている。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>第一回公判で、裁判長が被告人に『黙っていてもよい』『述べれば有利にも不利にもなり得る』と告げる場面。</span>" data-brief-mark="裁判長は冒頭手続で黙秘権等（沈黙・陳述拒否・有利不利になり得る旨）を<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>告げなければならない</span>（291条4項・規則197条1項）。<span class='tx-anscomp-line'>裁判長は、刑訴法291条4項・刑訴規則197条1項により、起訴状の朗読が終わった後、被告人に対し、<strong>終始沈黙し又は個々の質問に対し陳述を拒むことができる旨</strong>のほか、陳述をすることもできる旨及び陳述をすれば自己に不利益な証拠ともなり又利益な証拠ともなるべき旨を告げなければならない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>規則197条1項は沈黙・陳述拒否・陳述可・有利不利になり得る旨の告知を定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>冒頭手続の権利告知は黙秘権を公判段階で手続的に確保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>291条4項が根拠を置き、告知内容を規則197条1項が具体化する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取調べ段階（198条2項）と公判段階（291条4項）で告知の条文が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>法律が根拠を置き規則が内容を具体化する二段構えを読む。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-4"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">告知の条文は段階で分かれる ── 法律が根拠、規則が中身</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">取調べ段階</span><span class="dgm-lane-law">198条2項</span></p><div class="dgm-lane-body"><p class="dgm-rule">捜査機関が、あらかじめ<em>自己の意思に反して供述をする必要がない</em>旨を告げる。</p><p class="dgm-case">被疑者の取調べの冒頭。</p><p class="dgm-verdict is-acc">捜査機関が告げる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">公判段階</span><span class="dgm-lane-law">291条4項・規則197条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">裁判長が、起訴状の朗読が終わった後、終始沈黙し又は個々の質問に陳述を拒めること、<em>陳述すれば有利にも不利にもなりうる</em>ことを告げる。</p><p class="dgm-case">冒頭手続で被告人に告げる。</p><p class="dgm-verdict is-ok">裁判長が告げる</p></div></div></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="<b>当事者の沈黙と、第三者である証人の拒絶</b>で行使の仕方が変わる回。証人は宣誓のうえ証言する義務を負い、証言拒絶権はその例外だから、拒む者はその<b>事由を示さなければならない</b>（規則122条1項）。被疑者・被告人の黙秘は理由を述べる必要がない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>法廷で証人が『その質問には答えられません』と述べる場面。自分が処罰されるおそれがある、といった事由を示す必要がある。</span>" data-brief-mark="証人は自己負罪の虞ある証言を拒むに当たり、その事由を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>示す必要はない</span><span class='tx-stmt-fix'>→ 拒む事由を示す必要がある（規則122条1項）</span>。<span class='tx-anscomp-line'>証人は宣誓のうえ証言する義務を負い、刑訴法146条の証言拒絶権はその例外であるから、証言を拒む者は<strong>これを拒む事由を示さなければならない</strong>（刑訴規則122条1項）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>規則122条1項は「証言を拒む者は、これを拒む事由を示さなければならない」と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>証人は証言義務が原則で、証言拒絶権はその例外である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>146条の拒絶権を行使するには拒む事由の提示（疎明）を要する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>被疑者・被告人の黙秘（理由不要）と証人の拒絶（事由の提示要）で使い方が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>誰が沈黙するか（当事者か第三者たる証人か）で権利の行使方法が変わる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-5"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">誰が沈黙するかで、権利の行使の仕方が変わる</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">被疑者・被告人</span><span class="dgm-lane-law">黙秘権</span></p><div class="dgm-lane-body"><p class="dgm-rule">そもそも<em>供述する義務がない</em>。だから理由を述べる必要もない。</p><p class="dgm-case">取調べや公判で、何も答えないでいる。</p><p class="dgm-verdict is-ok">理由を示さずに黙っていられる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">証人</span><span class="dgm-lane-law">証言拒絶権（146条）</span></p><div class="dgm-lane-body"><p class="dgm-rule">宣誓のうえ<em>証言する義務を負う</em>のが原則で、拒絶はその例外。だから拒む者は事由を示さなければならない（規則122条1項）。</p><p class="dgm-case">自己が訴追されるおそれを理由に証言を拒む。</p><p class="dgm-verdict is-teal">拒む事由を示す必要がある</p></div></div></div></div></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6444,16 +6517,40 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6488,7 +6585,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6501,6 +6603,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6509,12 +6612,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
