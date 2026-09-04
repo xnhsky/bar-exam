@@ -5634,6 +5634,53 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
+   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
+.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
+.tx-verdict-brief details.tx-vb-dgm > summary{
+  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
+  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
+  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
+  text-indent:0; white-space:nowrap;
+  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
+}
+.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
+.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
+.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6213,10 +6260,10 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="166条は、鑑定人に<b>鑑定をする前に</b>宣誓をさせなければならないとし、規則128条1項がその方式を定める。「前に」という時点の指定が要点で、結論を出してから誓わせても意味がない。宣誓は形式ではなく<b>真実義務を生じさせる手続</b>であり、これを経ることで虚偽鑑定罪（刑法171条）の対象となる立場が生まれる。趣旨は、鑑定が専門知識を持たない裁判所に代わって事実を語る作業であり、その中身を検証できる人が法廷にほとんどいないこと。<b>検証しにくい判断ほど、語る者の側に重い義務を先に課しておく</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>宣誓は書面に署名する方式で行われ、鑑定書とともに記録に残る。捜査段階の嘱託鑑定は宣誓を経ないため、公判では改めて尋問されることが多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>足利事件では、1990年当時のDNA型鑑定が有罪の柱となり、菅家利和さんは17年半を拘束されたのち、2010年3月26日に再審無罪となった。鑑定の一言が人生を左右する。宣誓は、その重さを引き受けさせる入口である。</span>" data-brief-mark="鑑定人には、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>鑑定をする前に宣誓をさせなければならない</span>（166条＋規則128条1項）。<span class='tx-anscomp-line'>鑑定人には、鑑定をする前に、宣誓をさせなければならない（刑訴法166条、刑訴規則128条1項）。宣誓は虚偽鑑定に対する制裁を背景に鑑定の真実性を担保するものであるから、鑑定の着手後ではなく<strong>着手前</strong>にさせることを要する。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>166条は鑑定人に宣誓を『させなければならない』と定め、規則128条1項は宣誓を『鑑定をする前に』させると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>宣誓は鑑定の真実性・正確性を担保する。事後では意味が薄れるため、証人と同じく事前に行う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>鑑定人の宣誓は必要的で、方式は宣誓書によるのが原則。虚偽鑑定は虚偽鑑定罪（刑法171条）の対象となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『させることができる』ではなく『させなければならない』（義務）／時期は鑑定の“後”ではなく“前”。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>供述の真実性を担保する宣誓は、証人（154条）も鑑定人（166条）も“事前・必要的”のセットで押さえる。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="鑑定に必要だという理由だけで、身体や墓所へ手を及ぼせるわけではない。168条1項は、鑑定人が<b>人の住居等への立入り、身体の検査、死体の解剖、墳墓の発掘、物の破壊</b>をするには<b>裁判所の許可</b>を要するとする。趣旨は、鑑定の必要という内部の事情で令状主義の外側に領域ができることを避けること。専門家であることは、令状主義の外に出る理由にならない。捜査段階の鑑定受託者について225条1項が裁判官の許可（鑑定処分許可状）を求めるのと、発想は同じである。<b>許可の出どころが違うだけで、許可が要る点は共通している</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>許可状には行う処分の内容が具体的に記載され、その範囲を超える処分はできない。司法解剖は大学の法医学教室などに嘱託して行われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>死因を明らかにするため、死後3日が経過した遺体を解剖する必要が生じた場面。裁判所に命じられた鑑定人であっても、許可を得てから行う。身体を開く行為は、それ自体が強制処分である。</span>" data-brief-mark="鑑定人は、鑑定に必要でも<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>裁判所の許可を受けずに死体を解剖できる</span><span class='tx-stmt-fix'>→ 裁判所の許可を受けて解剖できる</span>。<span class='tx-anscomp-line'>鑑定人は、鑑定について必要がある場合には、<strong>裁判所の許可</strong>を受けて、人の住居に入り、身体を検査し、死体を解剖し、墳墓を発掘し、又は物を破壊することができる（刑訴法168条1項）。これらは権利を強く制約する処分であるから、許可を欠く解剖は許されない。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>168条1項は、解剖・住居侵入・身体検査・墳墓発掘・物の破壊を『裁判所の許可を受けて』行うと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>権利を強く侵す強制処分だから、鑑定人限りの判断でなく裁判所の司法的統制（許可状）に服させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公判は裁判所の許可（168条）、捜査段階の鑑定受託者は裁判官の許可（225条）。いずれも許可が必要。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『必要がある』だけでは足りない。許可を“受けて”できるのであり、“受けずに”はできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>強制処分は令状・許可という司法的統制に服する（強制処分法定主義）。必要性だけで可否を決めない。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="167条2項は、鑑定留置の期間を定めることを求め、167条3項は、裁判所が必要があるとき<b>これを延長し、又は短縮することができる</b>とする。趣旨は、鑑定に必要な期間が事前には正確に読めないことにある。精神鑑定のように観察を要するものでは、当初の見込みより長くかかることも、早く終わることもある。期間を動かせない制度にすれば、余裕を見て長めに定める運用を招き、かえって拘束が長くなる。<b>動かせる仕組みにしておくことが、結果として拘束を短くする</b>——延長だけでなく短縮も条文に書かれている点に、その趣旨が表れている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>当初2か月と定め、鑑定人の意見を踏まえて1か月延長する、といった運用が行われる。延長にあたっては必要性が改めて判断される。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2か月の予定で始めた鑑定留置が、観察の途中で結論に至らない場面。期間を1か月延ばすことができる。逆に1か月で足りると分かれば、短縮して身柄を戻す。</span>" data-brief-mark="鑑定留置は期間を定めて留置できるが<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>その期間を延長することはできない</span><span class='tx-stmt-fix'>→ 延長も短縮もできる</span>。<span class='tx-anscomp-line'>裁判所は、被告人の心神又は身体に関する鑑定をさせるについて必要があるときは、期間を定め、病院その他の相当な場所に被告人を留置することができ（刑訴法167条1項）、必要があるときはその<strong>留置の期間を延長し又は短縮することができる</strong>（同条4項）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>167条1項は期間を定めて病院等に留置でき、同4項は必要があるとき留置期間を『延長し又は短縮することができる』と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>身体拘束ゆえ期間を区切るが、観察の進行に応じ調整できるようにする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>鑑定留置は鑑定留置状で行い（2項）、勾留中なら勾留の執行は停止する（167条の2）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>前半『期間を定めて留置できる』は○、後半『延長できない』が×。複合肢は前半・後半を分ける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『期間を定める』＝固定ではない。延長・短縮の規定があるか（勾留208条2項も同様）を別に確認する。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="鑑定人の地位は、証人とは<b>成り立ちが違う</b>。証人は、その事件について自ら経験した事実を語れる唯一の人だから、来なければ代わりがおらず、勾引（152条）という強い手段まで用意されている。これに対し鑑定人は、専門的な知識と経験を持つ者であれば<b>他の人でも代われる</b>。だから171条が証人尋問の規定を準用するにあたり、勾引に関する規定は除かれている。<b>代替可能性の有無が、強制手段の重さを決めている</b>——身体を拘束してまで連れて来るのは、その人でなければならない場合に限られる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>応じない場合は、別の専門家へ改めて鑑定を命じるのが通常。制裁の可否は、準用される規定の範囲で決まる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>指定された期日に3度続けて出頭しない専門家の場面。手錠をかけて連れて来ることはできない。裁判所は別の専門家を選び直すことになる。</span>" data-brief-mark="鑑定人が召喚に応じないとき<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>その鑑定人を勾引することができる</span><span class='tx-stmt-fix'>→ 勾引できない</span>。<span class='tx-anscomp-line'>証人尋問に関する規定は、<strong>勾引に関する規定を除いて</strong>、鑑定について準用される（刑訴法171条）。鑑定人には代替性があり特定人による鑑定を強制する必要がないから、召喚に応じない鑑定人を勾引することはできない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>171条は証人尋問の規定を『勾引に関する規定を除いて』鑑定に準用する。証人の勾引（152条）は準用されない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>証人は代替性がなく勾引で確保するが、鑑定人は代替性があり強制連行の必要がなく地位にもふさわしくない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>召喚・出頭義務・不出頭の制裁（過料等）は準用されるが、勾引だけが準用対象外。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>証人にできること全部が鑑定人に及ぶわけではない。分かれ目は代替性の有無。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準用規定は『どこまで準用され、何が除外されるか』を条文の括弧書で確認する。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="166条は、鑑定人に<b>鑑定をする前に</b>宣誓をさせなければならないとし、規則128条1項がその方式を定める。「前に」という時点の指定が要点で、結論を出してから誓わせても意味がない。宣誓は形式ではなく<b>真実義務を生じさせる手続</b>であり、これを経ることで虚偽鑑定罪（刑法171条）の対象となる立場が生まれる。趣旨は、鑑定が専門知識を持たない裁判所に代わって事実を語る作業であり、その中身を検証できる人が法廷にほとんどいないこと。<b>検証しにくい判断ほど、語る者の側に重い義務を先に課しておく</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>宣誓は書面に署名する方式で行われ、鑑定書とともに記録に残る。捜査段階の嘱託鑑定は宣誓を経ないため、公判では改めて尋問されることが多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>足利事件では、1990年当時のDNA型鑑定が有罪の柱となり、菅家利和さんは17年半を拘束されたのち、2010年3月26日に再審無罪となった。鑑定の一言が人生を左右する。宣誓は、その重さを引き受けさせる入口である。</span>" data-brief-mark="鑑定人には、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>鑑定をする前に宣誓をさせなければならない</span>（166条＋規則128条1項）。<span class='tx-anscomp-line'>鑑定人には、鑑定をする前に、宣誓をさせなければならない（刑訴法166条、刑訴規則128条1項）。宣誓は虚偽鑑定に対する制裁を背景に鑑定の真実性を担保するものであるから、鑑定の着手後ではなく<strong>着手前</strong>にさせることを要する。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>166条は鑑定人に宣誓を『させなければならない』と定め、規則128条1項は宣誓を『鑑定をする前に』させると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>宣誓は鑑定の真実性・正確性を担保する。事後では意味が薄れるため、証人と同じく事前に行う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>鑑定人の宣誓は必要的で、方式は宣誓書によるのが原則。虚偽鑑定は虚偽鑑定罪（刑法171条）の対象となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『させることができる』ではなく『させなければならない』（義務）／時期は鑑定の“後”ではなく“前”。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>供述の真実性を担保する宣誓は、証人（154条）も鑑定人（166条）も“事前・必要的”のセットで押さえる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-1"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">「前に」という時点の指定が要点 ── 結論を出してから誓わせても意味がない</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>宣誓させる（166条・規則128条1項）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>鑑定を実施する</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>経過及び結果を報告する</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定の前に宣誓</span><span class="dgm-lane-law">166条・規則128条1項</span></p><div class="dgm-lane-body"><p class="dgm-rule">宣誓は形式ではなく<em>真実義務を生じさせる手続</em>。これを経て、虚偽鑑定罪（刑法171条）の対象となる立場が生まれる。</p><p class="dgm-case">法廷で宣誓してから分析に入る。</p><p class="dgm-verdict is-ok">条文が定める順序</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定の後に宣誓</span><span class="dgm-lane-law"></span></p><div class="dgm-lane-body"><p class="dgm-rule">義務を負う前に判断を作ってしまえば、宣誓が<em>後追いの確認</em>にしかならない。しかも「させることができる」ではなく「させなければならない」。</p><p class="dgm-case">鑑定書を出してから誓わせる、という運用。</p><p class="dgm-verdict is-ng">条文の順序に反する</p></div></div></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="鑑定に必要だという理由だけで、身体や墓所へ手を及ぼせるわけではない。168条1項は、鑑定人が<b>人の住居等への立入り、身体の検査、死体の解剖、墳墓の発掘、物の破壊</b>をするには<b>裁判所の許可</b>を要するとする。趣旨は、鑑定の必要という内部の事情で令状主義の外側に領域ができることを避けること。専門家であることは、令状主義の外に出る理由にならない。捜査段階の鑑定受託者について225条1項が裁判官の許可（鑑定処分許可状）を求めるのと、発想は同じである。<b>許可の出どころが違うだけで、許可が要る点は共通している</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>許可状には行う処分の内容が具体的に記載され、その範囲を超える処分はできない。司法解剖は大学の法医学教室などに嘱託して行われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>死因を明らかにするため、死後3日が経過した遺体を解剖する必要が生じた場面。裁判所に命じられた鑑定人であっても、許可を得てから行う。身体を開く行為は、それ自体が強制処分である。</span>" data-brief-mark="鑑定人は、鑑定に必要でも<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>裁判所の許可を受けずに死体を解剖できる</span><span class='tx-stmt-fix'>→ 裁判所の許可を受けて解剖できる</span>。<span class='tx-anscomp-line'>鑑定人は、鑑定について必要がある場合には、<strong>裁判所の許可</strong>を受けて、人の住居に入り、身体を検査し、死体を解剖し、墳墓を発掘し、又は物を破壊することができる（刑訴法168条1項）。これらは権利を強く制約する処分であるから、許可を欠く解剖は許されない。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>168条1項は、解剖・住居侵入・身体検査・墳墓発掘・物の破壊を『裁判所の許可を受けて』行うと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>権利を強く侵す強制処分だから、鑑定人限りの判断でなく裁判所の司法的統制（許可状）に服させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公判は裁判所の許可（168条）、捜査段階の鑑定受託者は裁判官の許可（225条）。いずれも許可が必要。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『必要がある』だけでは足りない。許可を“受けて”できるのであり、“受けずに”はできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>強制処分は令状・許可という司法的統制に服する（強制処分法定主義）。必要性だけで可否を決めない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-2"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">専門家であることは、令状主義の外に出る理由にならない</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定人</span><span class="dgm-lane-law">裁判所の許可（168条1項）</span></p><div class="dgm-lane-body"><p class="dgm-rule">住居への立入り・身体の検査・死体の解剖・墳墓の発掘・物の破壊は、<em>許可を受けて</em>できる。「必要がある」だけでは足りない。</p><p class="dgm-case">鑑定のために死体を解剖する。</p><p class="dgm-verdict is-ng">許可なしにはできない</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定受託者</span><span class="dgm-lane-law">裁判官の許可（225条1項）</span></p><div class="dgm-lane-body"><p class="dgm-rule">捜査段階でも同じ規律が<em>鑑定処分許可状</em>という形で用意されている。許可の出どころが違うだけ。</p><p class="dgm-case">嘱託を受けた医師が解剖する。</p><p class="dgm-verdict is-ng">許可状が要る</p></div></div></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="167条1項は、期間を定めて被告人を病院その他の相当な場所に留置することを認め、167条4項は、裁判所が必要があるとき<b>これを延長し、又は短縮することができる</b>とする。趣旨は、鑑定に必要な期間が事前には正確に読めないことにある。精神鑑定のように観察を要するものでは、当初の見込みより長くかかることも、早く終わることもある。期間を動かせない制度にすれば、余裕を見て長めに定める運用を招き、かえって拘束が長くなる。<b>動かせる仕組みにしておくことが、結果として拘束を短くする</b>——延長だけでなく短縮も条文に書かれている点に、その趣旨が表れている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>当初2か月と定め、鑑定人の意見を踏まえて1か月延長する、といった運用が行われる。延長にあたっては必要性が改めて判断される。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2か月の予定で始めた鑑定留置が、観察の途中で結論に至らない場面。期間を1か月延ばすことができる。逆に1か月で足りると分かれば、短縮して身柄を戻す。</span>" data-brief-mark="鑑定留置は期間を定めて留置できるが<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>その期間を延長することはできない</span><span class='tx-stmt-fix'>→ 延長も短縮もできる</span>。<span class='tx-anscomp-line'>裁判所は、被告人の心神又は身体に関する鑑定をさせるについて必要があるときは、期間を定め、病院その他の相当な場所に被告人を留置することができ（刑訴法167条1項）、必要があるときはその<strong>留置の期間を延長し又は短縮することができる</strong>（同条4項）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>167条1項は期間を定めて病院等に留置でき、同4項は必要があるとき留置期間を『延長し又は短縮することができる』と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>身体拘束ゆえ期間を区切るが、観察の進行に応じ調整できるようにする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>鑑定留置は鑑定留置状で行い（2項）、勾留中なら勾留の執行は停止する（167条の2）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>前半『期間を定めて留置できる』は○、後半『延長できない』が×。複合肢は前半・後半を分ける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『期間を定める』＝固定ではない。延長・短縮の規定があるか（勾留208条2項も同様）を別に確認する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-3"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">動かせる仕組みが、結果として拘束を短くする ── 期間は固定ではない</p><div class="tx-dgm-steps"><div class="dgm-step"><span class="dgm-step-no">1</span>期間を定めて留置する（167条1項）</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">2</span>鑑定に必要な期間は事前には正確に読めない</div><span class="dgm-next">▶</span><div class="dgm-step"><span class="dgm-step-no">3</span>必要があるとき、延長し又は短縮する（167条4項）</div></div><div class="tx-dgm-fork"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">延長も短縮もできる</span><span class="dgm-lane-law">167条4項</span></p><div class="dgm-lane-body"><p class="dgm-rule">観察を要する鑑定では、見込みより長くかかることも早く終わることもある。<em>短縮</em>まで条文に書かれている点に趣旨が表れる。</p><p class="dgm-case">当初2か月と定めた留置を、1か月で終える／さらに延ばす。</p><p class="dgm-verdict is-ok">裁判所が動かせる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">動かせない制度にすると</span><span class="dgm-lane-law"></span></p><div class="dgm-lane-body"><p class="dgm-rule">余裕を見て<em>長めに定める運用</em>を招き、かえって拘束が長くなる。</p><p class="dgm-case">最初から上限いっぱいの期間を定めておく、という運用。</p><p class="dgm-verdict is-ng">趣旨に反する結果になる</p></div></div></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="鑑定人の地位は、証人とは<b>成り立ちが違う</b>。証人は、その事件について自ら経験した事実を語れる唯一の人だから、来なければ代わりがおらず、勾引（152条）という強い手段まで用意されている。これに対し鑑定人は、専門的な知識と経験を持つ者であれば<b>他の人でも代われる</b>。だから171条が証人尋問の規定を準用するにあたり、勾引に関する規定は除かれている。<b>代替可能性の有無が、強制手段の重さを決めている</b>——身体を拘束してまで連れて来るのは、その人でなければならない場合に限られる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>応じない場合は、別の専門家へ改めて鑑定を命じるのが通常。制裁の可否は、準用される規定の範囲で決まる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>指定された期日に3度続けて出頭しない専門家の場面。手錠をかけて連れて来ることはできない。裁判所は別の専門家を選び直すことになる。</span>" data-brief-mark="鑑定人が召喚に応じないとき<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>その鑑定人を勾引することができる</span><span class='tx-stmt-fix'>→ 勾引できない</span>。<span class='tx-anscomp-line'>証人尋問に関する規定は、<strong>勾引に関する規定を除いて</strong>、鑑定について準用される（刑訴法171条）。鑑定人には代替性があり特定人による鑑定を強制する必要がないから、召喚に応じない鑑定人を勾引することはできない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>171条は証人尋問の規定を『勾引に関する規定を除いて』鑑定に準用する。証人の勾引（152条）は準用されない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>証人は代替性がなく勾引で確保するが、鑑定人は代替性があり強制連行の必要がなく地位にもふさわしくない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>召喚・出頭義務・不出頭の制裁（過料等）は準用されるが、勾引だけが準用対象外。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>証人にできること全部が鑑定人に及ぶわけではない。分かれ目は代替性の有無。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>準用規定は『どこまで準用され、何が除外されるか』を条文の括弧書で確認する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm" data-dgm="v-4"><span class="tx-dgm-tag">📐 図解</span><p class="tx-dgm-title">身体を拘束してまで連れて来るのは、その人でなければならない場合に限る</p><div class="tx-dgm-lanes"><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">証人</span><span class="dgm-lane-law">勾引できる（152条）</span></p><div class="dgm-lane-body"><p class="dgm-rule">自ら経験した事実を語れる<em>唯一の人</em>。来なければ代わりがいない。</p><p class="dgm-case">犯行を目撃した人が召喚に応じない。</p><p class="dgm-verdict is-ng">勾引の対象になる</p></div></div><div class="dgm-lane"><p class="dgm-lane-head"><span class="dgm-lane-obj">鑑定人</span><span class="dgm-lane-law">勾引の規定は準用外（171条）</span></p><div class="dgm-lane-body"><p class="dgm-rule">同じ専門知識を持つ者であれば<em>他の人でも代われる</em>。準用の括弧書で勾引だけが除かれている。</p><p class="dgm-case">鑑定人が召喚に応じない。</p><p class="dgm-verdict is-ok">勾引することはできない</p></div></div></div></div></div></td></tr>
 <tr data-stmt="5" data-verdict="o" data-brief-story="規則129条1項は、鑑定の経過及び結果を<b>鑑定書</b>により、又は<b>口頭で</b>報告させることができるとする。方式が2つ用意されているのは、鑑定の中身に幅があるからで、長い分析過程を記録として残すべきものもあれば、争いのない事項を短く説明すれば足りるものもある。どちらの方式でも報告すべき内容は同じであり、<b>結果だけでなく経過</b>が含まれる点が要点になる。結論だけを示されても、その判断がどう導かれたかが分からなければ当事者は争いようがない。<b>検証可能性を担保しているのは、経過の開示である</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>複雑な鑑定では鑑定書が作成され、そのうえで鑑定人尋問が行われる。簡易な事項では口頭の報告で足りることがある。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>分析装置の設定、試料の量、比較に用いた基準——結論に至る過程が2ページか20ページかで、争える範囲がまるで変わる。方式は選べても、経過を示す義務は変わらない。</span>" data-brief-mark="裁判所は鑑定人に対し鑑定の経過及び結果を<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>口頭で報告させることができる</span>（規則129条1項＝鑑定書又は口頭）。<span class='tx-anscomp-line'>鑑定の経過及び結果は、鑑定人に<strong>鑑定書により又は口頭で</strong>報告させなければならない（刑訴規則129条1項）。報告の方式は書面と口頭の選択であるから、裁判所は鑑定人に口頭で報告させることができる。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>規則129条1項は鑑定の経過及び結果を『鑑定書により又は口頭で』報告させると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>報告方式は書面と口頭の選択。急ぐ場合や補充説明を求める場合に口頭が便利。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>口頭報告は実質的に鑑定人尋問（171条による証人尋問規定の準用）に近い形で行われることが多い。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『必ず書面』ではない。書面・口頭の選択を認める条文の文言で切る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>方式規定は『限定か選択か』を文言で確認する（『書面により又は口頭で』は選択）。</p></div></td></tr>
 </tbody>
 </table>
@@ -6488,6 +6535,29 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
   }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src, wantOpen){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    if (wantOpen) {
+      var box = document.createElement('div');
+      box.className = 'tx-vb-dgm';
+      box.appendChild(fig);
+      wrap.appendChild(box);
+      return;
+    }
+    var fold = document.createElement('details');
+    fold.className = 'tx-vb-dgm';
+    var sm = document.createElement('summary');
+    sm.textContent = '📐 図解で確かめる';
+    fold.appendChild(sm);
+    fold.appendChild(fig);
+    wrap.appendChild(fold);
+  }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
     core.main.forEach(function(item){
@@ -6521,7 +6591,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6534,6 +6609,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc, wantCut);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6542,12 +6618,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc, wantCut);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc, wantCut);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
