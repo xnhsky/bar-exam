@@ -181,6 +181,10 @@ POOL_LABEL_PATTERNS = [
     (r"[A-EＡ-Ｅ]\s*[・／]\s*[A-EＡ-Ｅ]", "見解letterの連結『A・B』＝実体の学説名に展開する"),
     (r"[A-EＡ-Ｅ]（[^）]{1,12}）", "見解letter＋注釈『A（…）』＝実体の学説名で主語化する"),
     (r"事例[ⅠⅡⅢⅣⅤ]", "事例ローマ数字ラベル＝事案の実体内容で表す"),
+    # 2026-09-09 拡張（LEX-443）：原文ポインタ（下線部①・傍線部（ア））は問題本体の
+    # レイアウトを指す矢印でしかなく、単独カードでは指し先が無い＝何も判定できない。
+    # 実体（その下線が指している行為・発言・尋問方法）を命題本文へ書き下す。
+    (r"[下傍]線部", "原文ポインタ『下線部①』＝指し先の実体を命題本文へ書き下す"),
 ]
 
 # G19：解答前ネタバレ
@@ -2607,6 +2611,111 @@ class Validator:
                              "単独カードで判定対象の述語が読めない。要件事実込みの断定完結命題"
                              "（文末は句点）に書き換える（spec 第5-bis-2項・実害＝刑TX395/397/387 型）。")
 
+    # ------------------------------------------------------------------
+    # G79（2026-09-09・LEX-443・§v13y）＝一問一答の「表の面」の自己完結。
+    #
+    # 既存ゲートが見ていた面は 3 つだけだった：
+    #   G31 … .ox-stmt ＋ 正誤表の論点コア列（WARNING）
+    #   G32 … .syn-lead ＋ .choice-points li（ERROR）
+    #   G34 … .ox-pool-explain（ERROR）
+    # ところが実機で学習者が最初に読む一問一答は `.tx-inline-card` の記述本文であり、
+    # 正誤表の原文帯は `data-brief-mark` である。この 2 面（＋カード解説冒頭の
+    # `.syn-orig`）は **どのゲートの対象でもなかった**。結果、ox-stmt だけを記号フリーに
+    # 書き直し、カード面には問題本体を指す原文ポインタや裸の見解ラベルが残る、という
+    # 「面ごとに規律が違う」状態が corpus 全体で温存された。
+    #
+    # 実害（2026-09-09 実機報告）：
+    #   ① 原文ポインタ ── 刑訴TX090_lex は記述1〜5がすべて「下線部①につき、…」で始まり、
+    #      問題本体の①〜⑤を見ないと何を問われているか読めない（同型＝刑訴TX089/269）。
+    #   ② 見解ラベルの裸使用 ── 刑訴TX070_lex は記述1・2で「見解Ⅰ（一罪の一部の勾留の
+    #      効力は他の部分に及ぶとする説）」と中身を書きながら、記述3・6では「見解Ⅰに
+    #      立ったとき」とだけ書き、同じ内容だからと説明を落としている。刑TX170_lex は
+    #      全 5 記述が「Ⅰ説／Ⅱ説／Ⅲ説」の裸ラベルで、中身がファイル内のどこにも無い。
+    #
+    # 判定：
+    #   (a) 原文ポインタ（下線部N・傍線部（ア）・上記Nの場合）＝ERROR。
+    #       指し先がカード内に無いことは機械的に確実で、原文ブロック
+    #       （.tx-original-block / .tx-original-lead＝§v13r 不可侵）は走査対象外なので誤爆しない。
+    #   (b) 見解ラベル（見解Ⅰ・A説・甲説・第N説）を、その一文の中で実体説明なしに使う＝WARNING。
+    #       同じ一文に実体名または定義の丸括弧があれば「説明済み」として通す（既存在庫の
+    #       後追い書き直し worklist にする・G31 と同じ運用）。
+    # ------------------------------------------------------------------
+    _G79_POINTER_PATTERNS = [
+        (r"[下傍]線部", "原文ポインタ『下線部①』＝指し先の行為・発言そのものを命題本文へ書き下す"),
+        (r"[上前]記\s*[0-9０-９]\s*の(?:場合|事例|ケース|事案)",
+         "他記述への丸投げ『上記1の場合』＝前提事案を各記述に書き切る"),
+    ]
+    # 見解ラベル（問題ローカルの記号で見解を指すもの）
+    _G79_VIEW_LABEL_RE = re.compile(
+        r"見解\s*[ⅠⅡⅢⅣⅤA-EＡ-Ｅ①-⑤]|[ⅠⅡⅢⅣⅤ]\s*説|説\s*[ⅠⅡⅢⅣⅤ]"
+        r"|[A-EＡ-Ｅ]\s*説|[甲乙丙丁]\s*説|第\s*[1-5１-５一二三四五]\s*説"
+        r"|[A-EＡ-Ｅ]\s*の見解")
+
+    @staticmethod
+    def _g79_label_defined(text, m):
+        """見解ラベルの実体（説の中身・実体名）が同じ一文に書かれているか。"""
+        after = text[m.end():m.end() + 60]
+        # 「（…とする説）」の直前に置かれたラベルは括弧の中身が定義
+        before = re.sub(r"[（(]\s*$", "", text[max(0, m.start() - 60):m.start()])
+        if re.match(r"\s*[（(][^）)]{4,}[）)]", after):
+            return True                      # 見解Ⅰ（一罪の一部の…とする説）
+        if re.search(r"[^、。「」（()]{5,}(?:説|見解|立場)\s*$", before):
+            return True                      # 請求必要説（見解Ⅱ）／取調受忍義務を認める見解（見解Ⅰ）
+        if re.match(r"\s*(?:は|とは|によれば|に立つと|に立てば)?\s*[、，]?[^。]{0,6}?[（(][^）)]{4,}[）)]", after):
+            return True
+        if re.match(r"\s*(?:は|とは)[、，]?[^。]{12,}?(?:とする|と解する|と考える|とみる|である)", after):
+            return True
+        return False
+
+    def g79_inline_card_self_contained(self):
+        if not self.is_lex_target():
+            return
+
+        faces = []   # (面の名前, ラベル, テキスト)
+        for card in self.soup.select(".tx-inline-card[data-stmt]"):
+            label = (card.get("data-stmt") or "?").strip()
+            st = card.select_one(".tx-inline-stmt-text")
+            if st:
+                faces.append(("記述本文", label, st.get_text(" ", strip=True)))
+            so = card.select_one(".syn-orig")
+            if so:
+                faces.append(("記述原文", label, so.get_text(" ", strip=True)))
+        for tr in self.soup.select("tr[data-brief-mark]"):
+            label = (tr.get("data-stmt") or "?").strip()
+            faces.append(("正誤表 原文帯", label, tr.get("data-brief-mark") or ""))
+        if not faces:
+            return
+
+        ptr_hits, view_hits = [], []
+        for where, label, text in faces:
+            if not text:
+                continue
+            for pat, reason in self._G79_POINTER_PATTERNS:
+                m = re.search(pat, text)
+                if m:
+                    ptr_hits.append((where, label, m.group(0).strip(), reason))
+                    break
+            for m in self._G79_VIEW_LABEL_RE.finditer(text):
+                if not self._g79_label_defined(text, m):
+                    view_hits.append((where, label, m.group(0).strip()))
+                    break
+
+        if ptr_hits:
+            head = "; ".join(f"記述{lab}[{w}]『{tok}』←{why}" for w, lab, tok, why in ptr_hits[:4])
+            more = f" 他 {len(ptr_hits)-4} 件" if len(ptr_hits) > 4 else ""
+            self.err("G79", f"一問一答カード面 {len(ptr_hits)} 件が問題本体を指す原文ポインタに"
+                            f"寄りかかっている: {head}{more}。"
+                            "単独カードでは指し先が無く判定できないので、指している行為・発言・"
+                            "尋問方法そのものを命題本文へ書き下す（原文ブロック "
+                            ".tx-original-block は §v13r 不可侵なのでそのまま残す・§v13y）。")
+        if view_hits:
+            head = "; ".join(f"記述{lab}[{w}]『{tok}』" for w, lab, tok in view_hits[:5])
+            more = f" 他 {len(view_hits)-5} 件" if len(view_hits) > 5 else ""
+            self.warn("G79", f"一問一答カード面 {len(view_hits)} 件が見解を裸のラベルで指している: "
+                             f"{head}{more}。最初の記述だけ中身を書いて以降を省略すると、"
+                             "その記述が単独カードで出たとき何説の話か分からない。"
+                             "各記述で実体名（転嫁罰説・客観説 等）か定義の丸括弧を必ず添える（§v13y）。")
+
     # G73（2026-07-28）＝答案圧縮（TX-ANSCOMP・§v13q）の統合整合。規約＝各記述カードの
     # 記述原文（.syn-orig）末尾と正誤表 tr の data-brief-mark 末尾の 2 箇所に同一文で置く
     # （シングルソース）。既存 corpus は未展開のため「両方無し」は WARNING（TJR 付随で消化）。
@@ -2922,6 +3031,7 @@ class Validator:
         self.g75_source_text_present()
         self.g76_verdict_core_lines()
         self.g78_verdict_diagram_band()
+        self.g79_inline_card_self_contained()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
