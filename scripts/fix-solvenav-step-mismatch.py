@@ -33,7 +33,9 @@ LEGIT_OWNERS = {"刑TX359_lex.html", "刑TX356_lex.html"}
 
 # スペックと現行 ox-grid の記述数・文言が一致しない問題（組合せ当否判定型の再生成で
 # 記述自体が書き直されたもの）。自ファイルの ox-stmt 原文から STEP を導出する。
-OWN_ROWS_FALLBACK = {"089"}
+# 2026-09-09: 刑TX054 も追加。scripts/lex/ に 054 のスペックが無く（spec candidates=0）自動復元が
+# FAIL していたため、解法ナビが刑TX359（放火）の STEP を出したまま残っていた（本問は故意・錯誤）。
+OWN_ROWS_FALLBACK = {"089", "054"}
 
 # ラベル体系を序数へ正規化（1始まり）。
 _LABEL_SEQS = [

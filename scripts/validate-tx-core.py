@@ -2651,17 +2651,42 @@ class Validator:
         r"|[A-EＡ-Ｅ]\s*説|[甲乙丙丁]\s*説|第\s*[1-5１-５一二三四五]\s*説"
         r"|[A-EＡ-Ｅ]\s*の見解")
 
-    @staticmethod
-    def _g79_label_defined(text, m):
+    # 実体名＝2字以上で 説/見解/立場/論 に終わる語（折衷説・条件説・転嫁罰説・取調受忍義務を認める見解 …）。
+    # ただしラベルそのもの（A説・見解Ⅱ・甲説）は実体名ではないので除く。
+    # ラベルを修飾する節の語尾（用言）。助詞終わりは実体の説明ではないので含めない。
+    _G79_MODIFIER_TAIL_RE = re.compile(
+        r"(?:する|した|しない|せず|認める|認めない|解する|とする|いう|考える|とみる|"
+        r"める|ある|ない|れる|られる|得る|うる|足りる|限る|及ぶ|及ばない|要する|問わない)$")
+
+    _G79_LABEL_ONLY_RE = re.compile(
+        r"^(?:見解)?\s*[A-EＡ-Ｅ甲乙丙丁ⅠⅡⅢⅣⅤ①-⑤]\s*(?:説|の見解|の立場)?$")
+
+    @classmethod
+    def _g79_is_entity_name(cls, frag):
+        frag = frag.strip()
+        if not re.search(r"(?:説|見解|立場|論)$", frag):
+            return False
+        if len(frag) < 2 or cls._G79_LABEL_ONLY_RE.match(frag):
+            return False
+        return True
+
+    @classmethod
+    def _g79_label_defined(cls, text, m):
         """見解ラベルの実体（説の中身・実体名）が同じ一文に書かれているか。"""
         after = text[m.end():m.end() + 60]
         # 「（…とする説）」の直前に置かれたラベルは括弧の中身が定義
         before = re.sub(r"[（(]\s*$", "", text[max(0, m.start() - 60):m.start()])
-        if re.match(r"\s*[（(][^）)]{4,}[）)]", after):
-            return True                      # 見解Ⅰ（一罪の一部の…とする説）
-        if re.search(r"[^、。「」（()]{5,}(?:説|見解|立場)\s*$", before):
-            return True                      # 請求必要説（見解Ⅱ）／取調受忍義務を認める見解（見解Ⅰ）
-        if re.match(r"\s*(?:は|とは|によれば|に立つと|に立てば)?\s*[、，]?[^。]{0,6}?[（(][^）)]{4,}[）)]", after):
+        # ラベル直後の丸括弧が実体を説明している（見解Ⅰ（一罪の一部の…とする説）／見解C（条件説））
+        am = re.match(r"\s*(?:は|とは|によれば|に立つと|に立てば)?\s*[、，]?[^。]{0,6}?[（(]([^）)]+)[）)]", after)
+        if am and (len(am.group(1)) >= 4 or cls._g79_is_entity_name(am.group(1))):
+            return True
+        # ラベル直前が実体名（請求必要説（見解Ⅱ）／折衷説（見解B）／取調受忍義務を認める見解（見解Ⅰ））
+        bm = re.search(r"([^、。「」『』（()）【】\s]{2,})\s*$", before)
+        if bm and cls._g79_is_entity_name(bm.group(1)):
+            return True
+        # ラベルに修飾節が直付けされている（取調受忍義務を認める見解Ⅰ／同意を証拠能力付与の訴訟行為と解する見解Ⅱ）。
+        # 節が用言で終わることを要求する＝「批判が向くのは見解Ⅰ」のような助詞終わり（実体の説明になっていない）は通さない。
+        if bm and len(bm.group(1)) >= 5 and cls._G79_MODIFIER_TAIL_RE.search(bm.group(1)):
             return True
         if re.match(r"\s*(?:は|とは)[、，]?[^。]{12,}?(?:とする|と解する|と考える|とみる|である)", after):
             return True
@@ -2682,7 +2707,10 @@ class Validator:
                 faces.append(("記述原文", label, so.get_text(" ", strip=True)))
         for tr in self.soup.select("tr[data-brief-mark]"):
             label = (tr.get("data-stmt") or "?").strip()
-            faces.append(("正誤表 原文帯", label, tr.get("data-brief-mark") or ""))
+            # brief-mark は属性値だが中身にインライン markup を持つ。他 2 面（get_text）と揃えて
+            # タグを落としてから判定する（タグ文字列が前後文脈に混じると実体名の直付けを見落とす）。
+            brief = re.sub(r"<[^>]+>", " ", tr.get("data-brief-mark") or "")
+            faces.append(("正誤表 原文帯", label, re.sub(r"\s+", " ", brief).strip()))
         if not faces:
             return
 
@@ -2878,10 +2906,15 @@ class Validator:
         by_kind = {}
         for i in issues:
             by_kind.setdefault(i.kind, []).append(i)
+        # 2026-08-19（LEX-442）で型 D（判旨なのに judgment-text も is-case も無い二重欠落）を
+        # tx_basis_roles へ追加した際、この表への追記が漏れており corpus 走査が KeyError で
+        # 落ちていた（push 前ゲートがクラッシュ＝全ファイル未検査になる）。既知の型は明示し、
+        # 将来の新種別でも落ちないよう未知キーはコードをそのまま出す。
         label = {"A": "判例の判旨に判旨フォント未割当",
                  "B": "判旨本文なのにカード種別が条文",
-                 "C": "学説カードの本文に判旨フォント"}
-        summary = "／".join(f"{label[k]} {len(v)}件" for k, v in sorted(by_kind.items()))
+                 "C": "学説カードの本文に判旨フォント",
+                 "D": "判旨本文なのに判旨フォントも判例種別も無い"}
+        summary = "／".join(f"{label.get(k, k)} {len(v)}件" for k, v in sorted(by_kind.items()))
         head = issues[0].detail
         self.warn("G77", f"BASIS の役割フォント割当てが種別と不一致: {summary}（例: {head}）。"
                          "修復は python -X utf8 scripts/tx-basis-role-fix.py <file>（本文不変・冪等）。")
