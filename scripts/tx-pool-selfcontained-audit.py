@@ -1,0 +1,92 @@
+# -*- coding: utf-8 -*-
+import importlib.util, glob, os, datetime
+spec=importlib.util.spec_from_file_location("vtc","scripts/validate-tx-core.py")
+m=importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+rows=[]
+for p in sorted(glob.glob('outputs/ux/000_TX/*/*_lex.html')):
+    v=m.Validator(p); v.g79_inline_card_self_contained()
+    e=[x for x in v.errors if x[0]=='G79']; w=[x for x in v.warnings if x[0]=='G79']
+    if e or w: rows.append((p,e,w))
+E=[(p,e) for p,e,w in rows if e]; W=[(p,w) for p,e,w in rows if w]
+def cnt(msg): 
+    import re
+    mm=re.search(r'カード面 (\d+) 件', msg); return mm.group(1) if mm else '?'
+def faces(msg):
+    import re
+    return '／'.join(sorted(set(re.findall(r'\[(記述本文|記述原文|正誤表 原文帯)\]', msg))))
+sub=lambda p: {'001_刑法':'刑法','002_刑事訴訟法':'刑訴','003_民法':'民法'}.get(p.split('/')[-2], p.split('/')[-2])
+out=[]
+out.append(f"""# 一問一答カード面の自己完結 ── 監査と残件（§v13y・LEX-443）
+
+> 生成 {datetime.date.today()} ／ 再生成＝`python -X utf8 scripts/tx-pool-selfcontained-audit.py`
+> 正典＝`docs/tx-v12.2.1-inline-lock.md` §v13y ／ ゲート＝`validate-tx-core.py` G79
+
+Lexia の復習プールは記述を **1 枚ずつバラのカード**で出す。周回中は問題本体も前後の記述も見えているので
+省略しても読めるが、プールでは指し先も前提も無い。したがって次の 3 面は `.ox-stmt` と同じ自己完結規律に服する。
+
+| 面 | セレクタ | 何を出すか |
+|---|---|---|
+| 記述本文 | `.tx-inline-card .tx-inline-stmt-text` | 周回画面の一問一答カード（実機で最初に読む面） |
+| 記述原文 | `.tx-inline-card .syn-orig` | カード解説冒頭の記述原文＋✍答案圧縮 |
+| 正誤表 原文帯 | `tr[data-brief-mark]` | 正誤表コア列の原文帯（§v13t） |
+
+## 判定
+
+- **(a) 原文ポインタ ＝ ERROR。** 「下線部①につき、…」「傍線部（ア）の尋問方法は、…」「上記1の場合、…」。
+  原文ブロック（`.tx-original-block` / `.tx-original-lead`）は §v13r/§v13s の不可侵エリアなので走査対象外。
+- **(b) 見解ラベルの裸使用 ＝ WARNING。** 同じ一文に実体名または定義の丸括弧があれば「説明済み」として通す。
+
+## 現況
+
+- **(a) ERROR：{len(E)} ファイル**（2026-09-09 の是正で 0 件になった）
+- **(b) WARNING：{len(W)} ファイル**（下表＝TJR 付随で消化する worklist）
+
+## 是正済み（2026-09-09）
+
+### 原文ポインタ（ERROR 級・11 ファイル）
+
+| ファイル | 直した面 |
+|---|---|
+| 刑訴TX089_lex | 記述本文5・記述原文5（「下線部①につき、」→「被疑者の妻Aに捜索差押許可状を呈示して…した点につき、」） |
+| 刑訴TX090_lex | 記述本文5・記述原文5・解法ナビ・現行法ノート（実機報告の当該ファイル） |
+| 刑訴TX269_lex | 記述本文5・記述原文5・正誤表 原文帯5・解説本文（「下線部①」→「Aの証言のうち甲がAに『…』と述べたこと」） |
+| 刑訴TX197_lex | 記述原文4・正誤表 原文帯2・GIST・段階解説・プール解説（「下線部（ア）の尋問方法」→「逮捕の事実を確認する尋問」） |
+| 刑訴TX266_lex | プール解説・POINT・data-explanation・体系マップ（「下線部②の甲の自白的発言」→「甲が妻Aに強盗の実行を打ち明けた発言」） |
+| 刑訴TX235_lex | 記述原文・正誤表 原文帯・段階解説 |
+| 刑訴TX158_lex | 解説本文8・設問リードの案内 |
+| 刑訴TX016 / 020 / 188 / 234_lex | 体系マップ見出し・本問への帰結・あてはめ |
+| 刑TX415_lex | 記述本文「上記1の場合、」→ 前提事案を書き切り（他記述への丸投げ） |
+
+原文ブロックの 下線部①〜⑤ は **逐語のまま温存**（原文は原文のまま／カードは自己完結、の二層）。
+
+### 裸の見解ラベル（プール単独カード面）
+
+| ファイル | 何が起きていたか |
+|---|---|
+| 刑TX170_lex | **全 5 記述**が `Ⅰ説/Ⅱ説/Ⅲ説` の裸ラベル＋体言止め。記述4・5 は命題自体が「…とする点が誤り」「…となり正しい」と**正誤を先出し**していた。65条1項・2項の読み方を実体で書いた断定命題へ全面書き直し |
+| 刑訴TX070_lex | 記述1・2 は「見解Ⅰ（一罪の一部の勾留の効力は他の部分に及ぶとする説）」と中身を書きながら、記述3 は「見解Ⅰに立ったとき、」だけ（記述6 も同様）。**ユーザー指摘の「2 とか 3 以降は省略」そのもの**。全記述を実体入りへ統一 |
+| 刑TX415_lex | 記述本文・正誤表 原文帯の `A説/B説` を「客観説（「虚偽」＝客観的事実に反すること）」等へ |
+
+## 残件 worklist（WARNING・{len(W)} ファイル）
+
+配り方は `docs/run-patterns.md`「既存展開の配り方」に従い、**仕事のある科目へ 1 本ずつラウンドロビン**で消化する。
+
+| # | ファイル | 科目 | 件数 | 面 |
+|---|---|---|---|---|""")
+for i,(p,w) in enumerate(W,1):
+    msg=w[0][1]
+    out.append(f"| {i} | {os.path.basename(p).replace('_lex.html','')} | {sub(p)} | {cnt(msg)} | {faces(msg)} |")
+out.append("""
+## 書き直しの型
+
+```
+✗ 【見解Ⅱ】甲が常習としてa事件を犯したものであるか否かを判断するために、余罪であるb事件の存在を考慮することは許されない。
+✓ 一罪の一部についての勾留の効力は他の部分に及ばないとする見解（見解Ⅱ）に立ったとき、甲が常習として
+   a事件を犯したものであるか否かを判断するために、余罪であるb事件の存在を考慮することは許されない。
+```
+
+問題ローカルのラベル（見解Ⅰ・A説）は**残してよい**が、**単独で使わない**。実体名か定義の丸括弧を必ず添える
+（周回画面では見出しとして機能し、プールでは中身が読める＝両立する）。answer-key・G60 の極性は変えない。
+""")
+open('docs/tx-pool-selfcontained-audit.md','w',encoding='utf-8').write('\n'.join(out)+'\n')
+print('written', len(W), 'worklist rows')

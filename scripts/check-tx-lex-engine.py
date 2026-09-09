@@ -238,7 +238,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + G79 一問一答面の自己完結 + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -283,6 +283,7 @@ def main() -> int:
     prop_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G70 助言（非ブロッキング・ox-stmt 断定命題形式）
     role_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G77 助言（非ブロッキング・BASIS 役割フォント割当て）
     palette_notes: list[tuple[Path, list[tuple[str, str]]]] = []  # G72 助言（非ブロッキング・§5 パレット宣言なし）
+    view_notes: list[tuple[Path, list[tuple[str, str]]]] = []   # G79 助言（非ブロッキング・見解ラベルの裸使用）
     for f in files:
         if f.stem.endswith("_lex") is False:
             continue
@@ -365,6 +366,16 @@ def main() -> int:
         #     素通り＝誤爆ゼロ。使用時の CSS/エンジン欠落・hidden 無し（静的表示へ生 DOM が漏れる）・
         #     .tx-dgm が1枚でない・置き場所が正誤表行の最終セルでない（帯が出ない）を ERROR で弾く。
         v.g78_verdict_diagram_band()
+        # G79＝一問一答カード面（inline 記述本文／記述原文／正誤表 原文帯）の自己完結（§v13y・
+        #     LEX-443・2026-09-09）。ERROR＝原文ポインタ（「下線部①につき、…」「上記1の場合」）が
+        #     カード面に残る型で、単独カードでは指し先が無く判定不能。実害＝刑訴TX090/089/269
+        #     （実機報告）・刑TX415（前提事案の丸投げ）。決定論・原文ブロックは走査外＝誤爆ゼロ
+        #     なので push を止める。WARNING（見解ラベルの裸使用）は非ブロッキング助言＝下の view_notes。
+        before_g79 = len(v.warnings)
+        v.g79_inline_card_self_contained()
+        _view = [(c, m) for c, m in v.warnings[before_g79:] if c == "G79"]
+        if _view:
+            view_notes.append((f, _view))
         # G73＝答案圧縮（TX-ANSCOMP・§v13q）。片置き・カード⇄正誤表の文不一致・CSS区画欠落は
         #     決定論的な表示/同期崩れなので push を止める。未展開（両方無し）は WARNING＝ブロックしない
         #     （既存 corpus は TJR 付随で消化・2026-07-28 追加）。
@@ -516,6 +527,17 @@ def main() -> int:
         if len(role_notes) > 20:
             print(f"  … ほか {len(role_notes) - 20} ファイル")
         print("  → 刑訴以外に同型が残るため当面 push は止めない（WARNING）。修復＝python -X utf8 scripts/tx-basis-role-fix.py <file>（本文不変・冪等）。")
+
+    if view_notes:
+        print(f"\n[G79 助言・非ブロッキング] 一問一答カード面が見解を裸のラベルで指している（最初の記述だけ中身を書き、以降を『同じだから』と省略した型）{len(view_notes)} ファイル:")
+        for f, notes in view_notes[:20]:
+            rel = f.relative_to(ROOT).as_posix() if f.is_relative_to(ROOT) else str(f)
+            print(f"  ⚠️ {rel}")
+            for code, m in notes:
+                print(f"       - [{code}] {m.split('。')[0]}")
+        if len(view_notes) > 20:
+            print(f"  … ほか {len(view_notes) - 20} ファイル")
+        print("  → 既存在庫が残るため当面 push は止めない（WARNING）。各記述に実体名（転嫁罰説・客観説 等）か定義の丸括弧を添える（§v13y・残件＝docs/tx-pool-selfcontained-audit.md）。")
 
     if palette_notes:
         print(f"\n[G72 助言・非ブロッキング] §5 パレット選定宣言なし（正答率帯との整合を機械検証できない）{len(palette_notes)} ファイル:")
