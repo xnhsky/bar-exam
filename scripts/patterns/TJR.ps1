@@ -467,6 +467,40 @@ function Invoke-SStream {
     return $LASTEXITCODE
 }
 
+# === 入力プリフライト（2026-09-06 新設）===
+# 入力 PDF・逐語は .gitignore 対象で git pull では降りてこない（CLAUDE.md §4-5-bis）。
+# 未取込の PC では T/J/R が「仕事がない」のと同じ見え方＝静かな 該当なし SKIP になり、
+# 原因が入力欠落だと気づけない（実害＝xnrg2 PC で TX の T が全科目ずっと空振り・2026-09-06 特定）。
+# よって「そもそも入力が 1 件も無い科目」を起動時に名指しし、取り込みコマンドまで出す。
+function Show-InputPreflight {
+    $missTx = @(); $missJx = @()
+    foreach ($s in $SubjectOrder) {
+        $folder = $SubjectFolder[$s]
+        $pdfDir = Join-Path $ProjectRoot "inputs\000_TX\$folder"
+        $n = 0
+        if (Test-Path $pdfDir) {
+            $n = @(Get-ChildItem $pdfDir -Filter '*.pdf' -File -ErrorAction SilentlyContinue |
+                   Where-Object { [System.IO.Path]::GetFileNameWithoutExtension($_.Name) -match '^\d+$' }).Count
+        }
+        if ($n -eq 0) { $missTx += $s }
+
+        $jxDir = Join-Path $ProjectRoot "inputs\001_JX\$folder\重問PDF"
+        $m = 0
+        if (Test-Path $jxDir) { $m = @(Get-ChildItem $jxDir -Filter '*.pdf' -File -ErrorAction SilentlyContinue).Count }
+        if ($m -eq 0) { $missJx += $s }
+    }
+    if ($missTx.Count -gt 0) {
+        Write-Host ("`n[入力欠落] TX の 1問1PDF が 0 件の科目: {0}" -f ($missTx -join '・')) -ForegroundColor Magenta
+        Write-Host "  → これらの科目は T/R が『該当なし』になりますが、原因は入力未取込です（仕事が尽きたのではありません）。" -ForegroundColor Magenta
+        Write-Host "  → 取り込み: pwsh -NoProfile -File scripts/tx-pull-inputs-from-drive.ps1" -ForegroundColor Yellow
+    }
+    if ($missJx.Count -gt 0) {
+        Write-Host ("`n[入力欠落] JX の重問PDF が 0 件の科目: {0}" -f ($missJx -join '・')) -ForegroundColor Magenta
+        Write-Host "  → 取り込み: pwsh -NoProfile -File scripts/jx-pull-inputs-from-drive.ps1" -ForegroundColor Yellow
+    }
+}
+Show-InputPreflight
+
 # === 実行（Only 指定が無ければ F→T→J→R→Q を全部・直列。バッチ間も直列）===
 $runT = ($Only -eq '' -or $Only -eq 'T')
 $runJ = ($Only -eq '' -or $Only -eq 'J') -and (-not $SkipJ)

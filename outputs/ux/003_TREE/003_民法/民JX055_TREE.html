@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>和解の確定効 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. LV <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">和解の確定効 <em>— The Conclusive Effect of Compromise</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">2</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">和解の<br>確定効</h2>
+      <div class="mm-root-en">Compromise &amp; Conclusive Effect</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法<br>
+        <em>Origin</em>重要問題 第55問 · 最判昭33.6.14／最判昭43.3.15<br>
+        <em>Form</em>規範定立型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法の<strong>契約各論・和解（695〜696条）</strong>を軸に、<strong>総則・錯誤（95条）</strong>と<strong>不法行為・使用者責任（715条）</strong>が交差する複合論点。テーマは一つ――「<strong>和解・示談で確定するのは何か</strong>」。紛争解決契約に生じる確定効の射程を、錯誤と契約解釈の二方向から試す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>論文頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★☆☆</span>
+              </div>
+              <p>別損害説（最判昭43.3.15）は<strong>短答超頻出</strong>。和解と錯誤は司法試験平成26年系の素材。基本構造は素直だが、「確定効の<strong>範囲</strong>」を切り分けられるかで差がつく。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」の TARGET 領域。<strong>「和解したから全部ダメ」と切ると大失点</strong>する罠型。確定効が及ぶのは「争いの対象そのもの」だけで、それ以外は錯誤・限定解釈で動かせる、という一点を外さなければ得点が安定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>錯誤取消し（95条）／詐欺・強迫（96条）／取消しの効果・原状回復（121条・121条の2）／使用者責任（715条）／契約不適合責任（562条以下）・代物弁済（482条）／裁判上の和解の既判力（民訴267条）。とりわけ<strong>「争いの対象そのものは動かせないが、それ以外は動かせる」</strong>という価値判断が全ての糸口。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>小問(1)</strong>：X社・Y社の売買代金争いを裁判上の和解で決着（支払義務100万円確認＋その支払に代えて「特選丸太ハム」1000本を譲渡）。後に<strong>①未払は実は60万円</strong>と判明、<strong>②ハムは粗悪品</strong>と判明。<br><strong>小問(2)</strong>：X従業員の運転で歩行者Zが負傷。入院中に「保険金で満足し超過分は一切放棄」との示談。後に<strong>予想外の後遺症・再手術</strong>が発生。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>小問(1)</strong>：X社（精肉卸売・代金債権者）／Y社（肉製品販売・代金債務者）。<br><strong>小問(2)</strong>：X（使用者・715条の賠償義務者）／Z（交通事故の被害者）。示談金は当初12週間分の損害額にも満たない少額。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 未払代金額の錯誤取消しは<strong>確定効に遮断されるか</strong>。<br>② ハムの品質の錯誤取消しは可能か（前提事実の錯誤）。<br>③ 示談の放棄条項を超え、予想外の後遺症損害を請求できるか（別損害説）。<br>いずれも「その事項が<strong>確定効の及ぶ範囲の内か外か</strong>」に収れんする。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 和解・示談の成立と確定効を確認</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>まず対象の合意が<strong>和解契約（695条）</strong>であることを性質決定し、<strong>確定効（696条）</strong>が生じることを押さえる。示談も互譲による争いの終結＝和解契約であり、確定した事項は後から蒸し返せないのが出発点。小問(2)では「示談＝和解契約」の性質決定を飛ばさない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 「争いの対象そのもの」か「それ以外」かを切り分け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本論点の心臓部。確定効が及ぶのは<strong>当事者が争いの対象とし互譲によって決定した事項（＝和解契約の直接の目的）</strong>に限る。それが「争いの対象そのもの」か、争ってもいなかった前提事実・予想外の損害か、を評価語で振り分ける。答案は<strong>i類型（対象そのもの）か否かの2分法</strong>で足りる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 遮断か／錯誤・別損害の主張を通すか</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「争いの対象そのもの」なら確定効で<strong>遮断</strong>（①）。「それ以外」なら確定効は及ばず、小問(1)②は<strong>錯誤取消し（95条）</strong>、小問(2)は<strong>別損害説による限定解釈</strong>へ進む。使う道具は違うが、根っこは「確定効の範囲外だから動かせる」という同一の判断。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 要件充足を認定し帰結を書き切る</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>②では95条要件（1項2号・2項表示・重要性・3項重過失なし）を<strong>コンパクトに</strong>充足。小問(2)では別損害説の3要件（把握困難・早急・少額満足）を事実で認定。帰結＝①<strong>Y敗訴</strong>／②<strong>Xは取消し可・改めて100万円請求</strong>／小問(2)<strong>Zは後遺症損害を請求可</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 和解の確定効と錯誤
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点① 和解と錯誤<span class="mm-name-en">Compromise &amp; Mistake</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">確定効の範囲（696条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>696条は、和解で権利の存否が確定した場合、後にこれと異なる確証が出ても権利は移転・消滅したものとみなす。これは確定した事項について「実は違った」という<strong>錯誤主張を封じる趣旨</strong>を含む。もっとも及ぶのは<strong>「争いの対象となった事項」</strong>に限られ、それ以外には及ばない。紛争の蒸し返し防止という和解の趣旨が根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">3類型説（i／ii／iii）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>錯誤の対象を<strong>i 争いの対象・互譲で決定した事項自体／ii その前提・基礎として予定し争わず疑わなかった事実／iii それ以外</strong>に分ける通説。<strong>i のみ確定効で錯誤排斥</strong>、ii・iii は確定効及ばず錯誤の問題。ii と iii は帰結が同じ（及ばず）で分ける実益に乏しく、答案は「i か否か」の2分法で運用する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">②の95条要件（基礎事情錯誤）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>ハムの品質が確定効外（iii類型）と分かったら、次に<strong>95条1項2号（基礎事情錯誤）＋2項（表示）＋重要性（1項柱書）＋重過失なし（3項柱書）</strong>を検討。「100万円相当の特選丸太ハム」との認識が和解の基礎として表示され、真実（粗悪品）に反することを摘示する。要件検討は遮断される①では無意味――<strong>②で一度だけ</strong>行う。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 別損害説
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点② 別損害説<span class="mm-name-en">Separate-Damage Theory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">示談の和解契約性（695条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>本件示談は、当事者が互いに譲歩して争いをやめる合意であるから<strong>和解契約の性質</strong>を有する（695条）。損害賠償義務の範囲は和解の<strong>直接の目的</strong>であり、形式的には確定効（696条）の対象――放棄条項どおりなら請求不可となりそう、という壁を先に立ててから救済へ架橋する。<strong>いきなり別損害説に飛ばない</strong>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">別損害説の規範（放棄の限定解釈）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>放棄条項を<strong>当事者の合理的意思に照らして限定解釈</strong>し、放棄の対象を「示談当時<strong>予想していた損害</strong>」に限る（最判昭43.3.15）。予想外の後遺症・再手術の損害は放棄されておらず、これを<strong>別損害</strong>として請求できる。錯誤（95条）によらず<strong>契約解釈</strong>で被害者を救済する点に特色があり、示談自体は有効に維持される。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">3要件（把握困難・早急・少額満足）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>判例の挙げる要件＝<strong>①全損害を正確に把握し難い状況／②早急に／③少額の賠償金で満足する示談</strong>。この3要件が常に必要か（厳格要件説）、予想し難い損害なら全部揃わなくてよいか（緩和要件説・有力）で対立があるが、<strong>本問はいずれの見解でも救済される</strong>ので深入り不要。事実を要件へ丁寧に対応させれば足りる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Norms</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 確定効と錯誤の関係</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">和解契約の直接の目的となった法律関係、すなわち当事者が争いの対象とし互譲によって決定した事項は、和解によって終結した争いそのものであるから、これについては錯誤取消しを主張できない。もっとも、それ以外の法律関係については、和解の確定効は及ばず、錯誤取消しを主張しうる。<span class="norm-cite">— 確定効と錯誤（短縮版・約110字）</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">完全版 · 趣旨から書き起こす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">和解は互いに譲歩して争いをやめる契約であり（695条）、争いの目的である権利については確定効が生じる（696条）。この確定効は紛争の蒸し返しを防ぎ法律関係を確定する趣旨に基づくから、和解契約の直接の目的となった事項に及ぶ。これに対し、当事者が争わずかつ疑わなかった前提事実その他の事項には、確定する意思まで認められず、確定効は及ばないから、錯誤取消し（95条）を主張しうる。<span class="norm-cite">— 完全版・約210字</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">別損害説の規範文言</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="norm">全損害を正確に把握し難い状況の下で、早急に少額の賠償金をもって満足する旨の示談がされた場合、示談によって被害者が放棄した損害賠償請求権は、示談当時予想していた損害についてのものと解すべきである。その当時予想できなかった不測の損害は、和解の対象とならず、別損害として賠償請求できる。<span class="norm-cite">— 別損害説（短縮版・約130字）</span></div>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">補助規範 · 2分法運用のひとこと</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>規範定立では「和解契約の<strong>直接の目的となった法律関係</strong>」か「それ以外」かの<strong>2分法</strong>で提示する。3類型は解説上の道具にとどめ、答案では ii・iii を束ねて「争いの対象そのもの以外」とすれば、記述が簡明で論理も一直線になる。小問(2)は「前述の確定効の範囲」を<strong>援用</strong>して重複を避ける。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Facts</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">①未払代金額 → i類型・遮断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>未払代金額は、まさに XY が「<strong>争い、その支払を拒絶</strong>」し、互譲で100万円と決着した<strong>争いの対象そのもの</strong>。よって i類型 → 確定効の対象 → <strong>Yは錯誤取消しを主張できず、本件ハムの返還請求は認められない</strong>。仮に後で60万円だったと分かっても696条で権利は和解どおり確定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">②ハムの品質 → iii類型・確定効外</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「特選丸太ハムが本物か」は争点でも前提でもなく、両者が<strong>本物と信じて疑わなかった事項</strong>＝iii類型 → 確定効及ばず。「100万円相当」「特選丸太ハム」が和解条項に明示され基礎として<strong>表示</strong>（95条2項）、粗悪品で「到底販売できる品物ではない」→<strong>基礎事情錯誤・重要性</strong>を充足。重過失を基礎づける事情なし → <strong>Xは取消し可・改めて100万円請求</strong>。苺ジャム事件と構造が完全一致。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">小問(2) → 3要件すべて充足</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>入院中・全治12週間段階</strong>で締結（全損害把握困難）／「<strong>早急に前記保険金の給付を受けるため</strong>」（早急・少額満足）／<strong>示談金は12週間分の損害額にも満たない</strong>（少額）。1か月以上後に判明し約16か月治療・後遺症は<strong>示談当時予想できなかった不測の損害</strong>＝別損害 → 確定効及ばず → <strong>Zは請求できる</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範3点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 確定効が及ぶのは<strong>「和解契約の直接の目的となった事項（争いの対象そのもの）」だけ</strong>。<br>② それ以外の前提事実の錯誤には及ばず、<strong>95条で取消し可</strong>。<br>③ 示談後の予想外損害は、放棄の対象を<strong>「示談当時予想していた損害」に限定解釈</strong>し、別損害として請求可。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例2点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><span class="case-name">苺ジャム事件（最判昭33.6.14）</span>＝前提事実（品質）の錯誤に確定効及ばず→小問(1)②。<br><span class="case-name">別損害説（最判昭43.3.15）</span>＝予想外の後遺症は放棄の対象外→小問(2)。<strong>二枚看板</strong>を事案の構造とセットで想起する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>「確定するのは争ったところだけ」</strong>／<strong>「放棄したのは予想した損害だけ」</strong>。この2句が両小問を貫く物差し。「和解＝全部おしまい」ではなく、<strong>何について争い何を確定したか</strong>を精密に切り分ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字（条文・判例）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>和解 695条／確定効 696条／錯誤 95条（1項2号・2項・3項柱書）／取消しの効果 121条・121条の2第1項／使用者責任 715条。判例＝最判昭33.6.14（民集12-9-1492）・最判昭43.3.15（民集22-3-587・百選II 104事件）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">和解と詐欺・強迫（96条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>意思表示の瑕疵（詐欺・強迫）は<strong>確定効を問わず和解自体を覆す</strong>――錯誤と異なり「争いの対象そのもの」でも取消し可。本問に欺罔・強迫の事実はないため使わないが、「なぜ錯誤だけ確定効で遮断されるのか」の対比として理解しておく。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">取消しの効果・原状回復（121条・121条の2）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>②で取消しが認められれば、和解は<strong>遡及的に無効</strong>（121条）となり、当事者は<strong>原状回復義務</strong>（121条の2第1項）を負う。すなわちハムの返還と代金債権の復活。結論を曖昧にせず、取消しの帰結まで書き切ると加点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">契約不適合責任・代物弁済（562条以下・482条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「100万円の支払に代えてハムを譲渡」は<strong>代物弁済類似</strong>の合意。②でハムが無価値なら契約不適合責任（562条以下の類推）も観念しうるが、本問は<strong>錯誤構成で足りる</strong>。網羅的思考として押さえつつ深入りしない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">裁判上の和解の既判力（民訴267条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>裁判上の和解は確定判決と同一の効力（民訴267条）。もっとも本問は「<strong>私法上の和解契約としての性格</strong>」を前提とせよとの指示があり、既判力ではなく<strong>実体法（錯誤・確定効）</strong>の観点から論ずる。指示を読み落とさない。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点① 「和解したから錯誤は一切不可」と即断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>最大の罠。確定効の<strong>範囲</strong>を切り分けず全部遮断してしまう。→ 必ず「争いの対象そのものか否か」を判定してから帰結を出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点② ①②を区別せず同じ結論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>①＝遮断（取消し不可）／②＝取消し可という<strong>逆の帰結</strong>を明確に書き分ける。同じ「錯誤の主張」でも対象の性質で結論が反転する点が本問の眼目。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点③ ②で確定効外に満足し95条要件を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「確定効及ばず」で書き終えるのは片手落ち。<strong>基礎事情錯誤（1項2号）・表示（2項）・重要性・重過失なし</strong>まで当てはめてはじめて取消しが導ける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点④ 95条要件を①でも検討して冗長</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>遮断される①で要件検討しても意味がなく時間を浪費する。要件検討は<strong>②で一度だけ</strong>。答案の厚みは②へ配分する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">失点⑤ 小問(2)で性質決定を飛ばす／全部放棄処理</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>示談を<strong>和解契約と性質決定（695条）</strong>せず別損害説へ飛ぶ、または「一切放棄」の文言どおり全部放棄と処理して請求を否定する。→ 確定効を一度提示し、不当性を媒介に<strong>限定解釈</strong>へ架橋する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>13分枝を一望し、両小問を貫く<strong>「確定効の範囲」という一本の物差し</strong>を掴む。答えを見ず、まず全体構造を把握する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 用語・規範の暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>分枝13の<strong>LV I（基礎再生）</strong>で、和解・確定効・別損害の意義と規範を再生できるようにする。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3-4 · 射程比較・応用</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>LV II（応用展開）</strong>で反実仮想（重過失があったら／後遺症が予想できたら）を回し、判例の射程を体得する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 答案直結・配点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>LV IV（答案直結）</strong>で配点重心（①遮断は薄く・②と小問(2)を厚く）とあてはめの順序を確認する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5-6 · 規範完全再生</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>LV III（規範完全再生）</strong>で確定効・別損害説の規範を一句一文で書けるまで固める。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 速記フラッシュ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>LV V（速記フラッシュ）</strong>で30字以内の即答（条文番号・キーフレーズ・判例名）を反射化する。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">References</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">特選金菊印苺ジャム事件</span>
+                <span class="mm-leaf-sub"><em>Premium-Jam Case</em> · 最判昭33.6.14 民集12-9-1492</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body">
+              <p>継続的取引の代金額を和解で決着した際、目的物のジャムが「特選金菊印」の良質品であることを双方が前提としていたが、実際は粗悪品だった事案。</p>
+              <p>判旨＝争いの目的そのものではなく、その<strong>前提・基礎として予定し争わず疑わなかった事項</strong>の錯誤には確定効が及ばず、効力を否定しうる。</p>
+              <p><em>射程</em> — 本問②「特選丸太ハムが粗悪品」と<strong>構造が完全一致</strong>。前提事実の錯誤＝確定効外の典拠として引用する。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">示談と後遺症（別損害説）</span>
+                <span class="mm-leaf-sub"><em>Post-Settlement Sequelae</em> · 最判昭43.3.15 民集22-3-587・百選II 104</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body">
+              <p>交通事故で全治見込みが不確実な段階で早急に少額の示談をし超過分を放棄した後、予想外の後遺症・再手術が生じた事案。</p>
+              <p>判旨＝全損害把握困難な状況で早急に少額で満足した示談における<strong>放棄の対象は示談当時予想していた損害に限られ</strong>、予想外の不測損害は放棄の趣旨に含まれない。</p>
+              <p><em>射程</em> — 本問は3要件をすべて充足。要件の要否をめぐる議論に深入りせず、正面から適用する。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">和解（695条）</span>
+                <span class="mm-leaf-sub"><em>Compromise Contract</em> · 民法695条</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>当事者が互いに譲歩してその間に存する争いをやめることを約する契約。示談もこの<strong>互譲による争いの終結</strong>に当たり、和解契約として扱う。小問(2)の性質決定の根拠条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">和解の確定効（696条）</span>
+                <span class="mm-leaf-sub"><em>Conclusive Effect</em> · 民法696条</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>和解で権利の存否等が確定した場合、後に反対の確証が出ても権利は和解の内容どおり移転・消滅したものとみなす。<strong>紛争の蒸し返しを封じる中核条文</strong>。及ぶのは争いの対象に限る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">錯誤（95条）</span>
+                <span class="mm-leaf-sub"><em>Mistake</em> · 民法95条1項2号・2項・3項</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>平成29年改正で効果が<strong>無効から取消し</strong>へ。1項2号＝基礎事情（動機）錯誤、2項＝基礎事情の表示要件、3項柱書＝重過失があると取消し不可。②のハム品質はこの2号・2項で処理する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">取消しの効果（121条・121条の2）</span>
+                <span class="mm-leaf-sub"><em>Effect of Rescission</em> · 民法121条・121条の2第1項</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>取消しにより法律行為は初めから無効（121条）となり、各当事者は原状回復義務を負う（121条の2第1項）。②では和解が遡及無効となりハム返還・代金債権復活。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">使用者責任（715条）</span>
+                <span class="mm-leaf-sub"><em>Employer's Liability</em> · 民法715条</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>被用者が事業の執行につき第三者に加えた損害を使用者が賠償する責任。小問(2)でZがXに対し有する請求権の実体的根拠。示談で放棄された対象がこの請求権。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">3類型説（通説）</span>
+                <span class="mm-leaf-sub"><em>Three-Category Theory</em> · 学説</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>確定効の及ぶ範囲を i 争いの対象そのもの／ii 前提・基礎／iii それ以外に分け、<strong>i のみ確定効あり</strong>とする。苺ジャム事件が判例上の裏付け。答案は「i か否か」の2分法で運用。</p><p><em>射程</em> — 全面排斥説（全事項につき錯誤不可）は前提事実まで封じ不当、意思解釈説は結論ほぼ一致で独自の意義に乏しい。本問①②の切り分けは3類型説で処理する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">別損害説（判例・通説）</span>
+                <span class="mm-leaf-sub"><em>Separate-Damage Theory</em> · 学説</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>放棄条項を合理的意思で限定解釈し予想外損害を別損害として救済。<strong>示談を有効に維持</strong>できる点で、示談全体を覆す錯誤構成説より穏当。全部放棄説（形式解釈）は被害者を救済できず不当。</p><p><em>射程</em> — 予想外損害の救済に限られ、予想できた損害・示談後の事情変更には及ばない。免責条項の限定解釈にも通じる発想。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary>
+              <span class="mm-leaf-label">
+                <span class="mm-leaf-name">緩和要件説 vs 厳格要件説</span>
+                <span class="mm-leaf-sub"><em>Requirements Debate</em> · 学説（射程）</span>
+              </span>
+              <span class="mm-leaf-chev"></span>
+            </summary>
+            <div class="mm-leaf-body"><p>別損害説の3要件を全部要するか（厳格・判例文言重視）、和解時に予想し難い損害なら不要か（緩和・被害者救済重視／有力）。<strong>本問はどちらでも救済</strong>されるため一言で足りる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — アクティブリコール § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Active Recall §</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV I -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">4 questions · Phase 2</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">和解（695条）とはどのような契約か。</span></summary>
+                  <div class="mm-q-answer">当事者が互いに<span class="kw">譲歩</span>して、その間に存する<span class="kw">争いをやめる</span>ことを約する契約。示談もこれに当たる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">和解の確定効（696条）が及ぶ範囲は？</span></summary>
+                  <div class="mm-q-answer">和解契約の<span class="kw">直接の目的となった法律関係</span>、すなわち当事者が争いの対象とし互譲によって決定した事項に限る。それ以外には及ばない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">前提事実の錯誤に確定効が及ばないことを示した代表判例は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">特選金菊印苺ジャム事件（最判昭33.6.14）</span>。争いの前提として予定し争わず疑わなかった品質の錯誤には和解の効力が及ばないとした。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">別損害説を確立した判例は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">最判昭43.3.15</span>。示談後に予想外の後遺症が生じた事案で、放棄の対象を示談当時予想していた損害に限定解釈した。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV II -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">3 questions · Phase 3-4</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">もし②でXに重過失があったら結論はどう変わるか。</span></summary>
+                  <div class="mm-q-answer">重過失があると<span class="kw">95条3項柱書</span>により錯誤取消しができない。その場合は契約不適合責任（562条以下の類推）等の別構成を検討することになる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">小問(2)で後遺症が示談当時「予想できた」ものだったら？</span></summary>
+                  <div class="mm-q-answer">別損害説の要件を欠き、<span class="kw">放棄の対象に含まれる</span>ため請求できない。予想可能性が救済の分水嶺となる。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">①の代金額の錯誤に確定効が及ぶのはなぜか。②との違いは？</span></summary>
+                  <div class="mm-q-answer">①は<span class="kw">争いの対象そのもの</span>（互譲で決めた中身）だから確定効で遮断。②は争ってもいない<span class="kw">前提事実</span>だから確定効が及ばない。対象の性質が結論を分ける。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV III -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">3 questions · Phase 5-6</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">確定効と錯誤の関係の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">和解契約の直接の目的となった法律関係、すなわち当事者が争いの対象とし互譲によって決定した事項は、和解によって終結した争いそのものであるから錯誤取消しを主張できない。それ以外の法律関係には確定効は及ばず、錯誤取消しを主張しうる。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">別損害説の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">全損害を正確に把握し難い状況の下で早急に少額の賠償金をもって満足する旨の示談がされた場合、被害者が放棄した損害賠償請求権は示談当時予想していた損害についてのものと解すべきであり、予想できなかった不測の損害は別損害として賠償請求できる。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">②ハム品質の錯誤で摘示すべき95条の要件を規範の形で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">表意者が法律行為の基礎とした事情についての認識が真実に反する錯誤（95条1項2号）があり、その事情が法律行為の基礎とされていることが表示され（2項）、錯誤が重要であって（1項柱書）、表意者に重過失（3項柱書）がないこと。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV IV -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">2 questions · Phase 4</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">①と②で答案の厚みの配分はどうすべきか。理由は？</span></summary>
+                  <div class="mm-q-answer">①は<span class="kw">遮断で終わる</span>ため簡潔に（要件検討不要）。厚みは<span class="kw">②の95条要件</span>に配分する。①で要件を検討すると遮断されて無駄になるため。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">小問(1)②と小問(2)は答案上どう連結すると効率的か。</span></summary>
+                  <div class="mm-q-answer">両者は「確定効は<span class="kw">争いの対象そのものにのみ及ぶ</span>」という同一規範。小問(1)で立てた基準を小問(2)では「<span class="kw">前述のとおり</span>」と援用し、重複記述を避けつつ一貫性を示す。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV V -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">3 questions · Phase 6</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">確定効が及ぶ範囲 → ?（30字以内）</span></summary>
+                  <div class="mm-q-answer">争いの対象そのもの（和解の直接の目的）だけ。<span class="kw">それ以外は及ばない</span>。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">示談で放棄したのは → ?（30字以内）</span></summary>
+                  <div class="mm-q-answer"><span class="kw">示談当時予想していた損害</span>だけ。予想外の後遺症は別損害。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">ハム粗悪品の錯誤 → 使う条文と判例は？（30字以内）</span></summary>
+                  <div class="mm-q-answer"><span class="kw">95条1項2号・2項</span>＋苺ジャム事件（昭33.6.14）。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Horizontal Mindmap · 13 chapters · 2 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-09-05T04:09+09:00">Generated: 2026-09-05 04:09 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>

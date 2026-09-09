@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>不当利得の類型論 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. LVIII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">不当利得の類型論 <em>— On the Typology of Unjust Enrichment</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">7</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">不当利得の<br>類型論</h2>
+      <div class="mm-root-en">Enrichment · Restitution</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民法<br>
+        <em>Origin</em>事例演習教材 第58問 · 給付利得／侵害利得<br>
+        <em>Form</em>類型対比・清算型
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民法・債権各論の不当利得（703条以下）。本問の核は<strong>不当利得の類型論</strong>＝統一的な公平原理ではなく、<strong>給付利得</strong>（契約の巻き戻し）と<strong>侵害利得</strong>（他人の財貨からの無権原な利得）で返還ルールが構造的に異なるとする現代的理解。物権（即時取得・加工・付合）と債権（原状回復・不当利得）の交差点に位置する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>財産法頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>類型論という「地図」を持っているかで大きく差がつく。改正民法（121条の2・412条の2）と物権法（191条・192条・246条・248条）の横断理解を試す総合問題で、司法試験・予備で頻出の骨格論点。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「高難 × 高重要」象限の TARGET 領域。設問1・2ともに素直に703条一本で処理すると失点する。<strong>類型を宣言し、類型ごとに条文を選び分ける</strong>過程こそ配点の山。滅失・才覚差益・即時取得という三つの捻りで難化する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>取消しと原状回復（121条・121条の2）／履行不能と価額賠償（412条の2）／同時履行と相殺（533条・505条）／即時取得（192条）・盗品回復（194条）／加工・付合（246条・248条）／占有者の果実・損害賠償（189〜191条）。とりわけ<strong>「侵害利得の不当利得返還請求は物権的返還請求権の補完物」</strong>という発想が全体を貫く。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核（設問1・給付利得）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Aは、Bの絵画を<strong>ピカソ真作として代金5000万円</strong>で買った。隣家の失火の延焼でA宅が焼け、<strong>絵画も焼失（Aに保管の過失なし）</strong>。後に絵画は精巧な<strong>贋作（時価500万円）</strong>と判明。Aは錯誤・詐欺で取消し、代金＋利息の返還を求める。AB間の法律関係を論じる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核（設問2・侵害利得）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>乙が甲社工場から<strong>製品1（時価50万円）を窃取</strong>し、<strong>事情を打ち明けて悪意の丙に50万円で売却</strong>し逃亡。丙は<strong>善意無過失の丁に70万円で転売</strong>。丁は製品1に自己材料を加えて<strong>製品2（時価200万円）を製造</strong>。甲社は丙・丁にどのような請求ができるか。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><em>設問1</em> A（買主・善意）／B（売主・贋作を知る悪意）。<br><em>設問2</em> 甲社（製品1所有者・被害者）／乙（窃盗・逃亡）／丙（悪意の販売業者）／丁（善意無過失・加工者）。丙は+20万の差益、丁は加工で製品2を得た。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 絵画滅失で一方の原状回復義務が履行不能のとき、<strong>価額賠償に転化</strong>するか。<br>② 利息・使用利益に<strong>189条・190条を適用</strong>してよいか。<br>③ 丙への<strong>191条損害賠償</strong>の額（時価50万か譲渡70万か）。<br>④ 丁の<strong>即時取得</strong>が「法律上の原因」となり償金請求を遮断するか。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 類型を宣言する</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>まず<strong>どの類型か</strong>を宣言する。設問1は契約の巻き戻し＝<strong>給付利得</strong>、設問2は他人の物の無権原な取得・処分＝<strong>侵害利得</strong>。この宣言で使う条文群（給付利得＝121条の2・412条の2／侵害利得＝191条・192条・246条・248条）が確定する。703条だけで処理しないのが鉄則。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 給付利得＝原則全部返す→障害を越える</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設問1は取消し（95・96条）→遡及的無効（121条）→双方に<strong>原状回復義務（121条の2第1項）</strong>。原則Bは5000万・Aは絵画を返す。障害①絵画滅失＝Aの返還義務は<strong>価額賠償（500万）に転化</strong>し相殺。障害②利息・使用利益＝189条・190条は給付利得に不適用とし<strong>545条2項3項類推で全面返還</strong>（575条類推も可）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 侵害利得＝物が残っていたらを起点に</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>設問2は<strong>「物が現存すれば物権的返還請求で取り戻せたはず」</strong>を起点に、その補完物として不当利得を組む。丙は悪意で即時取得せず（192条）、譲渡＝「滅失」（191条）として損害賠償。丁は善意無過失で即時取得（192条）＝「法律上の原因」あり。相手ごと（丙→丁）に分けて論ずる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 返還範囲を確定する</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>各類型で<strong>元本・利息・使用利益・果実・才覚差益</strong>を確定する。設問1は差額4500万＋利息使用利益の清算。設問2の丙は<strong>客観的価値50万</strong>（+20万は丙の才覚で射程外・代価控除も否定）。丁は<strong>請求不可</strong>（即時取得＝法律上の原因／194条も滅失で代替賠償不発生）。<br>結論の妥当性から逆算して条文構成を選ぶのが不当利得の答案作法。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 給付利得の清算
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Performance Enrichment</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 原状回復義務（121条の2第1項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>取消しによる<strong>遡及的無効（121条）</strong>を受け、平成29年改正で新設された<strong>121条の2第1項</strong>が給付の巻き戻しを命じる。双務契約が双方履行済みなら、Bは代金5000万を、Aは絵画を相互に返還する原状回復義務を負う。これが給付利得の出発点。</p><div class="norm">無効な行為に基づく債務の履行として給付を受けた者は、相手方を原状に復させる義務を負う。<span class="norm-cite">— 民法121条の2第1項</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 滅失→価額賠償への転化</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>絵画は焼失しAの返還義務は<strong>履行不能（412条の2第1項）</strong>。だが「AはゼロでBだけ5000万返す」は不公平。そこで<strong>Aの原状回復義務は客観的価値500万円の価額賠償義務に転化</strong>して存続すると解し、Bの5000万と相殺して差額4500万で清算する。両債務は同時履行（最判昭47.9.7）だが相殺を認めてよい。</p><div class="norm">原状回復義務の目的物が滅失し現物返還が不能となったときは、その義務は目的物の客観的価値の価額賠償義務に転化する。<span class="norm-cite">— 価額賠償転化・多数説</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 189・190条の適用否定→545条類推</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>189条・190条をそのまま当てると<strong>善意Aは使用利益を返さず・悪意Bは利息を返す</strong>という片面的で不均衡な結論になる。近時の有力説は<strong>「189条・190条は侵害利得の規律で、契約巻き戻し（給付利得）には適用しない」</strong>とし、解除との横並びで<strong>545条2項3項類推＝全面返還</strong>（または575条類推＝利息と使用利益を相殺）で処理する。学説が割れる点なので自説で書けばよい。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 侵害利得の返還
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Infringement Enrichment</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 丙への191条損害賠償</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>丙は<strong>悪意（事情を打ち明けられた）ゆえ即時取得せず（192条）</strong>、甲社は所有権を失っていない。丙は製品1を丁に譲渡＝<strong>191条の「滅失」（他への譲渡を含む・大判昭2.2.16）</strong>にあたり、甲社は191条で損害賠償を請求できる。物が残っていれば物権的返還請求で取り戻せたはずの補完物。</p><div class="norm">占有物が占有者の責めに帰すべき事由により滅失・損傷したときは、悪意占有者は回復者にその損害の全部を賠償する義務を負う。「滅失」には他への譲渡による返還不能も含む。<span class="norm-cite">— 民法191条／大判昭2.2.16</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 賠償額＝時価50万（才覚差益は射程外）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>判例（最判平19.3.8）は無権利処分の返還額を<strong>原則「売却代金相当額」</strong>とするから丙は70万とも読める。だが同判決の<strong>調査官解説は「受益者の才覚で客観的価値より高値売却した分は射程外」</strong>とする。本問の+20万は丙の販売業者としての才覚による差益ゆえ、返還額は<strong>客観的価値50万円にとどまる</strong>（客観的価値説）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 代価控除の否定／丁は請求不可</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>丙は「乙に払った50万を控除しろ」と反論するが、<strong>侵害利得の返還請求は物権的返還請求の補完物</strong>ゆえ物が現存すればそっくり返すだけで代価控除は問題にならない（大判昭12.7.3）→否定、50万で確定。<br>丁は加工で製品2を得たが<strong>善意無過失で即時取得（192条）＝「法律上の原因」あり</strong>、703条の要件を欠く。194条も滅失で代替賠償不発生（最判昭26.11.27）＝<strong>どの構成でも丁には請求できない</strong>。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 価額賠償への転化</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">取消しにより契約は遡及的に無効となり、双方は原状回復義務を負う（121条の2第1項）。もっとも一方の目的物が滅失して現物返還が不能となったときは、当事者間の給付の巻き戻しを全うするため、その原状回復義務は目的物の客観的価値を返還する価額賠償義務に転化し、他方の返還義務との間で相殺により清算するのが相当である。<span class="norm-cite">— 給付利得・価額賠償型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 189・190条の適用否定</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">189条・190条は、他人の物の占有という侵害利得の局面において果実の帰属を占有者の善意・悪意で振り分ける規律である。双務契約の巻き戻しである給付利得にこれを適用すると、善意者だけが使用利益の返還を免れ悪意者だけが利息を負担する片面的で不均衡な結論となる。よって給付利得には189条・190条を適用せず、解除に準じて545条2項3項を類推し、利息・使用利益を含めた全面的返還によって清算すべきである。<span class="norm-cite">— 給付利得固有清算型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">接続 · 191条「滅失」＝譲渡を含む</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">191条にいう「滅失」とは物理的な損壊に限られず、他への譲渡等によって回復者への返還が不能となった場合をも含む。悪意占有者が物を第三者に譲渡し回復者への返還を不能にしたときも、回復者は191条により損害の賠償を請求できる。<span class="norm-cite">— 侵害利得・滅失概念型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 即時取得＝法律上の原因</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">丁は処分権限があると信じ、かつそう信ずるにつき過失がなかったから、平穏・公然・善意・無過失で動産の占有を取得し、即時取得により製品1の所有権を確定的に取得する（192条）。この即時取得は不当利得にいう「法律上の原因」に当たるから、加工により甲社が所有権を失っても、甲社の丁に対する不当利得（償金）返還請求は成立しない。<span class="norm-cite">— 侵害利得・遮断型</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 給付利得（設問1）の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>代金5000万・時価500万／代金支払・絵画引渡し完了（双方履行済み）／「本件絵画もまた焼失」＝現物返還不能／「Aに保管に過失がなかった」／「500万円程度の価値」＝客観的価値500万／Aは善意・Bは贋作を知る悪意。<br>──取消し→原状回復→価額賠償転化→相殺→利息使用利益の清算を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 侵害利得・丙（設問2）の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「事情を打ち明けた上で」＝丙は<strong>悪意</strong>（盗品と知って買った）／丙は製品1を丁へ<strong>転売＝返還不能</strong>／時価50万を70万で売却＝<strong>+20万は丙の販売業者としての才覚</strong>／乙に払った代価50万。<br>──即時取得不成立（192条）→191条「滅失」→賠償額50万（才覚は射程外）→代価控除否定を基礎づける。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 侵害利得・丁（設問2）の材料</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「処分権限があると信じ、かつ、そのように信ずるにつき過失がなかった」＝<strong>善意無過失</strong>／「本件製品1を用いて……自己の材料も用いた上で新たなプラスチック製品を製造」＝<strong>加工（246条2項）</strong>／製品2は時価200万・原物は現存しない。<br>──即時取得（192条）＝法律上の原因／加工・償金（248条）／194条の代替賠償不発生を基礎づける。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">類型論 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>給付利得</strong> — 契約の巻き戻し／原則全面返還（121条の2）<br>② <strong>侵害利得</strong> — 他人の財貨の無権原利得／物権的返還請求の補完物<br>③ <strong>清算の要</strong> — 同じ果実・使用利益でも類型が違えば処理が変わる</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>価額賠償転化</strong> — 滅失で現物返還不能→客観的価値の価額賠償に転化<br>② <strong>189・190不適用</strong> — 給付利得は545条2項3項類推で全面返還<br>③ <strong>191＋192</strong> — 悪意者は「滅失」で損害賠償／善意無過失者は即時取得＝法律上の原因</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判平19.3.8</span> — 無権利処分の返還額＝売却代金相当額（百選Ⅱ78・才覚は射程外）<br>② <span class="case-name">大判昭2.2.16</span> — 191条「滅失」に譲渡を含む<br>③ <span class="case-name">最判昭47.9.7</span> — 原状回復義務の同時履行</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 原状回復 — 121条の2第1項／履行不能 — 412条の2第1項<br>· 果実・損害賠償 — 189条・190条・191条<br>· 即時取得192条／盗品回復194条／加工246条2項・償金248条<br>· 解除の返還 — 545条2項3項／利息使用利益相殺 — 575条<br>· 金額 — 代金5000万・絵画500万／製品1=50万・製品2=200万・転売70万</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「類型を宣言してから条文を選ぶ」<br>· 「価額賠償義務に転化」＝滅失の受け皿<br>· 「片面的で不均衡」＝189・190条不適用の理由<br>· 「物権的返還請求権の補完物」＝侵害利得の発想<br>· 「才覚による差益は射程外」＝賠償額を50万に絞る<br>· 「即時取得＝法律上の原因」＝丁への遮断</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 衡平説（統一説）と類型論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>かつては703条・704条を公平の理念に基づく統一的制度と捉える<strong>衡平説（統一説）</strong>が通説だった。現在は給付利得・侵害利得・支出利得を分ける<strong>類型論</strong>が有力。本問はこの対立を正面から体感させる作りで、答案冒頭で類型論に立つことを宣言するのが骨格を決める。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 危険負担（改正前後の変化）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>平成29年改正前は絵画滅失を<strong>危険負担</strong>で処理する構成もあった。だが改正で危険負担が「履行拒絶」構成（536条）に変わったため、原状回復局面では採りにくい。答案では<strong>軽く触れる程度</strong>にとどめ、価額賠償転化で処理するのが穏当。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 即時取得と盗品回復（192条・194条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>盗品・遺失物は即時取得しても<strong>2年間は被害者が回復請求できる（193条）</strong>。193条の期間内なら甲社は丁から回復しうるが、丁が競売・公の市場・同種商人から善意で買ったときは<strong>代価弁償（194条）</strong>が要る。もっとも本問は物が加工で滅失しており、<strong>滅失時は194条の代替賠償も生じない（最判昭26.11.27）</strong>ため、いずれにせよ丁への請求は立たない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 加工・付合と償金（246条・248条）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>丁は他人の材料（製品1）に自己の材料を加えて製品2を製造＝<strong>加工（246条2項）</strong>。加工物の所有権は原則材料所有者だが、加工により生じた価格が材料の価格を著しく超えるときは加工者に帰属する。所有権を失った者は<strong>248条により703条・704条に従い償金を請求</strong>できる。ただし本問は丁の即時取得が「法律上の原因」となり償金請求は遮断される。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 703条一本で処理する</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>不当利得と見た瞬間<strong>703条・704条だけで押し切る</strong>のが最大の失点。給付利得と侵害利得で返還ルールが違うことを示せず、滅失・才覚差益・即時取得の捻りを拾えない。<strong>まず類型を宣言</strong>し、類型ごとに条文を選び分ける過程が配点の山。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 滅失で「Aは何も返さない」と処理</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>絵画が焼けたからと<strong>Aの返還義務を消滅させBだけに5000万返させる</strong>のは不均衡。原状回復義務は<strong>価額賠償義務に転化して存続</strong>し、500万と相殺して差額4500万で清算する。滅失＝免責と短絡しない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 189・190条を無批判に適用</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>利息・使用利益に<strong>189条・190条を機械的に適用</strong>すると、善意Aは使用利益を返さず悪意Bは利息を返す<strong>片面的で不均衡</strong>な答案になる。給付利得への適用を否定し545条2項3項類推等で全面返還する筋を必ず示す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 丙の賠償額を70万と即断</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>最判平19.3.8の「売却代金相当額」だけを見て<strong>いきなり70万</strong>と書くのは危うい。調査官解説の<strong>「才覚による高値売却分は射程外」</strong>を踏まえ、+20万は丙の才覚ゆえ<strong>50万</strong>に絞る評価を示すのが差のつくところ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 丁への請求を安易に認める</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>加工で製品2ができたからと<strong>丁に償金請求を認める</strong>と誤り。丁は<strong>善意無過失で即時取得（192条）＝「法律上の原因」</strong>があり703条の要件を欠く。194条も物が滅失していれば代替賠償が生じない。<strong>どの構成でも丁には請求できない</strong>で締める。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフは閉じたまま。<strong>給付利得（設問1）／侵害利得（設問2）</strong>の二本立てと、類型ごとに条文が変わることを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<strong>類型宣言→条文特定→当てはめ→返還範囲</strong>の4ステップを口で言えるように。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。<strong>価額賠償転化・189/190不適用・才覚差益の射程</strong>を意識して条文の選び分けを訓練。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。設問1の相殺清算と設問2の相手ごとの処理を、金額まで詰めて書き切る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。<strong>類型論／危険負担／即時取得・盗品回復／加工償金</strong>の接続を声に出して確認。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外は閉じる。類型論3点・規範3点・判例3点・金額を高速回転で焼き付ける。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成19年3月8日</span><span class="mm-leaf-sub"><em>Unauthorized Disposal · Return Value</em> · 百選Ⅱ78</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>無権利処分の不当利得返還額の基本判例</strong>。「法律上の原因なく他人の財産から利益を受けた者は、その利益の存する限度において返還義務を負う……株式を第三者に売却処分した場合には、原則として、その売却代金相当額の金員の不当利得返還義務を負う」。<em>射程</em> — 原則は売却代金相当額だが、調査官解説は受益者の才覚による高値売却分を射程外とする。本問の丙の+20万を除き50万に絞る根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">大判昭和2年2月16日</span><span class="mm-leaf-sub"><em>Art. 191 "Loss" incl. Transfer</em> · 侵害利得</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>191条「滅失」に譲渡を含めた判例</strong>。「滅失」は物理的損壊に限らず他への譲渡等により回復者への返還が不能となった場合を含む。<em>射程</em> — 丙は製品1を丁に転売しているから物理的滅失がなくとも「滅失」に当たり、甲社は丙に191条の損害賠償を請求できる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">大判昭和12年7月3日</span><span class="mm-leaf-sub"><em>No Deduction of Purchase Price</em> · 代価控除否定</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>代価控除を否定した判例</strong>。侵害利得の返還において悪意占有者が取得のため支払った代価の控除は認められない。<em>射程</em> — 侵害利得の返還請求は物権的返還請求権の補完物であり、物が現存すればそれを返還するのみで代価控除は問題とならない。丙の「乙に払った50万を控除しろ」との反論を封じる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和47年9月7日</span><span class="mm-leaf-sub"><em>Simultaneous Performance of Restitution</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>原状回復義務の同時履行を認めた判例</strong>。契約が遡及的に効力を失った場合の双方の原状回復義務は同時履行の関係に立つ。<em>射程</em> — Bの代金返還義務とAの価額賠償に転化した返還義務は同時履行の関係にある。もっとも双方が対立する原状回復義務を負う本問では相殺を認めて清算を簡明にしてよい。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">大判大正14年1月20日</span><span class="mm-leaf-sub"><em>Bona-fide Possessor · Fruits</em> · 189条</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>189条を適用し善意者の果実返還義務を否定した古い判例</strong>。伝統的通説は189条・190条を不当利得の特則とし、給付利得の果実返還にも適用した。<em>射程</em> — この立場では善意Aは使用利益返還を免れ悪意Bは利息を負担するが、片面的で不均衡。本問では紹介した上で近時の有力説（給付利得への適用否定）で修正する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和26年11月27日</span><span class="mm-leaf-sub"><em>Loss → No Art. 194 Substitute</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>盗品滅失時に194条の代替賠償を否定した判例</strong>。盗品が滅失している場合には194条による回復請求権に代わる損害賠償請求権も生じない。<em>射程</em> — 丁は製品1を加工して製品2にしており原物は現存しないから、194条の代価弁償を前提とする回復も問題とならず、丁への請求の遮断を補強する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成12年6月27日</span><span class="mm-leaf-sub"><em>Art. 194 · Use of Stolen Goods</em> · 百選Ⅰ69（参考）</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>194条の使用収益権限に関する参考判例</strong>。194条により占有者は代価弁償を受けるまで盗品等の使用収益を行う権限を有する旨を判示。<em>射程</em> — 本問は使用利益が問われていないため参考にとどまるが、194条の趣旨（占有者と被害者の利害調整）の理解の補助となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">類型論（給付利得／侵害利得）</span><span class="mm-leaf-sub"><em>Typology Doctrine</em> · 我妻・加藤・磯村ほか</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>不当利得を公平の理念に基づく統一的制度と捉える<strong>衡平説（統一説）</strong>に対し、給付利得・侵害利得・支出利得等に類型分けし返還ルールを類型ごとに構築する<strong>類型論</strong>が現在の有力説。給付利得は契約の巻き戻しとして原則全面返還、侵害利得は物権的返還請求の補完物として処理する。本問の答案全体を貫く地図。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">不当利得の類型論で、返還ルールが異なる二つの類型は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">給付利得</span>（契約の巻き戻し）と<span class="kw">侵害利得</span>（他人の財貨からの無権原な利得）。統一的な公平原理で一元処理せず、類型ごとに条文と返還範囲を選び分ける。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">取消し後、双方履行済みの契約で給付を巻き戻す条文は？</span></summary>
+                  <div class="mm-q-answer">遡及的無効（121条）を受けた<span class="kw">原状回復義務（121条の2第1項）</span>。平成29年改正で新設。Bは代金を、Aは絵画を相互に返す。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">丙が悪意で盗品を買い、これを転売した。甲社の請求根拠と「滅失」の意義は？</span></summary>
+                  <div class="mm-q-answer">丙は即時取得せず（192条）。<span class="kw">191条</span>の損害賠償を請求。「滅失」は物理的損壊に限らず<span class="verb">他への譲渡による返還不能</span>を含む（大判昭2.2.16）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">善意無過失で盗品を買い加工した丁に、甲社は償金請求できるか？</span></summary>
+                  <div class="mm-q-answer">できない。丁は<span class="kw">即時取得（192条）</span>により所有権を取得し、これが不当利得の<span class="kw">「法律上の原因」</span>となるから703条の要件を欠く。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">絵画が焼失してAが返せない。Aの原状回復義務はどうなるか？</span></summary>
+                  <div class="mm-q-answer">Aの現物返還義務は履行不能（412条の2第1項）。もっとも巻き戻しを全うするため<span class="kw">客観的価値500万円の価額賠償義務に転化</span>して存続し、Bの5000万円と相殺して差額4500万円で清算する。「Aは免責」ではない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">利息・使用利益に189条・190条をそのまま適用するとなぜ不当か？</span></summary>
+                  <div class="mm-q-answer">善意Aは使用利益返還を免れ悪意Bは利息を負担する<span class="kw">片面的で不均衡</span>な結論になる。189・190条は侵害利得の規律ゆえ給付利得に適用せず、<span class="verb">545条2項3項類推で全面返還</span>（575条類推も可）で処理する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">丙は時価50万を70万で転売。賠償額は50万か70万か。理由は？</span></summary>
+                  <div class="mm-q-answer">原則は売却代金相当額（最判平19.3.8）だが、調査官解説は<span class="kw">受益者の才覚による高値売却分は射程外</span>とする。+20万は丙の販売業者としての才覚ゆえ、返還額は客観的価値<span class="kw">50万円</span>にとどまる。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">価額賠償への転化の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">取消しにより契約は遡及的に無効となり双方は原状回復義務を負うが（121条の2第1項）、一方の目的物が滅失して現物返還が不能となったときは、その義務は目的物の客観的価値を返還する価額賠償義務に転化し、相殺により清算する。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">給付利得に189条・190条を適用しない理由の規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">189条・190条は侵害利得における果実帰属の規律であり、双務契約の巻き戻しである給付利得に適用すると片面的で不均衡な結論となるから、給付利得には適用せず、解除に準じて545条2項3項を類推し利息・使用利益を含めて全面的に返還すべきである。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">即時取得が償金請求を遮断する規範を述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">善意無過失で動産の占有を取得した者は即時取得により所有権を確定的に取得し（192条）、この即時取得は不当利得にいう「法律上の原因」に当たるから、加工により原所有者が所有権を失っても、原所有者の不当利得（償金）返還請求は成立しない。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成する？</span></summary>
+                  <div class="mm-q-answer">設問順で：<span class="kw">設問1 給付利得（原状回復→価額賠償転化 25%・189/190不適用と清算 20%）→ 設問2 丙への191条・賠償額 30% → 丁への即時取得遮断 25%</span>。各設問冒頭で<span class="kw">類型を宣言</span>し、結論の妥当性から逆算して条文構成を選ぶ。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">甲社の丁への請求が「どの構成でも」立たない理由を三段で述べよ。</span></summary>
+                  <div class="mm-q-answer">①丁は<span class="kw">即時取得（192条）＝法律上の原因</span>があり703条・248条の償金請求が立たない。②194条も<span class="kw">物が滅失していれば代替賠償が生じない</span>（最判昭26.11.27）。③仮に差額説でも時価50万−代価70万で差額ゼロ。よって丁には請求できない。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">滅失で現物返還不能 → ？</span></summary>
+                  <div class="mm-q-answer">価額賠償義務に転化し相殺。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">悪意者が高値転売した差益 → ？</span></summary>
+                  <div class="mm-q-answer">才覚分は射程外・客観的価値のみ。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">善意無過失で即時取得 → ？</span></summary>
+                  <div class="mm-q-answer">法律上の原因あり・償金請求不可。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. LVIII — 不当利得の類型論 · 13 chapters · 7 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-09-05T10:53+09:00">Generated: 2026-09-05 10:53 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
