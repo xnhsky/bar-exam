@@ -95,6 +95,13 @@ try:
 except Exception:
     _sysmap_geom = None
 
+# カード面の人物記号（G80）は tx_person_symbols（単一情報源＝監査ツールと同じ式）を共用。
+# 判定モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
+try:
+    import tx_person_symbols as _person_syms
+except Exception:
+    _person_syms = None
+
 # 難易度帯パレット規律（G71/G72）は tx_palette_rules（単一情報源）を共用。
 # 規律モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
 try:
@@ -2744,6 +2751,59 @@ class Validator:
                              "その記述が単独カードで出たとき何説の話か分からない。"
                              "各記述で実体名（転嫁罰説・客観説 等）か定義の丸括弧を必ず添える（§v13y）。")
 
+    # G80（2026-09-10・§v13z）＝事例が身分を与えた人物記号のカード面残留。
+    #
+    # 共有事例型の `_lex` では、事例が「司法警察員X」「検察官Y」「Z医師」のように
+    # 記号へ身分（権限・資格）を割り当てる。この記号を一問一答の面にそのまま残すと、
+    # Lexia の復習プールが 1 枚ずつバラで出したとき **誰の権限の話か分からず○×を付けられない**。
+    # 令状の要否は主体の身分（検察官か司法警察員か医師か）で決まることが多く、記号のままだと
+    # 論点そのものが消える。実害＝刑訴TX091_lex（「Yが検視を実施するには」「ZがVの死体を
+    # 解剖するには」・実機報告 2026-09-10。ox-stmt だけ実体化され、周回で最初に読む
+    # 記述本文・記述原文には記号が残っていた＝面ごとに規律が違う型・§v13y の再発）。
+    #
+    # 誤爆しないための限定は tx_person_symbols（単一情報源）側に置く：
+    #   ・対象は**事例が身分を与えた記号だけ**（民法の当事者 A・B・C、刑法の甲・乙は対象外。
+    #     それらは一文が事実を書き切っていれば単独カードでも読め、G31 でも許容されてきた）
+    #   ・カード面の側に身分が添えられていれば通す（司法警察員X／作成者K／見分者K）
+    # 原文ブロック（§v13r/§v13s の不可侵エリア）は走査しない＝原文の記号は逐語のまま残す。
+    def g80_person_symbol_self_contained(self):
+        if not self.is_lex_target() or _person_syms is None:
+            return
+        original = " ".join(
+            el.get_text(" ", strip=True)
+            for el in self.soup.select(".tx-original-block, .tx-original-lead"))
+        defined = _person_syms.role_symbols(original)
+        if not defined:
+            return
+
+        faces = []
+        for card in self.soup.select(".tx-inline-card[data-stmt]"):
+            label = (card.get("data-stmt") or "?").strip()
+            for cls, name in (("tx-inline-stmt-text", "記述本文"), ("syn-orig", "記述原文")):
+                el = card.select_one("." + cls)
+                if el:
+                    faces.append((name, label, el.get_text(" ", strip=True)))
+        for el in self.soup.select(".ox-stmt"):
+            faces.append(("一問一答", "?", el.get_text(" ", strip=True)))
+        for tr in self.soup.select("tr[data-brief-mark]"):
+            label = (tr.get("data-stmt") or "?").strip()
+            brief = re.sub(r"<[^>]+>", " ", tr.get("data-brief-mark") or "")
+            faces.append(("正誤表 原文帯", label, re.sub(r"\s+", " ", brief).strip()))
+
+        hits = _person_syms.scan_faces(faces, defined)
+        if not hits:
+            return
+        head = "; ".join(
+            f"記述{h.label}[{h.face}]『{h.symbol}』＝事例の{'／'.join(h.roles)}（…{h.context}…）"
+            for h in hits[:4])
+        more = f" 他 {len(hits)-4} 件" if len(hits) > 4 else ""
+        self.err("G80", f"一問一答カード面 {len(hits)} 件が、事例でしか身分の分からない人物記号に"
+                        f"寄りかかっている: {head}{more}。"
+                        "復習プールは記述を 1 枚ずつバラで出すため、記号のままでは誰の権限の話か"
+                        "分からず○×を付けられない（令状の要否は主体の身分で決まる）。"
+                        "記号を実体の身分（検察官・司法警察員・医師 等）へ書き下す"
+                        "（原文ブロックは §v13r/§v13s の不可侵エリアなのでそのまま残す・§v13z）。")
+
     # G73（2026-07-28）＝答案圧縮（TX-ANSCOMP・§v13q）の統合整合。規約＝各記述カードの
     # 記述原文（.syn-orig）末尾と正誤表 tr の data-brief-mark 末尾の 2 箇所に同一文で置く
     # （シングルソース）。既存 corpus は未展開のため「両方無し」は WARNING（TJR 付随で消化）。
@@ -3065,6 +3125,7 @@ class Validator:
         self.g76_verdict_core_lines()
         self.g78_verdict_diagram_band()
         self.g79_inline_card_self_contained()
+        self.g80_person_symbol_self_contained()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
@@ -3104,7 +3165,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G77, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G80, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
