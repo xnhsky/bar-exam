@@ -11,6 +11,8 @@ outputs/ と references/ を、Lexia 同期で問題になりやすい順に横�
   3. check-lex-oxgrid-integrity.py TX _lex ○×グリッド健全性(L1矛盾/L2組合せ当否/L3見出し/L4退化)
   4. check-ariadne-canonical.py   ARIADNE v1.2.0 正典レイアウト/スロット契約
   5. check-rx-coverage.py         ARIADNE data-rx から RX 実ファイルへの到達性
+  6. check-stale-law-refs.py      旧法表記・旧項番号の残存（218条5項→6項 型・内容監査）
+  7. check-cross-file-claims.py   準用関係の corpus 横断矛盾（116⇄118 型・内容監査・助言）
 
 生成や修正は行わない。失敗した工程があれば終了コード 1。
 """
@@ -90,6 +92,14 @@ def build_steps(args: argparse.Namespace, roots: list[str]) -> list[Step]:
         Step(
             "font vars defined (刑TX003/刑JX013 型・LEX-388)",
             [sys.executable, str(SCRIPTS / "check-font-vars.py"), *roots],
+        ),
+        Step(
+            "stale law refs (旧項番号・旧法表記・刑訴TX100 型)",
+            [sys.executable, str(SCRIPTS / "check-stale-law-refs.py"), *roots],
+        ),
+        Step(
+            "cross-file claims (準用の横断矛盾・刑訴TX118 型・助言)",
+            [sys.executable, str(SCRIPTS / "check-cross-file-claims.py"), "--warn-only"],
         ),
         Step(
             "Lexia sync contract",
