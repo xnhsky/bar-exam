@@ -5,7 +5,7 @@
 > ／修復（F・2026-07-24 新設）を 1 号令で束ねる。実生成は各エンジン（`tx-v13-runner.ps1`／`jx-batch-runner.ps1`）へ委譲する。
 > チャットで「**TJR処理 刑訴**」のように科目名を添えて指示すれば起動する。両 PC・全セッション共通の語彙。
 
-## TJR の6ストリーム
+## TJR の7ストリーム
 
 | 記号 | ストリーム | 内容 | エンジン | 恒久/過渡 |
 |---|---|---|---|---|
@@ -15,8 +15,9 @@
 | **R** | さかのぼり（旧版TXLEX再生成＋欠番補完） | (a) `_lex` が既存だが版が旧い（v13 でない）かつ**入力PDFが残っている**番号を **PDFから最新v13で作り直す**（公式も同時に最新化）。PDFが消えた番号はスキップ。(b) **公式最大番号以下の欠番**（PDFあり・公式なし＝過去帯の未生成穴。例：刑法 15-54/304-309/312-323 の58件）の**補完生成**（2026-07-18 ユーザー確定「刑法58件未生成の分をR再生成と併せる」） | `scripts/tx-v13-runner.ps1 -Regen` | **過渡＝全件最新化で自然消滅** |
 | **Q** | §v13q 付随・特別枠（2026-07-28 新設） | **刑訴TX の既存 `_lex`（v13）で答案圧縮（`tx-anscomp-line`）未展開の残件**（設置時点＝081-179 の99本）を若番から **1バッチ10本ずつ** headless（Opus 5 固定＝`-Model claude-opus-5`）で §v13q 改訂（✍答案圧縮＋GIST自己完結＋訂正チップ最小化＋#basis空箱hidden）。レシピ正典＝`docs/v13q-handover.md`／プロンプト＝`prompts/v13q-headless.md`。ランナーが validate-tx-core＋check-tx-lex-engine を再検証し **PASS のみ 1問ずつ commit/push**（FAIL はロールバック・同一問題2回失敗で ESCALATE）。二台衝突は claim（`{ID}_v13q`）＋リモート改訂済み検知で回避 | `scripts/v13q-runner.ps1` | **過渡＝残件ゼロ（完遂）で「該当なし」SKIP＝自然消滅** |
 | **S** | §v13v「📖 ものがたり」付随・特別枠（2026-08-22 新設） | **正誤表の各記述に `data-brief-story`（物語解説の全体＋当該記述の要約＋具体例）が未執筆の `_lex`** を、**仕事のある科目へ均等に配る**（ラウンドロビン・2026-08-31 ユーザー指示・`-MaxS` 既定10本／科目内は若番順／「TJR処理 刑訴」で寄せられる）でheadless（Opus 5 固定）で執筆。土台（`TX-VERDICT-STORY` CSS＋`appendStoryLine`）が無いファイルはランナーが `tx-lex-verdict-redesign.py` で先に注入する。レシピ正典＝`docs/v13v-handover.md`／プロンプト＝`prompts/v13v-headless.md`／素材＝`scripts/v13v-extract.py`／注入＝`scripts/v13v-inject.py`。ランナーが validate-tx-core＋check-tx-lex-engine を再検証し **PASS のみ 1問ずつ commit/push**（FAIL はロールバック・同一問題2回失敗で ESCALATE）。二台衝突は claim（`{ID}_v13v`）＋リモート執筆済み検知で回避。**2026-08-28 改定**＝ものがたり帯は「体系的位置づけ・趣旨・考え方のコツ・実務での動き方＋具体例」で書く（旧型＝出題構造・解答技術の解説は書かない）。旧型で執筆済みのファイルは `-Rewrite` で新型へ書き直す（TJR は未執筆が尽きたら自動で `-Rewrite` にフォールバック。判定＝ものがたり本文 200 字未満の行があれば旧型・注入は `--force`・claim/台帳は `_v13v2`／`#rw` で別枠） | `scripts/v13v-runner.ps1` | **過渡＝残件ゼロ（完遂）で「該当なし」SKIP＝自然消滅** |
+| **G** | §v14 THE GIST ストーリー型の付随・特別枠（2026-09-17 新設） | **旧型（1 段落）の 💡THE GIST が残る v13 `_lex`**（設置時点＝903 本：刑法281・刑訴312・民法227・民訴83）を、S と同じく**仕事のある科目へ均等に配る**（ラウンドロビン・`-MaxG` 既定10本／科目内は若番順／「TJR処理 刑訴」で寄せられる）で headless（Opus 5 固定）が JSON 仕様を執筆 → `scripts/tx-gist-story.py apply` で組む。対象判定の単一情報源＝`tx-gist-story.py pending`（v13 でない旧版は R の領分なので除外）。ランナーが決定論で判定＝①`check`（全カードがストーリー型・構造・○×の向き）②`scope`（git HEAD と比べて GIST 行と CSS 区画以外が不変）③validate-tx-core ④check-tx-lex-engine を全部 PASS したときだけ 1問ずつ commit/push（FAIL はロールバック・同一問題2回失敗で ESCALATE）。push 追随で CSS 区画が落ちたら正典から再注入して追いコミット。二台衝突は claim（`{ID}_v14g`）＋リモート書き換え済み検知で回避。レシピ正典＝`docs/tx-v12.2.1-inline-lock.md` §v14／プロンプト＝`prompts/v14-gist-headless.md`（GIST 外の旧法記述は直さず `logs/v14g-findings.md` へ記録） | `scripts/v14-gist-runner.ps1` | **過渡＝残件ゼロ（完遂）で「該当なし」SKIP＝自然消滅** |
 
-- **同時起動＝1号令で F→T→J→R→Q→S を順に自動実行**（1作業ツリーで並行すると git commit/push が衝突する実害が
+- **同時起動＝1号令で F→T→J→R→Q→S→G を順に自動実行**（1作業ツリーで並行すると git commit/push が衝突する実害が
   記録済み＝`feedback_jx_concurrent_batch_gate_collision`／`feedback_shared_workdir_agent_collision`。よって直列。
   真の並列が要るときは各 PC で番号帯を分ける or 別 worktree で回す）。「1回叩いて放置」を満たす。
   **「修復と新規生成の同時並行」（2026-07-24 ユーザー指示）は「1 号令の中で F と T/J/R の両方が自動で進む」
@@ -70,6 +71,14 @@ pwsh -NoProfile -File scripts\v13v-runner.ps1 -Subject 刑法 -DryRun # 科目�
 pwsh -NoProfile -File scripts\v13v-runner.ps1 -Rewrite -Subject 刑訴 -DryRun # 旧型（出題構造型）の残件を確認
 pwsh -NoProfile -File scripts\v13v-runner.ps1 -Rewrite -MaxProblems 10        # 旧型を新型へ書き直す
 # ※通常の「TJR処理」でも毎バッチ末尾で自動的に10本ずつ消化される（完遂まで）
+
+# G（§v14 THE GIST ストーリー型の付随）だけ回す／件数を変える／止める（科目へ均等配分）
+pwsh -NoProfile -File scripts\patterns\TJR.ps1 -Only G            # 10本だけ処理（刑法・刑訴・民法・民訴へ均等）
+pwsh -NoProfile -File scripts\patterns\TJR.ps1 -Only G -Subject 刑訴 # いま学習中の科目へ寄せる
+pwsh -NoProfile -File scripts\patterns\TJR.ps1 -SkipG             # 通常TJRからGを外す
+pwsh -NoProfile -File scripts\v14-gist-runner.ps1 -DryRun         # 今バッチの対象を確認
+python -X utf8 scripts\tx-gist-story.py pending                   # 残件数（科目別）
+# ※通常の「TJR処理」でも毎バッチ末尾（S の後）で自動的に10本ずつ消化される（完遂まで）
 
 # 修復だけ（F単独＝監査→回収コミット→修復再生成。新規生成はしない）
 pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Only F

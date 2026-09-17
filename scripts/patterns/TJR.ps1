@@ -48,7 +48,14 @@
 #   「TX 60-71 処理」（Tだけ）     → ... -Only T -TxFrom 60 -TxTo 71
 #   「JX 14-16 処理」（Jだけ）     → ... -Only J -JxFrom 14 -JxTo 16
 #   修復だけ（F単独）             → ... -Only F
+#   THE GIST ストーリー型の付随だけ → ... -Only G              # §v14・残件を科目へ均等配分（-MaxG 既定10）
 #   検出だけ                      → ... -DryRun
+#
+# 【G（§v14 THE GIST ストーリー型の付随・2026-09-17 新設）】ユーザー指示「残りの LEX は TJR の付随で処理して」。
+#   旧型（1 段落）の 💡THE GIST が残る v13 `_lex` を、S と同じく仕事のある科目へ均等に配り、headless で
+#   JSON 仕様を執筆 → scripts/tx-gist-story.py apply で組む（エンジン＝scripts\v14-gist-runner.ps1）。
+#   合否はランナーが決定論で判定（構造 check／GIST 以外の不変を git と照合する scope／validate／engine）。
+#   毎バッチ S の後に走る。残件ゼロで「該当なし」SKIP＝完遂で自然消滅する過渡ストリーム。
 param(
     [ValidateSet('','刑','刑訴','民','民訴','商','憲','行政')]
     [string]$Subject = '',        # '' = ストリーム別自動（優先順で仕事のある科目）／明示時は優先ピン＋フォールスルー
@@ -59,12 +66,13 @@ param(
     [int]$JxFrom = 0, [int]$JxTo = 0,
     [int]$RFrom  = 0, [int]$RTo  = 0,
     # 単一ストリームに限定（既定は空＝F/T/J/R 全部走る。「指定外も当然に処理」の既定を上書きしたい時だけ）
-    [ValidateSet('','T','J','R','F','Q','S')]
+    [ValidateSet('','T','J','R','F','Q','S','G')]
     [string]$Only = '',
     [switch]$SkipJ,               # 「JX以外を処理」＝J だけ落として T と R を回す
     [switch]$SkipF,               # F（修復）を止める（既定は毎バッチ先頭で監査→修復）
     [switch]$SkipQ,               # Q（§v13q 付随・特別枠）を止める
     [switch]$SkipS,               # S（§v13v ものがたり付随・特別枠）を止める
+    [switch]$SkipG,               # G（§v14 THE GIST ストーリー型の付随・特別枠）を止める
     [int]$MaxTX = 12,             # T の基本単位（ピン時は範囲全件）
     [int]$MaxJX = 3,              # J の基本単位
     [int]$MaxR  = 3,              # R の基本単位
@@ -72,6 +80,7 @@ param(
     [int]$MaxFJx = 1,             # F の JX 修復再生成 上限/バッチ（JX は 1〜2 時間/問のため既定 1）
     [int]$MaxQ  = 10,             # Q の基本単位（2026-07-28 ユーザー指示＝10個ずつ・完遂まで）
     [int]$MaxS  = 10,             # S の基本単位（仕事のある科目へ均等に配る・2026-08-31 ユーザー指示）
+    [int]$MaxG  = 10,             # G の基本単位（§v14 THE GIST ストーリー型・科目へ均等配分・2026-09-17）
     [switch]$NoPush,
     [switch]$DryRun,
     [string]$ProjectRoot = ''
@@ -87,6 +96,8 @@ $TxRunner = Join-Path $ProjectRoot 'scripts\tx-v13-runner.ps1'
 $JxRunner = Join-Path $ProjectRoot 'scripts\jx-batch-runner.ps1'
 $QRunner  = Join-Path $ProjectRoot 'scripts\v13q-runner.ps1'
 $SRunner  = Join-Path $ProjectRoot 'scripts\v13v-runner.ps1'
+$GRunner  = Join-Path $ProjectRoot 'scripts\v14-gist-runner.ps1'
+$GistTool = Join-Path $ProjectRoot 'scripts\tx-gist-story.py'
 $AuditTool = Join-Path $ProjectRoot 'scripts\tjr-audit.py'
 $LogsDir = Join-Path $ProjectRoot 'logs'
 $RepairLedger = Join-Path $LogsDir 'tjr-repair-ledger.json'   # F の再試行台帳（PCローカル・git外）
@@ -161,6 +172,14 @@ function Get-QPending {
         if (-not (Select-String -LiteralPath $lex.FullName -Pattern 'tx-anscomp-line' -Quiet -ErrorAction SilentlyContinue)) { $c++ }
     }
     return $c
+}
+function Get-GPending {
+    # G（§v14 THE GIST ストーリー型の付随・特別枠・過渡）：旧型 GIST が残る v13 _lex の残数を全科目で合算。
+    # 判定の単一情報源＝tx-gist-story.py pending（ランナーと同じ式）。v13 でない旧版は R の領分なので数えない。
+    if (-not (Test-Path $GistTool)) { return 0 }
+    $out = & python -X utf8 $GistTool pending --json --root $ProjectRoot 2>$null
+    if ($LASTEXITCODE -ne 0) { return 0 }
+    try { return @(($out | Out-String) | ConvertFrom-Json).Count } catch { return 0 }
 }
 function Get-SPending {
     # S（§v13w「📖 CONTEXT」付随・特別枠・過渡）：正誤表の記述に data-brief-story が
@@ -467,6 +486,21 @@ function Invoke-SStream {
     return $LASTEXITCODE
 }
 
+function Invoke-GStream {
+    param([int]$Max, [string]$Subj = '')
+    if (-not (Test-Path $GRunner)) { Write-Host "[SKIP] G エンジン不在: $GRunner" -ForegroundColor Yellow; return 0 }
+    $p = @{ MaxProblems = $Max; ProjectRoot = $ProjectRoot }
+    # 「TJR処理 刑訴」の科目指定を G にも伝える（S と同じ写像）
+    if ($Subj -and $SSubjectMap.ContainsKey($Subj)) { $p.Subject = $SSubjectMap[$Subj] }
+    if ($NoPush) { $p.NoPush = $true }
+    if ($DryRun) { $p.DryRun = $true }
+    $label = 'G（§v14 THE GIST ストーリー型の付随・科目へ均等配分）'
+    if ($p.ContainsKey('Subject')) { $label += "・{0}優先" -f $p.Subject }
+    Write-Host "`n———————— $label 開始 ————————" -ForegroundColor Green
+    & $GRunner @p | Out-Host
+    return $LASTEXITCODE
+}
+
 # === 入力プリフライト（2026-09-06 新設）===
 # 入力 PDF・逐語は .gitignore 対象で git pull では降りてこない（CLAUDE.md §4-5-bis）。
 # 未取込の PC では T/J/R が「仕事がない」のと同じ見え方＝静かな 該当なし SKIP になり、
@@ -508,6 +542,7 @@ $runR = ($Only -eq '' -or $Only -eq 'R')
 $runF = ($Only -eq '' -or $Only -eq 'F') -and (-not $SkipF)
 $runQ = ($Only -eq '' -or $Only -eq 'Q') -and (-not $SkipQ)
 $runS = ($Only -eq '' -or $Only -eq 'S') -and (-not $SkipS)
+$runG = ($Only -eq '' -or $Only -eq 'G') -and (-not $SkipG)
 $rcAll = 0
 $batchCount = $Batches
 if ($DryRun -and $Batches -gt 1) {
@@ -532,16 +567,18 @@ for ($b = 1; $b -le $batchCount; $b++) {
     if ($runQ) { $qPend = Get-QPending }
     $sPend = 0
     if ($runS) { $sPend = Get-SPending }
-    $hasTJRWork = [bool]($subT -or $subJ -or $subR -or ($qPend -gt 0) -or ($sPend -gt 0))
+    $gPend = 0
+    if ($runG) { $gPend = Get-GPending }
+    $hasTJRWork = [bool]($subT -or $subJ -or $subR -or ($qPend -gt 0) -or ($sPend -gt 0) -or ($gPend -gt 0))
     if (-not $hasTJRWork -and -not $runF) {
         Write-Host "`n[TJR] バッチ $b：全ストリーム・全科目で処理対象なし。終了。" -ForegroundColor Green
         break
     }
     Write-Host "`n==================== TJR バッチ $b / $batchCount ====================" -ForegroundColor Cyan
-    Write-Host ("  科目割当: T={0}  J={1}  R={2}  F={3}  Q={4}  S={5}" -f `
+    Write-Host ("  科目割当: T={0}  J={1}  R={2}  F={3}  Q={4}  S={5}  G={6}" -f `
         $(if($subT){$subT}else{'該当なし'}), $(if($subJ){$subJ}else{'該当なし'}), $(if($subR){$subR}else{'該当なし'}), `
         $(if($runF){'全科目監査'}else{'OFF'}), $(if($runQ){"刑訴 残$qPend"}else{'OFF'}), `
-        $(if($runS){"民法優先 残$sPend"}else{'OFF'})) -ForegroundColor Cyan
+        $(if($runS){"民法優先 残$sPend"}else{'OFF'}), $(if($runG){"均等配分 残$gPend"}else{'OFF'})) -ForegroundColor Cyan
 
     # F は毎バッチ先頭（放置品の回収を新規生成より優先＋破損公式が T のフロンティア判定を汚す前に直す）。
     # 修復対象ゼロなら監査（数十秒）だけで即抜けるので常設コストはほぼ無い。
@@ -584,6 +621,11 @@ for ($b = 1; $b -le $batchCount; $b++) {
             $rcS = Invoke-SStream -Max $MaxS -Subj $Subject -Rewrite
         }
     }
+    $rcG = 0
+    if ($runG) {
+        if ($gPend -gt 0) { $rcG = Invoke-GStream -Max $MaxG -Subj $Subject }
+        else { Write-Host "`n[SKIP] G：旧型 THE GIST の v13 _lex なし＝§v14 特別枠は完遂（過渡ストリーム）" -ForegroundColor Yellow }
+    }
 
     Write-Host "`n———————— TJR バッチ $b 集計 ————————" -ForegroundColor Cyan
     if ($runF) { Write-Host ("  F（修復）        exit={0}  実行 {1} 件 / 検出 {2} 件" -f $fRes.Rc, $fRes.Dispatched, $fRes.Actionable) }
@@ -592,7 +634,8 @@ for ($b = 1; $b -le $batchCount; $b++) {
     if ($runR) { Write-Host ("  R（旧_lex・{0}）  exit={1}" -f $(if($subR){$subR}else{'-'}), $rcR) }
     if ($runQ) { Write-Host ("  Q（§v13q・刑訴） exit={0}  残={1} 件（バッチ開始時点）" -f $rcQ, $qPend) }
     if ($runS) { Write-Host ("  S（§v13v・民法優先）exit={0}  残={1} 件（バッチ開始時点）" -f $rcS, $sPend) }
-    if ($rcT -ne 0 -or $rcJ -ne 0 -or $rcR -ne 0 -or $rcQ -ne 0 -or $rcS -ne 0 -or $fRes.Rc -ne 0) { $rcAll = 1 }
+    if ($runG) { Write-Host ("  G（§v14 GIST）   exit={0}  残={1} 件（バッチ開始時点）" -f $rcG, $gPend) }
+    if ($rcT -ne 0 -or $rcJ -ne 0 -or $rcR -ne 0 -or $rcQ -ne 0 -or $rcS -ne 0 -or $rcG -ne 0 -or $fRes.Rc -ne 0) { $rcAll = 1 }
 }
 
 Write-Host "`n  TJR 終了 exit=$rcAll" -ForegroundColor Cyan
