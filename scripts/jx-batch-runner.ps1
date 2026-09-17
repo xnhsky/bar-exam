@@ -12,6 +12,7 @@
 #      └→ PASS 時点で入力 PDF のみ削除（逐語は保持）
 #      └→ PASS 時点で副産物を蒸留（非致命・JX 本流は止めない）:
 #           ②-rx RX 論証カード / ②-arb TREE 樹形図 / ②-ariadne ARIADNE 解法ナビ＋周回
+#           ②-peripatos PERIPATOS 音声学習の台本（ARIADNE から決定論生成・LLM 不要）
 #   ③ claude -p (prompts/tts-jx-headless.md)   JX HTML → TTS 台本
 #   ④ python validate-tts.py                   exit 0 = PASS
 #      └→ PASS 時点で台本 *.txt を tts/input_texts/ へ集約（既 wav はスキップ）
@@ -55,6 +56,7 @@ param(
     [switch]$SkipRx,                    # 指定時は②-rx RX論証カード生成（Lexia 用副産物）をスキップ
     [switch]$SkipArb,                   # 指定時は②-arb ARBOR樹形図生成（Lexia 用副産物）をスキップ
     [switch]$SkipAriadne,               # 指定時は②-ariadne ARIADNE解法ナビ生成（Lexia 用副産物）をスキップ
+    [switch]$SkipPeripatos,             # 指定時は②-peripatos PERIPATOS（音声学習の台本・ARIADNE から決定論生成）をスキップ
     [string]$ArborRoot = 'C:\Users\xnrg2.DESKTOP-5664QR6\arbor',  # ARBOR 正典リポジトリのルート
     [string]$ProjectRoot = '',          # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [switch]$DryRun                     # 実 claude -p 呼ばず検出・パス解決・スキップ判定のみ
@@ -125,6 +127,9 @@ $ValidateAriadne    = Join-Path $ProjectRoot "scripts\validate-ariadne.py"
 $CanonicalAriadne   = Join-Path $ProjectRoot "canonical\ARIADNE.html"
 $CanonicalAriadneSlots = Join-Path $ProjectRoot "canonical\ARIADNE.placeholder.html"
 $AriadneOutputBase  = Join-Path $ProjectRoot "outputs\ux\001_ARIADNE"
+# 副産物（②-peripatos PERIPATOS 音声学習の台本 — ARIADNE から決定論生成・LLM 不要）
+$PeripatosScript    = Join-Path $ProjectRoot "scripts\peripatos-md.py"
+$PeripatosOutputBase = Join-Path $ProjectRoot "outputs\ux\005_PERIPATOS"
 
 # 音声段（⑤）: 台本集約先と generate_tts.py 起動ラッパ
 $TtsInputDir   = Join-Path $ProjectRoot "tts\input_texts"   # generate_tts.py の入力
@@ -142,6 +147,7 @@ $TtsOutputDir  = Join-Path $TtsOutputBase $SubjectDir
 $RxOutputDir   = Join-Path $RxOutputBase  $SubjectDir
 $ArbOutputDir  = Join-Path $ArbOutputBase $SubjectDir
 $AriadneOutputDir = Join-Path $AriadneOutputBase $SubjectDir
+$PeripatosOutputDir = Join-Path $PeripatosOutputBase $SubjectDir
 $RxArbCsv      = Join-Path $LogsDir "rx-arb-summary.csv"
 
 # === API キー自動読込（⑤音声用・直書き禁止／git管理外の .secrets から）===
@@ -248,7 +254,18 @@ if ($AriadneEnabled -and -not (Test-Path $AriadnePromptSrc)) { Write-Host "[NOTE
 if ($AriadneEnabled -and -not (Test-Path $ValidateAriadne))  { Write-Host "[NOTE] validate-ariadne.py 不在 → ②-ariadne 自動スキップ: $ValidateAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE] canonical ARIADNE 不在 → ②-ariadne 自動スキップ: $CanonicalAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadneSlots)) { Write-Host "[NOTE] ARIADNE slot contract 不在 → ②-ariadne 自動スキップ: $CanonicalAriadneSlots" -ForegroundColor Yellow; $AriadneEnabled = $false }
-Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'}) / ARIADNE(解法ナビ)=$(if($AriadneEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir / $AriadneOutputDir"
+$PeripatosEnabled = (-not $SkipPeripatos)
+if ($PeripatosEnabled -and -not (Test-Path $PeripatosScript)) { Write-Host "[NOTE] peripatos-md.py 不在 → ②-peripatos 自動スキップ: $PeripatosScript" -ForegroundColor Yellow; $PeripatosEnabled = $false }
+Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'}) / ARIADNE(解法ナビ)=$(if($AriadneEnabled){'ON'}else{'OFF'}) / PERIPATOS(音声台本)=$(if($PeripatosEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir / $AriadneOutputDir / $PeripatosOutputDir"
+
+# PERIPATOS は ARIADNE から決定論で作る（LLM 不要・冪等＝中身が変わったときだけ書く・非致命）
+function Sync-Peripatos([string[]]$ids) {
+    if (-not $PeripatosEnabled) { return }
+    $srcs = @($ids | ForEach-Object { Join-Path $AriadneOutputDir "${_}_ARIADNE.html" } | Where-Object { Test-Path $_ })
+    if ($srcs.Count -eq 0) { return }
+    $pOut = & python -X utf8 $PeripatosScript --quiet @srcs 2>&1
+    Write-Host "[②-peripatos] $(($pOut | Select-Object -Last 1))" -ForegroundColor $(if ($LASTEXITCODE -eq 0) { 'Green' } else { 'Yellow' })
+}
 
 # === F モード（TJR-F 修復）対象番号の解決 ===
 $RepairSet = @{}
@@ -415,6 +432,7 @@ if ($DryRun) {
         Write-Host "      ②-rx RX    : $RxOutputDir\${Subject}RX$($t.Number)_*.html  (enabled=$RxEnabled)"
         Write-Host "      ②-arb TREE  : $ArbOutputDir\$($t.ProblemId)_TREE.html  (enabled=$ArbEnabled)"
         Write-Host "      ②-ariadne   : $AriadneOutputDir\$($t.ProblemId)_ARIADNE.html  (enabled=$AriadneEnabled)"
+        Write-Host "      ②-peripatos : $PeripatosOutputDir\$($t.ProblemId)_PERIPATOS.md  (enabled=$PeripatosEnabled・ARIADNE から決定論生成)"
     }
     $audioPlan = if ($SkipAudio) { "スキップ(-SkipAudio)" }
                  elseif ([string]::IsNullOrWhiteSpace($env:GEMINI_API_KEY)) { "スキップ(GEMINI_API_KEY 未設定)" }
@@ -738,6 +756,11 @@ foreach ($t in $Pending) {
     }
 
     # =========================================================
+    # ②-peripatos PERIPATOS 音声学習の台本（ARIADNE があれば決定論生成・LLM 不要・非致命）
+    # =========================================================
+    if ($jxPass) { Sync-Peripatos @($t.ProblemId) }
+
+    # =========================================================
     # ③ TTS 生成（jxPass 時のみ / tts-jx-headless.md）
     # =========================================================
     if ($jxPass) {
@@ -853,10 +876,13 @@ function Test-Byproducts([string]$id) {
     $okRx   = (-not $RxEnabled)      -or (@(Get-ChildItem -Path (Join-Path $RxOutputDir $id) -Filter '*.html' -File -ErrorAction SilentlyContinue).Count -gt 0)
     $okArb  = (-not $ArbEnabled)     -or (Test-Path (Join-Path $ArbOutputDir "${id}_TREE.html"))
     $okAria = (-not $AriadneEnabled) -or (Test-Path (Join-Path $AriadneOutputDir "${id}_ARIADNE.html"))
-    return ($okRx -and $okArb -and $okAria)
+    # PERIPATOS は ARIADNE が在るときだけ要求する（ARIADNE 欠落は上の okAria が backfill を起動する）
+    $okPeri = (-not $PeripatosEnabled) -or (-not (Test-Path (Join-Path $AriadneOutputDir "${id}_ARIADNE.html"))) -or (Test-Path (Join-Path $PeripatosOutputDir "${id}_PERIPATOS.md"))
+    return ($okRx -and $okArb -and $okAria -and $okPeri)
 }
 if ($DeployIds.Count -gt 0 -and -not $DryRun) {
     Write-Host "`n--- ②-verify 副産物そろい検査 ---" -ForegroundColor Cyan
+    Sync-Peripatos $DeployIds   # ARIADNE 生成後の磨き込みも反映させるため、検査の直前にも同期（冪等）
     $missing = @($DeployIds | Where-Object { -not (Test-Byproducts $_) })
     if ($missing.Count -eq 0) {
         Write-Host "[②-verify] 全 $($DeployIds.Count) 問の副産物そろい確認 ✅" -ForegroundColor Green
@@ -870,6 +896,7 @@ if ($DeployIds.Count -gt 0 -and -not $DryRun) {
             if (-not $ArbEnabled)     { $bfArgs += '-SkipArb' }
             if (-not $AriadneEnabled) { $bfArgs += '-SkipAriadne' }
             & pwsh @bfArgs
+            Sync-Peripatos $missing   # backfill で作られた ARIADNE から PERIPATOS を作る（backfill 側でも同期するが念のため）
             $still = @($missing | Where-Object { -not (Test-Byproducts $_) })
             if ($still.Count -eq 0) {
                 Write-Host "[②-verify] backfill 後そろい確認 ✅" -ForegroundColor Green

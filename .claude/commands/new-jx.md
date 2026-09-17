@@ -152,6 +152,10 @@ description: 新規 JX ファイルを問題 PDF から生成（active v4.0.0 LO
     - 各サブエージェントは末尾で sentinel（`BATCH_ITEM_COMPLETED:{ID}-RX` 等）を echo して終了する。
       検証 ERROR が残ったら最大 3 周修正。**3 種いずれかが失敗してもメインは続行**し、完了報告に成否を併記する。
     - **`<script>...</script>` 内 `</body>` リテラル禁止**は副産物にも適用（各 validate が機械検出）。
+    - **4つ目の副産物 PERIPATOS（音声学習の台本 MD・2026-09-17）は Agent 不要**。ARIADNE が PASS したら
+      メインでそのまま `python -X utf8 scripts/peripatos-md.py outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html`
+      を実行する（ARIADNE から決定論生成・数秒・冪等）。出力＝`outputs/ux/005_PERIPATOS/{00N_科目}/{ID}_PERIPATOS.md`。
+      構成・用語は確定済み（答案構成→規範クイズ→○×→復習）なので、生成物を手で書き換えない（直すならスクリプト側）。
 
 35-bis. **【push 前・副産物そろい検査＝秘密裏に埋める】**（2026-06-22 追加・「HTML＋TTS だけ」push の
     再発防止＝別PC生成の 刑JX056〜063 が副産物ゼロで push された実害への恒久対策）。
@@ -167,6 +171,7 @@ description: 新規 JX ファイルを問題 PDF から生成（active v4.0.0 LO
     | **RX** | `outputs/ux/002_RX/{00N_科目}/{ID}/` に `{科目接頭}RX{NNN}_*.html` が **1 枚以上** |
     | **TREE** | `outputs/ux/003_TREE/{00N_科目}/{ID}_TREE.html` が存在 |
     | **ARIADNE** | `outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html` が存在 |
+    | **PERIPATOS** | `outputs/ux/005_PERIPATOS/{00N_科目}/{ID}_PERIPATOS.md` が存在（無ければ上記の python を1回実行するだけ。`jx-push.sh` も stage 直前に同期する） |
 
     - 各系統の **validate（validate-rx / validate-tree / validate-ariadne）が PASS** であることも併せて確認。
     - **欠落・未検証があれば、その系統の `Agent` を最大 2 回まで再起動**して埋める（RX→TREE→ARIADNE のうち

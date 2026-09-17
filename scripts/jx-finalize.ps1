@@ -4,7 +4,8 @@
 #   ① GitHub バックアップ : outputs/001_JX/{Subject}JX/{ID}.html ＋ outputs/002_TTS/{ID}/
 #                          ＋ 副産物 outputs/ux/002_RX/{00N_科目}/{Subject}RX{NNN}_*.html
 #                          ＋ outputs/ux/003_TREE/{00N_科目}/{ID}_TREE.html
-#                          ＋ outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html を git add → commit
+#                          ＋ outputs/ux/001_ARIADNE/{00N_科目}/{ID}_ARIADNE.html
+#                          ＋ outputs/ux/005_PERIPATOS/{00N_科目}/{ID}_PERIPATOS.md（ARIADNE から同期）を git add → commit
 #   ② 入力クリーンアップ  : 【2026-07-09 恒久無効化】入力 PDF＋逐語は削除せず inputs に恒久保管する。
 #       旧運用（Drive バックアップ後に git rm）は撤回。foreach 内で②に入る直前に必ず continue で
 #       スキップする（①③は維持）。手動で消したい時のみ scripts/jx-cleanup-pdf.sh を明示実行。
@@ -189,7 +190,16 @@ foreach ($id in $Ids) {
     if (Test-Path -LiteralPath $arbAbs) { $addPaths += "outputs/ux/003_TREE/$($DriveHtml[$Subject])/${id}_TREE.html" }
     # ARIADNE 解法ナビ＋周回（Lexia 取込・存在すれば同じコミットで永続化）
     $ariaAbs = Join-Path $ProjectRoot "outputs\ux\001_ARIADNE\$($DriveHtml[$Subject])\${id}_ARIADNE.html"
-    if (Test-Path -LiteralPath $ariaAbs) { $addPaths += "outputs/ux/001_ARIADNE/$($DriveHtml[$Subject])/${id}_ARIADNE.html" }
+    if (Test-Path -LiteralPath $ariaAbs) {
+        $addPaths += "outputs/ux/001_ARIADNE/$($DriveHtml[$Subject])/${id}_ARIADNE.html"
+        # PERIPATOS 音声学習の台本（ARIADNE から決定論生成・未生成/古ければここで同期して同じコミットへ）
+        $periScript = Join-Path $ProjectRoot 'scripts\peripatos-md.py'
+        if ((Test-Path -LiteralPath $periScript) -and -not $DryRun) { & python -X utf8 $periScript --quiet $ariaAbs 2>&1 | Out-Null }
+        $periRel = "outputs/ux/005_PERIPATOS/$($DriveHtml[$Subject])/${id}_PERIPATOS.md"
+        if (Test-Path -LiteralPath (Join-Path $ProjectRoot $periRel)) { $addPaths += $periRel }
+        $periGuide = 'outputs/ux/005_PERIPATOS/PERIPATOS_プロジェクト指示.md'
+        if (Test-Path -LiteralPath (Join-Path $ProjectRoot $periGuide)) { $addPaths += $periGuide }
+    }
     if ($DryRun) {
         Write-Host "  [DRYRUN] git add $($addPaths -join ' ') ; commit"
     } else {
@@ -199,7 +209,7 @@ foreach ($id in $Ids) {
         # 差分があれば commit（無ければ既コミット済みとして続行）
         git diff --cached --quiet -- $addPaths
         if ($LASTEXITCODE -ne 0) {
-            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本＋RX/TREE/ARIADNE）"
+            git commit -q -m "chore(jx): $id を生成・GitHub バックアップ保存（HTML＋TTS台本＋RX/TREE/ARIADNE/PERIPATOS）"
             Write-Host "  [① backup] commit 済み: $id" -ForegroundColor Green
             $pushNeeded = $true
         } else {

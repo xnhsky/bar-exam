@@ -9,7 +9,8 @@
 # 動作：
 #   1) Lexia preflight（重複/同期契約/ARIADNE正典/RX到達性）を通す
 #   2) 対象（既定 outputs/001_JX ＋ outputs/ux 配下の追加/変更/未追跡 HTML）を git add
-#      （ux = リモート生成の副産物 RX/TREE/ARIADNE。本体 JX と一緒に永続化する）
+#      （ux = リモート生成の副産物 RX/TREE/ARIADNE＋PERIPATOS。本体 JX と一緒に永続化する。
+#        PERIPATOS は stage 直前に ARIADNE から決定論で同期する＝Phase 9 で作り忘れても拾う）
 #   3) 差分が無ければ何もしない
 #   4) commit（メッセージは引数 or 既定）
 #   5) git push -u origin <現ブランチ> をネットワークエラー時に指数バックオフ再試行
@@ -61,6 +62,8 @@ fi
 # 1) stage
 echo "--- stage: ${TARGETS[*]} ---"
 if [ "$DRY" -eq 0 ]; then
+  # PERIPATOS（音声学習の台本）を ARIADNE と同期（決定論・冪等・非致命＝bs4 が無い環境でも push は止めない）
+  python3 -X utf8 scripts/peripatos-md.py --all --quiet 2>/dev/null || python -X utf8 scripts/peripatos-md.py --all --quiet 2>/dev/null || true
   git add -- "${TARGETS[@]}"
 fi
 

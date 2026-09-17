@@ -6,6 +6,25 @@
 |---|---|---|---|
 | **RX** | 論証カード（1論点1HTML・規範トグル＋○×クイズ付き） | `outputs/ux/002_RX/{00N_科目}/{科目}JX{NNN}/{科目}RX{NNN}_{n}.html`（問題ごとサブフォルダ・2026-06-20 恒久化） | TX/JX と同格の SRS カード（今日のキュー・逆算・弱点注入の対象） |
 | **TREE** | ARBOR 横向き樹形図（1問1枚） | `outputs/ux/003_TREE/{科目}TREE/{科目}JX{NNN}_TREE.html` | 参考教材（TREE カテゴリ・SRS 対象外） |
+| **PERIPATOS** | 音声学習の台本 MD（1問1本・ChatGPT 音声モード用・2026-09-17） | `outputs/ux/005_PERIPATOS/{00N_科目}/{科目}JX{NNN}_PERIPATOS.md`＋`PERIPATOS_プロジェクト指示.md` | Lexia は取り込まない（`.html` のみ収集）。Drive `ux\005_PERIPATOS` からスマホで使う |
+
+## PERIPATOS（音声学習の台本・2026-09-17 配線）
+
+ARIADNE から **決定論で作る**（LLM 不要・数秒・冪等＝中身が変わったときだけ書く）ので、RX/TREE/ARIADNE と違い
+「欠けたら AI で補完」ではなく「ARIADNE ができた・直ったら同期」で扱う。生成は `scripts/peripatos-md.py` だけ。
+
+- **構成（ユーザーと確定・固定）**：答案構成（問題文→事実の要点→入口の問い→骨子を論点ごとに「何が問題→規範→使う事実→結論」、
+  段階ヒント4段・項目ごとの復唱・通しの口頭構成）→ 規範クイズ → ○×クイズ → 間違えたところの復習。
+  答案の書き方の一般論・論じる順番・配点は入れない。AI が全進行を仕切り、楽しく進める。
+- **使い方（ユーザー側）**：ChatGPT のプロジェクト指示欄に `PERIPATOS_プロジェクト指示.md` を貼り、シートをプロジェクトに入れて音声で「刑法42」。
+- **同期する場所**（どれか1つが動けば揃う）：
+  - `jx-batch-runner.ps1` ②-peripatos（各問）＋②-verify（検査直前と backfill 後）／`-SkipPeripatos` で抑止
+  - `rx-arb-backfill.ps1`（ポリッシュ後・早期終了時も科目単位で同期／DryRun は点検のみ）
+  - `rx-arb-autofill.ps1`（毎スイープ全件同期→差分があれば outputs/ux と一緒に commit/push）
+  - `jx-finalize.ps1`（ARIADNE と同じコミットに PERIPATOS を載せる）／`jx-push.sh`（stage 直前に全件同期）
+  - `jx-deploy.ps1`（repo ミラー＋Drive の `ux\005_PERIPATOS\00N_科目\` と共通指示を配置）
+  - `/new-jx` Phase 9（ARIADNE PASS 後に1コマンド）・`/new-ariadne` 手順 5-bis
+- **点検**：`python -X utf8 scripts/peripatos-md.py --all --check`（未生成・古いシートがあれば exit 1）
 
 ## 関連ファイル
 

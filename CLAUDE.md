@@ -906,6 +906,17 @@ Drive へのバックアップ（ミラー）は引き続き任意で行って�
 **TREE 樹形図**（`outputs/ux/003_TREE/`・ARBOR 仕様）・**ARIADNE 解法ナビ**
 （`outputs/ux/001_ARIADNE/`）を自動生成する（既定 ON・非致命）。
 
+> **【4つ目の副産物 PERIPATOS・2026-09-17】** ARIADNE から **決定論で作る音声学習の台本 MD**
+> （`outputs/ux/005_PERIPATOS/{00N_科目}/{ID}_PERIPATOS.md`＋共通指示 `PERIPATOS_プロジェクト指示.md`）。
+> 移動中・ながら作業中に ChatGPT 音声モード（プロジェクト）で回す。生成は `scripts/peripatos-md.py` のみ
+> （LLM 不要・冪等＝中身が変わったときだけ書く）。**構成と用語はユーザーと確定・固定**＝答案構成（段階ヒント・
+> 復唱・通しの口頭構成）→ 規範クイズ → ○×クイズ → 間違えたところの復習／答案の書き方の一般論・論じる順番・
+> 配点は入れない／AI が全進行を仕切り楽しく。変えるときは必ずユーザーに確認し、生成物を手で直さずスクリプトを直す。
+> 同期経路＝jx-batch-runner ②-peripatos・②-verify／rx-arb-backfill／rx-arb-autofill（毎スイープ）／
+> jx-finalize／jx-push.sh（stage 直前）／jx-deploy（Drive `ux\005_PERIPATOS`）／`/new-jx` Phase 9／`/new-ariadne` 5-bis。
+> Lexia は `.html` しか取り込まないので影響なし。点検＝`python -X utf8 scripts/peripatos-md.py --all --check`。
+> 詳細は `docs/rx-arb-byproducts.md` の PERIPATOS 節。
+
 > **【最上位原則・2026-06-22】JX 生成は「副産物 3 種（RX/TREE/ARIADNE）の生成まで含めて 1 セット」。**
 > どんな指示・どの経路（バッチ／`/new-jx`／対話で「JX 作って」「JX＋TTS だけ」「JX-PICK 56」等）であっても、
 > **JX HTML を 1 問作ったら、その問題の RX・TREE・ARIADNE も必ず作って push する**。HTML＋TTS だけで

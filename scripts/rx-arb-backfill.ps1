@@ -5,6 +5,8 @@
 #   TREE    = ARBOR 樹形図（1問1枚 / outputs/ux/003_TREE/{00N_科目}/{科目}JX{NNN}_TREE.html）
 #   ARIADNE = 解法ナビ＋周回（1問1枚 / outputs/ux/001_ARIADNE/{00N_科目}/{科目}JX{NNN}_ARIADNE.html）
 # が**未生成のものだけ**を後追い生成するバックフィルランナー。
+#   PERIPATOS = 音声学習の台本（1問1MD / outputs/ux/005_PERIPATOS/{00N_科目}/{科目}JX{NNN}_PERIPATOS.md）は
+#   ARIADNE から決定論で作る（LLM 不要）ので、毎回の終わりに科目単位で同期する（中身が変わったときだけ書く）。
 # 新規 JX は jx-batch-runner.ps1 の ②-rx / ②-arb / ②-ariadne 段が自動で副産物を作るので、
 # 本スクリプトは「ランナー導入以前に生成済みの JX 資産」を埋めるために使う。
 #
@@ -26,6 +28,7 @@ param(
     [switch]$SkipRx,
     [switch]$SkipArb,
     [switch]$SkipAriadne,
+    [switch]$SkipPeripatos,
     [string]$ArborRoot = 'C:\Users\xnrg2.DESKTOP-5664QR6\arbor',
     [string]$ProjectRoot = '',          # 別 clone/root で生成する場合に指定（未指定はこの repo）
     [switch]$DryRun
@@ -91,6 +94,15 @@ if ($AriadneEnabled -and -not (Test-Path $AriadnePromptSrc)) { Write-Host "[NOTE
 if ($AriadneEnabled -and -not (Test-Path $ValidateAriadne))  { Write-Host "[NOTE] validate-ariadne.py 不在 → ARIADNE スキップ" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE] canonical ARIADNE 不在 → ARIADNE スキップ: $CanonicalAriadne" -ForegroundColor Yellow; $AriadneEnabled = $false }
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadneSlots)) { Write-Host "[NOTE] ARIADNE slot contract 不在 → ARIADNE スキップ: $CanonicalAriadneSlots" -ForegroundColor Yellow; $AriadneEnabled = $false }
+$PeripatosScript = Join-Path $ProjectRoot "scripts\peripatos-md.py"
+$PeripatosEnabled = (-not $SkipPeripatos) -and (Test-Path $PeripatosScript)
+# PERIPATOS（音声学習の台本）を科目単位で ARIADNE と同期する（決定論・冪等・非致命）。DryRun は点検のみ。
+function Sync-Peripatos {
+    if (-not $PeripatosEnabled) { return }
+    $mode = if ($DryRun) { '--check' } else { '--quiet' }
+    $pOut = & python -X utf8 $PeripatosScript --subject $Subject $mode 2>&1
+    Write-Host "$(($pOut | Select-Object -Last 1))" -ForegroundColor $(if ($LASTEXITCODE -eq 0) { 'Green' } else { 'Yellow' })
+}
 if (-not ($RxEnabled -or $ArbEnabled -or $AriadneEnabled)) {
     Write-Host "[ABORT] RX/TREE/ARIADNE とも無効。やることがありません。" -ForegroundColor Red
     Stop-Transcript | Out-Null; exit 1
@@ -179,10 +191,12 @@ foreach ($t in $Targets) {
     Write-Host ("  ● {0}  欠落: {1}" -f $t.ProblemId, ($needs -join '+')) -ForegroundColor Cyan
 }
 if ($Targets.Count -eq 0) {
+    Sync-Peripatos
     Write-Host "全 JX に副産物が揃っています。終了。" -ForegroundColor Green
     Stop-Transcript | Out-Null; exit 0
 }
 if ($DryRun) {
+    Sync-Peripatos
     Write-Host "`n[DRY-RUN] 終了（実生成なし）。" -ForegroundColor Yellow
     Stop-Transcript | Out-Null; exit 0
 }
@@ -290,6 +304,9 @@ if ($AriadneEnabled) {
         }
     }
 }
+
+# --- PERIPATOS 同期：ポリッシュ後の ARIADNE から作る（決定論・冪等）---
+Sync-Peripatos
 
 Write-Host "`n=== rx-arb-backfill 終了 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "コストログ: $RxArbCsv"

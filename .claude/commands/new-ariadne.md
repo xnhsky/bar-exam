@@ -47,6 +47,9 @@ ATHENA（百科事典）はそのまま。ARIADNE は別系統の副産物（RX/
    二系統・CONFIDENT のみ・冪等・LF保持）。CONFLICT（明記番号と索引日付の矛盾）は一次資料で番号是正・未収録明記・
    陳腐化 id 修正してから配信。**百選未収録の判例には付さない**（旧版番号の流用は Lexia で誤バッジ・誤マージ）。
 5. `validate-ariadne.py` で A1〜A21 ERROR 0 を確認。
+5-bis. **PERIPATOS（音声学習の台本）を同期**：`python -X utf8 scripts/peripatos-md.py {OUT}` を実行
+   （ARIADNE から決定論生成・冪等＝中身が変わったときだけ書く）。出力＝`outputs/ux/005_PERIPATOS/{00N_科目}/{科目}JX{NNN}_PERIPATOS.md`。
+   既存 ARIADNE を直したときも同じコマンドで作り直す（常駐 `rx-arb-autofill.ps1` と `jx-push.sh` も同期するので、忘れても後で揃う）。
 6. **master に commit/push**（Lexia は `barExamSync.js` で outputs/ を自動スキャン＝push で自動同期）。
 
 ## 規律

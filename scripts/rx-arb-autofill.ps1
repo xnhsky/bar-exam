@@ -11,6 +11,8 @@
        バッチ進行中とみなしスキップ（バッチ側 ②-verify ゲートに任せ、claude -p/git の競合を避ける）。
     3. git pull --ff-only（別PCの JX を取り込む。失敗してもローカルで続行）。
     4. 全 7 科目について rx-arb-backfill.ps1（生成のみ・既存スキップ）を $MaxPerSubject 件まで実行。
+    4-bis. PERIPATOS（音声学習の台本・outputs/ux/005_PERIPATOS）を全 ARIADNE と同期する
+       （ARIADNE から決定論生成・LLM 不要・中身が変わったときだけ書く。ARIADNE の後追い修正もここで反映）。
     5. outputs/ux に差分があれば **outputs/ux だけ** commit→push（JX HTML には触れない＝半生成と非干渉）。
        push 失敗時は pull --rebase して 1 回再試行。
 
@@ -122,11 +124,21 @@ try {
     $m = Get-Missing $s
     if ($m.Count -gt 0) { Log "$s：副産物欠落 $($m.Count) 問 → $($m -join ', ')" 'Cyan'; $totalMissing += [PSCustomObject]@{ Subject=$s; Ids=$m } }
   }
-  if ($totalMissing.Count -eq 0) { Log "全科目で副産物そろい確認 ✅（補完不要）" 'Green'; exit 0 }
-  if ($DryRun) { Log "[DRY-RUN] 上記を補完予定（生成・push なし）" 'Yellow'; exit 0 }
-  if (-not (Test-Path $Backfill)) { Log "rx-arb-backfill.ps1 不在 → 中止: $Backfill" 'Red'; exit 1 }
+  # --- 4-bis. PERIPATOS 同期（決定論・LLM 不要・冪等）。DryRun は点検のみ ---
+  $PeriScript = Join-Path $ProjectRoot 'scripts\peripatos-md.py'
+  $periChanged = $false
+  if (Test-Path $PeriScript) {
+    $pMode = if ($DryRun) { '--check' } else { '--quiet' }
+    $pOut = & python -X utf8 $PeriScript --all $pMode 2>&1
+    Log "PERIPATOS 同期: $(($pOut | Select-Object -Last 1))" 'Cyan'
+    if (-not $DryRun) { $periChanged = [bool](& git status --porcelain -- outputs/ux/005_PERIPATOS) }
+  }
 
-  # --- 5. backfill 実行（科目ごと・MaxPerSubject 件まで）---
+  if ($totalMissing.Count -eq 0 -and -not $periChanged) { Log "全科目で副産物そろい確認 ✅（補完不要）" 'Green'; exit 0 }
+  if ($DryRun) { Log "[DRY-RUN] 上記を補完予定（生成・push なし）" 'Yellow'; exit 0 }
+  if ($totalMissing.Count -gt 0 -and -not (Test-Path $Backfill)) { Log "rx-arb-backfill.ps1 不在 → 中止: $Backfill" 'Red'; exit 1 }
+
+  # --- 5. backfill 実行（科目ごと・MaxPerSubject 件まで。backfill 側も終わりに PERIPATOS を同期する）---
   foreach ($t in $totalMissing) {
     $nums = @($t.Ids | ForEach-Object { if ($_ -match '(\d+)\s*$') { [int]$Matches[1] } } | Sort-Object)
     Log "$($t.Subject)：backfill 起動（範囲 $($nums[0])〜$($nums[-1])・最大 $MaxPerSubject 件）" 'Cyan'
@@ -147,6 +159,7 @@ try {
 
   $filledDesc = ($totalMissing | ForEach-Object { "$($_.Subject)[$($_.Ids -join ',')]" }) -join ' '
   $msg = "chore(jx): 副産物 自動補完（autofill・$($totalMissing.Subject -join '/'))"
+  if ($totalMissing.Count -eq 0) { $filledDesc = 'PERIPATOS 同期のみ'; $msg = 'chore(jx): PERIPATOS を ARIADNE と同期（autofill）' }
   & git commit -q -m $msg
   $sha = git rev-parse --short HEAD
   Log "commit 作成: $sha" 'Green'

@@ -13,6 +13,8 @@
 #       RX     → 「{2 JX_論 文}\ux\002_RX\00N_科目\{問題ID}\」（問題IDサブフォルダ内）
 #       TREE   → 「{2 JX_論 文}\ux\003_TREE\00N_科目\」
 #       ARIADNE→ 「{2 JX_論 文}\ux\001_ARIADNE\00N_科目\」
+#       PERIPATOS→「{2 JX_論 文}\ux\005_PERIPATOS\00N_科目\」＋ ux\005_PERIPATOS\PERIPATOS_プロジェクト指示.md
+#         （音声学習の台本 MD。スマホの Drive から ChatGPT に添付して使う・2026-09-17）
 #     ※ 旧 B_RX / C_TREE / D_ARIADNE 系統は ux\ へ集約して廃止（2026-06-22・ユーザー指示）。
 #
 # 使い方:
@@ -54,6 +56,8 @@ $TtsOrigName = 'TTSファイル原本'
 $RxRoot      = 'ux\002_RX'       # RX 論証カード（repo outputs\ux\002_RX に対応）
 $ArbRoot     = 'ux\003_TREE'     # TREE 樹形図（repo outputs\ux\003_TREE に対応）
 $AriaRoot    = 'ux\001_ARIADNE'  # ARIADNE 解法ナビ＋周回（repo outputs\ux\001_ARIADNE に対応）
+$PeriRoot    = 'ux\005_PERIPATOS' # PERIPATOS 音声学習の台本（repo outputs\ux\005_PERIPATOS に対応）
+$PeriGuide   = 'PERIPATOS_プロジェクト指示.md'
 
 # === 配置先ベースの解決 ===
 # ① repo ミラー（常時）
@@ -101,6 +105,7 @@ function Get-SubjectDirs([string]$base, $info) {
         Rx    = Join-Path (Join-Path $base $RxRoot)   $info.html
         Arb   = Join-Path (Join-Path $base $ArbRoot)  $info.html
         Aria  = Join-Path (Join-Path $base $AriaRoot) $info.html
+        Peri  = Join-Path (Join-Path $base $PeriRoot) $info.html
     }
 }
 
@@ -118,7 +123,7 @@ if ($InitAll) {
         foreach ($subj in $Map.Keys) {
             $d = Get-SubjectDirs $t.Base $Map[$subj]
             Ensure-Dir $d.Html; Ensure-Dir $d.Mimi; Ensure-Dir $d.Tts
-            Ensure-Dir $d.Rx; Ensure-Dir $d.Arb; Ensure-Dir $d.Aria
+            Ensure-Dir $d.Rx; Ensure-Dir $d.Arb; Ensure-Dir $d.Aria; Ensure-Dir $d.Peri
             # PDF/逐語の原本バックアップ先は Drive のみ（repo ミラーには作らない＝git 肥大化回避）
             if ($t.Label -ne 'repo') { Ensure-Dir $d.Pdf; Ensure-Dir $d.Trans }
             Write-Host ("  {0,-4} -> {1} / {2}\{3} / {4}\{1} / {5}\{1} / {6}\{1}" -f $subj, $Map[$subj].html, $Map[$subj].mimi, $TtsOrigName, $RxRoot, $ArbRoot, $AriaRoot)
@@ -158,14 +163,23 @@ else { $Ids = @(Get-ChildItem -Path $JxOutDir -Filter "*.html" -File -ErrorActio
 $RxOutDir   = Join-Path $ProjectRoot "outputs\ux\002_RX\$($info.html)"
 $ArbOutDir  = Join-Path $ProjectRoot "outputs\ux\003_TREE\$($info.html)"
 $AriaOutDir = Join-Path $ProjectRoot "outputs\ux\001_ARIADNE\$($info.html)"
+$PeriOutDir = Join-Path $ProjectRoot "outputs\ux\005_PERIPATOS\$($info.html)"
+$PeriGuideSrc = Join-Path $ProjectRoot "outputs\ux\005_PERIPATOS\$PeriGuide"
 
 if ($Ids.Count -eq 0) { Write-Host "[NOTE] 配置対象 ID なし（$JxOutDir に HTML が無い）。" -ForegroundColor Yellow; exit 0 }
 
 Write-Host "=== jx-deploy：$Subject / 対象 $($Ids.Count) 問 / 配置先 $($Targets.Count) 系統（DryRun=$DryRun）===" -ForegroundColor Cyan
-$sumHtml = 0; $sumTxt = 0; $sumWav = 0; $sumPdf = 0; $sumTr = 0; $sumRx = 0; $sumArb = 0; $sumAria = 0
+$sumHtml = 0; $sumTxt = 0; $sumWav = 0; $sumPdf = 0; $sumTr = 0; $sumRx = 0; $sumArb = 0; $sumAria = 0; $sumPeri = 0
 foreach ($t in $Targets) {
     $d = Get-SubjectDirs $t.Base $info
     Ensure-Dir $d.Html; Ensure-Dir $d.Mimi; Ensure-Dir $d.Tts
+    # PERIPATOS の共通指示（ChatGPT プロジェクトの指示欄に貼る文）は系統フォルダ直下に1つ
+    if (Test-Path -LiteralPath $PeriGuideSrc) {
+        $periBase = Join-Path $t.Base $PeriRoot
+        Ensure-Dir $periBase
+        if ($DryRun) { Write-Host "  [DRYRUN] PERI  $PeriGuide -> $($t.Label):$PeriRoot" }
+        else { Copy-Item -LiteralPath $PeriGuideSrc -Destination $periBase -Force }
+    }
     foreach ($id in $Ids) {
         # HTML
         $html = Join-Path $JxOutDir "$id.html"
@@ -202,6 +216,13 @@ foreach ($t in $Targets) {
             Ensure-Dir $d.Aria
             if ($DryRun) { Write-Host "  [DRYRUN] ARIA  ${id}_ARIADNE.html -> $($t.Label):$AriaRoot\$($info.html)" }
             else { Copy-Item -LiteralPath $ariaSrc -Destination $d.Aria -Force; $sumAria++ }
+        }
+        # PERIPATOS 音声学習の台本（outputs/ux/005_PERIPATOS/00N_科目/{ID}_PERIPATOS.md）→ ux\005_PERIPATOS\00N_科目\
+        $periSrc = Join-Path $PeriOutDir "${id}_PERIPATOS.md"
+        if (Test-Path -LiteralPath $periSrc) {
+            Ensure-Dir $d.Peri
+            if ($DryRun) { Write-Host "  [DRYRUN] PERI  ${id}_PERIPATOS.md -> $($t.Label):$PeriRoot\$($info.html)" }
+            else { Copy-Item -LiteralPath $periSrc -Destination $d.Peri -Force; $sumPeri++ }
         }
         # TTS 台本 txt（outputs/002_TTS/{ID}/*.txt）→ TTSファイル原本\{問題ID}\ サブフォルダ内へ
         $txts = @(Get-ChildItem -Path (Join-Path $TtsBase $id) -Filter "*.txt" -File -ErrorAction SilentlyContinue)
@@ -245,5 +266,5 @@ foreach ($t in $Targets) {
     }
     Write-Host "  [$($t.Label)] 配置先ベース: $($t.Base)" -ForegroundColor DarkGray
 }
-if (-not $DryRun) { Write-Host ("=== 配置完了: HTML {0} / 台本 {1} / wav {2} / PDF {3} / 逐語 {4} / RX {5} / TREE {6} / ARIADNE {7}（全系統合計）===" -f $sumHtml, $sumTxt, $sumWav, $sumPdf, $sumTr, $sumRx, $sumArb, $sumAria) -ForegroundColor Green }
+if (-not $DryRun) { Write-Host ("=== 配置完了: HTML {0} / 台本 {1} / wav {2} / PDF {3} / 逐語 {4} / RX {5} / TREE {6} / ARIADNE {7} / PERIPATOS {8}（全系統合計）===" -f $sumHtml, $sumTxt, $sumWav, $sumPdf, $sumTr, $sumRx, $sumArb, $sumAria, $sumPeri) -ForegroundColor Green }
 exit 0
