@@ -5634,6 +5634,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5870,7 +6007,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>現行法は<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>当事者主義</span>を基本構造として訴因制度を導入し、旧法は<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>職権主義</span>を基本構造としていた（正しい命題）。<span class="tx-anscomp-line">現行刑事訴訟法は<strong>当事者主義</strong>を基本構造として訴因の制度を採り、審判の対象は検察官が起訴状に設定した訴因に限定され、裁判所はこれに拘束される（刑訴法256条6項・298条1項・312条1項）。これに対し旧刑事訴訟法は職権主義を基本構造とし、裁判所は起訴状記載の犯罪事実に限られず、公訴事実の同一性のある事実を、起訴状の変更を経ずに審理・判決できると解されていた。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。基本構造は「だれが審判の対象を決めるか」で決まる。旧法は裁判所が主導する<strong>職権主義</strong>で、裁判所は起訴状記載の犯罪事実に縛られず、公訴事実の同一性のある事実まで起訴状の変更なしに審理・判決できた。現行法はこれを改め、訴訟の追行を当事者（検察官と被告人）に委ねる<strong>当事者主義</strong>を基本構造とし、検察官が起訴状に掲げた訴因が審判の対象を画し、裁判所はその枠に拘束される。起訴状一本主義（<a class="ref-stat" href="#bref-1-256">256条6項</a>）・証拠調べ請求権（<a class="ref-stat" href="#bref-1-298">298条1項</a>）・訴因変更請求権（<a class="ref-stat" href="#bref-1-312">312条1項</a>）がその条文上の現れ。イメージは建物の設計図——旧法では裁判所が図面を自分で描き替えられたが、現行法で描き替えられるのは施主である検察官だけ。本記述は新旧のこの対比をそのまま述べており正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">旧法は職権主義、現行法は訴因制度をとる<strong>当事者主義</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">だれが審判の対象を決めるか</span><span class="tx-gist-step">当事者主義を支える制度と用語</span><span class="tx-gist-step">訴因変更命令の義務</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">裁判所が判決で認定してよい事実の範囲は、だれが決めるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">検察官が窃盗の事実で起訴した事件の審理が進むうちに、法廷に出てきた証拠は、むしろ強盗ではないかという方向を指し始めました。裁判所は、起訴状に書かれていない強盗の事実を、そのまま判決で認定してよいのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">裁判所が判断してよい範囲、すなわち<strong>審判の対象</strong>を、裁判所の側が自ら広くつかむのか、それとも起訴した検察官が設定した枠に限るのか。刑事訴訟法の基本構造は、この一点で分かれます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">旧刑事訴訟法は職権主義をとり、裁判所は起訴状記載の犯罪事実に縛られず、公訴事実の同一性のある事実まで起訴状の変更を経ずに審理・判決できると解されていました。現行法はこれを改め、検察官が起訴状に掲げた訴因が審判の対象を画する<strong>当事者主義</strong>を基本構造とします（刑訴法<a class="ref-stat" href="#bref-1-256">256条6項</a>・<a class="ref-stat" href="#bref-1-298">298条1項</a>・<a class="ref-stat" href="#bref-1-312">312条1項</a>）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">訴訟の追行を当事者に委ねると、検察官と被告人が対等に主張と立証をぶつけ合い、裁判所は一方に肩入れせずに判断に専念できます。被告人の側から見ても、何を防御すればよいのかが訴因によってはっきりします。裁判所が対象を自由に広げられるのでは、防御の的が動いてしまうのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>職権主義</span></dt><dd>裁判所が審判の対象の設定と証拠による立証について責任を負う原則。旧刑事訴訟法の基本構造。</dd></div><div class="tx-gist-term"><dt><span>訴因</span></dt><dd>検察官が起訴状に掲げ、審判の対象を画する具体的な犯罪事実の主張（刑訴法256条3項）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">建物の設計図を思い浮かべてください。旧法では裁判所が自分で図面を描き替えられましたが、現行法で描き替えられるのは施主である検察官だけです。裁判所はその図面の枠の中で判断します。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">現行法は当事者主義と訴因制度、旧法は職権主義という対比をそのまま述べており、条文と通説の理解と合います。旧法では起訴状の変更を経ずに公訴事実の同一性のある事実を審理・判決できたという点も、そのとおりです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>職権主義（旧法）を押さえる</strong><span class="syn-body">職権主義とは、裁判所が訴訟の追行（審判対象の設定と証拠による立証）の責任を負う原則。旧法では審判の対象は検察官が起訴状に記載した犯罪事実に限られず、その背後の<span class="case-emphasis freq-high">公訴事実そのもの</span>に及び、起訴状の変更なく窃盗の起訴で強盗を認定できた。</span></p>
 <p><span class="syn-step">2</span><strong>当事者主義＋訴因制度（現行法）を押さえる</strong><span class="syn-body">当事者主義とは、当事者（検察官と被告人）が訴訟の追行の責任を負う原則。現行法は訴因制度を導入し、審判の対象を検察官が設定した<span class="case-emphasis freq-high">訴因</span>に限定した。<a class="ref-stat" href="#bref-1-256">起訴状一本主義</a>・<a class="ref-stat" href="#bref-1-298">証拠調べ請求権</a>・<a class="ref-stat" href="#bref-1-312">訴因変更請求権</a>がその現れ。</span></p> </div>
@@ -5922,7 +6059,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴因変更命令について裁判所にその<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>義務</span>を認めるべきかが論じられ、判例・通説は原則としてこれを否定し例外的に肯定する（正しい命題）。<span class="tx-anscomp-line">訴因変更命令（刑訴法312条2項）は、検察官が設定した審判の対象を裁判所の側から修正するものであって当事者主義と緊張するから、裁判所に命令を発すべき<strong>義務</strong>は原則として生じない。もっとも、犯罪が重大で、かつ証拠上その成立が明白であるなどの特段の事情がある場合には、例外的に訴因変更を命ずべき義務が生じる（最決昭43.11.26）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。ここでの論点は、裁判所が訴因変更命令（<a class="ref-stat" href="#bref-2-312">312条2項</a>）を発する<strong>義務</strong>まで負うかである。命令は検察官が設定した審判の対象＝訴因を裁判所の側から動かすもので、訴訟の追行を当事者に委ねる当事者主義——だれを何の罪で裁くかの設計は検察官に任せる建前——と正面から緊張する。そこで<a class="ref-stat" href="#bref-2-case">判例</a>（最決昭43.11.26）・通説は、命令義務を原則として否定し、犯罪が重大で証拠上その成立が明白であるといった特段の事情がある場合にだけ例外的にこれを肯定する。イメージは他人の土俵——裁判所が検察官の土俵に手を入れるのは、放置すれば著しく正義に反する場面に限られる。本記述は原則否定・例外肯定というこの枠組みどおりで正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">裁判所は訴因変更を命ずる<strong>義務</strong>を原則として負わず、例外的に負う。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">だれが審判の対象を決めるか</span><span class="tx-gist-step">当事者主義を支える制度と用語</span><span class="tx-gist-step is-now">訴因変更命令の義務</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">裁判所は、訴因を変えるよう命じなければならない場合があるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">法廷に出てきた証拠は、起訴状の訴因のままでは無罪にせざるをえないけれども、訴因を変えれば重い罪が成り立つことを示しています。それでも検察官は、訴因変更を請求しようとしません。裁判所は黙って無罪の判決を書くほかないのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">条文は、裁判所が訴因変更を命ずることができると定めるだけです。そこから進んで、命じなければならない<strong>義務</strong>まで負う場合があるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-2-case">最決昭43.11.26</a>）と通説は、当事者主義を基本構造とする現行法の下では裁判所は原則として訴因変更を命ずべき義務を負わないとしつつ、犯罪が重大で、かつ<strong>証拠上その成立が明白</strong>であるといった特段の事情がある場合には、例外的に命令義務が生じるとしています（刑訴法<a class="ref-stat" href="#bref-2-312">312条2項</a>）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">訴因は検察官が設定する土俵であり、裁判所がそこに手を入れることは、訴訟の追行を当事者に委ねた建前への例外だからです。もっとも、重大な犯罪の成立が証拠上明らかなのに、訴因が合っていないというだけで無罪になるのでは、裁判に対する信頼が保てません。そこで原則は否定しつつ、放置すれば著しく正義に反する場面だけを例外として救うと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>訴因変更命令</span></dt><dd>裁判所が検察官に対し、訴因又は罰条の追加・変更を命ずる裁判（刑訴法312条2項）。</dd></div><div class="tx-gist-term"><dt><span>当事者主義</span></dt><dd>訴訟の追行の責任を当事者である検察官と被告人が負う原則。現行刑事訴訟法の基本構造。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">裁判所が検察官の土俵に手をかけるのは、例外中の例外だと考えてください。犯罪の重大性と証拠の明白性がそろったときにだけ、手をかけることが義務になります。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">当事者主義との緊張を理由に原則として命令義務を否定し、犯罪の重大性と証拠の明白性を要件に例外的に肯定するという枠組みは、判例・通説どおりです。原則と例外の向きも入れ替わっていません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原則否定の理由を押さえる</strong><span class="syn-body">訴因変更命令は、職権証拠調べと異なり被告人に利益を与える制度ではなく、検察官の設定した審判の対象を修正しようとするもの。当事者主義と鋭く緊張するため、裁判所に命令の義務まで一般に認めるのは適当でない。</span></p>
 <p><span class="syn-step">2</span><strong>例外肯定の要件を押さえる</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-2-case">最決昭43.11.26</a>）・通説は、<span class="case-emphasis freq-high">犯罪が重大で、かつ証拠上その成立が明白</span>であるといった特段の事情がある場合には、例外的に訴因変更を命ずべき義務が生じるとする。</span></p> </div>
@@ -5964,7 +6101,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>起訴状一本主義は当事者主義を支える<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>個別の制度</span>であって基本構造そのものではなく、訴因変更は<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>公訴事実の同一性</span>を害しない限度に限られる（正しい命題）。<span class="tx-anscomp-line">起訴状一本主義（刑訴法256条6項）は、裁判官に予断を生じさせないことによって当事者主義を支える<strong>個別の制度</strong>であって、基本構造そのものではない。また、審判の対象は検察官が設定した訴因であり、その変更が許されるのは公訴事実の同一性を害しない限度に限られる（同法312条1項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。<a class="ref-stat" href="#bref-3-256">起訴状一本主義</a>（256条6項）は、起訴状だけで公訴を提起させ、裁判官に予断を生じさせる書類等を添付・引用させない制度——裁判所を白紙のまま法廷に座らせる仕掛け——である。当事者主義を土台で支える<strong>個別の制度</strong>ではあるが、基本構造の名前ではない。基本構造に入る語は職権主義か当事者主義かの二択である。他方、審判の対象は検察官の訴因だが、その<a class="ref-stat" href="#bref-3-312">訴因変更</a>が許されるのは<strong>公訴事実の同一性</strong>を害しない限度（312条1項）に限られ、公訴事実は変更の外枠として働く。イメージは建物——当事者主義が設計思想、起訴状一本主義はそれを実現する一部屋。部屋の名を建物全体の名にはしない。本記述は両者の位置づけを正確に述べており正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>起訴状一本主義</strong>は当事者主義を支える個別の制度で、基本構造ではない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">だれが審判の対象を決めるか</span><span class="tx-gist-step is-now">当事者主義を支える制度と用語</span><span class="tx-gist-step">訴因変更命令の義務</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">起訴状一本主義は、現行法の基本構造の名として挙げてよいのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">起訴状には、裁判官に予断を生じさせるおそれのある書類を添えることも、その内容を引用することもできません。裁判官は、事件について何も知らない白紙の状態で法廷に座ります。この仕組みは、たしかに現行法らしさをよく表しています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">では、この仕組みを現行法の<strong>基本構造</strong>の名として挙げてよいのでしょうか。訴訟の骨組みである基本構造と、そこから派生する個別の制度との区別が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">起訴状一本主義（刑訴法<a class="ref-stat" href="#bref-3-256">256条6項</a>）は、当事者主義を土台で支える個別の制度であって、基本構造の名ではありません。基本構造に入るのは職権主義か当事者主義かの二択です。また、審判の対象は検察官の訴因であり、その<a class="ref-stat" href="#bref-3-312">訴因変更</a>が許されるのは<strong>公訴事実の同一性</strong>を害しない限度に限られます（同法312条1項）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">基本構造は、訴訟の追行の責任をだれが負うかという骨組みの話です。起訴状一本主義・訴因制度・証拠調べ請求権は、その骨組みを実際に働かせるために置かれた仕掛けにすぎません。骨組みと仕掛けを同じ欄に並べてしまうと、制度の見取り図が崩れます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>起訴状一本主義</span></dt><dd>起訴状だけで公訴を提起させ、裁判官に予断を生じさせるおそれのある書類等の添付・引用を禁じる建前（刑訴法256条6項）。</dd></div><div class="tx-gist-term"><dt><span>公訴事実の同一性</span></dt><dd>訴因の変更が許される外枠を画する概念。これを害する変更は許されない（刑訴法312条1項）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">当事者主義が建物全体の設計思想で、起訴状一本主義はそれを実現する一部屋だと考えてください。部屋の名を、建物全体の名にはしません。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">起訴状一本主義を派生制度と位置づけ、訴因変更の限界を公訴事実の同一性に求めている点は、条文と通説の理解どおりです。基本構造の名として挙がるのは、あくまで職権主義か当事者主義かです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>起訴状一本主義の位置を押さえる</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-256">256条6項</a>の起訴状一本主義は、裁判所が予断なく白紙で審理に臨むための制度で、当事者主義を担保する<span class="ron-mark freq-high">個別の制度</span>。基本構造の名称ではない。</span></p>
 <p><span class="syn-step">2</span><strong>訴因変更の限界を押さえる</strong><span class="syn-body">審判の対象は検察官が設定した訴因だが、<a class="ref-stat" href="#bref-3-312">訴因変更</a>が許されるのは<span class="case-emphasis freq-high">公訴事実の同一性</span>を害しない範囲に限られる。公訴事実は訴因変更の外枠として機能する。</span></p> </div>
@@ -6009,7 +6146,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴因変更命令は「命ずることができる」と定められ<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>裁量は前提</span>で、論点は命令を発する<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>義務</span>の要否である（正しい命題）。<span class="tx-anscomp-line">刑訴法312条2項は、裁判所は審理の経過に鑑み適当と認めるときは訴因変更を命ずることができると定めており、命令の<strong>裁量</strong>があること自体は文言上当然の前提であって、論点は裁判所が命令を発する義務まで負うかである。被告人の保護のためにも用いられる職権証拠調べ（同法298条2項）と異なり、訴因変更命令は被告人に利益を与える制度ではない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。条文は「命ずることができる」（<a class="ref-stat" href="#bref-4-312">312条2項</a>）と定めており、裁判所に<strong>裁量</strong>——命じるかどうかを判断する余地——があること自体は文言から当然で、争いにならない。論点はその先、命じなければならない場面があるか＝<strong>義務</strong>の要否である。対比の相手は<a class="ref-stat" href="#bref-4-298">職権証拠調べ</a>（298条2項）で、こちらは真実の解明とともに被告人の保護のためにも用いられ、当事者の立証活動を排除しない。これに対し訴因変更命令は被告人に利益を与える制度ではなく、検察官の設定した審判の対象を動かすものである。イメージは階段——一段目の裁量は誰も争わず、問題は二段目の義務があるか。本記述はこの整理どおりで正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">命令の裁量は条文上の前提で、論点は命令を発する<strong>義務</strong>の要否である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">だれが審判の対象を決めるか</span><span class="tx-gist-step">当事者主義を支える制度と用語</span><span class="tx-gist-step is-now">訴因変更命令の義務</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">命ずることができるという条文から、何が論点として残るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">訴因変更命令の条文を開くと、裁判所は審理の経過に鑑み適当と認めるときは訴因又は罰条を追加又は変更すべきことを命ずることができる、と書かれています。命じるかどうかを裁判所が判断してよいことは、この文言からそのまま読み取れます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">争いになるのは、その先です。命じるかどうかを選べる<strong>裁量</strong>があること自体は前提として、命じなければならない場面があるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法<a class="ref-stat" href="#bref-4-312">312条2項</a>は命令を裁判所の権限として定めるにとどまり、義務までは定めていません。だから論点は義務の要否になります。対比の相手は<a class="ref-stat" href="#bref-4-298">職権証拠調べ</a>（同法298条2項）で、こちらは真実の解明とともに<strong>被告人の保護</strong>のためにも用いられ、当事者の立証活動を排除しません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">同じ職権の行使でも、証拠調べは当事者の立証を補うもので、被告人に利益を与える場面があります。これに対し訴因変更命令は、検察官が設定した審判の対象そのものを動かすもので、被告人に利益を与える制度ではありません。この性質の違いが、命令を義務としてよいかという判断に消極的に働くと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>裁量</span></dt><dd>法が「できる」と定め、行うかどうかの判断を裁判所などに委ねていること。</dd></div><div class="tx-gist-term"><dt><span>職権証拠調べ</span></dt><dd>裁判所が必要と認めるとき、当事者の請求によらず自ら行う証拠調べ（刑訴法298条2項）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">二段の階段を思い浮かべてください。一段目の「できる」は誰も争わず、問題はその上に「しなければならない」という段があるかどうかです。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">裁量があること自体を前提と押さえ、論点を義務の要否に定めた整理は正確です。職権証拠調べが被告人の保護のためにも用いられるのに対し、訴因変更命令はそうではないという性質の違いも、そのとおりです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>裁量は前提であることを押さえる</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-312">312条2項</a>は「適当と認めるときは命ずることができる」とし、命令の裁量を定める。裁量があること自体は争いにならず、論点は<span class="case-emphasis freq-high">義務</span>まで負うか。</span></p>
 <p><span class="syn-step">2</span><strong>職権証拠調べとの対比を押さえる</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-298">職権証拠調べ</a>は真実解明とともに被告人保護のためにも用いられ当事者の立証活動を排除しないのに対し、訴因変更命令は被告人に利益を与える制度でなく検察官の設定した審判対象を修正する。この性質差ゆえ命令の義務化に消極的に働く。</span></p> </div>
@@ -6055,7 +6192,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>起訴後の審判の対象について語られる「〜の同一性」は<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>公訴事実</span>の同一性であり、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>被疑事実は捜査段階</span>の用語である（正しい命題）。<span class="tx-anscomp-line">起訴後の審判の対象について語られる「〜の同一性」とは<strong>公訴事実の同一性</strong>であり、訴因の変更もこれを害しない限度で許される（刑訴法312条1項）。被疑事実は起訴前の捜査段階で用いる概念であって、公訴の提起により審判の対象は検察官が明示した訴因（その外枠が公訴事実）に移る（同法256条3項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。起訴後の審判の対象をめぐって出てくる「〜の同一性」という言い回しが指すのは、<strong>公訴事実の同一性</strong>——検察官が掲げた訴因を動かしてよい外枠の広さ——である（<a class="ref-stat" href="#bref-5-312">312条1項</a>）。旧法で裁判所が起訴状の変更なく審理できた範囲も、現行法で訴因変更が許される限度も、この同じ枠で語られる。これに対し<strong>被疑事実</strong>は、捜査機関が被疑者を捜査する対象たる事実であって、起訴前の捜査段階の概念にすぎない。公訴が提起されれば、審判の対象は検察官が明示した訴因（<a class="ref-stat" href="#bref-5-256">256条3項</a>）に移る。イメージは呼び名の変わる一線——起訴という線を越えると、同じ事実の呼び名は被疑事実から公訴事実に変わる。本記述はその使い分けどおりで正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">起訴後の審判の対象を語る語は<strong>公訴事実</strong>で、被疑事実は捜査段階の語である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">だれが審判の対象を決めるか</span><span class="tx-gist-step is-now">当事者主義を支える制度と用語</span><span class="tx-gist-step">訴因変更命令の義務</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">起訴後に語られる「〜の同一性」の「〜」に入るのは、どの事実か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">捜査の段階では、捜査機関は被疑事実という言葉で対象の事実を呼びます。ところが起訴されて舞台が法廷に移ると、同じ事実が公訴事実と呼ばれるようになります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">起訴後の審判の対象について「〜の同一性のある事実」と語られるとき、そこに入るのは<strong>公訴事実</strong>なのか、それとも被疑事実なのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">入るのは公訴事実です。訴因の変更が許されるのも公訴事実の同一性を害しない限度に限られます（刑訴法<a class="ref-stat" href="#bref-5-312">312条1項</a>）。公訴が提起されると、審判の対象は、検察官が起訴状に<strong>訴因を明示</strong>して記載した公訴事実に移ります（同法<a class="ref-stat" href="#bref-5-256">256条3項</a>）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">被疑事実は、捜査機関が被疑者について捜査の対象として立てる事実で、起訴の前の段階のものです。起訴によって事件は捜査機関の手を離れ、検察官が法廷に掲げた枠の中で審理されることになります。だから、被疑事実の同一性という言い方は、起訴後の審判の対象を語る場面では用いません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>公訴事実</span></dt><dd>起訴状に訴因を明示して記載される、審判の対象となる事実（刑訴法256条2項2号・3項）。</dd></div><div class="tx-gist-term"><dt><span>被疑事実</span></dt><dd>捜査機関が被疑者について捜査の対象とする事実。起訴前の捜査段階で用いる概念。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">起訴という一本の線を思い浮かべてください。線の手前では被疑事実、線を越えると公訴事実と呼び名が変わります。審判の対象は、線の向こう側の呼び名で語られます。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">「〜の同一性」を公訴事実の同一性とし、被疑事実を起訴前の概念と位置づけている点は、条文の用語法どおりです。起訴後の審判の対象を被疑事実と呼ぶことはありません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「〜の同一性」＝公訴事実を押さえる</strong><span class="syn-body">文章は「（　）の同一性のある事実」という形で語られる。この形で用いられるのは<a class="ref-stat" href="#bref-5-312">公訴事実の同一性</a>。訴因変更が許されるのも公訴事実の同一性を害しない限度で、旧法・現行法いずれも『公訴事実』が入る。</span></p>
 <p><span class="syn-step">2</span><strong>被疑事実は捜査段階の用語</strong><span class="syn-body">被疑事実とは、捜査機関が被疑者を捜査する対象たる事実で、<span class="case-emphasis freq-high">起訴前（捜査段階）の概念</span>。公訴の提起によって審判の対象は<a class="ref-stat" href="#bref-5-256">訴因（外枠が公訴事実）</a>に移り、起訴後に『被疑事実』の語は用いない。</span></p> </div>
