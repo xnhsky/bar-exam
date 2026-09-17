@@ -83,6 +83,35 @@ def render_card(card: dict, track: list[str]) -> str:
 _TAG_RE = re.compile(r"</?([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>")
 
 
+def markup_problems(value: str, allow_tags: bool = True) -> list[str]:
+    """本文 1 フィールドの形式：1 行・許可タグのみ・タグの開閉がそろう（開きっぱなしの strong は
+    ブラウザでカード外まで太字が漏れる＝2026-09-17 レビュー指摘）。"""
+    out = []
+    if "\n" in value or "\r" in value:
+        out.append("改行がある（1 行で書く）")
+    tags = list(_TAG_RE.finditer(value))
+    if tags and not allow_tags:
+        out.append("タグは使えない（語・段階ラベルは素のテキスト）")
+        return out
+    bad = sorted({m.group(1).lower() for m in tags} - ALLOWED_TAGS)
+    if bad:
+        out.append(f"使えないタグ {bad}（許可＝{sorted(ALLOWED_TAGS)}）")
+    stack = []
+    for m in tags:
+        name = m.group(1).lower()
+        if m.group(0).startswith("</"):
+            if not stack or stack[-1] != name:
+                out.append(f"タグの閉じ方がそろわない（</{name}>）")
+                break
+            stack.pop()
+        elif not m.group(0).endswith("/>"):
+            stack.append(name)
+    else:
+        if stack:
+            out.append(f"閉じていないタグ {stack}")
+    return out
+
+
 def spec_problems(card: dict, track: list[str], label: str) -> list[str]:
     """JSON 仕様 1 カードの形式検査（内容の正しさは執筆者の自己照合が担う）。"""
     out = []
@@ -99,11 +128,7 @@ def spec_problems(card: dict, track: list[str], label: str) -> list[str]:
         if not isinstance(v, str) or not re.sub(r"<[^>]+>", "", v).strip():
             out.append(f"記述{label}: {k} が空")
             continue
-        if "\n" in v or "\r" in v:
-            out.append(f"記述{label}: {k} に改行がある（1 行で書く）")
-        bad = sorted({m.group(1).lower() for m in _TAG_RE.finditer(v)} - ALLOWED_TAGS)
-        if bad:
-            out.append(f"記述{label}: {k} に使えないタグ {bad}（許可＝{sorted(ALLOWED_TAGS)}）")
+        out += [f"記述{label}: {k}：{x}" for x in markup_problems(v)]
     terms = card.get("terms")
     if not isinstance(terms, list) or not TERMS_MIN <= len(terms) <= TERMS_MAX:
         out.append(f"記述{label}: terms は {TERMS_MIN}〜{TERMS_MAX} 語の [語, 定義] 配列")
@@ -111,7 +136,39 @@ def spec_problems(card: dict, track: list[str], label: str) -> list[str]:
         for t in terms:
             if not (isinstance(t, list) and len(t) == 2 and all(isinstance(x, str) and x.strip() for x in t)):
                 out.append(f"記述{label}: terms の要素は [語, 定義]（{t!r}）")
+                continue
+            out += [f"記述{label}: terms の語「{t[0]}」：{x}" for x in markup_problems(t[0], allow_tags=False)]
+            out += [f"記述{label}: terms「{t[0]}」の定義：{x}" for x in markup_problems(t[1])]
     return out
+
+
+def track_problems(track) -> list[str]:
+    if not (isinstance(track, list) and TRACK_MIN <= len(track) <= TRACK_MAX
+            and all(isinstance(t, str) and t.strip() for t in track)):
+        return [f"track は {TRACK_MIN}〜{TRACK_MAX} 段の文字列配列"]
+    return [f"track「{t}」：{x}" for t in track for x in markup_problems(t, allow_tags=False)]
+
+
+# ---------------------------------------------------------------- 判例引用（新規持ち込みの検知）
+_ERA = {"明治": "明", "大正": "大", "昭和": "昭", "平成": "平", "令和": "令"}
+_CITE_RE = re.compile(
+    r"[判決]\s*(明治|大正|昭和|平成|令和|明|大|昭|平|令)\s*(元|\d{1,2})\s*[.．年]\s*(\d{1,2})\s*[.．月]\s*(\d{1,2})")
+
+
+def citations(text: str) -> set[tuple[str, int, int, int]]:
+    """「最決昭55.10.23」「最高裁昭和55年10月23日決定」の前半等を (元号, 年, 月, 日) に正規化して集める。
+    判/決 の直後に日付が来る形だけを拾う（施行日・法律番号の日付を判例と誤認しない）。"""
+    plain = re.sub(r"<[^>]+>", "", text)
+    out = set()
+    for m in _CITE_RE.finditer(plain):
+        era = _ERA.get(m.group(1), m.group(1))
+        year = 1 if m.group(2) == "元" else int(m.group(2))
+        out.add((era, year, int(m.group(3)), int(m.group(4))))
+    return out
+
+
+def format_citation(c: tuple[str, int, int, int]) -> str:
+    return f"{c[0]}{c[1]}.{c[2]}.{c[3]}"
 
 
 # ---------------------------------------------------------------- extract (往復)
@@ -234,5 +291,20 @@ def ensure_css(text: str, css: str) -> tuple[str, bool]:
     return text[:line_start] + block + text[line_start:], True
 
 
+class SpecError(ValueError):
+    pass
+
+
 def load_spec(path: str | Path) -> dict:
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    """仕様 JSON を読む。壊れていたら SpecError（呼び出し側で NG 行にする＝素の traceback を出さない）。"""
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        raise SpecError(f"仕様 JSON が無い: {path}")
+    except json.JSONDecodeError as e:
+        raise SpecError(f"仕様 JSON が壊れている（{e.lineno} 行 {e.colno} 列: {e.msg}）。"
+                        "本文の半角 \" は「」にし、リンク属性の \" は \\\" とエスケープする"
+                        "（Python の json.dump(ensure_ascii=False) で書き出すと確実）")
+    if not isinstance(data, dict):
+        raise SpecError("仕様 JSON の最上位は {\"track\": [...], \"cards\": {...}} のオブジェクト")
+    return data

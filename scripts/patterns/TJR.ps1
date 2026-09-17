@@ -174,12 +174,16 @@ function Get-QPending {
     return $c
 }
 function Get-GPending {
-    # G（§v14 THE GIST ストーリー型の付随・特別枠・過渡）：旧型 GIST が残る v13 _lex の残数を全科目で合算。
-    # 判定の単一情報源＝tx-gist-story.py pending（ランナーと同じ式）。v13 でない旧版は R の領分なので数えない。
-    if (-not (Test-Path $GistTool)) { return 0 }
-    $out = & python -X utf8 $GistTool pending --json --root $ProjectRoot 2>$null
-    if ($LASTEXITCODE -ne 0) { return 0 }
-    try { return @(($out | Out-String) | ConvertFrom-Json).Count } catch { return 0 }
+    # G（§v14 THE GIST ストーリー型の付随・特別枠・過渡）：今すぐ処理できる件数をランナー自身に数えさせる
+    # （-CountOnly＝科目指定と ESCALATE 除外をランナーと同じ式で適用。全科目合算・ESCALATE 込みで数えると、
+    # 「TJR処理 商」で仕事が無いのに毎バッチ G を起動し「完遂」と誤表示していた・2026-09-17 レビュー指摘）。
+    if (-not (Test-Path $GRunner)) { return 0 }
+    $p = @{ CountOnly = $true; ProjectRoot = $ProjectRoot }
+    if ($Subject -and $SSubjectMap.ContainsKey($Subject)) { $p.Subject = $SSubjectMap[$Subject] }
+    $out = & $GRunner @p 2>$null
+    $n = 0
+    foreach ($ln in @($out)) { if ("$ln".Trim() -match '^\d+$') { $n = [int]"$ln".Trim() } }
+    return $n
 }
 function Get-SPending {
     # S（§v13w「📖 CONTEXT」付随・特別枠・過渡）：正誤表の記述に data-brief-story が
@@ -623,8 +627,15 @@ for ($b = 1; $b -le $batchCount; $b++) {
     }
     $rcG = 0
     if ($runG) {
-        if ($gPend -gt 0) { $rcG = Invoke-GStream -Max $MaxG -Subj $Subject }
-        else { Write-Host "`n[SKIP] G：旧型 THE GIST の v13 _lex なし＝§v14 特別枠は完遂（過渡ストリーム）" -ForegroundColor Yellow }
+        if ($gPend -gt 0) {
+            $rcG = Invoke-GStream -Max $MaxG -Subj $Subject
+            if ($rcG -eq 2) {
+                # 基盤障害（claude のログイン切れ・起動失敗）＝以後のバッチでも同じ失敗を繰り返すだけなので止める
+                Write-Host "`n[TJR] G が基盤障害（claude 起動失敗）で停止 → 以後のバッチで G を止める（claude にログインし直してから再実行）" -ForegroundColor Red
+                $runG = $false
+            }
+        }
+        else { Write-Host "`n[SKIP] G：今すぐ処理できる旧型 THE GIST の v13 _lex なし（完遂、または科目指定・ESCALATE 済みのみ）" -ForegroundColor Yellow }
     }
 
     Write-Host "`n———————— TJR バッチ $b 集計 ————————" -ForegroundColor Cyan

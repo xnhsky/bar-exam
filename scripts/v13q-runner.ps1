@@ -61,7 +61,9 @@ function Get-QTargets {
     return @($items | Sort-Object Num)
 }
 
-if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
+# -NoPush／-NoCommit では claim を取らない（Request-TjrClaim は HEAD ごと push する・tx-v13-runner と同じ扱い）
+$useClaim = (-not $NoCommit -and -not $NoPush)
+if (-not $DryRun -and $useClaim) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
 $targets = Get-QTargets
 if ($targets.Count -eq 0) {
@@ -88,13 +90,13 @@ foreach ($t in $queue) {
     Write-Host "`n———— Q: $pid3 （$($t.Rel)）————" -ForegroundColor Green
 
     # 二台衝突：リモート版が既に改訂済みなら pull 追随して SKIP
-    if (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $t.Rel -Pattern 'tx-anscomp-line') {
+    if ($useClaim -and (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $t.Rel -Pattern 'tx-anscomp-line')) {
         Write-Host "[Q] $pid3 はリモートで改訂済み → pull 追随して SKIP" -ForegroundColor Yellow
         [void](Invoke-TjrSafePull -ProjectRoot $ProjectRoot)
         continue
     }
-    $claim = Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "${pid3}_v13q" -Stream 'Q'
-    if ($claim -notin @('CLAIMED','CLAIMED_OFFLINE')) {
+    $claim = if ($useClaim) { Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "${pid3}_v13q" -Stream 'Q' } else { 'NO_CLAIM' }
+    if ($claim -notin @('CLAIMED','CLAIMED_OFFLINE','NO_CLAIM')) {
         Write-Host "[Q] $pid3 claim=$claim → SKIP（次バッチで再判定）" -ForegroundColor Yellow
         continue
     }
@@ -146,7 +148,7 @@ foreach ($t in $queue) {
         }
         $rcAll = 1
     }
-    Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "${pid3}_v13q" -Reason $(if ($ok) { '完了' } else { '失敗' }) -NoPush:$NoPush
+    if ($useClaim) { Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "${pid3}_v13q" -Reason $(if ($ok) { '完了' } else { '失敗' }) -NoPush:$NoPush }
 }
 
 $remain = (Get-QTargets).Count

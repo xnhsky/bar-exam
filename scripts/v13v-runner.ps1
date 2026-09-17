@@ -124,7 +124,10 @@ function Get-STargets {
     return @($items | Sort-Object @{Expression = { $rank[$_.Subject] } }, Num)
 }
 
-if (-not $DryRun) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
+# -NoPush／-NoCommit では claim を取らない（Request-TjrClaim は HEAD ごと push する＝ローカルに留めたい commit まで出る。
+# tx-v13-runner と同じ扱い・2026-09-17 TJR-G レビューで同型の欠陥として指摘）
+$useClaim = (-not $NoCommit -and -not $NoPush)
+if (-not $DryRun -and $useClaim) { [void](Sync-TjrRepo -ProjectRoot $ProjectRoot) }
 
 $targets = @(Get-STargets)
 if ($targets.Count -eq 0) {
@@ -177,13 +180,13 @@ foreach ($t in $queue) {
     Write-Host "`n———— S: $($t.Id) （$($t.Rel)）————" -ForegroundColor Green
 
     # 二台衝突：リモート版が既に執筆済みなら pull 追随して SKIP
-    if (-not $Rewrite -and (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $t.Rel -Pattern 'data-brief-story=')) {
+    if ($useClaim -and -not $Rewrite -and (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $t.Rel -Pattern 'data-brief-story=')) {
         Write-Host "[S] $($t.Id) はリモートで執筆済み → pull 追随して SKIP" -ForegroundColor Yellow
         [void](Invoke-TjrSafePull -ProjectRoot $ProjectRoot)
         continue
     }
-    $claim = Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)$(if ($Rewrite) { '_v13v2' } else { '_v13v' })" -Stream 'S'
-    if ($claim -notin @('CLAIMED','CLAIMED_OFFLINE')) {
+    $claim = if ($useClaim) { Request-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)$(if ($Rewrite) { '_v13v2' } else { '_v13v' })" -Stream 'S' } else { 'NO_CLAIM' }
+    if ($claim -notin @('CLAIMED','CLAIMED_OFFLINE','NO_CLAIM')) {
         Write-Host "[S] $($t.Id) claim=$claim → SKIP（次バッチで再判定）" -ForegroundColor Yellow
         continue
     }
@@ -252,7 +255,7 @@ foreach ($t in $queue) {
         }
         $rcAll = 1
     }
-    Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)$(if ($Rewrite) { '_v13v2' } else { '_v13v' })" -Reason $(if ($ok) { '完了' } else { '失敗' }) -NoPush:$NoPush
+    if ($useClaim) { Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId "$($t.Id)$(if ($Rewrite) { '_v13v2' } else { '_v13v' })" -Reason $(if ($ok) { '完了' } else { '失敗' }) -NoPush:$NoPush }
 }
 
 $remain = (Get-STargets).Count

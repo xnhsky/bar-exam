@@ -241,9 +241,15 @@ def main() -> int:
     print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + G79 一問一答面の自己完結 + G80 人物記号 + G81 GISTストーリー型 + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
+    # TX_ENGINE_SKIP_CORPUS=1＝コーパス横断の検査（元号割れ・CSS ドリフト可視化・ox-grid 可視化）を省き、
+    # 渡したファイルだけを判定する（2026-09-17・TJR-G）。ランナーは横断ゲートをバッチ前に 1 回だけ回し、
+    # 1 問ごとの合否は当該ファイルだけで決める＝他ファイルの問題で正しい書き換えを巻き戻さない・1 問 5 分を数十秒へ。
+    import os
+    skip_corpus = os.environ.get("TX_ENGINE_SKIP_CORPUS") == "1"
+
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
     # masked されないよう最初に走らせる。コーパス横断の不変条件なので常に全 outputs を検査。
-    if _run_citation_era_gate() != 0:
+    if not skip_corpus and _run_citation_era_gate() != 0:
         return 1
 
     # G68＝解法ナビ問題固有データの所有権（複製＝gold 混入・ORDER⇄ox-row 不一致）。
@@ -560,11 +566,12 @@ def main() -> int:
         print("  → push は止めない（WARNING）。次回更新時に §5 宣言コメントを追記する"
               "（既定色のままなら G71 が ERROR で止める・hex 正典＝memory/reference_palette_v3.md）。")
 
-    # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
-    _run_css_canonize_advisory()
+    if not skip_corpus:
+        # 正典↔corpus CSS ドリフトの可視化（非ブロッキング・2026-07-11）。
+        _run_css_canonize_advisory()
 
-    # 特殊型 ○×健全性 L2-L4 の可視化（非ブロッキング・L1 は G64 がブロック・2026-07-11）。
-    _run_oxgrid_advisory(roots)
+        # 特殊型 ○×健全性 L2-L4 の可視化（非ブロッキング・L1 は G64 がブロック・2026-07-11）。
+        _run_oxgrid_advisory(roots)
 
     if contract_fail:
         return 1
