@@ -238,7 +238,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + G79 一問一答面の自己完結 + G80 人物記号 + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + G79 一問一答面の自己完結 + G80 人物記号 + G81 GISTストーリー型 + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # 判例引用・元号の割れゲート（恒久対策・2026-07-09）。他ゲートの early-return に
@@ -383,6 +383,10 @@ def main() -> int:
         #     ＝民法の当事者 A・B・C や刑法の甲・乙は対象外。面の中で身分が添えられていれば通す
         #     （鑑定人B…B／作成者であるK）＝corpus 実測で誤検出 0。実害＝刑訴TX091（実機報告）。
         v.g80_person_symbol_self_contained()
+        # G81＝THE GIST ストーリー型（TX-GIST-STORY・§v14・2026-09-17）。ストーリー型を使うファイルだけを
+        #     見る。CSS 区画欠落・面の欠落/順序崩れ・結論マークが正誤表の正解と逆（命題の真偽の向き）は
+        #     決定論的な表示/極性崩れなので push を止める。旧型との混在・「——」残りは WARNING＝止めない。
+        v.g81_gist_story()
         # G73＝答案圧縮（TX-ANSCOMP・§v13q）。片置き・カード⇄正誤表の文不一致・CSS区画欠落は
         #     決定論的な表示/同期崩れなので push を止める。未展開（両方無し）は WARNING＝ブロックしない
         #     （既存 corpus は TJR 付随で消化・2026-07-28 追加）。
@@ -432,7 +436,7 @@ def main() -> int:
             role_notes.append((f, _roles))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74", "G78", "G79", "G80")
+            if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74", "G78", "G79", "G80", "G81")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの

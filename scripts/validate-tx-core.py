@@ -102,6 +102,12 @@ try:
 except Exception:
     _person_syms = None
 
+# THE GIST ストーリー型（G81・§v14）は tx_gist_story（単一情報源＝書き換えツールと同じ式）を共用。
+try:
+    import tx_gist_story as _gist_story
+except Exception:
+    _gist_story = None
+
 # 難易度帯パレット規律（G71/G72）は tx_palette_rules（単一情報源）を共用。
 # 規律モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
 try:
@@ -2804,6 +2810,55 @@ class Validator:
                         "記号を実体の身分（検察官・司法警察員・医師 等）へ書き下す"
                         "（原文ブロックは §v13r/§v13s の不可侵エリアなのでそのまま残す・§v13z）。")
 
+    # G81（2026-09-17・§v14）＝THE GIST ストーリー型（TX-GIST-STORY）の構造整合。
+    #
+    # 旧 THE GIST は 1 段落に「結論→位置づけ→用語→例え→当否」を詰めていたため、初学者には
+    # 一文が長く話の切り替わりを目で追えなかった（刑訴TX100 試作→ユーザー承認）。ストーリー型は
+    # 同じ中身を 結論／🧭現在地／場面→問題→判例→理由／📘キーワード／🖼イメージ／判定 の面へ割る。
+    # ストーリー型を使っているファイルだけを検査する（旧型だけのファイルは TJR 付随で移行＝素通り）。
+    # ERROR＝CSS 区画欠落／面の欠落・順序崩れ・空欄／結論マークが正誤表の正解と逆（G60 と同じ
+    #        「命題の真偽」の向き）／判定と結論の ○× 食い違い／カードごとに段階トラックが違う。
+    # WARNING＝一部のカードだけストーリー型（旧型と混在）／文中に「——」の挿入句が残る。
+    def g81_gist_story(self):
+        if not self.is_lex_target() or _gist_story is None:
+            return
+        leads = self.soup.select(".syn-lead.tx-gist")
+        if not leads:
+            return
+        if _gist_story.CSS_BEGIN not in self.html or _gist_story.CSS_END not in self.html:
+            self.err("G81", "THE GIST ストーリー型を使っているのに CSS 区画 TX-GIST-STORY が無い"
+                            "（python -X utf8 scripts/tx-gist-story.py css <file> で正典から注入）。")
+        vd = {tr.get("data-stmt"): tr.get("data-verdict")
+              for tr in self.soup.select("tr[data-stmt][data-verdict]")}
+        tracks, old, dash, probs = set(), [], [], []
+        for card in self.soup.select(".tx-inline-card[data-stmt]"):
+            label = (card.get("data-stmt") or "?").strip()
+            lead = card.select_one(".syn-lead")
+            if lead is None:
+                continue
+            if "tx-gist" not in (lead.get("class") or []):
+                old.append(label)
+                continue
+            found, track = _gist_story.structure_problems(lead, vd.get(label))
+            tracks.add(track)
+            probs += [f"記述{label}: {x}" for x in found]
+            if "——" in lead.get_text("", strip=True):
+                dash.append(label)
+        if len(tracks) > 1:
+            probs.append("カードごとに 🧭 現在地の段階ラベルが違う（問題全体で同じ段階を使う）: "
+                         + " / ".join("▸".join(t) for t in sorted(tracks)))
+        if probs:
+            head = "; ".join(probs[:5]) + (f" 他 {len(probs)-5} 件" if len(probs) > 5 else "")
+            self.err("G81", f"THE GIST ストーリー型の構造崩れ {len(probs)} 件: {head}"
+                            "（面の並び・○×の向きは scripts/tx_gist_story.py が正典。"
+                            "JSON 仕様から tx-gist-story.py apply で組み直す）。")
+        if old:
+            self.warn("G81", f"一部のカードだけストーリー型で、記述{','.join(old)} は旧型 THE GIST のまま"
+                             "（同じ問題の中で型を混ぜない・§v14）。")
+        if dash:
+            self.warn("G81", f"記述{','.join(dash)} の THE GIST に「——」の挿入句が残る"
+                             "（言い換えは 📘 キーワード へ出す・§v14）。")
+
     # G73（2026-07-28）＝答案圧縮（TX-ANSCOMP・§v13q）の統合整合。規約＝各記述カードの
     # 記述原文（.syn-orig）末尾と正誤表 tr の data-brief-mark 末尾の 2 箇所に同一文で置く
     # （シングルソース）。既存 corpus は未展開のため「両方無し」は WARNING（TJR 付随で消化）。
@@ -3126,6 +3181,7 @@ class Validator:
         self.g78_verdict_diagram_band()
         self.g79_inline_card_self_contained()
         self.g80_person_symbol_self_contained()
+        self.g81_gist_story()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
@@ -3165,7 +3221,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G80, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G81, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
