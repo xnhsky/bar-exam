@@ -5609,6 +5609,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5892,7 +6029,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>国は、公務員に対して、その生命及び健康等を危険から保護するように配慮すべき義務を負う。この安全配慮義務は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>権利濫用禁止の原則の現れ</span><span class="tx-stmt-fix">→ 信義誠実の原則（1条2項）に基づく付随義務</span>である。<span class="tx-anscomp-line">安全配慮義務は、ある法律関係に基づいて特別な社会的接触の関係に入った当事者間で、その法律関係の付随義務として<strong>信義則上</strong>当事者の一方又は双方が相手方に対して負う義務であり（<a class="ref-stat" id="ref-ア-case-a" href="#bref-ア-case">最判昭50.2.25</a>）、権利濫用禁止ではなく<strong>信義誠実の原則</strong>（<a class="ref-stat" id="ref-ア-1a" href="#bref-ア-1">民法1条2項</a>）の現れである。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。国が公務員を守る義務、と聞くと「濫用させないための縛り」に見えるかもしれない。でもこれは、<strong>信義誠実の原則</strong>（当事者どうし、相手の信頼を裏切らず誠実にふるまえ、という物差し）から生まれた<strong>安全配慮義務</strong>だ。国と公務員のように<strong>特別な社会的接触の関係</strong>（ただの他人ではなく、勤務という具体的な結びつき）に入った当事者間で、契約に書いていなくても信義則が付け足す義務。だから「権利濫用禁止の原則の現れ」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">安全配慮義務は、権利濫用ではなく<strong>信義誠実の原則</strong>の現れである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">私権の大前提</span><span class="tx-gist-step is-now">信義誠実の原則</span><span class="tx-gist-step">権利濫用の禁止</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">国が公務員に負う安全配慮義務は、民法1条のどの原則から生まれるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">国に雇われた公務員が、職場の車両整備工場で作業をしています。設備や作業の手順に危険が残っていれば、けがをするのは公務員本人です。雇う側と雇われる側という勤務の結びつきに入った以上、国の側は何もしなくてよいのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">契約書のどこにも書かれていない<strong>安全配慮義務</strong>を、国が負う根拠はどこにあるのでしょうか。民法1条には信義誠実の原則と権利濫用の禁止が並んでいるので、そのどちらの現れなのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最判昭50.2.25）は、安全配慮義務を、ある法律関係に基づいて<strong>特別な社会的接触の関係</strong>に入った当事者間で、その法律関係の付随義務として<strong>信義則上</strong>負う義務だとしました。国と公務員との間でも別に解する理由はないとしています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">権利濫用の禁止は、すでにある権利の行使を行き過ぎだとして封じる規律です。ところが安全配慮義務は、誰かの権利を封じるのではなく、契約に書かれていない義務を新たに創り出しています。働きの向きが逆なので、根拠になるのは信義誠実の原則のほうだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>安全配慮義務</span></dt><dd>ある法律関係に基づいて特別な社会的接触の関係に入った当事者間で、相手の生命・健康を危険から守るように配慮すべき義務。契約に明記がなくても信義則上認められる（民法1条2項）。</dd></div><div class="tx-gist-term"><dt><span>特別な社会的接触の関係</span></dt><dd>ただの他人どうしではなく、勤務や在学などの具体的な結びつきに入った当事者間の関係。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">権利濫用は「持っている権利を振り回すな」という戒めです。信義則は「関係に入った以上、書いていなくても誠実に守れ」という求めです。安全配慮義務は、後者が生んだ思いやりの義務だと覚えてください。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">国が公務員の生命・健康を守る義務を負うという前半は正しいのですが、それを権利濫用禁止の原則の現れとしている点が誤りです。正しくは信義誠実の原則（民法1条2項）の現れで、特別な社会的接触の関係に入った当事者間の付随義務として認められます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>安全配慮義務の生まれ方を確認する</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-ア-case">最判昭50.2.25</a>）は、安全配慮義務を『ある法律関係に基づいて<span class="case-emphasis freq-high">特別な社会的接触の関係</span>に入った当事者間において、当該法律関係の付随義務として当事者の一方又は双方が相手方に対して<span class="ron-mark freq-high">信義則上</span>負う義務』とする。根拠は信義誠実の原則であって、権利濫用ではない。</span></p>
 <p><span class="syn-step">2</span><strong>信義則の“積極的機能”に位置づける</strong><span class="syn-body">信義則は、権利行使を制約するだけでなく、明文にない<span class="ron-mark freq-high">付随義務（説明義務・保護義務・安全配慮義務）を積極的に創り出す</span>働きを持つ。安全配慮義務はこの積極的機能の代表例。「権利の行使が許されない」という<a class="ref-stat" href="#bref-ア-1">権利濫用（1条3項）</a>の場面とは、着眼点が異なる。</span></p> </div>
@@ -5937,7 +6074,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>解除権を有する者が長期にわたりこれを行使せず、相手方においてその権利はもはや行使されないものと信頼すべき正当の事由を有するに至った特段の事情がある場合には、解除権の行使は許されない。この帰結は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>権利濫用禁止の原則</span><span class="tx-stmt-fix">→ 信義誠実の原則（1条2項）＝権利失効の原則</span>によって基礎づけられる。<span class="tx-anscomp-line">権利者が長期間権利を行使せず、相手方が権利はもはや行使されないと信頼すべき正当の事由を有するに至った場合、その後の権利行使は<strong>信義誠実の原則</strong>に反し許されない（権利失効の原則。<a class="ref-stat" id="ref-イ-case-a" href="#bref-イ-case">最判昭30.11.22</a>・<a class="ref-stat" id="ref-イ-1a" href="#bref-イ-1">民法1条2項</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「長く使わなかった権利はもう使えない」と聞くと、権利を眠らせた者を罰する権利濫用に見えるかもしれない。だがこれは<strong>権利失効の原則</strong>――長期間の不行使に加え、相手方が『もう行使されない』と<strong>信頼すべき正当な事由</strong>を持つに至ったとき、いまさらの行使は<strong>信義誠実の原則</strong>（相手の信頼を裏切るな）に反して許されない、という考え方だ。土台は信義則。だから「権利濫用禁止の原則によって基礎づけられる」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">解除権の失効を基礎づけるのは、権利濫用ではなく<strong>信義誠実の原則</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">私権の大前提</span><span class="tx-gist-step is-now">信義誠実の原則</span><span class="tx-gist-step">権利濫用の禁止</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">長く使わなかった解除権が行使できなくなる根拠は、民法1条のどの原則か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">契約を解除できる立場の当事者が、その権利を長い間使わないまま放置しています。相手方は、もう解除されることはないだろうと考えて、契約が続くことを前提に準備を重ねてきました。ところが今になって、解除を言い出したという場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ここでは、期間の定めによって権利が消える場面ではなく、ただ時間が過ぎただけです。それでも解除を封じるのが<strong>権利失効の原則</strong>ですが、これは信義誠実の原則と権利濫用の禁止のどちらから出てくるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最判昭30.11.22）は、解除権を久しく行使せず、相手方がその権利はもはや行使されないものと<strong>信頼すべき正当の事由</strong>を持つに至ったため、その後の行使が<strong>信義誠実に反する</strong>と認められる特段の事由があるときは、もはや解除は許されないとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">決め手は、放置された時間の長さそのものではありません。相手方に、もう行使されないという正当な信頼が生まれた点にあります。その信頼を今さら裏切らせないという発想は、相手の信頼を守れと求める信義誠実の原則の働きだと説明されます。権利の行使が度を超えて悪質かどうかを問う権利濫用とは、着眼点が違うのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>権利失効の原則</span></dt><dd>権利者が長期間権利を行使せず、相手方がもはや行使されないと信頼すべき正当の事由を持つに至った場合に、その後の権利行使を信義則上許さないとする法理（民法1条2項）。</dd></div><div class="tx-gist-term"><dt><span>消滅時効</span></dt><dd>一定の期間が過ぎたこと自体によって権利が消える制度。相手方に信頼が生じたかどうかは要件にならない。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">相手をすっかり安心させておいて、今さら蒸し返すなということです。ここで権利を眠らせるのは、時を刻む時計ではなく、相手の側に生まれた信頼のほうだと覚えてください。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">解除権の行使が許されないという結論そのものは正しいのですが、それを権利濫用禁止の原則によって基礎づけている点が誤りです。正しくは信義誠実の原則（民法1条2項）に基づく権利失効の原則で、長期の不行使に加えて相手方の正当な信頼が生じたことが決め手になります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>権利失効の要件を確認する</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-イ-case">最判昭30.11.22</a>）は、解除権を久しく行使せず、相手方において権利はもはや行使されないものと<span class="case-emphasis freq-high">信頼すべき正当の事由</span>を有するに至り、その後の行使が<span class="ron-mark freq-high">信義誠実に反すると認められる</span>特段の事由があるときは、もはや解除は許されないとした。基礎は信義則である。</span></p>
 <p><span class="syn-step">2</span><strong>時効・除斥期間との違いを押さえる</strong><span class="syn-body">権利失効は、期間の経過だけで一律に権利を消す<a class="ref-stat">消滅時効・除斥期間</a>とは別物。<span class="ron-mark freq-high">相手方の正当な信頼</span>という信義則の要素が加わって初めて行使が封じられる。単なる不行使＝濫用ではなく、信頼保護が決め手。</span></p> </div>
@@ -5979,7 +6116,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>動産売買における引渡場所について、買主が売主に問い合わせをすれば知ることが容易であった場合には、問い合わせを怠った買主は、遅滞の責任を免れない。この結論は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>権利濫用禁止の原則</span><span class="tx-stmt-fix">→ 信義誠実の原則（1条2項）上の問合せ義務</span>から導かれる。<span class="tx-anscomp-line">売主が引渡しの準備をした以上、買主が<strong>信義誠実の原則</strong>上、問い合わせその他の方法で引渡場所を知るべきときは、売主は有効な履行の提供をしたといえ、これを怠った買主は受領遅滞の責任を免れない（<a class="ref-stat" id="ref-ウ-case-a" href="#bref-ウ-case">大判大14.12.3</a>・<a class="ref-stat" id="ref-ウ-1a" href="#bref-ウ-1">民法1条2項</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「怠けた買主が責任を負う」と聞くと、権利を振り回した者を叩く権利濫用に見えるかもしれない。だが本当の論点は<strong>履行の提供</strong>だ。売主が引渡しの準備をしたのに、引渡場所は買主が問い合わせれば簡単に分かった――こういう場面では、<strong>信義誠実の原則</strong>が買主に『自分から問い合わせて受け取れ』という義務（付随義務）を課す。売主は有効な提供をしたことになり、受け取らなかった買主が遅滞の責任を負う。土台は信義則だから「権利濫用禁止の原則から導かれる」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">問合せを怠った買主が遅滞の責任を負う根拠は、<strong>信義誠実の原則</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">私権の大前提</span><span class="tx-gist-step is-now">信義誠実の原則</span><span class="tx-gist-step">権利濫用の禁止</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">引渡場所を問い合わせなかった買主に不利益を課す根拠は、民法1条のどの原則か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">動産の売買で、売主は倉庫に品物をそろえて引渡しの準備を終え、買主に準備ができたと知らせました。ただし、どの倉庫なのかという場所までは伝えていません。買主が売主に問い合わせれば、場所はすぐに分かる状況です。それでも買主は問い合わせず、品物を受け取らなかったという場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">売主は<strong>履行の提供</strong>をしたといえるのでしょうか。契約は、引渡場所の確かめ方までは定めていません。この空白を埋めて、買主に問合せの一手間を求める根拠が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">大審院（大判大14.12.3・深川渡事件）は、売主が特定の倉庫に引渡しの準備をした以上、買主が<strong>信義誠実の原則</strong>上、問い合わせその他の方法でその場所を知りうべきときは、売主は有効な履行の提供（民法493条）をしたといえるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">契約は、細かい段取りのすべてを書き切れるものではありません。関係に入った当事者どうしであれば、相手が準備を整えたなら自分から一声かけて受け取る、というくらいの協力は期待できます。その期待を義務として補うのが信義誠実の原則で、ここでは買主に問合せの義務を課していると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>履行の提供</span></dt><dd>債務者が、債務の本旨に従って給付を実現するのに必要な準備をし、債権者が受け取れる状態にすること（民法493条）。</dd></div><div class="tx-gist-term"><dt><span>受領遅滞</span></dt><dd>債権者が履行を受けることを拒み、または受けることができないために、受け取らないことの不利益を債権者の側が負うこと。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">契約に書いていない一手間は、関係に入った以上たがいに誠実に、ということです。売主が品物をそろえて待っているのなら、買主は自分から問い合わせて受け取る。信義則が課す協力の一手間だと覚えてください。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">問い合わせを怠った買主が遅滞の責任を免れないという結論は正しいのですが、それを権利濫用禁止の原則から導いている点が誤りです。正しくは信義誠実の原則（民法1条2項）が契約の空白を補い、買主に問合せ義務を課すことから導かれます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>信義則が履行の細部を補う</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-ウ-case">大判大14.12.3</a>・深川渡事件）は、売主が特定の倉庫に引渡しの準備をした以上、買主において<span class="ron-mark freq-high">信義誠実の原則上、問い合わせその他の方法でその場所を知るべきとき</span>は、売主は有効な履行の提供をしたといえるとした。契約が定めない細部を、信義則が埋める。</span></p>
 <p><span class="syn-step">2</span><strong>受領遅滞の帰結に結ぶ</strong><span class="syn-body">有効な弁済の提供（<a class="ref-stat">民法493条</a>）があれば、受領しない買主は<span class="case-emphasis freq-high">受領遅滞の責任</span>を負う。問合せを怠った買主に不利益を課す根拠は、権利行使の害意（権利濫用）ではなく、当事者間の信頼関係に基づく信義則上の協力義務である。</span></p> </div>
@@ -6022,7 +6159,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>妨害により所有権が侵害されても、生じた損失が軽微であり、妨害を除去することが著しく困難で、多大の費用を要する場合には、不当な利益を獲得する目的で妨害の除去を求めることは許されない。この帰結は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>権利濫用禁止の原則の現れ</span>である。<span class="tx-anscomp-line">所有権侵害による損害が軽微で、除去に著しい困難と多大の費用を要するのに、不当な利益を得る目的で妨害排除を求めることは、<strong>権利の濫用</strong>として許されない（<a class="ref-stat" id="ref-エ-case-a" href="#bref-エ-case">大判昭10.10.5・宇奈月温泉事件</a>・<a class="ref-stat" id="ref-エ-1a" href="#bref-エ-1">民法1条3項</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。所有権が侵されたら、その除去を求めるのは当然の権利――ふつうはそうだ。でも本記述の場面は、被った損害はごくわずか、除去には莫大な費用と困難が伴い、しかも請求する側は<strong>不当な利益を得る目的</strong>（法外な値で買い取らせるなど）で妨害排除を持ち出している。こうなると、外形は正当な所有権の行使でも、実質は<strong>権利の濫用</strong>。判例が<strong>権利濫用禁止の原則</strong>（<a class="ref-stat" href="#bref-エ-1">民法1条3項</a>）を確立したリーディングケース（宇奈月温泉事件）そのものだ。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">損害が軽微で不当な利益が目的の妨害排除請求は、<strong>権利の濫用</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">私権の大前提</span><span class="tx-gist-step">信義誠実の原則</span><span class="tx-gist-step is-now">権利濫用の禁止</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">所有権に基づく妨害排除請求でも、認められないことがあるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">自分の土地のごく一部に、他人の設備がわずかに食い込んでいます。取り除くには著しい困難と莫大な費用がかかりますが、食い込みそのものによる損失はごくわずかです。そこへ、その土地をわざわざ買い取った人が現れて、除去を迫り、あわせて法外な値段での買取りを求めたという場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">所有権が侵害されているのだから、その除去を求めるのは<strong>妨害排除請求</strong>として当然のはずです。それでも、この請求を認めなくてよい場合があるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">大審院（大判昭10.10.5・宇奈月温泉事件）は、侵害による損失がわずかで、除去には莫大な出費を要するのに、不当な利益を得る目的で除去を迫るなどの事情があるときは、その妨害排除の請求は<strong>権利の濫用</strong>にほかならないとしました（<a class="ref-stat" href="#bref-エ-1">民法1条3項</a>）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">権利濫用の禁止は、所有権があること自体を否定するものではありません。見ているのは行使のしかたです。得られる利益に比べて相手の損害が桁違いに大きく、しかも狙いが不当な儲けであれば、外形は正当な所有権の行使でも、実質は許されないと評価されます。利益と損害の著しい不均衡という客観の面と、加害や不当な利得の目的という主観の面を合わせて判断すると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>権利濫用の禁止</span></dt><dd>外形上は権利の行使であっても、利益と損害の著しい不均衡や加害・不当利得の目的を伴って社会的な許容を超えるときは、その効果を認めないとする原則（民法1条3項）。</dd></div><div class="tx-gist-term"><dt><span>妨害排除請求</span></dt><dd>所有権などを妨げている状態の除去を求める請求。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">ほんの少しの食い込みを口実に、莫大な費用をかけさせて法外な儲けを狙う。外形は所有権の行使でも、中身は嫌がらせです。これが権利の濫用の代表選手だと覚えてください。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">損失が軽微で除去が著しく困難なのに、不当な利益を獲得する目的で除去を求めることは許されないとしており、判例と同じ枠組みです。これを権利濫用禁止の原則の現れとしている点も正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>宇奈月温泉事件の枠組みを確認する</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-エ-case">大判昭10.10.5</a>）は、所有権侵害による損害が<span class="case-emphasis freq-high">軽微</span>で、除去に<span class="case-emphasis freq-high">莫大な費用</span>を要する場合に、第三者が不必要な土地を買収し不当な利益を得る目的で侵害者に除去を迫るなどの事情があるときは、その妨害排除請求は<span class="ron-mark freq-high">権利の濫用</span>にほかならないとした。</span></p>
 <p><span class="syn-step">2</span><strong>濫用の判断要素に位置づける</strong><span class="syn-body">権利濫用は、権利行使の外形はあるが、<span class="ron-mark freq-high">得られる利益と相手の被る損害の著しい不均衡（客観的要素）</span>と<span class="ron-mark freq-high">加害・不当利得の目的（主観的要素）</span>を総合して判断する。本記述は損害の軽微・除去の困難・不当利得目的をすべて備え、まさに権利濫用（1条3項）の典型場面。信義則ではなく権利濫用。</span></p> </div>
@@ -6066,7 +6203,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>権利の行使であっても、社会観念上被害者が認容しなければならない程度を超える場合には、不法行為が成立する。この記述は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>権利濫用禁止の原則について述べたもの</span>である。<span class="tx-anscomp-line">権利の行使であっても、社会観念上被害者が認容すべき程度（受忍限度）を超えるときは、権利行使の適当な範囲を逸脱し<strong>権利の濫用</strong>として不法行為が成立する（<a class="ref-stat" id="ref-オ-case-a" href="#bref-オ-case">大判大8.3.3・信玄公旗掛松事件</a>・<a class="ref-stat" id="ref-オ-1a" href="#bref-オ-1">民法1条3項・709条</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「自分の権利を使っただけなら、相手にどんな迷惑がかかっても責任はない」と思いたくなる。だが判例（信玄公旗掛松事件）は、権利の行使であっても、<strong>社会観念上、被害者が我慢すべき限度（受忍限度）</strong>を超えて損害を与えたときは、権利行使の適当な範囲を逸脱した<strong>権利の濫用</strong>にあたり、<a class="ref-stat" href="#bref-オ-1">不法行為（709条）</a>が成立するとした。外形は正当な権利行使でも、限度を超えれば違法になる――これは<strong>権利濫用禁止の原則</strong>の一場面。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">受忍限度を超える権利行使は、<strong>権利の濫用</strong>として不法行為になる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">私権の大前提</span><span class="tx-gist-step">信義誠実の原則</span><span class="tx-gist-step is-now">権利濫用の禁止</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">正当な権利の行使であっても、損害を与えれば責任を負うことがあるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">自分の土地で、法令に従って認められた事業を営んでいる人がいます。ところが、その営みから出る煙や振動が隣地に流れ込み、隣の人には我慢しきれない被害が続いています。営む側は、自分の権利の範囲で行っているのだから責任はないと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">権利の行使そのものは正当です。それでも相手に損害が生じたとき、<strong>受忍限度</strong>という考え方によって違法と評価されることがあるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">大審院（大判大8.3.3・信玄公旗掛松事件）は、権利の行使であっても、社会観念上被害者が認容することができないものと一般に認められる程度を超えたときは、権利行使の適当な範囲ではないから<strong>不法行為</strong>になるとしました（<a class="ref-stat" href="#bref-オ-1">不法行為（709条）</a>）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">権利があるかどうかと、その使い方が許されるかどうかは、別の問題です。社会の一般的な見方からして相手が我慢すべき線を越えた使い方をすれば、その行使は適当な範囲を外れます。外れた行使によって損害が生じたのだから、賠償の責任に結びつくと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>受忍限度</span></dt><dd>社会観念上、被害者が我慢すべきものと一般に認められる限度。これを超える権利行使は、適当な範囲を外れたものと評価される。</dd></div><div class="tx-gist-term"><dt><span>不法行為</span></dt><dd>故意または過失によって他人の権利や法律上保護される利益を侵害した者が、これによって生じた損害を賠償する責任を負うこと（民法709条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">権利があるからといって、何をしてもよいわけではありません。相手が我慢すべき線を越えれば、権利の行使もやりすぎとなり、その先には賠償が待っていると覚えてください。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">権利の行使であっても社会観念上被害者が認容しなければならない程度を超えれば不法行為が成立するとしており、判例と同じ枠組みです。これを権利濫用禁止の原則について述べたものとしている点も正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>受忍限度論の枠組みを確認する</strong><span class="syn-body">判例（<a class="ref-stat" href="#bref-オ-case">大判大8.3.3</a>）は、権利の行使が<span class="case-emphasis freq-high">社会観念上被害者において認容すべき程度を超えた</span>ときは、権利行使の適当な範囲でないから<span class="ron-mark freq-high">不法行為</span>になるとした。権利の存在は否定しないが、その行使の態様が限度を超えれば違法となる。</span></p>
 <p><span class="syn-step">2</span><strong>権利濫用と不法行為をつなぐ</strong><span class="syn-body">権利濫用禁止の原則の効果として、濫用にあたる権利行使が相手方・第三者に損害を与えたときは<a class="ref-stat">不法行為（709条）</a>が成立し、損害賠償責任を生じる。権利があること自体ではなく、<span class="ron-mark freq-high">行使が受忍限度を超えた点</span>が違法性を基礎づける。信義則ではなく権利濫用の場面。</span></p> </div>
