@@ -5576,6 +5576,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5885,7 +6022,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>応報刑論は、刑罰の本質を、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>犯罪行為を理由として行為者に加えられる非難としての苦痛</span>であると理解する。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。刑罰は将来の犯罪を減らすための「道具」だ、と考えたくなる。でも<a class="ref-stat" href="#bref-1-retribution">応報刑論</a>（刑罰の「意義＝何であるか」をめぐる立場）は、刑罰を<strong>過去にした悪い行いへの報い＝非難としての苦痛</strong>（悪いことをしたから、その責めとして受ける害）だと捉える。過去の犯罪を理由に、その責めに見合った苦痛を科す——これが応報刑論の芯だから、本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">応報刑論は刑罰の本質を<strong>非難としての苦痛</strong>と捉える。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">応報＝刑罰の意義</span><span class="tx-gist-step">特別予防＝本人への予防</span><span class="tx-gist-step">一般予防＝世間への予防</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">応報刑論は、刑罰とはそもそも何であると答えるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">裁判官が、盗みを働いた被告人に刑を言い渡そうとしています。なぜこの人に苦痛を与えてよいのかと問われたら、どう答えるでしょうか。これから悪さをしないようにと答える道もあれば、したことの責めを負うからだと答える道もあります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ここで問われているのは、刑罰が何のためにあるかではなく、刑罰がそもそも何であるかという<strong>意義</strong>の問いです。同じ刑罰を語っていても、問いの層が違います。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-1-retribution">応報刑論</a>は、刑罰の本質を、犯罪という過去の行為を理由に行為者へ加えられる<strong>非難としての苦痛</strong>であると答えます。刑罰それ自体が、行われた不法と責任に対する正当な報いとして正当化されるという捉え方です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">過去に向けた非難だからこそ、刑の重さは責任の重さで決まります。責任のない者は罰せられず、責任の程度が刑の上限になります。国家が刑罰を自由に振り回せなくなる歯止めにもなると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>応報刑論</span></dt><dd>刑罰の本質を、犯罪という過去の行為を理由に行為者へ加えられる非難としての苦痛と捉える立場。刑罰が何であるかという意義の問いに答える。</dd></div><div class="tx-gist-term"><dt><span>責任主義</span></dt><dd>責任がなければ刑罰を科すことはできず、責任の程度が刑の上限になるという原則。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">応報は過去を向く鏡です。将来どう役立つかではなく、済んだ罪にどれだけの責めがあるかだけを映し返します。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">記述は応報刑論の定義をそのまま述べており、正しい内容です。刑罰を専ら犯罪防止の手段と捉えるのは目的刑論であり、意義の問いへの答えとは層が違います。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「意義」と「目的」を分ける</strong><span class="syn-body">刑罰論はまず、刑罰が<span class="case-emphasis freq-high">何であるか（意義）</span>と、何のためにあるか（目的）を分けて考える。応報刑論は前者に答える立場で、刑罰を過去の犯罪に対する当然の報い・非難と位置づける。</span></p>
 <p><span class="syn-step">2</span><strong>責任主義と結びつく</strong><span class="syn-body">過去の行為に対する非難だからこそ、刑罰は<a class="ref-stat" href="#bref-1-retribution">行為者の責任に応じた分だけ</a>正当化される（責任なければ刑罰なし・責任の程度が刑の上限）。応報刑論は罪刑の均衡・責任主義と親和的で、国家刑罰権に歯止めをかける機能をもつ。</span></p> </div>
@@ -5926,7 +6063,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>応報刑論に対しては、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>犯罪予防のために必要な刑であっても、責任に対応する刑を超える刑を科すことができなくなる</span>、という批判が向けられる。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。応報刑論は「責任に応じた刑だけ」を正当化する立場だった。すると裏返しで、<strong>たとえ再犯防止のためにもっと重い刑が必要でも、責任の重さを超える刑は科せない</strong>ことになる。予防を重んじる側から見ればこれは物足りない——だから応報刑論への<a class="ref-stat" href="#bref-2-critique">批判</a>としてこの点が挙げられる。批判の中身が正しく応報刑論に対応しているので、本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">応報刑論には、予防に必要でも<strong>責任を超える刑</strong>を科せないという批判が向く。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">応報＝刑罰の意義</span><span class="tx-gist-step">特別予防＝本人への予防</span><span class="tx-gist-step">一般予防＝世間への予防</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">応報刑論を貫くと、刑の重さにどのような限界が生じるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">再び罪を犯しそうな被告人がいます。社会を守るには長く拘束しておきたいけれども、その人が実際にした行為の責任はそれほど重くありません。裁判官は、必要だからという理由で責任の程度を超える刑を言い渡せるでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">応報刑論では責任の程度が刑の<strong>上限</strong>になります。これは過酷な刑への歯止めですが、将来の犯罪を防ぐことを重んじる側から見れば、必要な刑が出せないということでもあります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">この点が、応報刑論に向けられる<a class="ref-stat" href="#bref-2-critique">批判</a>です。犯罪予防のために必要な刑であっても、責任に対応する刑を超える刑を科すことができなくなる、というのがその中身です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">長所と短所が同じコインの裏表になっているためです。責任の枠は国家の刑罰権を抑える安全弁である一方、その枠がある限り予防のための上乗せはできません。批判は、この枠の外へ出られないことを弱点として指摘するものだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>応報刑論への批判</span></dt><dd>責任の程度が刑の上限になる結果、犯罪予防のために必要な刑であっても責任を超えては科せなくなるという指摘。</dd></div><div class="tx-gist-term"><dt><span>目的刑論</span></dt><dd>刑罰を将来の犯罪を防ぐための手段と捉える立場。刑罰の意義を過去への応報に求める応報刑論と対立する。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">応報の責任の枠はブレーキです。安全に止まるための装置ですが、もっと先へ進みたい予防の側から見れば、物足りない足かせに映ります。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">批判の中身が応報刑論の弱点として正しく対応しているので、正しい内容です。保安処分との区別が消えるという批判は特別予防論に、刑が重くなりすぎるという批判は一般予防論に向くもので、応報刑論の弱点ではありません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>応報の帰結を裏返す</strong><span class="syn-body">応報刑論では責任の程度が刑の<span class="case-emphasis freq-high">上限</span>になる。これは責任主義の長所（過酷な刑への歯止め）でもあるが、<a class="ref-stat" href="#bref-2-critique">犯罪予防</a>を重視する立場からは「必要な予防効果を出せない」という弱点として指摘される。</span></p>
 <p><span class="syn-step">2</span><strong>誰が誰を批判しているかを合わせる</strong><span class="syn-body">この批判は<span class="ron-mark freq-high">応報刑論（Ⅰ説）に向けられた</span>もの。批判の向き先と中身が一致していることを確認する。特別予防への批判（保安処分との区別消失）や一般予防への批判（過度の重罰化）と取り違えない。</span></p> </div>
@@ -5967,7 +6104,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>特別予防論は、刑罰の目的を、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>一般人を威嚇して一般人による将来の犯罪を予防すること</span><span class="tx-stmt-fix">→ 行為者本人が再び犯罪を行うのを予防すること（＝特別予防）。一般人の威嚇は一般予防</span>に求める見解である。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。どちらも「予防」なので入れ替わっても気づきにくい。でも<a class="ref-stat" href="#bref-3-special">特別予防</a>の「特別」とは<strong>その犯人＝行為者“本人”に向けた予防</strong>という意味。目的は本人の改善・教育・無害化によって<strong>本人の再犯</strong>を防ぐことにある。「一般人を威嚇して社会全体の犯罪を防ぐ」のは<strong>一般予防</strong>のほうだから、本記述は定義を取り違えた誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">特別予防論の目的は、<strong>行為者本人</strong>が再び罪を犯すのを防ぐことである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">応報＝刑罰の意義</span><span class="tx-gist-step is-now">特別予防＝本人への予防</span><span class="tx-gist-step">一般予防＝世間への予防</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">特別予防論は、誰の将来の犯罪を防ごうとする立場なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">刑務所で、受刑者が職業訓練を受けています。出所したあとに同じ罪を繰り返さないよう、本人を立ち直らせることが狙いです。この働きかけは、いったい誰の犯罪を減らそうとしているのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">刑罰を将来の犯罪を防ぐ手段と捉える立場は、予防の向き先で二つに分かれます。<strong>特別予防</strong>の「特別」が誰を指すのかが、ここでの分かれ目です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-3-special">特別予防</a>論は、刑罰の目的を、当該行為者本人が将来再び犯罪を行うのを予防することに求めます。行為者の危険性に着目し、改善・教育・無害化によって<strong>本人の再犯</strong>を防ぐという考え方です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">「特別」とは、社会一般ではなく特定の行為者本人に着目するという意味だからです。目の前の一人をどう作り直すかが、関心の中心にあります。一般人を威嚇して社会全体の犯罪を抑えるのは一般予防であり、向き先が違うと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>特別予防</span></dt><dd>刑罰の目的を、当該行為者本人の再犯防止（改善・教育・無害化）に求める考え方。行為者の危険性に着目する。</dd></div><div class="tx-gist-term"><dt><span>一般予防</span></dt><dd>刑罰の目的を、一般人を威嚇し、一般人による将来の犯罪を予防することに求める考え方。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">特別はその人ひとり、一般はみんなです。特別予防は犯人本人を作り直す営みで、威嚇で世間全体を抑えるのは一般予防のほうです。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">記述は特別予防の定義欄に一般予防の内容を当てており、向き先を取り違えた誤りです。正しくは、特別予防論の目的は行為者本人が将来再び犯罪を行うのを予防することであり、一般人を威嚇して一般人による犯罪を防ぐのは一般予防論です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「特別」の意味を押さえる</strong><span class="syn-body">特別予防の「特別」は<span class="case-emphasis freq-high">特定の行為者本人</span>に着目することを指す。刑罰によって本人を改善・教育し、あるいは社会から隔離（無害化）して、<a class="ref-stat" href="#bref-3-special">その者の再犯</a>を防ぐのが目的。行為者の危険性に着目する立場である。</span></p>
 <p><span class="syn-step">2</span><strong>向き先で一般予防と切り分ける</strong><span class="syn-body">これに対し「一般人を威嚇し、一般人による将来の犯罪を予防する」のは<span class="ron-mark freq-high">一般予防</span>（向き先＝社会一般）。本記述は特別予防の定義欄に一般予防の内容を当てており、向き先（本人／一般人）を取り違えた誤り。</span></p> </div>
@@ -6008,7 +6145,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>特別予防論に対しては、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>刑罰と保安処分の区別がなくなってしまう</span>、という批判が向けられる。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。特別予防は「行為者の危険性」に着目して本人の再犯を防ぐ立場だった。ところが<a class="ref-stat" href="#bref-4-critique">保安処分</a>（責任とは切り離し、危険な者を治療・隔離して社会を守る処分）も、まさに<strong>危険性を基準に将来の害を防ぐ</strong>制度。両者が同じ「危険性への対応」だとすると、<strong>過去の罪責に応じる刑罰と、危険性に応じる保安処分の区別がつかなくなる</strong>——これが特別予防への典型的批判なので、本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">特別予防論には、刑罰と<strong>保安処分</strong>の区別が消えるという批判が向く。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">応報＝刑罰の意義</span><span class="tx-gist-step is-now">特別予防＝本人への予防</span><span class="tx-gist-step">一般予防＝世間への予防</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">行為者の危険性を基準に刑を決めると、刑罰は何と見分けがつかなくなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">危険だと判断された人を、治療や隔離のために施設へ収容する制度があります。これは過去の罪の責めを問うものではなく、将来の害を防ぐための処分です。では、危険性を基準に本人を改善・隔離する刑罰は、この処分とどこが違うのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">特別予防は、過去の罪責ではなく行為者の<strong>危険性</strong>を基準に刑を決める方向へ進みます。同じ基準で人を扱う制度が並んだとき、両者の役割分担が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">ここから、刑罰と<a class="ref-stat" href="#bref-4-critique">保安処分</a>の区別がなくなってしまう、という批判が特別予防論に向けられます。危険性に応じて科される処分と、過去の罪責に応じて科される刑罰との境目が溶けてしまうという指摘です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">刑罰を刑罰たらしめているのは、過去の行為に対する責任という尺度だからです。尺度が危険性一本になれば、両制度に残るのは名前の違いだけになってしまいます。責任主義との緊張も、同じ根から生じる弱点だと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>保安処分</span></dt><dd>責任を前提とせず、行為者の危険性を要件として治療・隔離などを行う処分。</dd></div><div class="tx-gist-term"><dt><span>危険性</span></dt><dd>その人が将来犯罪を行うおそれの大きさ。過去の行為に対する責任とは別の尺度である。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">危険性というものさしは、刃が二本ある定規です。同じ目盛りで刑罰と保安処分の両方を測ると、どちらを当てているのか見分けがつかなくなります。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">批判の中身が特別予防論の弱点として正しく対応しているので、正しい内容です。責任を超える刑を科せないという批判は応報刑論に、刑が重くなりすぎるという批判は一般予防論に向くものです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>特別予防の基準を思い出す</strong><span class="syn-body">特別予防は<span class="case-emphasis freq-high">行為者の危険性</span>を基準に、本人の改善・無害化を図る。基準が「過去の罪責」ではなく「将来の危険性」に寄る点が特徴。</span></p>
 <p><span class="syn-step">2</span><strong>保安処分と重なる</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-critique">保安処分</a>も危険性を基準に将来の害を防ぐ制度なので、特別予防を徹底すると刑罰と保安処分の区別が曖昧になる。批判の向き先（特別予防）と中身が一致するので本記述は正しい。責任主義との緊張も同根の弱点である。</span></p> </div>
@@ -6049,7 +6186,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>一般予防論は、刑罰の目的を、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>行為者が将来再び犯罪を行うのを予防すること</span><span class="tx-stmt-fix">→ 一般人を威嚇して一般人による将来の犯罪を予防すること（＝一般予防）。行為者本人の再犯予防は特別予防</span>に求める見解である。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。特別予防と一般予防の定義を入れ替えた取り違え。<a class="ref-stat" href="#bref-5-general">一般予防</a>の「一般」とは<strong>世間一般の人々</strong>のこと。目的は、犯罪に刑罰を予告し実際に科すことで<strong>社会一般の人を威嚇し、一般人による将来の犯罪を抑止する</strong>ことにある。「行為者本人が再び犯罪を行うのを防ぐ」のは<strong>特別予防</strong>のほうだから、本記述は向き先を取り違えた誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">一般予防論の目的は、<strong>一般人</strong>を威嚇して社会の犯罪を防ぐことである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">応報＝刑罰の意義</span><span class="tx-gist-step">特別予防＝本人への予防</span><span class="tx-gist-step is-now">一般予防＝世間への予防</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">一般予防論は、誰に向けて働きかけることで犯罪を防ごうとするのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">重い刑が言い渡されたという報道を見て、同じことをしようと考えていた人が思いとどまります。罰を受けたのは被告人ひとりですが、効き目が届いたのは記事を読んだ大勢の人たちのほうです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">刑罰を予告し、実際に科すことの効き目は、罰を受けた本人だけでなく社会一般にも及びます。<strong>一般予防</strong>の「一般」が誰を指すのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-general">一般予防</a>論は、刑罰の目的を、一般人を威嚇し、<strong>一般人による将来の犯罪</strong>を予防することに求めます。刑罰の予告と執行がもつ威嚇効果によって、社会一般の人々の犯罪を抑止するという考え方です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">「一般」とは、罰を受けた本人ではなく世間一般の人々を指すからです。刑罰は、科されたその人への働きかけであると同時に、社会に向けた予告でもあります。行為者本人が再び罪を犯すのを防ぐのは特別予防であり、向き先が違うと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>一般予防</span></dt><dd>刑罰の目的を、一般人を威嚇し、一般人による将来の犯罪を予防することに求める考え方。</dd></div><div class="tx-gist-term"><dt><span>心理強制</span></dt><dd>刑罰を予告することで人々の心に働きかけ、犯罪を思いとどまらせること。消極的一般予防の説明に使われる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">一般予防は見せしめの理屈です。一人を罰して、世間全体に「やめておけ」を効かせます。本人だけに向くなら特別予防です。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">記述は一般予防の定義欄に特別予防の内容を当てており、向き先を取り違えた誤りです。正しくは、一般予防論の目的は一般人を威嚇して一般人による将来の犯罪を予防することであり、行為者本人の再犯を防ぐのは特別予防論です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「一般」の意味を押さえる</strong><span class="syn-body">一般予防の「一般」は<span class="case-emphasis freq-high">社会一般の人々</span>を指す。刑罰の予告と執行が持つ威嚇効果によって、広く一般人の犯罪を思いとどまらせるのが目的（心理強制）。</span></p>
 <p><span class="syn-step">2</span><strong>向き先で特別予防と切り分ける</strong><span class="syn-body">これに対し「行為者が将来再び犯罪を行うのを予防する」のは<a class="ref-stat" href="#bref-5-general">特別予防</a>（向き先＝行為者本人）。本記述は一般予防の定義欄に特別予防の内容を当てており、向き先（一般人／本人）を取り違えた誤り。特別予防の定義と対になる引っかけ。</span></p> </div>
@@ -6090,7 +6227,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>一般予防論に対しては、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>刑罰は重ければ重いほどよいということになってしまう</span>、という批判が向けられる。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。一般予防は「威嚇して世間の犯罪を抑える」立場だった。威嚇の効き目だけを追い求めると、<strong>刑は重ければ重いほど抑止力が上がる＝どこまでも重くしてよい</strong>という結論に流れかねない。これは罪の重さと釣り合わない過酷な刑を許すことになり、<a class="ref-stat" href="#bref-6-critique">一般予防への典型的批判</a>として挙げられる。批判の中身が正しく一般予防に対応するので、本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">一般予防論には、刑は<strong>重ければ重いほどよい</strong>ことになるという批判が向く。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">応報＝刑罰の意義</span><span class="tx-gist-step">特別予防＝本人への予防</span><span class="tx-gist-step is-now">一般予防＝世間への予防</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">威嚇の効き目だけを基準にすると、刑の重さはどこまで上がるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">軽い罪であっても、見せしめとして極めて重い刑を科せば、同じことをしようとする人は確実に減るはずです。効き目という物差しだけで測るなら、刑は重ければ重いほど優れていることになります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">一般予防は<strong>威嚇効果</strong>によって犯罪を抑えます。その効き目を基準に据えたとき、刑の重さに天井があるのかどうかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">ここから、刑罰は重ければ重いほどよいということになってしまう、という<a class="ref-stat" href="#bref-6-critique">一般予防への典型的批判</a>が生まれます。罪の重さと釣り合わない過酷な刑を許すおそれがある、という指摘です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">威嚇効果それ自体には、上限を決める目盛りがないからです。効き目を最大にしようとすれば、刑はどこまでも重くできてしまいます。この暴走を抑えるのが応報と責任主義による責任の枠であり、通説である相対的応報刑論は、応報を基礎としつつその枠内で予防を考えると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>威嚇効果</span></dt><dd>刑罰を予告し執行することで、人々に犯罪を思いとどまらせる働き。</dd></div><div class="tx-gist-term"><dt><span>相対的応報刑論</span></dt><dd>応報を基礎として責任の枠で刑の上限を画しつつ、その範囲内で特別予防・一般予防を考慮する通説の立場。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">見せしめは重いほど効く、という理屈の暴走です。威嚇一本で進むと刑に天井がなくなるので、責任の枠というふたが要ります。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">批判の中身が一般予防論の弱点として正しく対応しているので、正しい内容です。保安処分との区別が消えるという批判は特別予防論に、責任を超える刑を科せないという批判は応報刑論に向くものです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>威嚇の論理を突き詰める</strong><span class="syn-body">一般予防は<span class="case-emphasis freq-high">威嚇効果</span>で犯罪を抑える。効果だけを基準にすると「重い刑ほど抑止が強い」となり、<a class="ref-stat" href="#bref-6-critique">刑が際限なく重くなる</a>方向へ働く。</span></p>
 <p><span class="syn-step">2</span><strong>批判の向き先を合わせる</strong><span class="syn-body">この「重ければ重いほどよい」という批判は<span class="ron-mark freq-high">一般予防論（ⅱ説）に向けられた</span>もの。責任の枠による歯止め（応報・責任主義）が働かないと過度の重罰化を招く、という指摘である。応報への批判や特別予防への批判と取り違えない。</span></p> </div>
