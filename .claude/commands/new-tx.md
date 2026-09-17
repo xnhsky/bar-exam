@@ -13,7 +13,7 @@ description: 新規 TX を問題 PDF から生成。_lex は active v13.1.0 LOOP
 > - **縦順**：正誤表→**体系マップ(SVGハイブリッド・下部旧SVG2枚は廃止)**→横断(3軸マトリクス)→肢カード→物語(カード直後)→#basis(現行法note のみ)。
 > - **正誤表(LOCKED・spec第2項)**：各行＝①**印付き記述原文**（`.tx-vb-orig-mark`＝各行`<tr>`の **`data-brief-mark`** にHTML。各肢カード `.syn-orig` と同じ marking の**要約版**。×=誤り核に赤波下線`.tx-stmt-x`+✕+`.tx-stmt-fix`「→正解」／○=緑下線`.tx-stmt-o`+✓。属性は二重引用・内側classは単引用`'…'`）＋②**法理コア**（`.tx-vb-core`＝`extractReviewCoreSummary` が **転用タグ**を1文抽出）。見出し行右に**成績**（`computeInlineScore`→`.tx-inline-answer-score`＝🎉全問正解！N/N ／ n/N 正解）。**重厚感**（額装フレーム・金プレート見出し📋・立体ヘッダー・正誤行の左アクセント帯・押し出しチップ）。**data-brief-mark は問題固有スロット＝各記述で必ず執筆**（未鋳造は validate-tx-core G50 が WARN）。**✍答案圧縮（§v13q）＝brief-mark 末尾に `<span class='tx-anscomp-line'>規範＋条文判例の答案調1〜2文</span>` を必ず置き、各肢カード `.syn-orig` 末尾と同一文にする（片置き/不一致は G73 ERROR）。×の `.tx-stmt-fix` は最小訂正に留める。**
 > - **体系マップ(LOCKED・spec第3項)**：客体三分ツリー＋本問N局面の記述札（`#stmt-N`）。各札に **✍規範核バッジ**（`.nb-badge`＋`.nb-badge-text`＝転用可能な**規範核1文**・ノード accent の暗色で白抜き11〜14字・ノード高さ118）。**`▼ 本問の帰結（○×）`箱は置かない**（答え先出し禁止）。帰結箱を除いた分 viewBox 下端を詰める。往路=`#stmt-N`／復路=各カード末尾 `.tx-sysmap-back`（`#tx-sysmap`）。**規範核バッジ文言は問題固有スロット＝必ず執筆**（未鋳造は G50 が WARN）。
-> - **カード物理順**：判定バッジ→📜記述原文(正誤マーキング＋末尾✍答案圧縮 `.tx-anscomp-line`)→🎯統合解説(THE GIST/段階/（任意）📐図解 `.tx-dgm`＝効く論点だけ・物語側と同一複製 `data-dgm` 同期/🗝フック)→📌POINT→📚BASIS→
+> - **カード物理順**：判定バッジ→📜記述原文(正誤マーキング＋末尾✍答案圧縮 `.tx-anscomp-line`)→🎯統合解説(THE GIST＝ストーリー型§v14〔JSON仕様→`scripts/tx-gist-story.py apply`〕/段階/（任意）📐図解 `.tx-dgm`＝効く論点だけ・物語側と同一複製 `data-dgm` 同期/🗝フック)→📌POINT→📚BASIS→
 >   ⚠️間違いやすいポイント→🔗他科目横断(重要接点のある記述のみ・無理に足さない)。
 > - **相互リンク往復**（条文参照→同カードBASIS条文へジャンプ＋戻る・配線JSは単一エンジンへ統合＝script2本）、
 >   **正誤マーキング**（分かれ目を×赤波線/○緑下線）、**使い方説明は載せない**、タブラベル字下げ無効・本文1字下げ。
@@ -258,7 +258,9 @@ v12.1.1 ブロック構造を埋める（順序厳守）：
    記述に入った瞬間に前提が確定し、PART A 冒頭へ戻らずに解説を読める。事案型・単純5択型では使わない（G28 が
    学説問題のみ検出・WARNING）。既存問題への一括挿入・抽出は `python scripts/add-choice-premise.py`。
 2. `.sub-card.synthesis`（🎯 SYNTHESIS）：`.syn-orig`（📜 記述原文＝PDF逐語＋末尾に✍答案圧縮 `.tx-anscomp-line`＝規範完全文・正誤表 brief-mark と同一文＝§v13q）→ `.syn-lead`（💡 THE GIST＝
-   一文要約）→ `.syn-path`（①②③ の噛み砕き・イメージを交える）→ `.syn-image`（💭 INTUITION＝直感像）。
+   ストーリー型§v14：結論／🧭現在地／🎬場面→❓問題→⚖判例・条文→🔍理由／📘キーワード／🖼イメージ／判定。
+   HTML は手で書かず JSON 仕様から `python -X utf8 scripts/tx-gist-story.py apply <_lex> --spec <json>` で組む。
+   gold＝刑訴TX100_lex（`tx-gist-story.py extract` で仕様を見られる）・ゲート＝validate-tx-core G81）→ `.syn-path`（①②③ の噛み砕き・イメージを交える）→ `.syn-image`（💭 INTUITION＝直感像）。
 3. **`.choice-points`（📌 POINT・論点コア前倒し）**：2〜4点。主語は法概念（規範コア／判例の結論と射程／
    区別基準／決め手の限定句）。**禁止：正解は肢N／組合せ判定／本記述は誤り・正しい／他記述参照（G22）**。
 4. `.sub-card.basis-link`（📚 BASIS＝参考条文・判例セクションへのアンカー）。

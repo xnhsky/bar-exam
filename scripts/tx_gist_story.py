@@ -8,7 +8,7 @@
     💡 THE GIST タグ
     ① .tx-gist-head（○×マーク＋結論一文）
     ② .tx-gist-where（🧭 現在地＝問題の段階トラック 2〜4 段のうち今の段＋この記述の問い）
-    ③ .tx-gist-story（🎬場面 → ❓問題 → ⚖判例 → 🔍理由 の 4 段）
+    ③ .tx-gist-story（🎬場面 → ❓問題 → ⚖判例・条文 → 🔍理由 の 4 段）
     ④ .tx-gist-terms（📘 キーワード 1〜3 語＝定義を本文から外す）
     ⑤ p.tx-gist-beat.is-image（🖼 イメージ＝🗝記憶のフックと同じ像）
     ⑥ .tx-gist-judge（判定＝記述のどこが判例と合う／ずれるか）
@@ -28,7 +28,9 @@ from pathlib import Path
 CSS_BEGIN = "/* TX-GIST-STORY:BEGIN"
 CSS_END = "/* TX-GIST-STORY:END */"
 
-BEATS = (("scene", "🎬 場面"), ("issue", "❓ 問題"), ("answer", "⚖ 判例"), ("why", "🔍 理由"))
+# answer のラベルは「判例・条文」＝条文だけで答えが出るカード（令状不要の特則・通信傍受法の通知など）もあるため
+# （2026-09-17 展開時に「⚖ 判例」固定では条文カードで内容と食い違うと判明して改名）。
+BEATS = (("scene", "🎬 場面"), ("issue", "❓ 問題"), ("answer", "⚖ 判例・条文"), ("why", "🔍 理由"))
 TRACK_MIN, TRACK_MAX = 2, 4
 TERMS_MIN, TERMS_MAX = 1, 3
 MARKS = {"○": "is-o", "×": "is-x"}

@@ -134,9 +134,9 @@ v12.2.1 は問題文直下のインライン肢カードに **ANSWER 箱＋5点�
 1. `.tx-v13-verdict` … 判定バッジ（○×＋一言理由）。
 2. `.sub-card.synthesis` … 🎯統合解説。中身の順＝
    `.syn-orig`（📜記述原文＋**正誤マーキング**＋末尾に**✍答案圧縮** `.tx-anscomp-line`＝規範完全文・
-   正誤表 brief-mark と同一文＝§v13q） → `.syn-lead`（💡THE GIST＝自己完結構成・§v13q B） → `.syn-path`（段階解説・番号） →
+   正誤表 brief-mark と同一文＝§v13q） → `.syn-lead`（💡THE GIST＝ストーリー型・§v14〔結論／🧭現在地／場面→問題→判例・条文→理由／📘キーワード／🖼イメージ／判定〕・JSON 仕様→`scripts/tx-gist-story.py apply`・G81） → `.syn-path`（段階解説・番号） →
    `.syn-image`（🗝記憶のフック＝締めの一行標語＋補足1文まで可。旧💭INTUITION の位置・class 流用）。**SYNTHESIS の外箱は平坦化**
-   （枠・背景を外し、内側の GIST/記憶のフックだけ箱）。**執筆規約**（syn-lead＝やさしい版・用語サンドイッチ／
+   （枠・背景を外し、内側の GIST/記憶のフックだけ箱）。**執筆規約**（syn-lead＝ストーリー型＝`docs/tx-v12.2.1-inline-lock.md` §v14・用語サンドイッチ／
    syn-image＝🗝記憶のフックの一行標語＋補足1文まで可）は `docs/tx-v12.2.1-inline-lock.md` §v13m が正典。
 3. `.choice-points` … 📌POINT（ol・要点＋ひっかけの型）。
 4. `.sub-card.basis-link` … 📚 BASIS（第6項）。
