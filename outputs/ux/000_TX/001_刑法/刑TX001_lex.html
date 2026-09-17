@@ -5634,6 +5634,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5918,7 +6055,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>応報刑論は、産業革命に伴う工業化・都市化によって累犯が増加したことを契機として、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>支持者が増えた</span><span class="tx-stmt-fix">→ 批判が高まり、目的刑論（新派）が台頭した</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。歴史の向きが逆になっている。自由意思を基盤とする<strong>旧派（古典学派）</strong>（人は自由な意思で犯罪を選んだのだから、その罪に見合った報いを与えれば足りるとする立場）は、犯罪と等価の刑罰＝<strong>応報刑</strong>を加えさえすれば犯罪は防げると考えていた。ところが産業革命に伴う工業化・都市化で犯罪、とくに<strong>累犯</strong>（刑罰を受けたのに何度も罪を繰り返すこと）が増えた。報いを与えたのに繰り返される──この現実が応報刑論への批判となり、観念的な議論を排して実証的に犯罪者を研究しようとする<strong>新派（近代学派）</strong>が台頭した。累犯増加は応報刑論にとって追い風ではなく逆風。だから本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">累犯の増加を契機に台頭したのは、応報刑論ではなく<strong>目的刑論</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">学派が分かれた歴史</span><span class="tx-gist-step">応報刑論が立つ土台</span><span class="tx-gist-step">応報が生む歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">累犯が増えたという事実は、どちらの立場を押し上げたのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">産業革命が起き、工場と都市に人が集まった時代です。犯罪が増え、なかでも一度刑罰を受けた者がまた罪を犯す累犯が目立つようになりました。罪に見合った報いを与えれば犯罪は防げるはずだと考えていた人たちには、説明のつかない現実でした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ここで問われるのは、この事実がどちらの立場の追い風になったかです。<strong>応報刑論</strong>は、過去の犯罪と等価の刑罰を加えさえすれば犯罪を防止できると考えていました。その想定が現実に裏切られたとき、増えるのは支持でしょうか、それとも批判でしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">学説史の答えは批判の側です。自由意思を基盤とする旧派（古典学派）は反省を迫られ、従来の観念的な方法を排して<strong>実証的方法</strong>によって犯罪・犯罪者を研究しようとする新派（近代学派）＝目的刑論が台頭しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">報いを与えてもなお罪を繰り返す者がいるという事実は、応報刑論の想定そのものを掘り崩したからです。想定が外れた説に人が集まる理由はなく、関心は、なぜ繰り返すのかを実際に調べようとする方向へ移った、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>累犯</span></dt><dd>一度刑罰を受けた者が、さらに罪を重ねること。等価の報いを与えれば犯罪を防げるという想定を、現実の側から揺るがした事実にあたる。</dd></div><div class="tx-gist-term"><dt><span>新派（近代学派）</span></dt><dd>観念的な方法を排斥し、実証的方法によって犯罪・犯罪者を研究して対策を講じようとする立場。刑罰の根拠を将来の犯罪防止に求める目的刑論の基盤。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">追い風ではなく逆風だと覚えてください。「報いを与えたのに懲りない者がいる」という事実は、応報刑論の帆を押すのではなく、新派を呼び込む向かい風になりました。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">工業化・都市化によって累犯が増加したという事実の並べ方は正しいのですが、そこから伸びる矢印の先が逆です。この事実を契機に高まったのは応報刑論への批判であり、支持者を増やしたのは目的刑論（新派）の側です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>応報刑論が前提にしていたもの</strong><span class="syn-body">自由意思を基盤とした犯罪論（旧派・古典学派）では、犯罪と等価の刑罰（応報刑）を加えさえすれば、犯罪を防止し得るとされていた。刑罰の重さは過去の犯罪の重さで決まり、それで足りるという想定である。</span></p>
 <p><span class="syn-step">2</span><strong>累犯増加が突きつけた事実</strong><span class="syn-body">産業革命に伴う工業化・都市化によって犯罪、特に<span class="case-emphasis freq-high">累犯の増加</span>を招来した。等価の報いを与えてもなお罪を繰り返す者がいるという事実は、応報刑論の想定そのものを掘り崩した。</span></p>
@@ -5966,7 +6103,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span><span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>応報刑論に対しては</span><span class="tx-stmt-fix">→ 目的刑論（特別予防論）に対する批判</span>、重大な犯罪を犯した者であっても、再犯可能性がなければ刑罰を科すことができなくなるとの批判がある。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。批判の宛先がすり替えられている。<strong>応報刑論</strong>（犯人に刑罰を科すことを応報の原理に基づくものとする立場）を貫くと、犯罪防止の効果は副次的なものにすぎず、<strong>応報であることそれ自体によって刑罰は正当化</strong>される。だから将来また罪を犯すおそれがあろうとなかろうと、過去に重大な犯罪を犯した以上、その報いとして刑罰を科すことができる。「再犯可能性がなければ科刑できない」という困った帰結が出てしまうのは、刑罰の根拠を将来の再犯防止に置く<strong>特別予防論</strong>（目的刑論の一種で、その行為者本人が再び罪を犯さないようにすることを刑罰の目的とする立場）のほうである。応報刑論はこの批判を<em>向ける</em>側であって、向けられる側ではない。だから本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>応報刑論</strong>なら、再犯可能性がなくても過去の罪への報いとして科刑できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">学派が分かれた歴史</span><span class="tx-gist-step is-now">応報刑論が立つ土台</span><span class="tx-gist-step">応報が生む歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">再犯のおそれがない者に、刑罰を科すことはできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">重大な罪を犯した者が、その後の事情によって、もう二度と罪を犯すおそれがなくなったとします。それでも刑罰を科してよいのでしょうか。被害者や社会の側から見れば、科さないという結論は受け入れがたいところです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">答えは、刑罰の根拠をどこに置くかで変わります。<strong>応報刑論</strong>は、犯人に刑罰を科することを応報の原理に基づくものとする立場です。この立場で、将来の再犯可能性は科刑の条件に入るのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">応報刑論を貫くと、犯罪防止の効果は副次的なものにとどまり、<strong>応報であることそれ自体によって刑罰は正当化</strong>されます。したがって再犯可能性の有無にかかわらず刑罰を科すことが可能です。科刑の根拠が消えて困るのは、刑罰の目的を本人の再犯防止に置く特別予防論（目的刑論）の側です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">刑罰の根拠を過去の犯罪への報いに置けば、根拠となる事実は過去に確定しています。将来どうなるかによって、過去に犯した罪が消えるわけではありません。逆に根拠を将来の再犯防止だけに置くと、危険性が消えた時点で科刑の理由も消えてしまう、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>応報刑論</span></dt><dd>犯人に対して刑罰を科することを応報の原理に基づくものとする立場。犯罪防止の効果は副次的で、応報であることそれ自体が刑罰を正当化する。</dd></div><div class="tx-gist-term"><dt><span>特別予防論</span></dt><dd>刑罰の目的を、その行為者本人が再び罪を犯さないようにすることに求める立場（目的刑論の一種）。刑罰は危険性を除去する手段と位置づけられる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">応報刑論は過去を向いて科刑します。将来の再犯可能性がゼロになっても、過去に犯した罪が消えるわけではありません。再犯可能性が無いと困るのは、将来だけを見る立場のほうです。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">批判の中身そのものは実在しますが、宛先が違います。「再犯可能性がなければ科刑できなくなる」は特別予防論（目的刑論）の泣きどころで、応報刑論はこの批判を向ける側です。応報刑論では再犯可能性の有無にかかわらず科刑できるので、この不都合はそもそも生じません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>応報刑論の定義に戻る</strong><span class="syn-body">応報刑論とは、犯人に対して刑罰を科することを<span class="ron-mark freq-high">応報の原理</span>に基づくものとする立場をいう。この立場を貫くと、犯罪防止の効果は副次的なものであり、<span class="case-emphasis freq-high">応報であることそれ自体によって刑罰は正当化</span>される。</span></p>
 <p><span class="syn-step">2</span><strong>だから再犯可能性は科刑の条件にならない</strong><span class="syn-body">刑罰の根拠が過去の犯罪への報いにある以上、将来また罪を犯すかどうかは科刑の条件に入ってこない。応報刑論によると、<span class="case-emphasis freq-high">再犯可能性の有無にかかわらず刑罰を科すことが可能</span>とされる。本記述が言うような「科すことができなくなる」という帰結は、そもそも応報刑論からは出てこない。</span></p>
@@ -6013,7 +6150,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span><span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>応報刑論に対しては、論者が前提としている人間の意思の自由が科学的に証明されていないとの批判がある</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。批判の宛先が正しく応報刑論に向いている。応報刑論は<strong>意思の自由</strong>（人は他の行為に出ることもできたのに、あえて犯罪を選んだのだという前提）に立つ。この前提があるからこそ「おまえのせいだ」と<strong>非難</strong>でき、その報いとして刑罰を正当化できる。とくに<strong>相対的応報刑論</strong>（応報を基礎としつつ、副次的には犯罪防止の効果も認める立場）では、犯人の自由意思を前提に、犯人が刑罰という苦痛と非難に懲りて犯罪を繰り返さないことが期待される。ところが、その意思の自由という概念に対して、<strong>人間の意思の自由は科学的に証明されていない</strong>という批判が向けられている。土台にしている前提が証明できていないという批判なので、これは応報刑論そのものに刺さる。だから本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>意思の自由</strong>という前提を突く批判は、応報刑論に正面から刺さる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">学派が分かれた歴史</span><span class="tx-gist-step is-now">応報刑論が立つ土台</span><span class="tx-gist-step">応報が生む歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">応報刑論に本当に刺さる批判は、どこを突くのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">刑罰を科すとき、私たちは「他の道も選べたのに、あえて罪を選んだのだろう」と考えています。だからこそ行為者を責めることができます。ところが、人の行動は素質と環境で決まっているのだと言われたら、この責め方はどうなるでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">応報刑論は<strong>意思の自由</strong>を前提に置きます。自由に選べたからこそ非難でき、その報いとして刑罰を正当化できるという構えです。問われているのは、その前提そのものが証明されているのかという点です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">学説上、応報刑論には、論者が前提としている人間の意思の自由が<strong>経験科学によって証明されていない</strong>との批判が向けられています。人の行動は素質と環境によって決定されるとみる決定論（新派・近代学派）の側からの批判です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">証明できていない前提の上に、非難と報いを積み上げていることになるからです。土台が揺らげば、その上に建てた正当化も揺らぎます。ここで大切なのは、批判があることと、その立場が誤りであることは別だという点です。応報を基礎に置く立場は現在の通説的な位置にありますが、弱点を突く批判は現に存在します。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>意思の自由</span></dt><dd>人は他の行為に出ることもできたのに、あえて犯罪を選んだのだという前提。行為者への非難と、その報いとしての刑罰を正当化する土台になる。</dd></div><div class="tx-gist-term"><dt><span>決定論</span></dt><dd>人の行動は素質と環境によって決定されており、自由な意思による選択という前提は科学的に証明されていないとみる立場。新派（近代学派）の理論的基礎。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">応報刑論の土台は「選べたはずだ」の一言です。その土台が科学で証明できていないと突くのが、応報刑論に本当に刺さる批判です。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">批判の宛先が正しく応報刑論に向いています。意思の自由を前提にしているのは応報刑論の側であり、そこを突く批判は応報刑論の正当化構造そのものを揺るがすので、正しい内容です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>応報刑論の内部を分ける</strong><span class="syn-body">応報刑論には、犯罪防止効果の有無にかかわらず犯罪に対しては必ず刑罰を加えられるべきだとする<span class="ron-mark freq-high">絶対的応報刑論</span>と、副次的なものであれ応報刑を加えることにより犯罪防止の効果があることを認める<span class="ron-mark freq-high">相対的応報刑論</span>がある。</span></p>
 <p><span class="syn-step">2</span><strong>どちらも自由意思に立つ</strong><span class="syn-body">相対的応報刑論では、犯人の<span class="case-emphasis freq-high">自由意思</span>を前提に、犯人が刑罰という苦痛と非難に懲りて犯罪を繰り返さないことが期待される。懲りて行動を改められるのは、そもそも自由に選べる存在だからである。応報として非難するという発想自体が、この前提の上に成り立っている。</span></p>
@@ -6060,7 +6197,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span><span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>応報刑論に対しては</span><span class="tx-stmt-fix">→ 目的刑論（一般予防主義）に対する批判。応報刑論はむしろ重罰化を防止する</span>、犯罪を防止するために罪刑の均衡を失した重罰化を招くおそれがあるとの批判がある。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。宛先が違ううえ、応報刑論の<em>長所</em>を短所として書いている。応報刑論によると、刑罰は<strong>行為に均衡する応報</strong>として犯人に科せられる害悪である。犯した罪の重さが刑の重さを決めるのだから、そこには自動的に<strong>上限</strong>ができる。だから、行為と均衡のとれない刑（たとえば行為の重さと無関係に期間を決める<strong>不定期刑</strong>）は否定される。むしろ<strong>応報刑論の長所として、罪刑の均衡を失した重罰化を防止する点が挙げられる</strong>。逆に「犯罪を防止するために」重くしてよいという発想が出てくるのは、社会一般を威嚇して犯罪を防ごうとする<strong>一般予防主義</strong>を徹底した場合のほう。歯止めを持っている側に「歯止めが無い」と言いがかりをつけた記述なので、誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">応報刑論は罪刑の均衡によって、むしろ<strong>重罰化</strong>を防ぐ側に立つ。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">学派が分かれた歴史</span><span class="tx-gist-step">応報刑論が立つ土台</span><span class="tx-gist-step is-now">応報が生む歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">刑の重さに天井をつけているのは、どちらの立場か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">ある種の犯罪が流行し、社会に不安が広がっています。世論に押されて「見せしめに重く罰しよう」という声が出てきたとき、その要求はどこで止まるのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">応報刑論では、刑罰は<strong>行為に均衡する応報</strong>として犯人に科せられる害悪です。刑の重さを決めるのは犯した行為の重さで、予防の必要ではありません。この構えは、重罰化を招く側なのか、それを止める側なのか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑の重さを行為の重さで決めるなら、そこに自動的に上限が生まれます。だから行為と均衡のとれない不定期刑は否定され、応報刑論の<strong>長所</strong>として、罪刑の均衡を失した重罰化を防止する点が挙げられます。天井が外れるのは、威嚇に必要なだけ重くしてよいことになる一般予防主義（目的刑論）の側です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">応報は刑罰を根拠づけると同時に、刑罰を限界づけるからです。過去の行為という動かない事実に刑を縛りつけるので、「予防のためにもっと重く」という要求はそこで止まります。逆に威嚇の必要を基準にすると、必要が大きいほど重くしてよいことになり、歯止めが残りません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>行為に均衡する応報</span></dt><dd>刑の重さを、行為者の危険性や予防の必要ではなく、犯した行為の重さそのものによって決めるという考え方。刑の上限を画する働きを持つ。</dd></div><div class="tx-gist-term"><dt><span>一般予防主義</span></dt><dd>刑罰の目的を、社会一般の人々を威嚇して犯罪を思いとどまらせることに求める立場。刑の重さを決めるのは、行為の重さではなく威嚇に必要な程度になる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">応報は天井を作り、予防は天井を外します。「罪の重さ」で刑が決まる応報刑論こそ、重罰化への歯止めそのものです。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">応報刑論の最大の長所である重罰化の防止を、そのまま短所として裏返したうえ、批判の宛先まで付け替えています。「犯罪を防止するために罪刑の均衡を失した重罰化を招く」という批判が当たるのは一般予防主義を徹底した目的刑論の側で、応報刑論はむしろ重罰化を防ぐ側です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>応報刑論における刑罰の性格</strong><span class="syn-body">応報刑論によると、刑罰は<span class="ron-mark freq-high">行為に均衡する応報</span>として犯人に科せられる害悪である。刑の重さを決めるのは、行為者の危険性でも予防の必要性でもなく、<span class="case-emphasis freq-high">犯した行為の重さ</span>そのものである。</span></p>
 <p><span class="syn-step">2</span><strong>均衡が上限を画する</strong><span class="syn-body">そのような刑罰であればこそ、一般人を威嚇し犯罪を予防するのに役立つとされ（<span class="ron-mark freq-mid">一般予防主義</span>）、他方で<span class="case-emphasis freq-high">行為と均衡のとれない不定期刑は否定される</span>。行為の重さが天井になるので、「予防のためにもっと重く」という要求はここで止まる。</span></p>
@@ -6108,7 +6245,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span><span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>応報刑論に対しては</span><span class="tx-stmt-fix">→ 目的刑論に対する批判。応報刑論は二元主義で両者を峻別する</span>、刑罰と保安処分の区別がなくなるとの批判がある。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。ここも宛先の付け替え。<strong>保安処分</strong>（刑罰とは別に、行為者の危険性に着目して、将来の犯罪を防ぐために行われる処分。治療や隔離など）は、犯人の<strong>危険性</strong>を前提とする。これに対し応報刑論では、刑罰は<strong>行為に均衡する応報</strong>として犯人に科せられる害悪である。そのような刑罰であればこそ一般人を威嚇し犯罪を予防するのに役立つとされ、行為と均衡のとれない不定期刑は否定される。<strong>この点で、刑罰は、犯人の危険性を前提とする保安処分とは本質的に異なる</strong>とされる（<strong>二元主義</strong>）。過去の行為を見る刑罰と、将来の危険性を見る保安処分では、そもそも見ているものが違うので、応報刑論に立つ限り両者は混ざらない。区別が消えてしまうのは、刑罰もまた将来の危険性への対処だと捉える目的刑論（一元主義）の側である。だから本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">応報刑論は<strong>二元主義</strong>に立ち、刑罰と保安処分を本質的に区別する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">学派が分かれた歴史</span><span class="tx-gist-step">応報刑論が立つ土台</span><span class="tx-gist-step is-now">応報が生む歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">刑罰と保安処分の区別が消えるのは、どちらの立場か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">将来また罪を犯すおそれが強いという理由で、治療や隔離の処分が行われる場面を思い浮かべてください。これは刑罰と同じものなのでしょうか、それとも別のものなのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body"><strong>保安処分</strong>は、行為者の危険性に着目し、将来の犯罪を防止するために行われる処分です。これに対し応報刑論では、刑罰は行為に均衡する応報として犯人に科せられる害悪です。両者を分ける根拠は残るのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">応報刑論に立つと、刑罰は過去の行為の重さを見て科され、保安処分は将来の危険性を見て科されます。根拠とする事情が異なるので、刑罰は、犯人の危険性を前提とする保安処分とは本質的に異なるとされます（<strong>二元主義</strong>）。区別が消えるのは、刑罰もひとしく危険性への対処だと捉える一元主義（目的刑論の徹底）の側です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">物差しが二つあるから混ざらないのです。応報刑論は刑罰を過去の行為の重さで測り、保安処分を将来の危険性で測ります。逆に刑罰の根拠を危険性の除去に求めると、刑罰も保安処分も同じ一つの物差しで測ることになり、両者を分ける理由を自前で示せなくなる、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>保安処分</span></dt><dd>刑罰とは別に、行為者の危険性に着目し、将来の犯罪を防止するために行われる処分（治療・隔離等）。根拠は過去の行為ではなく将来の危険性にある。</dd></div><div class="tx-gist-term"><dt><span>二元主義</span></dt><dd>刑罰を過去の行為に均衡した応報と捉え、危険性を前提とする保安処分と本質的に区別して、両者を並存させる立場。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">刑罰は過去の行為への報い、保安処分は将来の危険性への手当てです。見ているものが違うから混ざりません。混ざるのは、両方とも将来を見る立場のほうです。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「区別がなくなる」という批判が成り立つのは、刑罰と保安処分を同じ根拠で説明してしまう立場に限られます。応報刑論は両者を区別する根拠を与える側なので、宛先が違います。区別が溶けるのは一元主義（目的刑論の徹底）の側です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>保安処分が立っている土台</strong><span class="syn-body">保安処分は、行為者の<span class="ron-mark freq-high">危険性</span>に着目し、将来の犯罪を防止するために行われる処分である。その根拠は過去に何をしたかではなく、これから何をしそうかという将来の危険性にある。</span></p>
 <p><span class="syn-step">2</span><strong>応報刑論では刑罰は別の土台に立つ</strong><span class="syn-body">応報刑論によると、刑罰は<span class="case-emphasis freq-high">行為に均衡する応報</span>として犯人に科せられる害悪である。そのような刑罰であればこそ一般人を威嚇し犯罪を予防するのに役立つとされ（一般予防主義）、行為と均衡のとれない不定期刑は否定される。この点で、刑罰は、犯人の危険性を前提とする保安処分とは<span class="case-emphasis freq-high">本質的に異なる</span>とされる（<span class="ron-mark freq-high">二元主義</span>）。応報刑論はむしろ、両者を分ける根拠を与える立場である。</span></p>
