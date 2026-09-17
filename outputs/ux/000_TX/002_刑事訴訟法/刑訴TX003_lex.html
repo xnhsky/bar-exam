@@ -5633,6 +5633,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5937,7 +6074,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>警察署への任意同行が適法であるためには、対象者の任意の承諾の下、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>その意思を制圧することなく行われたこと</span>を要する。<span class="tx-anscomp-line">捜査における強制手段とは、個人の意思を制圧し、身体、住居、財産等に制約を加えて強制的に捜査目的を実現する行為をいう（最決昭51.3.16）。任意同行はこれに当たらない<strong>任意処分</strong>であり、対象者の任意の承諾に基づき、その意思を制圧することなく行われた場合に適法となる（197条1項但書）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。捜査で人の身体を動かす行為は、令状の要る<strong>強制処分</strong>と、相手の承諾を土台にする任意処分のどちらかに振り分けられる。判例は強制手段を、個人の意思を制圧し、身体・住居・財産等に制約を加えて捜査目的を実現する行為——相手が嫌がっても実力で押し通す行為——と定義し、これには特別の根拠規定を要するとする（197条1項但書）。任意同行はその枠の外にある任意処分で、後ろ盾となる令状がない。だからこそ、対象者が自分の意思で応じたこと、すなわち<strong>意思を制圧していない</strong>ことが、適法性を支える唯一の土台になる。イメージは玄関の扉——内側から開けてもらえる限り入れるが、こじ開けた瞬間に別の資格が要る建物へ変わる。本記述はこの任意処分としての適法要件を正確に述べており、正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">任意同行は、<strong>意思を制圧しない</strong>任意の承諾があって初めて適法である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">任意処分の限界</span><span class="tx-gist-step">強制処分と令状</span><span class="tx-gist-step">拘束後の時間と証拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">令状のない任意同行の適法性を支えているものは何か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">飲酒運転が疑われる運転者に、警察官が呼気検査を求めましたが、運転者は応じません。そこで警察官は警察署まで来るよう求め、背中を手の平で押してパトカーに乗せ、署まで連れて行きました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">令状の要る<strong>強制処分</strong>と違って、任意同行は裁判官の令状なしに行われます。裏づけとなる令状がないこの連行を、いったい何が支えているのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決昭51.3.16）は、強制手段とは「個人の意思を制圧し、身体、住居、財産等に制約を加えて強制的に捜査目的を実現する行為」などをいうとしました。任意同行はこれに当たらない<strong>任意処分</strong>で、捜査に必要な取調べとして令状なしに行えます（刑訴法197条1項本文）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">令状主義は、強制の処分には法律の特別の定めと裁判官の審査を通すよう求めます（刑訴法197条1項ただし書）。任意同行はその審査を経ていないので、適法性を支えられるのは相手自身の承諾しかありません。承諾を欠いたまま意思を押し切って連れて行けば、令状のない実質的な逮捕になってしまうと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>任意処分</span></dt><dd>相手の承諾を土台に行う捜査。相手の意思を制圧しないので、令状は要らない。</dd></div><div class="tx-gist-term"><dt><span>強制処分法定主義</span></dt><dd>強制の処分は法律に特別の定めがある場合でなければできないという原則（刑訴法197条1項ただし書）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">玄関の扉を思い浮かべてください。内側から開けてもらえるかぎり入れますが、こじ開けた瞬間に、別の資格が要る建物へ変わります。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">任意の承諾の下、意思を制圧することなく行われたことを要するとしている点が、判例の任意処分の枠組みとそのまま合います。正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>強制処分と任意処分の区別</strong><span class="syn-body">判例（<a class="ref-case" id="ref-case-51-101" href="#bref-1-51case">最決昭51.3.16</a>）は、強制手段とは『<span class="case-emphasis freq-high">個人の意思を制圧し、身体、住居、財産等に制約を加えて強制的に捜査目的を実現する行為</span>など、特別の根拠規定がなければ許容することが相当でない手段』をいうとする。<a class="ref-stat" id="ref-law-197-101" href="#bref-1-197">197条1項但書</a>は、強制処分は法律に特別の定めがある場合でなければできないと定める（強制処分法定主義）。</span></p>
 <p><span class="syn-step">2</span><strong>任意同行へのあてはめ</strong><span class="syn-body">任意同行はこの強制手段に当たらない<span class="ron-mark freq-high">任意処分</span>である。したがって適法であるためには相手方の任意の承諾を基礎とし、その意思を制圧しないことを要する。承諾を欠き意思を制圧して連行すれば、それは実質的な逮捕（強制処分）に転化し、令状なしには許されない。本記述は任意処分としての適法要件を正しく述べており、正しい。</span></p> </div>
@@ -5981,7 +6118,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>任意捜査であるからといって有形力の行使が全く許されないわけではなく、両肩をつかんでいすに座らせるといった行為が<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>許容される場合もある</span>。<span class="tx-anscomp-line">強制手段に至らない有形力の行使は、任意捜査においても許容される場合があるが、<strong>必要性・緊急性</strong>なども考慮したうえ、具体的状況の下で相当と認められる限度においてのみ許される（最決昭51.3.16）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。任意捜査なのだから相手に指一本触れられない、と考えたくなるが、判例の枠組みはそうなっていない。強制手段は意思を制圧して重要な権利利益を制約する行為に限られ、そこに達しない<strong>有形力</strong>——相手の身体に物理的に働きかける力——は任意捜査でも用いる余地がある。もっとも無制限ではなく、<strong>必要性・緊急性</strong>を考慮し、具体的状況の下で相当と認められる限度に限られる。強制処分でない以上、目的に見合う分だけしか使えないという当然の歯止めである。呼気検査を拒んで立ち上がった相手の両肩をつかんで座らせる程度なら、証拠の散逸を防ぐ必要があり、身体の自由を大きく奪うものでもないから、この限度に収まりうる。イメージは音量つまみ——ゼロか最大かではなく、目的に見合う目盛りまで回せる。本記述は正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">強制手段に至らない有形力なら、<strong>任意捜査</strong>でも許される場合がある。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">任意処分の限界</span><span class="tx-gist-step">強制処分と令状</span><span class="tx-gist-step">拘束後の時間と証拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">任意捜査では、相手の身体に一切力を加えてはいけないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">取調室で呼気検査を拒み続けた運転者が、トイレに行くと言って、いすから立ち上がろうとしました。逃げようとしたものと考えた警察官は、その両肩を両手でつかんで、いすに座らせました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">任意というのだから、相手の身体に力を加えた時点で任意ではなくなる、と考えたくなります。しかし判例のいう<strong>強制手段</strong>は、意思を制圧して重要な権利利益を制約する行為に限られています。では、そこまで届かない力はどう扱われるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決昭51.3.16）は、強制手段の程度に至らない有形力の行使は、任意捜査においても許容される場合があるとしました。もっとも無制限ではなく、<strong>必要性・緊急性</strong>なども考慮した上、具体的状況の下で相当と認められる限度に限られます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">任意捜査の適法性は令状ではなく、目的と手段の釣り合いで測られます。この場面では逃走や呼気中アルコールの散逸を防ぐ必要があり、短い時間いすに座らせる程度なら身体の自由を大きく奪うものでもありません。だから釣り合いの枠内に収まりうると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>有形力</span></dt><dd>相手の身体に物理的に働きかける力。腕をつかむ、肩を押さえるといった行為を含む。</dd></div><div class="tx-gist-term"><dt><span>相当性</span></dt><dd>目的の重さと手段の強さが釣り合っていること。必要性・緊急性と合わせて任意処分の限界を測る。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">音量つまみを思い浮かべてください。ゼロか最大かの二択ではなく、目的に見合う目盛りまで回せます。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">有形力の行使が全く許されないわけではなく、許容される場合もあるとしている点が、判例の枠組みと合います。正しい記述です。もっとも押さえつける程度が過ぎれば、実質的な逮捕という強制処分に転化します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>判例の枠組み</strong><span class="syn-body">最決昭51.3.16は『右の程度（強制手段）に至らない有形力の行使は、任意捜査においても許容される場合がある』と判示する。ただし無制約ではなく、<span class="case-emphasis freq-high">必要性・緊急性なども考慮したうえ、具体的状況の下で相当と認められる限度</span>で許容される（比例原則）。</span></p>
 <p><span class="syn-step">2</span><strong>本事案へのあてはめ</strong><span class="syn-body">呼気検査を拒んで立ち上がった相手の両肩をつかんでいすに座らせる行為は、逃走・証拠（呼気中アルコール）の散逸防止という必要性があり、短時間で身体の自由を大きく奪うものでなければ<span class="ron-mark freq-high">相当性</span>の枠内に収まりうる。ゆえに「許容される場合もある」とする本記述は正しい。もっとも制圧の程度が過ぎれば実質的逮捕（強制処分）に転化する点は記述エ・オと連続する。</span></p> </div>
@@ -6025,7 +6162,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>被疑者に対する鑑定及び身体検査は、直接強制を許容する規定を欠くため、被疑者の身体に直接強制を加えて<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>血液を採取することは許されない</span><span class="tx-stmt-fix">→ 身体検査令状を併用すれば直接強制による採血が可能</span>。<span class="tx-anscomp-line">身体への侵襲を伴う採血は、鑑定処分許可状（225条・168条1項）だけでは直接強制ができないため、<strong>身体検査令状</strong>（218条1項後段）を併せて発付を受け、これに基づく139条の直接強制として実施することができる（併用説）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。体を傷つけて資料を得る採血は<strong>鑑定処分</strong>——専門知識を持つ者に体内を調べさせる処分——として行い、令状は鑑定処分許可状（225条・168条1項）になる。ここまでは記述のとおりで、鑑定処分には身体検査の直接強制の規定（139条）が準用されていないから（168条6項）、この令状だけで相手を押さえつけて採血することはできない。しかし実務・通説は、これに<strong>身体検査令状</strong>（218条1項後段）を重ねて得ることを認め、その令状には139条の直接強制が働くから、拒む相手からも採血できるとする。身体侵害の重さを、二つの令状審査で受け止める仕組みである。イメージは二枚重ねの鍵——一枚では扉は開かず、もう一枚を重ねて初めて実力行使のスイッチが入る。本記述は前提から一足飛びに許されないと結論した点で誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">身体検査令状を重ねれば、<strong>直接強制</strong>による採血ができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">任意処分の限界</span><span class="tx-gist-step is-now">強制処分と令状</span><span class="tx-gist-step">拘束後の時間と証拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">拒んでいる相手から血液を採るには、どの令状が必要なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">呼気検査に応じる見込みがなくなったため、警察官の上司が裁判官に令状を請求しました。発付された令状に基づいて運転者の血液が採られ、鑑定の結果、アルコールが検出されました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">採血は針を刺す<strong>身体への侵襲</strong>を伴うので、専門知識を持つ者に身体を調べさせる鑑定処分の枠で行います。ところがこの枠には、拒む相手を押さえて実行する仕組みが見当たりません。それでは拒む相手からは採血できないのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法は、捜査における身体の検査は身体検査令状によらなければならないと定めます（218条1項後段）。そこで実務・通説は、鑑定処分許可状（225条1項・168条1項）に身体検査令状を併せて発付してもらい、身体検査令状に働く直接強制の規定（139条・222条1項）によって採血できるとします。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">鑑定処分について準用されるのは131条・137条・138条・140条にとどまり、直接強制の139条は入っていません（168条6項）。これに対し、身体検査令状に基づく身体の検査には139条が準用されます。つまり令状の種類によって直接強制ができるかどうかが変わるので、二枚を重ねて実力行使の裏づけを得るという説明です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>鑑定処分許可状</span></dt><dd>捜査機関から鑑定を嘱託された者が、鑑定のために身体の検査などをすることを許す令状（刑訴法225条1項・168条1項）。</dd></div><div class="tx-gist-term"><dt><span>直接強制</span></dt><dd>過料や刑罰を科しても効果がないと認めるときに、拒む相手に対しそのまま身体の検査を行うこと（刑訴法139条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">二枚重ねの鍵を思い浮かべてください。一枚では扉は開かず、もう一枚を重ねて初めて、実力行使のスイッチが入ります。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">鑑定処分に直接強制の規定がないとする前半は正しいのですが、そこから採血は許されないと飛んだ後半が誤りです。鑑定処分許可状に身体検査令状を併せて得れば、その令状に基づく直接強制として採血できます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>鑑定処分だけでは直接強制ができない</strong><span class="syn-body">採血は身体への侵襲を伴うため、鑑定受託者が<a class="ref-stat" id="ref-law-225-301" href="#bref-3-225">鑑定処分許可状（225条・168条1項）</a>を得て身体検査として行う。しかし鑑定処分には身体検査の直接強制規定（139条）が<span class="case-emphasis freq-high">準用されていない</span>（168条6項参照）。ゆえに鑑定処分許可状だけでは相手を押さえて採血できない。この限りで本記述の前提は正しい。</span></p>
 <p><span class="syn-step">2</span><strong>身体検査令状の併用で直接強制が可能になる</strong><span class="syn-body">そこで実務・通説は、鑑定処分許可状に加えて<a class="ref-stat" id="ref-law-218-301" href="#bref-3-218">身体検査令状（218条1項後段・222条1項が準用する139条）</a>を併せて発付してもらう。身体検査令状には<span class="ron-mark freq-high">直接強制の規定（139条）が働く</span>ため、これに基づいて直接強制による採血ができる。したがって「直接強制を加えて血液を採取することは許されない」と断ずる本記述は誤り。</span></p> </div>
@@ -6073,7 +6210,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>任意同行の時点で実質的な逮捕があったと認定された場合、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>そのことのみで、その後の供述調書の証拠能力は当然に否定される</span><span class="tx-stmt-fix">→ 重大違法＋排除相当が認められて初めて否定される</span>。<span class="tx-anscomp-line">証拠の収集手続に<strong>令状主義の精神を没却する重大な違法</strong>があり、これを証拠とすることが将来における違法な捜査の抑制の見地から相当でないと認められる場合に、その証拠能力は否定される（最判昭53.9.7）。この枠組みは自白を内容とする供述証拠についても妥当する（東京高判平14.9.4）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。違法な捜査で得た証拠をそのまま使わせるわけにはいかない、だから違法があれば当然に排除される、と考えたくなる。しかし判例が採るのは<strong>違法収集証拠排除法則</strong>——違法の程度を見てから排除するかを決める相対的な排除——であり、手続に違法があるだけでは足りない。排除されるのは、令状主義の精神を没却する<strong>重大な違法</strong>があり、かつ、これを証拠とすることが将来の違法捜査の抑制の見地から相当でないと認められる場合に限られる。真実の発見を犠牲にしてでも捜査を正すべき場面に絞る趣旨であり、この考え方は自白を内容とする供述証拠にも及ぶ。イメージは二重の関門——重大性を通り、抑制のため相当も通って初めて証拠が締め出される。本記述は実質逮捕の認定だけで当然に証拠能力が否定されるとした点で誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">証拠が排除されるには、<strong>重大な違法</strong>と排除の相当性が要る。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">任意処分の限界</span><span class="tx-gist-step">強制処分と令状</span><span class="tx-gist-step is-now">拘束後の時間と証拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">逮捕が違法だったと認められれば、その後の供述調書は当然に使えなくなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">任意同行を求めた時点で、すでに実質的な逮捕があったと認められたとします。その後、被疑者は取調べで飲酒運転を認め、その内容が供述調書にまとめられました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">違法な手続から生まれた証拠をそのまま使わせるわけにはいかない、だから違法があれば当然に使えなくなる、と考えたくなります。しかし判例が採るのは<strong>違法収集証拠排除法則</strong>です。この法則は、違法があればただちに排除するという作りになっているのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最判昭53.9.7）は、手続に令状主義の精神を没却するような<strong>重大な違法</strong>があり、かつ、これを証拠とすることが将来における違法な捜査の抑制の見地から相当でないと認められる場合に、証拠能力を否定するとしました。この枠組みは自白を内容とする供述証拠にも及びます（東京高判平14.9.4）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">証拠を締め出すことは、その分だけ真実の発見をあきらめることでもあります。だから排除は、そこまでしてでも捜査を正すべき場面に絞られると説明されます。違法の程度を評価する一段を挟むのが、相対的な排除という考え方です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>違法収集証拠排除法則</span></dt><dd>違法な手続で集めた証拠の証拠能力を否定する法則。違法の重大性と排除の相当性という二つの評価を経て排除する。</dd></div><div class="tx-gist-term"><dt><span>証拠能力</span></dt><dd>その証拠を事実認定の材料として使ってよいという資格。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">二重の関門を思い浮かべてください。重大性の門を通り、抑制のため相当という門も通って、初めて証拠が締め出されます。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">実質的な逮捕が認定されたことのみで当然に否定されるとしている点が誤りです。違法の重大性と排除の相当性を検討して、初めて証拠能力の有無が決まります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>違法収集証拠排除法則の判断枠組み</strong><span class="syn-body">判例（<a class="ref-case" id="ref-case-53-401" href="#bref-4-53case">最判昭53.9.7</a>）は、証拠物について、<span class="case-emphasis freq-high">令状主義の精神を没却する重大な違法</span>があり、<span class="case-emphasis freq-high">これを証拠とすることが将来の違法捜査抑制の見地から相当でない</span>と認められる場合に証拠能力を否定する（重大違法＋排除相当の二要件）。手続に違法があるだけでは足りない。</span></p>
 <p><span class="syn-step">2</span><strong>供述証拠への適用と本記述の誤り</strong><span class="syn-body">裁判例（<a class="ref-case" id="ref-case-71-401" href="#bref-4-71case">東京高判平14.9.4</a>）は、自白を内容とする供述証拠についても違法収集証拠排除法則を採用でき、<span class="ron-mark freq-high">自白法則の適用に先行して</span>排除の可否を検討するとした。したがって、実質逮捕の違法があっても、違法の重大性・排除の相当性を検討せずに「そのことのみで当然に」証拠能力が否定されるとする本記述は誤り。</span></p> </div>
@@ -6117,7 +6254,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>実質的な逮捕が任意同行開始時（5日午後3時）になされたと考えても、送致・勾留請求に至る逮捕後の手続は、刑事訴訟法が要求する<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>時間的制限を遵守している</span>。<span class="tx-anscomp-line">司法警察員は逮捕後<strong>48時間以内</strong>に被疑者を検察官に送致する手続をとらなければならず（203条1項）、検察官は被疑者を受け取った時から24時間以内、かつ身体を拘束された時から通じて72時間以内に勾留を請求しなければならない（205条1項・2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。実質逮捕の起点が任意同行の時点まで前倒しされれば時間制限を破りそうに見えるが、実際に数えるといずれの制限も守られている。身体拘束の時間を刻むのは、司法警察員が逮捕から<strong>48時間以内</strong>に検察官へ送致する手続をとる制限（203条1項）、検察官が被疑者を受け取ってから24時間以内に勾留を請求する制限（205条1項）、そして身体を拘束された時から<strong>通じて72時間</strong>を超えない制限（205条2項）の三つである。当てはめれば順に47時間30分、19時間30分、68時間となり、いずれも枠内に収まる。裁判官の審査を受けないまま身体を拘束しておける時間を厳しく区切る趣旨だから、起点を早めても枠に触れなければ違法にはならない。イメージは三つの砂時計——どれも落ちきる前に次の手続が済んでいる。本記述は正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">起点を実質的な逮捕に前倒ししても、<strong>時間制限</strong>は守られている。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">任意処分の限界</span><span class="tx-gist-step">強制処分と令状</span><span class="tx-gist-step is-now">拘束後の時間と証拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">実質的な逮捕の時点から数え直しても、逮捕後の手続は時間制限に収まるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">任意同行を求めた5日午後3時に、すでに逮捕が始まっていたとみます。検察官への送致は7日午後2時30分、検察官が身柄を受け取ったのは同日午後3時30分、勾留請求は8日午前11時でした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">実質的な逮捕を認めると、時間を数える<strong>起点</strong>が前へ動きます。逮捕状が発付された時点から数えれば当然に制限内でも、起点を前倒しすれば枠を破るのではないか、が問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法は三つの枠を置きます。司法警察員は身体を拘束された時から48時間以内に検察官へ送致する手続をすること（203条1項）、検察官は被疑者を受け取った時から24時間以内に勾留を請求すること（205条1項）、そしてその時間の制限は身体を拘束された時から通じて72時間を超えられないこと（205条2項）です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">当てはめると、拘束の始まりから送致までが47時間30分、身柄の受取から勾留請求までが19時間30分、拘束の始まりから勾留請求までが通算68時間となり、どの枠も超えていません。裁判官の審査を受けないまま身体を拘束できる時間を短く区切るのが趣旨ですから、起点が早まっても枠に触れなければ違法にはならないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>実質的な逮捕</span></dt><dd>外形は任意同行でも、意思を制圧して身体の自由を奪っていれば逮捕として扱う考え方。時間制限の起点もその時点に前倒しされる。</dd></div><div class="tx-gist-term"><dt><span>送致</span></dt><dd>司法警察員が、身柄を書類および証拠物とともに検察官へ引き継ぐ手続（刑訴法203条1項）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">三つの砂時計を思い浮かべてください。48時間・24時間・通算72時間のどれも、落ちきる前に次の手続が済んでいます。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">刑事訴訟法が要求する時間的制限を遵守しているとしている点が、条文に数字を当てはめた結果と合います。正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>逮捕→検察官送致の48時間</strong><span class="syn-body">司法警察員は、逮捕後、被疑者の身柄を<a class="ref-stat" href="#bref-5-203">48時間以内に検察官へ送致</a>する手続をしなければならない（203条1項）。実質逮捕を起点（5日15時）とみても、送致の手続は7日14時30分＝<span class="case-emphasis freq-high">47時間30分</span>で48時間以内に収まる。</span></p>
 <p><span class="syn-step">2</span><strong>受理→勾留請求の24時間・通じて72時間</strong><span class="syn-body">検察官は被疑者を受け取ってから<a class="ref-stat" href="#bref-5-205">24時間以内に勾留を請求</a>しなければならず（205条1項）、かつ身体拘束の時（実質逮捕）から通じて72時間を超えてはならない（205条2項）。受理7日15時30分→請求8日11時＝<span class="ron-mark freq-high">19時間30分</span>で24時間以内、実質逮捕5日15時→請求8日11時＝<span class="ron-mark freq-high">68時間</span>で72時間以内。全制限を遵守しており、本記述は正しい。</span></p> </div>
