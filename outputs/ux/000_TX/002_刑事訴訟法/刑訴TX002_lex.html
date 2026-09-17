@@ -5634,6 +5634,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5920,7 +6057,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>刑事訴訟法第1条は、同法の目的として人権保障の要請を掲げる一方、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>「事案の真相の解明」については明文に掲げなかった</span><span class="tx-stmt-fix">→ 1条は「事案の真相を明らかにし」を明文で掲げている</span>。<span class="tx-anscomp-line">刑事訴訟法1条は、同法の目的として、公共の福祉の維持と個人の基本的人権の保障とを全うしつつ、<strong>事案の真相</strong>を明らかにし、刑罰法令を適正且つ迅速に適用実現することを掲げており、真実発見は人権保障と並ぶ明文の目的である。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。刑事訴訟法の目的規定である1条が何を掲げているかを、文言レベルで問う問題。1条は、公共の福祉の維持と個人の基本的人権の保障とを全うしつつ、事案の真相を明らかにし、刑罰法令を適正且つ迅速に適用実現することを目的とすると定める。つまり<strong>真実発見</strong>——何があったのかを解明して犯人を的確に処罰するという要請——は、条文に無いどころか、人権保障と並べて明文に掲げられている。憲法が被疑者・被告人を手厚く守るからといって刑訴法が真相解明を放棄したわけではなく、1条は衝突しがちな二つの要請の<strong>調和点</strong>を探せと命じている。イメージは二本の綱——刑訴法は真実発見と人権保障の綱引きの上に立ち、片方の綱だけを握ることはしない。本記述は、1条が明記する「事案の真相を明らかにし」を明文になかったものとする点で誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">刑事訴訟法1条は、人権保障と並べて<strong>事案の真相の解明</strong>を明文で掲げている。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">目的・理念</span><span class="tx-gist-step">審判の構造</span><span class="tx-gist-step">構造を超える原理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">刑事訴訟法1条は、目的として真相の解明を条文に書いているのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">戦後、日本国憲法は被疑者・被告人の権利を細かく保障しました。その憲法の下で作られた刑事訴訟法の冒頭を開くと、法律の目的を定めた1条があります。人権を守る憲法を受けた法律なのだから、目的も人権一色だろうと考えたくなる場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">1条が掲げる目的は人権保障だけなのか、それとも犯人を的確に見つける<strong>真実発見</strong>も含むのかが問題です。答えは条文の文言そのものにあります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑事訴訟法1条は「公共の福祉の維持と個人の基本的人権の保障とを全うしつつ、事案の真相を明らかにし、刑罰法令を適正且つ迅速に適用実現することを目的とする」と定めています。真相の解明は、人権保障と並んで条文にはっきり書かれています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">真実発見だけを追えば無実の人を罰する危険が高まり、人権保障だけを追えば犯人を適正に処罰できません。そこで1条は二つの要請を並べ、その調和点を探すことを求めていると説明されます。刑事訴訟法の多くの論点は、この二つのバランスをどこで取るかという形で現れます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>真実発見</span></dt><dd>事件で実際に何があったかを明らかにし、刑罰法令を正しく適用しようとする要請（実体的真実主義）。刑事訴訟法1条の「事案の真相を明らかにし」にあたる。</dd></div><div class="tx-gist-term"><dt><span>人権保障</span></dt><dd>捜査や裁判の過程で、被疑者・被告人などの基本的人権を不当に侵害しないようにする要請。1条は真実発見と並べて掲げる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">二本の綱を思い浮かべてください。刑事訴訟法は真実発見と人権保障の綱引きの上に立っていて、片方の綱だけを握ることはしません。1条にはその二本が並んで書かれています。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「事案の真相の解明は明文に掲げなかった」としている点が、条文と逆です。1条は「事案の真相を明らかにし」と明記しており、真相の解明は人権保障と並ぶ明文の目的です。なお「適正手続の保障」「人権の尊重」という言い回しも、1条の文言そのままではありません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>1条の文言を確認する</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-1">1条</a>は『この法律は、刑事事件につき、公共の福祉の維持と個人の基本的人権の保障とを全うしつつ、<span class="case-emphasis freq-high">事案の真相を明らかにし</span>、刑罰法令を適正且つ迅速に適用実現することを目的とする』と規定し、<span class="ron-mark freq-high">真実発見（真相解明）</span>を明文で目的に掲げている。</span></p>
 <p><span class="syn-step">2</span><strong>真実発見と人権保障の調和</strong><span class="syn-body">刑訴法の目的は、真実の発見（実体的真実主義）と個人の基本的人権の保障という2つの要請の<span class="ron-mark freq-high">調和</span>にある。両者はしばしば衝突するが、1条はいずれか一方に偏らず双方を並べて掲げる。真相解明を目的から落としたとする本記述は、条文の明文に反する誤り（なお「適正手続の保障」「人権の尊重」も1条そのままの文言ではない）。</span></p> </div>
@@ -5962,7 +6099,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>裁判所が審判を行うことのできる対象について、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>訴因に限定されることはなく、公訴事実の同一性の関係が認められる事実にまで及ぶ</span><span class="tx-stmt-fix">→ 訴因に限定される（訴因対象説）</span>。<span class="tx-anscomp-line">裁判所が審判の対象とすることができるのは、検察官が起訴状に明示した<strong>訴因</strong>に限られ（刑事訴訟法256条3項）、公訴事実の同一性は訴因変更が許される範囲を画する外枠にすぎない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。検察官が設定した訴因と裁判所の審判対象との関係を問う、審判対象論の基本。現行法は起訴状に公訴事実を訴因を明示して記載させ（256条3項）、裁判所の審判はこの<strong>訴因</strong>——検察官がここを裁いてほしいと切り出した犯罪事実の枠——に拘束される。公訴事実の同一性は、訴因を書き替える（訴因変更する）ことが許される外枠を画するにすぎず、それ自体が審判の対象になるわけではない。審判対象を訴因に絞ってこそ被告人は防御すべき的を一つに定められるのだから、訴因を審判対象とする理解こそが<strong>当事者主義</strong>に適合する。イメージは一枚の絵——審判対象は検察官が切り出した絵そのもので、同一性はその絵を描き替えるときに越えられない額縁にすぎない。本記述は、旧法的な公訴事実対象説の理解を当事者主義と結びつけた点で誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">裁判所が審判できるのは検察官が明示した<strong>訴因</strong>に限られる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">目的・理念</span><span class="tx-gist-step is-now">審判の構造</span><span class="tx-gist-step">構造を超える原理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">裁判所が審判できる範囲は、訴因に限られるのか、公訴事実の同一性が及ぶ範囲まで広がるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">検察官が「ある日ある店で財布を盗んだ」という窃盗の事実を起訴状に書いて起訴しました。審理を進めると、同じ出来事が実は詐欺だったようにも見えてきます。裁判所は、起訴状に書かれていない詐欺のほうを、そのまま判決で認定してよいのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">裁判所の審判の対象を画するのは、検察官が起訴状に書いた<strong>訴因</strong>なのか、それと同じ出来事といえる事実全体なのかが問題です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑事訴訟法256条3項は、公訴事実を訴因を明示して記載するよう求めています。判例・通説は、裁判所の審判の対象はこの訴因に限られると解しています（訴因対象説）。公訴事実の同一性は、312条1項が訴因の変更を許す限度として使う基準であって、審判の対象そのものではありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">審判の対象を訴因に絞れば、被告人は何に対して防御すればよいかがはっきりし、攻撃と防御を集中できます。検察官が設定した対象を当事者どうしで争う形なので、訴因を審判対象とすることが当事者主義に合うと説明されます。起訴状に書かれていない事実まで裁判所が見渡すことは、予断排除の考え方ともなじみません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>訴因</span></dt><dd>検察官が起訴状に記載して審判を求める具体的な犯罪事実（刑事訴訟法256条3項）。できる限り日時・場所・方法で特定する。</dd></div><div class="tx-gist-term"><dt><span>公訴事実の同一性</span></dt><dd>訴因の追加・撤回・変更が許される限度を画する基準（刑事訴訟法312条1項）。訴因を描き替えてよい外枠にあたる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">一枚の絵と額縁を思い浮かべてください。裁判所が審判するのは、検察官が切り出した訴因という一枚の絵です。公訴事実の同一性は、その絵を描き替える（訴因変更）ときに越えられない額縁にすぎません。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「訴因に限定されず、公訴事実の同一性の範囲まで審判できる」としている点が、訴因対象説と逆です。現行法では審判の対象は訴因に限られ、訴因と違う事実を認定するには訴因変更の手続が要ります。当事者主義に合うのは、むしろ訴因への限定です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>訴因対象説（判例・通説）を確認する</strong><span class="syn-body"><a class="ref-stat" id="ref-law-256-201" href="#bref-2-256">256条3項</a>は『公訴事実は、訴因を明示してこれを記載しなければならない』とし、訴因は検察官が審判を求める犯罪事実を特定した枠。裁判所の審判はこの<span class="case-emphasis freq-high">訴因に拘束される</span>（訴因対象説）。公訴事実の同一性は、<span class="ron-mark freq-high">訴因変更が許される外枠</span>にすぎず、審判対象そのものではない。</span></p>
 <p><span class="syn-step">2</span><strong>当事者主義との関係を取り違えている</strong><span class="syn-body">訴因を審判対象に据えることこそ、検察官が設定した攻撃対象に被告人が防御を集中でき、当事者主義（当事者追行主義）に適合する。逆に公訴事実全体を審判対象に広げると、裁判所が訴因外の事実まで常に念頭に置くことになり、<a class="ref-stat" href="#bref-2-256">256条6項</a>の予断排除の原則にも反する。本記述は、公訴事実対象説的な理解を「当事者主義」と結びつけた点で二重に誤り。</span></p> </div>
@@ -6005,7 +6142,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>起訴状一本主義の採用により職権主義は実際上困難となり、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>「当事者主義」による訴訟追行が原則</span>として行われることとなった。<span class="tx-anscomp-line">起訴状には裁判官に事件につき予断を生ぜしめる虞のある書類その他の物を添附し、又はその内容を引用してはならず（刑事訴訟法256条6項）、この<strong>起訴状一本主義</strong>により裁判所が捜査記録から遮断される結果、事実審理は当事者の主張・立証に委ねられ、当事者追行主義が原則となる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。起訴状の作り方という一見形式的なルールが、公判の主導権まで動かすことを問う問題。256条6項は、起訴状に予断を生じさせるおそれのある書類や証拠物を添付し、その内容を引用することを禁じる。裁判所は起訴状の記載を除いて事件につき<strong>白紙</strong>——捜査側が何をつかんでいるかを一切知らない状態——で第1回公判に臨む（予断排除）。旧法では一件記録が起訴と同時に裁判所へ渡り、裁判官が捜査官の心証を引き継いで自ら審理を引っ張れた。記録を絶たれればそれは実際上できず、証拠調べ請求や交互尋問を担う当事者に立証を委ねる<strong>当事者追行主義</strong>にならざるを得ない。イメージは目隠し——見ていない者は綱を引けず、綱を引くのは検察官と弁護人になる。本記述は起訴状一本主義と当事者主義の表裏の関係を正しく述べており正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">起訴状一本主義により、訴訟追行は<strong>当事者主義</strong>が原則となった。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">目的・理念</span><span class="tx-gist-step is-now">審判の構造</span><span class="tx-gist-step">構造を超える原理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">起訴状一本主義は、公判を誰が主導するかにどう影響したのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">旧刑事訴訟法の時代は、起訴と同時に捜査記録一式が裁判所へ送られ、裁判官はそれを読み込んでから法廷に臨んでいました。現行法では、検察官が裁判所に出すのは起訴状だけです。裁判官は捜査側が何をつかんでいるかを知らないまま、第1回公判期日を迎えます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">起訴状以外を出させない<strong>起訴状一本主義</strong>は、一見すると書類の出し方の決まりにすぎません。それが公判の進め方まで変えたといえるかが問題です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑事訴訟法256条6項は、起訴状に、裁判官に事件について予断を生じさせるおそれのある書類その他の物を添付し、又はその内容を引用することを禁じています。裁判所は捜査の結果から切り離されるため、自ら審理を引っ張る職権主義は実際上難しくなり、当事者が証拠調べを請求し交互尋問で立証する当事者主義が原則になりました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">捜査記録を見ていない裁判所は、何を調べるべきかを自分で決められません。だから事実を明らかにする役目は、証拠を持つ検察官と弁護人に委ねるほかなくなります。その結果、裁判所は両当事者から等しく距離を置く中立の判断者になると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>起訴状一本主義</span></dt><dd>公訴提起の際に起訴状だけを提出させ、予断を生じさせるおそれのある書類・物の添付や内容の引用を禁じる原則（刑事訴訟法256条6項）。</dd></div><div class="tx-gist-term"><dt><span>当事者主義</span></dt><dd>訴訟の進行や証拠の提出・尋問の主導権を、検察官と被告人・弁護人という当事者に委ねる考え方。対になるのが裁判所が主導する職権主義。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">目隠しを思い浮かべてください。起訴状一本主義は裁判所に目隠しをするルールです。見ていない者は綱を引けないので、綱を引くのは検察官と弁護人になります。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">「起訴状一本主義の採用で職権主義が実際上困難になり、当事者主義による訴訟追行が原則になった」という因果の流れは、条文の仕組みと制度の沿革に合っています。予断排除と当事者主義が表裏の関係にあることを正しく述べています。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>起訴状一本主義の内容</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-256">256条6項</a>は『起訴状には、裁判官に事件につき予断を生ぜしめる虞のある書類その他の物を添附し、又はその内容を引用してはならない』。起訴時に一切の捜査書類・証拠物を提出させず、裁判所は起訴状の記載を除いて事件・被告人につき<span class="case-emphasis freq-high">白紙</span>で公判に臨む（<span class="ron-mark freq-high">予断排除</span>）。</span></p>
 <p><span class="syn-step">2</span><strong>公判構造への波及</strong><span class="syn-body">旧法では起訴と同時に一件記録が提出され、裁判官が捜査官の心証を引き継いで公判に臨んでいた（職権主義的・糾問的）。起訴状一本主義で裁判所が捜査結果から遮断されると、事実審理を主導できず当事者の主張・立証に委ねざるを得ない。こうして<span class="ron-mark freq-high">職権主義から当事者追行主義へ転換</span>し、裁判所は両当事者から等距離の中立的審判者に純化する。</span></p> </div>
@@ -6047,7 +6184,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>検察官が挙証責任を負うのは当事者主義によるものであり、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>職権主義の下では検察官が挙証責任を負うことはない</span><span class="tx-stmt-fix">→ 職権主義でも検察官が負う</span>。<span class="tx-anscomp-line">犯罪事実の存否が証拠調べを尽くしてなお不明であるときは、犯罪の証明がないものとして無罪の言渡しをしなければならず（刑事訴訟法336条）、この真偽不明の不利益を検察官に負わせる<strong>実質的挙証責任</strong>は、当事者主義か職権主義かという訴訟構造のいかんにかかわらず妥当する。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。挙証責任の所在が訴訟構造から導かれるのかを問う問題。<strong>実質的挙証責任</strong>——証拠を調べ尽くしてもある事実の存否を決められないとき、どちらの当事者が不利益な認定を受けるかという地位——は、裁判所が自ら証拠を集める職権主義の下でも同じように必要になる。誰が審理を主導しても、真偽不明という行き詰まりは同じように生じるからである。そのうえで刑事訴訟法は、犯罪の証明がないときは無罪とし（336条）、不利益を検察官に負わせた。これは当事者主義を採ったことの帰結ではなく、疑わしきは被告人の利益にという<strong>推定無罪</strong>の政策判断による。イメージは引き分けの扱い——引き分けはどちらの構造でも起こり、刑事では引き分けなら検察官の負けと決めてあるだけ。本記述は職権主義の下では検察官が挙証責任を負わないとする点で誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">犯罪事実の<strong>挙証責任</strong>は、職権主義の下でも検察官が負う。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">目的・理念</span><span class="tx-gist-step">審判の構造</span><span class="tx-gist-step is-now">構造を超える原理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">検察官が挙証責任を負うのは、当事者主義を採ったからなのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">証人を調べ、証拠を出し尽くしても、被告人が本当に犯人なのか、裁判官にはどうしても確信が持てません。この行き詰まりは、当事者が証拠を出す裁判でも、裁判所が自ら証拠を集める裁判でも、同じように起こりえます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">事実の存否が最後まで分からないとき、どちらが不利益を負うかを決めるのが<strong>挙証責任</strong>です。その所在が、当事者主義か職権主義かという裁判の形で決まるのかが問題です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑事訴訟法336条は、被告事件について犯罪の証明がないときは、判決で無罪の言渡しをしなければならないと定めています。真偽不明の不利益は検察官が負います。これは裁判の形から導かれるものではなく、どちらの構造の下でも妥当します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">真偽不明という事態は、誰が審理を主導しても生じるので、それを決めるルールはどちらの構造でも必要です。そして不利益を検察官に負わせるのは、疑わしきは被告人の利益にという推定無罪の考え方によるもので、訴訟構造とは別の政策判断だと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>挙証責任</span></dt><dd>証拠を調べ尽くしても事実の存否が分からないとき、不利益な認定を受ける当事者の地位（実質的挙証責任）。刑事では検察官が負う。</dd></div><div class="tx-gist-term"><dt><span>推定無罪</span></dt><dd>被告人は有罪と証明されるまで無罪と扱われるという原則。犯罪の証明がなければ無罪とする刑事訴訟法336条に表れている。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">引き分けの扱いを思い浮かべてください。引き分け（真偽不明）はどちらの裁判の形でも起こります。刑事では、引き分けなら検察官の負けと、あらかじめ決めてあるだけです。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「挙証責任は当事者主義の帰結で、職権主義の下では検察官は負わない」としている点が誤りです。職権主義の下でも真偽不明は生じ、刑事ではその不利益を検察官が負います。挙証責任の所在は訴訟構造ではなく、推定無罪という政策判断で決まります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>実質的挙証責任の意味</strong><span class="syn-body">証明の必要がある事実について、取り調べた証拠によっても存否いずれとも判断できないとき、不利益な認定を受ける当事者の地位を挙証責任（<span class="case-emphasis freq-high">客観的挙証責任・実質的挙証責任</span>）という。<a class="ref-stat" href="#bref-4-336">336条</a>は『犯罪の証明がないとき…無罪の言渡をしなければならない』とし、真偽不明の不利益を検察官（訴追側）に負わせる。</span></p>
 <p><span class="syn-step">2</span><strong>訴訟構造からの独立</strong><span class="syn-body">真偽不明という事態は、当事者主義でも職権主義でも自由心証を尽くした後になお起こりうる。<span class="ron-mark freq-high">実質的挙証責任を定める必要性は両者で変わらない</span>。どちらの当事者に不利益を負わせるか（検察官に負わせる＝推定無罪）は、職権主義か当事者主義かという構造の問題ではなく別個の政策判断。よって「職権主義の下では検察官は挙証責任を負わない」は誤り。</span></p> </div>
@@ -6090,7 +6227,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不利益再審は二重の危険の禁止に反する疑いがあるため、刑事訴訟法は、有罪確定判決の言渡しを受けた者にとって<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>利益な方向での再審のみを認めた</span>。<span class="tx-anscomp-line">再審の請求は、有罪の言渡しをした確定判決に対して、その言渡しを受けた者の<strong>利益のために</strong>のみすることができ（刑事訴訟法435条柱書）、不利益再審は二重の危険を禁ずる憲法39条後段の趣旨に反する疑いがあるため認められない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。確定した判決をやり直す再審が、どちらの方向にだけ開かれているかを問う問題。435条柱書は、再審の請求は有罪の言渡しをした確定判決に対し、その言渡しを受けた者の利益のためにすることができると定める。現行法が認めるのは<strong>利益再審</strong>——確定した有罪を無罪や軽い罪へ改める方向のやり直し——だけである。逆に確定後に蒸し返して被告人を重い結論へ引き戻すことは、同一の事件で再び処罰の危険にさらすことになり、<strong>二重の危険の禁止</strong>（憲法39条後段）に触れる疑いが強い。そこで現行法は、旧法が認めていた不利益再審を廃止した。イメージは一方通行の扉——再審の扉は被告人に有利な方向にしか開かない。本記述は利益な方向での再審のみを認めたとする点で正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">現行法は、有罪確定者の<strong>利益のための再審</strong>だけを認めている。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">目的・理念</span><span class="tx-gist-step">審判の構造</span><span class="tx-gist-step is-now">構造を超える原理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">再審は、確定判決を受けた者に不利益な方向にも開かれているのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">無罪判決が確定した人について、後になって有罪をうかがわせる新しい証拠が見つかったとします。逆に、有罪が確定して服役した人について、無実を示す新しい証拠が見つかることもあります。どちらの場合も、確定した判決をやり直せるのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">確定判決をやり直す<strong>再審</strong>を、判決を受けた者の不利益な方向にも認めるのか、利益な方向に限るのかが問題です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑事訴訟法435条は、再審の請求は、有罪の言渡しをした確定判決に対して、その言渡しを受けた者の利益のためにすることができると定めています。旧刑事訴訟法は不利益な方向の再審も認めていましたが、現行法はこれを廃止しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">一度無罪が確定した人を、後から有罪方向へ引き戻して審判すれば、同じ事件で再び処罰の危険にさらすことになります。これは憲法39条の二重の危険の禁止に反する疑いがあると説明されます。そこで現行法は、真実の追求よりも、一度決着した者を再び追い詰めない安定を優先しました。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>再審</span></dt><dd>確定した有罪判決について、新しい証拠の発見など法定の理由があるときに審理をやり直す非常救済手続（刑事訴訟法435条）。</dd></div><div class="tx-gist-term"><dt><span>二重の危険の禁止</span></dt><dd>同一の犯罪について重ねて刑事上の責任を問われないという保障（憲法39条）。確定後に不利益な方向へ審判し直すことを封じる根拠になる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">一方通行の扉を思い浮かべてください。再審の扉は、判決を受けた人に有利な方向にしか開きません。無罪を有罪へ引き戻す方向の扉は、二重の危険の禁止で封印されています。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">「不利益再審は二重の危険の禁止に反する疑いがあるため、利益な方向での再審のみを認めた」という内容は、435条の文言と現行法の沿革に合っています。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>435条柱書の文言</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-435">435条柱書</a>は『再審の請求は…有罪の言渡をした確定判決に対して、その言渡を受けた者の<span class="case-emphasis freq-high">利益のために</span>、これをすることができる』とする。再審は有罪確定者の利益方向にのみ開かれる（<span class="ron-mark freq-high">利益再審のみ</span>）。</span></p>
 <p><span class="syn-step">2</span><strong>沿革と憲法的根拠</strong><span class="syn-body">旧刑訴法下では、無罪判決を受けた者に対する<span class="case-emphasis freq-mid">不利益再審</span>と有罪判決を受けた者に対する利益再審のいずれもが認められ、再審は実体的真実（正義）と法的安定性（確定力）の抽象的理念の対立と捉えられていた。しかし現行刑訴法は、本人の意思に反してふたたび審判する<span class="ron-mark freq-high">二重の危険を禁止する憲法39条</span>に基づき不利益再審を廃止した。よって現在は利益再審のみが認められる。</span></p> </div>
