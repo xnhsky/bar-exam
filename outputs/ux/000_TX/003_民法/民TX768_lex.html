@@ -5639,7 +5639,8 @@ a.ref-stat[href]{ cursor:pointer; }
    ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
      素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
      手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
-   ②外した行は開いた状態、取れた行は既定閉じの details（📐 図解で確かめる）＝周回速度を落とさない。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
    ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
    ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
 .tx-vb-dgm-src{ display:none !important; }
@@ -5659,19 +5660,6 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
 .tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
 .tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
-/* 取れた行＝既定閉じ。summary は残り法理（.tx-vb-rest）と同型の小チップだが、面が別レイヤーである
-   ことが分かるよう青灰系にする（📖 CONTEXT のタブと同系＝「腑に落とす層」の色）。 */
-.tx-verdict-brief details.tx-vb-dgm{ margin-top:14px; }
-.tx-verdict-brief details.tx-vb-dgm > summary{
-  cursor:pointer; list-style:none; display:inline-block; padding:4px 14px 5px; border-radius:9px;
-  border:1px solid #a9bfcc; background:linear-gradient(180deg,#f2f6f9 0%,#cbdae2 100%); color:#3f5c72;
-  font-family:var(--font-note,sans-serif); font-size:.78em; font-weight:800; letter-spacing:.05em;
-  text-indent:0; white-space:nowrap;
-  box-shadow:0 2px 5px -3px rgba(60,80,95,.5), inset 0 1px 0 rgba(255,255,255,.75);
-}
-.tx-verdict-brief details.tx-vb-dgm > summary::-webkit-details-marker{ display:none; }
-.tx-verdict-brief details.tx-vb-dgm > summary::marker{ content:''; }
-.tx-verdict-brief details.tx-vb-dgm > summary:hover{ filter:brightness(1.04); }
 @media (max-width:900px){
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
@@ -6515,26 +6503,17 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
   }
   // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
   // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
-  // 潰すことになる）。外した行は開いた状態、取れた行は既定閉じの details＝周回速度を落とさない。
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
   // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
-  function appendDiagramBand(wrap, src, wantOpen){
+  function appendDiagramBand(wrap, src){
     if (!src) return;
     var fig = src.querySelector('.tx-dgm');
     if (!fig) return;
-    if (wantOpen) {
-      var box = document.createElement('div');
-      box.className = 'tx-vb-dgm';
-      box.appendChild(fig);
-      wrap.appendChild(box);
-      return;
-    }
-    var fold = document.createElement('details');
-    fold.className = 'tx-vb-dgm';
-    var sm = document.createElement('summary');
-    sm.textContent = '📐 図解で確かめる';
-    fold.appendChild(sm);
-    fold.appendChild(fig);
-    wrap.appendChild(fold);
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6587,7 +6566,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
-        appendDiagramBand(wrapM, dgmSrc, wantCut);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6596,14 +6575,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
-        appendDiagramBand(wrap, dgmSrc, wantCut);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
-        appendDiagramBand(wrapF, dgmSrc, wantCut);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }
