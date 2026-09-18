@@ -5576,6 +5576,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5859,7 +5996,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>犯罪と刑罰の「法律」には、法律の委任を受けた政令、条例及び<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>慣習法が含まれる</span><span class="tx-stmt-fix">→ 政令・条例は含まれるが、慣習法は含まれない（法律主義＝成文法主義）</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「法律」に何が入るかを列挙した文で、政令・条例まではそのとおりだから丸ごと正しく見える。でも最後の<strong>慣習法</strong>（法律ではなく、社会の中で自然に固まった慣行）が余計。罪刑法定主義は「刑罰は国民の代表が作った成文の法律で決める」という考え方（<a class="ref-stat" id="ref-law-31-101" href="#bref-1-kenpo31">法律主義＝成文法主義</a>）だから、文章になっていない慣習法を刑法の根拠にすることは許されない。政令・条例が入るのは正しいが、慣習法を含めた本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">政令・条例は含まれるが、<strong>慣習法</strong>は刑法の法源に含まれない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">法源は成文の法律</span><span class="tx-gist-step">予測可能性の保障</span><span class="tx-gist-step">刑罰の内容の適正</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">犯罪と刑罰を定める「法律」には、どこまでの法規範が含まれるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">ある地域で、昔から続く慣行として、してはいけないとされてきた行いがあるとします。取り締まる側が、この慣行そのものを根拠にして住民を処罰できないかと考えました。条文を探しても、その行いを犯罪とする規定は見当たりません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">犯罪と刑罰は<strong>法律主義</strong>のもとで法律に定めがなければなりません。ここでいう法律に、国会の法律のほか、法律の委任を受けた政令や地方議会の条例、さらに慣習法まで入るのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">憲法31条が求めるのは<a class="ref-stat" href="#bref-1-kenpo31" id="ref-law-31-101">法律主義＝成文法主義</a>です。政令は法律の個別の委任があれば罰則を置けます（憲法73条6号但書）。条例も地方自治法14条3項が2年以下の拘禁刑などの罰則を授権しており、判例（最大判昭25.2.1・最大判昭37.5.30）も法律の授権があれば罪刑法定主義に反しないとします。慣習法だけが法源から外れます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">政令も条例も、たどれば国会の法律による授権という成文の根拠を持ちます。だから、刑罰は国民の代表が決めるという民主主義的要請を満たします。慣習法には成文の授権がなく、内容も範囲も定まらないので、何をすれば罰せられるかを前もって知る手がかりになりません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>法律主義（成文法主義）</span></dt><dd>犯罪と刑罰は成文の法律で定めなければならないという罪刑法定主義の内容。法律の委任を受けた政令・条例は含むが、慣習法は含まない。</dd></div><div class="tx-gist-term"><dt><span>慣習法</span></dt><dd>社会の中で繰り返された慣行が法として通用するようになったもの。成文の条文という形を持たない。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">入場には招待状が要ると考えてください。政令や条例は、法律の委任という招待状を持っているので入れます。慣習法は招待状がなく、門前払いです。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">政令と条例を含めるところまでは正しいのですが、末尾に慣習法を並べた点が誤りです。慣習法は成文の根拠を欠くため刑法の法源にならず、慣習を理由に処罰することはできません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>政令・条例が入るのは正しい</strong><span class="syn-body">憲法73条6号但書の反対解釈から、<span class="case-emphasis freq-high">法律の委任があれば政令で罰則を設けられる</span>（<a class="ref-case" id="ref-case-seirei-101">最大判昭25.2.1</a>）。条例も、地方自治法14条3項が罰則の設定を許容し、判例（<a class="ref-case" id="ref-case-jorei-101">最大判昭37.5.30</a>）が『法律の授権によって相当な程度に具体的であれば足りる』とする。ここまでは記述のとおり。</span></p>
 <p><span class="syn-step">2</span><strong>慣習法だけが外れる</strong><span class="syn-body">慣習法を刑法の法源とすると、①国民代表の議決を経ない点で<span class="ron-mark freq-high">民主主義的要請</span>に反し、②本来成文の根拠を持たず内容・範囲が不明確になる点で<span class="ron-mark freq-high">自由保障機能</span>を害する。よって「法律」に慣習法は含まれない。委任立法（政令・条例）は法律の授権という成文の根拠を持つ点で慣習法と決定的に異なる。</span></p> </div>
@@ -5907,7 +6044,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>行為の時に適法であった行為を、その後の法律によって<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>遡って犯罪とすることは、許されない</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。行為をした時点では法律違反ではなかったのに、後からできた法律で「あれは犯罪だった」と遡って処罰する——これはまさに<a class="ref-stat" id="ref-law-39-201" href="#bref-2-kenpo39">遡及処罰の禁止（事後法の禁止）</a>が封じている場面。人は行為の時点の法律を見て自分の行動を決めるのだから、後出しで犯罪にされたら予測可能性が根こそぎ奪われる。憲法39条前段が正面から禁じており、本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">行為の時に適法だった行為は、後からできた法律で<strong>遡って処罰できない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">法源は成文の法律</span><span class="tx-gist-step is-now">予測可能性の保障</span><span class="tx-gist-step">刑罰の内容の適正</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">行為の後に作られた法律を、その行為まで遡って適用してよいのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">ある人が、行為の時点の法律を調べたうえで、これは罰せられないと確かめて行動しました。ところが翌年、その行いを犯罪とする法律が新たにできたとします。捜査機関が、去年の行為まで遡ってこの新しい法律で立件しようとする場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">人は行為の時点の法律を見て自分の行動を決めます。そこで、行為の後に制定された法律を遡って適用することが、<strong>事後法</strong>として許されないのではないかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">憲法39条前段は、何人も実行の時に適法であった行為については刑事上の責任を問われないと定めます。これが<a class="ref-stat" href="#bref-2-kenpo39" id="ref-law-39-201">遡及処罰の禁止（事後法の禁止）</a>で、刑罰法規は施行後の犯罪にだけ適用され、施行前の行為に遡って適用することはできません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">罪刑法定主義が守ろうとしているのは、何をすれば罰せられるかを前もって見通せることです。後からルールを作って遡らせると、行為の時点でどれだけ調べても身を守れません。派生原理の中で、憲法に正面から明文があるのはこの原則だけだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>遡及処罰の禁止（事後法の禁止）</span></dt><dd>刑罰法規を、施行前の行為に遡って適用してはならないという原則。憲法39条前段が定める。</dd></div><div class="tx-gist-term"><dt><span>自由保障機能</span></dt><dd>刑法が、何が犯罪かをあらかじめ示しておくことで、国民の行動の自由を守る働き。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">試合が終わってからルールを足して、さかのぼって反則を取ることはできません。ルールは、作った後の試合にだけ効きます。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">行為の時に適法だった行為の遡及処罰を許されないとする点は、憲法39条前段のとおりです。なお禁じられるのは行為者に不利益な遡及で、行為の後に刑が軽くなったときは刑法6条により軽いほうによります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>遡及処罰禁止の内容を確認する</strong><span class="syn-body">刑罰法規は<span class="case-emphasis freq-high">施行後の犯罪にのみ適用</span>され、施行前の行為に遡って適用してはならない。これを事後法の禁止（遡及処罰の禁止）といい、罪刑法定主義の派生原理として<a class="ref-stat" href="#bref-2-kenpo39">憲法39条前段</a>が明文で定める。</span></p>
 <p><span class="syn-step">2</span><strong>根拠は自由主義的要請</strong><span class="syn-body">国民は<span class="ron-mark freq-high">行為時の法律を基準に行動の予測</span>を立てる。行為後にできた法律で遡って処罰すれば、この予測可能性（自由保障機能）が失われる。だから『行為の時に適法であった行為を、その後の法律で遡って犯罪とすること』は許されない。本記述はこの原則をそのまま述べたもので正しい。</span></p> </div>
@@ -5949,7 +6086,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>条文の文言を、語義の可能な範囲内で通常の意味よりも広げて解釈することは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>許されない</span><span class="tx-stmt-fix">→ それは拡張解釈で許される（禁止されるのは類推解釈）</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「解釈を広げるのはダメ」と言われると罪刑法定主義に忠実に見える。でも本記述が描いているのは<strong>拡張解釈</strong>（言葉の意味として無理のない範囲で、通常より広めに読むこと）。これは<a class="ref-stat" id="ref-law-rui-301" href="#bref-3-ruisui">許される解釈</a>。禁止されるのは<strong>類推解釈</strong>（条文に書かれていない事項を、似ているという理由で当てはめること）。両者の境界は『語義の可能な範囲内かどうか』で、範囲内である以上「許されない」とした本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">語義の可能な範囲内で広く読む<strong>拡張解釈</strong>は許される。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">法源は成文の法律</span><span class="tx-gist-step is-now">予測可能性の保障</span><span class="tx-gist-step">刑罰の内容の適正</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">条文の言葉を通常の意味より広く読むことは、どこまで許されるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">汽車の往来に危険を生じさせた者を罰する条文があるとします。危険を生じさせたのは、蒸気機関ではなくガソリンで走る車両でした。裁判官が、この車両も条文にいう汽車として読めるのかを考える場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">条文に書かれていない事柄まで裁判官が当てはめてしまえば、事実上の立法になります。そこで、言葉を広く読むことが<strong>類推解釈</strong>として禁じられるのか、それとも許される範囲にとどまるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">禁じられるのは、規定のない事柄に、似ているからという理由で法律を当てはめる類推解釈です。これに対し、語義の可能な範囲内で通常より広く読むことは拡張解釈であり、<a class="ref-stat" href="#bref-3-ruisui" id="ref-law-rui-301">許される解釈</a>です。判例も、刑法129条の汽車にガソリンカーを含めました（大判昭15.8.22）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">境目は、その言葉としてまだ読めるかどうかの一線です。語義の枠の内側にとどまる限り、条文を読んだ人はその意味に思い至ることができるので、予測可能性は害されません。枠の外へ出れば、条文にない処罰を裁判官が作ることになり、民主主義的要請にも自由主義的要請にも反すると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>拡張解釈</span></dt><dd>条文の趣旨目的に応じて、語義の可能な範囲内で言葉を通常の意味より広く読む解釈。許される。</dd></div><div class="tx-gist-term"><dt><span>類推解釈</span></dt><dd>規定のない事柄に、類似するという理由で法律を当てはめる解釈。罪刑法定主義に反し禁止される。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">言葉には伸びしろがあります。その内側で伸ばすなら拡張解釈でセーフ、外へ跳べば類推解釈でアウトです。境目は、その言葉としてまだ読めるかどうかの一線です。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">語義の可能な範囲内で広げる解釈は拡張解釈ですから、これを許されないとした点が誤りです。正しくは、拡張解釈は許され、禁止されるのは語義を超えて規定のない事柄に及ぶ類推解釈のほうです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>禁止されるのは類推解釈</strong><span class="syn-body">類推解釈とは、法律に規定のない事項につき、これと類似する事項の法律を適用すること。裁判官による一種の立法である点で<span class="ron-mark freq-high">民主主義</span>に反し、行動の予測可能性を奪う点で<span class="ron-mark freq-high">自由主義</span>にも反するため禁止される。</span></p>
 <p><span class="syn-step">2</span><strong>拡張解釈は語義の範囲内で許される</strong><span class="syn-body">これに対し、法の趣旨目的に応じて<span class="case-emphasis freq-high">法規の意味を語義の可能な範囲内で広げる拡張解釈</span>は許される。判例も刑法129条の『汽車』に汽車の代用品である『ガソリンカー』も含まれるとし（<a class="ref-case" id="ref-case-gasoline-301">大判昭15.8.22</a>）、拡張解釈を許容する。本記述は語義の範囲内の解釈（＝拡張解釈）を『許されない』とした点で誤り。</span></p> </div>
@@ -5993,7 +6130,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>刑の長期と短期を定めて言い渡し、現実の執行期間をその範囲内で執行機関の裁量に委ねることは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>許されない</span><span class="tx-stmt-fix">→ それは相対的不定期刑で許される（禁止は絶対的不定期刑）</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。刑期をきっちり一点で決めないのは罪刑法定主義違反に見える。でも本記述が描くのは<strong>相対的不定期刑</strong>（「3年以上5年以下」のように上限と下限を法定したうえで、実際の期間を幅の中で決める刑）。刑の種類・分量が相対的に法定されているから、罪刑法定主義の趣旨に直ちには反せず<a class="ref-stat" id="ref-law-shonen-401" href="#bref-4-futeiki">許される</a>（少年法52条が採用）。禁止されるのは、上限も下限も定めない<strong>絶対的不定期刑</strong>。よって『許されない』とした本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">長期と短期を定める<strong>相対的不定期刑</strong>は許される。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">法源は成文の法律</span><span class="tx-gist-step">予測可能性の保障</span><span class="tx-gist-step is-now">刑罰の内容の適正</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">刑期を幅で言い渡すことは、罪刑法定主義に反するのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">少年に有期の拘禁刑を科す場面を考えてください。立ち直りの進み具合は人によって違うので、裁判官が3年以上5年以下のように長期と短期を定めて言い渡し、その幅の中で現実にどこまで執行するかは執行の段階に委ねます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">刑の重さが一点に決まらないと、どれだけ罰せられるのかが分からないのではないか。そこで、幅のある刑が、禁じられる<strong>絶対的不定期刑</strong>に当たるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">禁じられるのは、刑の種類や分量をまったく定めない絶対的不定期刑です。長期と短期を法定して言い渡す相対的不定期刑は、刑の種類と分量が相対的に法定されているので<a class="ref-stat" href="#bref-4-futeiki" id="ref-law-shonen-401">許される</a>と考えられています。少年法52条1項も、少年に有期拘禁刑をもって処断すべきときは長期を定めるとともに短期を定めて言い渡すと規定しています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">罪刑法定主義が要求しているのは、刑罰が一点に固定されていることではなく、どこまで重くなりうるかを前もって見通せることです。上限と下限という枠があれば、その見通しは立ちます。枠の中に幅を残すのは、立ち直りの度合いに応じて処遇を調整するためだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>絶対的不定期刑</span></dt><dd>刑の種類・分量をまったく定めない、または種類だけ定めて分量を定めない刑。重さを予測できないため禁止される。</dd></div><div class="tx-gist-term"><dt><span>相対的不定期刑</span></dt><dd>長期と短期を定めたうえで、その幅の中で現実の執行期間を決める刑。少年法52条が採用する。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">刑期に枠があるかどうかで決まります。上限も下限もない白紙はアウト、何年以上何年以下と枠を切ればセーフです。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">長期と短期を定めて言い渡す刑は相対的不定期刑そのものですから、これを許されないとした点が誤りです。正しくは、相対的不定期刑は許され、禁止されるのは枠のない絶対的不定期刑だけです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>禁止されるのは絶対的不定期刑</strong><span class="syn-body">絶対的不定期刑とは、刑の種類・分量をまったく法定しない、または種類のみ定め分量を定めない刑をいう。これでは科される刑罰の重さを事前に予測できず、罪刑法定主義（<span class="ron-mark freq-high">明確性・予測可能性</span>）に反するため禁止される。</span></p>
 <p><span class="syn-step">2</span><strong>相対的不定期刑は許容される</strong><span class="syn-body">これに対し、<span class="case-emphasis freq-high">刑の種類及び分量が少なくとも相対的に法定</span>されていれば（長期・短期を定める相対的不定期刑）、刑罰法規の適正・明確性の要請という罪刑法定主義の趣旨に直ちには反しない。少年法52条が相対的不定期刑を採用する（<a class="ref-stat" href="#bref-4-futeiki">少年法52条参照</a>）。本記述は長期・短期を定める相対的不定期刑を『許されない』とした点で誤り。</span></p> </div>
@@ -6036,7 +6173,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>犯罪に比べて著しく均衡を失する重い刑罰を規定する刑罰法規は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>違憲である</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。罪刑法定主義は「法律で決めれば何でもよい」ではない。形式的に法律で犯罪と刑罰を定めても、その<strong>中身が適正でなければならない</strong>という要請（<a class="ref-stat" id="ref-law-tekisei-501" href="#bref-5-tekisei">刑罰法規の内容の適正の原則</a>）がある。軽い犯罪に極端に重い刑罰を付けるなど、罪と刑の均衡が著しく崩れた法規は、この適正の原則に反して違憲になる。だから本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">罪と刑の均衡を著しく欠く刑罰法規は、<strong>内容の適正</strong>に反し違憲である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">法源は成文の法律</span><span class="tx-gist-step">予測可能性の保障</span><span class="tx-gist-step is-now">刑罰の内容の適正</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">法律で定めさえすれば、どれほど重い刑罰でも合憲なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">ごく軽い違反行為に、十年を超える拘禁刑を定めた法律ができたとします。国会がきちんと手続を踏んで作った法律で、条文にも刑の重さがはっきり書かれています。手続の形の上では、非の打ちどころがありません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">罪刑法定主義は、犯罪と刑罰を法律で定めることを求めます。では、その形式さえ整っていれば、定めた中身がどれほど過酷でも合憲なのか。<strong>実体的適正</strong>の要請が及ぶのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">罪刑法定主義には、形式面のほかに<a class="ref-stat" href="#bref-5-tekisei" id="ref-law-tekisei-501">刑罰法規の内容の適正の原則</a>という実体面があります。憲法31条を実体的にも読む立場で、処罰する必要のない行為を犯罪とすることや、罪と刑の均衡を欠くことは許されず、そのような刑罰法規は違憲となります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">法律という形式さえ整えばよいとすると、国会が過酷な刑罰を作っても歯止めがかかりません。罪刑法定主義は刑罰権の濫用を統制するための原理ですから、箱の形だけでなく中身まで見る必要があると説明されます。何が犯罪かを読み取れない不明確な規定を違憲とする明確性の原則も、同じ実体面から導かれます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>内容の適正の原則</span></dt><dd>法律で定めたというだけでは足りず、犯罪と刑罰の中身が合理的でなければならないという要請。実体的適正ともいう。</dd></div><div class="tx-gist-term"><dt><span>罪刑の均衡</span></dt><dd>犯した罪の重さと、科される刑罰の重さが釣り合っていること。著しく崩れれば違憲となる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">罪刑法定主義は、法律という箱だけでなく中身も見ます。箱の形が整っていても、罪に対して刑が重すぎれば、中身が腐っていて違憲です。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">罪と刑の均衡を著しく欠く刑罰法規を違憲とする点は、内容の適正の原則と合致します。罪刑法定主義は、法律で定めるという形式面と、定めた中身が適正であるという実体面の両方を持ちます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>罪刑法定主義には実体的側面がある</strong><span class="syn-body">罪刑法定主義は、犯罪と刑罰を法律で定めるという形式面だけでなく、<span class="case-emphasis freq-high">定められた内容が適正であること</span>も要求する（実体的適正の原則・実体的デュープロセス）。処罰を必要としない行為を犯罪とすること（可罰性の欠如）や、罪刑の均衡を欠くことは許されない。</span></p>
 <p><span class="syn-step">2</span><strong>罪刑の均衡を欠けば違憲</strong><span class="syn-body">ある刑罰法規が<span class="ron-mark freq-high">犯罪に比べて著しく均衡を失する重い刑罰</span>を規定していれば、刑罰法規の内容の適正の原則に反する。内容の適正を欠く刑罰法規は憲法31条の要請に反し違憲となる。よって本記述は正しい。</span></p> </div>
