@@ -5608,6 +5608,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5890,7 +6027,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>意思能力とは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>自己の行為の責任を弁識する能力</span><span class="tx-stmt-fix">→ 事理を弁識する能力（行為の結果を判断する精神能力）</span>をいう。<span class="tx-anscomp-line">意思能力とは、法律行為の結果を判断するに足りる精神能力（<strong>事理を弁識する能力</strong>）をいい、民法3条の2の「意思能力」がこれに当たる。「自己の行為の責任を弁識する能力」（713条）は責任能力であって別概念である。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。民法には「能力」という語のつく概念がいくつもあり、どれも似て見える。しかし意思能力（取引の意味がわかる頭のはたらき＝事理を弁識する能力）と、責任能力（自分の行いの責任がわかる力）は別物。本記述は意思能力の定義に<a class="ref-stat" id="ref-law-ア-1" href="#bref-ア-713">713条</a>の責任能力の定義をはめ込んでいるから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">意思能力とは、行為の結果を判断できる<strong>事理を弁識する能力</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">意思能力の意義</span><span class="tx-gist-step">無効の効果</span><span class="tx-gist-step">個別規定への波及</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">意思能力とは、何を判断できる力のことか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">認知症が進んで判断力が大きく落ちた高齢の売主が、自宅の土地を相場よりずっと安い値段で売る契約書に署名したとします。契約書の意味も、土地を失うという結果も、その場では分かっていませんでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">この契約を無効にしたいとき、売主に欠けていたのは何の力なのでしょうか。民法には<strong>意思能力</strong>のほかに行為能力・責任能力という似た名前の概念が並び、どれも「弁識する能力」という同じ言い回しで定義されています。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法3条の2は、意思表示をした時に意思能力を有しなかった法律行為を無効とします。ここでいう意思能力とは、行為の結果を判断するに足りる精神能力、つまり事理を弁識する能力です。これに対し「自己の行為の責任を弁識する能力」は<a class="ref-stat" href="#bref-ア-713" id="ref-law-ア-1">713条</a>の責任能力で、他人に損害を与えたときに賠償責任を負うかどうかを決める別の力です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">民法は私的自治、つまり自分の意思で権利義務を決める仕組みを採っています。取引の意味そのものが分からない人の意思表示に効力を与えては、その土台が崩れてしまいます。だから取引の場面で問われるのは「取引の結果が分かるか」であって、「悪いことをした責任が分かるか」ではありません。守ろうとしている場面が違うので、定義もそれぞれ別に用意されていると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>意思能力</span></dt><dd>行為の結果を判断するに足りる精神能力、すなわち事理を弁識する能力。これを欠いてした法律行為は無効となる（民法3条の2）。</dd></div><div class="tx-gist-term"><dt><span>責任能力</span></dt><dd>自己の行為の責任を弁識する能力。これを欠く状態で他人に損害を加えた者は、原則として賠償責任を負わない（民法713条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">意思能力は「取引がわかる頭」、責任能力は「悪いことをした責任がわかる頭」です。わかる対象が取引なのか責任なのかで、二つを切り分けてください。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「自己の行為の責任を弁識する能力」は713条の責任能力の定義であって、意思能力の定義ではありません。正しくは、意思能力とは事理を弁識する能力、つまり行為の結果を判断するに足りる精神能力をいい、これを欠いてした法律行為が3条の2により無効になります。定義をすり替えている点で誤りです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>意思能力の意義</strong><span class="syn-body">意思能力とは、<span class="case-emphasis freq-high">行為の結果を判断するに足りる精神能力</span>＝「事理を弁識する能力」をいう（7条等参照）。<a class="ref-stat" href="#bref-ア-302">3条の2</a>は、この能力を欠いた者の法律行為を無効とする。</span></p>
 <p><span class="syn-step">2</span><strong>責任能力との区別</strong><span class="syn-body">「自己の行為の責任を弁識する能力」は<a class="ref-stat" href="#bref-ア-713">713条</a>の<span class="ron-mark freq-high">責任能力</span>で、不法行為責任を生じさせる前提としての精神能力。本記述は意思能力の定義に責任能力の定義をすり替えており、定義の取り違えとして誤り。</span></p> </div>
@@ -5934,7 +6071,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>契約の当事者がその意思表示をした時に意思能力を有しなかったときは、その契約の無効を<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>善意無過失の第三者にも対抗することができる</span>。<span class="tx-anscomp-line">意思無能力を理由とする無効（民法3条の2）には93条2項・95条4項のような第三者保護規定がなく、その無効は<strong>善意無過失の第三者にも対抗</strong>することができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。事情を知らずに取引に入った第三者が気の毒に思えるが、意思無能力の無効は判断力を欠く表意者を厚く守る制度。心裡留保や錯誤には「善意の第三者を保護する」条文（93条2項・<a class="ref-stat" id="ref-law-イ-1" href="#bref-イ-95">95条4項</a>）があるのに、<a class="ref-stat" href="#bref-イ-302">3条の2</a>にはそれが置かれていない。だから無効はそのまま第三者にもぶつけられる。よって正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">意思無能力による無効は、<strong>善意無過失の第三者</strong>にも対抗することができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">意思能力の意義</span><span class="tx-gist-step is-now">無効の効果</span><span class="tx-gist-step">個別規定への波及</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">意思能力を欠いてした契約の無効は、事情を知らない第三者にも主張できるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断力を失った売主が土地を売り、買主はその事情を知らない第三者へ転売しました。第三者は登記も移し、代金も払い終えています。売主の側は、そもそも最初の売買が無効だとして土地を取り戻したいと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">取引に入っただけの第三者から見れば、突然の無効主張は酷にも思えます。<strong>第三者保護規定</strong>が働いて、善意無過失の第三者が守られる場面ではないのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">心裡留保（93条2項）・虚偽表示（94条2項）・錯誤（<a class="ref-stat" href="#bref-イ-95" id="ref-law-イ-1">95条4項</a>）・詐欺（96条3項）には、善意でかつ過失のない第三者を保護する規定が個別に置かれています。ところが<a class="ref-stat" href="#bref-イ-302">3条の2</a>には、それが置かれていません。だから意思無能力による無効は、善意無過失の第三者にもそのまま対抗できます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">第三者保護規定は、表意者の側に自分でまいた種といえる事情があるからこそ置かれています。わざと本心と違うことを言った、不注意で思い違いをしたという落ち度があるので、それを信じた相手を守る側へ天秤を傾けられるわけです。これに対して意思能力を欠く人には、その落ち度を問うこと自体ができません。だから保護の天秤は本人の側に振り切ったままだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>第三者保護規定</span></dt><dd>無効や取消しを善意（無過失）の第三者には対抗できないとする規定。心裡留保・虚偽表示・錯誤・詐欺に個別に置かれている。</dd></div><div class="tx-gist-term"><dt><span>対抗することができる</span></dt><dd>自分の主張を相手にそのままぶつけて、権利の有無を認めさせることができるということ。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">錯誤や心裡留保には「知らない第三者を守る扉」が付いていますが、意思無能力の無効にはその扉がありません。守られるのは判断力を欠く本人のほうです。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">3条の2に第三者保護規定が置かれていない以上、無効は善意無過失の第三者にも対抗できます。記述はこのとおりで、正しいです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>3条の2の趣旨</strong><span class="syn-body"><a class="ref-stat" href="#bref-イ-302">3条の2</a>は意思無能力者を保護するための無効で、<span class="case-emphasis freq-high">表意者保護に徹する</span>制度。取引の相手方や第三者の信頼保護よりも、判断力を欠く本人の保護を優先する。</span></p>
 <p><span class="syn-step">2</span><strong>第三者保護規定の不存在</strong><span class="syn-body">意思表示の瑕疵（93条2項・<a class="ref-stat" href="#bref-イ-95">95条4項</a>・96条3項）には善意（無過失）の第三者を保護する規定があるが、3条の2には<span class="ron-mark freq-high">設けられていない</span>。ゆえに意思無能力の無効は善意無過失の第三者にも対抗できる。</span></p> </div>
@@ -5976,7 +6113,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>契約の当事者がその意思表示をした時に意思能力を有しなかった場合において、その契約に基づく債務の履行として給付を受けたときは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>現に利益を受けている限度において、返還の義務を負う</span>。<span class="tx-anscomp-line">意思無能力により無効な行為に基づいて給付を受けた者は、民法121条の2第3項前段により<strong>現に利益を受けている限度</strong>（現存利益）で返還すれば足りる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。無効なら受け取った物は全部返すのが原則（原状回復・<a class="ref-stat" id="ref-law-ウ-1" href="#bref-ウ-121">121条の2</a>第1項）。しかし判断力を欠く人にそれを貫くと、使ってしまってもう手元にない分まで返させることになり酷。そこで法は、意思無能力者・制限行為能力者には「今も残っている利益（現存利益）だけ返せばよい」という特則を置いた（121条の2第3項）。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">意思能力を欠いた者の返還義務は、<strong>現に利益を受けている限度</strong>にとどまる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">意思能力の意義</span><span class="tx-gist-step is-now">無効の効果</span><span class="tx-gist-step">個別規定への波及</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">無効な契約で受け取った物は、どこまで返さなければならないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断力を失った状態で高額な商品を買った買主が、代金を払い、受け取った商品の一部はすでに使い切ってしまいました。契約が無効だと分かったとき、売主は受け取った分を全部返してほしいと求めています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">無効な行為で給付を受けた者は、相手方を<strong>原状</strong>に復させる義務を負うのが原則です。では、使ってしまってもう手元に残っていない分まで返さなければならないのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-ウ-121" id="ref-law-ウ-1">121条の2</a>第1項は、無効な行為に基づく給付を受けた者に原状回復義務を負わせ、全部返すことを原則とします。もっとも同条3項前段は、行為の時に意思能力を有しなかった者について、返還義務を「現に利益を受けている限度」に縮めています。行為の時に制限行為能力者であった者も、同様の扱いです。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">無効という保護を与えておきながら、受け取った分を全額返せと求めると、使ってしまった人は結局借金を背負うことになります。それでは保護が名前だけのものになってしまいます。返す範囲を今も残っている利益に絞ることで、判断力を欠く人にとって無効という保護を実際に使えるものにしていると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>原状回復</span></dt><dd>無効な行為で受け取った給付を返して、取引前の状態に戻すこと（民法121条の2第1項）。</dd></div><div class="tx-gist-term"><dt><span>現存利益</span></dt><dd>受け取った利益のうち、今も手元に残っている分。浪費して残っていない分は返さなくてよい。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">全部返すのが原則です。でも判断力を欠く人は「今も残っているぶんだけ」返せば足ります。現存利益という名のセーフティネットです。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">意思能力を有しなかった者が、現に利益を受けている限度で返還義務を負うというのは、121条の2第3項前段そのものです。記述は正しいです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原状回復の原則</strong><span class="syn-body">無効な行為に基づいて給付を受けた者は、相手方を原状に復させる義務を負う（<a class="ref-stat" href="#bref-ウ-121">121条の2</a>第1項）。受けた物は原則として全部返す。</span></p>
 <p><span class="syn-step">2</span><strong>意思無能力者の特則</strong><span class="syn-body">同条3項前段は、意思無能力により無効の場合、返還義務を<span class="ron-mark freq-high">「現に利益を受けている限度」（現存利益）</span>に縮減する。浪費して手元に残らない利益は返還不要。制限行為能力者も同様。表意者保護（3条の2）の延長として現存利益の返還にとどめる。</span></p> </div>
@@ -6017,7 +6154,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>契約の申込者が申込みの通知を発した後に意思能力を有しない常況にある者となった場合において、その相手方が承諾の通知を発するまでにその事実が生じたことを知ったときは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>その申込みは、その効力を有しない</span>。<span class="tx-anscomp-line">申込者が申込みの通知を発した後に意思能力を有しない常況にある者となり、相手方が承諾の通知を発するまでにその事実を知ったときは、民法526条により<strong>その申込みは効力を有しない</strong>。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。意思表示は届いた時に効力を生じ、発信後に発信者が能力を失っても原則影響しない（<a class="ref-stat" id="ref-law-エ-1" href="#bref-エ-97">97条3項</a>）。しかし申込みだけは特別扱い。申込者が判断力を失ったことを相手方が承諾前に知ったのなら、そのまま契約を成立させるのは酷なので、<a class="ref-stat" href="#bref-エ-526">526条</a>は「その申込みは効力を有しない」とする。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">相手方が承諾前に申込者の意思能力喪失を知れば、その申込みは<strong>効力を有しない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">意思能力の意義</span><span class="tx-gist-step">無効の効果</span><span class="tx-gist-step is-now">個別規定への波及</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">申込みを出した後で申込者が判断力を失ったとき、その申込みはまだ生きているのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">買主が売主あてに、商品を買いたいという申込みの通知を郵送しました。その後、買主は事故で判断力を失い、意思能力を有しない常況になります。売主はその事実を人づてに聞きましたが、それでも承諾の通知を出して契約を成立させようとしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">意思表示は、発信した後に表意者の事情が変わっても効力を妨げられないのが原則です。では<strong>申込み</strong>も同じように生き続けて、売主の承諾だけで契約が成立してしまうのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">原則は<a class="ref-stat" href="#bref-エ-97" id="ref-law-エ-1">97条3項</a>で、通知を発した後に表意者が死亡し、意思能力を喪失し、又は行為能力の制限を受けたときでも、意思表示の効力は妨げられません。ただし<a class="ref-stat" href="#bref-エ-526">526条</a>が申込みについて特則を置き、申込者がそうなれば申込みは効力を有しない旨の意思を表示していたとき、又は相手方が承諾の通知を発するまでにその事実を知ったときは、申込みは効力を有しないとしています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">申込みを受けた側は、承諾すればそれだけで相手を契約に縛ることになります。相手がもう判断できない状態だと知りながら承諾へ進むのは、申込者の合理的な意思に反します。発信後の事情変更を切り離す原則は取引を安定させるためのものですから、相手方が事情を知っている場面では守るべき信頼がなく、特則で原則を外していると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>申込み</span></dt><dd>承諾があればそれだけで契約が成立する、内容の確定した契約締結の意思表示。</dd></div><div class="tx-gist-term"><dt><span>意思能力を有しない常況にある者</span></dt><dd>一時的にではなく、継続して意思能力を欠く状態にある者。民法526条が申込みの失効を定める場面のひとつ。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">原則は「途中で倒れても意思表示は生きる」です。でも申込みだけは、相手が承諾を出す前にそれを知ったときに効力を失う、という特則が付いています。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">相手方が承諾の通知を発するまでに意思能力喪失の事実を知ったという場面は、526条が申込みを失効させる二つ目の場合そのものです。記述は正しいです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>一般原則（97条3項）</strong><span class="syn-body">意思表示は、表意者が通知を発した後に死亡し、意思能力を有しない常況にある者となり、又は行為能力の制限を受けたときであっても、<span class="case-emphasis freq-mid">そのために効力を妨げられない</span>のが原則（<a class="ref-stat" href="#bref-エ-97">97条3項</a>）。</span></p>
 <p><span class="syn-step">2</span><strong>526条の特則</strong><span class="syn-body"><a class="ref-stat" href="#bref-エ-526">526条</a>は申込みについて特則を置く。①申込者が「その事実が生じたとすれば申込みは効力を有しない」旨の意思を表示していたとき、又は②相手方が承諾の通知を発するまでにその事実（死亡・意思能力喪失・行為能力制限）を知ったときは、<span class="ron-mark freq-high">申込みは効力を有しない</span>。本記述は②に当たる。</span></p> </div>
@@ -6060,7 +6197,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>婚姻の当事者が婚姻届を作成した時に意思能力を有しないことは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>婚姻の取消しの原因となる</span><span class="tx-stmt-fix">→ 婚姻の無効原因となる（742条1号）</span>。<span class="tx-anscomp-line">婚姻の当事者が婚姻届作成時に意思能力を欠くことは「当事者間に婚姻をする意思がないとき」（民法742条1号）に当たり、婚姻の<strong>無効</strong>原因であって取消原因ではない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。財産上の契約なら意思無能力は「無効」なのに、婚姻だけ「取消し」と言われると、身分行為だから特別かな、と迷う。しかし婚姻でも意思能力を欠けば「婚姻をする意思がない」（<a class="ref-stat" id="ref-law-オ-1" href="#bref-オ-742">742条1号</a>）に当たり、効果は取消しではなく<span class="case-emphasis freq-high">無効</span>。だから「取消しの原因」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">意思能力を欠いてした婚姻は、取消しではなく<strong>無効</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">意思能力の意義</span><span class="tx-gist-step">無効の効果</span><span class="tx-gist-step is-now">個別規定への波及</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">婚姻届を作った時に意思能力がなかったことは、取消原因なのか無効原因なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断力を失った高齢者が、介護をしていた相手に言われるまま婚姻届に署名し、届出がされました。本人は、相手が誰かも、夫婦になるという結びつきの意味も分かっていません。親族はこの婚姻を争いたいと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">財産の取引なら、意思能力を欠けば無効です。しかし婚姻は<strong>身分行為</strong>ですから、いったん戸籍に載った以上は取消しという形でしか覆せないのではないか、と迷う場面です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-オ-742" id="ref-law-オ-1">742条1号</a>は、人違いその他の事由によって当事者間に婚姻をする意思がないときを、婚姻の無効原因とします。意思能力を欠く者には婚姻をする意思がないので1号に当たり、効果は無効です。婚姻の取消しは、婚姻適齢違反や重婚（744条）、詐欺強迫（747条）など、条文が挙げた場合に限られます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">婚姻は当事者の意思で結ぶものですから、意思そのものが欠けていれば、そもそも婚姻として成り立っていません。取消しは、いったん成立した婚姻を家庭裁判所への請求で覆す仕組みなので、結ぶ意思が最初からない場面とは出発点が違います。だから意思を欠けば無効という筋は、財産行為でも身分行為でも変わらないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>婚姻をする意思</span></dt><dd>その相手と夫婦としての生活共同体を作ろうとする意思。これを欠く婚姻は無効となる（民法742条1号）。</dd></div><div class="tx-gist-term"><dt><span>婚姻の取消し</span></dt><dd>成立した婚姻を家庭裁判所への請求によって覆す制度。婚姻適齢違反・重婚・詐欺強迫など、条文が挙げた場合に限られる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">婚姻でも「する意思がない」なら無効です。取消しは不適齢や重婚といった別枠で、意思がなければ入口の段階で無効になります。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">意思能力を欠くことは742条1号の無効原因であって、取消原因ではありません。正しくは、この婚姻は家庭裁判所に取消しを請求するまでもなく無効であり、取消原因として扱う点が誤りです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>婚姻無効の要件（742条1号）</strong><span class="syn-body"><a class="ref-stat" href="#bref-オ-742">742条</a>1号は「人違いその他の事由によって<span class="ron-mark freq-high">当事者間に婚姻をする意思がないとき</span>」を婚姻無効とする。意思能力を欠く者には婚姻をする意思がなく、1号に当たる。</span></p>
 <p><span class="syn-step">2</span><strong>無効と取消しの区別</strong><span class="syn-body">婚姻の取消し（743条以下）は不適齢婚・重婚・詐欺強迫等の<span class="case-emphasis freq-high">限定列挙</span>による。意思無能力はそこに含まれず、無効原因（742条）として処理される。効果を「取消し」とする本記述は、無効と取消しの取り違えとして誤り。</span></p> </div>
