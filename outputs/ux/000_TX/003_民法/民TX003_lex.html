@@ -5609,6 +5609,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5898,7 +6035,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>AがBの母Cとの間で締結した、Aの所有する甲土地をBに無償で与える旨の第三者のためにする契約は、その成立の時にBが胎児であったとしても、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>そのためにその効力を妨げられない</span>。<span class="tx-anscomp-line">第三者のためにする契約は、その成立の時に第三者が現に存しない場合であっても、そのためにその効力を妨げられない（民法537条2項）。受益者は出生後に受益の意思表示（同条3項）をすれば足りる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。受取人になる<strong>第三者</strong>（契約当事者以外で、その契約から直接に権利を得る人）が契約の時点でまだ生まれていないと、その契約は無効なのでは、と思える。でも<a class="ref-stat" id="ref-law-537-ア" href="#bref-ア-537">537条2項</a>は『第三者が現に存しない場合又は特定していない場合であっても』効力を妨げられないと明記する。受益者Bが胎児でも契約は有効で、Bは生まれてから<strong>受益の意思表示</strong>（受取人が「その利益を受けます」と表明すること・537条3項）をすれば足りる。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">第三者のためにする契約は、<strong>成立時に第三者が存在しなくても</strong>有効である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">原則と擬制</span><span class="tx-gist-step is-now">契約と胎児</span><span class="tx-gist-step">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">契約を結んだ時点で受け取る側がまだ生まれていない場合、その契約は効力を持つのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">土地を持っている人が、これから生まれてくる子に、その土地を無償で与えたいと考えました。そこで、その子の母との間で契約を結びます。土地を受け取るのは契約を結んだ母ではなく、まだお腹の中にいる子です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">契約の当事者でない人に直接権利を取得させる仕組みが<strong>第三者のためにする契約</strong>です。もっとも、受け取る側が契約の時点でまだ生まれていないとき、受取人のいない契約として効力を否定されないかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-ア-537" id="ref-law-537-ア">537条2項</a>は、第三者のためにする契約は、その成立の時に第三者が現に存しない場合または特定していない場合であっても、そのために効力を妨げられないと定めています。受け取る側が胎児でも、契約そのものは有効です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">受け取る側が権利を得るのは、契約が成立した瞬間ではなく、その人が利益を受ける意思を表示した時だからです（同条3項）。権利の発生する時点が後ろにずれる仕組みなので、成立の時に受取人がそろっている必要はない、と説明されます。胎児を特別に扱う擬制の規定とは、そもそも土俵が違う話です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>第三者のためにする契約</span></dt><dd>契約の当事者ではない人に、債務者へ直接その給付を請求する権利を取得させる契約（民法537条1項）。</dd></div><div class="tx-gist-term"><dt><span>受益の意思表示</span></dt><dd>受け取る側が債務者に対し契約の利益を享受する意思を表示すること。この時にその人の権利が発生する（民法537条3項）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">受取人の席だけ先に用意しておく契約だと考えてください。契約の時にいなくても、後から手を挙げればよいので、胎児でも席は取れます。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">成立の時に受け取る側が胎児であっても効力を妨げられない、としている点が537条2項のとおりです。その子は生まれた後に受益の意思表示をすれば、土地の給付を請求する権利を取得できます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>537条2項の文言を見る</strong><span class="syn-body">第三者のためにする契約は、<span class="case-emphasis freq-high">成立の時に第三者が現に存しない場合又は特定していない場合であっても</span>、その効力を妨げられない。契約成立時に受益者が存在することは要件ではない。</span></p>
 <p><span class="syn-step">2</span><strong>胎児の権利能力とは別の論点</strong><span class="syn-body">ここで問われるのは契約の成立要件であって、胎児の権利能力擬制（721・886・965）ではない。Bは出生して権利能力を得た後に<a class="ref-stat" href="#bref-ア-537">受益の意思表示（537条3項）</a>をすれば権利を取得できるから、成立時に胎児でも契約の効力は妨げられない。</span></p> </div>
@@ -5942,7 +6079,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>胎児の父が胎児を認知するには、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>胎児の母の承諾を得なければならない</span>。<span class="tx-anscomp-line">父は、胎内に在る子でも認知することができるが、この場合においては母の承諾を得なければならない（民法783条1項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。まだ生まれていない胎児を父が<strong>認知</strong>（法律上、その子の父であると認めること）できるのか、できても母の同意まで要るのか、と迷う。<a class="ref-stat" id="ref-law-783-イ" href="#bref-イ-783">783条1項</a>は前段で『父は、胎内に在る子でも、認知することができる』とし、後段で『この場合においては、母の承諾を得なければならない』と定める。胎児の段階では父子関係の把握が難しく、母の名誉やプライバシーに関わるため、母の承諾を条件にした。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">父が胎児を認知するには、<strong>母の承諾</strong>を得なければならない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">原則と擬制</span><span class="tx-gist-step">契約と胎児</span><span class="tx-gist-step is-now">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">まだ生まれていない子を父が認知するとき、母の承諾は必要か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">婚姻していない男女の間に、子が生まれようとしています。父となる男性は、生まれる前のうちに法律上も自分の子だと認めておきたいと考えました。出生前に父子関係が定まれば、生まれた直後から扶養や相続の関係もはっきりするからです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">生まれる前の子を対象として<strong>認知</strong>をすることが認められるのか、認められるとして父の一存でできるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-イ-783" id="ref-law-783-イ">783条1項</a>は、父は胎内に在る子でも認知することができるとしたうえで、この場合においては母の承諾を得なければならない、と定めています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">胎児の段階では、その子が本当に父の子であるかを確かめる手がかりが乏しく、真実でない父子関係が作られてしまうおそれがあります。また、誰が父であるかを出生前に公にすることは、母の名誉や私生活にも深く関わります。そこで母の意思を尊重する仕組みにした、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>認知</span></dt><dd>婚姻していない男女の間に生まれた子について、父または母が法律上自分の子であると認める行為。</dd></div><div class="tx-gist-term"><dt><span>任意認知</span></dt><dd>届出によってする認知。本来は父の単独行為で相手方の承諾を要しないが、胎児の認知と成年の子の認知では承諾が必要になる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">胎児の認知は、まだ母のお腹の中での出来事です。だから母の承諾というワンクッションが置かれていると覚えてください。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">胎児の認知に母の承諾を要するとしている点が、783条1項後段のとおりです。承諾を欠いた胎児の認知は効力を生じません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>783条1項前段＝胎児認知の可否</strong><span class="syn-body">父は、胎内に在る子でも認知することができる。生前・出生前の段階でも任意認知（届出による認知）が可能である。</span></p>
 <p><span class="syn-step">2</span><strong>後段＝母の承諾要件と趣旨</strong><span class="syn-body">胎児認知には<span class="case-emphasis freq-high">母の承諾</span>を要する。趣旨は、胎児段階では父子関係の真実性の担保が難しく、<span class="ron-mark freq-high">母の名誉・利益（プライバシー）を保護</span>する点にある。承諾を要するのは正しく、本記述は正しい。</span></p> </div>
@@ -5984,7 +6121,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>胎児を受贈者として<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>死因贈与をすることができる</span><span class="tx-stmt-fix">→ 死因贈与に胎児の擬制規定はなく、できない</span>。<span class="tx-anscomp-line">胎児は相続（886条）・遺贈（965条）については既に生まれたものとみなされるが、死因贈与について胎児の権利能力を擬制する規定はなく、胎児を受贈者として死因贈与をすることはできない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。相続でも遺贈でも胎児は「既に生まれたものとみなす」のだから、似た<strong>死因贈与</strong>（贈与者が死亡した時に効力が生じる贈与契約・554条）でも胎児が受け取れそうに見える。でも胎児の権利能力は原則なし（<a class="ref-stat" id="ref-law-3-ウ" href="#bref-ウ-886">3条1項</a>）で、例外を認めるには個別の明文が要る。<a class="ref-stat" id="ref-law-886-ウ" href="#bref-ウ-886">886条</a>（相続）・<a class="ref-stat" href="#bref-ウ-886">965条</a>（遺贈）はあるが、死因贈与を胎児のために擬制する条文はない。しかも死因贈与は"契約"で受贈者の受諾が要る点が単独行為の遺贈と違う。だから胎児を受贈者とする死因贈与はできず、誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">胎児を受贈者とする死因贈与は、<strong>擬制の明文がなく</strong>することができない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">原則と擬制</span><span class="tx-gist-step">契約と胎児</span><span class="tx-gist-step">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">相続や遺贈で胎児が特別に扱われるなら、死因贈与でも同じに扱えるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">財産を持つ高齢の人が、自分が亡くなったときに、これから生まれてくる孫へ財産を渡したいと考えました。遺言で渡すのではなく、あらかじめ相手方と約束しておく契約の形をとろうとしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">相続と遺贈では、胎児は既に生まれたものとみなされます。では、贈与者が亡くなった時に効力を生ずる<strong>死因贈与</strong>でも、同じように胎児を受け取る側にできるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-ウ-886" id="ref-law-3-ウ">3条1項</a>は権利能力が出生に始まるとし、胎児を既に生まれたものとみなす規定は、不法行為の損害賠償（721条）、相続（<a class="ref-stat" href="#bref-ウ-886" id="ref-law-886-ウ">886条</a>）、遺贈（<a class="ref-stat" href="#bref-ウ-886">965条</a>）に限られます。死因贈与について胎児を擬制する条文はありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">例外を定める規定は、書かれている場面の外へ勝手に広げないのが条文解釈の作法です。554条は死因贈与に遺贈の規定を準用しますが、これは方式などに関する準用にとどまり、胎児の出生擬制までは及ばないと解されています。死因贈与は受け取る側の承諾があって初めて成立する契約である点でも、単独行為である遺贈とは構造が違います。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>権利能力</span></dt><dd>権利や義務の持ち主になることができる資格。私権の享有は出生に始まる（民法3条1項）。</dd></div><div class="tx-gist-term"><dt><span>死因贈与</span></dt><dd>贈与者の死亡によって効力を生ずる贈与契約。その性質に反しない限り遺贈に関する規定が準用される（民法554条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">みなすという席が用意されているのは、明文のある場所だけです。相続と遺贈には席がありますが、死因贈与には席がありません。席のない所は原則どおり、生まれてからになります。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">胎児を受贈者として死因贈与ができる、としている点が誤りです。正しくは擬制の規定がないためできず、生まれる前の子へ財産を残したいなら、886条を準用する965条により遺贈をするか、その子が生まれた後に改めて贈与契約を結ぶことになります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原則と例外を確認する</strong><span class="syn-body">権利能力は出生に始まる（3条1項）から、胎児は原則として権利義務の主体になれない。例外的に胎児を「既に生まれたものとみなす」のは、<span class="case-emphasis freq-high">不法行為(721)・相続(886)・遺贈(965)</span>という個別の明文がある場面に限られる。</span></p>
 <p><span class="syn-step">2</span><strong>死因贈与に擬制規定はない</strong><span class="syn-body">死因贈与について胎児の権利能力を擬制する条文は存在しない。<a class="ref-stat" href="#bref-ウ-554">554条</a>は死因贈与に『その性質に反しない限り遺贈に関する規定を準用する』とするが、これは方式等に関する準用にとどまり、<span class="ron-mark freq-high">胎児の出生擬制（886・965）までは及ばない</span>と解される。死因贈与は契約で受贈者の受諾を要する点も、単独行為の遺贈と異なる。よって胎児を受贈者とする死因贈与はできず、本記述は誤り。</span></p> </div>
@@ -6032,7 +6169,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>胎児が不法行為により損害を受けたときは、胎児の両親は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>出生前に胎児を代理して加害者に対し損害賠償請求をすることができる</span><span class="tx-stmt-fix">→ 判例（停止条件説）は出生前の代理を否定＝できない</span>。<span class="tx-anscomp-line">胎児は損害賠償の請求権については既に生まれたものとみなされる（721条）が、判例（大判昭7.10.6・停止条件説）は、胎児である間は権利能力がなく、母が出生前に胎児を代理することはできないとする。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。<a class="ref-stat" id="ref-law-721-エ" href="#bref-エ-721">721条</a>が『胎児は損害賠償の請求権については既に生まれたものとみなす』と言うのだから、生まれる前でも親が代わりに（代理して）請求できそうに見える。でも判例（<a class="ref-case" id="ref-case-hanshin-エ" href="#bref-エ-hanshin">大判昭7.10.6・阪神電鉄事件</a>）は<strong>停止条件説</strong>を採る。これは「胎児の間はまだ権利能力がなく、生きて生まれたら胎児の時にさかのぼって権利能力があったと扱う」考え方。この立場だと胎児の間は権利者がいない＝代理する相手がいないので、母（両親）が出生前に代理して請求することはできない。だから「代理して請求できる」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">判例は停止条件説を採り、<strong>出生前の代理による請求はできない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">原則と擬制</span><span class="tx-gist-step">契約と胎児</span><span class="tx-gist-step">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">損害賠償に胎児の擬制があるなら、親は出生前に代理して請求できるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">交通事故で一家の働き手が亡くなり、残された家族の中に、まだ生まれていない子がいます。母は、その子の分の損害賠償についても早く加害者へ請求し、話をまとめてしまいたいと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">721条は、損害賠償の請求権について胎児を既に生まれたものとみなします。この<strong>擬制</strong>を、胎児である間も権利能力があるという意味に読んでよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-エ-721" id="ref-law-721-エ">721条</a>について、判例（<a class="ref-case" href="#bref-エ-hanshin" id="ref-case-hanshin-エ">大判昭7.10.6・阪神電鉄事件</a>）は停止条件説を採り、胎児である間は権利能力を有せず、生きて生まれたときに不法行為の時までさかのぼって権利を取得するにすぎないとしました。母が出生前に胎児を代理して加害者と和解しても、その効力は子に及びません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">この立場では、胎児である間はまだ権利の持ち主がいません。代理は本人がいて初めて成り立つ仕組みですから、持ち主のいない段階では代理する相手方もいない、ということになります。条文にみなすと書いてあっても、それだけで出生前の代理まで認められるわけではない、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>停止条件説</span></dt><dd>生きて生まれたことを条件として、出生の時に不法行為の時までさかのぼって権利能力を認める考え方。判例の立場で、出生前の代理は否定される。</dd></div><div class="tx-gist-term"><dt><span>解除条件説</span></dt><dd>胎児である間も権利能力を認め、死体で生まれたことを解除条件としてこれを失わせる考え方。この説では出生前の代理も認められる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">停止条件説では、生まれるまで権利者はゼロです。ゼロは代理できません。だから出生前に親が代わって請求することはできない、と押さえてください。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">両親が出生前に胎児を代理して損害賠償を請求できる、としている点が判例の停止条件説と逆です。正しくは出生前の代理による請求はできず、子が生きて生まれた後に、その子の法定代理人として請求することになります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>721条の擬制と2つの説</strong><span class="syn-body">721条は損害賠償請求権について胎児を既に生まれたものとみなす。もっとも、この擬制をどう説明するかで<span class="ron-mark freq-high">停止条件説と解除条件説</span>が対立する。停止条件説（判例）は、生きて生まれたことを条件に出生時に胎児の時点へ遡って権利能力を認める。解除条件説は、胎児の間も権利能力を認め、死産を解除条件とする。</span></p>
 <p><span class="syn-step">2</span><strong>判例＝停止条件説→出生前の代理は否定</strong><span class="syn-body">判例（大判昭7.10.6）は停止条件説に立ち、胎児の間は権利能力がないから、<span class="case-emphasis freq-high">母が出生前に胎児を代理して和解等をすることはできない</span>とした。よって両親が出生前に代理して損害賠償請求をすることはできず、本記述は誤り。なお解除条件説によれば胎児の間も代理し得るが、判例の立場では否定される。</span></p> </div>
@@ -6077,7 +6214,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>胎児の母は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>認知の訴えを提起することができない</span>。<span class="tx-anscomp-line">認知の訴えを提起することができるのは、子、その直系卑属又はこれらの者の法定代理人であり（民法787条本文）、胎児の母はこれに当たらない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。認知してもらう子の母なら、子のために<strong>認知の訴え</strong>（父に強制的に認知させる裁判＝裁判認知）を起こせそうに思える。でも<a class="ref-stat" id="ref-law-787-オ" href="#bref-オ-787">787条本文</a>は原告になれる者を『子、その直系卑属又はこれらの者の法定代理人』と限定列挙する。母は、子の<strong>法定代理人</strong>（子を代理して訴える立場）としてならともかく、<strong>母自身</strong>としては原告適格（訴えを起こせる資格）がない。まして胎児には権利能力がなく訴えの当事者になれない。だから「胎児の母は提起できない」は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">認知の訴えの原告は<strong>限定列挙</strong>で、母は自己の資格では提起できない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">原則と擬制</span><span class="tx-gist-step">契約と胎児</span><span class="tx-gist-step is-now">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">子の母は、自分自身の資格で父に認知を求める裁判を起こせるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">婚姻していない相手との間に子を身ごもった女性が、相手の男性に父であることを認めさせたいと考えています。相手が任意の認知に応じないため、裁判で認めさせる道を探しています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">父が任意に認知しないときのために、裁判で認知を求める<strong>認知の訴え</strong>が用意されています。もっとも、その裁判を起こせる者は条文が定めており、母がその中に入るのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-オ-787" id="ref-law-787-オ">787条本文</a>は、認知の訴えを提起することができる者を「子、その直系卑属又はこれらの者の法定代理人」と定めています。母は自己の資格ではここに含まれません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">訴えを起こせる資格は、身分関係が近いことから当然に導かれるのではなく、条文が並べた範囲で決まります。母が動けるのは、子の法定代理人として子を代理する場合であり、それは子自身の訴えです。しかも生まれる前の子は権利能力を有しないため、裁判の当事者そのものになることができません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>認知の訴え</span></dt><dd>父が任意に認知しないときに、裁判によって父子関係を認めさせる手続（民法787条）。強制認知ともいう。</dd></div><div class="tx-gist-term"><dt><span>法定代理人</span></dt><dd>本人の意思によらず法律の規定によって代理権を与えられた者。未成年の子については親権者がこれにあたる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">認知の訴えの原告名簿には、子と、その子孫と、それらの代理人の名前が並んでいます。母の名前は、自分自身の資格としては載っていません。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">胎児の母が認知の訴えを提起することができない、としている点が787条本文のとおりです。子が生まれた後に、母がその子の法定代理人として訴えを提起することはできますが、それは子の訴えです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>787条本文の限定列挙</strong><span class="syn-body">認知の訴えの原告適格は、<span class="case-emphasis freq-high">子・その直系卑属・これらの者の法定代理人</span>に限られる。ここに「母」は自己の資格としては挙げられていない。</span></p>
 <p><span class="syn-step">2</span><strong>母自身と法定代理人の区別</strong><span class="syn-body">母が未成年の子の<span class="ron-mark freq-high">法定代理人</span>として子を代理して訴えるのは別問題（それは「子」の訴えである）。本記述の「胎児の母」が自己の名で提起することはできず、しかも胎児は権利能力を有せず当事者になれない。よって本記述は正しい。</span></p> </div>
