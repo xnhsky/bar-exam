@@ -5609,6 +5609,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5891,7 +6028,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は、その法定代理人が目的を定めないで処分を許した財産を、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>自由に処分することができる</span>。<span class="tx-anscomp-line">法定代理人が目的を定めないで処分を許した財産は、未成年者が同意なく<strong>自由に処分することができる</strong>（民法5条3項後段）。ただし小遣い等の一定範囲に限られ、全財産の処分許可は制度趣旨に反し許されない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。未成年者（18歳未満で親などの保護を受ける人）は、法律行為に親の同意が要るのが原則。でも親が「これは好きに使っていい」と<strong>使い道を決めずに渡した財産</strong>（お小遣いなど）は、いちいち同意を取らなくても<strong>自由に使える</strong>。条文が正面から認めている（<a class="ref-stat" id="ref-law-5-101" href="#bref-1-5">5条3項</a>）。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">使い道を決めずに渡された財産は、未成年者が<strong>単独で自由に処分</strong>できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">財産行為と受領</span><span class="tx-gist-step">身分行為の年齢</span><span class="tx-gist-step">親権の担い手</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">同意がなければ取り消せるはずの未成年者が、同意なしに使える財産はあるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">親が中学生の子に、使い道を決めずに月々のお小遣いを渡しています。子はそのお金で参考書を買い、友達と出かける費用にも充てました。売った店の側は、あとから親に取り消すと言われないか気になります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者が法律行為をするには、原則として<strong>法定代理人の同意</strong>が必要で、同意がなければ取り消せます。ではお小遣いのように、あらかじめ使い道を委ねて渡された財産まで、一件ごとに同意を取り直さなければならないのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-1-5" id="ref-law-5-101">5条3項</a>は、法定代理人が目的を定めて処分を許した財産はその目的の範囲内で未成年者が自由に処分でき、<strong>目的を定めないで処分を許した財産</strong>を処分するときも同様だと定めます。一件ごとに同意を取り直す必要はありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">渡すときに使い道を委ねている以上、その財産についてはまとめて同意を与えていると見ることができるからです。一件ごとに同意を求めると、日常の小さな買い物さえできなくなり、かえって未成年者の暮らしが立ちゆかなくなります。もっとも認められるのは「処分を許した財産」に限られ、全財産を好きにしてよいという許可までは、制限行為能力者を守る制度の趣旨に反して認められないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>法定代理人</span></dt><dd>本人に代わって法律行為をする権限を、法律上当然に与えられている人。未成年者では親権者がこれにあたる。</dd></div><div class="tx-gist-term"><dt><span>処分を許した財産</span></dt><dd>法定代理人が未成年者に使ってよいと認めて渡した財産。使い道を定めたときはその範囲で、定めなかったときは自由に処分できる（民法5条3項）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">使い道を決めずに渡したお小遣いを思い浮かべてください。親は一件ごとにうなずいているわけではなく、渡した時点でまとめて同意を与えているのです。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">目的を定めないで処分を許した財産を自由に処分できるとする点が、条文の定めるとおりです。ただし単独で処分できるのは許された財産の範囲に限られ、全財産の処分を許すことまではできません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原則は同意が必要</strong><span class="syn-body">未成年者が法律行為をするには法定代理人（親権者など）の<span class="case-emphasis freq-high">同意</span>が要り、反すれば取り消せる（<a class="ref-stat" href="#bref-1-5">5条1項本文・2項</a>）。取引の相手より本人の保護を優先する制度。</span></p>
 <p><span class="syn-step">2</span><strong>目的を定めない許可財産は例外</strong><span class="syn-body">5条3項は、目的を定めて処分を許した財産はその目的の範囲で、<span class="ron-mark freq-high">目的を定めないで処分を許した財産はこれを処分するとき</span>も、未成年者が自由に処分できるとする。使途を委ねたお小遣いのような財産は同意不要。ただし『処分を許した財産』に限られ、<span class="case-emphasis freq-mid">全財産の処分許可</span>は制限行為能力者制度の趣旨に反し認められない。</span></p> </div>
@@ -5935,7 +6072,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>意思表示の相手方がその意思表示を受けた時に未成年者であったときは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その意思表示は効力を生じない</span><span class="tx-stmt-fix">→ 表意者がその意思表示をもって相手方に対抗できないだけで、無効ではない（98条の2）</span>。<span class="tx-anscomp-line">意思表示の相手方が受領時に未成年者だったときは、表意者は<strong>その意思表示をもって相手方に対抗することができない</strong>（民法98条の2本文）にとどまり、意思表示が効力を生じないわけではない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。受け取った側が未成年者だと、その意思表示は無効（効力ゼロ）になりそう。でも<a class="ref-stat" id="ref-law-98-201" href="#bref-2-98">98条の2</a>が定める効果は「無効」ではなく、表意者が<strong>『届いた』と相手方に対抗できない</strong>という相対的なもの。表示自体は生きていて、送った側が到達を主張できないだけ。だから「効力を生じない」は言い過ぎで誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">受領能力を欠く相手への意思表示は無効ではなく、<strong>対抗できない</strong>だけである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">財産行為と受領</span><span class="tx-gist-step">身分行為の年齢</span><span class="tx-gist-step">親権の担い手</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">意思表示を受け取った相手が未成年者だったとき、その意思表示はどうなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">売主が、品物の代金を払ってもらえないので、契約を解除すると書いた通知を出しました。ところが受け取ったのは買主である未成年者本人で、その親権者には何も届いていません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">意思表示は、送る側だけでなく受け取る側にも内容を理解する力が要ります。そこで問題になるのが<strong>受領能力</strong>です。受け取った相手が未成年者だったとき、その通知は効力を失ってしまうのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-2-98" id="ref-law-98-201">98条の2</a>本文は、相手方が意思表示を受けた時に意思能力を有しなかったとき、または未成年者もしくは成年被後見人であったときは、表意者はその意思表示をもって<strong>相手方に対抗することができない</strong>と定めます。効力そのものを失わせる条文ではありません。相手方の法定代理人、または意思能力を回復し行為能力者となった相手方がその意思表示を知った後は、対抗できます（同条ただし書）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">到達の意味を理解できない人に、届いたという効果をそのまま押しつけないための決まりだからです。守られるのは受け取った側だけですから、効果も受け取った側に有利な向きにとどめれば足ります。そこで、送った側が「届いた」と主張できないという相対的な効果にとどめられていると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>受領能力</span></dt><dd>他人の意思表示を受け取って、その内容を理解することができる能力。</dd></div><div class="tx-gist-term"><dt><span>対抗することができない</span></dt><dd>その事柄を相手に主張できないこと。効力そのものが失われる無効とは別で、相手の側から主張することは妨げられない。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">通知は消えてなくなったのではなく、相手の手元に置かれたまま眠っています。送った側が「届いた」と言えないだけで、後から親権者が知れば、そこで主張できるようになります。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">意思表示は効力を生じないとして無効にしている点が、条文とずれます。正しくは、表意者がその意思表示をもって相手方に対抗できないだけで、意思表示そのものは有効に存在し、法定代理人が知った後は対抗できるようになります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>98条の2の効果を正確に読む</strong><span class="syn-body">相手方が受領時に<span class="case-emphasis freq-high">意思能力なし・未成年者・成年被後見人</span>だったときは、表意者は『その意思表示をもってその相手方に<span class="ron-mark freq-high">対抗することができない</span>』（98条の2本文）。効果は無効ではなく<span class="ron-mark freq-high">対抗不能</span>で、受領者を保護するための相対的な規律。</span></p>
 <p><span class="syn-step">2</span><strong>例外・逆方向も押さえる</strong><span class="syn-body">法定代理人がその意思表示を知った後、又は相手方が能力を回復し・行為能力者となってこれを知った後は、対抗できる（98条の2但書1号・2号）。逆に、受領者の側から到達を主張することは妨げられない。さらに単に権利を得又は義務を免れる意思表示（<a class="ref-stat">5条1項但書</a>参照）なら未成年者も有効に受領しうる。いずれにせよ意思表示が一律に効力を生じないわけではない。</span></p> </div>
@@ -5979,7 +6116,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>養親となることができない</span>。<span class="tx-anscomp-line">養親となるには<strong>20歳に達していること</strong>が必要であり（民法792条）、未成年者（18歳未満）は当然20歳未満だから養親となることができない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。成年年齢が18歳に下がったのだから、18歳になれば養親にもなれそう。でも<a class="ref-stat" id="ref-law-792-301" href="#bref-3-792">792条</a>は養親の資格を『20歳に達した者』と定める。成年（18歳）とは別に、養親には特に<strong>20歳</strong>という年齢を求めている。未成年者（18歳未満）はもとより20歳未満だから、養親にはなれない。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">養親となるには<strong>20歳</strong>に達していることが必要で、未成年者はなれない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">財産行為と受領</span><span class="tx-gist-step is-now">身分行為の年齢</span><span class="tx-gist-step">親権の担い手</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">成年年齢が18歳に下がった今も、未成年者は養親になれないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">18歳の若者が、身寄りのない年下の子を引き取り、養子として育てたいと考えました。もう成年に達しているのだから、そのまま縁組の届出もできそうに思えます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">養子縁組では、養う側に子を育てるだけの成熟が求められます。そこで<strong>養親</strong>となる資格には年齢の下限が置かれていますが、その下限は成年年齢と同じなのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-3-792" id="ref-law-792-301">792条</a>は、20歳に達した者は養子をすることができると定めます。成年年齢は18歳ですが（4条）、養親となる資格は<strong>20歳</strong>のまま据え置かれました。18歳未満の未成年者は当然20歳未満ですから、養親となることはできません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">子を迎えて育てる立場には、自分の取引を自分で決められること以上の成熟が要ると考えられているからです。成年年齢を18歳へ引き下げた改正のときも、養親の年齢だけは20歳が維持されました。年齢の基準はそれぞれの行為に必要な成熟度に応じて別々に決まる、と押さえておくとよいでしょう。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>養親</span></dt><dd>養子縁組によって、養子の親となる側の当事者。</dd></div><div class="tx-gist-term"><dt><span>成年</span></dt><dd>年齢18歳に達すること。単独で有効に法律行為をすることができる（民法4条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">大人になる線と、人の親になれる線は、別の場所に引かれています。18歳で大人になっても、子を迎える側に回れるのはその2年先です。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">未成年者は養親となることができないとする点が、条文のとおりです。なお20歳の線は成年年齢とは別に引かれているので、すでに成年に達した18歳や19歳の者も、まだ養親にはなれません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>792条の文言を読む</strong><span class="syn-body">792条は『<span class="case-emphasis freq-high">20歳に達した者</span>は、養子をすることができる』と定める。養親（養子縁組で親となる側）となるには20歳以上であることが要件。子を養い育てる責任にふさわしい成熟を求める趣旨。</span></p>
 <p><span class="syn-step">2</span><strong>成年年齢との関係を整理する</strong><span class="syn-body">平成30年改正（令和4年4月1日施行）で成年年齢は18歳になったが（<a class="ref-stat">4条</a>）、養親資格はあわせて『成年に達した者』から『<span class="ron-mark freq-high">20歳に達した者</span>』へと改められ、20歳が維持された。したがって成年（18歳）でも20歳未満なら養親になれず、未成年者はなおさら養親になれない（結論は改正の前後で変わらない）。</span></p> </div>
@@ -6021,7 +6158,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>遺言をすることができない</span><span class="tx-stmt-fix">→ 15歳に達した者は単独で遺言できる（961条）</span>。<span class="tx-anscomp-line">15歳に達した者は遺言をすることができ（民法961条）、行為能力の制限規定（5条等）は遺言に適用されない（962条）。よって未成年者でも15歳以上なら単独で有効に遺言できる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。未成年者は制限行為能力者だから、遺言も親の同意が要る、あるいはできないと思える。でも<a class="ref-stat" id="ref-law-961-401" href="#bref-4-961">961条</a>は『15歳に達した者は、遺言をすることができる』と定め、行為能力の制限（5条など）は遺言には及ばない（962条）。だから15歳以上の未成年者は<strong>単独で有効に遺言できる</strong>。「できない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>15歳</strong>に達した者は、法定代理人の同意なく単独で遺言をすることができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">財産行為と受領</span><span class="tx-gist-step is-now">身分行為の年齢</span><span class="tx-gist-step">親権の担い手</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">未成年者は行為能力を制限されているから、遺言もできないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">重い病気の16歳の患者が、世話になった人に自分の持ち物を残したいと考え、遺言書を書こうとしています。親権者の同意は得ていません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者が財産上の法律行為をするには法定代理人の同意が要り、なければ取り消せます。この<strong>行為能力</strong>の制限は、遺言にもそのまま及ぶのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-4-961" id="ref-law-961-401">961条</a>は、15歳に達した者は遺言をすることができると定めます。さらに962条は、5条・9条・13条・17条という行為能力の制限に関する規定を<strong>遺言には適用しない</strong>としています。ですから15歳以上であれば、同意なく単独で有効に遺言できます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">遺言の効力が生じるのは本人が亡くなった後で、そのときにはもう守るべき本人がいないからです。取引で損をしないよう本人を守る行為能力の制度を、ここへ持ち込む意味がありません。そこで、事の善し悪しを判断できる力があれば足りるものとし、その画一的な線として15歳が置かれたと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>遺言能力</span></dt><dd>有効に遺言をすることができる資格。15歳に達していれば足り、法定代理人の同意は要らない（民法961条）。</dd></div><div class="tx-gist-term"><dt><span>行為能力</span></dt><dd>単独で有効に法律行為をすることができる資格。未成年者などはこれを制限され、同意のない行為は取り消せる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">遺言は人生の最後の意思です。その紙が働きだす頃には本人はもういないので、取引の場面に立つ壁は外され、15歳から自分ひとりで書けます。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">未成年者は遺言をすることができないとしている点が誤りです。正しくは、15歳に達していれば法定代理人の同意なく単独で有効に遺言でき、遺言が無効になるのは15歳に達しない者がした場合です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>961条・962条を読む</strong><span class="syn-body">961条は『<span class="case-emphasis freq-high">15歳に達した者</span>は、遺言をすることができる』と定める。さらに962条は5条・9条・13条・17条（行為能力の制限に関する規定）を<span class="ron-mark freq-high">遺言には適用しない</span>とする。したがって法定代理人の同意は不要で、15歳以上なら単独で遺言できる。</span></p>
 <p><span class="syn-step">2</span><strong>なぜ行為能力を要しないか</strong><span class="syn-body">遺言の効力が生じる時（遺言者の死亡時）には、保護すべき本人はもう存在しない。そこで取引保護を目的とする行為能力制度を及ぼさず、<span class="ron-mark freq-high">できるだけ本人の最終意思を尊重</span>する。事物を弁識する一定の判断力（意思能力）があれば足り、その画一的な基準として15歳が定められている。</span></p> </div>
@@ -6065,7 +6202,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者Aの子に対する親権は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>Aの親権者がAに代わって行使する</span>。<span class="tx-anscomp-line">親権を行う者は、その親権に服する子に代わって親権を行う（民法833条）。未成年者Aがその子に対して有する親権は、Aの親権者がAに代わって行使する（親権の代行）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。未成年者Aが子を産めば、その子の親権はA自身が持つはず。でもA自身がまだ親権に服する未成年者だと、親権の担い手には子の財産まで管理できる成熟が求められる。そこで<a class="ref-stat" id="ref-law-833-501" href="#bref-5-833">833条</a>は『親権を行う者は、その親権に服する子に代わって親権を行う』と定め、<strong>Aの親権者（Aの親）がAに代わってAの子の親権を行使する</strong>。これを親権の代行という。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">親がまだ成年でないときは、その親の親権者が<strong>代わって親権を行う</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">財産行為と受領</span><span class="tx-gist-step">身分行為の年齢</span><span class="tx-gist-step is-now">親権の担い手</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">まだ成年に達しない親がその子に対して持つ親権は、誰が行使するのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">17歳で子を産んだ親がいます。生まれた子の親権はこの親にありますが、この親自身がまだ成年に達しておらず、自分の親の親権のもとにあります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">親権には、子を育てる仕事だけでなく、子の財産を管理し、財産に関する法律行為で子を代表する仕事も含まれます。この<strong>親権の行使</strong>を、まだ成年に達しない親に任せてよいのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-5-833" id="ref-law-833-501">833条</a>は、父又は母が成年に達しない子であるときは、その子について親権を行う者が、その子に代わって親権を行うと定めます。つまり、まだ成年に達しない親について親権を行う者が、その孫にあたる子の<strong>親権を代行</strong>します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">親権は子の財産の管理や代表まで含むので、担い手自身に、自分の財産を自分で処理できるだけの力が求められるからです。まだ成年に達しない親にそこまで期待するのは難しく、かといって生まれた子の親権を空のままにしておくわけにもいきません。そこで、権利を持つ人はそのままにして、行使だけを一つ上の世代に委ねる仕組みが置かれています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>親権</span></dt><dd>子の利益のために、子を監護教育し、その財産を管理して子を代表する権利であり義務（民法820条・824条）。</dd></div><div class="tx-gist-term"><dt><span>親権の代行</span></dt><dd>親権を持つ人に代わって別の人が親権を行使すること。父又は母が成年に達しない子であるときに認められる（民法833条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">親がまだ子どもなら、孫の親権は一つ上の世代が持ち代わります。バトンのように、担える世代が順につないでいくイメージです。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">まだ成年に達しない親の子に対する親権を、その親の親権者が代わって行使するとしている点が、条文のとおりです。親権が誰に帰属するかと、誰がそれを行使するかは、必ずしも一致しません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>833条の文言を当てる</strong><span class="syn-body">833条は『親権を行う者は、その親権に服する子に代わって親権を行う』と定める。未成年者Aは親権に服する子であり、そのAが子をもつ場合、<span class="ron-mark freq-high">Aの親権者がAに代わってAの子の親権を代行</span>する。</span></p>
 <p><span class="syn-step">2</span><strong>なぜ代行なのか</strong><span class="syn-body">親権は身上監護（<a class="ref-stat">820条</a>）だけでなく、子の財産の管理・法律行為の代表（<a class="ref-stat">824条</a>）を含む。これを適切に行うには親権者自身が<span class="case-emphasis freq-mid">行為能力者</span>であることが望ましい。まだ未成年のAに十分な判断力を期待できないため、Aの親権者が代わって行使する。親権はいわば上の世代から順に担われる。</span></p> </div>
