@@ -5609,6 +5609,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5892,7 +6029,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>代理人になれない</span><span class="tx-stmt-fix">→ 制限行為能力者も代理人になれる（102条本文）</span>。<span class="tx-anscomp-line">制限行為能力者が代理人としてした行為は、行為能力の制限によっては取り消すことができない（民法102条本文）。したがって未成年者も<strong>代理人となることができる</strong>。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。未成年者は「まだ一人前じゃない」から代理人も無理、と思いたくなる。でも代理人がした契約の効果は全部<strong>本人</strong>（頼んだ側）に行き、代理人自身は損も得もしない。だから<a class="ref-stat" id="ref-law-102-101" href="#bref-ア-102">102条</a>本文は「制限行為能力者が代理人としてした行為は、行為能力の制限では取り消せない」と定める＝未成年者でも代理人になれる。本人があえて未成年者を代理人に選んだのだから自己責任、というわけ。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">未成年者も<strong>代理人</strong>になることができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">行為能力</span><span class="tx-gist-step">保護の仕組み</span><span class="tx-gist-step">責任と身分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">行為能力を制限された未成年者が、他人の代理人になることはできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">土地を売りたい人が、まだ高校生の親族に「代わりに交渉して契約してきてほしい」と頼み、代理人として売買契約を結ばせたとします。買主は後から、代理人が未成年者だったのだからこの契約は取り消されるのではないか、と不安になります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者が単独でした法律行為は、原則として取り消すことができます（5条）。では、他人のためにする<strong>代理</strong>の場面でも、この行為能力の制限は働くのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-ア-102" id="ref-law-102-101">102条</a>本文は、制限行為能力者が代理人としてした行為は、行為能力の制限によっては取り消すことができないと定めます。つまり、未成年者であっても代理人になることができます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">行為能力の制限は、判断力の未熟な本人が自分の財産を不利に処分してしまうことを防ぐための保護制度です。ところが代理では、その効果がまるごと本人に帰属し（99条）、代理人自身には権利も義務も生じません。守るべき財産が危険にさらされず、しかも本人は未成年者と承知のうえで代理人に選んでいるのだから、代理人を保護する必要がないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>代理</span></dt><dd>与えられた権限の範囲で、本人のためにすることを示して意思表示をし、その効果を直接本人に生じさせる制度（民法99条）。</dd></div><div class="tx-gist-term"><dt><span>制限行為能力者</span></dt><dd>未成年者・成年被後見人・被保佐人・被補助人のように、単独でできる法律行為の範囲が法律で制限されている者。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">行為能力の制限は、自分の財布を守るための盾だと考えてください。代理人が扱うのは他人（本人）の財布ですから、盾を持たせる必要がありません。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「代理人になれない」と言い切っている点が102条本文と逆です。正しくは、未成年者も代理人になることができ、その代理行為を行為能力の制限を理由に取り消すことはできません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>行為能力を制限する趣旨を思い出す</strong><span class="syn-body">5条などが未成年者の法律行為を取り消せるとするのは、<span class="case-emphasis freq-high">判断力の未熟な本人が、自分の財産を不利に処分すること</span>を防ぐ保護制度。守る対象は“本人自身の財布”である。</span></p>
 <p><span class="syn-step">2</span><strong>代理では本人が不利益を負わない</strong><span class="syn-body">代理人の行為の効果は<a class="ref-stat" href="#bref-ア-99">99条</a>で本人に帰属し、代理人は他人（本人）のために動くだけで自分の財産を危険にさらさない。保護の必要がないから、102条本文は代理人が制限行為能力者でも「制限では取り消せない」とする。ゆえに未成年者も代理人になれ、本記述は誤り。</span></p> </div>
@@ -5939,7 +6076,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者に対して親権を行う者がいないときは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>後見が開始する</span>。<span class="tx-anscomp-line">未成年者に対して親権を行う者がないとき、又は親権を行う者が管理権を有しないときは、<strong>未成年後見が開始する</strong>（民法838条1号）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。親がいない未成年者は、誰が財産を管理し監護するのか——民法はその空白を放置しない。<a class="ref-stat" id="ref-law-838-201" href="#bref-イ-838">838条1号</a>は「未成年者に対して親権を行う者がないとき」に後見が開始すると定める。<strong>親権</strong>（父母が子を監護し財産を管理する第一次の保護）が欠けたら、<strong>後見人</strong>がそのバトンを受け取る。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">親権を行う者がないときは、<strong>未成年後見</strong>が当然に開始する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">行為能力</span><span class="tx-gist-step is-now">保護の仕組み</span><span class="tx-gist-step">責任と身分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">未成年者を守る親権者がいなくなったとき、保護の担い手はどうなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">両親を事故で亡くした中学生が残されたとします。学校のこと、住む場所、親が遺した預金の管理と、決めなければならないことが次々に出てきますが、代わりに動く保護者がいません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者を第一に守るのは<strong>親権</strong>を行う者ですが、その親権者が欠けたときに、生じた保護の空白をどう埋めるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-イ-838" id="ref-law-838-201">838条1号</a>は、未成年者に対して親権を行う者がないとき、又は親権を行う者が管理権を有しないときに、後見が開始すると定めます。家庭裁判所の審判を待つまでもなく、その事実だけで未成年後見が始まります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">未成年者には、財産を管理し監護教育をする担い手が常に必要です。親権者が欠けた瞬間に保護が途切れてしまっては、本人が現実に不利益を受けます。そこで民法は、親権を第一次の保護、後見をその補充と位置づけ、担い手を切れ目なく確保していると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>親権</span></dt><dd>父母が未成年の子を監護し教育し（民法820条）、その財産を管理して財産に関する法律行為について子を代表する（824条）権利義務。</dd></div><div class="tx-gist-term"><dt><span>未成年後見</span></dt><dd>親権を行う者がない未成年者などのために開始する後見（民法838条1号）。後見人は遺言による指定（839条）や家庭裁判所の選任（840条）で決まる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">未成年者の保護はリレーだと思ってください。第一走者の親権者がいなくなれば、第二走者の後見人へバトンが渡り、走者が途切れることはありません。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">838条1号の文言どおりで、正しい記述です。なお同じ「後見」でも、成年後見（838条2号）は後見開始の審判があって初めて始まる点が違うので、開始のきっかけを取り違えないようにします。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>未成年者の保護は二段構え</strong><span class="syn-body">未成年者はまず<a class="ref-stat" href="#bref-イ-818">親権を行う者（通常は父母）</a>が監護教育と財産管理を担う（818条・820条・824条）。親権が<span class="case-emphasis freq-high">第一次的な保護制度</span>である。</span></p>
 <p><span class="syn-step">2</span><strong>親権の空白を後見が埋める</strong><span class="syn-body">838条1号は『未成年者に対して親権を行う者がないとき、又は親権を行う者が管理権を有しないとき』に<span class="ron-mark freq-high">後見が開始する</span>と定める。死亡・親権喪失などで保護者が欠けても切れ目なく担い手を確保する趣旨。よって本記述は正しい。</span></p> </div>
@@ -5988,7 +6125,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者が他人に損害を与えた場合には、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>未成年者は不法行為責任を負わず、その監督義務者が不法行為責任を負う</span><span class="tx-stmt-fix">→ 責任能力があれば未成年者自身が709条の責任を負う</span>。<span class="tx-anscomp-line">未成年者は、責任を弁識するに足りる知能（責任能力）を備えていなかったときに限り賠償責任を負わず（712条）、その場合に監督義務者が責任を負う（714条1項）。<strong>責任能力があれば未成年者自身が不法行為責任（709条）を負う</strong>。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「子どもが起こした損害は親（監督義務者）が払う」という常識のイメージで一律に○にしたくなる。でも民法は年齢でなく<strong>責任能力</strong>（自分の行為が法的な責任を生むと理解できる力）の有無で切り分ける。責任能力があれば未成年者自身が<a class="ref-stat" id="ref-law-709-301" href="#bref-ウ-712">709条</a>で賠償責任を負い、責任能力がないときに限って<a class="ref-stat" href="#bref-ウ-712">712条</a>で本人が免責され、代わりに監督義務者が<a class="ref-stat" href="#bref-ウ-714">714条</a>で責任を負う。だから「一律に本人は責任を負わず監督義務者が負う」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>責任能力</strong>があれば、未成年者自身が賠償責任を負う。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">行為能力</span><span class="tx-gist-step">保護の仕組み</span><span class="tx-gist-step is-now">責任と身分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">未成年者が他人に損害を与えたとき、いつでも監督義務者が代わりに賠償するのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">中学生がふざけて投げた石が通行人に当たり、けがをさせたとします。被害者は治療費を誰に請求すればよいのでしょうか。本人でしょうか、それとも監督する立場の親でしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者だから当然に親が払う、とはなりません。民法は年齢ではなく、自分の行為が法的な責任を生むと分かる力、すなわち<strong>責任能力</strong>の有無で切り分けます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">責任能力を備えた未成年者は、自ら<a class="ref-stat" href="#bref-ウ-712" id="ref-law-709-301">709条</a>の不法行為責任を負います。本人が免責されるのは、責任を弁識するに足りる知能を備えていなかったときに限られ（<a class="ref-stat" href="#bref-ウ-712">712条</a>）、その場合に監督義務者が<a class="ref-stat" href="#bref-ウ-714">714条</a>1項の責任を負います。判例は満11歳11か月の少年にも責任能力を認めました（大判大正4年5月12日）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">賠償責任は、自分がしたことの意味を分かって行動できた者に負わせるのが筋です。そこで民法は、わきまえる力のない者だけを免責し、その代わりに監督する立場の者へ責任を移しました。年齢で一律に線を引かないのは、同じ年でも成熟の度合いが違うからだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>責任能力</span></dt><dd>自分の行為が法的な非難を受け、何らかの法的責任を生じると弁識できる知能。判例はおおむね12歳前後を目安に個別に判断する。</dd></div><div class="tx-gist-term"><dt><span>監督義務者の責任</span></dt><dd>責任無能力者が免責される場合に、その者を監督する法定の義務を負う者が代わって負う賠償責任（民法714条1項）。監督義務を怠らなかったことを証明すれば免れる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">切り分けの物差しは年齢ではなく、わきまえる力です。わきまえる力があれば本人が払い、なければ監督する立場の者が引き受ける、という一本で覚えてください。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">未成年者なら一律に本人は責任を負わず監督義務者が負う、としている点が誤りです。正しくは、責任能力があれば未成年者自身が709条の不法行為責任を負い、714条1項の監督義務者責任が働くのは、責任能力を欠いて本人が免責される場合に限られます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>712条は責任能力で免責を切る</strong><span class="syn-body">未成年者は、他人に損害を加えた場合において、<span class="case-emphasis freq-high">自己の行為の責任を弁識するに足りる知能（責任能力）</span>を備えていなかったときに限り、賠償責任を負わない（712条）。判例は責任能力をおおむね12歳前後で判断し、<a class="ref-case" id="ref-case-sekinin-301">11歳11か月の少年に責任能力を認めた例（大判大4.5.12）</a>もある。</span></p>
 <p><span class="syn-step">2</span><strong>責任能力があれば本人が709条責任</strong><span class="syn-body">責任能力を備える未成年者は<span class="ron-mark freq-high">自ら不法行為責任（709条）を負う</span>。監督義務者が<a class="ref-stat" href="#bref-ウ-714">714条</a>で責任を負うのは、未成年者が責任無能力で免責される場合に限られる。よって本人・監督者いずれが負うかは責任能力の有無で分かれ、「一律に本人は負わず監督義務者が負う」とする本記述は誤り。</span></p> </div>
@@ -6034,7 +6171,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者が婚姻をするには、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>法定代理人の同意を得なくてはならない</span><span class="tx-stmt-fix">→ 現行法では婚姻適齢が男女とも18歳＝成年で、未成年者は婚姻できない（731条・4条）</span>。<span class="tx-anscomp-line">平成30年民法改正（令和4年4月1日施行）により、成年年齢は18歳（4条）、婚姻適齢も男女とも18歳（731条）となり、<strong>未成年者は婚姻をすることができない</strong>。よって未成年者の婚姻に法定代理人の同意を要するとする記述は誤り。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「未成年の結婚には親の同意が要る」という昔ながらのイメージで○にしたくなる。でも<strong>平成30年改正（令和4年4月1日施行）</strong>で成年年齢が18歳に下がり、婚姻できる年齢（<a class="ref-stat" id="ref-law-731-401" href="#bref-エ-731">婚姻適齢</a>）も男女とも18歳＝成年になった。つまり<strong>未成年者はもう婚姻できない</strong>。婚姻できない以上「婚姻するには同意が要る」という前提自体が成り立たず、本記述は誤り（×）。さらに改正前でも同意を与えるのは「法定代理人」ではなく「父母」だった（旧737条）ので、その点でも不正確だった。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>婚姻適齢</strong>は男女とも18歳で、未成年者は婚姻できない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">行為能力</span><span class="tx-gist-step">保護の仕組み</span><span class="tx-gist-step is-now">責任と身分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">未成年者が婚姻をするには、親などの同意を得る必要があるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">17歳の高校生が結婚したいと言い出し、親の同意さえもらえれば式を挙げられるはずだ、と考えたとします。少し前までは、たしかにそう説明されていました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">結婚できる年齢、すなわち<strong>婚姻適齢</strong>が何歳かによって、そもそも同意が要るかどうかという問いが立つのかどうかが変わります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">平成30年の民法改正（令和4年4月1日施行）で、成年年齢は18歳（4条）、<a class="ref-stat" href="#bref-エ-731" id="ref-law-731-401">婚姻適齢</a>も男女とも18歳（731条）に揃いました。婚姻は18歳にならなければすることができないので、未成年者が婚姻するという場面そのものがありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">婚姻は生活の基礎を自分の判断で決める重い選択ですから、一人前として扱われる年齢と揃えるのが筋だと考えられました。婚姻適齢と成年年齢が一致した結果、未成年者の婚姻を前提にした規定は役目を終え、父母の同意を定めた旧737条も、婚姻による成年擬制を定めた旧753条も削除されています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>婚姻適齢</span></dt><dd>婚姻をすることができる年齢。現行法では男女とも18歳（民法731条）で、成年年齢（4条）と一致する。</dd></div><div class="tx-gist-term"><dt><span>成年擬制</span></dt><dd>改正前に、未成年者が婚姻すれば成年に達したものとみなしていた制度（旧753条）。婚姻適齢が18歳に揃ったため削除された。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">結婚できる年齢と、大人になる年齢が18歳でぴたりと重なったと覚えてください。重なった以上、未成年で結婚するという場面はもう存在しません。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">未成年者が婚姻できることを前提にしている点が、現行731条と合いません。正しくは、婚姻できるのは18歳になってから、つまり成年者だけであり、未成年者は婚姻できないので同意の要否を論じる余地がありません。なお改正前でも、同意を与えるのは法定代理人ではなく父母でした。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>婚姻適齢が成年年齢と一致した</strong><span class="syn-body"><a class="ref-stat" href="#bref-エ-4">4条</a>は成年年齢を18歳、<a class="ref-stat" href="#bref-エ-731">731条</a>は婚姻適齢を男女とも18歳とする（平成30年改正・令和4年4月1日施行）。<span class="case-emphasis freq-high">婚姻できるのは成年者だけ</span>になり、未成年者が婚姻するという場面が消えた。</span></p>
 <p><span class="syn-step">2</span><strong>前提が崩れるので命題は誤り</strong><span class="syn-body">未成年者は婚姻できないから「未成年者が婚姻をするには同意を要する」という条件命題は<span class="ron-mark freq-high">前提自体が成り立たず</span>誤り。なお改正前の旧737条1項でも同意権者は法定代理人ではなく<span class="case-emphasis freq-mid">父母</span>であり、記述はその点でも不正確だった。</span></p> </div>
@@ -6079,7 +6216,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者であっても、許可された特定の営業に関しては、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>行為能力を有する</span>。<span class="tx-anscomp-line">一種又は数種の営業を許された未成年者は、その営業に関しては、<strong>成年者と同一の行為能力を有する</strong>（民法6条1項）。したがって許可された営業の範囲では単独で有効な法律行為ができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。未成年者は原則として単独で完全な法律行為ができない（<a class="ref-stat" href="#bref-オ-5">5条</a>）。でも法定代理人が「この営業をしてよい」と許可した場合、その<strong>営業に関する行為</strong>だけは成年者と同じ扱いになる（<a class="ref-stat" id="ref-law-6-501" href="#bref-オ-6">6条1項</a>）。取引のたびに親の同意を取っていては商売が回らないから、営業を許した範囲では一人前の行為能力を認める。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">許された<strong>営業</strong>に関しては、未成年者も成年者と同一の行為能力を持つ。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">行為能力</span><span class="tx-gist-step">保護の仕組み</span><span class="tx-gist-step">責任と身分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">営業を許された未成年者は、その取引のたびに法定代理人の同意を得なければならないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">高校生が、法定代理人から古着の販売店を営むことを許されたとします。仕入れ、値付け、売却と、取引は毎日何件も発生します。そのすべてについて同意書をもらっていては、店は回りません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者が単独でした法律行為は、原則として取り消すことができます（<a class="ref-stat" href="#bref-オ-5">5条</a>）。この<strong>行為能力の制限</strong>を、日々取引を重ねる営業の場面にもそのまま及ぼしてよいかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-オ-6" id="ref-law-6-501">6条1項</a>は、一種又は数種の営業を許された未成年者は、その営業に関しては成年者と同一の行為能力を有すると定めます。許された営業の範囲内であれば、同意なしに完全に有効な取引ができ、後から取り消すこともできません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">営業には多数の取引がつきものですから、一件ごとに同意を求めていては円滑に進みません。そこで民法は、範囲を区切ってその中だけ一人前として扱い、取引の円滑と本人の自立を図っていると説明されます。範囲を外れた行為は、原則に戻って取り消すことができます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>営業の許可</span></dt><dd>法定代理人が未成年者に一種又は数種の営業を許すこと。許された営業に関しては成年者と同一の行為能力が認められる（民法6条1項）。</dd></div><div class="tx-gist-term"><dt><span>行為能力</span></dt><dd>単独で確定的に有効な法律行為をすることができる資格。未成年者はこれを制限され、同意を得ずにした行為は取り消しうる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">営業の許可は、その分野だけに使える大人パスだと考えてください。パスの範囲内の取引には、いちいち法定代理人の同意が要りません。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">6条1項の文言どおりで、正しい記述です。ただし成年者と同一に扱われるのは許された営業に関する行為に限られ、その範囲を外れた行為は原則どおり取り消しうる点に注意します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原則は取消しうる</strong><span class="syn-body">未成年者が単独でした法律行為は、原則として<a class="ref-stat" href="#bref-オ-5">取り消すことができる</a>（5条1項・2項）。判断力の未熟な本人を保護するための制限である。</span></p>
 <p><span class="syn-step">2</span><strong>営業許可で例外を作る</strong><span class="syn-body">6条1項は『一種又は数種の営業を許された未成年者は、その営業に関しては、<span class="ron-mark freq-high">成年者と同一の行為能力を有する</span>』と定める。取引のたびの<span class="case-emphasis freq-high">個別的同意</span>を要すると円滑な営業ができないため、営業の範囲を区切って一人前の行為能力を認める。ゆえに本記述は正しい。</span></p> </div>
