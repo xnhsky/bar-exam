@@ -5609,6 +5609,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5892,7 +6029,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>養親となることができない</span>。<span class="tx-anscomp-line">養親となる者は<strong>20歳に達していなければならず</strong>（民法792条）、未成年者は養親となることができない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。成年年齢が18歳に下がったのだから18歳になれば養親にも、と思いたくなる。でも養子を迎える<strong>養親</strong>には、<a class="ref-stat" href="#bref-1-792">792条</a>が『20歳に達した者』という独立の年齢要件を課す（成年年齢より高い）。未成年者は当然20歳未満だから養親になれない。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>養親</strong>になれるのは20歳に達した者であり、未成年者はなれない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">財産の行為</span><span class="tx-gist-step is-now">身分・資格</span><span class="tx-gist-step">代理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">未成年者は、養子を迎える側の親になることができるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">18歳になったばかりの人が、親を亡くした子を引き取って自分の養子にしたいと考えたとしましょう。成年に達したのだから、もう一人前として養子縁組の届出ができそうに思えます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">養子縁組は、迎えられる子の一生を左右します。そこで<strong>養親</strong>になる側には、成年に達したかどうかとは別に、固有の年齢要件が置かれているのではないかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-1-792">792条</a>は「二十歳に達した者は、養子をすることができる」と定めます。成年年齢は18歳（4条）ですが、養親の年齢だけは20歳のまま据え置かれているので、未成年者は養親になれません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">養子縁組は、子を育てて一生続く親子関係をつくる制度です。だから養親には、取引ができる一人前というだけでなく、子を育てるだけの社会的な成熟が求められると説明されます。成年年齢が18歳へ引き下げられたときも、この要請は変わらないとして、養親の年齢は20歳に残されました。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>養親</span></dt><dd>養子縁組によって養子の親となる側の者。20歳に達していなければならない（民法792条）。</dd></div><div class="tx-gist-term"><dt><span>成年</span></dt><dd>年齢18歳に達すること（民法4条）。単独で有効に法律行為ができる行為能力が認められる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">大人になるハードルと、人の親になるハードルは別々に置かれています。成年のハードルは18歳で越えられますが、養親のハードルだけは2歳分高いところにある、と覚えてください。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">未成年者は必ず20歳未満ですから、792条の年齢要件を満たしません。「養親となることができない」とする記述は、条文のとおりで正しいことになります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>792条の年齢要件を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-792">792条</a>は『<span class="case-emphasis freq-high">20歳に達した者</span>は、養子をすることができる』と定め、養親適格に成年到達とは別の年齢要件を置く。子の福祉のため養親に一定の成熟を求める趣旨。</span></p>
 <p><span class="syn-step">2</span><strong>未成年者へあてはめる</strong><span class="syn-body">未成年者は18歳未満で当然に20歳未満だから、養親となることはできない。<span class="ron-mark freq-mid">平成30年改正前は『成年に達した者』</span>だったが、成年年齢が18歳に下がったのに伴い、養親年齢は20歳に据え置かれた（令和4年4月1日施行・現行法note参照）。</span></p> </div>
@@ -5928,7 +6065,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>15歳に達した未成年者は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>遺言の証人となることができる</span><span class="tx-stmt-fix">→ 未成年者は遺言の証人になれない（974条1号）</span>。<span class="tx-anscomp-line">未成年者は<strong>遺言の証人・立会人となることができず</strong>（民法974条1号）、15歳に達していても証人適格を欠く。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。15歳になれば自分の遺言ができる（<a class="ref-stat" href="#bref-2-961">961条</a>）のだから、遺言の証人にもなれそう、と引っかかる。でも『遺言をする能力』と『他人の遺言に立ち会う証人の適格』は別物。<a class="ref-stat" href="#bref-2-974">974条1号</a>は未成年者を遺言の証人・立会人の欠格者とする。15歳でも未成年者である以上、証人にはなれない。だから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">自分の遺言は15歳からできるが、他人の遺言の<strong>証人</strong>に未成年者はなれない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">財産の行為</span><span class="tx-gist-step is-now">身分・資格</span><span class="tx-gist-step">代理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">15歳に達した未成年者は、他人の遺言に立ち会う証人になることができるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">遺言を残したい人が公証役場へ出向き、立ち会ってくれる証人を探しています。そばにいた15歳の孫が「自分でも遺言が書ける年齢だから」と、証人を引き受けようとしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">遺言の<strong>証人</strong>は、遺言者が他人に左右されず本心から遺言したことを確かめる役目を負います。自分の遺言ができる年齢に達していれば、他人の遺言の証人にもなれるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-2-974">974条1号</a>は、未成年者を遺言の証人・立会人になることができない者として真っ先に挙げます。他方、<a class="ref-stat" href="#bref-2-961">961条</a>が15歳から認めるのは自分の遺言をする能力であって、他人の遺言の証人の適格とは別の話です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">証人は、遺言者の真意を第三者の立場で保証する役目ですから、その判断能力に不安の残る者をはじめから外しておく必要があります。これに対し自分の遺言は、本人の最終意思を尊重すればよいので、早い年齢から認めてよい。守ろうとしているものが違うので、同じ「遺言」という言葉でも年齢の線が別々に引かれると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>遺言の証人</span></dt><dd>遺言の作成に立ち会い、遺言者が本心から遺言したことを確かめる者。欠格者は民法974条が定める。</dd></div><div class="tx-gist-term"><dt><span>遺言能力</span></dt><dd>有効に遺言をすることができる資格。15歳に達していれば足り、行為能力の制限の規定は適用されない（民法961条・962条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">自分の遺言を書くペンは、15歳になれば持てます。けれども、他人の遺言に立ち会う証人のバッジは、未成年者にはまだ渡されません。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「15歳に達していれば証人になれる」としている点が、974条1号と逆です。正しくは、15歳でも未成年者である限り他人の遺言の証人にはなれません。自分の遺言が15歳からできること（961条）とは切り分けて覚えます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>974条の欠格事由を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-2-974">974条1号</a>は『<span class="case-emphasis freq-high">未成年者</span>』を遺言の証人・立会人になることができない者として列挙する。証人・立会人は遺言者の真意を確保する任務を負うため、これに必要な判断能力を欠く者を欠格とする趣旨。</span></p>
 <p><span class="syn-step">2</span><strong>遺言能力（961条）と切り分ける</strong><span class="syn-body">15歳に達した者は遺言をすることができ（<a class="ref-stat" href="#bref-2-961">961条</a>）、行為能力の制限規定は遺言に適用されない（962条）。しかしこれは<span class="ron-mark freq-high">自分の遺言をする能力</span>の話であって、<span class="ron-mark freq-high">他人の遺言の証人適格</span>（974条）とは別問題。15歳未成年者は自分の遺言はできても、証人にはなれない。</span></p> </div>
@@ -5964,7 +6101,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>一種又は数種の営業を許された未成年者は、その営業に関しては、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>成年者と同一の行為能力を有する</span>。<span class="tx-anscomp-line">営業を許された未成年者は、その営業に関しては<strong>成年者と同一の行為能力</strong>を有する（民法6条1項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「未成年者はいつも保護者の同意が要る」と身構えたくなる。でも親（法定代理人）が『この商売をしていい』と<strong>営業を許した</strong>なら話は別。その営業の範囲では<strong>成年者と同じ行為能力</strong>（＝一人前の取引をする資格）を持ち、仕入れも売買も同意なしで有効にできる（<a class="ref-stat" href="#bref-3-6">6条1項</a>）。いちいち同意を求めていては商売にならないからだ。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">営業を許された未成年者は、<strong>その営業に関して</strong>は成年者と同一の行為能力を有する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">財産の行為</span><span class="tx-gist-step">身分・資格</span><span class="tx-gist-step">代理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">営業を許された未成年者は、その営業の取引を一人ですることができるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年者が法定代理人から「この店をやっていい」と営業を許され、商品の仕入れと販売を毎日くり返しています。取引のたびに法定代理人の同意書をもらっていては、商売が成り立ちません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者の法律行為は、原則として法定代理人の同意が要り、同意がなければ取り消すことができます。許された営業の範囲では、この原則を外して<strong>成年者と同一の行為能力</strong>を認めてよいかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-3-6">6条1項</a>は「一種又は数種の営業を許された未成年者は、その営業に関しては、成年者と同一の行為能力を有する」と定めます。許された営業の範囲では、同意なしに有効な取引ができます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">営業を許した以上、その営業に必要な取引まで一つずつ同意を求めさせたのでは、許可した意味がなくなります。取引の相手方も、いちいち同意の有無を確かめずに済みます。もっとも効力が及ぶのは許された営業の範囲だけで、範囲の外の買い物は原則（5条）に戻り、取り消すことができます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>営業の許可</span></dt><dd>法定代理人が未成年者に一種又は数種の営業を営むことを許すこと（民法6条1項）。</dd></div><div class="tx-gist-term"><dt><span>行為能力</span></dt><dd>単独で有効に法律行為をすることができる資格。未成年者は制限され、同意のない行為は取り消しうる（民法5条）。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">任された店の中では、一人前として扱われます。けれども店の外へ出ればまだ半人前で、原則どおり同意が要ります。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">記述は6条1項の文言そのままで、正しい内容です。あわせて「その営業に関しては」という限定を落とさないでください。許された営業と関係のない行為は、5条の原則に戻り、取り消すことができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>6条1項の文言を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-6">6条1項</a>は『一種又は数種の営業を許された未成年者は、<span class="case-emphasis freq-high">その営業に関しては、成年者と同一の行為能力を有する</span>』とそのまま定める。許可された営業のために必要な法律行為は単独で有効にできる。</span></p>
 <p><span class="syn-step">2</span><strong>射程は“その営業に関して”</strong><span class="syn-body">効力が及ぶのは<span class="ron-mark freq-high">許可された営業の範囲</span>に限られる。営業と無関係な法律行為は、依然として制限行為能力の一般規律（<a class="ref-stat">5条</a>）に服し、法定代理人の同意なくすれば取り消しうる。営業の範囲を超える行為まで一人前になるわけではない。</span></p> </div>
@@ -6000,7 +6137,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は、法定代理人の同意を得ずにした法律行為を、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>単独で取り消すことができる</span>。<span class="tx-anscomp-line">取消権者には<strong>制限行為能力者自身が含まれ</strong>（民法120条1項）、未成年者は同意なく単独で取消しができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。取消しも法律行為だから、また同意が要るのでは、と思いたくなる。でも<a class="ref-stat" href="#bref-4-120">120条1項</a>は取消権者に『<strong>制限行為能力者</strong>』自身を明記する。取消しは表意者（未成年者）を保護する制度だから、本人が単独でしても完全に効力を生じ、改めて法定代理人の同意を要しない。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">取消しは保護のための道具だから、未成年者が<strong>単独で</strong>取り消すことができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">財産の行為</span><span class="tx-gist-step">身分・資格</span><span class="tx-gist-step">代理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">取り消すこと自体にも、法定代理人の同意が要るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年者が法定代理人の同意を得ないまま高額な商品を買ってしまい、あとから「なかったことにしたい」と考えました。ところが法定代理人は出かけていて、すぐには連絡が取れません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">取消しも一つの法律行為です。未成年者の法律行為には同意が要るという原則（5条）をそのまま当てはめると、取り消すためにもう一度同意が要りそうに見えます。<strong>取消権</strong>を誰が行使できるかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-4-120">120条1項</a>は、行為能力の制限によって取り消すことができる行為を取り消せる者として、「制限行為能力者」自身を真っ先に挙げます。未成年者が一人でした取消しも、それだけで完全に効力を生じます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">取消しは、不利な契約から本人を解き放つための制度です。本人が使っても不利益は生じませんし、使えるようにしておくほうが保護の趣旨にかないます。守るための道具を使うのにもう一度許しが要るとしたのでは、保護がかえって足かせになってしまうからだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>取消権</span></dt><dd>いったん成立した法律行為の効力を、はじめにさかのぼって失わせる権利。行使できる者を民法120条が限定する。</dd></div><div class="tx-gist-term"><dt><span>制限行為能力者</span></dt><dd>未成年者・成年被後見人・被保佐人・被補助人など、行為能力を制限された者の総称。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">契約をするときは、同意という関門があります。けれども、それをなかったことにする取消しは一人でできます。守るための武器は、本人の手に握らせてあるのです。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">記述は120条1項のとおりで、正しい内容です。契約をするときに同意が要ることと、その契約を取り消すときに同意が要らないことは、向きが逆になっている点に注意してください。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>120条1項の取消権者を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-120">120条1項</a>は『行為能力の制限によって取り消すことができる行為は、<span class="case-emphasis freq-high">制限行為能力者</span>（他の制限行為能力者の法定代理人としてした行為にあっては、当該他の制限行為能力者を含む。）又はその代理人、承継人若しくは同意をすることができる者に限り、取り消すことができる』とし、制限行為能力者本人を取消権者に含める。</span></p>
 <p><span class="syn-step">2</span><strong>同意が不要な理由</strong><span class="syn-body">取消しは<span class="ron-mark freq-high">表意者保護のための制度</span>で、本人に不利益をもたらさない。むしろ取消権の行使を本人に認めることが保護の趣旨に適う。だから制限行為能力者が単独でした取消しも完全に効力を生じ、改めて法定代理人の同意を要しない。法律関係を徒に複雑化させない趣旨でもある。</span></p> </div>
@@ -6036,7 +6173,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>代理人となることができない</span><span class="tx-stmt-fix">→ 代理人となることができる（102条本文）</span>。<span class="tx-anscomp-line">制限行為能力者が代理人としてした行為は<strong>行為能力の制限では取り消せず</strong>（民法102条本文）、未成年者も代理人となることができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。未成年者は行為能力が制限されているのだから代理人にもなれない、と考えたくなる。でも代理では効果が<strong>本人に帰属</strong>し、代理人自身には不利益が及ばない。だから<a class="ref-stat" href="#bref-5-102">102条本文</a>は、制限行為能力者が代理人としてした行為を行為能力の制限では取り消せないとする＝未成年者も代理人になれる。だから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">効果は本人に届くのだから、未成年者も<strong>代理人</strong>となることができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">財産の行為</span><span class="tx-gist-step">身分・資格</span><span class="tx-gist-step is-now">代理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">行為能力を制限されている未成年者を、代理人に選ぶことはできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">土地を売りたい人が、事情に明るい親しい高校生に交渉と契約を任せたいと考えました。代理人になるのは未成年者ですが、売買の効果はすべて任せた本人に生じます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者は、自分のためにする取引なら同意が要り、同意がなければ取り消すことができます。では他人のためにする<strong>代理</strong>の場面でも同じ制限が働き、代理人になれないのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-5-102">102条本文</a>は「制限行為能力者が代理人としてした行為は、行為能力の制限によっては取り消すことができない」と定めます。取り消せない以上、未成年者も代理人となることができます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">代理では、取引の損も得もすべて本人に帰属し、代理人自身には不利益が及びません。だから、不利益から本人を守るための行為能力の制限を、代理人の地位にまで働かせる必要がないのです。本人が自分で代理人を選んだ場合には、その結果も本人が引き受けるべきだとも説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>代理</span></dt><dd>代理人が本人のためにすることを示してした意思表示の効果が、直接本人に生じる仕組み（民法99条1項）。</dd></div><div class="tx-gist-term"><dt><span>意思能力</span></dt><dd>自分の行為の意味を理解できる能力。これを欠く者の法律行為は無効であり（民法3条の2）、代理人にも必要とされる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">代理人は、本人のための使いです。使いに出た人が未成年でも、もうけも損も届く先は本人ですから、未成年者を使いに出してもかまいません。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「代理人となることができない」としている点が102条本文と逆で、誤りです。正しくは、未成年者も代理人となることができ、その代理行為を行為能力の制限を理由に取り消すことはできません。ただし代理人にも意思能力は必要です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>102条本文の規律を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-102">102条本文</a>は『<span class="case-emphasis freq-high">制限行為能力者が代理人としてした行為は、行為能力の制限によっては取り消すことができない</span>』と定める。代理人が制限行為能力者でも、その代理行為は有効で取り消せない＝制限行為能力者も代理人となることができる。</span></p>
 <p><span class="syn-step">2</span><strong>趣旨（本人帰属・自己責任）</strong><span class="syn-body">代理の効果は<span class="ron-mark freq-high">本人に帰属</span>し、代理人自身に不利益は及ばないから、制限行為能力者保護（取消し）の必要がない。また任意代理では本人が自ら制限行為能力者を代理人に選んだのだから、その結果は本人が負うべきである。ゆえに未成年者も代理人となることができる。</span></p> </div>
