@@ -5609,6 +5609,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5894,7 +6031,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者が子を認知した場合、その未成年者の親権者は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>認知を取り消すことができない</span>。<span class="tx-anscomp-line">認知は身分行為であり、認知をするには父母が未成年者・成年被後見人であってもその法定代理人の同意を要しない（<strong>780条</strong>）。同意権を前提としない以上、親権者は未成年者がした認知を取り消すことができない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。ふつう未成年者の契約は<a class="ref-stat" id="ref-law-1-5" href="#bref-1-5">親（法定代理人＝子を守る立場の代理人）の同意</a>が要る。でも「認知」（自分の子だと法律上みとめる<strong>身分行為</strong>＝家族関係を定める行為）は、本人の意思こそ尊重すべきなので特別扱いで、<a class="ref-stat" id="ref-law-1-780" href="#bref-1-780">780条</a>が「認知には法定代理人の同意は要らない」と明言する。同意が要らない＝親に同意する／しないという権限がそもそも無いので、親権者が後から認知を取り消すこともできない。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">認知に法定代理人の同意は要らないので、親権者は<strong>認知を取り消せない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">同意が原則</span><span class="tx-gist-step is-now">単独でよい例外</span><span class="tx-gist-step">行為のあとの処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">未成年者がした認知を、その親権者が取り消すことはできるか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年の父が、生まれた子を自分の子として認知の届出をしました。その未成年者の親権者は、まだ学生なのだからと反対していて、この届出をなかったことにしたいと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者が単独でした法律行為は、ふつう<a class="ref-stat" href="#bref-1-5" id="ref-law-1-5">法定代理人の同意</a>がなければ取り消せます（5条2項）。では、親子関係を作る<strong>身分行為</strong>である認知にも、この原則がそのまま当てはまるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-1-780" id="ref-law-1-780">780条</a>は、認知をするには父又は母が未成年者であるときであっても、その法定代理人の同意を要しないと定めています。同意という関与がそもそも予定されていない以上、親権者に取消権もありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">認知は、誰を自分の子とするかという本人の意思そのものが中身の行為だからです。財産上の取引のように、足りない判断力を親が補って画一的に守る、という発想がなじみません。だから条文が同意を外し、その裏返しとして親が後から覆すこともできない、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>身分行為</span></dt><dd>親子関係や夫婦関係など、家族としての身分を発生・変更・消滅させる行為。財産上の取引とは別の規律が働く。</dd></div><div class="tx-gist-term"><dt><span>認知</span></dt><dd>婚姻していない父母の間に生まれた子について、父又は母が自分の子であると認め、法律上の親子関係を生じさせる行為。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">認知は本人の気持ちが最優先です。親のハンコは要らず、要らない以上、親が後からその届出を破り捨てることもできません。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">親権者は認知を取り消すことができない、としている点が780条のとおりです。同意権が及ばない以上その裏返しの取消権もない、という筋道で正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原則と特則</strong><span class="syn-body">5条1項は未成年者の法律行為に法定代理人の同意を要求する。しかし認知のような<span class="case-emphasis freq-high">身分行為</span>は本人の意思を尊重すべきなので、780条が「同意を要しない」との特則を置く。</span></p>
 <p><span class="syn-step">2</span><strong>同意不要なら取消権もない</strong><span class="syn-body">取消しは同意権（＝同意を与える・拒む権限）の裏返し。認知に同意権が及ばない以上、親権者に認知を取り消す余地はない。よって「取り消すことができない」とする本記述は正しい。</span></p> </div>
@@ -5941,7 +6078,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>営業を許された未成年者がした法律行為は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その営業に関しないものであっても、取り消すことができない</span><span class="tx-stmt-fix">→ 営業に関しない行為は取り消し得る（5条2項）</span>。<span class="tx-anscomp-line">営業を許された未成年者は「その営業に関して」は成年者と同一の行為能力を有するにとどまり（<strong>6条1項</strong>）、営業に関しない法律行為は依然として法定代理人の同意を要し、同意なくすれば取り消すことができる（5条2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。親が「この商売をやっていい」と<strong>営業を許可</strong>（＝特定の営業をまるごと任せる許し）すると、その未成年者はその営業の範囲では大人と同じように単独で契約できる（<a class="ref-stat" id="ref-law-2-6" href="#bref-2-6">6条1項</a>）。でも効くのは“その営業に関する”行為だけ。営業と無関係な買い物や借金は、依然ふつうの未成年者と同じで同意が要り、同意なしなら取り消せる。だから「営業に関しないものでも取り消せない」は言い過ぎで誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">営業に関しない行為は原則に戻り、同意がなければ<strong>取り消すことができる</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">同意が原則</span><span class="tx-gist-step is-now">単独でよい例外</span><span class="tx-gist-step">行為のあとの処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">営業を許された未成年者は、その営業と関係のない行為まで単独で確定的にできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">親権者から古着の販売業を営む許可を得た未成年者が、店の仕入れのほかに、自分が乗る高級車を分割払いで買う契約を結びました。売主は、営業を許された未成年者なのだから大人と同じだと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">営業を許された未成年者は、その範囲で<strong>成年者と同一の行為能力</strong>を持ちます。問題は、それが及ぶのが許された営業の中だけなのか、その未成年者のするすべての行為なのか、です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-2-6" id="ref-law-2-6">6条1項</a>は、営業を許された未成年者は「その営業に関しては」成年者と同一の行為能力を有する、と範囲を限って定めています。営業に関しない行為は5条に戻るので、同意がなければ取り消すことができます（5条2項）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">許可は、その商売を回すために逐一の同意を省く、という限られた目的で与えられます。取引の相手も、その営業の枠内で大人扱いを期待しているにすぎません。枠の外まで保護を外す理由がないので、範囲を出れば同意主義の原則へ戻る、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>営業の許可</span></dt><dd>法定代理人が、一種又は数種の営業を営むことを未成年者に許すこと。許された営業に関しては成年者と同一の行為能力が与えられる（民法6条1項）。</dd></div><div class="tx-gist-term"><dt><span>行為能力</span></dt><dd>単独で確定的に有効な法律行為をすることができる資格。これが制限されると、その行為は後から取り消すことができる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">営業の許可は、その店の中だけで使える大人カードです。店の外へ一歩出た取引では、またふつうの未成年者に戻ります。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">その営業に関しないものであっても取り消すことができない、と範囲を広げている点が6条1項とずれます。正しくは、営業と関係のない行為には法定代理人の同意が要り、同意がなければ取り消すことができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>6条1項の射程を読む</strong><span class="syn-body">6条1項は『一種又は数種の営業を許された未成年者は、<span class="case-emphasis freq-high">その営業に関しては</span>、成年者と同一の行為能力を有する』。単独で確定的に有効になるのは“その営業に関する”行為に限られる。</span></p>
 <p><span class="syn-step">2</span><strong>営業外は原則へ戻る</strong><span class="syn-body">営業に無関係な行為は<a class="ref-stat" href="#bref-2-5">5条の原則</a>に戻り、同意なき行為は<span class="ron-mark freq-high">取り消せる</span>（5条2項）。「営業に関しないものでも取り消せない」とする本記述は6条1項の範囲を超えており誤り。</span></p> </div>
@@ -5989,7 +6126,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>親権者の同意を得ずに契約を締結した未成年者は、成年に達するまでは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>親権者の同意を得なければ、自らその契約を取り消すことができない</span><span class="tx-stmt-fix">→ 本人が単独で取り消せる（120条1項）</span>。<span class="tx-anscomp-line">取消権者には制限行為能力者本人が含まれ（<strong>120条1項</strong>）、取消しは新たな不利益を生じさせないため、未成年者は成年前でも親権者の同意を得ることなく単独でその契約を取り消すことができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「取り消せるのは誰か」を定めた<a class="ref-stat" id="ref-law-3-120" href="#bref-3-120">120条1項</a>は、制限行為能力者<strong>本人</strong>もそこに入れている。取消し（＝いったん結んだ契約を無かったことにする行為）は、未成年者に新しい不利益を負わせない——むしろ守る方向の行為。だから取り消すのに親の同意は要らず、成年前でも本人だけで取り消せる。「同意がなければ取り消せない」は逆で誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">未成年者本人も取消権者であり、同意がなくても<strong>単独で取り消せる</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">同意が原則</span><span class="tx-gist-step">単独でよい例外</span><span class="tx-gist-step is-now">行為のあとの処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">取り消せる契約を未成年者が自分で取り消すのに、親権者の同意が要るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">親権者に無断で高額な教材の契約をしてしまった未成年者が、やめたいと考えています。ところが親権者は遠方にいてすぐには連絡がつかず、同意をもらえる状態ではありません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">契約を結ぶときには法定代理人の同意が要りました。では、その契約を<strong>取り消す</strong>ときにも、同じように親権者の同意が要るのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-3-120" id="ref-law-3-120">120条1項</a>は、行為能力の制限によって取り消すことができる行為を取り消せる者として、制限行為能力者本人を正面から挙げています。未成年者は取消権者そのものなので、成年に達する前でも、同意なしに一人で取り消せます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">取消しは、結んだ契約の効力を否定して元へ戻す行為で、未成年者に新しい負担を負わせません。むしろ守る方向の行為です。保護のための制度なのに、保護される本人が単独で使えないのでは意味がない、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>取消権者</span></dt><dd>取り消すことができる行為を取り消せる者。行為能力の制限による取消しでは、制限行為能力者本人・その代理人・承継人・同意をすることができる者に限られる（民法120条1項）。</dd></div><div class="tx-gist-term"><dt><span>制限行為能力者</span></dt><dd>未成年者・成年被後見人・被保佐人・同意権付与の審判を受けた被補助人。単独でした一定の行為を取り消すことができる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">取消しは、自分を守るためのリセットボタンです。守る方向のボタンを押すのに、親の許可は要らず、本人が一人で押せます。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">親権者の同意を得なければ自ら取り消すことができない、としている点が120条1項と逆です。正しくは、未成年者は成年に達する前でも、親権者の同意なしに自らその契約を取り消すことができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>取消権者の範囲を読む</strong><span class="syn-body">120条1項は取消権者を『<span class="case-emphasis freq-high">制限行為能力者（…）又はその代理人、承継人若しくは同意をすることができる者</span>』とし、<span class="ron-mark freq-high">本人を明示的に含む</span>。だから未成年者は取消権者そのものである。</span></p>
 <p><span class="syn-step">2</span><strong>なぜ同意が要らないか</strong><span class="syn-body">取消しは契約の効力を否定するだけで本人に新たな不利益を生じない。未成年者保護（画一的取消権）の趣旨からは、本人が単独で取り消せてこそ保護になる。よって「同意がなければ取り消せない」とする本記述は誤り。</span></p> </div>
@@ -6037,7 +6174,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>親権者の同意を得ずに契約を締結した未成年者は、成年に達するまでは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>親権者の同意を得なければ、自らその契約の追認をすることができない</span>。<span class="tx-anscomp-line">追認は取消しの原因である状況が消滅した後（＝成年到達後）にしなければ効力を生じないのが原則で（<strong>124条1項</strong>）、成年前に自ら追認するには法定代理人（親権者）の同意を要する（124条2項2号）。よって成年前は同意なくして自ら追認できない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。追認（＝取り消せる契約を「これでOK」と確定させる行為）は、取り消せる状態を手放して<strong>不利益を引き受ける方向</strong>の一手。だから慎重に扱われ、原則は「取り消せる原因（未成年）が消えた後」＝成年になってからでないと効力が出ない（<a class="ref-stat" id="ref-law-4-124" href="#bref-4-124">124条1項</a>）。成年前でも追認したいなら、親（法定代理人）の同意を添えることが必要（124条2項2号）。つまり成年前の未成年者は、同意なしに一人で追認はできない。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">成年前の追認には法定代理人の同意が要り、単独では<strong>追認できない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">同意が原則</span><span class="tx-gist-step">単独でよい例外</span><span class="tx-gist-step is-now">行為のあとの処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">取り消せる契約をもう取り消さないと確定させるのに、未成年者は単独でできるか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">親権者に無断で買った楽器を、未成年者がすっかり気に入りました。もう取り消さないと決めて、売主に対し、この契約はこのままでよいと伝えようとしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body"><strong>追認</strong>は、取り消せる状態を手放して契約を確定させる行為です。取消しが単独でできるのなら、追認も単独でできてよさそうに見えます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-4-124" id="ref-law-4-124">124条1項</a>は、追認は取消しの原因となっていた状況が消滅し、かつ取消権を有することを知った後にしなければ効力を生じない、と定めます。未成年者にとって状況の消滅とは成年に達することです。2項2号は法定代理人の同意を得て追認するときは成年前でもよいとしており、裏を返せば、成年前に同意なく単独で追認することはできません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">追認は、取り消せるという盾を自分から捨てる、重い一手だからです。判断力がまだそろわないうちに盾を手放させては、保護の意味がなくなります。だから、成年に達して判断力がそろうか、法定代理人の同意で判断を補うか、どちらかが要る、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>追認</span></dt><dd>取り消すことができる行為を、以後取り消さないと確定させる意思表示。追認があれば、その行為はもう取り消すことができない（民法122条）。</dd></div><div class="tx-gist-term"><dt><span>取消しの原因となっていた状況の消滅</span></dt><dd>取消権を生んだ事情がなくなること。未成年者であれば、成年に達して行為能力の制限がなくなることをいう。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">取消しは自分を守るリセットボタン、追認は「もう取り消しません」と自分を縛る重い一手です。だから成年になるまで、親のOKなしに一人では押せません。</span></p><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">成年に達するまでは親権者の同意を得なければ自ら追認することができない、としている点が124条1項・2項2号のとおりです。単独でできる取消しと向きが逆になる点も、そのまま正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>124条1項の原則</strong><span class="syn-body">追認は『<span class="case-emphasis freq-high">取消しの原因となっていた状況が消滅し、かつ、取消権を有することを知った後</span>』でなければ効力を生じない。未成年者なら“状況の消滅”＝成年到達後が原則。</span></p>
 <p><span class="syn-step">2</span><strong>124条2項2号の例外を裏から読む</strong><span class="syn-body">2項2号は『制限行為能力者（成年被後見人を除く）が<span class="ron-mark freq-high">法定代理人…の同意を得て追認をするとき</span>』は、状況消滅（成年到達）前でも追認できるとする。裏を返せば、成年前に自ら追認するには同意が必須。よって「同意を得なければ追認できない」は正しい。</span></p> </div>
@@ -6085,7 +6222,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者が、親権者の同意があると誤信させるために詐術を用いて契約を締結した場合、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その契約は取り消すことができる</span><span class="tx-stmt-fix">→ 21条により取り消すことができない</span>。<span class="tx-anscomp-line">制限行為能力者が行為能力者であることを信じさせるため詐術を用いたときは取り消すことができず（<strong>21条</strong>）、判例（大判大正12.8.2）は同意権者の同意を得たと相手方に誤信させた場合も「詐術」に当たるとする。よってその契約を取り消すことはできない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。未成年者は本来ならその契約を取り消せる。でも、相手に「親の同意はちゃんとある」とウソ（<strong>詐術</strong>＝相手を積極的に誤信させる術策）を使って契約させたなら話は別。<a class="ref-stat" id="ref-law-5-21" href="#bref-5-21">21条</a>は、制限行為能力者がそういう詐術を用いたときは取消しを認めない、と定める。ウソで相手をだました人まで手厚く守る必要はないからだ。<a class="ref-case" href="#bref-5-case">判例</a>も「行為能力者だと信じさせた」場合に限らず「同意を得たと信じさせた」場合も詐術に含める。だから「取り消せる」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">同意があると偽った未成年者は、21条により<strong>契約を取り消せない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">同意が原則</span><span class="tx-gist-step">単独でよい例外</span><span class="tx-gist-step is-now">行為のあとの処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">親権者の同意があると相手をだました未成年者に、なお取消権が残るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年者が、高額の商品を買うにあたり、売主に対して親の同意はもらってあると告げ、同意書らしい書面まで見せました。売主はそれを信じて契約に応じています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者が同意なく結んだ契約は、本来なら取り消せます。しかし、相手を積極的に信じ込ませた場合にも、<strong>詐術</strong>を用いた者にまでその保護を与えてよいのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-5-21" id="ref-law-5-21">21条</a>は、制限行為能力者が行為能力者であることを信じさせるため詐術を用いたときは、その行為を取り消すことができないと定めます。<a class="ref-case" href="#bref-5-case">判例</a>（大判大正12年8月2日）は、同意権者の同意を得たと相手方に誤信させた場合も、ここでいう詐術に当たるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">取消権という保護は、未成年者が自分の立場を偽らず正直に振る舞うことを前提に与えられているからです。積極的にウソをついて相手を信じ込ませた者まで守ると、信じた相手のほうが一方的に不利益を負います。保護に値しない者からは盾を取り上げる、という考え方だと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>詐術</span></dt><dd>相手方を誤信させるために用いる術策。行為能力者だと信じさせる場合のほか、同意権者の同意を得たと信じさせる場合も含む。</dd></div><div class="tx-gist-term"><dt><span>同意権者</span></dt><dd>制限行為能力者の行為に同意を与えることができる者。未成年者では法定代理人である親権者や未成年後見人がこれに当たる。</dd></div></dl></div><p class="tx-gist-beat is-image"><span class="tx-gist-lab is-image">🖼 イメージ</span><span class="tx-gist-body">だました人は守りません。ウソで契約させた未成年者は、取消しという盾を取り上げられます。</span></p><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">その契約は取り消すことができる、としている点が21条と逆です。正しくは、同意があると誤信させる詐術を用いた以上、未成年者は取消権を失い、その契約を取り消すことはできません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>21条の効果</strong><span class="syn-body">制限行為能力者が<span class="case-emphasis freq-high">詐術を用いた</span>ときは、その行為を<span class="ron-mark freq-high">取り消すことができない</span>。正直に振る舞う限りで与えられる保護（取消権）を、積極的に相手を欺いた者からは奪う。</span></p>
 <p><span class="syn-step">2</span><strong>判例による「詐術」の射程</strong><span class="syn-body">判例（<a class="ref-case" href="#bref-5-case">大判大12.8.2</a>）は、行為能力者と誤信させた場合に限らず、<span class="ron-mark freq-high">同意権者（親権者等）の同意を得たと相手方に誤信させた場合も『詐術』に当たる</span>とする。本記述はまさに同意があると誤信させる詐術の事例で、21条により取消しはできない。よって「取り消せる」は誤り。</span></p> </div>
