@@ -45,7 +45,17 @@
 - CSS＝`GENESIS-CARD.html` TX-DGM 区画末尾の `TX-DGM-MATRIX`（本コミットで正典に追加済み・他ファイルは
   `tx-lex-css-canonize.py --apply` で配布）。許可クラスは validate G67／`tx-dgm-insert.py` に追加済み。
 
-## 4. 承認後にやること（正典昇格）
+## 4. 正典昇格（2026-09-22・承認後に実施済み）
+
+承認を受けて同日に昇格した。正典＝`docs/tx-v12.2.1-inline-lock.md` §v15／契約＝`GENESIS-CARD.placeholder.html` §v15／
+見本＝`GENESIS-CARD.html`（放火罪 5 カードを §v15 へ・正誤表の趣旨/射程行の旧不備も是正）。ツール＝`scripts/tx-v15-dedup.py`
+（base／materials／apply／check／scope／pending／css）・判定式＝`scripts/tx_v15_rules.py`（validate G82 と同一式）。
+ゲート＝G82 新設・G67 同期規則をカード単一情報源へ・G19 に解法ナビ副題の帰結語・G50/G81 の必須要件を任意化・
+`trap_depth_flag` の 105 字上限撤廃・push 前 engine に G82。展開＝TJR-D（`scripts/v15-dedup-runner.ps1`・
+`prompts/v15-dedup-headless.md`・TJR.ps1 の D ストリーム＝G の後に直列）。設置時点の残件 1,002 本。
+以下は昇格前の計画（記録として残す）。
+
+## 4-旧. 承認後にやること（正典昇格・計画時点）
 
 1. `GENESIS-CARD.html`／`GENESIS-CARD.placeholder.html`：POINT・GIST イメージ面・BASIS 帰結を外し、罠枠を
    1語差し替え型＋比較表に。`tx-gist-story.py` の面定義（イメージ任意・判定1行）を追従。

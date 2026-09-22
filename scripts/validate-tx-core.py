@@ -42,6 +42,11 @@ spec: spec/tx-v11.0.0-core.md 第7項
       判定は tx_sysmap_geom（単一情報源）、修正は scripts/tx-sysmap-fit.py（textLength+lengthAdjust・本文不変）。
   G78 正誤表の図解帯（TX-VERDICT-DGM・任意スロット・§v13x）：使用時の CSS/エンジン存在・ソースの hidden・
       .tx-dgm 1枚・置き場所（tr[data-stmt] の最終 td）。図解本体の中身は G67 が見る。
+  G82 §v15 DEDUP（2026-09-22）：⚠️罠枠＝「1語差し替えで裏返る」隣接命題＋📐比較表（.tx-dgm.is-matrix・div グリッド・
+      最大4×4）／罠・表・🗝フック・転用行に 記述N・本問・丸数字・解答技術語（素直に・疑いすぎ・組合せ問題・
+      思い込みの罠・先入観・ひっかけの型）を置かない／正誤表の図解ソース＝カードの比較表の複製。
+      §v15 適用済み（罠枠 data-v15）のファイルは ERROR、未適用は WARNING 助言。カード内の同一文の再出も WARNING。
+      判定は tx_v15_rules（単一情報源＝scripts/tx-v15-dedup.py と同じ式）。
   G68 フォント変数の未定義参照（2026-07-14・LEX-388）：var(--font-*) 参照に定義が無い＝全フォントが
       ブラウザ既定へフォールバック（実害＝刑TX003 公式＋_lex：パレットを第1 :root＝フォント12変数
       ブロックへ誤上書き）。公式・_lex 両系統 ERROR。
@@ -94,6 +99,12 @@ try:
     import tx_sysmap_geom as _sysmap_geom
 except Exception:
     _sysmap_geom = None
+
+# §v15 DEDUP（G82）の判定式は tx_v15_rules（単一情報源＝scripts/tx-v15-dedup.py と同じ式）を共用。
+try:
+    import tx_v15_rules as _v15
+except Exception:
+    _v15 = None
 
 # カード面の人物記号（G80）は tx_person_symbols（単一情報源＝監査ツールと同じ式）を共用。
 # 判定モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
@@ -388,7 +399,9 @@ def trap_depth_flag(text):
         return None
     if any(k in t for k in _TRAP_YOKO):
         return None
-    if any(k in t for k in _TRAP_RESTATE) and len(t) < 105:
+    if any(k in t for k in _TRAP_RESTATE):
+        # 2026-09-22 §v15：長く書いた言い換え罠（「〜の思い込みの罠。…」230 字型＝刑訴TX109）が
+        # 105 字上限で素通りしていたため上限を撤廃（横串マーカーが無ければ長さに関わらず助言）。
         return "『〜と早合点する。Yだから×』型の結論言い換え・横串（似た別論点の混同フラグ/対比/反転）が無い（§v13m③）"
     if len(t) < 62:
         return "短く罠の内容が薄い・横串（似た別論点の混同フラグ）を1枠置く（§v13m③）"
@@ -831,6 +844,22 @@ class Validator:
                 self.err("G19", f"{where}が解答前に正解を開示している（{label}：'{m.group(0)}'）。"
                                 "設問・問題文エリアは原文のまま不可侵とし、正解・正誤の先出しを書かない"
                                 "（○×判定の操作指示は書いてよいが、どれが○かは書かない）。")
+                break
+        # §v15（2026-09-22）：解法ナビ副題（.sn-sub）が括弧内や列挙で各記述の帰結（被害者も対象・圧迫要件削除・
+        # 立会い（裁量））を先出しする型＝旧 G19 のリテラル型では素通りしていた（実害＝刑訴TX109）。WARNING 助言。
+        nav_words = getattr(_v15, "NAV_VERDICT_WORDS", ()) if _v15 is not None else ()
+        for sub in self.soup.select(".solve-nav .sn-sub"):
+            t = sub.get_text(" ", strip=True)
+            hit = None
+            for m in re.finditer(r"[（(]([^）)]{1,40})[）)]", t):
+                if any(w in m.group(1) for w in nav_words):
+                    hit = m.group(0)
+                    break
+            if hit is None and ("がコアです" in t or "がコア。" in t):
+                hit = "がコアです"
+            if hit:
+                self.warn("G19", f"解法ナビ副題が各記述の帰結を先出ししている疑い（'{hit}'）。副題は「見る条文」だけにし、"
+                                 "削除・裁量・も対象・できる 等の帰結語を書かない（§v15・v12.2.1 表示LOCK）。")
                 break
         # 設問・問題内容への編集文（要約・言い換え・付け足し）の混入＝WARNING 助言
         stem = " ".join(
@@ -2859,6 +2888,32 @@ class Validator:
             self.warn("G81", f"記述{','.join(dash)} の THE GIST に「——」の挿入句が残る"
                              "（言い換えは 📘 キーワード へ出す・§v14）。")
 
+    def g82_v15_dedup(self):
+        """G82（2026-09-22・§v15 DEDUP）＝罠枠・比較表・フック・転用行の契約と、カード内重複の助言。
+        判定式は tx_v15_rules.check_text／card_dedup_problems（scripts/tx-v15-dedup.py と同一式）。
+        §v15 適用済み（罠枠に data-v15）のファイルは ERROR（push 前ゲートで停止）、未適用は WARNING 助言に落とす。"""
+        if not self.is_lex_target() or _v15 is None:
+            return
+        if 'class="tx-v13-verdict"' not in self.html:
+            return
+        opted = 'data-v15="1"' in self.html
+        res = _v15.check_text(self.html, self.html_path.name)
+        errs = [r[6:] for r in res if r.startswith("ERROR ")]
+        warns = [r[5:] for r in res if r.startswith("WARN ")]
+        if errs:
+            head = "; ".join(errs[:4]) + (f" 他 {len(errs)-4} 件" if len(errs) > 4 else "")
+            msg = (f"§v15 の契約違反 {len(errs)} 件: {head}"
+                   "（罠枠＝隣接命題＋比較表・記述N/本問/解答技術語を置かない・正誤表の図解＝カードの複製。"
+                   "python -X utf8 scripts/tx-v15-dedup.py check/apply）。")
+            (self.err if opted else self.warn)("G82", msg)
+        if opted and warns:
+            self.warn("G82", "§v15 の土台が未適用の箇所: " + "; ".join(warns[:4])
+                             + "（python -X utf8 scripts/tx-v15-dedup.py base <file>）。")
+        dedup = [d for d in _v15.card_dedup_problems(self.html) if "同一文" in d or opted]
+        if dedup:
+            self.warn("G82", "カード内の重複・分量: " + "; ".join(dedup[:5])
+                             + "（1 事実 1 置き場＝§v15。同一文は GIST イメージ面・BASIS 帰結・POINT の残りが典型）。")
+
     # G73（2026-07-28）＝答案圧縮（TX-ANSCOMP・§v13q）の統合整合。規約＝各記述カードの
     # 記述原文（.syn-orig）末尾と正誤表 tr の data-brief-mark 末尾の 2 箇所に同一文で置く
     # （シングルソース）。既存 corpus は未展開のため「両方無し」は WARNING（TJR 付随で消化）。
@@ -2963,7 +3018,7 @@ class Validator:
         if bad_style:
             self.err("G67", f"図解内に inline style が {bad_style} 箇所。見た目の調整は正典CSSに寄せ、"
                             "問題ファイル側では許可クラスの組合せだけで表現する。")
-        nar, card = {}, {}
+        nar, card, rows = {}, {}, {}
         no_id = 0
         for dgm in dgms:
             did = (dgm.get("data-dgm") or "").strip()
@@ -2975,16 +3030,22 @@ class Validator:
                 nar[did] = key
             elif dgm.find_parent(class_="tx-inline-explain") is not None:
                 card[did] = key
+            elif dgm.find_parent(class_="tx-vb-dgm-src") is not None:
+                rows[did] = key
         if no_id:
-            self.warn("G67", f"data-dgm 無しの図解が {no_id} 枚。物語⇄カードの同期検証ができないため "
+            self.warn("G67", f"data-dgm 無しの図解が {no_id} 枚。同期検証ができないため "
                              "data-dgm=\"{番号}-{連番}\" を付ける。")
+        # §v15（2026-09-22）同期規則＝記述カードが単一情報源。正誤表の図解ソース（.tx-vb-dgm-src）は
+        # カードの複製（同 id・同内容）、物語側は任意（置くなら同 id・同内容）。カードだけの図解は正常。
         for did in sorted(set(nar) & set(card)):
             if nar[did] != card[did]:
                 self.err("G67", f"図解 {did} の物語側とカード側で内容が不一致。同 id は同一図解の複製にする"
                                 "（片側だけ直す更新が同期ズレの主因）。")
-        lonely = sorted(set(nar) ^ set(card))
-        if lonely:
-            self.warn("G67", f"片側にしか無い図解 id: {lonely[:6]}。原則は物語の該当段落と対応する記述カードの両置き。")
+        for did in sorted(set(rows) & set(card)):
+            if rows[did] != card[did]:
+                self.err("G67", f"図解 {did} の正誤表側（.tx-vb-dgm-src）とカード側で内容が不一致。カードが単一情報源＝"
+                                "scripts/tx-v15-dedup.py apply で正誤表へ複製し直す（§v15）。")
+        # 物語だけの図解（問題全体を横断する比較表など）は正常＝警告しない（§v15）。
 
     # --- G68（2026-07-14・LEX-388）：フォント変数の未定義参照 ---
 
@@ -3184,6 +3245,7 @@ class Validator:
         self.g79_inline_card_self_contained()
         self.g80_person_symbol_self_contained()
         self.g81_gist_story()
+        self.g82_v15_dedup()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()

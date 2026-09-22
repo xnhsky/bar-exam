@@ -71,11 +71,11 @@ def render_card(card: dict, track: list[str]) -> str:
         f'<span class="tx-gist-body">{card["question"]}</span></p></div>'
         f'<div class="tx-gist-story">{beats}</div>'
         f'<div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl>{terms}</dl></div>'
-        f'<p class="tx-gist-beat is-image">{_lab("is-image", "🖼 イメージ")}'
-        f'<span class="tx-gist-body">{card["image"]}</span></p>'
-        f'<p class="tx-gist-judge {mk}">{_lab("is-judge " + mk, verdict)}'
-        f'<span class="tx-gist-body">{card["judge"]}</span></p>'
-        '</div>'
+        + ((f'<p class="tx-gist-beat is-image">{_lab("is-image", "🖼 イメージ")}'
+            f'<span class="tx-gist-body">{card["image"]}</span></p>') if (card.get("image") or "").strip() else "")
+        + f'<p class="tx-gist-judge {mk}">{_lab("is-judge " + mk, verdict)}'
+        + f'<span class="tx-gist-body">{card["judge"]}</span></p>'
+        + '</div>'
     )
 
 
