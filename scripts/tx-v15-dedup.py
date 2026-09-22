@@ -336,7 +336,10 @@ def cmd_scope(path: Path, spec_path: Path | None, ref: str) -> int:
         print(f"NG {path.name}: {ref} に {rel} が無い")
         return 2
     a, _ = strip_v15_regions(base.stdout.decode("utf-8").replace("\r\n", "\n"))
-    new, _ = read(path)
+    # 生成物 HTML は歴代ツールの書き戻しで LF/CRLF が混在しうる（read() は全行 CRLF の時だけ
+    # 正規化する）。base 側は必ず正規化するので、混在ファイルでは「1 行も変えていないのに
+    # 許可領域外が変わっている」と誤検出していた。両側を同じ式で正規化してから比べる。
+    new = read(path)[0].replace("\r\n", "\n")
     b, traps = strip_v15_regions(new)
     problems = []
     if a != b:
