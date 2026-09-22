@@ -1904,8 +1904,8 @@ class Validator:
                 continue
             if not ex.select_one(".sub-card.synthesis"):
                 self.err("G50", f"v13 カード{i}に統合解説（.sub-card.synthesis）が無い。旧PART Bプロースを本文位置へ昇格する。")
-            if not ex.select_one(".choice-points"):
-                self.err("G50", f"v13 カード{i}に📌POINT（.choice-points）が無い。")
+            # §v15（2026-09-22）：📌POINT は答案圧縮（§v13q）と条文操作の圧縮版で重複するため任意化
+            #（有れば従来どおり G22/G32 の対象・無くても ERROR にしない）。
             basis = ex.select_one(".sub-card.basis-link")
             if not basis:
                 self.err("G50", f"v13 カード{i}に📚BASIS（.sub-card.basis-link）が無い。条文/判例を箱内トグルで置く。")
@@ -2931,6 +2931,8 @@ class Validator:
         "dgm-rule", "dgm-src", "dgm-case", "dgm-verdict",
         "is-ok", "is-ng", "is-acc", "is-teal", "is-flat",
         "tx-dgm-steps", "dgm-step", "dgm-step-no", "dgm-next", "tx-dgm-fork",
+        # §v15（2026-09-22）比較表パターン
+        "is-matrix", "tx-dgm-matrix", "is-c3", "is-c4", "dgm-cell", "is-head", "is-rowhead",
     }
 
     def g67_diagram_component(self):

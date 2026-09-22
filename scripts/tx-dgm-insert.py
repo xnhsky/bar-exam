@@ -24,6 +24,7 @@ ALLOWED = {
     'dgm-rule', 'dgm-src', 'dgm-case', 'dgm-verdict',
     'is-ok', 'is-ng', 'is-acc', 'is-teal', 'is-flat',
     'tx-dgm-steps', 'dgm-step', 'dgm-step-no', 'dgm-next', 'tx-dgm-fork',
+    'is-matrix', 'tx-dgm-matrix', 'is-c3', 'is-c4', 'dgm-cell', 'is-head', 'is-rowhead',  # §v15 比較表
 }
 
 def main():

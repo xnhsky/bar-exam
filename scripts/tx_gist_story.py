@@ -240,8 +240,11 @@ def structure_problems(lead, verdict: str | None) -> tuple[list[str], tuple[str,
         if not body_text(t.select_one("dt")) or not body_text(t.select_one("dd")):
             out.append("📘 キーワードに語か定義の空欄がある")
 
-    if not body_text(lead.select_one(":scope > p.tx-gist-beat.is-image .tx-gist-body")):
-        out.append("🖼 イメージが無い")
+    # §v15（2026-09-22）：🖼 イメージ面は 🗝記憶のフック（.syn-image）と同じ像＝逐語重複のため任意化
+    #（置く場合は空欄禁止・無い場合は ERROR にしない）。
+    img = lead.select_one(":scope > p.tx-gist-beat.is-image")
+    if img is not None and not body_text(img.select_one(".tx-gist-body")):
+        out.append("🖼 イメージが空")
     judge = lead.select_one(":scope > p.tx-gist-judge")
     if judge is None or not body_text(judge.select_one(".tx-gist-body")):
         out.append("判定（.tx-gist-judge）が無い")
