@@ -49,6 +49,7 @@
 #   「JX 14-16 処理」（Jだけ）     → ... -Only J -JxFrom 14 -JxTo 16
 #   修復だけ（F単独）             → ... -Only F
 #   THE GIST ストーリー型の付随だけ → ... -Only G              # §v14・残件を科目へ均等配分（-MaxG 既定10）
+#   §v15 DEDUP（罠＝比較表）の付随だけ → ... -Only D            # §v15・残件を科目へ均等配分（-MaxD 既定10）
 #   検出だけ                      → ... -DryRun
 #
 # 【G（§v14 THE GIST ストーリー型の付随・2026-09-17 新設）】ユーザー指示「残りの LEX は TJR の付随で処理して」。
@@ -66,13 +67,14 @@ param(
     [int]$JxFrom = 0, [int]$JxTo = 0,
     [int]$RFrom  = 0, [int]$RTo  = 0,
     # 単一ストリームに限定（既定は空＝F/T/J/R 全部走る。「指定外も当然に処理」の既定を上書きしたい時だけ）
-    [ValidateSet('','T','J','R','F','Q','S','G')]
+    [ValidateSet('','T','J','R','F','Q','S','G','D')]
     [string]$Only = '',
     [switch]$SkipJ,               # 「JX以外を処理」＝J だけ落として T と R を回す
     [switch]$SkipF,               # F（修復）を止める（既定は毎バッチ先頭で監査→修復）
     [switch]$SkipQ,               # Q（§v13q 付随・特別枠）を止める
     [switch]$SkipS,               # S（§v13v ものがたり付随・特別枠）を止める
     [switch]$SkipG,               # G（§v14 THE GIST ストーリー型の付随・特別枠）を止める
+    [switch]$SkipD,               # D（§v15 DEDUP＝罠枠の比較表化・特別枠）を止める
     [int]$MaxTX = 12,             # T の基本単位（ピン時は範囲全件）
     [int]$MaxJX = 3,              # J の基本単位
     [int]$MaxR  = 3,              # R の基本単位
@@ -81,6 +83,7 @@ param(
     [int]$MaxQ  = 10,             # Q の基本単位（2026-07-28 ユーザー指示＝10個ずつ・完遂まで）
     [int]$MaxS  = 10,             # S の基本単位（仕事のある科目へ均等に配る・2026-08-31 ユーザー指示）
     [int]$MaxG  = 10,             # G の基本単位（§v14 THE GIST ストーリー型・科目へ均等配分・2026-09-17）
+    [int]$MaxD  = 10,             # D の基本単位（§v15 DEDUP・科目へ均等配分・2026-09-22）
     [switch]$NoPush,
     [switch]$DryRun,
     [string]$ProjectRoot = ''
@@ -97,6 +100,7 @@ $JxRunner = Join-Path $ProjectRoot 'scripts\jx-batch-runner.ps1'
 $QRunner  = Join-Path $ProjectRoot 'scripts\v13q-runner.ps1'
 $SRunner  = Join-Path $ProjectRoot 'scripts\v13v-runner.ps1'
 $GRunner  = Join-Path $ProjectRoot 'scripts\v14-gist-runner.ps1'
+$DRunner  = Join-Path $ProjectRoot 'scripts\v15-dedup-runner.ps1'
 $GistTool = Join-Path $ProjectRoot 'scripts\tx-gist-story.py'
 $AuditTool = Join-Path $ProjectRoot 'scripts\tjr-audit.py'
 $LogsDir = Join-Path $ProjectRoot 'logs'
@@ -181,6 +185,16 @@ function Get-GPending {
     $p = @{ CountOnly = $true; ProjectRoot = $ProjectRoot }
     if ($Subject -and $SSubjectMap.ContainsKey($Subject)) { $p.Subject = $SSubjectMap[$Subject] }
     $out = & $GRunner @p 2>$null
+    $n = 0
+    foreach ($ln in @($out)) { if ("$ln".Trim() -match '^\d+$') { $n = [int]"$ln".Trim() } }
+    return $n
+}
+function Get-DPending {
+    # D（§v15 DEDUP・特別枠・過渡）：G と同じくランナー自身に -CountOnly で数えさせる（科目指定・ESCALATE 除外込み）
+    if (-not (Test-Path $DRunner)) { return 0 }
+    $p = @{ CountOnly = $true; ProjectRoot = $ProjectRoot }
+    if ($Subject -and $SSubjectMap.ContainsKey($Subject)) { $p.Subject = $SSubjectMap[$Subject] }
+    $out = & $DRunner @p 2>$null
     $n = 0
     foreach ($ln in @($out)) { if ("$ln".Trim() -match '^\d+$') { $n = [int]"$ln".Trim() } }
     return $n
@@ -505,6 +519,20 @@ function Invoke-GStream {
     return $LASTEXITCODE
 }
 
+function Invoke-DStream {
+    param([int]$Max, [string]$Subj = '')
+    if (-not (Test-Path $DRunner)) { Write-Host "[SKIP] D エンジン不在: $DRunner" -ForegroundColor Yellow; return 0 }
+    $p = @{ MaxProblems = $Max; ProjectRoot = $ProjectRoot }
+    if ($Subj -and $SSubjectMap.ContainsKey($Subj)) { $p.Subject = $SSubjectMap[$Subj] }
+    if ($NoPush) { $p.NoPush = $true }
+    if ($DryRun) { $p.DryRun = $true }
+    $label = 'D（§v15 DEDUP＝罠枠の比較表化・科目へ均等配分）'
+    if ($p.ContainsKey('Subject')) { $label += "・{0}優先" -f $p.Subject }
+    Write-Host "`n———————— $label 開始 ————————" -ForegroundColor Green
+    & $DRunner @p | Out-Host
+    return $LASTEXITCODE
+}
+
 # === 入力プリフライト（2026-09-06 新設）===
 # 入力 PDF・逐語は .gitignore 対象で git pull では降りてこない（CLAUDE.md §4-5-bis）。
 # 未取込の PC では T/J/R が「仕事がない」のと同じ見え方＝静かな 該当なし SKIP になり、
@@ -547,6 +575,7 @@ $runF = ($Only -eq '' -or $Only -eq 'F') -and (-not $SkipF)
 $runQ = ($Only -eq '' -or $Only -eq 'Q') -and (-not $SkipQ)
 $runS = ($Only -eq '' -or $Only -eq 'S') -and (-not $SkipS)
 $runG = ($Only -eq '' -or $Only -eq 'G') -and (-not $SkipG)
+$runD = ($Only -eq '' -or $Only -eq 'D') -and (-not $SkipD)
 $rcAll = 0
 $batchCount = $Batches
 if ($DryRun -and $Batches -gt 1) {
@@ -573,7 +602,9 @@ for ($b = 1; $b -le $batchCount; $b++) {
     if ($runS) { $sPend = Get-SPending }
     $gPend = 0
     if ($runG) { $gPend = Get-GPending }
-    $hasTJRWork = [bool]($subT -or $subJ -or $subR -or ($qPend -gt 0) -or ($sPend -gt 0) -or ($gPend -gt 0))
+    $dPend = 0
+    if ($runD) { $dPend = Get-DPending }
+    $hasTJRWork = [bool]($subT -or $subJ -or $subR -or ($qPend -gt 0) -or ($sPend -gt 0) -or ($gPend -gt 0) -or ($dPend -gt 0))
     if (-not $hasTJRWork -and -not $runF) {
         Write-Host "`n[TJR] バッチ $b：全ストリーム・全科目で処理対象なし。終了。" -ForegroundColor Green
         break
@@ -637,6 +668,17 @@ for ($b = 1; $b -le $batchCount; $b++) {
         }
         else { Write-Host "`n[SKIP] G：今すぐ処理できる旧型 THE GIST の v13 _lex なし（完遂、または科目指定・ESCALATE 済みのみ）" -ForegroundColor Yellow }
     }
+    $rcD = 0
+    if ($runD) {
+        if ($dPend -gt 0) {
+            $rcD = Invoke-DStream -Max $MaxD -Subj $Subject
+            if ($rcD -eq 2) {
+                Write-Host "`n[TJR] D が基盤障害（claude 起動失敗）で停止 → 以後のバッチで D を止める" -ForegroundColor Red
+                $runD = $false
+            }
+        }
+        else { Write-Host "`n[SKIP] D：今すぐ処理できる §v15 未適用の v13 _lex なし（完遂、または科目指定・ESCALATE 済みのみ）" -ForegroundColor Yellow }
+    }
 
     Write-Host "`n———————— TJR バッチ $b 集計 ————————" -ForegroundColor Cyan
     if ($runF) { Write-Host ("  F（修復）        exit={0}  実行 {1} 件 / 検出 {2} 件" -f $fRes.Rc, $fRes.Dispatched, $fRes.Actionable) }
@@ -646,7 +688,8 @@ for ($b = 1; $b -le $batchCount; $b++) {
     if ($runQ) { Write-Host ("  Q（§v13q・刑訴） exit={0}  残={1} 件（バッチ開始時点）" -f $rcQ, $qPend) }
     if ($runS) { Write-Host ("  S（§v13v・民法優先）exit={0}  残={1} 件（バッチ開始時点）" -f $rcS, $sPend) }
     if ($runG) { Write-Host ("  G（§v14 GIST）   exit={0}  残={1} 件（バッチ開始時点）" -f $rcG, $gPend) }
-    if ($rcT -ne 0 -or $rcJ -ne 0 -or $rcR -ne 0 -or $rcQ -ne 0 -or $rcS -ne 0 -or $rcG -ne 0 -or $fRes.Rc -ne 0) { $rcAll = 1 }
+    if ($runD) { Write-Host ("  D（§v15 DEDUP）  exit={0}  残={1} 件（バッチ開始時点）" -f $rcD, $dPend) }
+    if ($rcT -ne 0 -or $rcJ -ne 0 -or $rcR -ne 0 -or $rcQ -ne 0 -or $rcS -ne 0 -or $rcG -ne 0 -or $rcD -ne 0 -or $fRes.Rc -ne 0) { $rcAll = 1 }
 }
 
 Write-Host "`n  TJR 終了 exit=$rcAll" -ForegroundColor Cyan

@@ -238,7 +238,7 @@ def main() -> int:
         if ((Path(root) if Path(root).is_absolute() else ROOT / root).is_file())
     }
 
-    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + G79 一問一答面の自己完結 + G80 人物記号 + G81 GISTストーリー型 + SNTIP + citation-era) ===")
+    print("=== TX _lex push-front gate (G41-G45 + G50-G60 v13 + G61/G62/G74 v13n + G63/G64 sync + G66/G69 sysmapはみ出し・重なり + G67 dgm + G73 答案圧縮 + G19 設問ネタバレ + G79 一問一答面の自己完結 + G80 人物記号 + G81 GISTストーリー型 + G82 §v15 DEDUP + SNTIP + citation-era) ===")
     print("roots=" + ", ".join(roots))
 
     # TX_ENGINE_SKIP_CORPUS=1＝コーパス横断の検査（元号割れ・CSS ドリフト可視化・ox-grid 可視化）を省き、
@@ -442,7 +442,7 @@ def main() -> int:
             role_notes.append((f, _roles))
         gate_errs: list[tuple[str, str]] = [
             (code, msg) for code, msg in v.errors
-            if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74", "G78", "G79", "G80", "G81")
+            if code in ("G19", "G41", "G42", "G44", "G50", "G51", "G52", "G53", "G54", "G55", "G58", "G60", "G61", "G62", "G63", "G64", "G66", "G67", "G68", "G69", "G70", "G71", "G72", "G73", "G74", "G78", "G79", "G80", "G81", "G82")
         ]
         # G45＝v12.2.1 表示LOCK（条文/判例ラベル・2カラム字下げ・物語ラベル等。v13 LOOP-CARD も維持する規約）。
         # 既存の未移行 v12.1.1 を全件落とさないため、v12.2.1／v13 LOOP-CARD として生成・更新済みの
