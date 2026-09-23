@@ -37,7 +37,9 @@ MARKS = {"○": "is-o", "×": "is-x"}
 VERDICT_TO_MARK = {"o": "○", "x": "×"}
 # 本文フィールドで許すインラインタグ（段落・ブロック要素は構造を壊すので不可）
 ALLOWED_TAGS = {"strong", "b", "em", "a"}
-TEXT_FIELDS = ("head", "question", "scene", "issue", "answer", "why", "image", "judge")
+# §v15（2026-09-22）：image は任意（空＝🖼 面を出さない）ので必須フィールドから外す
+# ＝レンダラ（空なら面を出さない）・構造検査（is-image が無くても ERROR にしない）と規律をそろえる。
+TEXT_FIELDS = ("head", "question", "scene", "issue", "answer", "why", "judge")
 
 REPO = Path(__file__).resolve().parent.parent
 CANONICAL = REPO / "canonical" / "GENESIS-CARD.html"
@@ -129,6 +131,11 @@ def spec_problems(card: dict, track: list[str], label: str) -> list[str]:
             out.append(f"記述{label}: {k} が空")
             continue
         out += [f"記述{label}: {k}：{x}" for x in markup_problems(v)]
+    img = card.get("image")
+    if img is not None and not isinstance(img, str):
+        out.append(f"記述{label}: image は文字列（空文字＝🖼 面を出さない）")
+    elif isinstance(img, str) and re.sub(r"<[^>]+>", "", img).strip():
+        out += [f"記述{label}: image：{x}" for x in markup_problems(img)]
     terms = card.get("terms")
     if not isinstance(terms, list) or not TERMS_MIN <= len(terms) <= TERMS_MAX:
         out.append(f"記述{label}: terms は {TERMS_MIN}〜{TERMS_MAX} 語の [語, 定義] 配列")
