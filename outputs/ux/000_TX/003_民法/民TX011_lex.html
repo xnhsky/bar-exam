@@ -5608,6 +5608,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5897,7 +6034,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人が土地の贈与を受けた場合、その後見人は、その贈与を<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>取り消すことができない</span><span class="tx-stmt-fix">→ 取り消すことができる（9条本文・120条1項）</span>。<span class="tx-anscomp-line">成年被後見人の法律行為は原則として取り消すことができ（<strong>9条本文</strong>）、取消権者に法定代理人たる成年後見人が含まれる（120条1項）。土地の贈与は日常生活に関する行為（9条ただし書）に当たらないから、成年後見人はこれを取り消すことができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。贈与を「受ける」＝もらって得するだけだから、わざわざ取り消せない（取り消す必要もない）と考えたくなる。でも<strong>成年被後見人</strong>（精神上の障害で判断能力を欠く常況にある人）の保護は、得か損かを問わず画一的に及ぶ。<a class="ref-stat" id="ref-law-9-a1" href="#bref-ア-9">9条本文</a>は本人の法律行為をまるごと取消しの対象とし、例外は『日用品の購入その他日常生活に関する行為』（9条ただし書）だけ。土地の贈与を受ける行為はこの例外に入らないから、<strong>法定代理人</strong>（本人に代わって法律行為をする権限を法律で与えられた人）である成年後見人は取り消せる。だから「取り消すことができない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">利益を得るだけの行為でも、成年後見人は<strong>取り消すことができる</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">本人の行為</span><span class="tx-gist-step">代理と時効</span><span class="tx-gist-step">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">得をするだけの贈与を受けた場合でも、後見人はそれを取り消せるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断能力を欠く常況にあるとして後見が開始した人が、親族から土地の贈与を受けたとします。もらうだけで代金を払う義務はなく、一見すると本人に損はありません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body"><strong>制限行為能力者</strong>の保護は、その行為が本人にとって得か損かで区別されるのでしょうか。未成年者には得をするだけの行為なら取り消せないという例外がありますが、同じ例外が成年被後見人にもあるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-ア-9" id="ref-law-9-a1">9条本文</a>は、成年被後見人の法律行為は取り消すことができると定め、取り消せない例外を「日用品の購入その他日常生活に関する行為」だけに絞っています（9条ただし書）。取消権者には、法定代理人である成年後見人も含まれます（120条1項）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">得か損かを一つひとつ判定させると、取引のたびに争いが起きて、かえって本人の保護が薄くなると説明されます。そこで成年被後見人については、利益か不利益かを問わず画一的に取り消せることにして、保護を厚くしています。日常の買い物まで取り消せると生活が成り立たないので、そこだけを例外にしています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>成年被後見人</span></dt><dd>精神上の障害により物事を判断する能力を欠く常況にあるとして、家庭裁判所から後見開始の審判を受けた人。</dd></div><div class="tx-gist-term"><dt><span>法定代理人</span></dt><dd>本人の意思にかかわらず、法律の定めによって代理権を与えられた人。成年後見人や親権者がこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">贈与を受けた場合は取り消せないとしている点が、9条の建て方とずれています。土地の贈与は日常生活に関する行為ではないので、成年後見人はこの贈与を取り消すことができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>9条本文の原則を確認</strong><span class="syn-body"><a class="ref-stat" href="#bref-ア-9">9条本文</a>は『成年被後見人の法律行為は、取り消すことができる』と定める。財産上の法律行為は<span class="ron-mark freq-high">原則としてすべて取消しの対象</span>で、贈与を受ける行為（利益を得る行為）も含まれる。取消権者は<a class="ref-stat" href="#bref-ア-120">120条1項</a>が定め、制限行為能力者本人のほか法定代理人たる成年後見人を含む。</span></p>
 <p><span class="syn-step">2</span><strong>例外は日常生活の行為だけ</strong><span class="syn-body">取消不可の例外は9条ただし書の『<span class="case-emphasis freq-high">日用品の購入その他日常生活に関する行為</span>』のみ。土地の贈与はこれに当たらない。ここで未成年者と対比すると、未成年者には『単に権利を得、又は義務を免れる法律行為』（5条1項ただし書）という利益行為の例外があるが、<span class="ron-mark freq-high">成年被後見人にはこの利益行為の例外がない</span>。だから贈与を受ける行為でも後見人は取り消せる。</span></p> </div>
@@ -5944,7 +6081,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人AがBの意思表示を受けた場合、Aの後見人Cがその意思表示を知った後は、Bは、その意思表示をもってAに<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>対抗することができる</span>。<span class="tx-anscomp-line">意思表示の相手方が受領時に成年被後見人であったときは相手方はその意思表示を対抗できないが（98条の2本文）、その<strong>法定代理人が意思表示を知った後は対抗することができる</strong>（98条の2ただし書1号）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。判断能力を欠く本人（成年被後見人A）が相手方から通知を受け取っても、その内容を正しく理解できないおそれがある。そこで<a class="ref-stat" id="ref-law-98-2-i1" href="#bref-イ-98">98条の2本文</a>は、受領時に本人が成年被後見人だと、相手方Bはその意思表示を本人に<strong>対抗できない</strong>（＝効力を主張できない）とする。ただし、本人を代わりに守る<strong>法定代理人</strong>（後見人C）が意思表示を知った後は、もう本人保護の必要がないので、相手方Bは対抗できる（同条ただし書1号）。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">後見人が意思表示を知った後は、相手方は<strong>対抗することができる</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">本人の行為</span><span class="tx-gist-step">代理と時効</span><span class="tx-gist-step">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">判断能力を欠く本人に届いた通知は、いつから相手方が効力を主張できるようになるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">契約を解除したいと考えた相手方が、判断能力を欠く常況にある本人あてに解除の通知を送りました。通知は本人の手元に届きましたが、本人はその意味を理解できません。その後、成年後見人がこの通知の存在と中身を知りました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body"><strong>受領能力</strong>を制限して本人を守るしくみは、本人を守る役の人が通知を知った後も、そのまま続くのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-イ-98" id="ref-law-98-2-i1">98条の2本文</a>は、受け取った時に相手方が成年被後見人であったときは、その意思表示をもって対抗することができないと定めます。ただし、同条ただし書1号は、相手方の法定代理人がその意思表示を知った後は、この限りでないとしています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">受領能力の制限は、通知の意味を理解できない本人が不意打ちを受けるのを防ぐためのものだと説明されます。本人に代わって中身を受け止められる成年後見人が現れて内容を知れば、その危険はなくなります。守る必要が消えた以上、通知は届いたものとして扱ってよい、という整理です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>受領能力</span></dt><dd>相手方からの意思表示を受け取って、その効力を自分に及ぼされる資格。意思能力のない人・未成年者・成年被後見人については制限される。</dd></div><div class="tx-gist-term"><dt><span>対抗する</span></dt><dd>自分がした意思表示の効力を、相手方に対して主張すること。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">成年後見人が知った後は相手方が対抗できるとしている点が、98条の2ただし書1号のとおりです。本人自身が知らなくても、法定代理人が知ったというだけで対抗できるようになります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>98条の2本文の原則（受領能力の制限）</strong><span class="syn-body"><a class="ref-stat" href="#bref-イ-98">98条の2本文</a>は、意思表示の相手方が受領時に<span class="case-emphasis freq-high">意思能力を有しなかったとき又は未成年者・成年被後見人であったとき</span>は、その意思表示をもって相手方に対抗できないと定める。受け取る側の能力を制限して本人を保護する趣旨。</span></p>
 <p><span class="syn-step">2</span><strong>ただし書1号で例外（了知で保護不要に）</strong><span class="syn-body">同条ただし書は、①相手方の<span class="ron-mark freq-high">法定代理人</span>、②意思能力を回復し又は行為能力者となった相手方本人、がその意思表示を知った後は、この限りでない（＝対抗できる）とする。本記述は後見人C（法定代理人）が知った後だから、BはAに対抗できる。法定代理人が了知すれば本人保護の必要が消えるからである。</span></p> </div>
@@ -5989,7 +6126,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人Aが未成年者Bの法定代理人としてした行為は、Aの行為能力の制限によっては<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>取り消すことができない</span><span class="tx-stmt-fix">→ 取り消すことができる（102条ただし書）</span>。<span class="tx-anscomp-line">制限行為能力者が代理人としてした行為は行為能力の制限によっては取り消せないのが原則だが（102条本文）、<strong>他の制限行為能力者の法定代理人としてした行為はこの限りでない</strong>（102条ただし書）。よって成年被後見人Aが未成年者Bの法定代理人としてした行為は取り消すことができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「代理人は行為能力者でなくてよい」という原則（<a class="ref-stat" id="ref-law-102-u1" href="#bref-ウ-102">102条本文</a>）から、成年被後見人が代理人としてした行為も取り消せない、と当てたくなる。この原則は、本人が“あえて”制限行為能力者を代理人に選んだ以上その不利益は本人が引き受けるべき、という自己責任に基づく。ところがAは未成年者Bの<strong>法定代理人</strong>（Bの意思と無関係に法律上当然に代理人になる者）——Bが選んだのではない。この場合はBに自己責任を問えないので、102条ただし書が『他の制限行為能力者の法定代理人としてした行為』を例外とし、Aの行為能力の制限によって取り消せるとする。だから「取り消すことができない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">未成年の子の法定代理人としてした行為は、<strong>取り消すことができる</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">本人の行為</span><span class="tx-gist-step is-now">代理と時効</span><span class="tx-gist-step">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">判断能力を欠く人が代理人としてした行為は、つねに取消しの対象外になるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断能力を欠く常況にあるとして後見が開始した親が、それでも未成年の子の親権者として、子の土地を売る契約を結んだとします。子の側は、この親を代理人として選んだわけではありません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">代理人には行為能力が要らないという原則は、本人が代理人を選んでいない<strong>法定代理</strong>の場面にも、そのまま当てはまるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-ウ-102" id="ref-law-102-u1">102条本文</a>は、制限行為能力者が代理人としてした行為は行為能力の制限によっては取り消すことができないと定めます。もっとも同条ただし書は、制限行為能力者が他の制限行為能力者の法定代理人としてした行為については、この限りでないとしています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">本文が取消しを認めないのは、本人が自分でその人を代理人に選んだ以上、結果も引き受けるべきだからだと説明されます。法定代理では本人が代理人を選んでおらず、この自己責任の前提が成り立ちません。そこで平成29年の改正でただし書が置かれ、選んでいない側を守ることにしました。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>任意代理</span></dt><dd>本人が自分の意思で代理権を与えた代理。誰を代理人にするかを本人が選んでいる。</dd></div><div class="tx-gist-term"><dt><span>法定代理</span></dt><dd>本人の意思とは関係なく、法律の定めによって代理人が決まる代理。親権者や後見人がこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">行為能力の制限によっては取り消せないとしている点が、102条ただし書を落としています。判断能力を欠く人が未成年の子の法定代理人としてした行為は、その行為能力の制限を理由に取り消すことができ、取消権者には子自身も含まれます（120条1項括弧書）。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>102条本文の原則を確認</strong><span class="syn-body"><a class="ref-stat" href="#bref-ウ-102">102条本文</a>は『制限行為能力者が代理人としてした行為は、行為能力の制限によっては取り消すことができない』と定める。趣旨は、本人が制限行為能力者を代理人に選んだ以上その効果は本人が引き受けるべき（<span class="case-emphasis freq-high">自己責任</span>）であり、代理では効果が本人に帰属し代理人自身は不利益を受けないこと。</span></p>
 <p><span class="syn-step">2</span><strong>ただし書の例外にあてはめる</strong><span class="syn-body">102条ただし書は『<span class="ron-mark freq-high">制限行為能力者が他の制限行為能力者の法定代理人としてした行為</span>については、この限りでない』とする。ここではA（成年被後見人）が未成年者Bの法定代理人であり、BはAを選んでおらず自己責任を問えないから、B保護のためAの行為能力の制限による取消しを認める。取消権者はBを含む（<a class="ref-stat" href="#bref-ア-120">120条1項括弧書</a>）。</span></p> </div>
@@ -6032,7 +6169,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人Aがその財産を管理する後見人に対して権利を有するときは、Aが行為能力者となった時又は後任の法定代理人が就職した時から法定の期間を経過するまでの間は、その権利について、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>時効は完成しない</span>。<span class="tx-anscomp-line">未成年者・成年被後見人がその財産を管理する父母・後見人に対して権利を有するときは、本人が行為能力者となった時又は後任の法定代理人が就職した時から<strong>6箇月を経過するまで</strong>、その権利について時効は完成しない（158条2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。本人（成年被後見人A）が、その財産を管理する後見人に対して持つ権利（例：後見人が本人の財産を使い込んだ場合の返還・損害賠償請求権）は、本人自身では行使が難しい。後見人自身に「自分に対する権利を時効で消えないよう手を打て」と期待するのも無理がある。そこで<a class="ref-stat" id="ref-law-158-e1" href="#bref-エ-158">158条2項</a>は、本人が<strong>行為能力者となる</strong>（判断能力が戻る）か、<strong>後任の法定代理人が就職する</strong>まで、そしてそこから6箇月（＝「法定の期間」）は<strong>時効の完成を猶予</strong>して本人を守る。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">財産を管理する後見人への権利は、<strong>6箇月</strong>間は時効が完成しない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">本人の行為</span><span class="tx-gist-step is-now">代理と時効</span><span class="tx-gist-step">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">本人が自分の後見人に対して持つ権利は、いつまで時効から守られるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断能力を欠く常況にある本人の財産を、成年後見人が管理しています。その後見人が本人の預金を私的に使い込んでいたとすると、本人は後見人に対して返還や損害賠償を求める権利を持ちます。しかし本人は自分では請求できず、請求される側の後見人が本人のために時効を止めることも期待できません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">権利があっても行使できる人がいないまま時が過ぎると、<strong>時効</strong>によって権利が消えてしまいます。この行使できない期間をどう扱うかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-エ-158" id="ref-law-158-e1">158条2項</a>は、成年被後見人がその財産を管理する父母又は後見人に対して権利を有するときは、本人が行為能力者となった時又は後任の法定代理人が就職した時から6箇月を経過するまでの間は、その権利について時効は完成しないと定めています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">権利を行使できない人に時効の不利益を負わせるのは酷だ、という考え方によるものです。本人が判断能力を取り戻すか、中立な後任者が就くまでは、権利を行使できる人が誰もいません。そこからさらに6箇月の準備期間を置いて、はじめて時効の完成を認める形にしています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>時効の完成猶予</span></dt><dd>一定の事情がある間、時効が完成しないものとする扱い。それまで進んだ期間がリセットされる更新とは異なる。</dd></div><div class="tx-gist-term"><dt><span>行為能力</span></dt><dd>単独で確定的に有効な法律行為をすることができる資格。後見開始の審判が取り消されれば、本人は行為能力者に戻る。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">法定の期間を経過するまで時効は完成しないとしている点が、158条2項のとおりです。ここでいう法定の期間は6箇月で、猶予されるのは本人と財産を管理する者との間の権利に限られます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>158条2項の対象を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-エ-158">158条2項</a>は、未成年者・成年被後見人が『<span class="case-emphasis freq-high">その財産を管理する父、母又は後見人</span>』に対して権利を有するときを対象とする。本人と、その財産の管理者との間で利益が対立する権利関係が典型場面。</span></p>
 <p><span class="syn-step">2</span><strong>起算点と期間にあてはめる</strong><span class="syn-body">本人が<span class="ron-mark freq-high">行為能力者となった時、又は後任の法定代理人が就職した時から6箇月を経過するまで</span>、その権利の時効は完成しない。本人が自ら（又は中立な後任者を通じて）権利行使できるようになるまで保護する趣旨で、記述の『法定の期間』はこの6箇月を指す。よって本記述は正しい。</span></p> </div>
@@ -6074,7 +6211,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人が協議上の離婚をするときには、その後見人の<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>同意を得なければならない</span><span class="tx-stmt-fix">→ 成年後見人の同意を要しない（738条・764条）</span>。<span class="tx-anscomp-line">成年被後見人が婚姻をするにはその成年後見人の同意を要せず（738条）、これは協議上の離婚に準用される（764条）。よって成年被後見人が協議上の離婚をするのに<strong>後見人の同意を要しない</strong>。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。財産の取引で成年被後見人は後見人に守られるのだから、離婚のような重い決断にはなおさら同意が要る、と考えたくなる。でも婚姻・離婚などの<strong>身分行為</strong>（身分関係を発生・変更・消滅させる行為）は、その人の意思そのものを尊重すべき領域で、財産法の行為能力ルールとは別に扱う。<a class="ref-stat" id="ref-law-738-o1" href="#bref-オ-738">738条</a>は『成年被後見人が婚姻をするには、その成年後見人の同意を要しない』とし、<a class="ref-stat" id="ref-law-764-o1" href="#bref-オ-764">764条</a>がこれを協議上の離婚に準用する。だから本人に意思能力さえあれば後見人の同意は要らず、「同意を得なければならない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">協議上の離婚に、成年後見人の<strong>同意は要らない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">本人の行為</span><span class="tx-gist-step">代理と時効</span><span class="tx-gist-step is-now">身分行為</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">成年被後見人が協議上の離婚をするには、後見人の同意が必要なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">後見が開始している人が、配偶者と話し合って離婚することにしました。財産の取引であれば、成年後見人の関与なくした行為は後から取り消される可能性があります。離婚は本人にとって、それに劣らず人生を左右する決断です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">婚姻や離婚のような<strong>身分行為</strong>にも、財産上の行為能力のルールがそのまま及ぶのでしょうか。重い決断であるほど後見人の同意が要りそうにも思えます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-オ-738" id="ref-law-738-o1">738条</a>は、成年被後見人が婚姻をするにはその成年後見人の同意を要しないと定め、<a class="ref-stat" href="#bref-オ-764" id="ref-law-764-o1">764条</a>がこの規定を協議上の離婚に準用しています。したがって、協議上の離婚にも成年後見人の同意は要りません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">誰と家族になるか、誰と別れるかは、その人の人格に深く結びついた決断だからだと説明されます。他人が代わりに決めたり、同意という形で縛ったりすることは、この領域にはなじみません。もっとも身分行為である以上、決断の意味が分かるだけの意思能力は必要で、それを欠く状態でした離婚は無効です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>身分行為</span></dt><dd>婚姻・離婚・養子縁組など、家族としての身分関係を発生・変更・消滅させる行為。</dd></div><div class="tx-gist-term"><dt><span>意思能力</span></dt><dd>自分の行為の意味や結果を理解できるだけの精神的な能力。これを欠く状態でした法律行為は無効になる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">後見人の同意を得なければならないとしている点が、738条・764条と逆です。成年被後見人は、意思能力がある限り、成年後見人の同意を得ることなく単独で協議上の離婚をすることができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>738条の原則を確認</strong><span class="syn-body"><a class="ref-stat" href="#bref-オ-738">738条</a>は『成年被後見人が婚姻をするには、その成年後見人の同意を要しない』と定める。身分行為は<span class="ron-mark freq-high">本人の意思を尊重</span>し、財産法上の同意・取消しルール（9条等）を及ぼさない趣旨。</span></p>
 <p><span class="syn-step">2</span><strong>764条で協議離婚に準用</strong><span class="syn-body"><a class="ref-stat" href="#bref-オ-764">764条</a>は738条を<span class="case-emphasis freq-high">協議上の離婚について準用</span>する。よって成年被後見人が協議離婚をするのにも成年後見人の同意は不要。ただし身分行為である以上、本人に意思能力があることは前提となる（意思無能力での身分行為は無効）。したがって「同意を得なければならない」とする本記述は誤り。</span></p> </div>
