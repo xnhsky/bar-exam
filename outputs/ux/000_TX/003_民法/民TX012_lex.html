@@ -5605,6 +5605,143 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5890,7 +6027,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>精神上の障害により事理を弁識する能力を欠く常況にある者について保佐開始の申立てがされたときは、家庭裁判所は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>保佐開始の審判をすることができる</span><span class="tx-stmt-fix">→ できない。能力を欠く常況の者は後見の対象（11条ただし書）</span>。<span class="tx-anscomp-line">事理を弁識する能力を<strong>欠く常況</strong>にある者は後見開始の審判の対象であり（7条）、保佐（能力が「著しく不十分」な者・11条本文）の対象ではないから、11条ただし書により保佐開始の審判はできない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。成年後見制度は、判断能力（事理を弁識する能力＝物事の損得を理解して契約などを判断する力）がどれだけ落ちているかで<strong>後見・保佐・補助</strong>の3段階に分かれる。いちばん重い「能力を<strong>欠く常況</strong>」（ほとんど判断できない状態が普通になっている）は<a class="ref-stat" id="ref-law-7-101" href="#bref-1-7">後見（7条）</a>の対象で、<a class="ref-stat" id="ref-law-11-101" href="#bref-1-11">保佐（11条）</a>は一段軽い「<strong>著しく不十分</strong>」な者が対象。だから能力を欠く常況の者に保佐開始の審判はできない（11条ただし書）。本記述は程度の当てはめを取り違えた誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">能力を<strong>欠く常況</strong>にある者は後見の対象で、保佐開始の審判はできない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">能力の程度で入口を選ぶ</span><span class="tx-gist-step">本人の意思を尊重する</span><span class="tx-gist-step">始まった後の権限と歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">判断能力が最も重く落ち込んだ人について、保佐を始めることはできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">認知症が進み、家族の顔も預金通帳の意味も分からなくなった親について、子が家庭裁判所に申立てをしようとしています。ただ、選んだのは後見ではなく保佐の申立てでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">成年後見制度の入口は、判断能力の落ち込み具合で三つに分かれます。ほとんど判断できない状態が普通になっている<strong>事理を弁識する能力を欠く常況</strong>の人を、一段軽い保佐で受けてよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法は、能力を欠く常況にある者を<a class="ref-stat" href="#bref-1-7" id="ref-law-7-101">後見（7条）</a>の対象とし、能力が著しく不十分である者を<a class="ref-stat" href="#bref-1-11" id="ref-law-11-101">保佐（11条）</a>の対象としたうえで、11条ただし書で「第7条に規定する原因がある者」を保佐から除きました。だから家庭裁判所は保佐開始の審判をすることができません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">三つの類型は、判断能力の落ち込みが重い順に後見・保佐・補助と並びます。重い人を軽い保護で受けると、代理も取消しも足りずに本人が守りきれません。そこで、より重い原因のある人は上の類型へ送り返す仕組みが置かれていると説明されます。同じただし書は補助にもあります（15条1項ただし書）。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>事理を弁識する能力</span></dt><dd>物事の損得や契約の意味を理解して、自分のことを決める力。判断能力のこと。</dd></div><div class="tx-gist-term"><dt><span>欠く常況</span></dt><dd>その能力がない状態が普通になっていること。一時的に分からなくなるのではなく、通常はほとんど判断できない状態をいう（7条）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">能力を欠く常況にある者について「保佐開始の審判をすることができる」としている点が、11条ただし書と逆です。この場合に家庭裁判所ができるのは、保佐開始ではなく後見開始の審判です（7条）。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>3類型を能力の程度で並べる</strong><span class="syn-body">判断能力の低下が重い順に、<span class="case-emphasis freq-high">欠く常況＝後見（7条）＞著しく不十分＝保佐（11条）＞不十分＝補助（15条）</span>。記述の「能力を欠く常況にある者」は最も重い後見の対象である。</span></p>
 <p><span class="syn-step">2</span><strong>11条ただし書で締める</strong><span class="syn-body">11条本文は「著しく不十分」な者を保佐開始の対象とし、<span class="ron-mark freq-high">ただし書で『第7条に規定する原因がある者（＝能力を欠く常況の者）』を除く</span>。したがって能力を欠く常況の者について保佐開始の申立てがされても、家庭裁判所は保佐開始の審判をすることができない（後見開始の対象）。</span></p> </div>
@@ -5937,7 +6074,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>本人以外の者から補助開始の申立てがされたときは、家庭裁判所は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>本人の同意がなければ、補助開始の審判をすることができない</span>。<span class="tx-anscomp-line">本人以外の者の請求により補助開始の審判をするには、<strong>本人の同意</strong>がなければならない（15条2項）。補助は最も軽度の類型で、本人の自己決定の尊重が特に強く要請されるため。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。補助は3類型で<strong>いちばん軽い</strong>制度（判断能力が「不十分」＝まだ相当程度は自分で判断できる人）。判断能力がそれなりに残っているのに、本人の意思を無視して周囲が保護を始めるのは行き過ぎ。そこで<a class="ref-stat" id="ref-law-15-201" href="#bref-2-15">15条2項</a>は、本人以外の者が補助開始を申し立てる場合には<strong>本人の同意</strong>を要求する。本記述はこの規律どおりで正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">本人以外の者の請求で補助を始めるには、<strong>本人の同意</strong>が必要である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">能力の程度で入口を選ぶ</span><span class="tx-gist-step is-now">本人の意思を尊重する</span><span class="tx-gist-step">始まった後の権限と歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">周りの人が補助を申し立てたとき、本人が望んでいなくても開始できるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">もの忘れは増えてきたものの、まだ自分で買い物も契約もできる親について、離れて暮らす子が心配して補助開始を申し立てました。ところが親本人は、まだ自分でやれると考えて保護を望んでいません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">補助は三つの類型でいちばん軽く、本人には<strong>残存能力</strong>が大きく残っています。それでも周りの判断だけで保護を始めてよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-2-15" id="ref-law-15-201">15条2項</a>は、本人以外の者の請求により補助開始の審判をするには、本人の同意がなければならないと定めます。本人が同意しない限り、家庭裁判所は補助開始の審判をすることができません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">保護が重くなるほど、本人が自分で決められる範囲は狭まります。逆に、まだ自分で決める力が大きく残っている人ほど、その意思を尊重すべきだと説明されます。だから最も軽い補助にだけ本人の同意が開始要件として置かれ、後見（7条）と保佐（11条）にはこの要件がありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>補助</span></dt><dd>事理を弁識する能力が不十分である者について家庭裁判所が開始する、最も軽い保護の類型（15条1項）。</dd></div><div class="tx-gist-term"><dt><span>残存能力</span></dt><dd>保護を受ける人になお残っている、自分で判断し決める力。これを活かすことが成年後見制度の基本方針とされる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">本人以外の者の申立てでは本人の同意が要るという、15条2項のとおりで正しい内容です。同意がなければ、家庭裁判所は補助開始の審判をすることができません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>補助の特徴を押さえる</strong><span class="syn-body">補助（<a class="ref-stat" href="#bref-2-15">15条</a>）は能力が<span class="case-emphasis freq-high">不十分</span>な者が対象で、後見・保佐より本人の残存能力が大きい。制度も本人が選んだ特定の行為だけに同意権・代理権を付けるオーダーメイド型。</span></p>
 <p><span class="syn-step">2</span><strong>15条2項の本人同意要件</strong><span class="syn-body">残存能力が大きいぶん本人の自己決定の尊重が強く働くため、<span class="ron-mark freq-high">本人以外の者の請求による補助開始には本人の同意が必要</span>（15条2項）。後見・保佐には本人同意の要件が無いのと対照的で、この差が本記述の正誤の決め手。よって「本人の同意がなければ補助開始の審判はできない」は正しい。</span></p> </div>
@@ -5980,7 +6117,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>任意後見契約が登記されている場合には、家庭裁判所は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>本人の利益のため特に必要があると認めるときでなければ、後見開始の審判をすることができない</span>。<span class="tx-anscomp-line">任意後見契約が登記されているときは、家庭裁判所は<strong>本人の利益のため特に必要があると認めるとき</strong>に限り後見開始の審判等をすることができる（任意後見契約に関する法律10条1項）。本人が選んだ任意後見を法定後見に優先させる趣旨。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。<strong>任意後見</strong>とは、まだ判断能力があるうちに、本人が「将来判断能力が衰えたら、この人に後見を頼む」と自分で契約して備えておく制度（自分で後見人を選ぶ）。せっかく本人が自分で選んだのに、家庭裁判所がすぐ法定後見（後見・保佐・補助）を始めてしまうと、本人の選択が台無しになる。そこで<a class="ref-stat" id="ref-law-nin10-301" href="#bref-3-nin">任意後見契約法10条1項</a>は、任意後見契約が登記されている場合、<strong>本人の利益のため特に必要があると認めるとき</strong>でなければ法定後見の審判をできないとした。本記述はこの原則どおりで正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>任意後見</strong>の登記があれば、後見開始の審判は特に必要なときに限られる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">能力の程度で入口を選ぶ</span><span class="tx-gist-step is-now">本人の意思を尊重する</span><span class="tx-gist-step">始まった後の権限と歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">本人が自分で後見人を決めていたとき、家庭裁判所は法定後見を始められるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">まだ元気なうちに、将来に備えて信頼できる知人と後見の契約を結び、登記もしておいた人がいます。数年後に判断能力が衰えたところ、親族が家庭裁判所に後見開始を申し立てました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">本人が自分で選んだ<strong>任意後見</strong>と、家庭裁判所が始める法定後見がぶつかります。どちらを先に立てるかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-3-nin" id="ref-law-nin10-301">任意後見契約法10条1項</a>は、任意後見契約が登記されている場合には、家庭裁判所は本人の利益のため特に必要があると認めるときに限り、後見開始の審判等をすることができると定めます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">任意後見は、本人がまだ判断できるうちに、誰にどこまで任せるかを自分で決めておく仕組みです。せっかくの選択を家庭裁判所が簡単に上書きしてしまえば、備えた意味がなくなります。そこで法定後見の開始を例外の場面に絞ったと説明されます。補助開始に本人の同意を要するのと同じ、本人の意思を尊重する考え方の表れです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>任意後見契約</span></dt><dd>判断能力が不十分な状況になったときの生活・療養看護・財産管理の事務を、本人があらかじめ受任者へ委託し代理権を与えておく委任契約。任意後見監督人が選任された時から効力を生ずる（任意後見契約法2条1号）。</dd></div><div class="tx-gist-term"><dt><span>後見開始の審判等</span></dt><dd>後見開始・保佐開始・補助開始の各審判をまとめた呼び方（任意後見契約法4条2項）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">登記があるときは「本人の利益のため特に必要があると認めるとき」でなければ後見開始の審判をすることができないという、10条1項のとおりで正しい内容です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>任意後見と法定後見の関係を整理する</strong><span class="syn-body">法定後見（後見・保佐・補助）は本人の能力が衰えてから家庭裁判所が始める制度。任意後見は本人が元気なうちに契約で後見人を選んでおく制度。両者が競合したときにどちらを優先するかが問題になる。</span></p>
 <p><span class="syn-step">2</span><strong>任意後見優先の原則で締める</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-nin">任意後見契約法10条1項</a>は、任意後見契約が登記されているときは、家庭裁判所は<span class="ron-mark freq-high">『本人の利益のため特に必要があると認めるとき』に限って</span>法定後見の審判をできると定める。本人が自ら選んだ任意後見による保護を尊重する<span class="case-emphasis freq-high">任意後見優先の原則</span>の表れ。したがって本記述は正しい。</span></p> </div>
@@ -6022,7 +6159,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人が成年後見人の同意を得ずに日用品の購入をしたときは、成年後見人は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その購入を内容とする契約を取り消すことができる</span><span class="tx-stmt-fix">→ できない。日用品の購入その他日常生活に関する行為は取消しの対象外（9条ただし書）</span>。<span class="tx-anscomp-line">成年被後見人の法律行為は取り消すことができるが（9条本文）、<strong>日用品の購入その他日常生活に関する行為</strong>は取り消すことができない（9条ただし書）。よって日用品購入の契約は取り消せない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。判断能力を欠く成年被後見人がした契約は保護のため取り消せる、という原則（<a class="ref-stat" id="ref-law-9-401" href="#bref-4-9">9条本文</a>）は正しい。でも同じ条文の<strong>ただし書</strong>に例外があって、<strong>日用品の購入その他日常生活に関する行為</strong>は取り消せない。パンや牛乳を買うような日常の買い物まで取り消せてしまうと、かえって本人が普通の生活を送れず、相手方も安心して取引できない。だから日用品購入は取消しの対象外で、本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>日用品の購入</strong>その他日常生活に関する行為は、取り消すことができない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">能力の程度で入口を選ぶ</span><span class="tx-gist-step">本人の意思を尊重する</span><span class="tx-gist-step is-now">始まった後の権限と歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">成年被後見人がした買い物は、どんな買い物でも取り消せるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">後見が始まっている人が、近所の店でパンと牛乳を買って帰りました。成年後見人は、自分が関わっていない買い物だからと、この契約を取り消せないかと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">成年被後見人がした法律行為は広く取り消せるのが原則です。しかし日々の買い物まで取り消せるとすると、本人は<strong>日常生活</strong>を送れなくなります。どこで線を引くかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-4-9" id="ref-law-9-401">9条本文</a>は成年被後見人の法律行為を取り消すことができるとしますが、同条ただし書は「日用品の購入その他日常生活に関する行為については、この限りでない」として取消しの対象から外しています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">取消しは本人を守るための道具ですが、守りすぎると本人の暮らしそのものを縛ってしまいます。店の側も、後から取り消されるかもしれない相手には安心して売れません。本人の自立と取引の相手方の安全のために、日常の行為を取消しの網から外したと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>成年被後見人</span></dt><dd>後見開始の審判を受けた人（8条）。判断能力を欠く常況にあるため、その法律行為は原則として取り消せる。</dd></div><div class="tx-gist-term"><dt><span>同意権</span></dt><dd>保護を受ける人がする行為にあらかじめ同意を与え、同意のない行為を取り消せるようにする保護者の権限。保佐人・補助人にはあるが、成年後見人にはない。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">日用品の購入について「取り消すことができる」としている点が、9条ただし書と逆です。この場合、成年後見人はその契約を取り消すことができません。成年後見人に同意権はないので、同意の有無も結論を左右しません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>9条本文の取消権を確認する</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-9">9条本文</a>は『成年被後見人の法律行為は、取り消すことができる』と定める。成年被後見人は判断能力を欠く常況にあるため、その行為を広く取り消して本人を保護する（成年後見人は代理権をもつが同意権はなく、同意を得た行為でも取り消せる）。</span></p>
 <p><span class="syn-step">2</span><strong>9条ただし書の例外で締める</strong><span class="syn-body">ただし書は『<span class="ron-mark freq-high">日用品の購入その他日常生活に関する行為については、この限りでない</span>』とし、取消しの対象から外す。本人の残存能力の範囲でできる日常的な行為まで取り消すと自立的生活を妨げ、取引の安全も害するからである。日用品の購入はこの例外に当たり取り消せないので、本記述は誤り。</span></p> </div>
@@ -6066,7 +6203,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>保佐人の同意を得なければならない行為について、被保佐人の利益を害するおそれがないにもかかわらず保佐人が同意をしないときは、家庭裁判所は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>被保佐人の申立てにより、保佐人の同意に代わる許可を与えることができる</span>。<span class="tx-anscomp-line">保佐人の同意を要する行為について、被保佐人の利益を害するおそれがないのに保佐人が同意をしないときは、家庭裁判所は<strong>被保佐人の請求により、保佐人の同意に代わる許可</strong>を与えることができる（13条3項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。保佐人には、被保佐人が重要な財産行為（借金・不動産の売買など・<a class="ref-stat" id="ref-law-13-1-501" href="#bref-5-13">13条1項</a>列挙）をするときに<strong>同意権</strong>が与えられ、同意なくした行為は取り消せる。もし保佐人が正当な理由もなく（本人の利益を害するおそれがないのに）同意を拒めば、被保佐人は必要な取引すらできず身動きが取れない。そこで<a class="ref-stat" id="ref-law-13-3-501" href="#bref-5-13">13条3項</a>は、家庭裁判所が<strong>保佐人の同意に代わる許可</strong>を与えて本人を救済できるとした。本記述はこの規律どおりで正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">保佐人の不当な拒絶は、家庭裁判所の<strong>同意に代わる許可</strong>で乗り越えられる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">能力の程度で入口を選ぶ</span><span class="tx-gist-step">本人の意思を尊重する</span><span class="tx-gist-step is-now">始まった後の権限と歯止め</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">保佐人が同意してくれないとき、被保佐人に手だてはないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">被保佐人が、雨漏りのする自宅の屋根を直すために業者と契約をしようとしています。見積も相場どおりで本人に不利益はなさそうなのに、保佐人は気が進まないという理由だけで同意をしません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">重要な財産行為には保佐人の<strong>同意権</strong>が及び、同意のない行為は取り消せます。保佐人が拒み続ける限り本人は何もできないのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-5-13" id="ref-law-13-1-501">13条1項</a>は借財や不動産の処分などの重要行為に保佐人の同意を要求しますが、<a class="ref-stat" href="#bref-5-13" id="ref-law-13-3-501">13条3項</a>は、被保佐人の利益を害するおそれがないにもかかわらず保佐人が同意をしないときは、家庭裁判所が被保佐人の請求により保佐人の同意に代わる許可を与えることができると定めます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">同意権は本人を守るために与えられた権限であって、本人の行動を止めるための拒否権ではありません。不利益がないのに拒まれれば、保護のはずの制度が本人の足かせになってしまいます。そこで家庭裁判所が代わりに許可を出して、権限の使い方を是正できるようにしたと説明されます。補助にも同じ規定があります（17条3項）。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>被保佐人</span></dt><dd>保佐開始の審判を受けた人（12条）。重要な財産行為をするには保佐人の同意が必要で、同意も許可もない行為は取り消すことができる（13条4項）。</dd></div><div class="tx-gist-term"><dt><span>同意に代わる許可</span></dt><dd>保護者の同意が得られないときに、家庭裁判所がその同意の代わりに与える許可。これがあれば同意なしでその行為をでき、取消しの対象にならない。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">利益を害するおそれがないのに保佐人が同意をしないときは家庭裁判所が同意に代わる許可を与えられる、という、13条3項のとおりで正しい内容です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>保佐人の同意権を確認する</strong><span class="syn-body">被保佐人が<a class="ref-stat" href="#bref-5-13">13条1項</a>列挙の重要行為（元本の領収・借財・保証・不動産等の重要財産の処分など）をするには保佐人の同意が必要で、同意なくした行為は取り消せる（13条4項）。保佐人の同意権は本人保護の中核。</span></p>
 <p><span class="syn-step">2</span><strong>13条3項の同意に代わる許可で締める</strong><span class="syn-body">保佐人が<span class="case-emphasis freq-high">被保佐人の利益を害するおそれがないのに同意をしない</span>ときは、<span class="ron-mark freq-high">家庭裁判所が被保佐人の請求により保佐人の同意に代わる許可を与えることができる</span>（13条3項）。保佐人による同意権の濫用（不当な拒絶）から本人を救済する規定であり、本記述は正しい。</span></p> </div>
