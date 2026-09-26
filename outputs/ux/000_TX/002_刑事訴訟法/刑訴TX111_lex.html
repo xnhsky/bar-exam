@@ -5867,6 +5867,35 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
   100%{ box-shadow:inset 0 0 0 0 rgba(90,134,168,0); }
 }
 /* TX-XNAV-CSS:END v3 */
+/* TX-STORY-INCARD-CSS:BEGIN v2 */
+/* 各肢カードの 💡THE GIST 直後に、その肢の 📖 CONTEXT（⚙ IN PRACTICE・📁 CASE FILE 込み）を
+   最初から開いた状態で出し、その下に物語の全体を既定閉じで置く（2026-09-23 ユーザー指示）。
+   本文の単一情報源は正誤表の行属性 data-brief-story と .final-answer .fa-narrative のまま＝
+   JS が表示時に複製するだけ。CONTEXT の見た目は正誤表の TX-VERDICT-STORY 区画をそのまま使う。 */
+.tx-card-context{ margin:18px 0 18px; }
+.tx-card-context[hidden]{ display:none !important; }
+.tx-card-context > .tx-verdict-brief{ gap:0; }
+.tx-card-context .tx-vb-line.tx-vb-story{ margin:14px 0 4px; }
+.tx-story-incard{ margin:14px 0 0; border:1px solid rgba(139,121,166,.42); border-radius:12px;
+  background:var(--light,#faf7ff); box-shadow:0 2px 8px -4px rgba(90,70,130,.28); }
+.tx-story-incard > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px;
+  padding:10px 16px 11px; font-family:var(--font-soft); font-size:.9em; font-weight:850;
+  color:var(--accent-darker,#4f3577); user-select:none; }
+.tx-story-incard > summary::-webkit-details-marker{ display:none; }
+.tx-story-incard > summary::after{ content:"▸"; margin-left:auto; font-size:.95em; transition:transform .15s ease; }
+.tx-story-incard[open] > summary::after{ transform:rotate(90deg); }
+.tx-story-incard > summary .tx-si-hint{ font-weight:600; font-size:.86em; opacity:.78; }
+.tx-story-incard[open] > summary{ border-bottom:1px dashed rgba(139,121,166,.45); }
+.tx-si-body{ padding:6px 14px 14px; }
+.tx-si-body .fa-narrative{ margin:0; padding:10px 4px 0; background:none; border:0; box-shadow:none; }
+.tx-si-body .fa-narrative-title{ font-size:.95em; }
+.tx-si-ctrl{ display:flex; justify-content:flex-end; margin-top:12px; }
+.tx-si-ctrl button{ font:inherit; font-family:var(--font-soft); font-size:.8em; font-weight:800; cursor:pointer;
+  padding:5px 14px 6px; border-radius:999px; border:1px solid rgba(139,121,166,.55);
+  background:linear-gradient(180deg, var(--light,#faf7ff) 0%, var(--soft,#ece4f5) 100%);
+  color:var(--accent-darker,#4f3577); box-shadow:0 2px 6px -2px rgba(90,70,130,.3), inset 0 1px 0 rgba(255,255,255,.65); }
+@media print{ .tx-story-incard{ display:none !important; } }
+/* TX-STORY-INCARD-CSS:END v2 */
 /* === 過去問原文の不可侵ブロック（原文そのまま・別エリア） ===
    共有の事例/見解を持つ事例型で、問い＋事例＋（見解）＋記述列を PDF 逐語のまま常時表示する箱。
    #part-a:has(.tx-inline-card) > .problem-text の display:none に当たらない別クラスで、
@@ -7897,6 +7926,111 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
   }, false);
 })();
 /* TX-XNAV:END v3 */
+/* TX-STORY-INCARD:BEGIN v2 ── 各肢カードに 📖 CONTEXT と物語の全体を組み込む（2026-09-23 ユーザー指示）
+   正誤表は周回で速く回す面、肢カードは 1 周目／わからない時に読む面。わからない時に読む CONTEXT
+   （⚙ IN PRACTICE・📁 CASE FILE 込み）と物語を、下の物語パネルまで降りずにカードの中で読めるようにする。
+   ・💡THE GIST の直後に、その肢の CONTEXT を最初から開いた状態で出す（正誤表の帯は従来どおり残す）
+   ・その下に「📖 物語をはじめから通して読む」を既定閉じで置き、開いた時だけ物語の全体を複製する
+   本文の単一情報源は正誤表の行属性 data-brief-story と .final-answer .fa-narrative のまま（複製するだけ）。
+   CONTEXT が無い行・物語が無い問題では、その面を出さない（土台だけ入れても表示は壊れない）。
+   露出は物語パネルと同じ条件（解答表示後／解説だけ閲覧）に揃え、解答前には出さない。 */
+(function(){
+  var NARR='.answer-area.inline-prototype-mode .final-answer .fa-narrative';
+  var STORY='.tx-inline-story-panel';
+  function narrative(){ return document.querySelector(NARR); }
+  function storyOpen(){ var p=document.querySelector(STORY); return !!(p && !p.hidden); }
+  function briefStory(stmt){
+    var rows=document.querySelectorAll('tr[data-stmt][data-brief-story]');
+    for(var i=0;i<rows.length;i++){
+      if(rows[i].getAttribute('data-stmt')===stmt) return rows[i].getAttribute('data-brief-story');
+    }
+    return '';
+  }
+  function scrub(node){                                  // 複製で id を二重にしない
+    if(node.removeAttribute) node.removeAttribute('id');
+    Array.prototype.forEach.call(node.querySelectorAll('[id]'), function(el){ el.removeAttribute('id'); });
+    return node;
+  }
+  function fillNarrative(det){
+    var src=narrative(), body=det.querySelector('.tx-si-body');
+    if(!src || !body) return;
+    body.textContent='';
+    body.appendChild(scrub(src.cloneNode(true)));
+    var ctrl=document.createElement('div');
+    ctrl.className='tx-si-ctrl';
+    var b=document.createElement('button');
+    b.type='button'; b.textContent='▲ 閉じてカードへ戻る';
+    b.addEventListener('click', function(){
+      det.open=false;
+      var s=det.querySelector('summary');
+      if(s && s.getBoundingClientRect().top<0){
+        try{ s.scrollIntoView({block:'start', behavior:'instant'}); }catch(e){ s.scrollIntoView(); }
+      }
+    }, false);
+    ctrl.appendChild(b);
+    body.appendChild(ctrl);
+    det.setAttribute('data-si-filled','true');
+  }
+  function build(card){
+    var explain=card.querySelector('.tx-inline-explain');
+    if(!explain || explain.querySelector('.tx-card-context')) return;
+    var html=briefStory(card.getAttribute('data-stmt'));
+    var hasNarr=!!narrative();
+    if(!html && !hasNarr) return;
+    var box=document.createElement('div');
+    box.className='tx-card-context';
+    if(html){
+      var wrap=document.createElement('div');
+      wrap.className='tx-verdict-brief';                 // 正誤表と同じ見た目（TX-VERDICT-STORY）
+      var p=document.createElement('p');
+      p.className='tx-vb-line tx-vb-story';
+      p.innerHTML='<span class="tx-vb-label">📖 CONTEXT</span>'+html;
+      wrap.appendChild(p);
+      box.appendChild(wrap);
+    }
+    if(hasNarr){
+      var det=document.createElement('details');
+      det.className='tx-story-incard';
+      var sum=document.createElement('summary');
+      sum.innerHTML=(html ? '📖 物語をはじめから通して読む' : '📖 わからないときは物語で読む')
+        +'<span class="tx-si-hint">問題全体の読み物</span>';
+      det.appendChild(sum);
+      var body=document.createElement('div');
+      body.className='tx-si-body';
+      det.appendChild(body);
+      det.addEventListener('toggle', function(){
+        if(det.open && det.getAttribute('data-si-filled')!=='true') fillNarrative(det);
+      }, false);
+      box.appendChild(det);
+    }
+    var anchor=explain.querySelector('.syn-lead');
+    if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(box, anchor.nextSibling);
+    else explain.insertBefore(box, explain.firstChild);
+  }
+  function run(){
+    var show=storyOpen();
+    Array.prototype.forEach.call(document.querySelectorAll('.tx-inline-card[data-stmt]'), function(card){
+      if(show) build(card);
+      var box=card.querySelector('.tx-card-context');
+      if(box && box.hidden===show){
+        box.hidden=!show;
+        var det=box.querySelector('.tx-story-incard');
+        if(!show && det) det.open=false;
+      }
+    });
+  }
+  var queued=false;
+  function schedule(){ if(queued) return; queued=true; setTimeout(function(){ queued=false; run(); }, 30); }
+  try{
+    var ob=new MutationObserver(schedule);
+    var start=function(){
+      ob.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});
+      run();
+    };
+    if(document.readyState!=='loading') start(); else document.addEventListener('DOMContentLoaded', start);
+  }catch(e){ run(); }
+})();
+/* TX-STORY-INCARD:END v2 */
 </script>
 <script>
 /* 解法ナビ（軽量版・057系）：組合せ消去パネルは使わず、検討順に各空欄/事例を下の一問一答で
