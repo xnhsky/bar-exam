@@ -1,7 +1,9 @@
 # v15-dedup-runner.ps1 — TJR-D（§v15 DEDUP＝罠枠の「1語差し替えで裏返る」比較表化・特別枠）エンジン（2026-09-22 新設）
 #   §v15 未適用（罠枠に data-v15 が無い）の v13 `_lex` を、**仕事のある科目へ均等に配る**（ラウンドロビン・
 #   docs/run-patterns.md「既存展開の配り方」）。1 バッチ MaxProblems 件を科目へ 1 本ずつ順に配り、科目内は若番から：
-#     ① 土台（決定論）：scripts/tx-v15-dedup.py base → 変わればその場で commit（内容執筆なし・冪等）
+#     ①-a 図解帯の土台（決定論）：scripts/tx-lex-verdict-redesign.py → §v13x の TX-VERDICT-DGM CSS と
+#         エンジン appendDiagramBand を正典から伝播（持たない世代に比較表を複製すると G78 が ERROR になる）
+#     ①-b 土台（決定論）：scripts/tx-v15-dedup.py base → ①-a と合わせて変わればその場で commit（内容執筆なし・冪等）
 #     ② headless（claude -p）：JSON 仕様（罠・比較表・フック・判定・転用）を執筆 → scripts/tx-v15-dedup.py apply で組む
 #   合否はランナーが決定論で判定する（agent の自己申告に依存しない）：
 #     ③ tx-v15-dedup.py check           … 構造・禁止語・比較表の上限・正誤表との複製一致
@@ -53,6 +55,7 @@ if ($Subject) { $SubjectOrder = @($SubjectOrder | Where-Object { $_.Key -eq $Sub
 
 $PromptFile = Join-Path $ProjectRoot 'prompts\v15-dedup-headless.md'
 $Tool       = Join-Path $ProjectRoot 'scripts\tx-v15-dedup.py'
+$RedesignPy = Join-Path $ProjectRoot 'scripts\tx-lex-verdict-redesign.py'
 $ValidatePy = Join-Path $ProjectRoot 'scripts\validate-tx-core.py'
 $EnginePy   = Join-Path $ProjectRoot 'scripts\check-tx-lex-engine.py'
 $LedgerPath = Join-Path $ProjectRoot 'logs\v15d-ledger.json'
@@ -215,9 +218,15 @@ foreach ($t in $queue) {
         }
     }
 
-    # ① 土台（決定論）。変われば単独コミット＝headless の scope は土台込みの HEAD と照合する
-    $b = Invoke-DPy @($Tool, 'base', $t.Abs)
-    if ($b.Text -match '(?m)^BASE ') {
+    # ① 土台（決定論）。変われば単独コミット＝headless の scope は土台込みの HEAD と照合する。
+    #   ①-a 図解帯（§v13x）の CSS 区画とエンジンを正典から伝播する。これを持たない世代の _lex に
+    #       §v15 の比較表を入れると、正誤表へ複製した .tx-vb-dgm-src で G78 が ERROR になる
+    #       （刑訴の実測＝149 本中 53 本が該当・2026-09-22）。冪等なので持っている世代では何も変わらない。
+    [void](Invoke-DPy @($RedesignPy, $t.Abs))
+    #   ①-b §v15 の土台（POINT・GIST🖼イメージ面・BASIS 帰結・条文操作末尾の結論文の削除／TX-DGM CSS 同期）
+    [void](Invoke-DPy @($Tool, 'base', $t.Abs))
+    & git -C $ProjectRoot diff --quiet -- $t.Rel 2>$null
+    if ($LASTEXITCODE -ne 0) {
         $v0 = (Invoke-DPy @($ValidatePy, $t.Abs)).Code
         if ($v0 -ne 0) {
             & git -C $ProjectRoot checkout -- $t.Rel 2>&1 | Out-Null
@@ -229,7 +238,7 @@ foreach ($t in $queue) {
         }
         if (-not $NoCommit) {
             & git -C $ProjectRoot add -- $t.Rel
-            & git -C $ProjectRoot commit -m "chore($($t.Id)): §v15 土台（POINT/イメージ面/BASIS帰結/結論文の削除・TJR-D）" -- $t.Rel 2>&1 | Out-Null
+            & git -C $ProjectRoot commit -m "chore($($t.Id)): §v15 土台（図解帯 CSS・エンジン伝播＋POINT/イメージ面/BASIS帰結/結論文の削除・TJR-D）" -- $t.Rel 2>&1 | Out-Null
             Write-Host "[D] $($t.Id) 土台 commit" -ForegroundColor DarkGreen
         }
     }
