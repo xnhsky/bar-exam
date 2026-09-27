@@ -648,7 +648,10 @@
 > 物語は骨格＋記述横断の比較表だけ・解法ナビ副題は「見る条文」だけ。初見はカード側を読む使い方なので図解・比較表は
 > カードに要る（§v13x は正誤表だけだった）。**`<table>` は使わない**（G33 と Lexia の行複製が入れ子行を拾って壊れる＝実測）。
 > ツール＝`scripts/tx-v15-dedup.py`（`base`＝土台の決定論適用・冪等／`apply`＝JSON 仕様から罠・表・フック・判定・転用を組み
-> 正誤表へ複製／`check`・`scope`・`pending`・`css`）・判定式の単一情報源＝`scripts/tx_v15_rules.py`。恒久ゲート三層＝
+> 正誤表へ複製／`check`・`scope`・`pending`・`css`）・判定式の単一情報源＝`scripts/tx_v15_rules.py`。**土台は 2 本立て**＝`base` の前に
+> `scripts/tx-lex-verdict-redesign.py` を流して §v13x の図解帯 CSS（`TX-VERDICT-DGM`）とエンジン `appendDiagramBand` を伝播する
+> （持たない世代に比較表を入れると正誤表へ複製した `.tx-vb-dgm-src` で **G78 が ERROR**＝刑訴の実測で 149 本中 53 本が該当・
+> 2026-09-22。TJR-D のランナーに ①-a として組込み済み・冪等）。恒久ゲート三層＝
 > ①`GENESIS-CARD.placeholder.html` §v15 契約 ②`validate-tx-core.py` **G82**（適用済み＝罠枠 `data-v15` は契約違反 ERROR／
 > 未適用は WARNING／カード内の同一文再出は WARNING）＋G67 同期規則をカード単一情報源へ＋G19 に解法ナビ副題の帰結語＋
 > G50 の POINT 必須と G81 の🖼イメージ必須を任意化＋`trap_depth_flag` の 105 字上限撤廃 ③push 前 `check-tx-lex-engine.py`
@@ -1174,7 +1177,7 @@ TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で�
 | **J** | 新規JX | `inputs/001_JX/{科目}` 未生成を最若番から JX＋**副産物 RX/TREE/ARIADNE**＋台本→配置→finalize | `scripts/jx-batch-runner.ps1`（内部エンジン） |
 | **R** | さかのぼり（旧版TXLEX再生成＋欠番補完） | (a) `_lex` が旧版（v13でない）かつ**PDFが残る**番号を **PDFから最新v13で作り直す**＋(b) **公式最大番号以下の欠番**（PDFあり・公式なし）を補完生成（2026-07-18・過渡・全件最新化で消滅） | `scripts/tx-v13-runner.ps1 -Regen` |
 | **G** | §v14 THE GIST ストーリー型の付随・特別枠（2026-09-17 新設・過渡） | **旧型（1 段落）の 💡THE GIST が残る v13 `_lex`**（設置時点＝903 本）を、S と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxG`）headless（**Opus 5 固定**）が JSON 仕様を執筆→`tx-gist-story.py apply`。ランナーが check（構造・○×）＋scope（GIST 以外が不変）＋validate＋engine を決定論で判定し PASS のみ 1問ずつ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v14・プロンプト＝`prompts/v14-gist-headless.md` | `scripts/v14-gist-runner.ps1` |
-| **D** | §v15 DEDUP 付随・特別枠（2026-09-22 新設・過渡） | **§v15 未適用（罠枠に `data-v15` が無い）の v13 `_lex`**（設置時点＝1,002 本）を、G と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxD`）。ランナーが決定論の土台（`tx-v15-dedup.py base`・単独 commit）→ headless（**Opus 5 固定**）が JSON 仕様（罠＝隣接命題＋📐比較表・フック・判定・転用）を執筆→`apply`→ check＋scope＋css＋validate＋engine を決定論判定し PASS のみ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v15・プロンプト＝`prompts/v15-dedup-headless.md` | `scripts/v15-dedup-runner.ps1` |
+| **D** | §v15 DEDUP 付随・特別枠（2026-09-22 新設・過渡） | **§v15 未適用（罠枠に `data-v15` が無い）の v13 `_lex`**（設置時点＝1,002 本）を、G と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxD`）。ランナーが決定論の土台（①-a `tx-lex-verdict-redesign.py`＝§v13x 図解帯の CSS・エンジン伝播／①-b `tx-v15-dedup.py base`・合わせて単独 commit）→ headless（**Opus 5 固定**）が JSON 仕様（罠＝隣接命題＋📐比較表・フック・判定・転用）を執筆→`apply`→ check＋scope＋css＋validate＋engine を決定論判定し PASS のみ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v15・プロンプト＝`prompts/v15-dedup-headless.md` | `scripts/v15-dedup-runner.ps1` |
 | **Q** | §v13q 付随・特別枠（2026-07-28 新設・過渡） | **刑訴TX の既存 `_lex` で答案圧縮未展開の残件**（設置時点＝081-179）を若番から **10本/バッチ**（`-MaxQ`）headless（**Opus 5 固定**）で §v13q 改訂→ランナーが validate/engine を再検証し PASS のみ 1問ずつ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常（完遂で自然消滅）**。レシピ＝`docs/v13q-handover.md`・プロンプト＝`prompts/v13q-headless.md` | `scripts/v13q-runner.ps1` |
 
 - 号令：「**TJRを○バッチ処理**」＝`TJR.ps1 -Batches N`。**1バッチ＝T:12問/J:3問/R:3問/Q:10問 固定**（2026-07-18 ユーザー確定・
