@@ -67,6 +67,9 @@ SYNC_CSS_REGIONS = [
     # TX-VERDICT-DGM＝正誤表の図解帯（2026-09-04・§v13x）。STORY の後ろに置く（.tx-vb-dgm は
     # .tx-vb-line のぶら下げを打ち消すため、順序が意味を持つ）。
     ("/* TX-VERDICT-DGM:BEGIN", "/* TX-VERDICT-DGM:END */", "DGM"),
+    # TX-MOBILE-FIT＝スマホ組版（正誤表・記述カード・体系マップ）（2026-09-29・iPhone 実機報告）。DGM の後ろに置く
+    # （ぶら下げ・図解レーンの規則を狭幅で上書きするため、順序が意味を持つ）。
+    ("/* TX-MOBILE-FIT:BEGIN", "/* TX-MOBILE-FIT:END */", "MOBILE"),
 ]
 
 

@@ -657,6 +657,13 @@
 > check＋scope＋validate＋engine を決定論判定）。Lexia 側の残件＝復習プールのカードに `.tx-vb-dgm-src`（図解帯）を復元する
 > （現状 hidden のまま・LXA 別件）。正典＝`docs/tx-v12.2.1-inline-lock.md` §v15。
 >
+> **【スマホ組版 TX-MOBILE-FIT・2026-09-29・§v15-m・iPhone 実機報告】正誤表は 640px 以下で 1 記述 1 枚の札（見出し帯＝
+> 記述番号・正誤・あなた を横 1 行／本文面＝全幅）に組み替える。** 旧＝PC の 4 列表のまま縮め、iPhone で本文列が細り
+> 表がパネル右端を越えて切れていた（刑訴TX116）。同時に 480px 以下で記述カードの ○×ボタン群を本文の下（右端のまま）へ
+> 移し、入れ子の余白・体系マップ横断表の 1 列目・体系マップ SVG の縮小・表紙 ID 札の重なりも是正した。CSS の display だけ
+> ＝DOM・エンジン不変。正典＝`GENESIS-CARD.html` の `TX-MOBILE-FIT` 区画・`docs/tx-v12.2.1-inline-lock.md` §v15-m。
+> 伝播＝`scripts/tx-lex-verdict-redesign.py`（SYNC_CSS_REGIONS）でインライン `_lex` 1,113 本へ展開済み。
+>
 > **【解説品質レビュー・必須】** 解説は TX の命であり、機械整形・一括置換・テンプレ埋めだけで確定しない。
 > 新規生成・既存更新・伝播後は、作業時点で利用可能な最上位モデルを使い、推論/エフォート設定を最大にして
 > `ANSWER`、条文/判例ボックス、5点フロー、コツ、記憶フック、詳説、物語解説、SM2 `.ox-pool-explain` を
