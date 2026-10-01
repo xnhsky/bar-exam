@@ -567,6 +567,16 @@ function Show-InputPreflight {
 }
 Show-InputPreflight
 
+# === 常駐同期タスクの冪等登録（2026-09-30・docs/run-patterns.md「常駐同期」）===
+#   git pull/push＋Drive⇄inputs をネットワーク接続時に自動で回す sync-all を、TJR を回した PC に
+#   冪等登録する（register 側が登録済みならスキップ＝何度走っても無害・autofill の配線と同型）。
+try {
+    if (-not $DryRun) {
+        $__regSync = Join-Path $ProjectRoot "scripts\register-sync-all-task.ps1"
+        if (Test-Path $__regSync) { & pwsh -NoProfile -File $__regSync -ProjectRoot $ProjectRoot -Quiet 2>$null }
+    }
+} catch {}
+
 # === 実行（Only 指定が無ければ F→T→J→R→Q を全部・直列。バッチ間も直列）===
 $runT = ($Only -eq '' -or $Only -eq 'T')
 $runJ = ($Only -eq '' -or $Only -eq 'J') -and (-not $SkipJ)

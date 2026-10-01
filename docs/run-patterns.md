@@ -313,6 +313,40 @@ pwsh -NoProfile -File scripts/jx-pull-inputs-from-drive.ps1 -Subject 民
   （刑法 445／刑訴 334／民法 769／商法 347／民訴 344／行政法 313／憲法 460＝計 3,012 問）。
 - JX は取り込み後、`逐語-PDF対応表.md`（git 管理＝pull 済み）の番号規則で同番号ペアリングされる。
 
+## 常駐同期（ネットワーク接続時に常に最新・2026-09-30 新設）
+
+**「Wi-Fi に繋がっているあいだ PC 側は勝手に最新になっている」を 1 本で満たす**のが
+`scripts/sync-all.ps1`。従来は git の pull が rx-arb-autofill のついで（2h ごと）にしか走らず、
+Drive ⇄ inputs の往復は手動、どのタスクもネットワーク接続を条件にしていなかった。
+
+| 段 | 内容 | 触らない条件 |
+|---|---|---|
+| git | `fetch` → master なら `ff-only` で取り込み → 未 push コミットがあれば `push`（再試行 4 回） | 作業ツリーが汚れている／master 以外／分岐している／生成バッチ（TJR・各 runner・autofill・backfill）稼働中 |
+| inputs 受け | `tx-pull-inputs-from-drive.ps1`＋`jx-pull-inputs-from-drive.ps1`（既存はスキップ） | Drive 未マウント／従量制接続 |
+| inputs 送り | `tx-push-inputs-to-drive.ps1`（Drive 側の余剰は消さない） | 同上 |
+| mirror | `-Mirror` 指定時のみ `drive-mirror.ps1`（repo-backup・重いので既定 OFF・従来の 3h タスクはそのまま） | 従量制接続 |
+
+```powershell
+pwsh -NoProfile -File scripts/register-sync-all-task.ps1          # 常駐登録（冪等・両 PC で 1 回）
+pwsh -NoProfile -File scripts/sync-all.ps1 -DryRun                 # 何をするか確認
+pwsh -NoProfile -File scripts/sync-all.ps1 -Force                  # 今すぐ 1 回（間引き無視）
+schtasks /Delete /TN bar-exam-sync-all /F                          # 解除
+```
+
+- **トリガー 3 本**＝30 分ごと／**ネットワーク接続イベント**（NetworkProfile 10000・遅延 1 分）／ログオン時（遅延 2 分）。
+  条件＝ネットワーク利用可能時のみ。`schtasks /XML` で登録するため非管理者でも入る。
+- **TJR を回した PC には自動で入る**（`patterns/TJR.ps1` 起動時に冪等登録＝autofill と同型）。
+- **Wi-Fi のときだけ**：Task Scheduler は Wi-Fi/有線/テザリングを区別しないので、スクリプト側が
+  従量制接続（テザリング・`NetworkCostType≠Unrestricted`）のとき Drive 転送段だけスキップする
+  （git は軽いので常に走る・`-AllowMetered` で解除）。
+- 安全＝自己ロック（1h stale）＋前回実行から 10 分未満は空振り（接続イベントは連発する）＋
+  生成バッチ稼働中は git 段を丸ごとスキップ（作業ツリーを触らない）。**分岐した master は自動で触らない**
+  （ログに `git:分岐` が残る＝手動 rebase か次の TJR の claim/push 衝突解決に任せる）。
+- ログ＝`logs/sync-all-YYYYMMDD.log`（日別）／要約＝`logs/sync-all-report.md`（変更があった回だけ追記）。
+- **iOS 側の対**：Lexia は PWA でバックグラウンド同期を持たないため「開いた瞬間に最新」が上限。
+  LXA_FEAT_018（画面復帰・オンライン復帰で 30 分間引きの差分取込）と組で、PC が確実に GitHub へ上げ、
+  端末は開いた瞬間に受け取る、で流れが閉じる。
+
 ## 成果物の配置（J＝JX の ⑥ deploy・Drive＋repo ミラー）
 
 JX バッチは末尾 ⑥ で成果物を **2 系統**へ自動配置する（`scripts/jx-deploy.ps1`）。
