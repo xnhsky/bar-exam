@@ -5670,6 +5670,104 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6281,11 +6379,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:x,4:x,5:o">
           <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
           <tbody>
-            <tr data-stmt="1" data-verdict="x" data-brief-mark="心神喪失とは、精神の障害により、行為の是非を弁識する能力<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>及び</span><span class='tx-stmt-fix'>→ 又は（いずれか一方の欠如で足りる）</span>この弁識に従って行動する能力が欠けている場合をいう。<span class='tx-anscomp-line'>心神喪失（39条1項）とは、精神の障害により是非弁識能力又は行動統御能力の一方を欠く状態をいい、いずれか一方の欠如で足りる（大判昭6.12.3）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項の心神喪失は、是非弁識能力又は行動統御能力の一方を欠く状態（大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>規範的応答可能性を欠く者を不可罰とする責任主義の現れ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>定義は選言。いずれか一方の能力を欠けば足り、双方の同時欠如は不要。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>接続詞が「及び」（連言・双方同時欠如）なら成立範囲を不当に狭める誤り。正しくは「又は」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の選言／連言の読み分けは要件充足の分岐点。構成要件・共犯の要件でも同型の罠が出る。</p></div></td></tr>
-            <tr data-stmt="2" data-verdict="x" data-brief-mark="心神耗弱とは、精神の障害により、行為の是非を弁識する能力が<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>欠けている若しくは</span><span class='tx-stmt-fix'>→ 著しく減退した状態のみ（欠如は喪失）</span>著しく減退している場合、又はこの弁識に従って行動する能力が欠けている若しくは著しく減退している場合をいう。<span class='tx-anscomp-line'>心神耗弱（39条2項）とは、精神の障害により是非弁識能力又は行動統御能力が著しく減退した状態をいい、必要的減軽の対象となる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条2項の心神耗弱は、能力が著しく減退した状態（大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>非難可能性は残るが減弱するため必要的減軽（限定責任能力）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>耗弱は「著しい減退」に限られ、「欠如（ゼロ）」は含まない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>定義に「欠けている」を混ぜると喪失と耗弱の閾値を取り違えた誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>効果差（喪失＝不可罰／耗弱＝必要的減軽）まで一組で押さえる程度概念の型。</p></div></td></tr>
-            <tr data-stmt="3" data-verdict="x" data-brief-mark="13歳であるが、行為の是非を弁識する能力及びこの弁識に従って行動する能力に欠けるところがない場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>責任能力が認められる</span><span class='tx-stmt-fix'>→ 認められない（41条・14歳未満は一律）</span>。<span class='tx-anscomp-line'>刑法41条により14歳未満の者は一律に責任無能力であり、弁識・制御能力の有無を問わず責任能力は認められない。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>41条は14歳未満の行為を罰せず、刑事未成年者を責任無能力とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>未成熟・可塑性を考慮し、能力の有無を問わず一律に責任能力を否定する画一的処理。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>14歳未満は能力を問わない。13歳は能力に欠けるところがなくても責任能力なし。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>能力の有無で実質判断させたら誤り。41条は能力判断そのものを排する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>形式基準（年齢＝生物学的方法）と実質判断（39条＝混合的方法）の適用場面の切り分け。</p></div></td></tr>
-            <tr data-stmt="4" data-verdict="x" data-brief-mark="精神鑑定により心神喪失と鑑定された場合には、裁判所は、被告人の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>責任能力を認めることはできない</span><span class='tx-stmt-fix'>→ 認めることができる（該当性は法律判断）</span>。<span class='tx-anscomp-line'>心神喪失・耗弱への該当は法律判断であって専ら裁判所の判断に委ねられ、精神鑑定の結論に裁判所は拘束されない（最決昭59.7.3）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>心神喪失・耗弱への該当は法律判断で、専ら裁判所の判断に委ねられる（最決昭59.7.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>鑑定は資料の一つにすぎず裁判所を拘束しない（自由心証主義）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>鑑定が心神喪失でも、裁判所は総合考慮で責任能力（耗弱等）を認め得る。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>鑑定に裁判所が拘束されるとしたら誤り。「認めることができない」は不当。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「事実の評価は裁判所の専権」という自由心証の発想は専門家意見一般に及ぶ。</p></div></td></tr>
-            <tr data-stmt="5" data-verdict="o" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>精神の障害がなければ</span>、心神喪失は認められない。<span class='tx-anscomp-line'>判例は責任能力を精神の障害（生物学的要素）と弁識・制御能力（心理学的要素）の両面で判断し（混合的方法）、精神の障害を欠けば心神喪失は成立しない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>心神喪失は「精神の障害」を前提とし、これを欠けば成立しない（39条1項・大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力を生物学的要素（障害）＋心理学的要素（弁識・制御）の両面で判断する混合的方法。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>障害がなければ、能力の議論に入るまでもなく喪失は否定される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>生物学的要素を前提とする点が決め手。単なる激情・酩酊は「障害」でない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>二段階審査（入口＝障害／中身＝能力）の順序。前提を欠けば後段を検討しない思考節約。</p></div></td></tr>
+            <tr data-stmt="1" data-verdict="x" data-brief-story="責任能力は犯罪成立の三段のうち責任の層に座り、その人を非難できるかを測る。測る中身は二つある。規範の呼びかけを受け取って善悪を判断する<b>是非弁識能力</b>（わきまえる力）と、受け取ったとおりに手を止める<b>行動統御能力</b>（思いとどまる力）である。規範で人の行動を導くしくみは、届く回路と止める回路の<b>どちらが折れても</b>働かない。だから責任無能力は二つを足し合わせて考えるのではなく、いずれか一方の欠如で足りる<b>選言</b>の要件として組まれている。ここを両方必要と読み替えると、非難できない者まで刑罰の圏内に取り込むことになり、責任なければ刑罰なしという前提に反する。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は、善悪は分かっていたが衝動を抑えられなかったという形で制御の側から組み立て、検察官は計画性や犯行後に発覚を避けた行動を挙げて制御は働いていたと反論するのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>刑法39条には定義が一行も置かれていない。空白を埋めたのは1931年12月3日の大審院判決で、その枠は約1世紀のあいだ動いていない。条文を何度読んでも二つの能力をつなぐ接続詞が出てこないのは、その一語が条文ではなく判例の側にあるからである。</span>" data-brief-mark="心神喪失とは、精神の障害により、行為の是非を弁識する能力<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>及び</span><span class='tx-stmt-fix'>→ 又は（いずれか一方の欠如で足りる）</span>この弁識に従って行動する能力が欠けている場合をいう。<span class='tx-anscomp-line'>心神喪失（39条1項）とは、精神の障害により是非弁識能力又は行動統御能力の一方を欠く状態をいい、いずれか一方の欠如で足りる（大判昭6.12.3）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項の心神喪失は、是非弁識能力又は行動統御能力の一方を欠く状態（大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>規範的応答可能性を欠く者を不可罰とする責任主義の現れ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>定義は選言。いずれか一方の能力を欠けば足り、双方の同時欠如は不要。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>接続詞が「及び」（連言・双方同時欠如）なら成立範囲を不当に狭める誤り。正しくは「又は」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の選言／連言の読み分けは要件充足の分岐点。構成要件・共犯の要件でも同型の罠が出る。</p></div></td></tr>
+            <tr data-stmt="2" data-verdict="x" data-brief-story="責任は、あるか無いかだけでなく量としても目盛りを持つ。能力が<b>ない</b>状態が心神喪失で責任そのものが無くなり、能力は残っているが<b>著しく減退</b>した状態が心神耗弱で責任が目減りする。刑法39条が項を分けたのは、非難できる度合いに応じて刑を割り当てるためで、ゼロと目減りを一つの箱に入れない趣旨である。こつは、耗弱の定義の中身が程度の言葉だけでできていると押さえることにある。<b>著しく</b>は程度の絞りで多少の低下では届かず、他方で欠如まで行けばそれは一段上の喪失になる。境目は能力が残っているかどうかであって、どちらの語も互いの領分に入り込まない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>争いは鑑定書の結論欄が欠如か著しい減退かに集まる。弁護人は減軽を足場に執行猶予や治療の受け入れ先の確保まで組み、検察官は日常生活が保たれていた事情を積んで程度を争うのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>傷害罪の法定刑は15年以下の拘禁刑である（刑法204条）。ここで心神耗弱が認められると、刑法68条3号により長期と短期をそれぞれ半分にするので、上限は7年6月まで下がる。減軽は情状で少し軽くする話ではなく、量刑の器そのものを半分にする操作である。</span>" data-brief-mark="心神耗弱とは、精神の障害により、行為の是非を弁識する能力が<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>欠けている若しくは</span><span class='tx-stmt-fix'>→ 著しく減退した状態のみ（欠如は喪失）</span>著しく減退している場合、又はこの弁識に従って行動する能力が欠けている若しくは著しく減退している場合をいう。<span class='tx-anscomp-line'>心神耗弱（39条2項）とは、精神の障害により是非弁識能力又は行動統御能力が著しく減退した状態をいい、必要的減軽の対象となる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条2項の心神耗弱は、能力が著しく減退した状態（大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>非難可能性は残るが減弱するため必要的減軽（限定責任能力）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>耗弱は「著しい減退」に限られ、「欠如（ゼロ）」は含まない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>定義に「欠けている」を混ぜると喪失と耗弱の閾値を取り違えた誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>効果差（喪失＝不可罰／耗弱＝必要的減軽）まで一組で押さえる程度概念の型。</p></div></td></tr>
+            <tr data-stmt="3" data-verdict="x" data-brief-story="責任能力の入口は二つある。精神の障害を土台に能力を一人ずつ測る39条と、暦の上の年齢だけで責任無能力とみなす41条である。後者は<b>擬制</b>であって、14歳に満たない者の行為という一つの事実だけが要件で、能力が実際にどうだったかは要件に入らない。趣旨は、育ちの途上にある者を刑罰から外して保護と教育に委ねるところにあり、一件ごとに成熟度を測れば結論が揺れるので<b>画一的な線</b>であること自体に意味がある。こつは、同じ責任能力という言葉でも法律ごとに設計が違うと知ることである。民法712条は年齢で線を引かず弁識の能力を個別に判断するのに対し、刑法41条は<b>反証を許さない</b>形で年齢一本に絞っている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>年齢は戸籍で決まって争えないので、捜査は犯行の日時と誕生日の前後を確かめる作業から入る。能力を鑑定で争う場面はそもそも生じず、14歳未満なら警察の調査を経て児童相談所へ通告される。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>14歳という線を動かしたことは一度もない。2000年の少年法改正で刑事処分ができる年齢は16歳以上から14歳以上へ引き下げられたが、動いたのは少年法の側である。刑法41条の14歳は、1907年に公布された現行刑法のまま置かれている。</span>" data-brief-mark="13歳であるが、行為の是非を弁識する能力及びこの弁識に従って行動する能力に欠けるところがない場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>責任能力が認められる</span><span class='tx-stmt-fix'>→ 認められない（41条・14歳未満は一律）</span>。<span class='tx-anscomp-line'>刑法41条により14歳未満の者は一律に責任無能力であり、弁識・制御能力の有無を問わず責任能力は認められない。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>41条は14歳未満の行為を罰せず、刑事未成年者を責任無能力とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>未成熟・可塑性を考慮し、能力の有無を問わず一律に責任能力を否定する画一的処理。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>14歳未満は能力を問わない。13歳は能力に欠けるところがなくても責任能力なし。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>能力の有無で実質判断させたら誤り。41条は能力判断そのものを排する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>形式基準（年齢＝生物学的方法）と実質判断（39条＝混合的方法）の適用場面の切り分け。</p></div></td></tr>
+            <tr data-stmt="4" data-verdict="x" data-brief-story="心神喪失・心神耗弱に当たるかは、医学の診断ではなく法の<b>評価</b>である。医学は治療のために病名と症状を突き止め、法は非難できるかを決めるために能力の落ち方を測る。目的が違うから、担い手も分かれる。精神鑑定が受け持つのは、精神の障害という土台の解明と、その障害が行為の時の弁識・制御にどう働いたかの医学的な説明であって、喪失か耗弱かという<b>当てはめは裁判所</b>の仕事になる。こつは、鑑定書の結論欄に書かれた語をそのまま法の結論として読まないことである。証拠の価値は裁判所が自ら評価する（<b>自由心証</b>）という建て方が、専門家の意見にも及んでいる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>鑑定書が出ても裁判所は犯行の計画性や犯行後の言動を自ら評価するので、当事者の争いは鑑定が前提に置いた事実の当否へ向かう。前提が崩れれば結論も採られないという形で攻める。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2009年5月21日に裁判員制度が始まり、責任能力が争点になる重大事件も市民が加わる法廷で審理されるようになった。分厚い鑑定書を読ませるだけでは伝わらないため、鑑定人が法廷で口頭で説明し、争点整理の段階で鑑定の前提事実を詰めておく運用が広がっている。</span>" data-brief-mark="精神鑑定により心神喪失と鑑定された場合には、裁判所は、被告人の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>責任能力を認めることはできない</span><span class='tx-stmt-fix'>→ 認めることができる（該当性は法律判断）</span>。<span class='tx-anscomp-line'>心神喪失・耗弱への該当は法律判断であって専ら裁判所の判断に委ねられ、精神鑑定の結論に裁判所は拘束されない（最決昭59.7.3）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>心神喪失・耗弱への該当は法律判断で、専ら裁判所の判断に委ねられる（最決昭59.7.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>鑑定は資料の一つにすぎず裁判所を拘束しない（自由心証主義）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>鑑定が心神喪失でも、裁判所は総合考慮で責任能力（耗弱等）を認め得る。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>鑑定に裁判所が拘束されるとしたら誤り。「認めることができない」は不当。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「事実の評価は裁判所の専権」という自由心証の発想は専門家意見一般に及ぶ。</p></div></td></tr>
+            <tr data-stmt="5" data-verdict="o" data-brief-story="判例の採る混合的方法は、責任能力を二段で審査する。入口が<b>生物学的要素</b>＝精神の障害という医学的な土台で、中身が心理学的要素＝弁識能力と制御能力の落ち方である。土台を求める趣旨は、気の短さや一時の激情、酒の上での粗暴といった誰にでも起こる心の揺れを責任の減免から外し、非難を免れる道を<b>土台のある場合</b>に限るところにある。こつは順序が決まっていることを使うことで、入口が無ければ中身の議論に進む必要がない。逆に診断名が付いただけでも結論は出ず、そこは入口を通ったにすぎない。<b>両方がそろって</b>はじめて責任が失われる、という組み方である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人はまず通院歴・服薬の中断・家族の証言で障害の存在を立て、そこから行為時の能力低下へ進む。土台が立たないうちに心神喪失の主張が通ることはない。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>深夜1時の居酒屋で口論の末に相手を殴った二人の事件記録では、10年来統合失調症で通院し服薬を3か月止めていた側は入口を通って2か月の鑑定留置で評価へ進み、酒に酔って激高しただけの側は鑑定を経ずに起訴された。同じ一発でも、土台の有無が進む手続を分けている。</span>" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>精神の障害がなければ</span>、心神喪失は認められない。<span class='tx-anscomp-line'>判例は責任能力を精神の障害（生物学的要素）と弁識・制御能力（心理学的要素）の両面で判断し（混合的方法）、精神の障害を欠けば心神喪失は成立しない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>心神喪失は「精神の障害」を前提とし、これを欠けば成立しない（39条1項・大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力を生物学的要素（障害）＋心理学的要素（弁識・制御）の両面で判断する混合的方法。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>障害がなければ、能力の議論に入るまでもなく喪失は否定される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>生物学的要素を前提とする点が決め手。単なる激情・酩酊は「障害」でない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>二段階審査（入口＝障害／中身＝能力）の順序。前提を欠けば後段を検討しない思考節約。</p></div></td></tr>
           </tbody>
         </table>
       </div>

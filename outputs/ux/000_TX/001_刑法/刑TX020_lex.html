@@ -5400,6 +5400,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5667,6 +5682,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5950,34 +6200,23 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>真正不作為犯と不真正不作為犯との違いは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>刑罰法規そのものが構成要件要素として明文で不作為を規定しているか否か</span>にある。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「真正」「不真正」と言われると身構えるが、分かれ目は一つだけ。条文が自分から『退去しない者は罰する』のように<strong>不作為（＝なすべきことをしないこと）を明文で書いているか</strong>どうか。書いてある型が<strong>真正不作為犯</strong>（例＝出て行けと言われても居座る<a class="ref-stat" id="ref-law-130-101" href="#bref-1-130">不退去罪</a>）、書いていない『人を殺した』のような作為の条文を“何もしないこと”で実現するのが<strong>不真正不作為犯</strong>（例＝親が乳児に授乳せず餓死させる）。だから「明文の有無で区別する」とする本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">真正と不真正を分けるのは、条文が<strong>明文で不作為を規定</strong>しているかどうかである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">条文の形式で分ける</span><span class="tx-gist-step">作為義務で主体を絞る</span><span class="tx-gist-step">不作為の意味</span><span class="tx-gist-step">因果関係と義務の根拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">真正不作為犯と不真正不作為犯は、何を基準に分かれるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">「出て行ってください」と何度言われても居間に座り続ける来客がいます。いっぽう、生まれたばかりの子にミルクを与えず、衰弱していくのを放っておく親もいます。どちらも、すべきことをしなかったという点では同じに見えます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ところが刑法は、この二つを別の型として扱います。前者を罰する条文は「退去しなかった者は」と、しないことを自分から書いています。後者を罰する条文は「人を殺した者は」としか書いていません。この書きぶりの違いが、<strong>不作為犯</strong>の型を分ける目印になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">条文みずから不作為を構成要件要素として掲げている型が真正不作為犯で、<a class="ref-stat" href="#bref-1-130" id="ref-law-130-101">不退去罪</a>（刑法130条後段）、不保護罪（刑法218条後段）、多衆不解散罪（刑法107条）がこれにあたります。これに対し、「人を殺した」（刑法199条）のように作為の形で書かれた条文を、しないことで満たす型が<strong>不真正不作為犯</strong>です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">分かれ目を条文の書きぶりに置くのは、立法者が「しないこと」を犯罪として名指ししたかどうかが決定的だからだと説明されます。名指しがあれば、誰に向けられた義務か、何をすべきかが条文の段階で確定します。名指しがなければ、それを解釈で補うほかなく、罪刑法定主義との緊張が生まれます。犯罪の重い軽いで分かれるのではありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>真正不作為犯</span></dt><dd>構成要件それ自体が不作為の形式で規定されている犯罪。不退去罪・不保護罪・多衆不解散罪など。</dd></div><div class="tx-gist-term"><dt><span>不真正不作為犯</span></dt><dd>作為の形式で規定された構成要件を、期待された作為をしないことで実現する犯罪。不作為による殺人など、条文に不作為の明文はない。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 正しい 区別の基準を条文の形式に置いており、130条後段・218条後段・107条の並びと合う。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>真正不作為犯とは</strong><span class="syn-body">構成要件それ自体が<span class="case-emphasis freq-high">不作為の形式</span>で規定されている犯罪。<a class="ref-stat" href="#bref-1-130">不退去罪（130条後段）</a>・<a class="ref-stat" href="#bref-1-218">不保護罪（218条後段）</a>・多衆不解散罪（107条）などで、条文みずから『退去しない』『生存に必要な保護をしない』と<span class="ron-mark freq-high">不作為を明文で構成要件要素</span>に掲げる。</span></p>
 <p><span class="syn-step">2</span><strong>不真正不作為犯とは</strong><span class="syn-body">『人を殺した』（199条）のように<span class="case-emphasis freq-high">作為の形式で定められた構成要件</span>を、期待された作為をしないこと（不作為）によって実現する類型。明文がないため、作為義務・作為との同価値性で処罰範囲を画定する必要がある。両者の分岐点は<span class="ron-mark freq-high">刑罰法規そのものが明文で不作為を構成要件要素としているか否か</span>にあり、本記述はこの区別基準を正しく述べている。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>真正＝条文に“しない”と書いてある（明文あり）／不真正＝“した”の条文を“しない”で埋める（明文なし）。分かれ目は条文の書きぶり一本。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>真正不作為犯</strong>：構成要件それ自体が不作為の形式で明文規定される（不退去罪・不保護罪・多衆不解散罪）。</li>
-<li><strong>不真正不作為犯</strong>：作為の形式の構成要件を不作為で実現する（不作為による殺人など・明文なし）。</li>
-<li><strong>区別基準</strong>：刑罰法規そのものが明文で不作為を構成要件要素としているか否か。本記述はこの基準を正しく述べる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>真正は条文に「しない」と書いてある、不真正は「した」の条文を埋める。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-1-130" class="tx-basis-item "><div class="tx-basis-head">📜 刑法130条 住居侵入・不退去罪（後段＝真正不作為犯の典型）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">正当な理由がないのに、人の住居…に侵入し、又は<span class="ron-mark freq-high">要求を受けたにもかかわらずこれらの場所から退去しなかった</span>者は、3年以下の拘禁刑又は10万円以下の罰金に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-1-130" class="tx-basis-item "><div class="tx-basis-head">📜 刑法130条 住居侵入・不退去罪（後段＝真正不作為犯の典型）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">正当な理由がないのに、人の住居…に侵入し、又は<span class="ron-mark freq-high">要求を受けたにもかかわらずこれらの場所から退去しなかった</span>者は、3年以下の拘禁刑又は10万円以下の罰金に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">後段の不退去罪は、条文自体が『退去しなかった』という<span class="case-emphasis freq-high">不作為を明文の構成要件要素</span>とする<span class="ron-mark freq-high">真正不作為犯</span>の典型。なすべき作為（＝退去）を条文が明示するため、名宛人も作為内容も条文レベルで確定している。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">このように条文が明文で不作為を規定するのが真正不作為犯。明文のない作為犯（殺人罪等）を不作為で実現する不真正不作為犯と対をなし、区別の分かれ目は明文の有無（記述1）。</span></div>
 </div></div></details></div>
-<div id="bref-1-218" class="tx-basis-item "><div class="tx-basis-head">📜 刑法218条 保護責任者遺棄等罪（後段＝不保護＝真正不作為犯）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">老年者、幼年者、身体障害者又は病者を保護する責任のある者がこれらの者を遺棄し、又は<span class="ron-mark freq-high">その生存に必要な保護をしなかった</span>ときは、3月以上5年以下の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-1-218" class="tx-basis-item "><div class="tx-basis-head">📜 刑法218条 保護責任者遺棄等罪（後段＝不保護＝真正不作為犯）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">老年者、幼年者、身体障害者又は病者を保護する責任のある者がこれらの者を遺棄し、又は<span class="ron-mark freq-high">その生存に必要な保護をしなかった</span>ときは、3月以上5年以下の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">後段の不保護は『生存に必要な保護をしなかった』という<span class="case-emphasis freq-high">不作為を明文</span>で掲げる真正不作為犯。保護責任という作為義務の主体も条文が限定している。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">不退去罪と並ぶ真正不作為犯の例。真正不作為犯は明文で名宛人・作為内容が画定され、罪刑法定主義との緊張が生じにくい（緊張が問題になるのは明文なき不真正不作為犯の側）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">真正不作為犯＝構成要件が不作為の形式で明文規定（不退去罪・不保護罪等）／不真正不作為犯＝作為の形式の構成要件を不作為で実現（明文なし）。区別基準は刑罰法規そのものが明文で不作為を構成要件要素としているか否かであり、本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「真正／不真正」は犯罪の軽重や本物・偽物の意味ではない</strong>。分かれ目は<strong>条文の形式（明文で不作為を規定するか）</strong>という一点だけ。ここを取り違えると、次の論点の位置づけを丸ごと誤る——<strong>罪刑法定主義との緊張</strong>が問題になるのは“明文なき”不真正不作為犯の側であり、真正不作為犯は条文が名宛人と作為内容を明示するので緊張は生じにくい。「不真正だから緊張、真正だから安全」という対応関係を、明文の有無から導けるようにしておく cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは、どの条文がどちらの型かという当てはめの側である。</strong>不退去（130条後段）・不保護（218条後段）・多衆不解散（107条）は条文みずから「しなかった」と書くので真正、「人を殺した」という作為の形式（199条）を何もしないことで満たす型は明文がないので不真正になる。同じ130条でも前段の「侵入し」は作為の形式で書かれており、真正不作為犯として挙げてよいのは後段の不退去だけである。</span><div class="tx-dgm is-matrix" data-dgm="020-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">条文が不作為を明文で書いているか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">条文の書きぶり</p><p class="dgm-cell is-head">不作為の明文</p><p class="dgm-cell is-head">どちらの型か</p><p class="dgm-cell is-rowhead">不退去 <span class="dgm-src">130条後段</span></p><p class="dgm-cell is-ok">○ 「退去しなかった」</p><p class="dgm-cell">条文自体が不作為を構成要件要素とする＝真正</p><p class="dgm-cell is-rowhead">不保護 <span class="dgm-src">218条後段</span></p><p class="dgm-cell is-ok">○ 「保護をしなかった」</p><p class="dgm-cell">名宛人も「保護する責任のある者」と明示＝真正</p><p class="dgm-cell is-rowhead">多衆不解散 <span class="dgm-src">107条</span></p><p class="dgm-cell is-ok">○ 「解散しなかった」</p><p class="dgm-cell">解散命令を三回以上受けた者が名宛人＝真正</p><p class="dgm-cell is-rowhead">殺人 <span class="dgm-src">199条</span></p><p class="dgm-cell is-ng">✕ 「人を殺した」だけ</p><p class="dgm-cell">作為の形式を不作為で満たす＝不真正</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -5995,32 +6234,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>作為義務を不真正不作為犯の成立要件とすることにより、結果の発生を回避し得る作為をしなかった複数の者の中から<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>不作為犯の主体となり得ない者を除外することができる</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。もし「結果を防げたのに何もしなかった人」を全員処罰したら、たまたま現場に居合わせた通行人まで犯人になりかねない。そこで<strong>作為義務</strong>（法的にその作為をすべき義務）を要件に据え、義務を負う者だけに限定する。これが作為義務の<strong>主体限定機能</strong>（不作為犯の主体になれる人を選り分ける働き）。だから「主体となり得ない者を除外できる」は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">作為義務は、不作為犯の<strong>主体になれる人</strong>を選り分ける働きをもつ。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">条文の形式で分ける</span><span class="tx-gist-step is-now">作為義務で主体を絞る</span><span class="tx-gist-step">不作為の意味</span><span class="tx-gist-step">因果関係と義務の根拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">結果を防げたのに何もしなかった人を、すべて処罰してよいのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">川でおぼれている子どもがいます。岸には、その子の親と、散歩中にたまたま通りかかった人と、少し離れた橋の上から気づいた通行人がいました。誰も飛び込まず、子どもは亡くなります。形のうえでは、三人とも助けられたのに助けなかった人です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">防げた結果を防がなかった不作為は、このように無数に生まれます。これをすべて拾うと、不作為による殺人の成立範囲は際限なく広がってしまいます。そこで、誰を主体の候補にするかを絞る道具として<strong>作為義務</strong>が成立要件に据えられます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決平成17年7月4日）は、重篤な患者を病院から運び出させて自己の排他的支配下に置いた者について、生命に危険を生じさせた自己の先行行為にもとづき必要な医療措置を受けさせる作為義務を負うとし、これを行わなかった不作為を殺人罪の実行行為に当たるとしました。作為義務は、<strong>排他的支配</strong>や先行行為といった事情のある者にだけ限定的に認められます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">作為義務を成立要件に据えると、義務を負う者だけが主体となり、通りかかっただけの人は初めから外れます。つまり作為義務は、犯罪が成立するかどうかを決めるだけでなく、誰が主体になりうるかを画定する働きも果たしていると説明されます。処罰範囲を絞る仕事の半分は、この主体の選別が担っています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>作為義務</span></dt><dd>結果の発生を防ぐために一定の作為をすべき法的な義務。これを負う地位を保障人的地位という。</dd></div><div class="tx-gist-term"><dt><span>排他的支配</span></dt><dd>結果の発生を防ぎうる立場をその者が独占している状態。作為義務を基礎づける事情の一つとされる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 正しい 作為義務を成立要件に据えることで、結果を回避し得た者のうち義務を負わない第三者が主体から外れる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>放置すると処罰が広がりすぎる</strong><span class="syn-body">形式的に結果と因果関係のある不作為をすべて処罰すると、不真正不作為犯の処罰範囲は<span class="case-emphasis freq-high">無限定に広がる</span>。溺れる子を助けなかった通行人も、たまたま近くにいた者も、皆「防げたのに防がなかった」と言えてしまう。</span></p>
 <p><span class="syn-step">2</span><strong>作為義務で主体を絞る</strong><span class="syn-body">そこで<a class="ref-stat" id="ref-law-199-201" href="#bref-2-199">不作為による殺人</a>などでは<span class="ron-mark freq-high">作為義務（保障人的地位）</span>を成立要件とし、法的に作為義務を負う者だけを主体とする。義務を負わない第三者（通りすがりの者等）は<span class="ron-mark freq-high">主体から除外</span>される＝主体限定機能。本記述はこの機能を正しく述べており、正しい（○）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>作為義務は「犯人になれる人の入場券」。券を持つ義務者だけが不作為犯の舞台に上がれ、券のない通行人は外される。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>処罰範囲の限定</strong>：形式的に結果回避可能な不作為をすべて処罰すると不真正不作為犯は無限定に広がる。</li>
-<li><strong>主体限定機能</strong>：作為義務（保障人的地位）を成立要件とし、法的に作為義務を負う者だけを主体とする。</li>
-<li><strong>帰結</strong>：作為義務を負わない者を主体から除外できる＝本記述が述べる作為義務の機能。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>作為義務は舞台に上がる入場券、結果回避可能性は結果へ届く糸。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（不真正不作為犯の受け皿となる作為犯）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">人を殺した</span>者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-2-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（不真正不作為犯の受け皿となる作為犯）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">人を殺した</span>者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">『人を殺した』という<span class="case-emphasis freq-high">作為の形式</span>の構成要件。これを“救助しない”等の不作為で実現するのが不作為による殺人（不真正不作為犯）。条文に不作為の明文がないため、誰を主体とするかは解釈で画定する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">主体を無限定にしないため、<span class="case-emphasis freq-high">作為義務（保障人的地位）</span>を成立要件として要求し、義務を負わない者を除外する（記述2の主体限定機能）。</span></div>
 </div></div></details></div>
-<div id="bref-2-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成17年7月4日（不作為による殺人・作為義務）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">重篤な患者を病院から運び出させて<span class="ron-mark freq-high">自己の排他的支配下に置いた</span>被告人は、その生命に危険を生じさせた自己の先行行為に基づき、患者が生存するために必要な医療措置を受けさせる<span class="exam-mark freq-high">作為義務</span>を負い、未必の殺意のもとこれを行わなかった不作為は殺人罪の実行行為に当たる。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">作為義務は先行行為・排他的支配などの事情から限定的に認められる。作為義務を負う者だけが不作為犯の主体となり、負わない者は除外される＝作為義務の主体限定機能（記述2）。この作為義務の発生根拠をどこまで広げるかが記述5（先行行為説）の争点。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">形式的に結果回避可能な不作為をすべて処罰すると不真正不作為犯は無限定に広がる。作為義務（保障人的地位）を成立要件とすることで、義務を負う者だけを主体とし、負わない者を除外できる（主体限定機能）。本記述は正しい。</p>
+<div id="bref-2-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成17年7月4日（不作為による殺人・作為義務）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">重篤な患者を病院から運び出させて<span class="ron-mark freq-high">自己の排他的支配下に置いた</span>被告人は、その生命に危険を生じさせた自己の先行行為に基づき、患者が生存するために必要な医療措置を受けさせる<span class="exam-mark freq-high">作為義務</span>を負い、未必の殺意のもとこれを行わなかった不作為は殺人罪の実行行為に当たる。</p></div></div></div>
 </div>
 
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「防げたのに何もしなかった＝みな不作為犯」と考えるのが罠。</strong>結果と因果のある不作為は無数にあり、それを絞るのが作為義務。作為義務は成否を決めるだけでなく<em>誰が主体になれるかを画定する</em>機能をもつ。そしてこの主体限定の“線引き”を作為義務の発生根拠のレベルでどう引くかが記述5（先行行為説）の議論——<strong>主体限定という機能（記述2）と、限定線をどこに引くか（記述5）は表裏一体</strong>。作為義務を「成否の要件」としか見ないと、この主体選別の役割を見落とす cross-cut。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>主体を選り分ける働きが要るのは明文を欠く不真正の側で、真正不作為犯では条文みずから名宛人を示している。</strong>218条後段は「保護する責任のある者」と主体を書き、107条は解散命令を受けた多衆と定めるので、解釈で作為義務を立てて主体を絞る必要は小さい。また作為義務を負う者であっても、期待された作為で結果を回避できなかったときは不作為犯は成立しない。義務が主体を絞り、回避可能性が成立を絞るという二段になる。</span><div class="tx-dgm is-matrix" data-dgm="020-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">誰が不作為犯の主体になれるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">立場</p><p class="dgm-cell is-head">作為義務</p><p class="dgm-cell is-head">主体・成否</p><p class="dgm-cell is-rowhead">重篤な患者を排他的支配下に置いた者</p><p class="dgm-cell is-ok">○ 負う</p><p class="dgm-cell">生命に危険を生じさせた先行行為と支配に基づき主体となる<span class="dgm-src">最決平成17年7月4日</span></p><p class="dgm-cell is-rowhead">救助できたが法的義務のない通行人</p><p class="dgm-cell is-ng">✕ 負わない</p><p class="dgm-cell">構成要件の外に出て主体から除外される</p><p class="dgm-cell is-rowhead">条文が名宛人を示す保護責任者</p><p class="dgm-cell is-ok">○ 条文上の責任</p><p class="dgm-cell">明文のある真正不作為犯として主体になる<span class="dgm-src">218条後段</span></p><p class="dgm-cell is-rowhead">義務を負うが結果を回避できなかった者</p><p class="dgm-cell is-ng">✕ 成立しない</p><p class="dgm-cell">主体ではあるが結果回避可能性を欠く</p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="3" id="stmt-3">
@@ -6037,30 +6266,20 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不作為とは「一定の作為をしないこと」を意味するから、住居からの退去要求を受けた場合になすべき「一定の作為」が「住居から退去すること」だとすると、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>「居座ること」も「財物を窃取すること」も不作為である</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「不作為＝じっとしていること」というイメージだと、居座りや窃盗のような“動いている行為”を不作為と呼ぶのは変に感じる。でも刑法上の不作為は<strong>身体の静止</strong>ではなく、<strong>期待された一定の作為（ここでは退去）をしないこと</strong>を指す規範的な概念。退去を求められたのに出て行かない以上、その間に居座ろうが物を盗もうが、<a class="ref-stat" id="ref-law-130-301" href="#bref-3-130">不退去罪</a>との関係ではどれも「退去しない＝不作為」。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">不作為とは身体の静止ではなく、<strong>なすべき作為をしないこと</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">条文の形式で分ける</span><span class="tx-gist-step">作為義務で主体を絞る</span><span class="tx-gist-step is-now">不作為の意味</span><span class="tx-gist-step">因果関係と義務の根拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">居座ることや物を盗むことのような積極的な動作も、不作為と呼べるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">他人の住居に招かれた来客が、居住者から「帰ってください」と言われました。ところがその来客は、ソファから動かないどころか、部屋を歩き回って棚の現金を抜き取り、それでも家から出ていきません。体はむしろ活発に動いています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">何もしないことという語感からすると、歩き回ることも盗むことも、不作為とは正反対に見えます。しかし刑法でいう<strong>不作為</strong>が、体を動かさないという物理的な状態を指すのかどうかが、ここでの問いです。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑法上の不作為は、法律上なすべき一定の作為をしないことを意味する規範的な概念です。そのため、なすべき作為が何かを先に決めなければ、何が不作為かも決まりません。<a class="ref-stat" href="#bref-3-130" id="ref-law-130-301">不退去罪</a>（刑法130条後段）でなすべき作為は「退去すること」ですから、退去しないかぎり、居座っていても財物を盗んでいても、この罪との関係では不作為にあたります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">同じ一つの場面でも、どの構成要件を基準にするかで作為にも不作為にもなります。現金を抜き取る行為は、窃盗罪との関係では立派な作為ですが、退去を基準にすれば、退去しないという不作為の一場面にすぎません。作為か不作為かは、体の動きではなく、基準となるべき作為との関係で相対的に決まると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>不作為</span></dt><dd>法律上なすべき一定の作為をしないこと。身体の静止を意味せず、基準となる作為が何かによって内容が決まる規範的概念。</dd></div><div class="tx-gist-term"><dt><span>不退去罪</span></dt><dd>要求を受けたにもかかわらず住居などから退去しない罪（刑法130条後段）。なすべき作為は退去することである。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 正しい 退去を物差しにすれば、居座りも財物の持ち出しも退去しない不作為に当たる（130条後段）。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>不作為の意味を正す</strong><span class="syn-body">刑法上の不作為は単なる消極的静止（身体を動かさないこと）ではなく、<span class="ron-mark freq-high">法律上の作為義務に反して一定の作為をしないこと</span>を意味する。何が不作為かは「なすべき一定の作為」が何かによって決まる<span class="case-emphasis freq-high">規範的概念</span>で、必ずしも身体の静止を意味しない。</span></p>
 <p><span class="syn-step">2</span><strong>不退去罪にあてはめる</strong><span class="syn-body">不退去罪でなすべき『一定の作為』＝「退去すること」。すると退去しない限り、居座ろうと窃取しようと、その<span class="case-emphasis freq-high">積極的な身体運動の有無にかかわらず</span>、不退去罪との関係では『退去しない＝不作為』に当たる。本記述は不作為の規範的性格を正しく示しており、正しい（○）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>不作為は「動かないこと」ではなく「なすべき“それ”をしないこと」。退去せよが基準なら、居座りも窃盗も“退去しない”の一種。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>不作為の意味</strong>：身体の静止ではなく、法律上の作為義務に反して一定の作為をしないこと（規範的概念）。</li>
-<li><strong>基準の特定</strong>：何が不作為かは「なすべき一定の作為」が何かで決まる。不退去罪では「退去すること」。</li>
-<li><strong>帰結</strong>：退去しない以上、居座り・窃取という積極的動作があっても不退去罪との関係では不作為に当たる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>退去が物差しなら不作為、窃取が物差しなら同じ動作が作為。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-3-130" class="tx-basis-item "><div class="tx-basis-head">📜 刑法130条後段 不退去罪（不作為の規範的意味の題材）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">正当な理由がないのに、…人の看守する…建造物…に侵入し、又は<span class="ron-mark freq-high">要求を受けたにもかかわらずこれらの場所から退去しなかった</span>者は、3年以下の拘禁刑又は10万円以下の罰金に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-3-130" class="tx-basis-item "><div class="tx-basis-head">📜 刑法130条後段 不退去罪（不作為の規範的意味の題材）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">正当な理由がないのに、…人の看守する…建造物…に侵入し、又は<span class="ron-mark freq-high">要求を受けたにもかかわらずこれらの場所から退去しなかった</span>者は、3年以下の拘禁刑又は10万円以下の罰金に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">不退去罪でなすべき作為は『退去すること』。刑法上の不作為は<span class="case-emphasis freq-high">身体の静止ではなく、法律上の作為義務に反し一定の作為（退去）をしないこと</span>という規範的概念。基準となる作為が何かで不作為の内容が決まる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">退去しない限り、居座り・窃取という積極的な身体運動があっても、不退去罪との関係では『退去しない＝不作為』に当たる（記述3）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">刑法上の不作為は単なる身体の静止ではなく、法律上の作為義務に反し一定の作為をしないこと（規範的概念）。不退去罪の『なすべき作為＝退去』を基準にすれば、居座り・窃取という積極的動作があっても『退去しない＝不作為』に当たる。本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「不作為＝身体が静止している状態」という物理イメージが罠。</strong>刑法上の不作為は規範的概念で、<em>基準となる作為（退去）をしないこと</em>を指す。だから同じ「居座り・窃取」という一つの場面でも、<strong>どの構成要件の“なすべき作為”を基準にするかで作為にも不作為にもなる</strong>——住居内での窃取は窃盗罪との関係では立派な“作為”だが、不退去罪との関係では“退去しない＝不作為”。何が作為/不作為かは物理的動作ではなく、基準となる構成要件によって相対的に決まる cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>作為か不作為かは行為に貼られた札ではなく、当てる条文を差し替えると答えが裏返る。</strong>建物の中で財物を持ち出す一つの動作は、退去を物差しにする不退去罪（130条後段）との関係では不作為だが、窃取そのものを禁じる窃盗罪（235条）との関係では作為である。だから同じ動作について、身体が動いていたかどうかを決め手にしてはならない。</span><div class="tx-dgm is-matrix" data-dgm="020-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">物差しにする条文を差し替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">物差しにする条文</p><p class="dgm-cell is-head">なすべき作為</p><p class="dgm-cell is-head">同じ動作の評価</p><p class="dgm-cell is-rowhead">不退去罪 <span class="dgm-src">130条後段</span></p><p class="dgm-cell">退去すること</p><p class="dgm-cell">居座りも持ち出しも不作為</p><p class="dgm-cell is-rowhead">窃盗罪 <span class="dgm-src">235条</span></p><p class="dgm-cell is-flat">―（作為の形式で禁止）</p><p class="dgm-cell">持ち出しは作為そのもの</p><p class="dgm-cell is-rowhead">不作為による殺人 <span class="dgm-src">199条</span></p><p class="dgm-cell">救命に必要な措置</p><p class="dgm-cell">措置をしないことが不作為</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6078,27 +6297,18 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>「無から有は生じない」から因果関係が認められないという批判があり得るが、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>期待された作為を行っていたら結果の発生が避けられたであろうという場合には因果関係が認められるとの反論が可能である</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「何もしていない（無）から結果（有）は生まれない」と言われると、不作為に因果関係を認めるのは無理そうに聞こえる。でも現在は不作為を規範的に捉え、<strong>期待された作為をしていたら結果を防げたか</strong>（あの手を打っていたら助かったか）という形で因果関係を判断する。防げたのに防がなかったなら因果あり。だから記述のいう反論は成り立ち、本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">期待された作為で結果を防げたなら、不作為にも<strong>因果関係</strong>が認められる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">条文の形式で分ける</span><span class="tx-gist-step">作為義務で主体を絞る</span><span class="tx-gist-step">不作為の意味</span><span class="tx-gist-step is-now">因果関係と義務の根拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">何もしていないことと結果との間に、因果関係を認めることができるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">自分のせいで人に大けがを負わせた者が、その場で救急車を呼べば助かる見込みがあったのに、呼ばないまま立ち去り、けが人は亡くなりました。この者は、新たに何かを加えたわけではありません。ただ呼ばなかっただけです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ここで、何もしていないところから結果が生まれるはずがないという批判が向けられます。不作為を文字どおり無と捉えるかぎり、死という結果との間に<strong>因果関係</strong>を認める道はないようにも見えます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決平成元年12月15日）は、直ちに救急医療を要請していれば十中八九救命が可能であったと認められるときは、その救命は合理的な疑いを超える程度に確実であったといえるから、放置という不作為と死亡結果との因果関係を肯定できるとしました。期待された作為を仮に付け加えて、結果を防げたかを問う形です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">不作為を無と見るのではなく、期待された作為をしないことという<strong>規範的</strong>な捉え方をすれば、因果関係の判断は作為犯と同じ土俵に乗ります。作為犯ではその行為を取り除いて結果が消えるかを問い、不作為犯では作為を付け加えて結果が消えるかを問う。消すか足すかの向きが違うだけだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>条件関係</span></dt><dd>その行為がなければ結果は生じなかったといえる関係。不作為犯では、期待された作為がなされていれば結果を防げたかを仮定的に問う。</dd></div><div class="tx-gist-term"><dt><span>救命可能性</span></dt><dd>期待された救助の措置をとっていれば助かったといえる見込み。合理的な疑いを超える程度に確実であることが求められる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 正しい 期待された作為を仮定的に付け加えて結果回避可能性を問う反論であり、判例の枠組みと合う。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「無から有」批判とは</strong><span class="syn-body">かつては不作為を<span class="case-emphasis freq-high">「無」</span>と解し、「無から有（結果）は生じない」として不作為の因果関係を否定する見解があった。何もしていないところから結果が生まれるはずがない、という物理的な発想である。</span></p>
 <p><span class="syn-step">2</span><strong>現在の一般的な反論</strong><span class="syn-body">現在は<span class="ron-mark freq-high">規範的・価値的観点</span>から不作為を「期待された作為をしないこと」と把握し、<span class="ron-mark freq-high">「期待された作為がなされていれば結果の発生を防止し得たか」</span>という形で条件関係（因果関係）を論じるのが一般的。仮定的に作為を付け加えて結果回避の可能性を問い、防止し得たと言える場合には因果関係を認める。本記述はこの反論を正しく述べており、正しい（○）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>不作為の因果は「もしあの手を打っていたら助かったか？」の逆算。助かったはずなら、打たなかったこととの間に因果あり。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>「無から有」批判</strong>：不作為を「無」と解すると「無から有は生じない」として因果関係を否定できるという批判。</li>
-<li><strong>反論（仮定的判断）</strong>：期待された作為がなされていれば結果を防止し得たかで条件関係を判断する（規範的把握）。防止し得たなら因果肯定。</li>
-<li><strong>帰結</strong>：期待された作為で結果を防止し得たなら、不作為の因果関係が認められる（反論が成立する）。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>作為犯は行為を消す、不作為犯は作為を足す（十中八九で肯定）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成元年12月15日（不作為の因果関係・十中八九の救命可能性）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被害者を自己の責めに帰すべき事由で危険な状態に陥らせた被告人が、直ちに救急医療を要請していれば<span class="ron-mark freq-high">十中八九被害者の救命が可能であった</span>と認められるときは、その救命は合理的な疑いを超える程度に確実であったといえるから、被告人がこれを放置した<span class="exam-mark freq-high">不作為と死亡結果との間の因果関係</span>を肯定することができる。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">不作為の因果関係は、期待された作為（救命措置）がなされていれば結果（死亡）を回避し得たかを仮定的に判断する。回避が合理的な疑いを超えて確実（十中八九）なら因果肯定。「無から有は生じない」批判に対する反論を判例が具体化した例で、本記述の反論はこの発想と一致する（記述4）。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">かつて不作為を「無」と解し「無から有は生じない」として因果関係を否定する見解があったが、現在は規範的観点から「期待された作為がなされていれば結果を防止し得たか」という条件関係で論じるのが一般的。防止し得たなら因果肯定。本記述の反論は成り立ち、正しい。</p>
+<div class="tx-basis-items"><div id="bref-4-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成元年12月15日（不作為の因果関係・十中八九の救命可能性）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被害者を自己の責めに帰すべき事由で危険な状態に陥らせた被告人が、直ちに救急医療を要請していれば<span class="ron-mark freq-high">十中八九被害者の救命が可能であった</span>と認められるときは、その救命は合理的な疑いを超える程度に確実であったといえるから、被告人がこれを放置した<span class="exam-mark freq-high">不作為と死亡結果との間の因果関係</span>を肯定することができる。</p></div></div></div>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「不作為は“無”だから因果関係はそもそも無理」という古い批判に引きずられるのが罠。</strong>現在は不作為を規範的に捉え、<em>仮定的に作為を付け加えて結果回避の可能性を問う</em>。ここは作為犯の因果関係と表裏の関係——作為犯は「その行為が<strong>なければ</strong>結果が生じなかったか（条件公式・行為を消す）」、不作為犯は「その作為が<strong>あれば</strong>結果を防げたか（作為を付け加える）」。消すか付け加えるかの方向が違うだけで、結果との条件関係を問う発想は共通という cross-cut。「無から有は生じない」は結論ではなく乗り越えるべき出発点。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>因果を肯定する向きは同じでも、救命の見込みがどの程度だったかで答えは裏返る。</strong>直ちに救急医療を要請していれば十中八九救命できたといえるときは因果関係が肯定されるが（最決平成元年12月15日）、助かったかもしれないという程度にとどまれば合理的な疑いが残り否定される。何をしても救命できなかった場合は、結果回避可能性そのものを欠く。</span><div class="tx-dgm is-matrix" data-dgm="020-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">救命の見込みと問い方を差し替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">十中八九救命できた → 助かったかもしれない程度</p><p class="dgm-cell is-ng">✕ 因果を否定</p><p class="dgm-cell">救命が合理的な疑いを超えて確実といえることを要する<span class="dgm-src">最決平成元年12月15日</span></p><p class="dgm-cell is-rowhead">救命できた → 何をしても救命できなかった</p><p class="dgm-cell is-ng">✕ 因果なし</p><p class="dgm-cell">結果回避可能性を欠き、不作為と結果が結びつかない</p><p class="dgm-cell is-rowhead">期待された作為を足す → その行為を消す</p><p class="dgm-cell is-acc">別の公式</p><p class="dgm-cell">行為を消すのは作為犯の条件関係。不作為は仮定的に作為を付け加える</p><p class="dgm-cell is-rowhead">回避可能性を欠く → 作為義務の根拠を欠く</p><p class="dgm-cell is-acc">別の要件</p><p class="dgm-cell">回避可能性は因果の問題で、義務の発生根拠は別に検討する</p></div></div></div>
 
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
@@ -6117,34 +6327,23 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>作為義務を認めるには結果発生の原因となる先行行為を行えば足りるとする見解に対しては、故意又は過失で傷害を与えた者がその後殺意で救助せず放置して死亡させた事案において、不作為による殺人罪が認められる範囲が<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>狭くなり過ぎる</span><span class="tx-stmt-fix">→ 広くなり過ぎる（処罰範囲が不当に拡大する）</span>との批判が可能である。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。先行行為“だけ”で作為義務を認めると批判の向きが問題になるが、記述は「範囲が狭くなる」と書いていて逆。自分の過失で人を傷つけた者はみな救助義務を負い、その後放置して死なせれば<a class="ref-stat" id="ref-law-199-501" href="#bref-5-199">不作為による殺人</a>がどんどん成立する＝<strong>処罰範囲が広くなり過ぎる</strong>。批判は「拡大しすぎ」であって「狭すぎ」ではない。向きが逆だから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">先行行為説への批判は、処罰範囲が<strong>広くなり過ぎる</strong>という向きである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">条文の形式で分ける</span><span class="tx-gist-step">作為義務で主体を絞る</span><span class="tx-gist-step">不作為の意味</span><span class="tx-gist-step is-now">因果関係と義務の根拠</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">先行行為があれば作為義務を認めてよいとする見解には、どちら向きの批判が向けられるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">運転を誤って歩行者にけがを負わせた運転者がいます。救急車を呼べば助かる状態でしたが、この運転者は死んでくれたほうが都合がよいと考え、その場を離れて歩行者を死なせました。けがを負わせたという先行行為があり、その後の放置には殺意もあります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">作為義務の発生根拠を先行行為だけに求める見解（先行行為説）に立つと、この運転者には当然に救助義務が生じ、放置は<a class="ref-stat" href="#bref-5-199" id="ref-law-199-501">不作為による殺人</a>（刑法199条）になります。問題は、こうした帰結が処罰範囲をどちらへ動かすかです。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">先行行為さえあれば作為義務を認めると、故意または過失で人を傷つけた者はみな救助義務を負い、結果を認容して放置すれば、過失犯や結果的加重犯がそのまま不作為の故意犯に転化します。そのため先行行為説には、不作為による殺人の成立範囲が<strong>不当に拡大する</strong>という批判が向けられ、排他的支配や依存関係を加えて作為義務を絞る見解が有力です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">批判の向きは、その見解が要件を緩めるのか厳しくするのかで決まると説明されます。先行行為だけで足りるという立場は、作為義務が認められる入口を広げる立場ですから、批判は必ず広がり過ぎる側から来ます。要件を緩める見解に、成立範囲が狭くなり過ぎるという批判が向くことはありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>先行行為</span></dt><dd>結果発生の原因となる事態を自ら作り出した行為。これを作為義務の発生根拠とする考え方がある。</dd></div><div class="tx-gist-term"><dt><span>結果的加重犯</span></dt><dd>基本となる犯罪から重い結果が生じたときに刑が加重される犯罪。傷害致死罪などがこれにあたる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">× 誤り 要件を緩める立場への批判は拡大方向であり、正しくは殺人罪の成立範囲が広くなり過ぎるとの批判になる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>先行行為説とは</strong><span class="syn-body">不作為者が結果発生の原因となる<span class="case-emphasis freq-high">先行行為</span>を行えば、それだけで作為義務を認めてよいとする見解（作為義務の発生根拠を先行行為に求める）。</span></p>
 <p><span class="syn-step">2</span><strong>本来の批判は「拡大しすぎ」</strong><span class="syn-body">この説では、故意又は過失の先行行為をした者が結果防止の作為可能性をもち結果を認容すれば、<span class="ron-mark freq-high">過失犯や結果的加重犯が直ちに不作為の故意犯（不作為の殺人）に転化</span>し、不真正不作為犯を不当に拡大する。傷害を負わせた者に救助義務が広く認められ、殺人罪の成立範囲が<span class="ron-mark freq-high">広くなり過ぎる</span>。したがって批判の向きは「広くなり過ぎる」であって、「狭くなり過ぎる」とする本記述は誤り（×）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>先行行為“だけ”で義務を認めると、傷つけた人を放置＝殺人がどんどん増える。だから批判は「広がりすぎ」。「狭くなる」は正反対。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>先行行為説</strong>：結果原因となる先行行為があれば作為義務を認める見解（作為義務の発生根拠を先行行為に求める）。</li>
-<li><strong>本来の批判</strong>：過失で傷害を与えた者が結果を認容し放置すれば不作為の殺人が広く成立し、処罰範囲が不当に拡大する（広くなり過ぎる）。</li>
-<li><strong>誤りの核心</strong>：本記述は「狭くなり過ぎる」と批判の向きを逆にしている。正しくは「広くなり過ぎる」。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>要件を緩める立場への批判は「広すぎ」、厳しくする立場には「狭すぎ」。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-5-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（不作為による殺人の成立範囲が問題）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">人を殺した</span>者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-5-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（不作為による殺人の成立範囲が問題）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">人を殺した</span>者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">作為義務ある者が救助等をしない不作為で『人を殺した』を実現すれば不作為による殺人（不真正不作為犯）。作為義務の発生根拠を広げるほど、この不作為の殺人の成立範囲も広がる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">先行行為だけで作為義務を認めると、過失で傷害を負わせた者に救助義務が広く認められ、放置して死なせれば不作為の殺人が広く成立する＝<span class="case-emphasis freq-high">処罰範囲が広くなり過ぎる</span>（記述5の批判の正しい向き）。</span></div>
 </div></div></details></div>
-<div id="theory-5-senkou" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：先行行為説とその批判（限定説）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">立場</span><span class="hang-body"><span class="case-emphasis freq-high">先行行為説</span>＝結果発生の原因となる先行行為があれば作為義務を認めてよいとする見解。作為義務の発生根拠を先行行為に広く求める。</span></p></div><details class="tx-basis-more"><summary>＋ 対立説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="theory-5-senkou" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：先行行為説とその批判（限定説）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">立場</span><span class="hang-body"><span class="case-emphasis freq-high">先行行為説</span>＝結果発生の原因となる先行行為があれば作為義務を認めてよいとする見解。作為義務の発生根拠を先行行為に広く求める。</span></p></div><details class="tx-basis-more"><summary>＋ 対立説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-chui">対立・批判</span><span class="kd-text">先行行為説には、過失犯・結果的加重犯が直ちに不作為の故意犯に転化して<span class="ron-mark freq-high">処罰範囲が不当に拡大する</span>との批判があり、これを受けて<span class="case-emphasis freq-high">排他的支配・依存関係など</span>を加えて作為義務を絞る限定説が有力。批判の向きは一貫して「広くなり過ぎる」方向である。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">本記述は批判を「狭くなり過ぎる」と逆向きに述べており誤り（記述5）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">先行行為説（先行行為があれば作為義務を認める）への批判は、過失犯・結果的加重犯が直ちに不作為の故意犯となり不真正不作為犯を不当に拡大する（＝殺人罪の成立範囲が広くなり過ぎる）というもの。本記述は「狭くなり過ぎる」と向きを逆にしており誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>批判の「向き」を読み違えるのが罠。</strong>先行行為説は作為義務の発生根拠を先行行為に広く求めるので、処罰範囲は<em>拡大</em>方向に振れる（批判は“広すぎ”）。ここは記述2と表裏——記述2は作為義務が主体を<strong>限定する</strong>機能を述べ、記述5はその限定線を先行行為で引くと逆に<strong>広がり過ぎる</strong>という批判。同じ作為義務でも「絞る道具」と「広げる根拠」の両面がある。ある見解への批判が拡大方向か縮小方向かは、その見解が要件を<em>緩めるのか厳しくするのか</em>で決まる——要件を緩める説（先行行為だけで足りる）への批判は必ず「広がり過ぎる」になる cross-cut。「狭くなる」という逆向きの選択肢は、この対応を突く典型的な引っかけ。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>批判の向きは、その立場が要件を緩めるか厳しくするかで決まり、立場を差し替えると向きも裏返る。</strong>先行行為があれば足りるとする立場は要件を緩めるので、過失で人を傷つけた者にまで救助義務が生じ、放置すれば殺人（199条）に届くという拡大方向の批判を受ける。逆に排他的支配や引受けまで要求する立場は要件を厳しくするので、処罰すべき事案を取りこぼすという縮小方向の批判に変わる。判例も先行行為だけでなく排他的支配を併せて拾っている（最決平成17年7月4日）。</span><div class="tx-dgm is-matrix" data-dgm="020-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">作為義務の発生根拠を差し替えると批判の向きが裏返る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">批判の向き</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">狭くなり過ぎる → 広くなり過ぎる</p><p class="dgm-cell is-ok">○ これが本来の批判</p><p class="dgm-cell">傷害を与えた者に救助義務が広く生じ、放置すれば不作為の殺人に届く<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">先行行為だけで足りる → 排他的支配・引受けも要求する</p><p class="dgm-cell is-acc">縮小方向の批判に変わる</p><p class="dgm-cell">要件を厳しくすると処罰すべき事案を取りこぼすと批判される</p><p class="dgm-cell is-rowhead">過失の先行行為でも足りる → 故意の先行行為に限る</p><p class="dgm-cell is-acc">拡大は抑えられる</p><p class="dgm-cell">過失犯が直ちに不作為の故意犯へ転化する事態を避けられる</p></div></div></div>
 
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
@@ -6227,11 +6426,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:o,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="不作為犯は総論の実行行為論のなかに座る。条文みずからが「退去しなかった」「保護をしなかった」と<b>不作為を明文で書いている</b>型が真正不作為犯（130条後段の不退去罪、218条後段の不保護）、「人を殺した」のような“した”の条文を何もしないことで満たす型が不真正不作為犯である。この線引きを条文の形式に置くのは、何が犯罪かはあらかじめ条文で示せという罪刑法定主義の要請による。明文があれば、誰が名宛人で何をすべきかが条文の段階で確定しているので緊張は小さい。明文のない側では、主体も作為内容も解釈で補うほかなく、<b>罪刑法定との緊張は不真正の側でだけ生じる</b>。両者を分けて論じる実益は、まさにこの差にある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、不退去罪のように条文が「しなかった」と書く類型なら、退去要求の時刻と態様が調書の中心になる。明文のない殺人罪を不作為で立てるときは、作為義務を基礎づける事情の積み上げへ重心が移る。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2005年7月4日に最高裁が決定したシャクティパット事件は、独自の治療を施す者が重篤な患者を病院から運び出させ、必要な医療措置を受けさせないまま死亡させたという経過をたどった。使われた条文は199条であり、そこに「しなかった」という明文はない。不真正不作為犯という呼び名は、この明文の欠落から来ている。</span>" data-brief-mark="真正／不真正の区別基準は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>刑罰法規が明文で不作為を構成要件要素としているか否か</span>にある。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>真正不作為犯＝構成要件が不作為の形式で明文規定／不真正不作為犯＝作為の形式の構成要件を不作為で実現。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>明文の有無で両類型を区別する（真正は条文が名宛人・なすべき作為を画定）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>真正不作為犯と不真正不作為犯との違いは、刑罰法規が明文で不作為を規定しているか否かにある。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>分かれ目は刑罰法規それ自体が明文で不作為を構成要件要素としているか否か（犯罪の軽重ではない）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>類型の区別は条文の形式（明文の有無）で決まり、罪刑法定との緊張は明文なき不真正の側で生じる。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-story="作為義務（保障人的地位）は、不真正不作為犯の主体を絞るための装置である。殺人罪の条文には不作為の明文がないので、放っておけば「助けられたのに助けなかった人」が誰でも主体になりかねない。そこで、<b>法的にその作為をすべき立場にある者だけ</b>を実行行為者とし、通りすがりの第三者を構成要件の外へ出す。だから作為義務は、成立するかしないかを決める要件であるだけでなく、<b>そもそも誰が犯人になれるかを画定する（主体限定機能）</b>。身分犯で身分が主体を絞るのと同じ働きを、解釈上の要件が担っていると見るとつかみやすい。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>検察官は同居・引受け・依存関係といった事実を証拠で積み、弁護人は被告人が居合わせたにすぎない第三者だと主体性を争う。誰を被疑者として立件するかの絞り込みにも直結する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティパット事件（2005年）で殺人罪の主体とされたのは、重篤な患者を病院から運び出させて自分の排他的支配下に置いた者だった。その場に居合わせた者が一律に主体となるのではなく、患者の生命を自分の手中に収めた立場が主体を決めている。作為義務の主体限定機能が、被告人の範囲そのものを画定した一件である。</span>" data-brief-mark="作為義務を成立要件とすることで、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>不作為犯の主体となり得ない者を除外できる</span>（作為義務の主体限定機能）。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>作為義務（保障人的地位）を不真正不作為犯の成立要件とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>形式的に結果回避可能な不作為をすべて処罰すると無限定に広がるため、義務者に絞る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>結果回避可能な作為をしなかった複数の者の中から、不作為犯の主体となり得ない者を除外できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>作為義務を負う者だけが主体となり、負わない第三者は主体から除外される（主体限定機能）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>作為義務は成否だけでなく“誰が主体になれるか”を画定する機能をもつ。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-story="刑法でいう不作為は、体が止まっていることではない。<b>基準となる「なすべき作為」をしないこと</b>という規範的な概念であり、どの構成要件を物差しにするかで中身が変わる。不退去罪なら物差しは「退去すること」だから、建物の中で座り込もうと物を持ち出そうと、退去していない以上どれも不作為に当たる。逆に窃盗罪を物差しにすれば、同じ持ち出しは作為である。つまり作為か不作為かは<b>行為そのものに貼られた札ではなく、当てる条文との関係で決まる</b>。動いていたから作為だ、というのは物理の話であって刑法の話ではない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>同じ一連の行動でも、どの構成要件で訴因を立てるかによって作為構成にも不作為構成にもなる。作為義務の立証が重い不真正不作為犯を避け、明文のある類型で起訴することもある。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティパット事件で被告人がしたことには、患者を病院から運び出させるという明らかに積極的な動作が含まれていた。それでも殺人罪との関係では、必要な医療措置を受けさせなかったという不作為として構成されている。2005年のこの経過は、体が動いていたかどうかが作為と不作為の分かれ目ではないことを目に見える形で示す。</span>" data-brief-mark="不退去罪で退去が基準なら、居座り・窃取という積極的動作があっても<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>退去しない以上いずれも不作為である</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法上の不作為＝身体の静止ではなく、法律上の作為義務に反し一定の作為をしないこと（規範的概念）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>何が不作為かは「なすべき一定の作為」が何かで決まり、必ずしも身体の静止を意味しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>不退去罪でなすべき作為が退去であれば、居座り・窃取という積極的動作があっても退去しない以上不作為である。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>同じ動作でも、基準にする構成要件が変われば作為にも不作為にもなる（相対的）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>作為／不作為の区別は物理的動作でなく、基準となる構成要件の“なすべき作為”で判断する。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="因果関係論のなかで不作為だけが特殊に見えるのは、無いものから結果は生まれないという素朴な疑問があるからである。作為犯では、その行為がなかったと仮定して結果が消えるかを問う。不作為犯はこれを裏返し、<b>期待された作為を付け加えてみて結果が消えるか</b>——結果回避可能性——を問う。引き算か足し算かが違うだけで、仮定して考えるという発想そのものは共通である。趣旨としては、防げたはずの結果だけを行為者に帰するという限定がここに入っている。だから<b>救命がほぼ確実だったといえる程度</b>が求められ、助かったかもしれないという程度では因果を認めない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>争点は医学的な鑑定へ移りやすく、どの時点で救急要請していれば救命できたかを救急医や法医学者の意見で詰める。弁護人は救命の確実性に合理的な疑いが残ると反論するのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成元年（1989年）12月15日の最高裁決定は、自分の責めに帰すべき事由で相手を危険な状態に陥らせた者が、直ちに救急医療を要請しないまま立ち去ったという経過の事件だった。争われたのは、その時点で要請していれば助かったといえるかという一点である。救命可能性の程度を十中八九という言い方で表したことでも知られる。</span>" data-brief-mark="不作為の因果関係は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>期待された作為で結果の発生を防止し得た場合に認められる</span>（無から有批判への反論）。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「無から有は生じない」＝不作為を無と解し因果関係を否定する批判。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不作為を規範的に把握し、期待された作為の付加で結果回避可能性を問う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>期待された作為を行っていたら結果の発生が避けられたであろう場合には因果関係が認められる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>作為犯は「行為がなければ結果なし」、不作為犯は「作為があれば結果なし」＝方向が逆で発想は共通。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>不作為の因果は仮定的に作為を付け加えて結果回避可能性を判断する（十中八九救命可能なら因果肯定）。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="作為義務をどこから発生させるかは、そのまま処罰範囲の広さを決めるつまみである。危険を作り出した先行行為があればそれだけで義務を認める考え方は、根拠が目に見えて分かりやすい反面、<b>要件を緩める方向</b>に働く。先行行為は過失によるもので足りてしまうから、うっかり人を傷つけた者がみな救助義務を負い、放置すれば不作為の殺人にまで届く。過失犯にとどまるはずの者を故意犯の主体へ押し上げかねない、ということである。だからこの説に向けられる批判は<b>処罰範囲が不当に広がりすぎる</b>という向きになり、現在は引受けや排他的支配といった事情を併せて要求して義務の発生を絞るのが一般的である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では作為義務の根拠を一つに決め打ちせず、先行行為・引受け・排他的支配・身分関係を併せて主張するのが通常である。弁護人はそれぞれの事情の希薄さを突いて、義務の発生自体を争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティパット事件（2005年）で作為義務の根拠に挙がったのは、患者の生命に危険を生じさせたという先行行為だけではなく、病院から運び出させて自分の排他的支配下に置いたという事情も併せてであった。先行行為さえあれば足りるとするなら、交通事故を起こした運転者は一律に殺人罪の主体になりうることになる。</span>" data-brief-mark="先行行為説への批判の向きを、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>範囲が狭くなり過ぎる</span><span class='tx-stmt-fix'>→ 広くなり過ぎる（処罰範囲が不当に拡大する）</span>とする点で誤り。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>先行行為説＝結果原因となる先行行為があれば作為義務を認める見解。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>過失犯・結果的加重犯が直ちに不作為の故意犯に転化し、不真正不作為犯を不当に拡大する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>先行行為説への批判は、殺人罪の成立範囲が広くなり過ぎるというもの（記述は狭くなり過ぎるとする点で誤り）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>要件を緩める説（先行行為だけで足りる）への批判は必ず「広がり過ぎる」方向になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>ある見解への批判が拡大方向か縮小方向かは、その見解が要件を緩めるか厳しくするかで決まる。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="不作為犯は総論の実行行為論のなかに座る。条文みずからが「退去しなかった」「保護をしなかった」と<b>不作為を明文で書いている</b>型が真正不作為犯（130条後段の不退去罪、218条後段の不保護）、「人を殺した」のような“した”の条文を何もしないことで満たす型が不真正不作為犯である。この線引きを条文の形式に置くのは、何が犯罪かはあらかじめ条文で示せという罪刑法定主義の要請による。明文があれば、誰が名宛人で何をすべきかが条文の段階で確定しているので緊張は小さい。明文のない側では、主体も作為内容も解釈で補うほかなく、<b>罪刑法定との緊張は不真正の側でだけ生じる</b>。両者を分けて論じる実益は、まさにこの差にある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、不退去罪のように条文が「しなかった」と書く類型なら、退去要求の時刻と態様が調書の中心になる。明文のない殺人罪を不作為で立てるときは、作為義務を基礎づける事情の積み上げへ重心が移る。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2005年7月4日に最高裁が決定したシャクティパット事件は、独自の治療を施す者が重篤な患者を病院から運び出させ、必要な医療措置を受けさせないまま死亡させたという経過をたどった。使われた条文は199条であり、そこに「しなかった」という明文はない。不真正不作為犯という呼び名は、この明文の欠落から来ている。</span>" data-brief-mark="真正／不真正の区別基準は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>刑罰法規が明文で不作為を構成要件要素としているか否か</span>にある。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>真正不作為犯＝構成要件が不作為の形式で明文規定／不真正不作為犯＝作為の形式の構成要件を不作為で実現。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>明文の有無で両類型を区別する（真正は条文が名宛人・なすべき作為を画定）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>真正不作為犯と不真正不作為犯との違いは、刑罰法規が明文で不作為を規定しているか否かにある。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>分かれ目は刑罰法規それ自体が明文で不作為を構成要件要素としているか否か（犯罪の軽重ではない）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>類型の区別は条文の形式（明文の有無）で決まり、罪刑法定主義との緊張は明文を欠く不真正の側だけで生じる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="020-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">条文が不作為を明文で書いているか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">条文の書きぶり</p><p class="dgm-cell is-head">不作為の明文</p><p class="dgm-cell is-head">どちらの型か</p><p class="dgm-cell is-rowhead">不退去 <span class="dgm-src">130条後段</span></p><p class="dgm-cell is-ok">○ 「退去しなかった」</p><p class="dgm-cell">条文自体が不作為を構成要件要素とする＝真正</p><p class="dgm-cell is-rowhead">不保護 <span class="dgm-src">218条後段</span></p><p class="dgm-cell is-ok">○ 「保護をしなかった」</p><p class="dgm-cell">名宛人も「保護する責任のある者」と明示＝真正</p><p class="dgm-cell is-rowhead">多衆不解散 <span class="dgm-src">107条</span></p><p class="dgm-cell is-ok">○ 「解散しなかった」</p><p class="dgm-cell">解散命令を三回以上受けた者が名宛人＝真正</p><p class="dgm-cell is-rowhead">殺人 <span class="dgm-src">199条</span></p><p class="dgm-cell is-ng">✕ 「人を殺した」だけ</p><p class="dgm-cell">作為の形式を不作為で満たす＝不真正</p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="作為義務（保障人的地位）は、不真正不作為犯の主体を絞るための装置である。殺人罪の条文には不作為の明文がないので、放っておけば「助けられたのに助けなかった人」が誰でも主体になりかねない。そこで、<b>法的にその作為をすべき立場にある者だけ</b>を実行行為者とし、通りすがりの第三者を構成要件の外へ出す。だから作為義務は、成立するかしないかを決める要件であるだけでなく、<b>そもそも誰が犯人になれるかを画定する（主体限定機能）</b>。身分犯で身分が主体を絞るのと同じ働きを、解釈上の要件が担っていると見るとつかみやすい。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>検察官は同居・引受け・依存関係といった事実を証拠で積み、弁護人は被告人が居合わせたにすぎない第三者だと主体性を争う。誰を被疑者として立件するかの絞り込みにも直結する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティパット事件（2005年）で殺人罪の主体とされたのは、重篤な患者を病院から運び出させて自分の排他的支配下に置いた者だった。その場に居合わせた者が一律に主体となるのではなく、患者の生命を自分の手中に収めた立場が主体を決めている。作為義務の主体限定機能が、被告人の範囲そのものを画定した一件である。</span>" data-brief-mark="作為義務を成立要件とすることで、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>不作為犯の主体となり得ない者を除外できる</span>（作為義務の主体限定機能）。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>作為義務（保障人的地位）を不真正不作為犯の成立要件とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>形式的に結果回避可能な不作為をすべて処罰すると無限定に広がるため、義務者に絞る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>結果回避可能な作為をしなかった複数の者の中から、不作為犯の主体となり得ない者を除外できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>作為義務を負う者だけが主体となり、負わない第三者は主体から除外される（主体限定機能）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>作為義務は成否だけでなく誰が主体になれるかを画定し、結果回避可能性は成立の側を絞る。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="020-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">誰が不作為犯の主体になれるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">立場</p><p class="dgm-cell is-head">作為義務</p><p class="dgm-cell is-head">主体・成否</p><p class="dgm-cell is-rowhead">重篤な患者を排他的支配下に置いた者</p><p class="dgm-cell is-ok">○ 負う</p><p class="dgm-cell">生命に危険を生じさせた先行行為と支配に基づき主体となる<span class="dgm-src">最決平成17年7月4日</span></p><p class="dgm-cell is-rowhead">救助できたが法的義務のない通行人</p><p class="dgm-cell is-ng">✕ 負わない</p><p class="dgm-cell">構成要件の外に出て主体から除外される</p><p class="dgm-cell is-rowhead">条文が名宛人を示す保護責任者</p><p class="dgm-cell is-ok">○ 条文上の責任</p><p class="dgm-cell">明文のある真正不作為犯として主体になる<span class="dgm-src">218条後段</span></p><p class="dgm-cell is-rowhead">義務を負うが結果を回避できなかった者</p><p class="dgm-cell is-ng">✕ 成立しない</p><p class="dgm-cell">主体ではあるが結果回避可能性を欠く</p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="刑法でいう不作為は、体が止まっていることではない。<b>基準となる「なすべき作為」をしないこと</b>という規範的な概念であり、どの構成要件を物差しにするかで中身が変わる。不退去罪なら物差しは「退去すること」だから、建物の中で座り込もうと物を持ち出そうと、退去していない以上どれも不作為に当たる。逆に窃盗罪を物差しにすれば、同じ持ち出しは作為である。つまり作為か不作為かは<b>行為そのものに貼られた札ではなく、当てる条文との関係で決まる</b>。動いていたから作為だ、というのは物理の話であって刑法の話ではない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>同じ一連の行動でも、どの構成要件で訴因を立てるかによって作為構成にも不作為構成にもなる。作為義務の立証が重い不真正不作為犯を避け、明文のある類型で起訴することもある。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティパット事件で被告人がしたことには、患者を病院から運び出させるという明らかに積極的な動作が含まれていた。それでも殺人罪との関係では、必要な医療措置を受けさせなかったという不作為として構成されている。2005年のこの経過は、体が動いていたかどうかが作為と不作為の分かれ目ではないことを目に見える形で示す。</span>" data-brief-mark="不退去罪で退去が基準なら、居座り・窃取という積極的動作があっても<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>退去しない以上いずれも不作為である</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法上の不作為＝身体の静止ではなく、法律上の作為義務に反し一定の作為をしないこと（規範的概念）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>何が不作為かは「なすべき一定の作為」が何かで決まり、必ずしも身体の静止を意味しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>不退去罪でなすべき作為が退去であれば、居座り・窃取という積極的動作があっても退去しない以上不作為である。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>同じ動作でも、基準にする構成要件が変われば作為にも不作為にもなる（相対的）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>作為と不作為の区別は物理的動作でなく、当てる構成要件のなすべき作為を基準に相対的に決まる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="020-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">物差しにする条文を差し替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">物差しにする条文</p><p class="dgm-cell is-head">なすべき作為</p><p class="dgm-cell is-head">同じ動作の評価</p><p class="dgm-cell is-rowhead">不退去罪 <span class="dgm-src">130条後段</span></p><p class="dgm-cell">退去すること</p><p class="dgm-cell">居座りも持ち出しも不作為</p><p class="dgm-cell is-rowhead">窃盗罪 <span class="dgm-src">235条</span></p><p class="dgm-cell is-flat">―（作為の形式で禁止）</p><p class="dgm-cell">持ち出しは作為そのもの</p><p class="dgm-cell is-rowhead">不作為による殺人 <span class="dgm-src">199条</span></p><p class="dgm-cell">救命に必要な措置</p><p class="dgm-cell">措置をしないことが不作為</p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="因果関係論のなかで不作為だけが特殊に見えるのは、無いものから結果は生まれないという素朴な疑問があるからである。作為犯では、その行為がなかったと仮定して結果が消えるかを問う。不作為犯はこれを裏返し、<b>期待された作為を付け加えてみて結果が消えるか</b>——結果回避可能性——を問う。引き算か足し算かが違うだけで、仮定して考えるという発想そのものは共通である。趣旨としては、防げたはずの結果だけを行為者に帰するという限定がここに入っている。だから<b>救命がほぼ確実だったといえる程度</b>が求められ、助かったかもしれないという程度では因果を認めない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>争点は医学的な鑑定へ移りやすく、どの時点で救急要請していれば救命できたかを救急医や法医学者の意見で詰める。弁護人は救命の確実性に合理的な疑いが残ると反論するのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成元年（1989年）12月15日の最高裁決定は、自分の責めに帰すべき事由で相手を危険な状態に陥らせた者が、直ちに救急医療を要請しないまま立ち去ったという経過の事件だった。争われたのは、その時点で要請していれば助かったといえるかという一点である。救命可能性の程度を十中八九という言い方で表したことでも知られる。</span>" data-brief-mark="不作為の因果関係は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>期待された作為で結果の発生を防止し得た場合に認められる</span>（無から有批判への反論）。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「無から有は生じない」＝不作為を無と解し因果関係を否定する批判。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不作為を規範的に把握し、期待された作為の付加で結果回避可能性を問う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>期待された作為を行っていたら結果の発生が避けられたであろう場合には因果関係が認められる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>作為犯は「行為がなければ結果なし」、不作為犯は「作為があれば結果なし」＝方向が逆で発想は共通。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>不作為の因果は期待された作為を仮定的に足して結果回避可能性を問い、救命がほぼ確実といえる程度を要する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="020-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">救命の見込みと問い方を差し替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">十中八九救命できた → 助かったかもしれない程度</p><p class="dgm-cell is-ng">✕ 因果を否定</p><p class="dgm-cell">救命が合理的な疑いを超えて確実といえることを要する<span class="dgm-src">最決平成元年12月15日</span></p><p class="dgm-cell is-rowhead">救命できた → 何をしても救命できなかった</p><p class="dgm-cell is-ng">✕ 因果なし</p><p class="dgm-cell">結果回避可能性を欠き、不作為と結果が結びつかない</p><p class="dgm-cell is-rowhead">期待された作為を足す → その行為を消す</p><p class="dgm-cell is-acc">別の公式</p><p class="dgm-cell">行為を消すのは作為犯の条件関係。不作為は仮定的に作為を付け加える</p><p class="dgm-cell is-rowhead">回避可能性を欠く → 作為義務の根拠を欠く</p><p class="dgm-cell is-acc">別の要件</p><p class="dgm-cell">回避可能性は因果の問題で、義務の発生根拠は別に検討する</p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="作為義務をどこから発生させるかは、そのまま処罰範囲の広さを決めるつまみである。危険を作り出した先行行為があればそれだけで義務を認める考え方は、根拠が目に見えて分かりやすい反面、<b>要件を緩める方向</b>に働く。先行行為は過失によるもので足りてしまうから、うっかり人を傷つけた者がみな救助義務を負い、放置すれば不作為の殺人にまで届く。過失犯にとどまるはずの者を故意犯の主体へ押し上げかねない、ということである。だからこの説に向けられる批判は<b>処罰範囲が不当に広がりすぎる</b>という向きになり、現在は引受けや排他的支配といった事情を併せて要求して義務の発生を絞るのが一般的である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では作為義務の根拠を一つに決め打ちせず、先行行為・引受け・排他的支配・身分関係を併せて主張するのが通常である。弁護人はそれぞれの事情の希薄さを突いて、義務の発生自体を争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティパット事件（2005年）で作為義務の根拠に挙がったのは、患者の生命に危険を生じさせたという先行行為だけではなく、病院から運び出させて自分の排他的支配下に置いたという事情も併せてであった。先行行為さえあれば足りるとするなら、交通事故を起こした運転者は一律に殺人罪の主体になりうることになる。</span>" data-brief-mark="先行行為説への批判の向きを、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>範囲が狭くなり過ぎる</span><span class='tx-stmt-fix'>→ 広くなり過ぎる（処罰範囲が不当に拡大する）</span>とする点で誤り。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>先行行為説＝結果原因となる先行行為があれば作為義務を認める見解。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>過失犯・結果的加重犯が直ちに不作為の故意犯に転化し、不真正不作為犯を不当に拡大する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>先行行為説への批判は、殺人罪の成立範囲が広くなり過ぎるというもの（記述は狭くなり過ぎるとする点で誤り）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>要件を緩める説（先行行為だけで足りる）への批判は必ず「広がり過ぎる」方向になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>ある立場への批判が拡大方向か縮小方向かは、その立場が要件を緩めるか厳しくするかで決まる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="020-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">作為義務の発生根拠を差し替えると批判の向きが裏返る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">批判の向き</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">狭くなり過ぎる → 広くなり過ぎる</p><p class="dgm-cell is-ok">○ これが本来の批判</p><p class="dgm-cell">傷害を与えた者に救助義務が広く生じ、放置すれば不作為の殺人に届く<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">先行行為だけで足りる → 排他的支配・引受けも要求する</p><p class="dgm-cell is-acc">縮小方向の批判に変わる</p><p class="dgm-cell">要件を厳しくすると処罰すべき事案を取りこぼすと批判される</p><p class="dgm-cell is-rowhead">過失の先行行為でも足りる → 故意の先行行為に限る</p><p class="dgm-cell is-acc">拡大は抑えられる</p><p class="dgm-cell">過失犯が直ちに不作為の故意犯へ転化する事態を避けられる</p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

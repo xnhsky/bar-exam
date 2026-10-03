@@ -5683,6 +5683,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5966,7 +6201,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>司法巡査が緊急逮捕することは<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>許されない</span><span class="tx-stmt-fix">→ 司法巡査も緊急逮捕できる</span>。<span class="tx-anscomp-line">緊急逮捕は「検察官、検察事務官又は司法警察職員」がこれを行うことができ（刑訴法210条1項）、ここにいう「司法警察職員」とは<strong>司法警察員及び司法巡査</strong>をいうから（同法39条3項括弧書）、司法巡査も緊急逮捕をすることができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。緊急逮捕（刑訴法210条1項）を誰が行えるか、という逮捕の主体の問題である。条文は主体を「検察官、検察事務官又は司法警察職員」と定め、この<strong>司法警察職員</strong>——司法警察員（巡査部長以上などの階級の警察官）と司法巡査（現場の一般の警察官）をまとめた呼び名——の意義は、39条3項の括弧書が「司法警察員及び司法巡査をいう」と定義している。緊急逮捕は急速を要して令状を待てない場面のための制度だから、現場に居合わせる者が動けなければ働かず、条文も司法巡査を除く限定を置いていない。イメージは合わせ技の呼び名——「司法警察職員」という一語の中に、司法巡査はすでに入っている。本記述は司法巡査だけを主体から外すので誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>司法巡査</strong>も「司法警察職員」に含まれ、緊急逮捕ができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">逮捕の主体と理由の告知</span><span class="tx-gist-step">事後の逮捕状請求</span><span class="tx-gist-step">逮捕後の身柄の処分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">緊急逮捕を実際に行えるのは、どの立場の者か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">強盗の疑いが濃い人物を、パトロール中の警察官が路上で見つけました。ここで放せば逃げられますが、裁判官の逮捕状を取りに戻る時間はありません。その警察官は、階級が上の司法警察員ではなく、現場を回る司法巡査です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">刑訴法210条1項は、緊急逮捕の主体を「検察官、検察事務官又は<strong>司法警察職員</strong>」と定めます。この「司法警察職員」に現場の司法巡査が入るのかどうかで、目の前の警察官が動けるかが決まります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">条文どおり、司法巡査も緊急逮捕をすることができます。刑訴法39条3項の括弧書が「司法警察職員（司法警察員及び司法巡査をいう。以下同じ。）」と定義しており、刑訴法でいう「司法警察職員」は、この二つを合わせた呼び名だからです。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">緊急逮捕は、急を要して令状を待てない場面のために用意された制度です。その場に居合わせる者が動けなければ制度が働かないので、210条1項は主体から司法巡査を外す限定を置いていないと説明されます。階級による限定が置かれているのは、逮捕の実行ではなく逮捕状を請求する場面です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>司法警察職員</span></dt><dd>捜査に当たる警察官などの総称。刑訴法39条3項の括弧書が「司法警察員及び司法巡査をいう」と定義し、以後の条文で共通に用いられる。</dd></div><div class="tx-gist-term"><dt><span>司法巡査</span></dt><dd>司法警察員より下の立場で捜査に当たる警察官。逮捕の実行はできるが、通常逮捕の逮捕状を請求することはできない（刑訴法199条2項）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">司法巡査だけを主体から外している点が条文と逆です。司法巡査も「司法警察職員」に含まれるので、司法巡査による緊急逮捕は許されます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>条文の主体を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-210">210条1項</a>は緊急逮捕の主体を『<span class="case-emphasis freq-high">検察官、検察事務官又は司法警察職員</span>』と規定する。ここに『司法巡査だけは除く』という限定は置かれていない。</span></p>
 <p><span class="syn-step">2</span><strong>「司法警察職員」の定義を当てる</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-39">39条3項</a>本文の括弧書は『司法警察職員（<span class="ron-mark freq-high">司法警察員及び司法巡査をいう</span>。以下同じ。）』と定義する。司法巡査はこの『司法警察職員』に含まれるから、緊急逮捕の主体に当たり、司法巡査による緊急逮捕は許される。</span></p> </div>
@@ -6001,7 +6236,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>司法警察員は、留置の必要がないと思料するときでも、緊急逮捕した被疑者を<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>釈放することは許されず、検察官に送致する手続をしなければならない</span><span class="tx-stmt-fix">→ 直ちに釈放しなければならない</span>。<span class="tx-anscomp-line">緊急逮捕された被疑者にも通常逮捕後の手続規定が準用される（刑訴法211条）。したがって司法警察員は、弁解の機会を与えた上、<strong>留置の必要がない</strong>と思料するときは直ちに被疑者を釈放しなければならず、検察官へ送致する手続をとるのは留置の必要があると思料するときに限られる（同法203条1項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。緊急逮捕した被疑者の身柄をその後どう扱うか、という逮捕後の手続の問題である。緊急逮捕に固有の後処理規定はなく、211条が203条から205条までを準用するので、通常逮捕と同じ道筋をたどる。その203条1項は、司法警察員に対し、犯罪事実の要旨と弁護人選任権を告げて<strong>弁解の機会</strong>——被疑者に言い分を述べさせる場——を与えた上、留置の必要がないと思料するときは直ちに釈放せよと命じ、検察官への送致は留置の必要があると思料するときに限る。逮捕は拘束を続けるための切符ではなく、続ける必要を吟味させる関門だからである。イメージは改札——通してよいか確かめる場所で、必要がなければその場で外へ帰す。本記述は釈放を許さず送致を義務づけるので誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">留置の必要がなければ、<strong>直ちに釈放</strong>しなければならない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕の主体と理由の告知</span><span class="tx-gist-step">事後の逮捕状請求</span><span class="tx-gist-step is-now">逮捕後の身柄の処分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">緊急逮捕した被疑者は、必ず検察官へ送致しなければならないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">緊急逮捕した被疑者から言い分を聞いたところ、身元も住まいもはっきりしており、逃げたり証拠を隠したりするおそれは見当たりませんでした。身柄を留め置く理由は、もう残っていません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">それでも司法警察員は、いったん逮捕したのだから検察官へ送るしかないのでしょうか。逮捕の後に<strong>留置</strong>を続ける必要があるかどうかを、誰がどう扱うのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">緊急逮捕には、通常逮捕の後の手続がそのまま準用されます（刑訴法211条）。その203条1項は、弁解の機会を与えたうえ、留置の必要がないと思料するときは直ちに釈放せよと定め、検察官への送致は留置の必要があると思料するときに限っています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">逮捕は身柄の拘束を続けるための切符ではなく、続ける必要があるかをその場で確かめる関門だと説明されます。必要が消えたなら拘束を支える理由もなくなるので、釈放は選んでよい処置ではなく義務になります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>留置</span></dt><dd>逮捕した被疑者の身柄を、引き続き警察の施設に留め置くこと。逃亡や証拠隠滅のおそれなど、続ける必要があるときにだけ許される。</dd></div><div class="tx-gist-term"><dt><span>弁解の機会</span></dt><dd>逮捕された被疑者に犯罪事実の要旨と弁護人を選任できる旨を告げたうえ、言い分を述べさせる手続（刑訴法203条1項）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">釈放は許されず送致しなければならない、としている点が条文と逆です。留置の必要がないと思料するときは直ちに釈放しなければならず、検察官へ送致する手続をとるのは、留置の必要があると思料するときに限られます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>211条で通常逮捕の手続を準用する</strong><span class="syn-body"><a class="ref-stat" href="#bref-2-211">211条</a>は『第203条から第205条までの規定は、第210条の規定により被疑者が逮捕された場合にこれを準用する』とし、逮捕後の措置を定める<span class="case-emphasis freq-high">203条以下が緊急逮捕にも及ぶ</span>。緊急逮捕独自の手続が別にあるわけではない。</span></p>
 <p><span class="syn-step">2</span><strong>203条1項の釈放義務を当てる</strong><span class="syn-body"><a class="ref-stat" href="#bref-2-203">203条1項</a>は、司法警察員は弁解の機会を与え『<span class="ron-mark freq-high">留置の必要がないと思料するときは直ちにこれを釈放</span>』し、留置の必要があると思料するときにだけ48時間以内に検察官へ送致する、と定める。留置の必要がなければ釈放が義務で、送致はしない。</span></p> </div>
@@ -6035,7 +6270,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>緊急逮捕における逮捕の理由の告知は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>被疑者に逮捕状を示す際にすれば足りる</span><span class="tx-stmt-fix">→ 理由の告知は逮捕する際に必要（210条1項）</span>。<span class="tx-anscomp-line">緊急逮捕は「その理由を告げて被疑者を逮捕することができる」とされているから（刑訴法210条1項）、逮捕の理由の告知は<strong>逮捕する際</strong>にしなければならず、事後に発付された逮捕状を被疑者に示す時点まで遅らせることはできない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。緊急逮捕で被疑者に嫌疑の理由を知らせるのはいつか、という告知の時点の問題である。210条1項は「その理由を告げて被疑者を逮捕することができる」と定めており、告知は逮捕の実行と同時、すなわち<strong>逮捕する際</strong>に必要となる。緊急逮捕は先に身柄を押さえ、逮捕状は直ちに裁判官へ請求する事後令状——令状が後から出る仕組み——だから、逮捕状を示せるのはどうしても逮捕より後になる。そこで逮捕の瞬間の口頭の理由告知が、通常逮捕の令状呈示（201条1項）に代わり、被疑者に防御の手がかりを与えて不当逮捕を抑える役割を担う。イメージは呼び鈴——入る前に名乗るから意味があり、上がり込んでから名乗っては遅い。本記述は告知を逮捕状呈示の時まで遅らせてよいとするので誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">理由の告知は、<strong>逮捕する際</strong>にしなければならない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">逮捕の主体と理由の告知</span><span class="tx-gist-step">事後の逮捕状請求</span><span class="tx-gist-step">逮捕後の身柄の処分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">緊急逮捕で嫌疑の理由を被疑者に告げるのは、いつか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">警察官が被疑者に手をかけ、その場で身柄を押さえます。逮捕状はまだ手元にありません。これから裁判官に請求して、出てくるのは後のことです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">通常逮捕なら、先に取った逮捕状を示すことで、被疑者は何の疑いで捕まるのかを知ります。令状が後から出る<strong>事後令状</strong>の緊急逮捕では、その知らせをいつ行うのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法210条1項は「その理由を告げて被疑者を逮捕することができる」と定めます。告知は逮捕の実行と同時、つまり逮捕する際に必要で、後から発付された逮捕状を示す時点まで遅らせることはできません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">通常逮捕では、逮捕状を被疑者に示すこと（刑訴法201条1項）が、何の疑いで捕まるのかを知らせる役目を果たします。令状が間に合わない緊急逮捕では、その役目を逮捕の瞬間の口頭の告知が引き受けると説明されます。告げるのが後回しになれば、被疑者は理由も分からないまま連れて行かれることになり、言い分を組み立てる手がかりも持てません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>事後令状</span></dt><dd>先に身柄を押さえ、その後に裁判官の令状を求める仕組み。緊急逮捕では、逮捕した後に直ちに逮捕状を請求する（刑訴法210条1項後段）。</dd></div><div class="tx-gist-term"><dt><span>逮捕状の呈示</span></dt><dd>通常逮捕では、逮捕するには逮捕状を被疑者に示さなければならないという手続（刑訴法201条1項）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">告知を逮捕状の呈示の時まで遅らせてよいとしている点が誤りです。理由は逮捕する際に告げなければならず、事後に発付された逮捕状を示す時点まで遅らせることはできません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>210条1項の文言を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-210">210条1項</a>は『その理由を告げて被疑者を逮捕することができる』とし、<span class="case-emphasis freq-high">理由の告知を逮捕の実行と同時（逮捕する際）</span>に行うことを求める。告知が逮捕を適法に開始する要件となっている。</span></p>
 <p><span class="syn-step">2</span><strong>事後令状の構造から締める</strong><span class="syn-body">緊急逮捕は逮捕状が<span class="ron-mark freq-high">事後に発付される</span>（事後令状）。逮捕状を示すのは逮捕より後だから、告知を『逮捕状を示す際』まで遅らせては、逮捕の瞬間に嫌疑の理由を知らせて防御・不当逮捕抑止を図る趣旨が果たせない。よって逮捕する際に告げる必要があり、本記述は誤り。</span></p> </div>
@@ -6069,7 +6304,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>緊急逮捕状の請求は、警察官たる司法警察員については、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>警部以上の者に限り、これを行うことができる</span><span class="tx-stmt-fix">→ 警部以上に限られず司法巡査も請求できる</span>。<span class="tx-anscomp-line">緊急逮捕をした場合には、逮捕をした<strong>検察官・検察事務官・司法警察職員</strong>が直ちに裁判官の逮捕状を求める手続をしなければならず（刑訴法210条1項後段）、通常逮捕状の請求権者を警部以上の司法警察員に限る同法199条2項のような限定は置かれていないから、司法巡査も緊急逮捕状を請求することができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。緊急逮捕の後に求める逮捕状を誰が請求できるか、という請求権者の問題である。警部以上という縛りは通常逮捕のもので、199条2項が請求権者を検察官と<strong>警部以上の司法警察員</strong>——公安委員会が指定する一定の階級以上の警察官——に絞る。逮捕の前に裁判官の審査を挟んで不当逮捕を食い止める仕組みだから、請求する側にも責任ある地位を求めた趣旨である。これに対し緊急逮捕では、210条1項後段が逮捕した者に直ちに逮捕状を求める手続を命じるだけで、請求権者を絞る規定を置かない。すでに身柄を押さえた後の請求で、事前に止める場面が残っていないからである。イメージは順番の違い——先に許可を取る手続は窓口を絞るが、走り出した後の届出は走った本人が出す。本記述は緊急逮捕にも警部以上の限定が及ぶとするので誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">緊急逮捕状の請求は、<strong>警部以上</strong>の者に限られない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕の主体と理由の告知</span><span class="tx-gist-step is-now">事後の逮捕状請求</span><span class="tx-gist-step">逮捕後の身柄の処分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">緊急逮捕の後に求める逮捕状は、誰が請求できるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">現場の司法巡査が被疑者を緊急逮捕しました。条文は、直ちに裁判官へ逮捕状を求める手続をとれと命じます。ところが通常逮捕では、逮捕状を請求できるのは検察官か警部以上の警察官だけだと教わります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">その階級の縛りは、緊急逮捕をした後の請求にも及ぶのでしょうか。ここでは<strong>逮捕状請求権者</strong>の範囲が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法210条1項後段は、緊急逮捕をした者が直ちに裁判官の逮捕状を求める手続をしなければならないと定めるだけで、請求できる者を絞る規定を置いていません。だから検察事務官や司法巡査も、自分が緊急逮捕した被疑者について逮捕状を請求できます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">通常逮捕で請求権者を警部以上の司法警察員に絞るのは（刑訴法199条2項）、捕まえる前に裁判官の審査を挟んで不当な逮捕を食い止めるためだと説明されます。緊急逮捕は、すでに身柄を押さえた後の請求なので、事前に止める場面がそもそも残っていません。絞る理由がないところへ、同じ縛りを持ち込む必要はないのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>逮捕状請求権者</span></dt><dd>裁判官に逮捕状を請求できる者。通常逮捕では検察官と、公安委員会が指定する警部以上の司法警察員に限られる（刑訴法199条2項）。</dd></div><div class="tx-gist-term"><dt><span>司法警察員</span></dt><dd>司法警察職員のうち、被疑者の送致や令状の請求など、より重い権限を与えられた者。巡査部長以上の階級の警察官などがこれに当たり、そのうち通常逮捕状を請求できるのは警部以上の者である（刑訴法199条2項）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">警部以上の者に限ると述べる点が誤りです。その限定は通常逮捕の逮捕状請求にとどまり、緊急逮捕では、逮捕をした検察事務官や司法巡査も逮捕状を請求することができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>通常逮捕の請求権者を確認する</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-199">199条2項</a>は逮捕状の請求権者を『検察官又は司法警察員（<span class="case-emphasis freq-high">警察官たる司法警察員については…警部以上の者に限る</span>）』とする。<span class="ron-mark freq-high">事前の令状審査</span>で不当逮捕を防ぐため、請求できる者を絞っている。</span></p>
 <p><span class="syn-step">2</span><strong>緊急逮捕はすでに逮捕済み</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-210">210条1項</a>後段は、緊急逮捕した者（検察官・検察事務官・司法警察職員）が『直ちに裁判官の逮捕状を求める手続をしなければならない』とし、請求権者を警部以上に絞る規定を置かない。<span class="ron-mark freq-high">すでに逮捕がされている以上、不当逮捕を事前に防ぐ必要がない</span>から、検察事務官・司法巡査も逮捕状を請求できる。よって『警部以上に限る』は誤り。</span></p> </div>
@@ -6104,7 +6339,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>緊急逮捕した被疑者を検察官に送致する手続は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>逮捕状の発付を受けた時から48時間以内</span><span class="tx-stmt-fix">→ 身体を拘束された時から48時間以内</span>にしなければならない。<span class="tx-anscomp-line">緊急逮捕された被疑者についても刑訴法203条1項が準用されるから（同法211条）、留置の必要があると思料するときの検察官への送致は、<strong>被疑者が身体を拘束された時</strong>から48時間以内にしなければならない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。緊急逮捕した被疑者を検察官へ送る48時間を、いつから数えるかという起算点の問題である。211条が準用する203条1項は、留置の必要があると思料するときの送致を<strong>身体を拘束された時</strong>——現実に身柄を押さえた瞬間——から48時間以内にせよと定める。緊急逮捕は身柄の拘束が先で逮捕状は後だから、起算点を逮捕状の発付時に置くと、拘束してから令状が出るまでの時間が制限の外へ逃げ、身柄拘束の上限を画すという規定の狙いが崩れてしまう。イメージはストップウォッチ——押した瞬間から時計は回り始め、書類が整うのを待ってはくれない。本記述は起算点を逮捕状の発付時とするので誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">48時間の起算点は、<strong>身体を拘束された時</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕の主体と理由の告知</span><span class="tx-gist-step">事後の逮捕状請求</span><span class="tx-gist-step is-now">逮捕後の身柄の処分</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">検察官へ送致するまでの48時間は、いつから数えるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">深夜に被疑者を緊急逮捕し、裁判官から逮捕状が出たのは翌朝でした。留置の必要はあると判断したので、これから検察官へ送る手続に入ります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">送致までの<strong>48時間</strong>を、身柄を押さえた深夜から数えるのか、逮捕状が出た翌朝から数えるのか。数え始める時点が動けば、現実に拘束できる長さも動きます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法211条が準用する203条1項は、留置の必要があると思料するときの送致を「被疑者が身体を拘束された時から48時間以内」にせよと定めます。起算点は身柄を押さえた時点であり、逮捕状の発付を受けた時ではありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">この48時間は、逮捕による身柄拘束の長さに上限を引くための定めだと説明されます。起算点を逮捕状の発付時に置けば、拘束してから令状が出るまでの時間が制限の外へ逃げ、現実の拘束が48時間より長くなってしまいます。令状の事務にかかる時間だけ上限が伸びる、という扱いはしないのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>起算点</span></dt><dd>期間を数え始める時点。刑訴法203条1項の48時間は「被疑者が身体を拘束された時」から数える。</dd></div><div class="tx-gist-term"><dt><span>送致</span></dt><dd>警察が被疑者の身柄を、書類及び証拠物とともに検察官へ引き継ぐ手続（刑訴法203条1項）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">起算点を逮捕状の発付を受けた時としている点が誤りです。48時間は身体を拘束された時から数え、その間に検察官へ送致する手続をしなければなりません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>準用条文の起算点を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-211">211条</a>が準用する<a class="ref-stat" href="#bref-5-203">203条1項</a>は、留置の必要があると思料するときは『<span class="ron-mark freq-high">被疑者が身体を拘束された時から48時間以内</span>に…検察官に送致する手続をしなければならない』と定める。起算点は身体拘束の時点である。</span></p>
 <p><span class="syn-step">2</span><strong>緊急逮捕の時系列で締める</strong><span class="syn-body">緊急逮捕はまず身柄を拘束し（逮捕）、その後に逮捕状が発付される。起算点を<span class="case-emphasis freq-high">逮捕状発付時にずらすと、拘束から送致までの時間が実質48時間を超え</span>、身柄拘束の時間的歯止めが緩む。よって起算点は身体拘束時であり、『逮捕状の発付を受けた時から』とする本記述は誤り。</span></p> </div>

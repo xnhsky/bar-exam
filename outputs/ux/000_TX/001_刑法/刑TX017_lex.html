@@ -5399,6 +5399,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5666,6 +5681,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5967,38 +6217,26 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>…犯行道具を与えて強盗を指示命令し、奪った金品を全て自ら領得した甲について、強盗致傷罪の<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>教唆犯が成立する</span><span class="tx-stmt-fix">→ 正犯意思ありゆえ共同正犯（罪名＝強盗致傷は正しい）</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。甲は自分では手を下さず、長男にやらせただけだから“そそのかした人”＝<strong>教唆犯</strong>（人に犯罪を決意させて実行させる関与）にとどまる、と読みたくなる。でも判例は、甲が犯行の計画を立て、やり方を教え、道具まで与え、しかも奪ったお金を<strong>全部自分のものにした</strong>点をとらえ、これは「他人事を手伝った」のではなく<strong>自分の犯罪として実現した</strong>＝<strong>正犯意思</strong>があるとみて、<a class="ref-stat" id="ref-h13-1" href="#bref-1-h13">共同正犯</a>（<a class="ref-stat" id="ref-law-60-1" href="#bref-1-60">60条</a>）とした。罪名（強盗致傷）は合っているが、関与形態を教唆犯とする点が誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">犯行を計画し道具を与え利益を全部得た者は<strong>共同正犯</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">道具として使ったか</span><span class="tx-gist-step is-now">教唆か共同正犯か</span><span class="tx-gist-step">罪名はどこまでか</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">自分では実行していない背後の者は、教唆犯にとどまるのか、共同正犯になるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">父親が、小遣いを欲しがる12歳の長男に強盗のやり方を教え、覆面とモデルガンを渡して店へ送り出します。父親自身は現場へ行かず、長男が奪ってきた現金を受け取り、小遣いを渡した残りを生活費に使いました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">手を下していない父親は、人に犯罪を決意させただけの<strong>教唆犯</strong>にとどまるのでしょうか。それとも、実行した者と並ぶ正犯になるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決平13.10.25）は、生活費欲しさに強盗を計画し、犯行方法を教えて犯行道具を与え、奪ってきた金品を全て自分のものにした背後の者について、教唆犯ではなく<a class="ref-stat" id="ref-h13-1" href="#bref-1-h13">共同正犯</a>（刑法<a class="ref-stat" id="ref-law-60-1" href="#bref-1-60">60条</a>）が成立するとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">共同正犯と教唆犯を分けるのは、実行行為を分担したかどうかではなく、その犯罪を自分の犯罪として実現する意思があるかどうかだと説明されます。計画を立て、道具をそろえ、もうけを全部取るところまでいけば、他人の犯罪を手伝ったのではなく、自分の犯罪を人にやらせたと評価されるからです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>正犯意思</span></dt><dd>犯罪を自己の犯罪として実現する意思。これがあれば共同正犯（刑法60条）、他人の犯罪に加担する意思にとどまれば教唆犯（刑法61条）となる。</dd></div><div class="tx-gist-term"><dt><span>共謀共同正犯</span></dt><dd>二人以上で犯罪を共謀し、その一部の者が実行すれば、実行を分担しなかった者も共同正犯となること。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">罪名を強盗致傷とする点は240条と合いますが、関与の形態を教唆犯とする点がずれ、正しくは強盗致傷罪の共同正犯（60条）です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>教唆犯と共同正犯を分ける物差し＝正犯意思</strong><span class="syn-body">同じ「実行者の背後で関与する者」でも、犯罪を<span class="case-emphasis freq-high">自己の犯罪として実現する意思（正犯意思）</span>があれば<a class="ref-stat" href="#bref-1-60">共同正犯（60条）</a>、他人の犯罪に加担する意思にとどまれば<a class="ref-stat" id="ref-law-61-1" href="#bref-1-61">教唆犯（61条）</a>。手を下したかどうかではなく、意思と関与の重さで決まる。</span></p>
 <p><span class="syn-step">2</span><strong>本事案は正犯意思が濃い</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-h13">最決平13.10.25</a>は、甲が生活費欲しさから強盗を計画し、<span class="case-emphasis freq-high">犯行方法を教示し犯行道具を与えて実行を指示命令</span>した上、<span class="case-emphasis freq-high">奪った金品を全て自ら領得</span>した事情から正犯意思を認め、「教唆犯ではなく共同正犯が成立する」とした。よって教唆犯とする記述1は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「計画し・道具を渡し・儲けを丸取り」なら、もう“手伝い”ではなく“主犯”。教唆と共同正犯の分かれ目は手を汚したかではなく、自分の儲けにしたか。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>正犯意思の判断</strong>：犯行を自己の犯罪として実現する意思があれば共同正犯（60条）、他人の犯罪への加担意思にとどまれば教唆犯（61条）。</li>
-<li><strong>本事案の当てはめ</strong>：計画・犯行方法の教示・犯行道具の供与・奪取金品の全額領得という事情から正犯意思が認められ、共同正犯が成立する（最決平13.10.25）。</li>
-<li><strong>ひっかけの型</strong>：「自ら実行行為をしていないから教唆犯」と実行行為の有無だけで即断させる。正犯意思＋重要な関与があれば共同正犯となる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>儲けを丸取りなら自分の犯罪、加担どまりなら教唆（60条と61条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-1-60" class="tx-basis-item "><div class="tx-basis-head">📜 刑法60条 共同正犯<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">二人以上共同して犯罪を実行した者は、すべて<span class="ron-mark freq-high">正犯</span>とする。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-1-60" class="tx-basis-item "><div class="tx-basis-head">📜 刑法60条 共同正犯<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">二人以上共同して犯罪を実行した者は、すべて<span class="ron-mark freq-high">正犯</span>とする。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">共謀（意思連絡）と<span class="case-emphasis freq-high">正犯意思</span>に基づく共同実行。共謀に基づき一部の者が実行すれば全員が<span class="ron-mark freq-high">一部実行全部責任</span>を負う。判例は共謀共同正犯を認め、実行行為の一部を分担しない者も共同正犯となり得る。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は自ら実行行為をしていないが、計画・道具供与・全額領得から正犯意思が認められ、長男との共同正犯が成立する（教唆犯ではない）。</span></div>
 </div></div></details></div>
 <div id="bref-1-61" class="tx-basis-item "><div class="tx-basis-head">📜 刑法61条 教唆犯<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">人を<span class="case-emphasis freq-high">教唆して犯罪を実行させた</span>者には、正犯の刑を科する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・共同正犯との区別を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">他人に犯罪の決意を生ぜしめ実行させる関与。処断刑は正犯と同じだが、<span class="case-emphasis freq-high">正犯意思を欠く</span>（自己の犯罪として実現する意思がない）点で共同正犯と区別される。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は正犯意思が濃く、教唆犯の枠にとどまらない。関与形態を教唆犯とする記述1は誤り。</span></div>
 </div></div></details></div>
-<div id="bref-1-h13" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成13年10月25日（刑集55巻6号519頁）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">「被告人は、生活費欲しさから本件強盗を計画し、Bに対し犯行方法を教示するとともに犯行道具を与えるなどして本件強盗の実行を指示命令した上、Bが奪ってきた金品をすべて自ら領得したことなどからすると、被告人については本件強盗の<span class="ron-mark freq-high">教唆犯ではなく共同正犯が成立する</span>」。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-1-h13" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成13年10月25日（刑集55巻6号519頁）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">「被告人は、生活費欲しさから本件強盗を計画し、Bに対し犯行方法を教示するとともに犯行道具を与えるなどして本件強盗の実行を指示命令した上、Bが奪ってきた金品をすべて自ら領得したことなどからすると、被告人については本件強盗の<span class="ron-mark freq-high">教唆犯ではなく共同正犯が成立する</span>」。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">刑事未成年者を利用した事案で、背後者の関与形態を間接正犯／教唆犯／共同正犯のいずれとするかを、被利用者の是非弁別能力・意思の自律性と、背後者の正犯意思（計画・道具供与・利得）で判断した先例。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">同一事情の甲は正犯意思が認められ共同正犯。記述1（教唆犯）は誤り。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">教唆犯（61条）と共同正犯（60条）の分岐は正犯意思の有無。甲は計画・犯行方法の教示・犯行道具の供与・奪取金品の全額領得から正犯意思が認められ、教唆犯でなく共同正犯（最決平13.10.25）。罪名（強盗致傷）は正しいが関与形態が誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「自ら手を下していない＝教唆犯」ではない</strong>。共同正犯と教唆犯を分けるのは実行行為を分担したかではなく<strong>正犯意思</strong>（自己の犯罪として実現する意思）。計画立案・道具供与・利益の帰属といった事情が重ければ、実行行為をしなくても共同正犯になる（共謀共同正犯）。同じ発想は、見張りだけの者を強盗の共同正犯とする事案や、暴力団組長の拳銃所持共同正犯（最決平15.5.1）にも一本の糸で通じる——「手を汚したか」ではなく「自分の犯罪か」で切る。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは正犯意思を支える事情の側</strong>で、計画も立てず道具も渡さず分け前も受けない関与なら、同じく手を下していなくても加担にとどまり教唆犯（61条）になる。すでに強盗を決意していた者に道具を渡しただけなら犯意を生ぜしめていないので、教唆犯ではなく幇助犯（62条）で刑は正犯の刑を減軽される（63条）。</span><div class="tx-dgm is-matrix" data-dgm="017-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">正犯意思を支える事情を1つ差し替える</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">奪った金品を全て自ら領得 → 分け前を受けず利益も得ない</p><p class="dgm-cell is-ng">✕ 共同正犯にならない</p><p class="dgm-cell">正犯意思を支える利益の帰属が欠け、他人の犯罪への加担にとどまる<span class="dgm-src">61条</span></p><p class="dgm-cell is-rowhead">犯意を生ぜしめて実行させた → すでに強盗を決意していた者に道具を渡した</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">犯意を生ぜしめていないので教唆犯でなく幇助犯<span class="dgm-src">62条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6016,38 +6254,27 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>…甲について、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>強盗罪の間接正犯が成立する</span><span class="tx-stmt-fix">→ 間接正犯は否定＋罪名は強盗致傷罪（＝強盗致傷罪の共同正犯）</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「幼い子を使ったのだから、子は道具＝甲が裏で操った<strong>間接正犯</strong>（他人を道具として利用し自分の手足のように犯罪を実現する形）で、しかも罪名は財物を奪った<strong>強盗</strong>」と読みたくなる。だがこの記述は<strong>二か所</strong>で外れる。まず、長男には是非弁別能力があり自らの意思で強盗を完遂したので<a class="ref-stat" id="ref-h13-2" href="#bref-2-h13">道具とはいえず間接正犯は否定</a>される。次に、長男は逃走の際に被害者を負傷させており、これは<strong>強盗の機会</strong>に生じた傷害だから罪名は強盗でなく<a class="ref-stat" id="ref-law-240-2" href="#bref-2-240">強盗致傷罪（240条）</a>。形態も罪名も違うので誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">自分の意思で犯行を遂げた子は道具でなく、罪名も<strong>強盗致傷罪</strong>になる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">道具として使ったか</span><span class="tx-gist-step">教唆か共同正犯か</span><span class="tx-gist-step">罪名はどこまでか</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">幼い子を使えば間接正犯になるのか。そして罪名は強盗罪で足りるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">父親に言われたとおり覆面をつけモデルガンを見せた12歳の長男は、店主を脅して反抗を抑え込んだ後、自分の判断で出入口に鍵を掛け、店主をトイレに閉じ込めました。現金を奪って逃げる際には、追ってきた店主の腕を激しく振り払い、転倒させてけがをさせています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">背後の父親は、子を道具のように使った<strong>間接正犯</strong>なのでしょうか。また罪名は、財物を奪ったことをとらえた強盗罪で足りるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決平13.10.25）は、長男に是非弁別の能力があり、指示命令は意思を抑圧する程度のものではなく、長男が自らの意思で決意して臨機応変に犯行を完遂したとして、<a class="ref-stat" id="ref-h13-2" href="#bref-2-h13">道具とはいえず間接正犯は否定</a>しました。加えて、逃走の際の傷害は強盗の機会に生じたものなので、罪名は<a class="ref-stat" id="ref-law-240-2" href="#bref-2-240">強盗致傷罪（240条）</a>になります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">間接正犯は、相手を自分の手足のように一方的に動かしたときのかたちです。善悪を判断でき、自分で決めて動いた相手は、背後の者にとって越えるべき壁になっているので、手足とは呼べません。また240条の傷害は、脅すための暴行から生じたものに限らず、強盗の機会に生じたもので足りると解されています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>規範的障害</span></dt><dd>やってよいか悪いかを自分で判断し、思いとどまることができる状態。これがある者を利用しても、背後の者は間接正犯にならない。</dd></div><div class="tx-gist-term"><dt><span>強盗の機会</span></dt><dd>強盗の実行に密接する一連の過程。手段としての暴行・脅迫に限らず、逃走の際の暴行もここに含まれる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">関与の形態を間接正犯とする点と罪名を強盗罪にとどめる点の二つがずれ、正しくは強盗致傷罪（240条前段）の共同正犯です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>間接正犯が否定される（形態の誤り）</strong><span class="syn-body">間接正犯は、意思を抑圧された者や<span class="case-emphasis freq-high">規範的障害のない者</span>を道具として利用する場合に成立する。本件では長男に是非弁別能力があり、甲の指示は意思を抑圧する程度でなく、長男は自らの意思で決意し臨機応変に完遂した。よって甲が長男を道具として支配したとはいえず、<a class="ref-stat" href="#bref-2-h13">間接正犯は成立しない</a>（最決平13.10.25）。</span></p>
 <p><span class="syn-step">2</span><strong>罪名は強盗致傷（罪名の誤り）</strong><span class="syn-body">長男は現金を強取した後、逃走の際にトイレから脱出した被害者を振り払って負傷させている。判例（<a class="ref-stat" id="ref-law-240-22" href="#bref-2-240">最判昭24.5.28</a>の機会説）は、死傷が<span class="case-emphasis freq-high">強盗の機会</span>に生じれば足りるとするので、この傷害は<span class="ron-mark freq-high">強盗致傷罪（240条前段）</span>を構成する。罪名を単なる強盗とする点でも誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>記述2は「道具（間接正犯）」と「素の強盗」の二枚看板だが、どちらも掛け違い。子は道具でなく、傷害は強盗の機会に足される。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>間接正犯の否定</strong>：是非弁別能力があり自らの意思で犯行を完遂した者は道具といえず、背後者に間接正犯は成立しない（最決平13.10.25）。</li>
-<li><strong>罪名は強盗致傷</strong>：強盗の機会に生じた傷害は強盗致傷罪（240条前段）を構成する（機会説・最判昭24.5.28）。単なる強盗罪ではない。</li>
-<li><strong>ひっかけの型</strong>：「刑事未成年者の利用＝間接正犯」「財物奪取＝強盗」と機械的に当てる。形態は被利用者の自律性で、罪名は死傷結果の有無で修正される。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>道具でないから間接正犯は落ち、機会の傷で罪名は240条へ上がる。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-kansetsu" class="tx-basis-item "><div class="tx-basis-head">📜 間接正犯（解釈上の正犯形態・明文なし）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">定義</span><span class="hang-body">他人を<span class="ron-mark freq-high">道具</span>として利用し、自己の犯罪を実現する正犯形態。意思を抑圧された者、事情を知らない者、<span class="case-emphasis freq-high">規範的障害のない者</span>（是非弁別能力なき幼児・責任無能力者等）を一方的に利用する場合に認められる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-2-kansetsu" class="tx-basis-item "><div class="tx-basis-head">📜 間接正犯（解釈上の正犯形態・明文なし）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">定義</span><span class="hang-body">他人を<span class="ron-mark freq-high">道具</span>として利用し、自己の犯罪を実現する正犯形態。意思を抑圧された者、事情を知らない者、<span class="case-emphasis freq-high">規範的障害のない者</span>（是非弁別能力なき幼児・責任無能力者等）を一方的に利用する場合に認められる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">被利用者が背後者の一方的支配下にある（道具性）ことが必要。被利用者に<span class="case-emphasis freq-high">是非弁別能力があり自らの意思で犯行を決意・遂行</span>したときは規範的障害があり、道具といえないため間接正犯は否定される。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">12歳でも是非弁別能力のある長男が自らの意思で完遂した本件では間接正犯は成立しない（記述2・3）。</span></div>
 </div></div></details></div>
 <div id="bref-2-240" class="tx-basis-item "><div class="tx-basis-head">📜 刑法240条 強盗致死傷罪（236条 強盗罪）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">236①</span><span class="hang-body">暴行又は脅迫を用いて他人の財物を強取した者は、強盗の罪とし、5年以上の有期拘禁刑に処する。</span></p>
-<p class="hanging"><span class="para-num">240</span><span class="hang-body">強盗が、人を<span class="ron-mark freq-high">負傷させたとき</span>は無期又は6年以上の拘禁刑に処し、死亡させたときは死刑又は無期拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 機会説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">240</span><span class="hang-body">強盗が、人を<span class="ron-mark freq-high">負傷させたとき</span>は無期又は6年以上の拘禁刑に処し、死亡させたときは死刑又は無期拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 機会説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">強盗の機会（機会説）</span><span class="kd-text">240条の死傷は、強盗の手段たる暴行・脅迫から生じたものに限らず、<span class="case-emphasis freq-high">強盗の機会に生じた</span>ものであれば足りる（判例・通説＝機会説）。逃走中の暴行による傷害も含む。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">逃走の際に被害者を振り払って負傷させた行為は強盗の機会の傷害＝強盗致傷罪。罪名を強盗とする記述2・4は誤り。</span></div>
 </div></div></details></div>
 <div id="bref-2-h13" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成13年10月25日（間接正犯の否定）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">「本件当時〔12歳の長男〕Bには<span class="ron-mark freq-high">是非弁別の能力</span>があり、被告人の指示命令はBの意思を抑圧するに足る程度のものではなく、Bは<span class="case-emphasis freq-high">自らの意思により本件強盗の実行を決意した</span>上、臨機応変に対処して本件強盗を完遂した…被告人につき本件強盗の間接正犯が成立するとは、認められない」。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">刑事未成年者の利用でも当然に間接正犯になるのではなく、被利用者の是非弁別能力と意思の自律性を具体的に評価する。道具性が否定されれば間接正犯は成立しない。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">記述2は二重の誤り。①是非弁別能力ある長男が自らの意思で完遂したため間接正犯は否定（最決平13.10.25）。②傷害は強盗の機会に生じたため罪名は強盗でなく強盗致傷罪（機会説・最判昭24.5.28）。正しくは強盗致傷罪の共同正犯。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「幼い子を使えば間接正犯」という道具理論の暗記が罠</strong>。刑事未成年者（41条で不可罰）を利用しても、その子に<em>是非弁別能力があり自らの意思で犯行を遂げた</em>なら規範的障害があり、背後者は間接正犯にならず教唆犯か共同正犯になる。被利用者の責任能力の有無ではなく<em>意思の自律性</em>で切るのがポイント。この発想は、命令に従っただけの部下を道具とみるか否か、洗脳・強度の畏怖下の利用など、間接正犯の限界を問う場面すべてに横串で効く。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは死傷が生じた場面の側</strong>で、逃走の際の負傷でも財物の強取と時間的・場所的に接着していれば強盗の機会にあたり強盗致傷罪（240条前段）になるが、強取から時間も場所も切れた別の機会の負傷は機会性を欠き、強盗罪（236条1項）と傷害罪（204条）の別罪になる。負傷でなく死亡すれば240条後段の強盗致死罪へ移る。</span><div class="tx-dgm is-matrix" data-dgm="017-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">死傷が生じた場面を1つ差し替える</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">逃走の際に振り払って負傷 → 財物を奪うための脅迫で負傷</p><p class="dgm-cell is-ok">○ 強盗致傷罪</p><p class="dgm-cell">強取の手段そのものから生じた負傷<span class="dgm-src">240条前段</span></p><p class="dgm-cell is-rowhead">負傷させた → 死亡させた</p><p class="dgm-cell is-acc">別の罪名</p><p class="dgm-cell">強盗致死罪となり死刑又は無期拘禁刑<span class="dgm-src">240条後段</span></p><p class="dgm-cell is-rowhead">逃走の際の負傷 → 数日後に別の場所での負傷</p><p class="dgm-cell is-ng">✕ 強盗致傷罪にならない</p><p class="dgm-cell">強盗の機会性を欠き強盗罪<span class="dgm-src">236条1項</span>と傷害罪<span class="dgm-src">204条</span>の別罪</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6065,36 +6292,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>…甲について、強盗致傷罪の<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>間接正犯が成立する</span><span class="tx-stmt-fix">→ 間接正犯は否定・共同正犯（罪名＝強盗致傷は正しい）</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。罪名（強盗致傷）は正しい。ひっかかるのは<strong>形態</strong>。12歳は責任を問えない年齢（<a class="ref-stat" id="ref-law-41-3" href="#bref-3-41">41条</a>で不可罰）だから、その子を使った甲は子を道具にした<strong>間接正犯</strong>だ、と読みたくなる。しかし判例は、責任を問えるかどうかではなく、<strong>その子が自分の頭で判断して動いたか</strong>で見る。本件の長男は是非の分別ができ、自らの意思で強盗を決意し臨機応変に完遂した——つまり“操り人形”ではなかった。だから<a class="ref-stat" id="ref-h13-3" href="#bref-3-h13">間接正犯は否定</a>され、甲は（正犯意思があるので）共同正犯になる。形態を間接正犯とする点で誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">14歳未満で罰せられない子を使っても、背後の者は<strong>間接正犯</strong>にならない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">道具として使ったか</span><span class="tx-gist-step">教唆か共同正犯か</span><span class="tx-gist-step">罪名はどこまでか</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">刑事責任を問えない年齢の子を使ったとき、背後の者は当然に間接正犯になるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">犯行に使われた長男は12歳で、14歳に満たないため刑事責任を問われません。それなら、罰せられない子を動かした父親がすべてをかぶる間接正犯だ、と考えたくなる場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">しかし、子が罰せられるかという責任の話と、背後の者が<strong>間接正犯</strong>になるかという関与のかたちの話は、同じ物差しで決まるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑法<a class="ref-stat" id="ref-law-41-3" href="#bref-3-41">41条</a>は14歳に満たない者の行為を罰しないと定めますが、最高裁（最決平13.10.25）は、この長男に是非弁別の能力があり、自らの意思で強盗を決意して臨機応変に完遂したことをとらえて、<a class="ref-stat" id="ref-h13-3" href="#bref-3-h13">間接正犯は否定</a>しました。関与のかたちは共同正犯になります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">罰せられるかどうかは、その人を責められるかという責任の問題です。これに対して間接正犯かどうかは、その人が背後の者の道具になっていたかという支配の問題です。年齢で一律に決まる前者と、判断力と自律性を事案ごとに見る後者は、別々に確かめると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>是非弁別の能力</span></dt><dd>その行為が許されるかどうかを判断できる能力。年齢だけで決まるものではなく、事案ごとに具体的に評価される。</dd></div><div class="tx-gist-term"><dt><span>責任年齢</span></dt><dd>14歳に満たない者の行為は罰しないとする刑法41条の定め。責任が阻却されるだけで、その者が道具であったことまで意味しない。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">罪名は240条と合いますが、是非弁別能力があり自ら決意した者の利用を間接正犯とする点がずれ、正しくは共同正犯（60条）です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>刑事未成年者の利用＝当然に間接正犯ではない</strong><span class="syn-body">かつては責任無能力者（<a class="ref-stat" href="#bref-3-41">41条</a>）の利用は道具の利用＝間接正犯と説かれた。だが判例は、被利用者に<span class="case-emphasis freq-high">是非弁別能力があり自らの意思で犯行を遂げた</span>場合は規範的障害があり道具といえないとして、間接正犯を否定する。</span></p>
 <p><span class="syn-step">2</span><strong>本事案の当てはめ</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-h13">最決平13.10.25</a>は、当時12歳の長男に是非弁別能力があり、甲の指示は意思を抑圧する程度でなく、長男が自らの意思で決意し臨機応変に完遂したとして<span class="ron-mark freq-high">間接正犯を否定</span>。罪名は強盗致傷で正しいが、形態を間接正犯とする記述3は誤り。正しくは共同正犯。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「12歳＝道具＝間接正犯」は早合点。分別があって自分の意思で動いた子は操り人形ではない。年齢でなく“自律したか”で切る。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>間接正犯の判断基準</strong>：責任能力の有無ではなく被利用者の道具性（意思の自律性）で決まる。是非弁別能力があり自らの意思で完遂した者は道具でない。</li>
-<li><strong>本事案の帰結</strong>：12歳でも是非弁別能力ある長男が自らの意思で完遂したため間接正犯は否定され、甲は共同正犯（最決平13.10.25）。罪名（強盗致傷）は正しい。</li>
-<li><strong>ひっかけの型</strong>：罪名を正しく強盗致傷とした上で、形態だけを間接正犯にすり替える。是非弁別能力の有無を事案から拾えるかが分かれ目。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>年齢では切らず自律で切る。罰せない者でも道具とは限らない（41条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-3-41" class="tx-basis-item "><div class="tx-basis-head">📜 刑法41条 責任年齢（刑事未成年）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">14歳に満たない者</span>の行為は、罰しない。</span></p></div><details class="tx-basis-more"><summary>＋ 従属性・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-3-41" class="tx-basis-item "><div class="tx-basis-head">📜 刑法41条 責任年齢（刑事未成年）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">14歳に満たない者</span>の行為は、罰しない。</span></p></div><details class="tx-basis-more"><summary>＋ 従属性を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">14歳未満の者は一律に責任能力がなく不可罰（責任阻却）。もっとも責任能力の欠如は<span class="case-emphasis freq-high">道具性（間接正犯）を当然には基礎づけない</span>。是非弁別能力があり自律的に行動したかを別途評価する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">長男は12歳ゆえ不可罰だが、制限従属性説の下では正犯の行為が構成要件該当・違法であれば足り、甲に共同正犯が成立することの妨げにならない。</span></div>
 </div></div></details></div>
-<div id="bref-3-kansetsu" class="tx-basis-item "><div class="tx-basis-head">📜 間接正犯の限界（道具性・規範的障害）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基準</span><span class="hang-body">背後者が被利用者を<span class="ron-mark freq-high">一方的に支配・利用</span>し、被利用者に規範的障害がない場合に間接正犯が成立。被利用者に<span class="case-emphasis freq-high">是非弁別能力があり自らの意思で犯行を決意・遂行</span>したときは道具性が否定され、間接正犯は成立しない。</span></p></div><details class="tx-basis-more"><summary>＋ 本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">長男は自律的に強盗を完遂した以上、道具でなく、甲に間接正犯は成立しない。記述2・3の間接正犯構成は誤り。</span></div>
-</div></div></details></div>
+<div id="bref-3-kansetsu" class="tx-basis-item "><div class="tx-basis-head">📜 間接正犯の限界（道具性・規範的障害）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基準</span><span class="hang-body">背後者が被利用者を<span class="ron-mark freq-high">一方的に支配・利用</span>し、被利用者に規範的障害がない場合に間接正犯が成立。被利用者に<span class="case-emphasis freq-high">是非弁別能力があり自らの意思で犯行を決意・遂行</span>したときは道具性が否定され、間接正犯は成立しない。</span></p></div></div>
 <div id="bref-3-h13" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成13年10月25日（是非弁別能力ある被利用者）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">「本件当時〔12歳の長男〕Bには是非弁別の能力があり、被告人の指示命令はBの意思を抑圧するに足る程度のものではなく、Bは自らの意思により本件強盗の実行を決意した上、臨機応変に対処して本件強盗を完遂した…被告人につき本件強盗の<span class="ron-mark freq-high">間接正犯が成立するとは、認められない</span>」。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">刑事未成年者を利用した場合でも、被利用者の是非弁別能力と意思の自律性を具体的に評価して間接正犯の成否を決する。年齢のみで道具性を認めない。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">間接正犯の成否は責任能力の有無ではなく被利用者の道具性（意思の自律性）で決まる。是非弁別能力ある長男が自らの意思で完遂した本件では間接正犯は否定され、甲は共同正犯（最決平13.10.25）。罪名（強盗致傷）は正しいが形態が誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>罪名は合っていても形態でひっかける“片肺正解”の罠。</strong>記述3は「強盗致傷罪」まで合っているので○と飛びつきやすい。だが正解は<em>共同正犯</em>であって間接正犯ではない。是非弁別能力ある者を利用した場合、背後者は間接正犯にならず教唆犯か共同正犯になる——被利用者が<em>責任無能力（41条で不可罰）でも道具とは限らない</em>点が cross-cut。責任能力（罰せるか）と道具性（間接正犯か）は別レイヤーだと切り分ける。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは利用された側の意思の自律性</strong>で、是非弁別能力のない幼児、指示が意思を抑圧する程度に達した者、事情を知らない者を使えば規範的障害がなく、背後者は間接正犯になる。14歳未満で罰しない（41条）かどうかは責任の層の話で、道具といえるかとは別に決まる。</span><div class="tx-dgm is-matrix" data-dgm="017-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">罰せられるかと道具といえるかは別の層</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">利用された側</p><p class="dgm-cell is-head">その者を罰せるか</p><p class="dgm-cell is-head">背後者は間接正犯か</p><p class="dgm-cell is-rowhead">是非弁別能力があり自らの意思で決意した12歳</p><p class="dgm-cell is-ng">✕ 罰しない<span class="dgm-src">41条</span></p><p class="dgm-cell is-ng">✕ 規範的障害があり道具でない</p><p class="dgm-cell is-rowhead">是非弁別能力のない幼児</p><p class="dgm-cell is-ng">✕ 罰しない<span class="dgm-src">41条</span></p><p class="dgm-cell is-ok">○ 道具の利用にあたる</p><p class="dgm-cell is-rowhead">犯罪事実を知らされていない成人</p><p class="dgm-cell is-ng">✕ 故意がなく罰せられない</p><p class="dgm-cell is-ok">○ 道具の利用にあたる</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6112,38 +6327,26 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>…甲について、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>強盗罪</span><span class="tx-stmt-fix">→ 強盗致傷罪（機会の致傷が加重して共同正犯に帰属）</span>の共同正犯が成立する。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。関与形態（<strong>共同正犯</strong>）はもう正しい。詰めが甘いのは<strong>罪名</strong>。甲は強盗しか共謀していない、傷害は長男が現場で勝手にやったこと、だから甲は<strong>強盗</strong>止まり——と考えたくなる。しかし長男の傷害は<strong>強盗の機会</strong>に生じた（逃走中に被害者を振り払って負傷）ものであり、判例（<a class="ref-stat" id="ref-h26-4" href="#bref-4-h26">最判昭26.3.27</a>）は、強盗の機会の致死傷は<span class="ron-mark freq-high">他の共犯者にも帰属</span>するとする。だから甲は<a class="ref-stat" id="ref-law-240-4" href="#bref-4-240">強盗致傷罪</a>の範囲で共同正犯となり、単なる強盗の共同正犯ではない（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">強盗を共謀すれば機会の傷害も帰属し、罪名は<strong>強盗致傷罪</strong>になる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">道具として使ったか</span><span class="tx-gist-step">教唆か共同正犯か</span><span class="tx-gist-step is-now">罪名はどこまでか</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">強盗までしか共謀していない者の罪名は、強盗罪で止まるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">父親が相談したのは、脅して現金を奪うところまででした。けがをさせたのは、逃げる際に追ってきた店主を振り払った長男の行為で、父親はその場にいません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">自分が共謀していない<strong>加重結果</strong>まで、共犯者の罪名に足されるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" id="ref-h26-4" href="#bref-4-h26">最判昭26.3.27</a>）は、強盗について共謀した共犯者は、その一人が強盗の機会において行った行為についても責任を負うとしました。したがって父親も<a class="ref-stat" id="ref-law-240-4" href="#bref-4-240">強盗致傷罪</a>の範囲で共同正犯になります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">強盗は、暴行や脅迫を手段とする以上、人が傷つく危険をもともと抱えた犯罪です。その危険を引き受けて共謀した以上、機会に現実化した結果まで負うべきだと説明されます。加重結果についての予見や共謀まではいらないとするのが判例の立場です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>結果的加重犯</span></dt><dd>基本となる犯罪から重い結果が生じたときに刑が重くなる犯罪類型。強盗致傷罪はその一つ。</dd></div><div class="tx-gist-term"><dt><span>一部実行全部責任</span></dt><dd>共謀に基づいて共犯者の一人が実行すれば、全員が生じた結果の全体について責任を負うこと（刑法60条）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">関与の形態を共同正犯とする点は60条と合いますが、罪名を強盗罪にとどめる点がずれ、機会の致傷が帰属して強盗致傷罪（240条前段）の共同正犯になります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>致傷は強盗の機会に生じている</strong><span class="syn-body">長男はレジ内の現金を強取した後、逃走の際にトイレから脱出した被害者を振り払って負傷させた。判例の機会説によれば、この傷害は<span class="case-emphasis freq-high">強盗の機会</span>に生じたもので強盗致傷罪（240条前段）を構成する。</span></p>
 <p><span class="syn-step">2</span><strong>結果的加重犯の共同正犯</strong><span class="syn-body">甲は強盗の共同実行の意思しか有していなかったが、<a class="ref-stat" href="#bref-4-h26">最判昭26.3.27</a>は、強盗について共謀した共犯者は、その一人が<span class="case-emphasis freq-high">強盗の機会に生じさせた致死傷</span>についても責任を負うとする。よって甲は強盗でなく<span class="ron-mark freq-high">強盗致傷罪の範囲で共同正犯</span>。罪名を強盗とする記述4は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>共謀は「強盗まで」でも、仲間が強盗の最中に負わせた傷は全員に付いてくる。共同正犯の罪名は“機会の致傷”込みで一段重くなる。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>機会の致傷</strong>：逃走の際に生じた傷害も強盗の機会の傷害＝強盗致傷罪（240条前段・機会説）。</li>
-<li><strong>結果的加重犯の共同正犯</strong>：強盗を共謀した以上、共犯者の一人が強盗の機会に生じさせた致傷は他の共犯者にも帰属する（最判昭26.3.27）。甲は強盗致傷罪の範囲で共同正犯。</li>
-<li><strong>ひっかけの型</strong>：「甲は強盗しか共謀していないから強盗止まり」と共謀の射程だけで罪名を軽くする。加重結果は機会性で共犯者へ帰属する。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>共謀は基本の犯罪どまりでも、その機会の結果は全員に付いてくる（60条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-240" class="tx-basis-item "><div class="tx-basis-head">📜 刑法240条 強盗致傷罪（結果的加重犯）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">240</span><span class="hang-body">強盗が、人を<span class="ron-mark freq-high">負傷させたとき</span>は無期又は6年以上の拘禁刑に処し、死亡させたときは死刑又は無期拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 機会説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-4-240" class="tx-basis-item "><div class="tx-basis-head">📜 刑法240条 強盗致傷罪（結果的加重犯）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">240</span><span class="hang-body">強盗が、人を<span class="ron-mark freq-high">負傷させたとき</span>は無期又は6年以上の拘禁刑に処し、死亡させたときは死刑又は無期拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 機会説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">強盗の機会（機会説）</span><span class="kd-text">240条前段の傷害は、強盗の手段たる暴行・脅迫から生じたものに限らず、<span class="case-emphasis freq-high">強盗の機会に生じた</span>ものであれば足りる（判例・通説）。逃走中の暴行による傷害も含む。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">逃走の際に被害者を振り払って負傷させた行為は強盗の機会の傷害。罪名は強盗でなく強盗致傷罪。</span></div>
 </div></div></details></div>
 <div id="bref-4-60" class="tx-basis-item "><div class="tx-basis-head">📜 刑法60条 共同正犯（結果的加重犯への適用）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">二人以上共同して犯罪を実行した者は、すべて正犯とする。</span></p></div><details class="tx-basis-more"><summary>＋ 結果的加重犯の共同正犯を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">結果的加重犯の共同正犯</span><span class="kd-text">基本犯（強盗）を共謀すれば、共犯者の一人が<span class="case-emphasis freq-high">強盗の機会に生じさせた加重結果（致傷）</span>についても他の共犯者が責任を負う。基本犯の共謀に加重結果への予見や共謀は不要とするのが判例。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は強盗しか共謀していなくても、長男が機会に生じさせた致傷につき責任を負い、強盗致傷罪の範囲で共同正犯となる。</span></div>
 </div></div></details></div>
-<div id="bref-4-h26" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和26年3月27日（強盗致傷の共同正犯）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">「<span class="ron-mark freq-high">強盗について共謀した共犯者等はその一人が強盗の機会において為した行為については他の共犯者も責任を負うべきもの</span>である」として、強盗の機会における致死傷結果について、実行行為に関与しない他の共犯者にも共同正犯の成立を認めた。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-4-h26" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和26年3月27日（強盗致傷の共同正犯）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">「<span class="ron-mark freq-high">強盗について共謀した共犯者等はその一人が強盗の機会において為した行為については他の共犯者も責任を負うべきもの</span>である」として、強盗の機会における致死傷結果について、実行行為に関与しない他の共犯者にも共同正犯の成立を認めた。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">強盗を共謀した共犯者は、機会に生じた致死傷という加重結果について責任を負う。基本犯を共謀すれば加重結果は機会性を介して共犯者に帰属する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は強盗の共同実行の意思しかなくても強盗致傷罪の範囲で共同正犯。強盗の共同正犯にとどめる記述4は誤り。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">長男の傷害は強盗の機会に生じ強盗致傷罪を構成する（240条前段・機会説）。強盗を共謀した共犯者は機会の致傷につき責任を負うため（最判昭26.3.27）、甲は強盗致傷罪の範囲で共同正犯。共同正犯という形態は正しいが罪名が誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「自分が共謀したのは基本犯だけ＝軽い罪で止まる」という共謀射程の思い込みが罠</strong>。強盗を共謀すれば、仲間が<em>強盗の機会に生じさせた致死傷</em>という加重結果まで共犯者に帰属する（結果的加重犯の共同正犯）。加重結果への予見・共謀は不要とするのが判例。同じ発想は傷害を共謀した者が生じた致死結果につき傷害致死罪の共同正犯を負う場面にも一本の糸で通じる——基本犯の共謀があれば加重結果は機会性でついてくる。記述4のように「形態は合っているが罪名が一段軽い」型に注意。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは共謀した基本の犯罪と生じた結果の組み合わせ</strong>で、強盗を共謀してその機会に死亡結果が生じれば強盗致死罪（240条後段）の共同正犯、傷害を共謀して死亡結果が生じれば傷害致死罪（205条）の共同正犯になる。加重結果についての予見や共謀までは要らないが、時間も場所も切れた別の機会の行為は共謀の射程を外れる。</span><div class="tx-dgm is-matrix" data-dgm="017-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">共謀した犯罪と生じた結果で罪名が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">共謀した内容</p><p class="dgm-cell is-head">その機会に生じた結果</p><p class="dgm-cell is-head">共謀者に帰属する罪名</p><p class="dgm-cell is-rowhead">強盗</p><p class="dgm-cell">負傷</p><p class="dgm-cell">強盗致傷罪の共同正犯<span class="dgm-src">240条前段</span></p><p class="dgm-cell is-rowhead">強盗</p><p class="dgm-cell">死亡</p><p class="dgm-cell">強盗致死罪の共同正犯<span class="dgm-src">240条後段</span></p><p class="dgm-cell is-rowhead">傷害</p><p class="dgm-cell">死亡</p><p class="dgm-cell">傷害致死罪の共同正犯<span class="dgm-src">205条</span></p><p class="dgm-cell is-rowhead">強盗</p><p class="dgm-cell">時間も場所も切れた別の機会の負傷</p><p class="dgm-cell is-ng">✕ 加重結果として帰属せず強盗罪どまり<span class="dgm-src">236条1項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6161,31 +6364,21 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>…甲について、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>強盗致傷罪の共同正犯が成立する</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。これが正解の命題。<strong>関与形態＝共同正犯</strong>も<strong>罪名＝強盗致傷</strong>も両方が正しくそろっている。判断は3ステップ。まず長男は是非弁別できて自律的に動いたので<strong>間接正犯は否定</strong>（<a class="ref-stat" id="ref-h13-5" href="#bref-5-h13">最決平13.10.25</a>）。次に甲は計画・道具供与・全額領得で正犯意思があり<strong>教唆でなく共同正犯</strong>（同決定）。最後に長男が逃走中に負わせた傷は<strong>強盗の機会</strong>の傷害で、共謀した甲にも帰属して<a class="ref-stat" id="ref-h26-5" href="#bref-5-h26">強盗致傷罪の範囲で共同正犯</a>（<a class="ref-stat" id="ref-s24-5" href="#bref-5-240">最判昭24.5.28</a>・<a class="ref-stat" href="#bref-5-h26">最判昭26.3.27</a>）。全部そろって○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">道具ではなく正犯意思もあるので<strong>強盗致傷罪の共同正犯</strong>が成立する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">道具として使ったか</span><span class="tx-gist-step">教唆か共同正犯か</span><span class="tx-gist-step is-now">罪名はどこまでか</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">関与のかたちと罪名の両方を確定すると、どこに行き着くのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">12歳の長男は、父親に教わったとおり覆面とモデルガンで店主を脅し、自分の判断も交えて現金を奪い、逃げる際に店主を負傷させました。父親は現場に出ず、持ち帰られた現金を受け取って、その大半を生活費に使っています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ここでは、間接正犯か共同正犯かという関与のかたちと、強盗罪か強盗致傷罪かという罪名の範囲という、<strong>二つの物差し</strong>を別々に確定する必要があります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" id="ref-h13-5" href="#bref-5-h13">最決平13.10.25</a>は、自らの意思で犯行を完遂した長男を道具とはいえないとして間接正犯を否定する一方、計画・犯行道具の供与・金品の全額領得から、教唆犯ではなく共同正犯としました。逃走の際の傷害も強盗の機会に生じた傷害であり（<a class="ref-stat" id="ref-s24-5" href="#bref-5-240">最判昭24.5.28</a>）、共謀した者に帰属するので（<a class="ref-stat" href="#bref-5-h26">最判昭26.3.27</a>）、父親は<a class="ref-stat" id="ref-h26-5" href="#bref-5-h26">強盗致傷罪の範囲で共同正犯</a>になります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">この問題は、関与のかたちと罪名という二つの軸でできています。正犯意思があるかどうかは背後の者の関わりの重さで決まり、罪名がどこまで及ぶかは実行した者が引き起こした結果の位置づけで決まるので、互いに独立して判断します。片方だけが合っていても答えにはなりません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>正犯意思</span></dt><dd>犯罪を自己の犯罪として実現する意思。計画の立案、犯行道具の供与、利益の帰属などから判断される。</dd></div><div class="tx-gist-term"><dt><span>強盗の機会</span></dt><dd>強盗の実行に密接する一連の過程。逃走の際に生じた傷害もこの範囲に入る。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">形態は共同正犯（60条）、罪名は強盗致傷罪（240条前段）で、どちらも判例と合う。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>間接正犯を否定する</strong><span class="syn-body">当時12歳の長男に是非弁別能力があり、甲の指示は意思を抑圧する程度でなく、長男は自らの意思で決意し臨機応変に完遂した。よって道具といえず<a class="ref-stat" href="#bref-5-h13">間接正犯は成立しない</a>（最決平13.10.25）。記述2・3の間接正犯構成はここで落ちる。</span></p>
 <p><span class="syn-step">2</span><strong>教唆でなく共同正犯</strong><span class="syn-body">甲は生活費欲しさから強盗を計画し、<span class="case-emphasis freq-high">犯行方法を教示・犯行道具を供与</span>して実行を指示命令し、<span class="case-emphasis freq-high">奪った金品を全て自ら領得</span>した。この正犯意思から、教唆犯でなく<span class="ron-mark freq-high">共同正犯</span>が成立する（同決定）。記述1の教唆犯はここで落ちる。</span></p>
 <p><span class="syn-step">3</span><strong>罪名は強盗致傷（機会＋加重帰属）</strong><span class="syn-body">長男の傷害は逃走の際＝<span class="case-emphasis freq-high">強盗の機会</span>に生じ強盗致傷罪を構成する（<a class="ref-stat" href="#bref-5-240">最判昭24.5.28</a>）。強盗を共謀した甲にもこの致傷は帰属し（<a class="ref-stat" href="#bref-5-h26">最判昭26.3.27</a>）、甲は<span class="ron-mark freq-high">強盗致傷罪の範囲で共同正犯</span>。記述4の強盗止まりはここで落ちる。3論点すべてを満たす記述5が正解。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>正解は3つの関門の通過証。①道具じゃない→間接正犯×、②儲け丸取り→教唆でなく共同正犯、③機会の傷→強盗致傷。3枚そろって「強盗致傷罪の共同正犯」。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>間接正犯の否定</strong>：是非弁別能力ある長男が自律的に完遂したため道具でなく、間接正犯は不成立（最決平13.10.25）。</li>
-<li><strong>共同正犯の肯定</strong>：計画・道具供与・全額領得という正犯意思から、教唆犯でなく共同正犯（同決定）。</li>
-<li><strong>強盗致傷罪の範囲</strong>：機会の致傷（最判昭24.5.28）が共謀した共犯者に帰属し（最判昭26.3.27）、甲は強盗致傷罪の共同正犯となる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>道具でも加担でもなく自分の犯罪、だから機会の傷まで背負う（60条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-5-240" class="tx-basis-item "><div class="tx-basis-head">📜 刑法240条 強盗致傷罪／236条 強盗罪<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">236①</span><span class="hang-body">暴行又は脅迫を用いて他人の財物を強取した者は、強盗の罪とし、5年以上の有期拘禁刑に処する。</span></p>
-<p class="hanging"><span class="para-num">240</span><span class="hang-body">強盗が、人を<span class="ron-mark freq-high">負傷させたとき</span>は無期又は6年以上の拘禁刑に処し、死亡させたときは死刑又は無期拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 機会説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">240</span><span class="hang-body">強盗が、人を<span class="ron-mark freq-high">負傷させたとき</span>は無期又は6年以上の拘禁刑に処し、死亡させたときは死刑又は無期拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 機会説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">強盗の機会</span><span class="kd-text">240条前段の傷害は強盗の機会に生じたもので足りる（機会説）。逃走中の暴行による傷害も含む。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">逃走の際の傷害は強盗致傷罪を構成し、共謀した甲にも帰属して甲は強盗致傷罪の範囲で共同正犯。</span></div>
 </div></div></details></div>
 <div id="bref-5-60" class="tx-basis-item "><div class="tx-basis-head">📜 刑法60条 共同正犯（正犯意思・加重結果の帰属）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">二人以上共同して犯罪を実行した者は、すべて正犯とする。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・従属性を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">共謀＋正犯意思に基づく共同実行で一部実行全部責任。共謀した基本犯の機会に生じた加重結果も共犯者に帰属する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">従属性・本問</span><span class="kd-text">長男は12歳で不可罰だが、制限従属性説の下では正犯行為が構成要件該当・違法であれば足り、甲の共同正犯成立を妨げない。</span></div>
 </div></div></details></div>
 <div id="bref-5-h13" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成13年10月25日（間接正犯否定・共同正犯）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">是非弁別能力のある12歳の長男が自らの意思で強盗を完遂した事案で、背後者に<span class="ron-mark freq-high">間接正犯は成立せず</span>、計画・犯行方法の教示・犯行道具の供与・奪取金品の全額領得から<span class="case-emphasis freq-high">教唆犯ではなく共同正犯</span>が成立するとした。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">刑事未成年者利用型の関与形態を、被利用者の是非弁別能力・意思の自律性と背後者の正犯意思で決する先例。本問（甲）の関与形態を共同正犯と確定する。</span></div>
@@ -6193,11 +6386,10 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div id="bref-5-h26" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和26年3月27日（結果的加重犯の共同正犯）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">「強盗について共謀した共犯者等はその一人が<span class="ron-mark freq-high">強盗の機会において為した行為については他の共犯者も責任を負う</span>べきものである」として、機会の致死傷結果を実行行為に関与しない共犯者にも帰属させた。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">基本犯（強盗）を共謀した以上、共犯者の一人が機会に生じさせた加重結果まで責任を負う。本問で甲の罪名を強盗致傷罪の範囲へ引き上げる。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">記述5は3論点すべてを満たす正解。①間接正犯否定＋②正犯意思→共同正犯（最決平13.10.25）、③機会の致傷（最判昭24.5.28）が共謀者に帰属（最判昭26.3.27）。よって甲は強盗致傷罪の共同正犯（乙は12歳ゆえ41条で不可罰）。</p>
 </div>
 
 <div class="tx-v13-cross"><span class="tx-v13-cross-label">🔗 他科目横断</span><span class="tx-v13-cross-body">共同正犯（刑法60条＝一部実行全部責任）と対をなすのが民法の<b>共同不法行為（719条）</b>。刑事では正犯意思・共謀を要し過失の共同正犯には争いがあるのに対し、民法719条は関連共同性があれば各自が連帯して全損害を賠償する（過失でも成立し、加害者不明でも推定される）。同じ「複数人の関与」でも、刑事は責任主義から帰属を絞り、民事は被害者救済から広く連帯させる——刑民で帰属原理が対照的な重要横断。</span></div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>正解は「形態」と「罪名」の2軸が両方合う交点だけ</strong>。本問の5択は〈教唆/間接正犯/共同正犯〉×〈強盗/強盗致傷〉のマトリクスで、記述1は形態（教唆）で、記述2は形態と罪名の両方で、記述3は形態（間接正犯）で、記述4は罪名（強盗）で外れる。正犯意思（横軸）と結果的加重犯の共同正犯（縦軸）は<em>独立の判断</em>だから、片方だけ合っていても不正解——2軸を別々に確定してから交点を採る発想は、他の「形態×罪名」複合問題にも横串で効く。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは関与形態の三分</strong>で、犯意を生ぜしめただけなら教唆犯（61条）、決意済みの者の実行を容易にしただけなら幇助犯（62条）で刑は減軽される。</span><div class="tx-dgm is-matrix" data-dgm="017-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">関与形態の三分は決め手と刑が違う</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">関与形態</p><p class="dgm-cell is-head">決め手</p><p class="dgm-cell is-head">刑</p><p class="dgm-cell is-rowhead">共同正犯<span class="dgm-src">60条</span></p><p class="dgm-cell">共謀＋自己の犯罪とする正犯意思</p><p class="dgm-cell">一部実行全部責任</p><p class="dgm-cell is-rowhead">教唆犯<span class="dgm-src">61条</span></p><p class="dgm-cell">人に犯意を生ぜしめて実行させた</p><p class="dgm-cell">正犯の刑を科する</p><p class="dgm-cell is-rowhead">幇助犯<span class="dgm-src">62条</span></p><p class="dgm-cell">決意済みの者の実行を容易にした</p><p class="dgm-cell">正犯の刑を減軽<span class="dgm-src">63条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6278,11 +6470,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:x,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="関与形態は、共同正犯（60条）・教唆犯（61条）・幇助犯（62条）の三つに分かれる。共同正犯は一部しか手を出していなくても全部の責任を負う（<b>一部実行全部責任</b>）のに対し、教唆犯は他人の犯罪を作り出した者として正犯の刑が科される。60条が重い責任を認めるのは、共謀によって互いの行為を利用し補い合い、全体として一つの犯罪を実現しているからで、そこでは実行行為を分担したかそのものより、犯罪を自分のものとして引き受けているかが問われる。この引き受けの意識を<b>正犯意思</b>といい、平たくいえば他人の仕事を手伝ったつもりか、自分の稼ぎだと思っているかの違いである。判断の材料になるのは、計画をどこまで作ったか、道具や方法を用意したか、そして得た利益をどう分けたかで、とりわけ<b>取り分の独占</b>は、その犯罪が自分のものであることを強く語る。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>公判では、弁護人が分け前を受け取っていないことや計画に関与していないことを挙げて加担にとどまると主張し、検察官は指示の具体性と利益の帰属を立証して正犯意思を立てにいく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日に最高裁が判断した事案の背後者は、生活費欲しさに強盗を計画し、犯行の方法を教え、道具まで与えて実行させたうえ、奪われた金品を全部自分のものにしていた。手を下していないのに最も重い側へ立たされた決め手として挙がったのが、この取り分の独占である。</span>" data-brief-mark="甲について、強盗致傷罪の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>教唆犯が成立する</span><span class='tx-stmt-fix'>→ 正犯意思ありゆえ共同正犯（罪名＝強盗致傷は正しい）</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>共同正犯（60条）と教唆犯（61条）の分岐は正犯意思の有無。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>犯行を自己の犯罪として実現する意思があれば共同正犯、他人の犯罪への加担にとどまれば教唆犯。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>実行行為を分担しなくても、計画・道具供与・利得の帰属があれば共同正犯（共謀共同正犯）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は計画・犯行方法の教示・犯行道具の供与・奪取金品の全額領得ゆえ正犯意思あり＝教唆犯でなく共同正犯（最決平13.10.25）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>背後関与者の形態は「手を下したか」でなく「自分の犯罪か（正犯意思）」で切る。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="正犯の形態には、自分で実行する直接正犯、他人を道具として使う<b>間接正犯</b>、役割を分け合う共同正犯がある。他方で罪名の側は、暴行・脅迫で財物を奪う強盗（236条1項・5年以上）と、そこから人の死傷が生じた場合の<b>強盗致死傷</b>（240条）に分かれる。240条の負傷が無期または6年以上と重いのは、人の反抗を抑えつけて財物を奪う犯罪が身体への危険をあらかじめ高く抱えており、その危険が現実になった場面を類型的に重く扱う趣旨だからである。この二つは<b>判断材料がそもそも別</b>で、形態は使われた側が自分の頭で決めて動いたかで決まり、罪名は死傷という結果が出たかで決まる。だから、道具といえないとして間接正犯が消えても罪名が軽くなるわけではなく、逆に死傷が出て罪名が上がっても、それだけで関与の形態が正犯側へ動くわけでもない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>罪名が240条か236条かで法定刑の下限が跳ね上がるため、傷の程度と、それがどの場面で生じたかが捜査の焦点になる。弁護人は診断書の内容と、傷が財物を奪う行為から切れた場面で生じたことを争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日の最高裁決定の事実関係は、生活費欲しさに計画を立てた被告人が、当時12歳10か月の長男に犯行方法を教え道具を与え、長男が店から金品を奪ってきた、というものだった。決定が言葉を費やしたのは、この長男を道具といえるかという形態の側である。</span>" data-brief-mark="甲について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>強盗罪の間接正犯が成立する</span><span class='tx-stmt-fix'>→ 間接正犯は否定＋罪名は強盗致傷罪（＝強盗致傷罪の共同正犯）</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>間接正犯は被利用者の道具性を要し、240条の傷害は強盗の機会で足りる（機会説）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>是非弁別能力ある者の自律的行為は規範的障害があり道具でない／機会の致傷も強盗致傷罪。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>刑事未成年者の利用でも道具性がなければ間接正犯は否定され、罪名は死傷結果で修正される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>長男は自らの意思で完遂＝間接正犯否定、傷害は機会に発生＝罪名は強盗致傷（最決平13.10.25・最判昭24.5.28）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>形態は被利用者の自律性、罪名は死傷結果の有無で二段に確定する。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="刑法41条は14歳に満たない者の行為を罰しないと定める。これは犯罪の成立要件の三段目である責任のレイヤーの話で、まだ育ちきっていない者に非難を向けず、教育や福祉の手続へ委ねるという政策判断に基づく。背後の大人を重くするために置かれた規定ではない。これに対し間接正犯は、他人を道具のように一方的に使ったかという正犯性の問題であり、材料になるのは年齢そのものではなく、その者に善悪を見分ける力（<b>是非弁別能力</b>）があったか、指示が意思を抑え込む程度だったかである。つまり罰せられるかと道具かは<b>別のレイヤー</b>で、罰せられない者を使ったからといって、背後者が自動的に間接正犯になるわけではない。自分の頭で決めて動く者は<b>規範的障害</b>であり、道具とは呼べない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>14歳に満たない子どもは刑事手続ではなく児童相談所送致など児童福祉・少年保護の手続へ回り、捜査の力点は、背後の大人がどこまで指示し、利益を得ていたかの立証へ移っていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日の事案で使われたのは、刑法41条により刑事責任を問えない年齢の子だった。それでも背後の大人の関与形態は、間接正犯ではなく共同正犯として決着している。罰せられない者を使ったというだけでは道具にならないことが、この一件の名前とともに残る。</span>" data-brief-mark="甲について、強盗致傷罪の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>間接正犯が成立する</span><span class='tx-stmt-fix'>→ 是非弁別能力ある長男は道具でなく共同正犯（罪名＝強盗致傷は正しい）</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>間接正犯の成否は責任能力でなく被利用者の道具性（意思の自律性）で決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>是非弁別能力があり自ら決意・遂行した者は道具といえず、背後者は間接正犯にならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>14歳未満で不可罰（41条）でも、当然に間接正犯になるわけではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>12歳でも是非弁別能力ある長男が自律的に完遂＝間接正犯否定・共同正犯（最決平13.10.25）。罪名は正しい。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>責任能力（罰せるか）と道具性（間接正犯か）は別レイヤーとして切り分ける。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="強盗致傷罪（240条）は、強盗という基本の犯罪に死傷の結果が加わって刑が重くなる<b>結果的加重犯</b>である。重くする理由は、財物を奪うための暴行・脅迫にもともと人を傷つける危険が含まれているからで、その危険が現実になったときは、傷つけるつもりがなくても加重される。この理屈は共同正犯にもそのまま伸びる。相談の中身が強盗どまりでも、基本の犯罪を共同して実行すると決めた以上、そこに含まれていた危険が現実になった結果は、共謀に加わった者にも<b>帰属</b>する。効いてくるのは、共謀した内容と結果が帰属する範囲は同じ幅ではないという見方で、傷害致死など他の加重類型でも同じ形が繰り返される。もっとも無制限ではなく、時間も場所も切れた別の機会の出来事であれば、<b>共謀の射程</b>の外として切れる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は、傷害が共謀の射程を外れた別の機会の出来事だと争い、検察官は奪取行為との時間的・場所的な接着を示して強盗の機会に生じたことを立証する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>昭和26年3月27日に最高裁が扱ったのは、強盗を共謀した者のうち実行した側が被害者を負傷させた事案である。相談の中身は強盗までだった者について、罪名が強盗にとどまるのか、強盗致傷まで広がるのかが争われた。</span>" data-brief-mark="甲について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>強盗罪</span><span class='tx-stmt-fix'>→ 機会の致傷が帰属し強盗致傷罪の範囲</span>の共同正犯が成立する。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>強盗を共謀した共犯者は、その一人が強盗の機会に生じさせた致傷につき責任を負う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>基本犯の共謀があれば加重結果は機会性を介して共犯者へ帰属する（予見・共謀は不要）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逃走中の暴行による傷害も強盗の機会の傷害＝強盗致傷罪（240条前段）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は強盗の共同実行の意思のみでも強盗致傷罪の範囲で共同正犯（最判昭26.3.27）。形態は正しいが罪名が軽すぎる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「基本犯だけ共謀＝軽い罪」ではない。傷害致死等の加重結果の帰属も同型。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-story="背後にいる者の最終的な罪責は、関与形態を決める規定群（共同正犯の60条・教唆犯の61条）と、罪名の広がりを決める規定群（強盗罪の236条・強盗致傷罪の240条）という、別々の柱に支えられている。60条が一部の実行で全部の責任を負わせるのは、共謀によって互いの行為を利用し補い合う関係が生まれるからであり、240条が刑を重くするのは、強盗の暴行・脅迫に人が傷つく危険が貼りついているからで、両者の趣旨はもともと別物である。だから確定の順序も<b>独立</b>していて、利用された側の自律性で形態を決め、死傷の結果が強盗の機会に生じたかで罪名を決め、最後に二つを<b>重ね合わせる</b>。同じ一つの事実が、取り分の独占としては形態の軸に、逃走中の負傷としては罪名の軸にと、<b>別々の軸</b>で効くことにも慣れておきたい。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>判決書も、誰とどこまで共謀したかの認定と、どの条文を適用するかの判断を別の項目で組み立てる。争点整理の段階でも、形態を争う事件と罪名を争う事件では、主張立証の設計が変わってくる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日の事案で、実際に店へ入って現金を奪ったのは12歳の子であり、背後の大人は現場にいない。それでも刑事責任の重さは、現場にいたかどうかでは決まらなかった。関与形態と罪名という二本の物差しが、離れた場所にいた者を最も重い位置に置いている。</span>" data-brief-mark="甲について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>強盗致傷罪の共同正犯が成立する</span>（間接正犯否定＋正犯意思＋機会の致傷の帰属＝3論点クリア・正解）。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>甲は強盗致傷罪の共同正犯（間接正犯否定＋正犯意思＋機会の致傷の帰属）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>関与形態と罪名の2軸をともに満たす唯一の記述。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>乙は12歳で不可罰でも、制限従属性説の下で甲の共同正犯成立を妨げない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>間接正犯否定・共同正犯（最決平13.10.25）＋機会の致傷（最判昭24.5.28）＋加重結果の帰属（最判昭26.3.27）＝強盗致傷罪の共同正犯。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>〈関与形態×罪名〉の2軸を独立に確定し、両方が合う交点を採る。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="関与形態は、共同正犯（60条）・教唆犯（61条）・幇助犯（62条）の三つに分かれる。共同正犯は一部しか手を出していなくても全部の責任を負う（<b>一部実行全部責任</b>）のに対し、教唆犯は他人の犯罪を作り出した者として正犯の刑が科される。60条が重い責任を認めるのは、共謀によって互いの行為を利用し補い合い、全体として一つの犯罪を実現しているからで、そこでは実行行為を分担したかそのものより、犯罪を自分のものとして引き受けているかが問われる。この引き受けの意識を<b>正犯意思</b>といい、平たくいえば他人の仕事を手伝ったつもりか、自分の稼ぎだと思っているかの違いである。判断の材料になるのは、計画をどこまで作ったか、道具や方法を用意したか、そして得た利益をどう分けたかで、とりわけ<b>取り分の独占</b>は、その犯罪が自分のものであることを強く語る。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>公判では、弁護人が分け前を受け取っていないことや計画に関与していないことを挙げて加担にとどまると主張し、検察官は指示の具体性と利益の帰属を立証して正犯意思を立てにいく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日に最高裁が判断した事案の背後者は、生活費欲しさに強盗を計画し、犯行の方法を教え、道具まで与えて実行させたうえ、奪われた金品を全部自分のものにしていた。手を下していないのに最も重い側へ立たされた決め手として挙がったのが、この取り分の独占である。</span>" data-brief-mark="甲について、強盗致傷罪の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>教唆犯が成立する</span><span class='tx-stmt-fix'>→ 正犯意思ありゆえ共同正犯（罪名＝強盗致傷は正しい）</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>共同正犯（60条）と教唆犯（61条）の分岐は正犯意思の有無。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>犯行を自己の犯罪として実現する意思があれば共同正犯、他人の犯罪への加担にとどまれば教唆犯。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>実行行為を分担しなくても、計画・道具供与・利得の帰属があれば共同正犯（共謀共同正犯）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は計画・犯行方法の教示・犯行道具の供与・奪取金品の全額領得ゆえ正犯意思あり＝教唆犯でなく共同正犯（最決平13.10.25）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>背後関与者の形態は手を下したかではなく、計画・道具の供与・利益の帰属から正犯意思を見て切る。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">正犯意思を支える事情を1つ差し替える</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">奪った金品を全て自ら領得 → 分け前を受けず利益も得ない</p><p class="dgm-cell is-ng">✕ 共同正犯にならない</p><p class="dgm-cell">正犯意思を支える利益の帰属が欠け、他人の犯罪への加担にとどまる<span class="dgm-src">61条</span></p><p class="dgm-cell is-rowhead">犯意を生ぜしめて実行させた → すでに強盗を決意していた者に道具を渡した</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">犯意を生ぜしめていないので教唆犯でなく幇助犯<span class="dgm-src">62条</span></p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="正犯の形態には、自分で実行する直接正犯、他人を道具として使う<b>間接正犯</b>、役割を分け合う共同正犯がある。他方で罪名の側は、暴行・脅迫で財物を奪う強盗（236条1項・5年以上）と、そこから人の死傷が生じた場合の<b>強盗致死傷</b>（240条）に分かれる。240条の負傷が無期または6年以上と重いのは、人の反抗を抑えつけて財物を奪う犯罪が身体への危険をあらかじめ高く抱えており、その危険が現実になった場面を類型的に重く扱う趣旨だからである。この二つは<b>判断材料がそもそも別</b>で、形態は使われた側が自分の頭で決めて動いたかで決まり、罪名は死傷という結果が出たかで決まる。だから、道具といえないとして間接正犯が消えても罪名が軽くなるわけではなく、逆に死傷が出て罪名が上がっても、それだけで関与の形態が正犯側へ動くわけでもない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>罪名が240条か236条かで法定刑の下限が跳ね上がるため、傷の程度と、それがどの場面で生じたかが捜査の焦点になる。弁護人は診断書の内容と、傷が財物を奪う行為から切れた場面で生じたことを争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日の最高裁決定の事実関係は、生活費欲しさに計画を立てた被告人が、当時12歳10か月の長男に犯行方法を教え道具を与え、長男が店から金品を奪ってきた、というものだった。決定が言葉を費やしたのは、この長男を道具といえるかという形態の側である。</span>" data-brief-mark="甲について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>強盗罪の間接正犯が成立する</span><span class='tx-stmt-fix'>→ 間接正犯は否定＋罪名は強盗致傷罪（＝強盗致傷罪の共同正犯）</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>間接正犯は被利用者の道具性を要し、240条の傷害は強盗の機会で足りる（機会説）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>是非弁別能力ある者の自律的行為は規範的障害があり道具でない／機会の致傷も強盗致傷罪。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>刑事未成年者の利用でも道具性がなければ間接正犯は否定され、罪名は死傷結果で修正される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>長男は自らの意思で完遂＝間接正犯否定、傷害は機会に発生＝罪名は強盗致傷（最決平13.10.25・最判昭24.5.28）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>形態は利用された側の自律性で決まり、罪名は死傷が強盗の機会に生じたかで決まる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">死傷が生じた場面を1つ差し替える</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">逃走の際に振り払って負傷 → 財物を奪うための脅迫で負傷</p><p class="dgm-cell is-ok">○ 強盗致傷罪</p><p class="dgm-cell">強取の手段そのものから生じた負傷<span class="dgm-src">240条前段</span></p><p class="dgm-cell is-rowhead">負傷させた → 死亡させた</p><p class="dgm-cell is-acc">別の罪名</p><p class="dgm-cell">強盗致死罪となり死刑又は無期拘禁刑<span class="dgm-src">240条後段</span></p><p class="dgm-cell is-rowhead">逃走の際の負傷 → 数日後に別の場所での負傷</p><p class="dgm-cell is-ng">✕ 強盗致傷罪にならない</p><p class="dgm-cell">強盗の機会性を欠き強盗罪<span class="dgm-src">236条1項</span>と傷害罪<span class="dgm-src">204条</span>の別罪</p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="刑法41条は14歳に満たない者の行為を罰しないと定める。これは犯罪の成立要件の三段目である責任のレイヤーの話で、まだ育ちきっていない者に非難を向けず、教育や福祉の手続へ委ねるという政策判断に基づく。背後の大人を重くするために置かれた規定ではない。これに対し間接正犯は、他人を道具のように一方的に使ったかという正犯性の問題であり、材料になるのは年齢そのものではなく、その者に善悪を見分ける力（<b>是非弁別能力</b>）があったか、指示が意思を抑え込む程度だったかである。つまり罰せられるかと道具かは<b>別のレイヤー</b>で、罰せられない者を使ったからといって、背後者が自動的に間接正犯になるわけではない。自分の頭で決めて動く者は<b>規範的障害</b>であり、道具とは呼べない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>14歳に満たない子どもは刑事手続ではなく児童相談所送致など児童福祉・少年保護の手続へ回り、捜査の力点は、背後の大人がどこまで指示し、利益を得ていたかの立証へ移っていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日の事案で使われたのは、刑法41条により刑事責任を問えない年齢の子だった。それでも背後の大人の関与形態は、間接正犯ではなく共同正犯として決着している。罰せられない者を使ったというだけでは道具にならないことが、この一件の名前とともに残る。</span>" data-brief-mark="甲について、強盗致傷罪の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>間接正犯が成立する</span><span class='tx-stmt-fix'>→ 是非弁別能力ある長男は道具でなく共同正犯（罪名＝強盗致傷は正しい）</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>間接正犯の成否は責任能力でなく被利用者の道具性（意思の自律性）で決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>是非弁別能力があり自ら決意・遂行した者は道具といえず、背後者は間接正犯にならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>14歳未満で不可罰（41条）でも、当然に間接正犯になるわけではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>12歳でも是非弁別能力ある長男が自律的に完遂＝間接正犯否定・共同正犯（最決平13.10.25）。罪名は正しい。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>被利用者を罰せるか（責任能力）と道具といえるか（正犯性）は別の層として切り分ける。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">罰せられるかと道具といえるかは別の層</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">利用された側</p><p class="dgm-cell is-head">その者を罰せるか</p><p class="dgm-cell is-head">背後者は間接正犯か</p><p class="dgm-cell is-rowhead">是非弁別能力があり自らの意思で決意した12歳</p><p class="dgm-cell is-ng">✕ 罰しない<span class="dgm-src">41条</span></p><p class="dgm-cell is-ng">✕ 規範的障害があり道具でない</p><p class="dgm-cell is-rowhead">是非弁別能力のない幼児</p><p class="dgm-cell is-ng">✕ 罰しない<span class="dgm-src">41条</span></p><p class="dgm-cell is-ok">○ 道具の利用にあたる</p><p class="dgm-cell is-rowhead">犯罪事実を知らされていない成人</p><p class="dgm-cell is-ng">✕ 故意がなく罰せられない</p><p class="dgm-cell is-ok">○ 道具の利用にあたる</p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="強盗致傷罪（240条）は、強盗という基本の犯罪に死傷の結果が加わって刑が重くなる<b>結果的加重犯</b>である。重くする理由は、財物を奪うための暴行・脅迫にもともと人を傷つける危険が含まれているからで、その危険が現実になったときは、傷つけるつもりがなくても加重される。この理屈は共同正犯にもそのまま伸びる。相談の中身が強盗どまりでも、基本の犯罪を共同して実行すると決めた以上、そこに含まれていた危険が現実になった結果は、共謀に加わった者にも<b>帰属</b>する。効いてくるのは、共謀した内容と結果が帰属する範囲は同じ幅ではないという見方で、傷害致死など他の加重類型でも同じ形が繰り返される。もっとも無制限ではなく、時間も場所も切れた別の機会の出来事であれば、<b>共謀の射程</b>の外として切れる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は、傷害が共謀の射程を外れた別の機会の出来事だと争い、検察官は奪取行為との時間的・場所的な接着を示して強盗の機会に生じたことを立証する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>昭和26年3月27日に最高裁が扱ったのは、強盗を共謀した者のうち実行した側が被害者を負傷させた事案である。相談の中身は強盗までだった者について、罪名が強盗にとどまるのか、強盗致傷まで広がるのかが争われた。</span>" data-brief-mark="甲について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>強盗罪</span><span class='tx-stmt-fix'>→ 機会の致傷が帰属し強盗致傷罪の範囲</span>の共同正犯が成立する。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>強盗を共謀した共犯者は、その一人が強盗の機会に生じさせた致傷につき責任を負う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>基本犯の共謀があれば加重結果は機会性を介して共犯者へ帰属する（予見・共謀は不要）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>逃走中の暴行による傷害も強盗の機会の傷害＝強盗致傷罪（240条前段）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は強盗の共同実行の意思のみでも強盗致傷罪の範囲で共同正犯（最判昭26.3.27）。形態は正しいが罪名が軽すぎる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>基本の犯罪の共謀があれば、その機会に生じた加重結果まで共謀者に帰属する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">共謀した犯罪と生じた結果で罪名が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">共謀した内容</p><p class="dgm-cell is-head">その機会に生じた結果</p><p class="dgm-cell is-head">共謀者に帰属する罪名</p><p class="dgm-cell is-rowhead">強盗</p><p class="dgm-cell">負傷</p><p class="dgm-cell">強盗致傷罪の共同正犯<span class="dgm-src">240条前段</span></p><p class="dgm-cell is-rowhead">強盗</p><p class="dgm-cell">死亡</p><p class="dgm-cell">強盗致死罪の共同正犯<span class="dgm-src">240条後段</span></p><p class="dgm-cell is-rowhead">傷害</p><p class="dgm-cell">死亡</p><p class="dgm-cell">傷害致死罪の共同正犯<span class="dgm-src">205条</span></p><p class="dgm-cell is-rowhead">強盗</p><p class="dgm-cell">時間も場所も切れた別の機会の負傷</p><p class="dgm-cell is-ng">✕ 加重結果として帰属せず強盗罪どまり<span class="dgm-src">236条1項</span></p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="背後にいる者の最終的な罪責は、関与形態を決める規定群（共同正犯の60条・教唆犯の61条）と、罪名の広がりを決める規定群（強盗罪の236条・強盗致傷罪の240条）という、別々の柱に支えられている。60条が一部の実行で全部の責任を負わせるのは、共謀によって互いの行為を利用し補い合う関係が生まれるからであり、240条が刑を重くするのは、強盗の暴行・脅迫に人が傷つく危険が貼りついているからで、両者の趣旨はもともと別物である。だから確定の順序も<b>独立</b>していて、利用された側の自律性で形態を決め、死傷の結果が強盗の機会に生じたかで罪名を決め、最後に二つを<b>重ね合わせる</b>。同じ一つの事実が、取り分の独占としては形態の軸に、逃走中の負傷としては罪名の軸にと、<b>別々の軸</b>で効くことにも慣れておきたい。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>判決書も、誰とどこまで共謀したかの認定と、どの条文を適用するかの判断を別の項目で組み立てる。争点整理の段階でも、形態を争う事件と罪名を争う事件では、主張立証の設計が変わってくる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>平成13年10月25日の事案で、実際に店へ入って現金を奪ったのは12歳の子であり、背後の大人は現場にいない。それでも刑事責任の重さは、現場にいたかどうかでは決まらなかった。関与形態と罪名という二本の物差しが、離れた場所にいた者を最も重い位置に置いている。</span>" data-brief-mark="甲について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>強盗致傷罪の共同正犯が成立する</span>（間接正犯否定＋正犯意思＋機会の致傷の帰属＝3論点クリア・正解）。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>甲は強盗致傷罪の共同正犯（間接正犯否定＋正犯意思＋機会の致傷の帰属）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>関与形態と罪名の2軸をともに満たす唯一の記述。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>乙は12歳で不可罰でも、制限従属性説の下で甲の共同正犯成立を妨げない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>間接正犯否定・共同正犯（最決平13.10.25）＋機会の致傷（最判昭24.5.28）＋加重結果の帰属（最判昭26.3.27）＝強盗致傷罪の共同正犯。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>関与形態と罪名は別の軸で確定し、両方が合う交点で罪責が決まる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">関与形態の三分は決め手と刑が違う</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">関与形態</p><p class="dgm-cell is-head">決め手</p><p class="dgm-cell is-head">刑</p><p class="dgm-cell is-rowhead">共同正犯<span class="dgm-src">60条</span></p><p class="dgm-cell">共謀＋自己の犯罪とする正犯意思</p><p class="dgm-cell">一部実行全部責任</p><p class="dgm-cell is-rowhead">教唆犯<span class="dgm-src">61条</span></p><p class="dgm-cell">人に犯意を生ぜしめて実行させた</p><p class="dgm-cell">正犯の刑を科する</p><p class="dgm-cell is-rowhead">幇助犯<span class="dgm-src">62条</span></p><p class="dgm-cell">決意済みの者の実行を容易にした</p><p class="dgm-cell">正犯の刑を減軽<span class="dgm-src">63条</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

@@ -5586,7 +5586,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5607,9 +5631,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6232,11 +6391,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:x,4:x,5:x">
           <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
           <tbody>
-            <tr data-stmt="1" data-verdict="x" data-brief-mark="Ⅰの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も違法性が阻却される</span><span class='tx-stmt-fix'>→ 甲は適用否定で違法性が阻却されず、阻却されるのは正当防衛となる丙のみ</span>。<span class='tx-anscomp-line'>緊急避難（刑法37条1項）を違法性阻却事由と解し、犯罪者に利用され不法を行う側に立つ者への適用を否定する立場では、避難者の行為は違法のままで、これに反撃した者のみが<strong>正当防衛（36条1項）</strong>として違法性を阻却される。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>緊急避難（37条1項）は「現在の危難を避けるため、やむを得ずにした行為」を不処罰とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>正対正の関係で、より大きな法益を守るための必要やむを得ない侵害を許容する（法益衡量）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>違法性阻却事由と解しても、犯罪者に利用され不法を行う側に立つ者には適用を否定する立場がある。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>適用が否定されれば避難者は違法のまま残り、その違法な行為への反撃は正当防衛（36条1項）になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「利用された避難者」型は、まず適用の可否で避難者の適法・違法を決め、それが相手方の性質を決める。</p></div></td></tr>
-            <tr data-stmt="2" data-verdict="o" data-brief-mark="Ⅱの立場によれば、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>甲の行為も丙の行為も違法性が阻却される</span>。<span class='tx-anscomp-line'>緊急避難（37条1項）を違法性阻却事由と解し利用された者にも要件充足で適用を認める立場では、避難者の行為は<strong>違法性が阻却</strong>され、その適法な行為に対する反撃も緊急避難として違法性を阻却される。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>37条1項は要件を充たす避難行為を違法性阻却事由として不処罰にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>優越的利益の保護。適法な避難行為に対しては正当防衛は成立しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用された者にも要件充足で適用を認めれば、避難者の行為は適法になる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>避難者が適法なら、その行為は急迫不正の侵害でなく、相手方の反撃は緊急避難になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>違法性阻却説は法益が同価値でも違法性を阻却する（責任阻却にとどめない）。</p></div></td></tr>
-            <tr data-stmt="3" data-verdict="x" data-brief-mark="Ⅲの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も責任が阻却され得るにとどまる</span><span class='tx-stmt-fix'>→ 甲は適用否定で違法・有責、丙は正当防衛で違法性阻却＝いずれも責任阻却どまりではない</span>。<span class='tx-anscomp-line'>二分説（原則違法性阻却・同価値なら責任阻却）でも、犯罪者に利用された者への適用を否定すれば、避難者は<strong>違法・有責</strong>のまま残り、これに反撃した者は正当防衛として違法性を阻却される。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>二分説は37条1項を原則違法性阻却・法益同価値の場合は責任阻却事由と解する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>優越利益なら違法性阻却、同価値なら期待可能性の減少による責任阻却で説明する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用された者には適用を否定する立場では、責任阻却にすら至らない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>適用否定なら避難者は違法・有責で確定し、反撃は正当防衛で違法性阻却になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「二分説＝責任阻却」と短絡せず、まず適用の可否（上流）を確認する。</p></div></td></tr>
-            <tr data-stmt="4" data-verdict="x" data-brief-mark="Ⅳの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も違法性が阻却される</span><span class='tx-stmt-fix'>→ 甲は違法性阻却だが、丙は身体対身体の同価値ゆえ責任阻却にとどまる</span>。<span class='tx-anscomp-line'>二分説＋適用肯定では、生命対身体の<strong>非同価値</strong>ゆえ避難者は違法性が阻却されるが、身体対身体の同価値ゆえ反撃者は<strong>責任阻却</strong>にとどまり違法性は阻却されない。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>二分説＋適用肯定では、利用された避難者にも37条1項が適用される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>法益の価値関係で、違法性阻却か責任阻却かが分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>避難者は身体対生命の非同価値ゆえ違法性阻却、反撃者は身体対身体の同価値。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>同価値の反撃者は責任阻却にとどまり、違法性は阻却されない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>違法性阻却か責任阻却かは、行為者ごとに保全・被侵害法益の価値を比べて別々に判定する。</p></div></td></tr>
-            <tr data-stmt="5" data-verdict="x" data-brief-mark="Ⅳの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も責任が阻却され得るにとどまる</span><span class='tx-stmt-fix'>→ 甲は身体対生命の非同価値ゆえ違法性が阻却され、責任阻却にとどまらない</span>。<span class='tx-anscomp-line'>二分説＋適用肯定でも、生命対身体の非同価値ゆえ避難者は<strong>違法性が阻却</strong>され責任阻却にとどまらず、責任阻却にとどまるのは同価値の反撃者のみである。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>二分説＋適用肯定でも、法益が非同価値なら違法性まで阻却される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>優越利益（生命＞身体）の保護なら違法性阻却で足りる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>避難者は生命対身体の非同価値ゆえ違法性阻却で、責任阻却にとどまらない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>責任阻却にとどまるのは同価値の反撃者のみで、避難者とは止まる階が違う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>結論をそろえたがる形は罠。優越利益側は違法性阻却・同価値側は責任阻却の段違いで判定する。</p></div></td></tr>
+            <tr data-stmt="1" data-verdict="x" data-brief-story="緊急避難（刑法37条1項）は正当防衛（36条1項）と並ぶ緊急行為だが、刃の向く先が違い、正当防衛が襲ってきた不正な相手に向かう<b>正対不正</b>であるのに対し、緊急避難は何の落ち度もない第三者に向かう<b>正対正</b>である。落ち度のない人に負担を押しつける以上、37条1項は「これによって生じた害が避けようとした害の程度を超えなかった場合に限り」と<b>害の均衡</b>を求め、36条1項にはこの縛りを置かなかった。この差は、避難行為を受けた側が反撃できるかという場面で表に出る。37条の保護が与えられて避難行為が適法になれば、それは急迫不正の侵害（襲いかかってくる違法な攻撃）ではないから、正当防衛の出番はない。逆に保護が与えられず違法のまま残れば、侵害の不正さが立ち、反撃した側は正当防衛で救われる。誰に37条の傘を差すかという上流の一手が、下流の枠組みごと決めてしまう。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務で緊急避難が正面から認められる例は乏しく、検察官は危難の現在性や他に手段が無かったかを突いて争う。弁護人は正当防衛を主位に立てつつ、届かないときに備えて過剰避難（37条1項ただし書）による刑の減免へ重心を移すのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1977年9月28日、日本赤軍にハイジャックされた日本航空機がダッカに降り、犯人側は身代金600万ドルと収監中の仲間の釈放を要求した。福田赳夫首相は「一人の人間の生命は地球より重い」として要求に応じ、身代金を支払って仲間を釈放させている。犯人に強いられて第三者の利益を差し出した側を法がどう扱うかは、国家が当事者になってさえ答えの出しにくい問いだった。</span>" data-brief-mark="Ⅰの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も違法性が阻却される</span><span class='tx-stmt-fix'>→ 甲は適用否定で違法性が阻却されず、阻却されるのは正当防衛となる丙のみ</span>。<span class='tx-anscomp-line'>緊急避難（刑法37条1項）を違法性阻却事由と解し、犯罪者に利用され不法を行う側に立つ者への適用を否定する立場では、避難者の行為は違法のままで、これに反撃した者のみが<strong>正当防衛（36条1項）</strong>として違法性を阻却される。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>緊急避難（37条1項）は「現在の危難を避けるため、やむを得ずにした行為」を不処罰とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>正対正の関係で、より大きな法益を守るための必要やむを得ない侵害を許容する（法益衡量）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>違法性阻却事由と解しても、犯罪者に利用され不法を行う側に立つ者には適用を否定する立場がある。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>適用が否定されれば避難者は違法のまま残り、その違法な行為への反撃は正当防衛（36条1項）になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「利用された避難者」型は、まず適用の可否で避難者の適法・違法を決め、それが相手方の性質を決める。</p></div></td></tr>
+            <tr data-stmt="2" data-verdict="o" data-brief-story="緊急避難をすべて違法性阻却と捉える立場は、37条1項が<b>害の均衡</b>（避難で生じた害が避けようとした害を超えないこと）だけを求め、正当防衛のように「不正な相手」を要求していない点を手がかりにする。法秩序がその行為を許した以上、犠牲になる側は受忍せよ、というのがこの立場の趣旨である。裏返せば、許された行為に対して<b>正当防衛</b>で反撃することはできない。36条1項の急迫「不正」の侵害という入口を通れないからである。そこで、避難行為を受けた側が身を守るときは、もう一度37条の土俵に戻り、害の均衡と補充性（他に取り得る手段が無いこと）を自分でも満たさなければならない。避難が避難を呼ぶこの<b>連鎖</b>は、正当防衛では起こらない緊急避難特有の景色である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>適法行為への反撃は正当防衛にならないため、防衛した側も害の均衡と補充性という重い要件を背負うことになる。実務では主位的に正当防衛、予備的に緊急避難と二段構えで主張し、どちらで拾えるかを争うのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1884年、英国のヨット「ミニョネット号」が南大西洋で沈み、救命艇で数週間漂流した4人のうち2人が、最も衰弱した1人を殺して生き延びた。救助された2人は英国で殺人罪に問われ、有罪とされている。同じ重さの生命どうしがぶつかる場面でも違法性は消えるのだと言い切る構成が、いかに思い切ったものかがわかる。</span>" data-brief-mark="Ⅱの立場によれば、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>甲の行為も丙の行為も違法性が阻却される</span>。<span class='tx-anscomp-line'>緊急避難（37条1項）を違法性阻却事由と解し利用された者にも要件充足で適用を認める立場では、避難者の行為は<strong>違法性が阻却</strong>され、その適法な行為に対する反撃も緊急避難として違法性を阻却される。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>37条1項は要件を充たす避難行為を違法性阻却事由として不処罰にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>優越的利益の保護。適法な避難行為に対しては正当防衛は成立しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用された者にも要件充足で適用を認めれば、避難者の行為は適法になる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>避難者が適法なら、その行為は急迫不正の侵害でなく、相手方の反撃は緊急避難になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>違法性阻却説は法益が同価値でも違法性を阻却する（責任阻却にとどめない）。</p></div></td></tr>
+            <tr data-stmt="3" data-verdict="x" data-brief-story="二分説は、37条1項の「超えなかった場合」に<b>優越利益</b>（守った利益のほうが大きい）と<b>同価値</b>の両方が入ることに目を付け、前者は違法性阻却、後者は責任阻却と振り分ける。趣旨は、法益が釣り合っているとき法はどちらを助けよとは命じられないが、追い詰められた人を責めることもできない、という二段の判断にある（責任阻却の実質は<b>期待可能性</b>＝そのとき別の行動を取れと言えるか、の欠如である）。ただし、この振り分けは37条の保護をいったん与えたうえで階を下げる話にすぎない。犯罪者の道具として使われた者にそもそも37条を差し向けるかどうかは、それより一段上流の問いであり、ここで門前払いをすれば違法性も責任も残る。同じ「阻却されない」でも、上流で拒まれたのか下流で階が止まったのかは、まったく別の出来事である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>違法性が消えるか責任だけが消えるかは、共犯の成否や第三者の反撃可否に響くため正面から争われる。弁護人は違法性阻却を主位に置き、届かなければ責任阻却、さらに過剰避難による刑の減免へと退がる組み立てを取る。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1977年のダッカでの日本政府の対応は、法律のどの条文で正当化されるかを詰めた結果ではなく、超法規的措置という名前で処理された。法の中で責任の階まで降りて許すのと、そもそも法の枠の外に置くのとでは、同じ「罰しない」でも意味がまるで違う。この呼び名は、上流で拒むことと下流で階が止まることの落差を、そのまま言い当てている。</span>" data-brief-mark="Ⅲの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も責任が阻却され得るにとどまる</span><span class='tx-stmt-fix'>→ 甲は適用否定で違法・有責、丙は正当防衛で違法性阻却＝いずれも責任阻却どまりではない</span>。<span class='tx-anscomp-line'>二分説（原則違法性阻却・同価値なら責任阻却）でも、犯罪者に利用された者への適用を否定すれば、避難者は<strong>違法・有責</strong>のまま残り、これに反撃した者は正当防衛として違法性を阻却される。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>二分説は37条1項を原則違法性阻却・法益同価値の場合は責任阻却事由と解する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>優越利益なら違法性阻却、同価値なら期待可能性の減少による責任阻却で説明する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用された者には適用を否定する立場では、責任阻却にすら至らない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>適用否定なら避難者は違法・有責で確定し、反撃は正当防衛で違法性阻却になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「二分説＝責任阻却」と短絡せず、まず適用の可否（上流）を確認する。</p></div></td></tr>
+            <tr data-stmt="4" data-verdict="x" data-brief-story="二分説が同価値を責任の階で止めるのは、そこで違法性まで消してしまうと、犠牲にされる側が正当防衛も何もできず、ただ差し出されるほかなくなるからである。生命と生命、身体と身体のように<b>同価値</b>がぶつかる場面では、法は勝ち負けを決めず、行為の違法さは残したまま、追い詰められた行為者を責めないという形で処理する。これに対し、生命を守るために他人の身体を傷つけたような<b>優越利益</b>の避難なら、守った側が明らかに重いので違法性の階で消える。大事なのは、この価値比較が<b>行為者ごと</b>に行われることである。ひとつながりの出来事に複数の人が関わっていても、それぞれが何を守り何を犠牲にしたかは違うから、止まる階も人によって変わる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>価値の比較は生命・身体・自由・財産という大枠の序列を出発点に、被害の回復可能性まで含めて具体的に行う。刑事で罰せられなくても民事の賠償責任まで当然に消えるわけではないので、示談交渉は別に進むのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>ミニョネット号の2人に下されたのは殺人罪の有罪と死刑判決であり、法は行為そのものを許さなかった。その一方で刑は特赦により禁錮6か月まで下げられている。生命と生命という同じ階の衝突では、行為の是非は動かず、汲むべき事情は責められ方の側に現れた。この段差の感覚が、同価値なら責任阻却という発想に重なる。</span>" data-brief-mark="Ⅳの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も違法性が阻却される</span><span class='tx-stmt-fix'>→ 甲は違法性阻却だが、丙は身体対身体の同価値ゆえ責任阻却にとどまる</span>。<span class='tx-anscomp-line'>二分説＋適用肯定では、生命対身体の<strong>非同価値</strong>ゆえ避難者は違法性が阻却されるが、身体対身体の同価値ゆえ反撃者は<strong>責任阻却</strong>にとどまり違法性は阻却されない。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>二分説＋適用肯定では、利用された避難者にも37条1項が適用される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>法益の価値関係で、違法性阻却か責任阻却かが分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>避難者は身体対生命の非同価値ゆえ違法性阻却、反撃者は身体対身体の同価値。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>同価値の反撃者は責任阻却にとどまり、違法性は阻却されない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>違法性阻却か責任阻却かは、行為者ごとに保全・被侵害法益の価値を比べて別々に判定する。</p></div></td></tr>
+            <tr data-stmt="5" data-verdict="x" data-brief-story="同じ37条のもとでも、止まる階は避難した人ごとに違いうる。守った利益が犠牲にした利益より重い<b>優越利益</b>の避難は違法性の階で消え、釣り合っているだけの<b>同価値</b>の避難は責任の階まで降りて初めて処罰を免れる。生命を守るために他人の身体を傷つけるのが前者、身体を守るために他人の身体を傷つけるのが後者にあたる。趣旨に戻れば、違法性阻却はその行為を法が許すという<b>客観</b>の評価、責任阻却はその人をこれ以上責められないという<b>主観</b>の評価であり、答えを出す土俵がそもそも別である。だから一人の避難が別の人の避難を呼ぶ連鎖型では、同じ条文のもとで一方は適法、他方は違法だが不可罰、という段差がそのまま残る。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>関係者が複数いる事件では、一人ずつ何を守り何を犠牲にしたかを書き出して価値を比べるのが出発点になる。同じ現場に居合わせても、起訴されるかどうか、どの構成で不起訴になるかは人によって分かれる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>ミニョネット号の救命艇には4人が乗り、うち1人が殺された。手を下した2人は殺人罪に問われた一方、これに反対して加わらなかった1人は訴追されず、法廷では証人に立っている。同じ船で同じ飢えと渇きの中にいても、何をしたかで法の扱いは分かれた。避難の場面で結論を人数分そろえる必要はない。</span>" data-brief-mark="Ⅳの立場によれば、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>甲の行為も丙の行為も責任が阻却され得るにとどまる</span><span class='tx-stmt-fix'>→ 甲は身体対生命の非同価値ゆえ違法性が阻却され、責任阻却にとどまらない</span>。<span class='tx-anscomp-line'>二分説＋適用肯定でも、生命対身体の非同価値ゆえ避難者は<strong>違法性が阻却</strong>され責任阻却にとどまらず、責任阻却にとどまるのは同価値の反撃者のみである。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>二分説＋適用肯定でも、法益が非同価値なら違法性まで阻却される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>優越利益（生命＞身体）の保護なら違法性阻却で足りる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>避難者は生命対身体の非同価値ゆえ違法性阻却で、責任阻却にとどまらない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>責任阻却にとどまるのは同価値の反撃者のみで、避難者とは止まる階が違う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>結論をそろえたがる形は罠。優越利益側は違法性阻却・同価値側は責任阻却の段違いで判定する。</p></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -6481,16 +6640,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6525,7 +6699,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6538,6 +6717,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6546,12 +6726,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

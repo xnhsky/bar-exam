@@ -5402,6 +5402,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-ANSCOMP:BEGIN v13.1.0 答案圧縮（2026-07-28 追加・記述原文統合・版据置）
@@ -5667,6 +5682,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5955,35 +6205,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴訟の著しい遅滞を避け、又は当事者間の衡平を図るための移送は、被告の申立てによることなく、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>裁判所が職権ですることはできない</span><span class="tx-stmt-fix">→ 申立てにより又は職権ですることができる（17条）</span>。<span class="tx-anscomp-line">訴訟の著しい遅滞を避け、又は当事者間の衡平を図るため必要があると認めるときは、第一審裁判所は<strong>申立てにより又は職権で</strong>訴訟を他の管轄裁判所に移送することができる（民訴法17条）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。移送は当事者が申し立てないと動かない手続だ、と思いたくなる。でも<a class="ref-stat" id="ref-law-17-101" href="#bref-1-17">17条</a>の裁量移送（審理の遅れや不公平を避けるため事件を別の裁判所へ送るしくみ）は、条文みずから『申立てにより<strong>又は職権で</strong>』と書いている。つまり当事者の申立てが無くても、裁判所が自分の判断（＝職権）で移送してよい。だから「職権ですることはできない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">著しい遅滞や衡平のための移送は、<strong>職権</strong>でもすることができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">移送の根拠と発動</span><span class="tx-gist-step">移送の効力</span><span class="tx-gist-step">移送の制限</span><span class="tx-gist-step">管轄の標準時</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">裁量移送は、当事者が申し立てなければ動かせないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">ある地方裁判所に訴えが起こされましたが、当事者も、尋問すべき証人も、見に行くべき現場も、そろって遠く離れた土地にあります。このまま審理を続ければ、期日のたびに関係者が長距離を移動することになり、審理はなかなか進みません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">この状態を裁判所が見かねたとき、当事者がだれも言い出さなくても、裁判所の判断だけで事件を別の裁判所へ動かせるのか。<strong>裁量移送</strong>を動かすスイッチをだれが握っているのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-1-17" id="ref-law-17-101">民訴法17条</a>は、第一審裁判所は、訴訟の著しい遅滞を避け、又は当事者間の衡平を図るため必要があると認めるときは、「申立てにより<strong>又は職権で</strong>」訴訟の全部又は一部を他の管轄裁判所に移送することができる、と定めています。条文みずから職権による発動を書き込んでいます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">裁量移送は、適正で迅速な審理という公益にかかわる場面だからだと説明されます。当事者が自分の不利益に気づかなかったり、相手方との関係で言い出しにくかったりしても、審理が停滞すること自体は裁判所が引き受けるべき問題です。そこで発動のスイッチを当事者だけに握らせず、裁判所にも持たせています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>裁量移送</span></dt><dd>管轄はあるのに、著しい遅滞の回避や当事者間の衡平のため必要と認めるとき、第一審裁判所が事件を他の管轄裁判所へ移すこと（民訴法17条）。</dd></div><div class="tx-gist-term"><dt><span>職権</span></dt><dd>当事者の申立てを待たず、裁判所が自らの判断で手続を進めること。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「職権ですることはできない」が逆。17条は申立てによる移送と職権による移送の両方を認める。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>条文の文言を見る</strong><span class="syn-body">17条は『第一審裁判所は…訴訟の著しい遅滞を避け、又は当事者間の衡平を図るため必要があると認めるときは、<span class="case-emphasis freq-high">申立てにより又は職権で</span>、訴訟の全部又は一部を他の管轄裁判所に移送することができる』と規定し、申立てと職権の両方を明記している。</span></p>
 <p><span class="syn-step">2</span><strong>職権移送を認める趣旨</strong><span class="syn-body">裁量移送は、適正かつ迅速な審理の実現という<span class="ron-mark freq-high">公益</span>にかかわる。だから当事者の申立てを待たずとも、裁判所が自ら移送を発動できるようにしている。職権ですることができない、とする本記述は条文の効果を取り違えた誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「申立てにより<strong>又は</strong>職権で」＝当事者が言い出さなくても裁判所が自分で動ける。17条の移送はスイッチが二つ（当事者・裁判所）。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>17条の要件・効果</strong>：訴訟の著しい遅滞の回避／当事者間の衡平のため必要があると認めるとき、<a class="ref-stat" href="#bref-1-17">申立てにより又は職権で移送できる</a>。</li>
-<li><strong>職権移送の可否</strong>：条文が「職権で」を明記＝当事者の申立てが無くても裁判所が移送を発動できる。</li>
-<li><strong>ひっかけの型</strong>：移送は当事者の申立てが必須と思い込ませる。17条の裁量移送は職権移送も認める（公益にかかわるため）。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>職権で動くのは16・17・18条、19条だけは申立てと相手方の同意。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-1-17" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法17条 遅滞を避ける等のための移送（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">第一審裁判所は、訴訟がその管轄に属する場合においても、当事者及び尋問を受けるべき証人の住所、使用すべき検証物の所在地その他の事情を考慮して、訴訟の著しい遅滞を避け、又は<span class="case-emphasis freq-mid">当事者間の衡平</span>を図るため必要があると認めるときは、<span class="ron-mark freq-high">申立てにより又は職権で</span>、訴訟の全部又は一部を他の管轄裁判所に移送することができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-1-17" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法17条 遅滞を避ける等のための移送（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">第一審裁判所は、訴訟がその管轄に属する場合においても、当事者及び尋問を受けるべき証人の住所、使用すべき検証物の所在地その他の事情を考慮して、訴訟の著しい遅滞を避け、又は<span class="case-emphasis freq-mid">当事者間の衡平</span>を図るため必要があると認めるときは、<span class="ron-mark freq-high">申立てにより又は職権で</span>、訴訟の全部又は一部を他の管轄裁判所に移送することができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">管轄裁判所に係属していても、<span class="case-emphasis freq-high">訴訟の著しい遅滞の回避／当事者間の衡平</span>のため必要があると認めるときは、申立てにより又は職権で他の管轄裁判所に移送できる（裁量移送）。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">趣旨</span><span class="kd-text">適正かつ迅速な審理の実現という公益にかかわるため、当事者の申立てを待たずに裁判所の職権発動を認めた。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">17条は職権移送を明文で認めるから、「職権ですることはできない」とする記述1は誤り。専属的合意管轄があっても17条の裁量移送は封じられない（記述4・20条1項かっこ書）。</span></div>
 </div></div></details></div>
-<div id="bref-1-16" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法16条1項 管轄違いに基づく移送（比較）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">裁判所は、訴訟の全部又は一部がその管轄に属しないと認めるときは、<span class="ron-mark freq-high">申立てにより又は職権で</span>、これを管轄裁判所に移送する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-1-16" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法16条1項 管轄違いに基づく移送（比較）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">裁判所は、訴訟の全部又は一部がその管轄に属しないと認めるときは、<span class="ron-mark freq-high">申立てにより又は職権で</span>、これを管轄裁判所に移送する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">管轄違いの場合の移送。これも申立てにより又は職権で発動でき、管轄裁判所に移送する（羈束的）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">16条も17条と同じく職権移送を認める。移送には職権発動が広く認められる（記述1・記述5の16条1項移送も同様）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">17条は『申立てにより又は職権で』移送できると規定し、職権移送を明文で認める。管轄違いの移送（16条1項）も同様に職権で発動できる。本記述は職権移送を否定する点で誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>移送＝当事者の申立てが前提、という思い込みが罠</strong>。移送には、当事者の申立て（と相手方の同意）を要する必要的移送（19条1項）もあれば、<strong>職権でも発動できる</strong>移送（16条の管轄違い移送・17条の裁量移送）もある。どちらかは<strong>条文が「申立てにより又は職権で」と書くか、「申立てがあるとき」と書くか</strong>という文言の違いで決まる——「申立ての要否は条文の文言で切る」発想は、18条（簡裁→地裁の裁量移送）や19条（必要的移送）の区別でも横に効く。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>移送を動かせるのが誰かは、条文ごとに入れ替わる。</strong>16条1項の管轄違いの移送も18条の簡裁から地裁への裁量移送も「申立てにより又は職権で」と定めるから職権で動くが、19条1項の必要的移送だけは<em>当事者の申立てと相手方の同意</em>がそろって初めて動き、職権では動かせない。</span><div class="tx-dgm is-matrix" data-dgm="012-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">17条の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">17条の裁量移送 → 16条1項の管轄違いの移送</p><p class="dgm-cell is-ok">○ 職権でできる</p><p class="dgm-cell">「申立てにより又は職権で」管轄裁判所へ移送する<span class="dgm-src">16条1項</span></p><p class="dgm-cell is-rowhead">17条の裁量移送 → 18条の簡裁から地裁への裁量移送</p><p class="dgm-cell is-ok">○ 職権でできる</p><p class="dgm-cell">相当と認めるとき、申立て又は職権で移送できる<span class="dgm-src">18条</span></p><p class="dgm-cell is-rowhead">17条の裁量移送 → 19条1項の必要的移送</p><p class="dgm-cell is-ng">✕ 職権ではできない</p><p class="dgm-cell">当事者の申立てと相手方の同意がそろって初めて動く<span class="dgm-src">19条1項</span></p><p class="dgm-cell is-rowhead">管轄に属する事件 → 法律の定める専属管轄の事件</p><p class="dgm-cell is-ng">✕ 移送できない</p><p class="dgm-cell">17条から19条は専属管轄の事件に適用しない<span class="dgm-src">20条1項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6001,37 +6240,25 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>簡易裁判所に係属する本訴に対し、本訴被告が反訴で地方裁判所の管轄に属する請求をした場合において、本訴原告の申立てがあるときは、簡易裁判所は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>本訴及び反訴を地方裁判所に移送しなければならない</span>。<span class="tx-anscomp-line">簡易裁判所に係属する事件で被告が反訴により地方裁判所の管轄に属する請求をした場合、相手方（＝反訴被告＝本訴原告）の申立てがあるときは、簡易裁判所は決定で<strong>本訴及び反訴を地方裁判所に移送しなければならない</strong>（民訴法274条1項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。本訴も反訴も同じ簡易裁判所でまとめて審理すればよい、と思いたくなる。でも被告が反訴で<strong>地方裁判所の管轄に属する（＝簡裁では扱えない規模の）請求</strong>を持ち出したとき、その反訴被告（＝本訴原告）が申し立てれば、簡裁は本訴と反訴をまとめて地方裁判所へ移送しなければならない（<a class="ref-stat" id="ref-law-274-201" href="#bref-2-274">274条1項</a>）。反訴被告が本来受けられるはずの「地方裁判所で審理される利益（事物管轄の利益）」を守るしくみ。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">地方裁判所の管轄に属する反訴が出れば、簡易裁判所は<strong>必要的に移送する</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">移送の根拠と発動</span><span class="tx-gist-step">移送の効力</span><span class="tx-gist-step">移送の制限</span><span class="tx-gist-step">管轄の標準時</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">簡易裁判所の訴訟に大きな反訴が出たとき、だれの申立てで、どこへ動くのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">少額の売買代金を求めて簡易裁判所に訴えが起こされたところ、被告が反訴で、地方裁判所でなければ扱えない規模の請求をぶつけてきました。訴えた側から見れば、小さな請求のつもりで簡易裁判所を選んだのに、大きな争いをそこで受けて立つことになります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">本来なら地方裁判所で審理を受けられるはずの規模の請求について、簡易裁判所での応訴を強いてよいのか。<strong>事物管轄</strong>の利益をだれがどう守るのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-2-274" id="ref-law-274-201">民訴法274条1項</a>は、被告が反訴で地方裁判所の管轄に属する請求をした場合において、相手方の申立てがあるときは、簡易裁判所は、決定で、本訴及び反訴を地方裁判所に移送しなければならない、と定めます。ここでいう相手方とは、反訴を受けた側、すなわち本訴を起こした側です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">大きな請求は地方裁判所で審理されるという利益を、反訴をぶつけられた側に取り戻させるしくみだと説明されます。移送するかどうかを裁判所の裁量に委ねず、申立てがあれば必ず移送する形にしたのは、その利益を確実に守るためです。あわせて本訴と反訴を同じ裁判所で審理でき、判断の食い違いも避けられます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>反訴</span></dt><dd>訴えられた被告が、同じ訴訟手続の中で原告を相手に起こす訴え。</dd></div><div class="tx-gist-term"><dt><span>事物管轄</span></dt><dd>訴額や事件の性質に応じた、簡易裁判所と地方裁判所の第一審の分担。簡易裁判所は訴額140万円を超えない請求を扱う（裁判所法33条1項1号）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">申立権者が本訴原告（＝相手方）、移送先が地方裁判所、効果が必要的移送という三点が274条1項どおり。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>274条1項の要件を当てる</strong><span class="syn-body">274条1項は、簡易裁判所に係属する事件で被告が反訴により地方裁判所の管轄に属する請求をした場合、『<span class="case-emphasis freq-high">相手方の申立てがあるとき</span>』は、簡易裁判所は決定で本訴・反訴を地方裁判所に移送しなければならない、とする。ここでの「相手方」は反訴被告＝<span class="ron-mark freq-high">本訴原告</span>。本記述の「本訴原告の申立て」はこれに一致する。</span></p>
 <p><span class="syn-step">2</span><strong>必要的移送であることを確認する</strong><span class="syn-body">条文は「移送しなければならない」と定め、要件を満たせば裁量の余地なく移送する（<span class="ron-mark freq-high">必要的移送</span>）。趣旨は、反訴被告が本来なら地方裁判所で審理を受けられる規模の請求について簡裁での応訴を強いられる不利益を避け（事物管轄の利益の尊重）、かつ本訴と反訴を併合して審理する点にある。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>反訴で“地裁級”の請求が来たら、簡裁は一式まとめて地裁へ引っ越し。引っ越しの号令を出せるのは、格上げされる側（反訴被告＝本訴原告）。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>274条1項の要件</strong>：簡裁の本訴で被告が反訴により<a class="ref-stat" href="#bref-2-274">地方裁判所の管轄に属する請求</a>→相手方（反訴被告＝本訴原告）の申立て→簡裁は本訴・反訴を地裁へ移送しなければならない。</li>
-<li><strong>必要的移送</strong>：条文は「移送しなければならない」＝要件を満たせば裁量の余地なく移送する（移送決定に不服申立て不可・274条2項）。</li>
-<li><strong>趣旨</strong>：反訴被告の事物管轄の利益の尊重＋本訴・反訴の併合審理。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>地裁級の反訴が来たら本訴ごと地裁へ。号令をかけるのは反訴を出された側。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-2-274" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法274条 反訴の提起に基づく移送（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">簡易裁判所に係属する事件につき被告が反訴で地方裁判所の管轄に属する請求をした場合において、<span class="case-emphasis freq-high">相手方の申立てがあるとき</span>は、簡易裁判所は、決定で、<span class="ron-mark freq-high">本訴及び反訴を地方裁判所に移送しなければならない</span>。この場合においては、第22条の規定を準用する。</span></p>
-<p class="hanging"><span class="para-num">②</span><span class="hang-body">前項の規定による移送の決定に対しては、不服を申し立てることができない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">②</span><span class="hang-body">前項の規定による移送の決定に対しては、不服を申し立てることができない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">簡裁の本訴＋被告の反訴が<span class="case-emphasis freq-high">地方裁判所の管轄に属する</span>請求＋相手方（反訴被告＝本訴原告）の申立て→本訴・反訴を地裁へ<span class="ron-mark freq-high">必要的移送</span>（22条準用）。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">趣旨</span><span class="kd-text">反訴被告が本来受けられる地方裁判所での審理という事物管轄の利益を尊重し、かつ本訴と反訴を併合審理する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">本訴原告（＝反訴被告）の申立てがあれば簡裁は本訴・反訴を地裁へ移送しなければならない（記述2は正しい）。</span></div>
 </div></div></details></div>
 <div id="bref-2-22" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法22条 移送の裁判の拘束力（274条が準用）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">確定した移送の裁判は、移送を受けた裁判所を拘束する。</span></p>
-<p class="hanging"><span class="para-num">③</span><span class="hang-body">移送の裁判が確定したときは、訴訟は、<span class="case-emphasis freq-mid">初めから移送を受けた裁判所に係属していたものとみなす</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">274条1項が22条を準用するため、地裁への移送が確定すると本訴・反訴は初めから地裁に係属していたものとみなされる。移送の効力の一般規定（記述3）とつながる。</span></div>
-</div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">274条1項は反訴被告（本訴原告）の申立てにより簡裁が本訴・反訴を地裁へ移送すべきものとする（必要的移送・22条準用）。反訴被告の事物管轄の利益尊重と併合審理が趣旨。本記述は正しい。</p>
+<p class="hanging"><span class="para-num">③</span><span class="hang-body">移送の裁判が確定したときは、訴訟は、<span class="case-emphasis freq-mid">初めから移送を受けた裁判所に係属していたものとみなす</span>。</span></p></div></div></div>
 </div>
 
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「申立てができるのは反訴を出した被告の方」と取り違える罠。</strong>274条1項の申立権者は<em>『相手方』＝反訴被告＝本訴原告</em>（格上げで審理を地裁で受けられる利益を持つ側）。<em>誰の利益のための制度か</em>を考えると申立権者が見える——19条1項の必要的移送（当事者の申立て＋相手方の同意）でも「不利益を受けない側の意思」を要求する点は共通で、移送の申立権は“守るべき利益の主体”に結び付く cross-cut。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>申立権者を入れ替えると答えが裏返る。</strong>274条1項の「相手方」は反訴被告＝本訴原告で、地方裁判所で審理を受ける利益を守られる側である。反訴を提起した被告の側から申し立てても必要的移送は動かず、残るのは<em>18条の裁量移送</em>だけになる。</span><div class="tx-dgm is-matrix" data-dgm="012-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">274条1項の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">本訴原告（反訴被告）の申立て → 反訴を提起した被告の申立て</p><p class="dgm-cell is-ng">✕ 移送されない</p><p class="dgm-cell">申立権者は「相手方」＝反訴被告の側<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">反訴が地方裁判所の管轄に属する請求 → 簡易裁判所の管轄内の請求</p><p class="dgm-cell is-ng">✕ 移送されない</p><p class="dgm-cell">地裁管轄の反訴であることが要件<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">本訴及び反訴を移送 → 反訴だけを移送</p><p class="dgm-cell is-ng">✕ できない</p><p class="dgm-cell">併せて審理するため本訴も一緒に送る<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">相手方の申立てがあるとき → 申立てがないとき</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">必要的移送は動かず、相当と認めるときの裁量移送が残るだけ<span class="dgm-src">18条</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="3" id="stmt-3">
@@ -6048,19 +6275,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>確定した移送の裁判は、移送を受けた裁判所を拘束するが、移送決定の確定後に新たな事由が生じたときは、移送を受けた裁判所は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>更に事件を他の裁判所に移送することができる</span>。<span class="tx-anscomp-line">確定した移送の裁判は受移送裁判所を拘束し（22条1項）、原則として再移送はできない（22条2項）。もっとも、22条2項の趣旨は返送・転送による審理の遅延防止にあるから、<strong>移送決定の確定後に生じた新事由に基づく再移送は妨げられない</strong>。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「確定した移送の裁判には拘束力があり、再移送はできない（<a class="ref-stat" id="ref-law-22-301" href="#bref-3-22">22条2項</a>）」と結論だけ丸暗記していると×にしたくなる。でも再移送を禁じるのは、同じ事情のまま事件を送り返したり別の裁判所へ回したりして審理が堂々巡りになるのを防ぐため。だから、移送が確定した<strong>後に新しい事情が生じた</strong>場合まで再移送を禁じる趣旨ではなく、その新事由に基づく再移送は許される。よって正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">確定後に生じた新たな事由に基づく再移送は、<strong>禁止の射程外</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">移送の根拠と発動</span><span class="tx-gist-step is-now">移送の効力</span><span class="tx-gist-step">移送の制限</span><span class="tx-gist-step">管轄の標準時</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">移送が確定した後に新しい事情が生じたとき、移送を受けた裁判所はもう一度動かせるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">事件を別の裁判所へ移す決定が確定し、審理はその新しい裁判所で始まりました。ところがその後、移送を決めた時には考えられていなかった事情が生まれ、さらに別の裁判所で審理したほうがよい状態になったとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">条文は、移送を受けた裁判所は更に事件を他の裁判所に移送することができない、と書いています。この<strong>再移送の禁止</strong>が、後から生じた事情の場合にまで及ぶのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-3-22" id="ref-law-22-301">民訴法22条2項</a>は再移送を禁じますが、その趣旨は、事件を送り返したり別の裁判所へ回したりして本案の審理が遅れるのを防ぐ点にあると説明されます。そこで、この趣旨が当てはまらない場面、つまり移送の裁判が確定した後に新たな事由が生じた場合の再移送は、禁止の射程外だと解されています。なお同条1項は、確定した移送の裁判が移送を受けた裁判所を拘束することを定めています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">禁止の狙いは、同じ事情のまま裁判所どうしが事件をたらい回しにし、当事者を待たせることを防ぐところにあります。確定した後に生まれた新しい事情に基づく移送は、たらい回しではなく、その時点でふさわしい裁判所を選び直すことです。条文の結論だけを覚えるのではなく、なぜ禁じたのかから射程を測ると、例外の入口が見えます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>拘束力</span></dt><dd>確定した移送の裁判の判断に、移送を受けた裁判所が従わなければならない効力（民訴法22条1項）。</dd></div><div class="tx-gist-term"><dt><span>再移送</span></dt><dd>移送を受けた裁判所が、その事件をさらに別の裁判所へ移すこと。原則として禁止される（同条2項）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">確定後に生じた新事由による再移送は、たらい回しを防ぐ22条2項の射程の外。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原則＝拘束力と再移送禁止</strong><span class="syn-body">22条1項は確定した移送裁判が<span class="case-emphasis freq-high">受移送裁判所を拘束する</span>と定め、2項は受移送裁判所が『更に事件を他の裁判所に移送することができない』として<span class="ron-mark freq-high">再移送（返送・転送）を禁止</span>する。</span></p>
 <p><span class="syn-step">2</span><strong>例外＝確定後の新事由</strong><span class="syn-body">22条2項の趣旨は、返送・転送によって本案審理が遅延し当事者の利益が害されるのを防ぐ点にある。したがって、移送決定の<span class="case-emphasis freq-high">確定後に生じた新たな事由</span>に基づく再移送は、この趣旨（たらい回しの防止）に反しないから妨げられない。結論だけでなく趣旨から射程を画すのがコツで、本記述はこの理解に一致する。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>再移送禁止は「事件のたらい回し防止」。ルールが変わる新事情が後から出たなら、たらい回しではないので、もう一度動かしてよい。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>原則</strong>：<a class="ref-stat" href="#bref-3-22">22条1項</a>＝確定した移送裁判は受移送裁判所を拘束／2項＝再移送（返送・転送）は禁止。</li>
-<li><strong>例外</strong>：22条2項の趣旨は審理遅延（たらい回し）の防止。確定後に生じた新事由に基づく再移送はこの趣旨に反せず許される。</li>
-<li><strong>ひっかけの型</strong>：「再移送は一律禁止」と条文の結論だけ暗記すると×を選ばされる。趣旨から例外（確定後の新事由）を導く。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>たらい回しは止める、後から出た新事情なら動かしてよい（22条2項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
@@ -6069,12 +6288,10 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <p class="hanging"><span class="para-num">③</span><span class="hang-body">移送の裁判が確定したときは、訴訟は、初めから移送を受けた裁判所に係属していたものとみなす。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">確定した移送裁判は受移送裁判所を拘束し（1項）、受移送裁判所による再移送（返送・転送）を禁止する（2項）。移送確定で訴訟は初めから受移送裁判所に係属していたものとみなす（3項）。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">趣旨</span><span class="kd-text">返送・転送による本案審理の遅延と当事者の利益侵害を防ぐ（＝事件のたらい回しの防止）。</span></div>
-<div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">趣旨に照らし、移送確定<span class="case-emphasis freq-high">後に生じた新事由</span>に基づく再移送は禁止の射程外＝妨げられない（記述3は正しい）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">22条1項2項は移送裁判の拘束力と再移送禁止を定めるが、2項の趣旨（返送・転送による審理遅延・たらい回しの防止）から、確定後に生じた新事由に基づく再移送は許される。本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「条文が“できない”と書いてあるから一律ダメ」と結論だけ暗記する罠。</strong>再移送禁止（22条2項）には<em>“たらい回しの防止”という趣旨</em>があり、その趣旨が及ばない場面（確定後の新事由）では例外が開く。<em>条文の結論ではなく趣旨から射程を画す</em>発想は、既判力の時的限界（基準時後に生じた新事由なら遮断されない）と同じ思考——「後発の新事情は遮断ルールの外」という cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>裏返るのは「新たな事由」の一語。</strong>移送の時点ですでにあった事情を持ち出すだけなら、他の裁判所への転送でも移送した裁判所への返送でも22条2項の禁止にかかる。<em>移送の裁判が確定する前</em>ならそもそも拘束力は生じておらず、21条の即時抗告で争う場面に移る。</span><div class="tx-dgm is-matrix" data-dgm="012-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">22条の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">確定後に新たに生じた事由 → 移送の時点ですでにあった事情</p><p class="dgm-cell is-ng">✕ 再移送できない</p><p class="dgm-cell">返送も転送も禁じる<span class="dgm-src">22条2項</span></p><p class="dgm-cell is-rowhead">他の裁判所へ転送 → 移送した裁判所へ返送</p><p class="dgm-cell is-ng">✕ できない</p><p class="dgm-cell">「更に…移送することができない」に返送も入る<span class="dgm-src">22条2項</span></p><p class="dgm-cell is-rowhead">確定した移送の裁判 → 確定前の移送の決定</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">拘束力は確定してから生じる。確定前は即時抗告で争う<span class="dgm-src">21条</span></p><p class="dgm-cell is-rowhead">17条による移送の裁判 → 反訴に基づく移送の裁判</p><p class="dgm-cell is-ok">○ 同じ拘束力が及ぶ</p><p class="dgm-cell">22条を準用する<span class="dgm-src">274条1項後段</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6092,34 +6309,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>当事者が専属的合意管轄を定めた場合には、法定管轄のある他の裁判所に訴えを提起することは管轄違いであるから、訴えの提起を受けた裁判所は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>当事者が合意した裁判所に訴訟を移送しなければならない</span><span class="tx-stmt-fix">→ 専属的合意は移送制限の対象外（20条1項かっこ書）＝合意裁判所への移送は義務でない</span>。<span class="tx-anscomp-line">当事者が定めた専属的合意管轄は移送の制限（20条1項本文）の対象から除外されており（同項かっこ書）、訴えの提起を受けた裁判所は17条により諸般の事情を考慮して移送できるにとどまり、<strong>当事者が合意した裁判所へ移送しなければならないわけではない</strong>。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「専属的に“この裁判所だけ”と約束したのだから、他の裁判所は必ずそこへ送り返すはず」と考えたくなる。でも<a class="ref-stat" id="ref-law-20-401" href="#bref-4-20">20条1項</a>は、専属管轄の事件では原則移送できないとしつつ、かっこ書で<strong>当事者の合意による専属管轄（専属的合意管轄）を除外</strong>する。つまり専属的合意があっても17条の裁量移送は封じられず、裁判所は諸般の事情を考慮して移送できるにとどまり、合意裁判所へ移送しなければならないわけではない。だから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>専属的合意管轄</strong>があっても、合意した裁判所へ移送する義務は生じない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">移送の根拠と発動</span><span class="tx-gist-step">移送の効力</span><span class="tx-gist-step is-now">移送の制限</span><span class="tx-gist-step">管轄の標準時</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">当事者が一つの裁判所だけと約束していたとき、訴えを受けた別の裁判所は必ずそこへ送るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">契約書に、争いが起きたらある地方裁判所だけで裁判すると書かれていました。ところが実際には、その約束とは別の、法律上も管轄のある裁判所に訴えが起こされたとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">法律が定めた<strong>専属管轄</strong>の事件は、原則として移送できません。当事者が合意で作った専属の約束も、これと同じ強さで裁判所を縛るのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-20" id="ref-law-20-401">民訴法20条1項</a>は、訴訟が係属する裁判所の専属管轄に属する場合には移送の規定を適用しないとしつつ、かっこ書で、当事者が11条の規定により合意で定めたものを除くとしています。つまり<strong>専属的合意管轄</strong>は移送の制限の外に置かれ、訴えを受けた裁判所は17条により諸般の事情を考慮して移送できるにとどまります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">法律が定めた専属管轄は、公益上その裁判所で審理すべきだという立法者の判断に支えられています。これに対して当事者の合意は、約款などで一方的に押しつけられることもあり、同じ強さで裁判所を縛らせるのは適当でないと説明されます。そこで合意による縛りは制限の外に置き、裁判所が事情に応じて柔軟に扱えるようにしています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>専属管轄</span></dt><dd>法律が特定の裁判所だけに管轄を認め、当事者の合意によっても動かせない管轄。</dd></div><div class="tx-gist-term"><dt><span>専属的合意管轄</span></dt><dd>当事者が合意で、特定の裁判所だけを管轄裁判所と定めたもの（民訴法11条）。移送の制限の対象から除かれる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「移送しなければならない」が誤り。合意による専属管轄は移送の制限の外で、17条により移送できるにとどまる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>20条1項の移送制限とかっこ書の除外</strong><span class="syn-body">20条1項本文は、専属管轄に属する事件について16条1項・<a class="ref-stat" href="#bref-4-17">17条</a>等による移送を認めない（<span class="ron-mark freq-high">移送制限</span>）。ただしかっこ書は『当事者が第11条の規定により合意で定めたものを除く』として、<span class="case-emphasis freq-high">専属的合意管轄を移送制限の対象から外す</span>。</span></p>
 <p><span class="syn-step">2</span><strong>帰結を導く</strong><span class="syn-body">したがって専属的合意管轄があっても17条の裁量移送は可能で、裁判所は諸般の事情を考慮して移送できるにとどまる。約款等に基づく合意で一般市民が過度に拘束されないよう裁判所に柔軟な処理を認める趣旨であり、<span class="case-emphasis freq-mid">合意裁判所への移送を義務づける</span>本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>専属“合意”管轄は、法律が定めた専属管轄と違って“当事者が作った縛り”。だから移送制限の外に置かれ、裁判所は合意に縛られず動ける。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>20条1項本文</strong>：訴訟がその係属裁判所の専属管轄に属するときは、16条1項・17条・19条1項の<a class="ref-stat" href="#bref-4-20">移送規定を適用しない</a>（移送制限）。</li>
-<li><strong>かっこ書の除外</strong>：当事者の合意による専属管轄（専属的合意管轄）は移送制限の対象外＝17条の裁量移送が可能。</li>
-<li><strong>ひっかけの型</strong>：「専属的合意があれば必ず合意裁判所へ移送」と決めつける。専属的合意は裁判所を拘束せず、合意裁判所への移送は義務でない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>法律が作った専属は動かせない、当事者が作った専属は動かせる（20条1項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-20" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法20条1項 専属管轄の場合の移送の制限（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">第16条第1項、第17条又は前条第1項若しくは第2項の規定は、訴訟がその係属する裁判所の専属管轄（<span class="ron-mark freq-high">当事者が第11条の規定により合意で定めたものを除く</span>。）に属する場合には、適用しない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-4-20" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法20条1項 専属管轄の場合の移送の制限（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">第16条第1項、第17条又は前条第1項若しくは第2項の規定は、訴訟がその係属する裁判所の専属管轄（<span class="ron-mark freq-high">当事者が第11条の規定により合意で定めたものを除く</span>。）に属する場合には、適用しない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">訴訟が専属管轄に属するときは、16条1項・17条・19条1項の移送規定を適用しない（移送制限）。ただし<span class="case-emphasis freq-high">当事者が11条により合意で定めた専属管轄（専属的合意管轄）は除外</span>され、これらの移送規定が適用される＝17条の裁量移送が可能。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">趣旨</span><span class="kd-text">約款等に基づく合意管轄に一般市民が過度に拘束されないよう、裁判所が諸般の事情を考慮して柔軟に処理できるようにした。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">専属的合意があっても裁判所は17条により移送できるにとどまり、合意裁判所への移送は義務でない（記述4は誤り）。</span></div>
 </div></div></details></div>
-<div id="bref-4-17" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法17条 遅滞を避ける等のための移送（20条1項が制限対象とする規定）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">第一審裁判所は…訴訟の著しい遅滞を避け、又は当事者間の衡平を図るため必要があると認めるときは、<span class="ron-mark freq-high">申立てにより又は職権で</span>、訴訟の全部又は一部を他の管轄裁判所に移送することができる。</span></p></div><details class="tx-basis-more"><summary>＋ 本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">専属的合意管轄は20条1項かっこ書で移送制限の外に置かれるため、17条の裁量移送が機能する。裁判所は諸般の事情を考慮して移送でき、合意裁判所へ必ず移送する義務は生じない（記述4）。</span></div>
-</div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">20条1項かっこ書は専属的合意管轄を移送制限の対象から除外する。よって専属的合意があっても17条の裁量移送は可能で、裁判所は諸般の事情を考慮して移送できるにとどまり、合意裁判所への移送は義務でない。本記述は誤り。</p>
+<div id="bref-4-17" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法17条 遅滞を避ける等のための移送（20条1項が制限対象とする規定）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">第一審裁判所は…訴訟の著しい遅滞を避け、又は当事者間の衡平を図るため必要があると認めるときは、<span class="ron-mark freq-high">申立てにより又は職権で</span>、訴訟の全部又は一部を他の管轄裁判所に移送することができる。</span></p></div></div></div>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「“専属”とあれば動かせない」と語感で決めつける罠。</strong>同じ“専属管轄”でも、<em>法律が定めた専属管轄</em>（例：会社関係訴訟）は移送制限がかかるのに対し、<em>当事者の合意による専属管轄</em>は20条1項かっこ書で制限の外に置かれ17条移送ができる。専属管轄でも「法定か合意か」で扱いが分かれる——管轄合意（11条）が“当事者が作った縛り”にすぎず公益性が低いことに着目する発想は、合意管轄が応訴管轄（12条）で覆る場面とも通じる cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>同じ「専属」でも、法律が作ったか当事者が作ったかで裏返る。</strong>法律の定める専属管轄なら20条1項本文で17条から19条の移送が一切できないのに対し、当事者の合意による専属管轄は同項かっこ書で制限の外に置かれ<em>17条の裁量移送ができる</em>。当事者が作った縛りは公益性が低く、被告が管轄違いの抗弁を出さずに本案で弁論すれば応訴管轄（12条）でも覆る。</span><div class="tx-dgm is-matrix" data-dgm="012-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">「専属」の中身を入れ替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">当事者の合意による専属管轄 → 法律が定める専属管轄</p><p class="dgm-cell is-ng">✕ 17条の移送はできない</p><p class="dgm-cell">17条から19条を適用しない<span class="dgm-src">20条1項本文</span></p><p class="dgm-cell is-rowhead">合意した裁判所へ必ず移送 → 事情を考慮して移送できるにとどまる</p><p class="dgm-cell is-ok">○ こちらが正しい</p><p class="dgm-cell">合意による専属は移送の制限の外<span class="dgm-src">20条1項かっこ書</span></p><p class="dgm-cell is-rowhead">専属的合意を主張 → 管轄違いの抗弁を出さず本案で弁論</p><p class="dgm-cell is-ok">○ その裁判所に管轄が生じる</p><p class="dgm-cell">応訴管轄<span class="dgm-src">12条</span></p><p class="dgm-cell is-rowhead">書面による管轄の合意 → 口頭だけの管轄の合意</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">一定の法律関係に基づく訴えにつき書面または電磁的記録で<span class="dgm-src">11条2項・3項</span></p></div></div></div>
 
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
@@ -6138,38 +6343,27 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>裁判所の管轄は、訴えの提起の時を標準として定められるから、50万円の損害賠償を求める訴えを簡易裁判所に提起した後に、請求額を150万円に拡張した場合でも、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>簡易裁判所は訴訟を地方裁判所に移送する必要はない</span><span class="tx-stmt-fix">→ 請求の拡張は訴えの変更＝新訴提起時で管轄を判定しなおす＝地裁へ移送する必要がある</span>。<span class="tx-anscomp-line">管轄は訴え提起時を標準に定めるのが原則（管轄恒定・15条）だが、訴訟中の訴えの提起（訴えの変更）は新訴提起時で管轄を判定しなおす。請求を150万円に拡張すると簡裁の事物管轄（140万円以下・裁判所法33条1項1号）を超えるため、<strong>地方裁判所に移送する必要がある</strong>（16条1項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「管轄は訴え提起の時で決まり後から動かない（管轄恒定・<a class="ref-stat" id="ref-law-15-501" href="#bref-5-15">15条</a>）」という原則だけを見ると、あとで請求額を増やしても簡裁のまま、と思える。でも管轄恒定が固定するのは“提起時にすでに立っていた請求”の管轄であって、訴訟の途中で新しく持ち出す請求（訴えの変更・反訴・中間確認）は、その新しい訴えの提起時で管轄を判定しなおす。50万円を150万円に増やすのは請求の拡張＝訴えの変更で、簡裁の上限140万円を超えるから、地方裁判所へ移送する必要がある（<a class="ref-stat" id="ref-law-16-501" href="#bref-5-16">16条1項</a>）。だから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">請求の拡張で簡易裁判所の事物管轄を超えれば、<strong>移送する必要がある</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">移送の根拠と発動</span><span class="tx-gist-step">移送の効力</span><span class="tx-gist-step">移送の制限</span><span class="tx-gist-step is-now">管轄の標準時</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">訴えを起こした後に請求額を増やしたとき、管轄はいつを基準に測るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">50万円の損害賠償を求める訴えが簡易裁判所に起こされました。その後、審理の途中で損害の広がりが分かり、請求額が150万円に引き上げられたとします。簡易裁判所が扱える上限を超える金額です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">管轄は訴えを起こした時を基準に決まるのだから、後から金額が増えてもそのまま簡易裁判所で審理してよいのか。<strong>管轄恒定</strong>がどこまで働くのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-15" id="ref-law-15-501">民訴法15条</a>は、裁判所の管轄は訴えの提起の時を標準として定めると規定します。もっとも固定されるのは提起の時に存在した請求の管轄で、訴訟の途中で新たに持ち出す訴えは、その新しい訴えを起こした時点で測り直します。請求の拡張は訴えの変更ですから、150万円は簡易裁判所の上限である140万円（裁判所法33条1項1号）を超え、<a class="ref-stat" href="#bref-5-16" id="ref-law-16-501">民訴法16条1項</a>により地方裁判所へ移送することになります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">管轄恒定は、被告の住所が移るといった後の事情の変化で担当裁判所が動いてしまい、それまでの審理が無駄になるのを防ぐための原則だと説明されます。守っているのは、すでに立っている請求の足場です。訴訟の途中で新しい請求を持ち出すことまで守る理由はないので、その請求についてはどの裁判所が扱うべきかを改めて測ります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>管轄恒定</span></dt><dd>管轄は訴えの提起の時を基準に定まり、その後の事情の変動によっては動かないという原則（民訴法15条）。</dd></div><div class="tx-gist-term"><dt><span>訴えの変更</span></dt><dd>訴訟の途中で請求の内容や範囲を変えること。請求額を増やす拡張もこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「移送する必要はない」が逆。請求の拡張は訴えの変更で管轄を測り直し、140万円を超えれば地方裁判所へ移送する。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>管轄恒定の射程を正しく捉える</strong><span class="syn-body">15条は管轄を訴え提起時を標準として定める（<span class="ron-mark freq-high">管轄恒定</span>）。だがこれは提起時に存在した請求の管轄を、その後の事情変動から守る原則。訴訟係属後に新たに提起される訴え（反訴・中間確認の訴え・訴えの変更）には及ばず、それらは<span class="case-emphasis freq-high">新訴提起時で管轄を判定しなおす</span>（274条が反訴につき明示）。</span></p>
-<p><span class="syn-step">2</span><strong>本事案にあてはめる</strong><span class="syn-body">50万円を150万円に増額するのは請求の拡張＝訴えの変更。簡易裁判所は訴訟の目的の価額が<span class="case-emphasis freq-high">140万円を超えない</span>請求について事物管轄を有する（<a class="ref-stat" href="#bref-5-16">裁判所法33条1項1号</a>）。150万円は上限超過で簡裁の事物管轄外となるから、簡裁は事件を地方裁判所に移送しなければならない（16条1項）。移送不要とする本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>管轄恒定は「最初の請求の席を守る」原則。後から“地裁級”に膨らんだ新しい請求は、席を測り直して地裁へ移す。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>管轄恒定の射程</strong>：<a class="ref-stat" href="#bref-5-15">15条</a>は提起時に存在した請求の管轄を固定するが、訴訟中の新たな訴え（訴えの変更・反訴・中間確認）は新訴提起時で判定しなおす。</li>
-<li><strong>事物管轄の上限</strong>：簡裁は訴額<a class="ref-stat" href="#bref-5-16">140万円以下</a>の請求のみ（裁判所法33条1項1号）。150万円への拡張で上限超過。</li>
-<li><strong>あてはめ</strong>：請求の拡張＝訴えの変更＝新訴時判定＝簡裁の事物管轄外→16条1項により地裁へ移送する必要がある（移送不要は誤り）。</li>
-</ol>
+<p><span class="syn-step">2</span><strong>本事案にあてはめる</strong><span class="syn-body">50万円を150万円に増額するのは請求の拡張＝訴えの変更。簡易裁判所は訴訟の目的の価額が<span class="case-emphasis freq-high">140万円を超えない</span>請求について事物管轄を有する（<a class="ref-stat" href="#bref-5-16">裁判所法33条1項1号</a>）。150万円は上限超過で簡裁の事物管轄外となるから、簡裁は事件を地方裁判所に移送しなければならない（16条1項）。</span></p> </div>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>恒定が守るのは提起時の請求だけ、後から加わる請求は測り直す（15条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-5-15" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法15条 管轄の標準時（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">裁判所の管轄は、<span class="ron-mark freq-high">訴えの提起の時を標準として定める</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-5-15" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法15条 管轄の標準時（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">裁判所の管轄は、<span class="ron-mark freq-high">訴えの提起の時を標準として定める</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">管轄は訴え提起時を標準として定め、提起後の事情変動（被告の住所移転・請求額の自然的変動等）では動かない（<span class="case-emphasis freq-high">管轄恒定</span>）。</span></div>
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">恒定するのは提起時に存在した請求の管轄。<span class="case-emphasis freq-high">訴訟中に新たに提起する訴え（訴えの変更・反訴・中間確認の訴え）は新訴提起時で判定しなおす</span>（274条が反訴につき明示）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">請求の150万円への拡張は訴えの変更＝新訴提起時で管轄を判定しなおす場面で、管轄恒定の射程外（記述5）。</span></div>
 </div></div></details></div>
 <div id="bref-5-16" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法16条1項／裁判所法33条1項1号 管轄違いの移送と簡裁の事物管轄<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">民訴16①</span><span class="hang-body">裁判所は、訴訟の全部又は一部がその管轄に属しないと認めるときは、申立てにより又は職権で、<span class="ron-mark freq-high">これを管轄裁判所に移送する</span>。</span></p>
-<p class="hanging"><span class="para-num">裁33①一</span><span class="hang-body">簡易裁判所は、訴訟の目的の価額が<span class="case-emphasis freq-high">140万円を超えない</span>請求（行政事件訴訟に係る請求を除く。）について、第一審の裁判権を有する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">裁33①一</span><span class="hang-body">簡易裁判所は、訴訟の目的の価額が<span class="case-emphasis freq-high">140万円を超えない</span>請求（行政事件訴訟に係る請求を除く。）について、第一審の裁判権を有する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">訴訟が係属裁判所の管轄に属しないと認めるときは、申立てにより又は職権で管轄裁判所へ移送する（16条1項）。簡裁の事物管轄は訴額140万円以下に限られる（裁判所法33条1項1号）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">150万円への拡張で簡裁の事物管轄（140万円以下）を超えるから、簡裁は地方裁判所へ移送しなければならない＝移送不要とする記述5は誤り。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">管轄恒定（15条）は提起時の請求の管轄を固定する原則で、訴訟中の訴えの変更には及ばない。請求の150万円への拡張は簡裁の事物管轄（140万円以下・裁判所法33条1項1号）を超えるため、16条1項により地裁へ移送する必要がある。本記述は誤り。</p>
 </div>
 
 
 <div class="tx-v13-cross"><span class="tx-v13-cross-label">🔗 他科目横断</span><span class="tx-v13-cross-body">簡裁・地裁の<b>事物管轄の基準額（140万円）は民訴法ではなく裁判所法33条1項1号</b>が定める。移送の要否という民訴の手続問題は、どの裁判所が第一審の裁判権を持つかという裁判所法（裁判所の組織法）の管轄配分とセットで確定する。手続法と組織法をまたいで管轄を決める横断。</span></div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「管轄は提起時で固定（15条）だから後は動かない」と原則を万能視する罠。</strong>管轄恒定が守るのは“提起時の請求”で、訴訟中に持ち出す新しい訴え（訴えの変更・反訴・中間確認の訴え）は新訴提起時で測り直す。<em>「訴訟係属後に地裁級の請求が加わったら地裁へ」</em>という発想は反訴（記述2・274条）と請求拡張（記述5・15/16条）に共通する through-line で、恒定原則の“例外の入口”を見抜くのがコツ。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>裏返るのは、後から何が加わったかである。</strong>提起後に被告が住所を移しても管轄は15条で動かないが、訴訟の途中で持ち出す新しい請求は<em>その提起の時で測り直す</em>。</span><div class="tx-dgm is-matrix" data-dgm="012-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">15条を1語変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">請求の拡張（訴えの変更） → 提起後に被告が住所を移した</p><p class="dgm-cell is-ok">○ 移送は不要</p><p class="dgm-cell">管轄は訴えの提起の時が標準<span class="dgm-src">15条</span></p><p class="dgm-cell is-rowhead">原告の請求の拡張 → 被告の反訴で地裁管轄の請求</p><p class="dgm-cell is-ok">○ 申立てで地裁へ</p><p class="dgm-cell">本訴ごと移送する<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">請求の拡張 → 専属管轄に属する中間確認の訴え</p><p class="dgm-cell is-ng">✕ 拡張できない</p><p class="dgm-cell">合意による専属は除く<span class="dgm-src">145条1項ただし書</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 </div>
@@ -6250,11 +6444,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:o,4:x,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="移送は「事件を別の裁判所へ動かす」手続で、動かす根拠ごとに誰が発動できるかが変わる。証拠や証人が遠い、一方に著しく不公平——こうした著しい遅滞や不公平を避けるための移送は、条文が『申立てにより又は職権で』と定めており、当事者が求めなくても裁判所が自分の判断で動かせる。適正で迅速な審理という公益にかかわるからである。「移送は当事者が言い出さないと動かない」という直感は誤り。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>争点に関わる証人や検証物がすべて遠隔地にあり、そのままでは審理が著しく長引く場合、当事者の申立てが無くても、裁判所は職権で事件を近い裁判所へ移すことができる。</span>" data-brief-mark="17条の裁量移送について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>裁判所が職権ですることはできない</span><span class='tx-stmt-fix'>→ 申立てにより又は職権でできる（17条）</span>。<span class='tx-anscomp-line'>訴訟の著しい遅滞を避け、又は当事者間の衡平を図るため必要があると認めるときは、第一審裁判所は<strong>申立てにより又は職権で</strong>訴訟を他の管轄裁判所に移送することができる（民訴法17条）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>17条は『申立てにより又は職権で』移送できると定める（職権発動を明記）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>適正・迅速な審理という公益にかかわるため、当事者の申立てを待たず裁判所の職権移送を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>遅滞回避・当事者間の衡平のための裁量移送。管轄違いの移送（16条1項）も職権でできる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>移送に当事者の申立てが必須か否かは、条文が「職権で」を含むか（16条・17条）／「申立てがあるとき」に限るか（274条・19条）で分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の文言（申立て／職権）で移送の発動主体を判別する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-story="訴額の小さい事件を扱う簡易裁判所で始まった訴訟に、被告が反訴で地方裁判所級の大きな請求を持ち込むことがある。このとき、最初に訴えた側（反訴を起こされた側）が求めれば、簡裁は本訴と反訴をまとめて地方裁判所へ送らなければならない。大きな請求は本来地方裁判所で審理されるはずで、その利益を反訴を起こされた側に保障するためである。あわせて関連する本訴と反訴を一つの裁判所で審理する狙いもある。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>60万円の売買代金を簡裁で請求されたのに対し、被告が500万円の損害賠償を反訴で持ち出した場合、請求した側が申し立てれば、簡裁は両方まとめて地裁へ送らなければならない。</span>" data-brief-mark="簡裁の本訴に被告が反訴で地裁管轄の請求をし本訴原告が申し立てたとき、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>本訴及び反訴を地方裁判所に移送しなければならない</span>（274条1項）。<span class='tx-anscomp-line'>簡易裁判所に係属する事件で被告が反訴により地方裁判所の管轄に属する請求をした場合、相手方（＝反訴被告＝本訴原告）の申立てがあるときは、簡易裁判所は決定で<strong>本訴及び反訴を地方裁判所に移送しなければならない</strong>（民訴法274条1項）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>274条1項は相手方の申立てで簡裁が本訴・反訴を地裁へ『移送しなければならない』とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>反訴被告の事物管轄の利益（地裁で審理される利益）の尊重＋本訴・反訴の併合審理。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>簡裁の本訴に対し被告が地裁管轄の反訴をした場合の必要的移送（申立権者＝反訴被告＝本訴原告）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>申立権者は反訴を起こした被告ではなく、格上げで利益を受ける相手方（反訴被告＝本訴原告）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>移送の申立権は「守るべき利益の主体」に結び付く（19条1項の相手方の同意も同じ発想）。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-story="移送が確定すると、送り先の裁判所はその判断に縛られ、事件を送り返したり別の裁判所へ回したりできないのが原則である。同じ事件が裁判所の間をたらい回しにされて審理が遅れ、当事者が損をするのを防ぐためである。だからこの禁止はあくまで「同じ事情のままでの回し合い」を止めるもので、移送が確定した後に全く新しい事情が生じた場合まで動かすなという趣旨ではない。結論だけでなく「なぜ禁止したか」を押さえると、例外の入口が見える。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>移送が確定した後になって、当事者双方がその事件について別の裁判所への管轄合意を新たに結んだような場合には、その新事情に基づいて改めて移送することは妨げられない。</span>" data-brief-mark="確定した移送裁判は受移送裁判所を拘束するが、確定後に新事由が生じたときは、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>更に他の裁判所に移送することができる</span>（22条2項の趣旨）。<span class='tx-anscomp-line'>確定した移送の裁判は受移送裁判所を拘束し（22条1項）、原則として再移送はできない（22条2項）。もっとも、22条2項の趣旨は返送・転送による審理の遅延防止にあるから、<strong>移送決定の確定後に生じた新事由に基づく再移送は妨げられない</strong>。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>22条1項＝確定移送裁判は受移送裁判所を拘束／2項＝再移送を禁止。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>返送・転送による審理遅延と当事者の利益侵害（たらい回し）の防止。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>再移送禁止は「同一事情での回し合い」を止めるもので、確定後の新事由には及ばない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「再移送は一律禁止」ではなく、確定後に生じた新事由に基づく再移送は許される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の結論でなく趣旨から射程を画す（既判力の時的限界＝基準時後の新事由と同型）。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="「この裁判所だけ」という縛りには二種類ある。法律そのものが定めた専属管轄は強い縛りで、原則として移送を許さない。これに対し、当事者どうしが契約で「この裁判所だけ」と決めただけの専属的合意は、法律が定めたものほど公益性が高くないため、移送のブレーキの外に置かれている。だから専属的合意があっても、訴えを受けた裁判所は諸般の事情を考慮して移送できるにとどまり、必ず合意した裁判所へ送らねばならないわけではない。約款の一文で一般の人が過度に縛られないよう、裁判所に柔軟な処理を認める趣旨である。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>通信販売の約款に「紛争は東京地裁のみ」とあっても、当事者や証人がすべて地方にいるような場合、訴えを受けた地方の裁判所が必ず東京地裁へ送らねばならないわけではない。</span>" data-brief-mark="専属的合意管轄があるとき、訴えの提起を受けた裁判所は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>合意した裁判所に移送しなければならない</span><span class='tx-stmt-fix'>→ 専属的合意は移送制限の外（20条1項かっこ書）＝移送は義務でない</span>。<span class='tx-anscomp-line'>当事者が定めた専属的合意管轄は移送の制限（20条1項本文）の対象から除外されており（同項かっこ書）、訴えの提起を受けた裁判所は17条により諸般の事情を考慮して移送できるにとどまり、<strong>当事者が合意した裁判所へ移送しなければならないわけではない</strong>。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>20条1項本文は専属管轄事件への16条1項・17条・19条1項の適用を排除するが、かっこ書で合意による専属管轄を除外する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>約款等の合意管轄に一般市民が過度に拘束されないよう、裁判所に柔軟な処理を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>専属的合意管轄は移送制限の対象外＝17条の裁量移送が可能。合意裁判所への移送は義務でない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>同じ専属管轄でも「法定」は移送制限あり／「合意」は制限の外、で扱いが分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>管轄合意（11条）は当事者が作った縛りで公益性が低い（応訴管轄で覆る場面と同趣旨）。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="どの裁判所が事件を扱えるかは、訴えを起こした時点を基準に決まり、その後の事情の変動では動かないのが原則である（管轄の物差しの固定）。ただし固定されるのは、提起の時に存在した請求についての管轄であって、訴訟の途中で新しく持ち出す請求は、その新しい請求を出した時点で測り直す。請求額を大きく増やすのは新しい請求を加えること（訴えの変更）にあたるので、簡易裁判所が扱える上限を超えれば、地方裁判所へ送る必要が出てくる。原則を万能視せず、「後から加わった請求は測り直す」を忘れないのがコツ。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>はじめは30万円の未払賃金を簡裁に請求していた人が、審理の途中で請求を200万円に拡張したら、その時点で簡裁の扱える範囲を超えるため、事件は地裁へ移す必要が出てくる。</span>" data-brief-mark="50万円で簡裁に提起後150万円に拡張しても、管轄は提起時基準だから<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>地裁に移送する必要はない</span><span class='tx-stmt-fix'>→ 請求の拡張は訴えの変更＝新訴時判定＝地裁へ要移送（16条1項）</span>。<span class='tx-anscomp-line'>管轄は訴え提起時を標準に定めるのが原則（管轄恒定・15条）だが、訴訟中の訴えの提起（訴えの変更）は新訴提起時で管轄を判定しなおす。請求を150万円に拡張すると簡裁の事物管轄（140万円以下・裁判所法33条1項1号）を超えるため、<strong>地方裁判所に移送する必要がある</strong>（16条1項）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>15条は管轄を訴え提起時を標準に定める（管轄恒定）。16条1項は管轄違いのとき管轄裁判所へ移送する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>提起後の事情変動から管轄を安定させつつ、新たな請求には正しい裁判所を確保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>恒定するのは提起時の請求の管轄。訴訟中の訴えの変更・反訴・中間確認は新訴提起時で判定しなおす。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>管轄恒定は万能でなく、後から加わる請求（訴えの変更）には及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「訴訟係属後に地裁級の請求が加わったら地裁へ」（反訴の274条と請求拡張の15・16条に共通）。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="移送は「事件を別の裁判所へ動かす」手続で、動かす根拠ごとに誰が発動できるかが変わる。証拠や証人が遠い、一方に著しく不公平——こうした著しい遅滞や不公平を避けるための移送は、条文が『申立てにより又は職権で』と定めており、当事者が求めなくても裁判所が自分の判断で動かせる。適正で迅速な審理という公益にかかわるからである。「移送は当事者が言い出さないと動かない」という直感は誤り。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>争点に関わる証人や検証物がすべて遠隔地にあり、そのままでは審理が著しく長引く場合、当事者の申立てが無くても、裁判所は職権で事件を近い裁判所へ移すことができる。</span>" data-brief-mark="17条の裁量移送について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>裁判所が職権ですることはできない</span><span class='tx-stmt-fix'>→ 申立てにより又は職権でできる（17条）</span>。<span class='tx-anscomp-line'>訴訟の著しい遅滞を避け、又は当事者間の衡平を図るため必要があると認めるときは、第一審裁判所は<strong>申立てにより又は職権で</strong>訴訟を他の管轄裁判所に移送することができる（民訴法17条）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>17条は『申立てにより又は職権で』移送できると定める（職権発動を明記）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>適正・迅速な審理という公益にかかわるため、当事者の申立てを待たず裁判所の職権移送を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>遅滞回避・当事者間の衡平のための裁量移送。管轄違いの移送（16条1項）も職権でできる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>移送に当事者の申立てが必須か否かは、条文が「職権で」を含むか（16条・17条）／「申立てがあるとき」に限るか（274条・19条）で分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>移送の発動主体は条文の文言で決まる。「申立てにより又は職権で」なら職権可、「申立て及び相手方の同意」なら当事者主導。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="012-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">17条の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">17条の裁量移送 → 16条1項の管轄違いの移送</p><p class="dgm-cell is-ok">○ 職権でできる</p><p class="dgm-cell">「申立てにより又は職権で」管轄裁判所へ移送する<span class="dgm-src">16条1項</span></p><p class="dgm-cell is-rowhead">17条の裁量移送 → 18条の簡裁から地裁への裁量移送</p><p class="dgm-cell is-ok">○ 職権でできる</p><p class="dgm-cell">相当と認めるとき、申立て又は職権で移送できる<span class="dgm-src">18条</span></p><p class="dgm-cell is-rowhead">17条の裁量移送 → 19条1項の必要的移送</p><p class="dgm-cell is-ng">✕ 職権ではできない</p><p class="dgm-cell">当事者の申立てと相手方の同意がそろって初めて動く<span class="dgm-src">19条1項</span></p><p class="dgm-cell is-rowhead">管轄に属する事件 → 法律の定める専属管轄の事件</p><p class="dgm-cell is-ng">✕ 移送できない</p><p class="dgm-cell">17条から19条は専属管轄の事件に適用しない<span class="dgm-src">20条1項</span></p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="訴額の小さい事件を扱う簡易裁判所で始まった訴訟に、被告が反訴で地方裁判所級の大きな請求を持ち込むことがある。このとき、最初に訴えた側（反訴を起こされた側）が求めれば、簡裁は本訴と反訴をまとめて地方裁判所へ送らなければならない。大きな請求は本来地方裁判所で審理されるはずで、その利益を反訴を起こされた側に保障するためである。あわせて関連する本訴と反訴を一つの裁判所で審理する狙いもある。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>60万円の売買代金を簡裁で請求されたのに対し、被告が500万円の損害賠償を反訴で持ち出した場合、請求した側が申し立てれば、簡裁は両方まとめて地裁へ送らなければならない。</span>" data-brief-mark="簡裁の本訴に被告が反訴で地裁管轄の請求をし本訴原告が申し立てたとき、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>本訴及び反訴を地方裁判所に移送しなければならない</span>（274条1項）。<span class='tx-anscomp-line'>簡易裁判所に係属する事件で被告が反訴により地方裁判所の管轄に属する請求をした場合、相手方（＝反訴被告＝本訴原告）の申立てがあるときは、簡易裁判所は決定で<strong>本訴及び反訴を地方裁判所に移送しなければならない</strong>（民訴法274条1項）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>274条1項は相手方の申立てで簡裁が本訴・反訴を地裁へ『移送しなければならない』とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>反訴被告の事物管轄の利益（地裁で審理される利益）の尊重＋本訴・反訴の併合審理。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>簡裁の本訴に対し被告が地裁管轄の反訴をした場合の必要的移送（申立権者＝反訴被告＝本訴原告）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>申立権者は反訴を起こした被告ではなく、格上げで利益を受ける相手方（反訴被告＝本訴原告）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>移送の申立権は、その移送で利益を守られる側に与えられる（274条1項の相手方、19条1項の相手方の同意）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="012-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">274条1項の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">本訴原告（反訴被告）の申立て → 反訴を提起した被告の申立て</p><p class="dgm-cell is-ng">✕ 移送されない</p><p class="dgm-cell">申立権者は「相手方」＝反訴被告の側<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">反訴が地方裁判所の管轄に属する請求 → 簡易裁判所の管轄内の請求</p><p class="dgm-cell is-ng">✕ 移送されない</p><p class="dgm-cell">地裁管轄の反訴であることが要件<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">本訴及び反訴を移送 → 反訴だけを移送</p><p class="dgm-cell is-ng">✕ できない</p><p class="dgm-cell">併せて審理するため本訴も一緒に送る<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">相手方の申立てがあるとき → 申立てがないとき</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">必要的移送は動かず、相当と認めるときの裁量移送が残るだけ<span class="dgm-src">18条</span></p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="移送が確定すると、送り先の裁判所はその判断に縛られ、事件を送り返したり別の裁判所へ回したりできないのが原則である。同じ事件が裁判所の間をたらい回しにされて審理が遅れ、当事者が損をするのを防ぐためである。だからこの禁止はあくまで「同じ事情のままでの回し合い」を止めるもので、移送が確定した後に全く新しい事情が生じた場合まで動かすなという趣旨ではない。結論だけでなく「なぜ禁止したか」を押さえると、例外の入口が見える。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>移送が確定した後になって、当事者双方がその事件について別の裁判所への管轄合意を新たに結んだような場合には、その新事情に基づいて改めて移送することは妨げられない。</span>" data-brief-mark="確定した移送裁判は受移送裁判所を拘束するが、確定後に新事由が生じたときは、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>更に他の裁判所に移送することができる</span>（22条2項の趣旨）。<span class='tx-anscomp-line'>確定した移送の裁判は受移送裁判所を拘束し（22条1項）、原則として再移送はできない（22条2項）。もっとも、22条2項の趣旨は返送・転送による審理の遅延防止にあるから、<strong>移送決定の確定後に生じた新事由に基づく再移送は妨げられない</strong>。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>22条1項＝確定移送裁判は受移送裁判所を拘束／2項＝再移送を禁止。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>返送・転送による審理遅延と当事者の利益侵害（たらい回し）の防止。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>再移送禁止は「同一事情での回し合い」を止めるもので、確定後の新事由には及ばない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「再移送は一律禁止」ではなく、確定後に生じた新事由に基づく再移送は許される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>禁止規定は結論でなく趣旨で射程を画す（22条2項はたらい回しの防止、既判力も基準時後の新事由は遮断しない）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="012-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">22条の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">確定後に新たに生じた事由 → 移送の時点ですでにあった事情</p><p class="dgm-cell is-ng">✕ 再移送できない</p><p class="dgm-cell">返送も転送も禁じる<span class="dgm-src">22条2項</span></p><p class="dgm-cell is-rowhead">他の裁判所へ転送 → 移送した裁判所へ返送</p><p class="dgm-cell is-ng">✕ できない</p><p class="dgm-cell">「更に…移送することができない」に返送も入る<span class="dgm-src">22条2項</span></p><p class="dgm-cell is-rowhead">確定した移送の裁判 → 確定前の移送の決定</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">拘束力は確定してから生じる。確定前は即時抗告で争う<span class="dgm-src">21条</span></p><p class="dgm-cell is-rowhead">17条による移送の裁判 → 反訴に基づく移送の裁判</p><p class="dgm-cell is-ok">○ 同じ拘束力が及ぶ</p><p class="dgm-cell">22条を準用する<span class="dgm-src">274条1項後段</span></p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="「この裁判所だけ」という縛りには二種類ある。法律そのものが定めた専属管轄は強い縛りで、原則として移送を許さない。これに対し、当事者どうしが契約で「この裁判所だけ」と決めただけの専属的合意は、法律が定めたものほど公益性が高くないため、移送のブレーキの外に置かれている。だから専属的合意があっても、訴えを受けた裁判所は諸般の事情を考慮して移送できるにとどまり、必ず合意した裁判所へ送らねばならないわけではない。約款の一文で一般の人が過度に縛られないよう、裁判所に柔軟な処理を認める趣旨である。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>通信販売の約款に「紛争は東京地裁のみ」とあっても、当事者や証人がすべて地方にいるような場合、訴えを受けた地方の裁判所が必ず東京地裁へ送らねばならないわけではない。</span>" data-brief-mark="専属的合意管轄があるとき、訴えの提起を受けた裁判所は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>合意した裁判所に移送しなければならない</span><span class='tx-stmt-fix'>→ 専属的合意は移送制限の外（20条1項かっこ書）＝移送は義務でない</span>。<span class='tx-anscomp-line'>当事者が定めた専属的合意管轄は移送の制限（20条1項本文）の対象から除外されており（同項かっこ書）、訴えの提起を受けた裁判所は17条により諸般の事情を考慮して移送できるにとどまり、<strong>当事者が合意した裁判所へ移送しなければならないわけではない</strong>。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>20条1項本文は専属管轄事件への16条1項・17条・19条1項の適用を排除するが、かっこ書で合意による専属管轄を除外する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>約款等の合意管轄に一般市民が過度に拘束されないよう、裁判所に柔軟な処理を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>専属的合意管轄は移送制限の対象外＝17条の裁量移送が可能。合意裁判所への移送は義務でない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>同じ専属管轄でも「法定」は移送制限あり／「合意」は制限の外、で扱いが分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「専属」は法定か合意かで割れる。合意による縛りは公益性が低く、移送の制限も応訴管轄の遮断も及ばない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="012-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">「専属」の中身を入れ替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">当事者の合意による専属管轄 → 法律が定める専属管轄</p><p class="dgm-cell is-ng">✕ 17条の移送はできない</p><p class="dgm-cell">17条から19条を適用しない<span class="dgm-src">20条1項本文</span></p><p class="dgm-cell is-rowhead">合意した裁判所へ必ず移送 → 事情を考慮して移送できるにとどまる</p><p class="dgm-cell is-ok">○ こちらが正しい</p><p class="dgm-cell">合意による専属は移送の制限の外<span class="dgm-src">20条1項かっこ書</span></p><p class="dgm-cell is-rowhead">専属的合意を主張 → 管轄違いの抗弁を出さず本案で弁論</p><p class="dgm-cell is-ok">○ その裁判所に管轄が生じる</p><p class="dgm-cell">応訴管轄<span class="dgm-src">12条</span></p><p class="dgm-cell is-rowhead">書面による管轄の合意 → 口頭だけの管轄の合意</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">一定の法律関係に基づく訴えにつき書面または電磁的記録で<span class="dgm-src">11条2項・3項</span></p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="どの裁判所が事件を扱えるかは、訴えを起こした時点を基準に決まり、その後の事情の変動では動かないのが原則である（管轄の物差しの固定）。ただし固定されるのは、提起の時に存在した請求についての管轄であって、訴訟の途中で新しく持ち出す請求は、その新しい請求を出した時点で測り直す。請求額を大きく増やすのは新しい請求を加えること（訴えの変更）にあたるので、簡易裁判所が扱える上限を超えれば、地方裁判所へ送る必要が出てくる。原則を万能視せず、「後から加わった請求は測り直す」を忘れないのがコツ。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>はじめは30万円の未払賃金を簡裁に請求していた人が、審理の途中で請求を200万円に拡張したら、その時点で簡裁の扱える範囲を超えるため、事件は地裁へ移す必要が出てくる。</span>" data-brief-mark="50万円で簡裁に提起後150万円に拡張しても、管轄は提起時基準だから<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>地裁に移送する必要はない</span><span class='tx-stmt-fix'>→ 請求の拡張は訴えの変更＝新訴時判定＝地裁へ要移送（16条1項）</span>。<span class='tx-anscomp-line'>管轄は訴え提起時を標準に定めるのが原則（管轄恒定・15条）だが、訴訟中の訴えの提起（訴えの変更）は新訴提起時で管轄を判定しなおす。請求を150万円に拡張すると簡裁の事物管轄（140万円以下・裁判所法33条1項1号）を超えるため、<strong>地方裁判所に移送する必要がある</strong>（16条1項）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>15条は管轄を訴え提起時を標準に定める（管轄恒定）。16条1項は管轄違いのとき管轄裁判所へ移送する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>提起後の事情変動から管轄を安定させつつ、新たな請求には正しい裁判所を確保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>恒定するのは提起時の請求の管轄。訴訟中の訴えの変更・反訴・中間確認は新訴提起時で判定しなおす。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>管轄恒定は万能でなく、後から加わる請求（訴えの変更）には及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>管轄恒定（15条）が守るのは提起時の請求。訴訟係属後に加わる請求は、その提起の時で管轄を測り直す。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="012-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">15条を1語変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">請求の拡張（訴えの変更） → 提起後に被告が住所を移した</p><p class="dgm-cell is-ok">○ 移送は不要</p><p class="dgm-cell">管轄は訴えの提起の時が標準<span class="dgm-src">15条</span></p><p class="dgm-cell is-rowhead">原告の請求の拡張 → 被告の反訴で地裁管轄の請求</p><p class="dgm-cell is-ok">○ 申立てで地裁へ</p><p class="dgm-cell">本訴ごと移送する<span class="dgm-src">274条1項</span></p><p class="dgm-cell is-rowhead">請求の拡張 → 専属管轄に属する中間確認の訴え</p><p class="dgm-cell is-ng">✕ 拡張できない</p><p class="dgm-cell">合意による専属は除く<span class="dgm-src">145条1項ただし書</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

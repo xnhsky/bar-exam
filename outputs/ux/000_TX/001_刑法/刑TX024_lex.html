@@ -5405,6 +5405,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5672,6 +5687,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5955,29 +6205,20 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不作為犯は、結果発生を防止しなければならない義務（作為義務）が<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>法律上の規定に基づくものでない場合であっても、成立する余地がある</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。不作為で罰するには「法律で決められた義務（作為義務＝結果を防ぐべき法的な義務）」が要りそうに見える。でも判例（<a class="ref-stat" href="#bref-ア-h174">最決平17.7.4</a>・シャクティ事件）は、作為義務の根拠を法令だけに絞らず、契約・<strong>先行行為</strong>（自分が危険を作り出したこと）・排他的支配・保護の引受けなどを<strong>総合的に考慮</strong>して認める。だから法令の明文がなくても作為義務は生じ、不作為犯が成立する余地がある。よって正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">作為義務は<strong>法令</strong>に限られず、契約や先行行為などを総合考慮して生じる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">実行行為性（作為と同視できるか）</span><span class="tx-gist-step">故意（不作為犯の主観）</span><span class="tx-gist-step">因果関係（不作為と結果）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">不作為を罰するのに必要な「結果を防ぐべき義務」は、法律の条文に書かれていなければ生じないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">持病の治療を頼まれた施術者が、入院中の重篤な患者を病院から連れ出させ、自分の宿泊先へ運び込ませました。付き添った親族は施術者を信じ切っていて、手当ては施術者に任せきりです。患者は医療を受けられないまま死亡しました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">この施術者に<strong>作為義務</strong>があったといえるでしょうか。医師法のように「こうしなさい」と書いた条文が、施術者に向けて用意されているわけではありません。条文がないなら義務もない、と言ってよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-ア-h174">最決平17.7.4</a>）は、自分の責めに帰すべき事情で患者の生命に危険を生じさせたこと（先行行為）と、患者の手当てを全面的にゆだねられた立場にあったこと（排他的支配・引受け）を挙げて作為義務を認め、不作為による殺人罪の成立を肯定しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">作為義務の根拠を法令の明文だけに求めると、自分で危険を作り出した人や、助けを求められる相手を一手に抱え込んだ人を取りこぼしてしまいます。そこで判例は、契約・先行行為・排他的支配・保護の引受けといった事情をまとめて見て、放置が作為と同じ重さを持つかで判断していると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>作為義務</span></dt><dd>結果の発生を防ぐべき法的な義務。これを負う者の不作為だけが、作為による実行行為と同視されうる。</dd></div><div class="tx-gist-term"><dt><span>先行行為</span></dt><dd>自分の行為によって結果発生の危険を作り出したこと。作為義務の発生根拠の一つとされる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">義務の根拠を法令に限らないという向きが判例と合っており、契約・先行行為・引受けを総合考慮して作為義務は生じます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>作為義務の発生根拠を確かめる</strong><span class="syn-body">不真正不作為犯（本来は作為で犯す罪を不作為で実現する類型）が成立するには、結果を防ぐ法的義務（作為義務）が要る。その根拠は法令に限られず、契約・事務管理・<span class="ron-mark freq-high">先行行為</span>・排他的支配・保護の引受け等が挙げられる。</span></p>
 <p><span class="syn-step">2</span><strong>判例は総合考慮で判断する</strong><span class="syn-body"><a class="ref-stat" href="#bref-ア-h174">最決平17.7.4</a>は、被告人が自己の責めに帰すべき事由で患者の生命に危険を生じさせ（先行行為）、患者を運び込まれたホテルで手当てを全面的にゆだねられた立場（<span class="case-emphasis freq-high">排他的支配・引受け</span>）にあったことを根拠に作為義務を認めた。どれか一つの根拠だけで作為義務の有無をすべて説明するのは困難ゆえ、諸事情を総合して作為と同視できるかで判断する。法令上の明文がなくても作為義務は生じるから、本記述は正しい。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>作為義務は「法律に書いてある義務」だけではない。自分で危険を作った・引き受けた——その事情ごと束ねて義務が生まれる。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>作為義務の発生根拠</strong>：法令に限らず契約・先行行為・排他的支配・保護の引受け等を総合考慮して判断する（<a class="ref-stat" href="#bref-ア-h174">最決平17.7.4</a>）。</li>
-<li><strong>総合考慮の理由</strong>：どれか一つの根拠だけで作為義務の有無をすべて説明するのは困難ゆえ、諸事情を総合して作為の実行行為と同視できるかで判断する。</li>
-<li><strong>ひっかけの型</strong>：「作為義務は“法律上の規定”がないと生じない」と条文の有無だけで切ると外す。根拠は総合考慮で判断する。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>義務は法令の外からも生まれる。ただし抱え込んだ者だけで、通りかかった者は負わない。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-ア-h174" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平17.7.4（シャクティ治療事件・百選Ⅰ6）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被告人は、自己の責めに帰すべき事由により患者の生命に具体的な危険を生じさせた上、患者が運び込まれたホテルにおいて、被告人を信奉する患者の親族から、重篤な患者に対する手当てを<span class="ron-mark freq-high">全面的にゆだねられた立場</span>にあったとして、直ちに患者の生命を維持するために必要な医療措置を受けさせる義務（作為義務）を認め、未必的殺意による不作為の殺人罪の成立を肯定した。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">作為義務は法令に限らず、先行行為・排他的支配・保護の引受け等を<span class="case-emphasis freq-high">総合考慮</span>して発生する（記述ア）。故意は未必的なもので足りる（記述ウ）。</span></div>
-</div></div></details></div>
+<div class="tx-basis-items"><div id="bref-ア-h174" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平17.7.4（シャクティ治療事件・百選Ⅰ6）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被告人は、自己の責めに帰すべき事由により患者の生命に具体的な危険を生じさせた上、患者が運び込まれたホテルにおいて、被告人を信奉する患者の親族から、重篤な患者に対する手当てを<span class="ron-mark freq-high">全面的にゆだねられた立場</span>にあったとして、直ちに患者の生命を維持するために必要な医療措置を受けさせる義務（作為義務）を認め、未必的殺意による不作為の殺人罪の成立を肯定した。</p></div></div>
 <div id="bref-ア-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（不真正不作為犯の典型適用条文）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは<span class="case-emphasis freq-mid">5年以上の拘禁刑</span>に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・不作為犯としての性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">不作為犯としての性質</span><span class="kd-text">「人を殺した」の実行行為は作為に限られず、作為義務ある者が結果回避行為をしない不作為でも実現できる（不真正不作為犯）。成立には作為義務・作為可能性・因果関係が必要。</span></div>
 </div></div></details></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「作為義務は“法律上の規定”がないと生じない」と条文の有無だけで切ると誤る。</strong>作為義務の根拠は法令に限られず、契約・先行行為・排他的支配・保護の引受けを<em>総合考慮</em>する（最決平17.7.4）。同じ発想は保護責任者遺棄罪（218条）の「保護する責任」の有無や、過失犯の結果回避義務の判断にも通う——義務の淵源を条文の明文だけに求めない cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>義務の淵源は広いが、誰にでも生じるわけではない。</strong>通りかかって危難を目撃しただけの者は道義上の義務にとどまり、作為義務を負わないので放置しても不作為犯にならない。同じ「助けなかった」でも、自ら危険を作り出した・その人を一手に引き受けたという事情が加わって初めて作為と同視できる（最決平17.7.4）。</span><div class="tx-dgm is-matrix" data-dgm="024-ア"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">義務の淵源をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">作為義務</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">法律上の規定に基づかない → 法令上の明文がある</p><p class="dgm-cell is-ok">○ 生じる</p><p class="dgm-cell">法令も淵源の一つで、明文があればなお認めやすい</p><p class="dgm-cell is-rowhead">法令の定めなし → 危険を自ら作り出した先行行為</p><p class="dgm-cell is-ok">○ 生じる</p><p class="dgm-cell">自己の責めに帰すべき事由で生命の危険を生じさせた<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">法令の定めなし → 手当てを全面的にゆだねられた立場</p><p class="dgm-cell is-ok">○ 生じる</p><p class="dgm-cell">排他的支配・保護の引受けを総合考慮する<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">引き受けた者 → 通りかかって目撃しただけの者</p><p class="dgm-cell is-ng">✕ 生じない</p><p class="dgm-cell">道義上の義務にとどまり、排他的支配も引受けもない</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -5995,30 +6236,21 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不作為犯は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>死体遺棄罪についても成立する余地がある</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「遺棄」＝どこかへ捨てる“動作”のイメージだから不作為では無理そう、と思える。でも判例（<a class="ref-stat" href="#bref-イ-t6">大判大6.11.24</a>）は、母が新生児を砂中に埋めて死なせ死体を放置した事案で<strong>死体遺棄罪</strong>（<a class="ref-stat" href="#bref-イ-190">190条</a>）を認めた。埋葬義務ある者が葬らずに放置する<strong>不作為</strong>も「遺棄」に当たる。だから成立余地があり、正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">埋葬義務者が葬らずに放置する不作為も、<strong>死体遺棄罪</strong>の「遺棄」に当たる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">実行行為性（作為と同視できるか）</span><span class="tx-gist-step">故意（不作為犯の主観）</span><span class="tx-gist-step">因果関係（不作為と結果）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">「遺棄」という言葉は、どこかへ捨てるという動作だけを指すのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">出産した母親が、生まれたばかりの子を砂の中に埋めて死なせ、その死体をそのまま放置しました。どこかへ運んで捨てたわけではなく、葬る立場にありながら葬祭を行わずに置いたままにしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ここで問われるのは、<strong>死体遺棄罪</strong>の「遺棄」に、放置という不作為まで含まれるかです。文字どおりに読めば、どこかへ捨てるという動作だけを指しているようにも見えます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">大審院（<a class="ref-stat" href="#bref-イ-t6">大判大6.11.24</a>）は、埋葬義務のある者が葬祭をせずに死体を放置する不作為も「遺棄」に当たるとして、死体遺棄罪（<a class="ref-stat" href="#bref-イ-190">190条</a>）の成立を認めました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">生きている人を客体とする遺棄罪は、捨てる「遺棄」と面倒を見ない「不保護」を書き分けています（刑法217条・218条）。これに対して死体遺棄罪には不保護にあたる定めがなく、守っているものも死者への敬虔感情で別です。だから放置には逃げ込む別枠がなく、「遺棄」そのものに取り込まれると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>死体遺棄罪</span></dt><dd>死体・遺骨などを損壊し、遺棄し、又は領得する罪（刑法190条・3年以下の拘禁刑）。保護しているのは死者に対する社会の敬虔感情。</dd></div><div class="tx-gist-term"><dt><span>埋葬義務者</span></dt><dd>習俗上、死者を葬るべき立場にある者。親族などがこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">放置という不作為も「遺棄」に当たるという向きが判例どおりで、死体遺棄罪についても成立の余地があります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「遺棄」の意味を確かめる</strong><span class="syn-body">死体遺棄罪（<a class="ref-stat" href="#bref-イ-190">190条</a>）の「遺棄」は、場所的移動を伴う投棄（作為）に限らず、<span class="ron-mark freq-high">埋葬義務者が葬らずに放置する不作為</span>も含む。</span></p>
 <p><span class="syn-step">2</span><strong>判例と条文構造で裏づける</strong><span class="syn-body"><a class="ref-stat" href="#bref-イ-t6">大判大6.11.24</a>は、死体を放置した不作為につき死体遺棄罪の成立を認めた。学説は、190条の「遺棄」は<span class="case-emphasis freq-high">217条・218条の遺棄罪</span>（生きた人が客体で、別に「不保護」＝不作為型を規定）とは法益が異なり、死体遺棄罪には不保護の規定がないことから、「遺棄」自体に不作為も含まれると説明する。よって不作為犯として成立する余地があり、本記述は正しい。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>生きた人の遺棄罪には「不保護」の別枝があるが、死体遺棄罪にはそれが無い。だから“放置”は別枝ではなく「遺棄」そのものに吸い込まれる。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>死体遺棄罪の「遺棄」</strong>：埋葬義務者が葬らず放置する不作為も含む（<a class="ref-stat" href="#bref-イ-t6">大判大6.11.24</a>）。</li>
-<li><strong>遺棄罪（217・218条）との違い</strong>：これらは不保護（不作為型）を別に規定するが、死体遺棄罪（190条）は不保護規定を欠き法益も異なるため、「遺棄」に不作為が含まれる。</li>
-<li><strong>ひっかけの型</strong>：「遺棄＝物理的に捨てる作為」と語感で限定すると外す。埋葬義務者の放置（不作為）も含む。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>葬るべき者の放置は遺棄、通りかかった第三者の放置は不問（190条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-イ-190" class="tx-basis-item "><div class="tx-basis-head">📜 刑法190条 死体損壊等罪（死体遺棄罪）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">死体、遺骨、遺髪又は棺に納めてある物を損壊し、遺棄し、又は領得した者</span>は、3年以下の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・保護法益・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-イ-190" class="tx-basis-item "><div class="tx-basis-head">📜 刑法190条 死体損壊等罪（死体遺棄罪）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">死体、遺骨、遺髪又は棺に納めてある物を損壊し、遺棄し、又は領得した者</span>は、3年以下の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・保護法益を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">「遺棄」には作為による投棄のほか、<span class="case-emphasis freq-high">埋葬義務者による放置（不作為）</span>も含まれる（大判大6.11.24）。217条・218条の遺棄罪と異なり不保護の規定を欠くため、不作為型が「遺棄」に取り込まれる。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">保護法益</span><span class="kd-text">死者に対する社会的風俗・宗教感情（死者への敬虔感情）。生命・身体を保護法益とする遺棄罪（217条以下）とは法益が異なる。</span></div>
 </div></div></details></div>
-<div id="bref-イ-t6" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 大判大6.11.24（新生児放置・死体遺棄）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">母親が新生児を砂中に埋めて窒息死させ、その死体をそのまま放置した事案において、<span class="ron-mark freq-high">埋葬義務者が葬祭をせず死体を放置する不作為</span>も死体遺棄罪の「遺棄」に当たるとして、死体遺棄罪の成立を認めた。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">埋葬義務ある者の放置（不作為）が「遺棄」に含まれることを示す。死体遺棄罪も不作為犯として成立し得る（記述イ）。</span></div>
-</div></div></details></div></div>
+<div id="bref-イ-t6" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 大判大6.11.24（新生児放置・死体遺棄）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">母親が新生児を砂中に埋めて窒息死させ、その死体をそのまま放置した事案において、<span class="ron-mark freq-high">埋葬義務者が葬祭をせず死体を放置する不作為</span>も死体遺棄罪の「遺棄」に当たるとして、死体遺棄罪の成立を認めた。</p></div></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「遺棄＝物理的に捨てる作為」と語感で限定する罠。</strong>190条の「遺棄」には埋葬義務者の放置（不作為）も含まれる。生きた人の保護責任者遺棄罪（218条）が作為の「遺棄」と不作為の「不保護」を書き分けるのと対比すると、死体遺棄罪は不保護規定を欠く分「遺棄」概念が不作為まで及ぶ——条文構造の差が概念の広狭を決める cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>不作為で「遺棄」になるのは、葬るべき立場の者に限られる。</strong>死体を見つけて立ち去っただけの第三者は葬祭義務を負わないので、放置は遺棄に当たらない。客体が生存者に変われば190条を離れ、保護責任者遺棄罪が作為の「遺棄」と不作為の「不保護」を書き分ける領域（218条）へ移る。</span><div class="tx-dgm is-matrix" data-dgm="024-イ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">放置（不作為）の主体・客体をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">死体遺棄罪</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">埋葬義務者の放置 → 義務を負わない第三者の放置</p><p class="dgm-cell is-ng">✕ 成立しない</p><p class="dgm-cell">不作為の遺棄は葬祭義務ある者に限る<span class="dgm-src">190条</span></p><p class="dgm-cell is-rowhead">死体の放置 → 遺骨・遺髪・棺に納めてある物の放置</p><p class="dgm-cell is-ok">○ 成立の余地</p><p class="dgm-cell">客体に含まれる<span class="dgm-src">190条</span></p><p class="dgm-cell is-rowhead">死体の放置 → 生存する病者の放置</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">生存者は不保護として書き分けられる<span class="dgm-src">218条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6036,29 +6268,20 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不真正不作為犯の故意は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>結果の発生を意欲していなくても、認められる余地がある</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。故意は「結果を望んでいた」ことだと思いがち。でも刑法の故意は<strong>未必の故意</strong>（結果が起きるかもしれないと認識し、それでもよいと認容していれば足りる）でよく、結果発生を積極的に望む（意欲する）ことまでは要らない（<a class="ref-stat" href="#bref-ウ-38">38条1項</a>）。判例（<a class="ref-stat" href="#bref-ウ-h174">最決平17.7.4</a>）も未必的殺意による不作為の殺人を認めた。だから意欲がなくても故意は認められ、正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">不作為犯の故意も<strong>未必の故意</strong>で足り、結果を意欲することまでは要らない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">実行行為性（作為と同視できるか）</span><span class="tx-gist-step is-now">故意（不作為犯の主観）</span><span class="tx-gist-step">因果関係（不作為と結果）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">不作為で人を死なせたとき、「死なせたかった」という気持ちまで必要なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">重篤な患者を任された者が、このまま医療を受けさせなければ患者は死ぬかもしれない、と分かっています。それでも医師に診せず、患者を放置しました。死んでほしいと強く望んでいたわけではありません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">人を罰するには「罪を犯す意思」、つまり<strong>故意</strong>が要ります。死を望んではいなかったこの人に、殺人の故意を認めてよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">故意は、結果が起きるかもしれないと認識し、それでも構わないと受け入れていれば足ります（<a class="ref-stat" href="#bref-ウ-38">38条1項</a>）。最高裁（<a class="ref-stat" href="#bref-ウ-h174">最決平17.7.4</a>）も、未必的な殺意による不作為の殺人罪の成立を認めました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">結果を望むという心の動きまで求めると、「どうなっても構わない」と投げ出した人のほうが軽く扱われてしまいます。望みを要求するのは、通貨偽造罪の「行使の目的」のように条文が特別に定めた場合だけで、通常の故意は認識と認容でそろうと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>未必の故意</span></dt><dd>結果が発生するかもしれないと認識しながら、発生しても構わないと受け入れている心理状態。これで故意は足りる。</dd></div><div class="tx-gist-term"><dt><span>確定的故意</span></dt><dd>結果の発生を確実なものとして認識し、又は積極的に意欲している場合の故意。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">意欲を要しないという向きが判例と合い、未必的殺意による不作為の殺人罪の成立が認められます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>故意の内容を確かめる</strong><span class="syn-body">故意は結果発生の<span class="ron-mark freq-high">認識＋認容</span>（未必の故意）で足り、結果を積極的に意欲することまでは要しない。これは作為犯・不作為犯を通じた故意の一般論である。</span></p>
 <p><span class="syn-step">2</span><strong>不作為犯に当てはめる</strong><span class="syn-body"><a class="ref-stat" href="#bref-ウ-h174">最決平17.7.4</a>は、患者が死亡するかもしれないことを認識・認容した<span class="case-emphasis freq-high">未必的殺意</span>で、不作為による殺人罪の成立を認めた。結果発生の意欲（確定的故意）は不要だから、本記述は正しい。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>故意は「望んだか」ではなく「かもしれないと分かって放置したか」。未必の故意で足りるのは作為でも不作為でも同じ。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>故意の内容</strong>：結果発生の認識・認容（未必の故意）で足り、意欲（確定的故意）は不要（<a class="ref-stat" href="#bref-ウ-38">38条1項</a>）。</li>
-<li><strong>不作為犯でも同じ</strong>：<a class="ref-stat" href="#bref-ウ-h174">最決平17.7.4</a>は未必的殺意による不作為の殺人を肯定した。</li>
-<li><strong>ひっかけの型</strong>：「故意＝結果を望むこと」と狭めると外す。未必の故意（認識・認容）で足りる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>望んだかではなく受け入れたか。認識だけで認容が無ければ過失（38条1項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-ウ-38" class="tx-basis-item "><div class="tx-basis-head">📜 刑法38条1項 故意<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body"><span class="ron-mark freq-high">罪を犯す意思がない行為は、罰しない</span>。ただし、法律に特別の規定がある場合は、この限りでない。</span></p></div><details class="tx-basis-more"><summary>＋ 故意の内容・未必の故意を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">故意（罪を犯す意思）は結果発生の<span class="case-emphasis freq-high">認識・認容</span>で足りる（未必の故意）。結果を積極的に望む意欲（確定的故意）までは要しない。意欲を要求するのは目的犯の「目的」などの特別の主観的要素にすぎない。</span></div>
 </div></div></details></div>
-<div id="bref-ウ-h174" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平17.7.4（シャクティ治療事件・未必的殺意）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">入院中の患者を病院から運び出し、<span class="ron-mark freq-high">未必的な殺意</span>をもって、患者の生命を維持するために必要な医療措置を受けさせないまま放置して死亡させた事案で、不作為による殺人罪の成立を認めた。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">不真正不作為犯の故意は未必的なもので足り、結果発生の意欲は不要（記述ウ）。</span></div>
-</div></div></details></div></div>
+<div id="bref-ウ-h174" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平17.7.4（シャクティ治療事件・未必的殺意）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">入院中の患者を病院から運び出し、<span class="ron-mark freq-high">未必的な殺意</span>をもって、患者の生命を維持するために必要な医療措置を受けさせないまま放置して死亡させた事案で、不作為による殺人罪の成立を認めた。</p></div></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「故意＝結果を望むこと」と狭める罠。</strong>故意は認識＋認容の未必の故意で足り、意欲は確定的故意の要素にすぎない。「望み・目的」を要求するのは目的犯の目的（例：通貨偽造罪の行使の目的）のような特別の主観的要素であって、通常の故意ではない——故意と目的（意欲的要素）を混同しない cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは、認識はあるのに認容がない場合。</strong>死ぬかもしれないと思いながら、まさか死なないだろうと結果を受け入れていなければ認識ある過失にとどまり、故意は否定される（38条1項）。意欲まで要求されるのは通貨偽造罪の行使の目的（148条1項）のような目的犯の特別の主観的要素で、通常の故意の要件ではない。</span><div class="tx-dgm is-matrix" data-dgm="024-ウ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">主観の中身をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">故意</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">意欲していない → 死ぬかもしれないと認識し認容した</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">未必の故意で足りる<span class="dgm-src">38条1項</span></p><p class="dgm-cell is-rowhead">意欲していない → 結果の発生を確定的に意欲した</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">確定的故意は当然に含まれる<span class="dgm-src">38条1項</span></p><p class="dgm-cell is-rowhead">認識し認容した → 認識はあるが認容していない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">認識ある過失にとどまる<span class="dgm-src">38条1項</span></p><p class="dgm-cell is-rowhead">通常の故意 → 行使の目的といった目的犯の主観</p><p class="dgm-cell is-acc">意欲が要る</p><p class="dgm-cell">特別の主観的要素として別に要求される<span class="dgm-src">148条1項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6076,27 +6299,19 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不作為犯は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>作為可能性がない場合であっても、成立する余地がある</span><span class="tx-stmt-fix">→ 作為可能性・容易性がなければ実行行為性を欠き不成立</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「義務さえあれば不作為でも罰せる」と思いたくなる。でも不作為が作為と同じ実行行為といえるには、作為義務に加えて<strong>作為可能性・容易性</strong>（その場で結果を回避する行為が実際にでき、しかも無理なくできること）が要る。できないことを要求しても無意味だからだ。だから<strong>作為可能性がなければ不作為犯は不成立</strong>で、「作為可能性がなくても成立する余地がある」は誤り（×）。正しくは、作為可能性・容易性がある場合に初めて成立する。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">作為可能性・容易性を欠けば実行行為性がなく、<strong>不作為犯は成立しない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">実行行為性（作為と同視できるか）</span><span class="tx-gist-step">故意（不作為犯の主観）</span><span class="tx-gist-step">因果関係（不作為と結果）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">助ける義務さえあれば、実際に助けられたかどうかを問わずに罰してよいのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">子どもが川で溺れているのを、親が岸から見ています。ところが親は泳げず、周りに浮き輪もロープもなく、助けを呼べる相手も見当たりません。どう動いても救い出せない状況だったとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">親には子を守る<strong>作為義務</strong>があります。それでも、救えなかったこの親を不作為による殺人で罰してよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">不作為が作為と同じ実行行為といえるには、作為義務に加えて、結果を回避する行為が現にでき、しかも無理なくできたという<strong>作為可能性・容易性</strong>が必要です。これを欠くときは実行行為性がなく、殺人罪（刑法199条）の「人を殺した」にも当たりません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">法は不可能を強いることができません。できない行為をしなかったことを責めても意味がなく、その放置を、自分の手を下して結果を起こした場合と同じ重さで見ることはできないからだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>作為可能性・容易性</span></dt><dd>その場で結果を回避する行為が現実にでき、かつ過大な負担なくできたこと。作為義務と並ぶ実行行為性の要件。</dd></div><div class="tx-gist-term"><dt><span>実行行為性</span></dt><dd>その行為が、条文の定める犯罪の実行行為といえること。不作為では、作為と同視できるかで判断される。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">作為可能性がなくても成立する余地があるとしている点が誤りで、可能性・容易性を欠けば実行行為性がなく不成立です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>実行行為性の二本柱を確認する</strong><span class="syn-body">不真正不作為犯の実行行為性が肯定されるには、作為義務のほかに<span class="ron-mark freq-high">作為可能性・容易性</span>が必要である（結果回避可能性の一環）。</span></p>
 <p><span class="syn-step">2</span><strong>理由から誤りを確定する</strong><span class="syn-body">作為可能性がない者に作為を要求するのは<span class="case-emphasis freq-high">無意味・不当</span>だから（法は不可能を強いない）。物理的に結果を回避できない場面では、放置を作為による結果実現と同視できない。よって作為可能性がない場合は不成立であり、「成立する余地がある」とする本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>義務だけでは足りない。「できたのにやらなかった」が不作為犯。「そもそもできなかった」なら罰せない。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>実行行為性の要件</strong>：作為義務＋作為可能性・容易性。作為可能性がなければ実行行為性を欠く。</li>
-<li><strong>理由</strong>：不可能を強いるのは無意味・不当（法は不可能を強いない）。</li>
-<li><strong>ひっかけの型</strong>：作為義務だけで足りると要件を一つに削ると外す。作為可能性・容易性がなければ実行行為性を欠く。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>できた者だけが問われる。手段がその場にあったかで実行行為性が切れる。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-エ-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪／不真正不作為犯の実行行為性<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。（不作為でも「人を殺した」といえるには実行行為性が要る）</span></p></div><details class="tx-basis-more"><summary>＋ 実行行為性の要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">実行行為性の要件</span><span class="kd-text">不作為が作為による実行行為と同視できるには、①作為義務と②<span class="case-emphasis freq-high">作為可能性・容易性</span>の両方が必要。作為可能性がない場合は実行行為性を欠き、不作為犯は成立しない。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">「作為可能性がない場合であっても成立する余地がある」とする記述エは、実行行為性の要件を落としており誤り。</span></div>
 </div></div></details></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「作為義務があれば不作為犯成立」と要件を一つに削る罠。</strong>実行行為性には作為可能性・容易性も要り、両輪が揃って初めて作為との同視ができる。過失犯の結果回避義務でも「回避可能性」がなければ義務違反を問えないのと同じ発想——“そもそもできたか”を落とさない cross-cut。作為可能性を緩める方向の記述（本記述）は誤りになる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは、助ける手段がその場にあったかどうか。</strong>ホテルの一室で電話一本で救急医療を呼べた者は作為可能性・容易性を満たすので成立の余地があるが（最決平17.7.4）、泳げない者に水没した車からの救出を求めるような場面では実行行為性そのものを欠く。義務の側をいくら広げても、可能性の側が欠ければ処罰には届かない。</span><div class="tx-dgm is-matrix" data-dgm="024-エ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">現場の条件をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">不作為犯</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">作為可能性がない → 電話一本で救急医療を呼べた</p><p class="dgm-cell is-ok">○ 成立の余地</p><p class="dgm-cell">可能性・容易性があり実行行為性を肯定<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">作為可能性がない → 泳げない者に水没した車からの救出</p><p class="dgm-cell is-ng">✕ 成立しない</p><p class="dgm-cell">法は不可能を強いず、結果回避が物理的に不可能</p><p class="dgm-cell is-rowhead">作為が容易 → 救助に自らの生命の危険を伴う</p><p class="dgm-cell is-acc">容易性で絞る</p><p class="dgm-cell">可能性に加え容易性も実行行為性の要素</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6114,26 +6329,17 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不作為犯の因果関係は、期待された作為に出ていれば結果が発生しなかったことが、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>合理的な疑いを超える程度に確実であったといえない場合であっても、その可能性さえあれば、認められる</span><span class="tx-stmt-fix">→ 合理的な疑いを超える確実性がなければ因果関係は否定される</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「助かった可能性が少しでもあれば因果関係あり」としたくなる。でも判例（<a class="ref-stat" href="#bref-オ-h112">最決平元.12.15</a>・覚せい剤放置事件）は、期待された作為（救急医療の要請）をしていれば結果（死亡）が発生しなかったことが<strong>合理的な疑いを超える程度に確実</strong>（＝十中八九救命できた）だったことを要求する。単なる救命の「可能性」では足りない。だから「可能性さえあれば認められる」は誤り（×）。正しくは、確実性がなければ因果関係は否定される。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">救命が<strong>合理的な疑いを超えて確実</strong>でなければ、因果関係は認められない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">実行行為性（作為と同視できるか）</span><span class="tx-gist-step">故意（不作為犯の主観）</span><span class="tx-gist-step is-now">因果関係（不作為と結果）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">救急車を呼んでいれば助かったかもしれない、という程度で因果関係を認めてよいのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">覚醒剤を注射された人が錯乱状態に陥りました。その場にいた者は救急医療を呼ばずに放置し、その人は死亡します。被害者は若く、生命力が旺盛で、特段の持病もありませんでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">放置と死亡を結び付けてよいかが問われます。作為犯なら「その行為がなければ結果はなかったか」と問いますが、不作為では「期待された行為をしていれば結果は避けられたか」という形になり、どの程度確からしければ<strong>因果関係</strong>を認めてよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-オ-h112">最決平元.12.15</a>）は、錯乱状態に陥った時点で直ちに救急医療を要請していれば十中八九救命が可能であり、救命は合理的な疑いを超える程度に確実であったとして、放置と死亡との間の因果関係を認めました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">因果関係は刑罰を科す土台なので、あやふやなままでは足りません。不作為では「もし動いていたら」という仮定を置いて考える分、確からしさの要求を下げてしまうと、どのみち助からなかったかもしれない結果まで背負わせることになるからだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>不作為の因果関係</span></dt><dd>期待された作為に出ていれば結果は発生しなかった、といえる関係。合理的な疑いを超える程度の確実性が必要。</dd></div><div class="tx-gist-term"><dt><span>十中八九</span></dt><dd>ほぼ確実である、という意味。判例が救命の確実性を言い表すのに用いた言葉。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">可能性さえあれば認められるとしている点が誤りで、合理的な疑いを超える確実性がなければ因果関係は否定されます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>不作為の因果関係の基準を確かめる</strong><span class="syn-body">不作為と結果の因果関係は、期待された作為に出ていれば結果が発生しなかったことが<span class="ron-mark freq-high">合理的な疑いを超える程度に確実</span>であることを要する（<a class="ref-stat" href="#bref-オ-h112">最決平元.12.15</a>）。</span></p>
-<p><span class="syn-step">2</span><strong>本記述の誤りを確定する</strong><span class="syn-body">同判例は「<span class="case-emphasis freq-high">十中八九</span>救命が可能であった」＝救命が合理的な疑いを超えて確実だった事案で因果関係を肯定した。確実といえない場合に「可能性さえあれば」認めるのは基準を緩めすぎであり、因果関係は否定される。よって「認められる余地がある」とする本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>因果関係は「たぶん助かった」では足りない。「ほぼ確実に助かった（十中八九）」で初めてつながる。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>判断基準</strong>：期待された作為で結果回避が「合理的な疑いを超える程度に確実」であることが必要（<a class="ref-stat" href="#bref-オ-h112">最決平元.12.15</a>）。</li>
-<li><strong>「可能性」では不足</strong>：救命の可能性があった程度では因果関係を肯定できない（十中八九の確実性が要る）。</li>
-<li><strong>ひっかけの型</strong>：「回避の可能性があれば因果関係あり」と基準を緩めると外す。合理的な疑いを超える確実性が要る。</li>
-</ol>
+<p><span class="syn-step">2</span><strong>本記述の誤りを確定する</strong><span class="syn-body">同判例は「<span class="case-emphasis freq-high">十中八九</span>救命が可能であった」＝救命が合理的な疑いを超えて確実だった事案で因果関係を肯定した。確実といえない場合に「可能性さえあれば」認めるのは基準を緩めすぎであり、因果関係は否定される。</span></p> </div>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>十中八九なら繋がる、助かったかもしれないでは切れる（最決平元.12.15）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-オ-h112" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平元.12.15（覚せい剤放置事件・百選Ⅰ4）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被告人らが注射した覚せい剤により錯乱状態に陥った被害者を放置した事案で、錯乱状態に陥った時点で直ちに救急医療を要請していれば、被害者が年若く生命力が旺盛で特段の疾病がなかったことなどから、<span class="ron-mark freq-high">十中八九同女の救命が可能であった</span>とし、「同女の救命は<span class="case-emphasis freq-high">合理的な疑いを超える程度に確実</span>であったと認められる」から、放置と死亡との間に刑法上の因果関係があるとした。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">不作為の因果関係は「期待された作為で結果回避が合理的な疑いを超えて確実」であることを要する（記述オ）。単なる回避の可能性では足りない。</span></div>
-</div></div></details></div></div>
+<div class="tx-basis-items"><div id="bref-オ-h112" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平元.12.15（覚せい剤放置事件・百選Ⅰ4）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被告人らが注射した覚せい剤により錯乱状態に陥った被害者を放置した事案で、錯乱状態に陥った時点で直ちに救急医療を要請していれば、被害者が年若く生命力が旺盛で特段の疾病がなかったことなどから、<span class="ron-mark freq-high">十中八九同女の救命が可能であった</span>とし、「同女の救命は<span class="case-emphasis freq-high">合理的な疑いを超える程度に確実</span>であったと認められる」から、放置と死亡との間に刑法上の因果関係があるとした。</p></div></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「回避の可能性があれば因果関係あり」と基準を緩める罠。</strong>不作為の因果関係は“作為をしていれば結果を回避できたことが合理的な疑いを超えて確実”であることを要する（十中八九）。作為犯の条件関係（あれなければこれなし）を不作為に移すと「作為があれば結果が起きなかったといえるか」の確実性が争点になる——<em>可能性</em>と<em>確実性</em>を取り違えない cross-cut。緩める方向の本記述は誤り。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは、救命の見込みがどこまで確かだったか。</strong>直ちに救急医療を要請していれば十中八九救命できたといえる場面では因果関係が肯定されるが（最決平元.12.15）、助かったかもしれない程度にとどまれば、疑わしきは被告人の利益にという土台から結び付きは否定される。発見の時点ですでに手遅れなら、結果回避の可能性自体がない。</span><div class="tx-dgm is-matrix" data-dgm="024-オ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">救命の見込みをこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">因果関係</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">可能性さえあれば → 十中八九救命できた</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">合理的な疑いを超える確実性がある<span class="dgm-src">最決平元.12.15</span></p><p class="dgm-cell is-rowhead">十中八九救命できた → 助かった可能性はあるが確実でない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">可能性では足りず、疑わしきは被告人の利益に</p><p class="dgm-cell is-rowhead">救命できた → 発見の時点ですでに手遅れ</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">期待された作為に出ても結果は変わらない</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6215,11 +6421,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="ア:o,イ:o,ウ:o,エ:x,オ:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="ア" data-verdict="o" data-brief-story="刑法は原則として『した』ことを罰する。にもかかわらず『しなかった』ことを作為犯の条文（殺人なら199条）で処罰するのが<b>不真正不作為犯</b>で、体系上は実行行為性の問題として構成要件の段階に置かれる。処罰を支える第一の柱が<b>作為義務</b>——助けるのが当たり前の立場にいたか——である。趣旨は、放っておけば死ぬ人と結果との間に立ち、その命の行方を自分の手に握ってしまった者だけを、手を下した者と同じ土俵に乗せる点にある。だから義務の淵源は<b>法令の明文に限られない</b>。契約で引き受けた、自分が危険を作り出した（先行行為）、その人を一手に抱え込んだ（排他的支配）——こうした事情を束ねて、条文の外からでも義務は生まれる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、いつからその人を一手に抱え込んだのかを時系列で固める。引受けの経緯、同居や介護の実態、救急要請の有無が裏づけの中心で、弁護人は他に助けられる人がいたことを挙げて排他性を争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティ治療事件（最決平成17年7月4日）。手のひらをかざす独自の治療を行う者のもとへ、信奉者だった親族が、脳内出血で入院中の患者を病院から運び出し、ホテルの一室へ移した。法律のどこにも治療者は患者を救えとは書かれていない。それでも、患者を病院から引き離して自分の手元へ抱え込んだ経過そのものが、義務を測る材料になった。</span>" data-brief-mark="作為義務が<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>法令に基づかない場合でも成立する余地がある</span>（契約・先行行為・排他的支配等の総合考慮）。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「法律上の規定に基づくものでない場合であっても」＝作為義務の根拠を法令に限定しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>作為義務は作為との同視を基礎づける実質的義務ゆえ、根拠を明文に限らず総合考慮する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>契約・先行行為・排他的支配・保護の引受け等を総合して作為義務を認める（最決平17.7.4）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>法令の明文がなくても作為義務は生じ得る（法令限定説は採らない）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>保護責任者遺棄罪の「保護する責任」・過失犯の結果回避義務も、義務の淵源を明文に限らず判断する。</p></div></td></tr>
-<tr data-stmt="イ" data-verdict="o" data-brief-story="死体遺棄罪（190条）が守るのは個人の生命や財産ではなく、<b>死者に対する社会一般の宗教感情</b>で、体系上は社会的法益に対する罪——礼拝所及び墳墓に関する罪の章に置かれる。遺棄と聞くと運んで捨てる動作を思い浮かべるが、条文が守ろうとしているのは死者が相応に弔われている状態そのものだから、<b>葬るべき者が葬らずに放置する</b>ことも同じ害をもたらす。ここで効くのが条文の読み合わせである。人を対象とする遺棄罪は、218条で不保護——生存に必要な保護をしないこと——をわざわざ書き分けているのに、190条にはその書き分けがない。<b>書き分けが無いということは、放置も遺棄という言葉に取り込める</b>ということになる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>孤独死や身元の分からない遺体では、まず戸籍と同居関係から葬るべき立場の者を特定する。年金や賃料の受給が続いていれば、動機の裏づけとして併せて調べられるのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2010年7月、東京都足立区で戸籍上111歳とされていた男性が、自宅の一室で白骨化した状態で見つかった。同居していた家族が死体遺棄の疑いで摘発され、この発覚を機に全国で所在不明高齢者の一斉調査が行われた。運んで捨てたのではなく、葬らずに置いたことが問われた一件である。</span>" data-brief-mark="死体遺棄罪について<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>不作為犯が成立する余地がある</span>（遺棄＝埋葬義務者の放置も含む）。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>死体遺棄罪（190条）の「遺棄」に埋葬義務者の放置（不作為）が含まれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>死者への敬虔感情の保護は、投棄という作為だけでなく放置という不作為でも害される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>母が新生児を埋め死体を放置した事案で死体遺棄罪成立（大判大6.11.24）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>217・218条の遺棄罪と異なり不保護規定を欠くため、不作為が「遺棄」に取り込まれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>保護法益と条文構造（不保護規定の有無）で「遺棄」概念の広狭が決まる。</p></div></td></tr>
-<tr data-stmt="ウ" data-verdict="o" data-brief-story="故意（38条1項）は<b>結果の認識と認容</b>で足り、結果を積極的に望むこと（意欲）までは要らない。これは手を下す場合でも動かない場合でも変わらない体系の基本で、意欲まで要求されるのは目的犯の『目的』のような特別の主観的要素だけである。趣旨は、思いとどまる機会に直面しながら踏み越えた点を非難するところにあるから、望んだかどうかではなく<b>危ない結果が起こり得ると分かったうえで受け入れたか</b>が分かれ目になる。動かない場面ではこの区別がとくに効く。手を出す者は結果を望んでいることが多いが、動かない者は助からなくても仕方ないと<b>成り行きに委ねる</b>形で結果を受け入れる。これが未必の故意と呼ばれるものである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>未必の故意は本人の供述だけでは決まらない。通報までに経過した時間、容態の変化を見ていたか、その場を離れたかといった行動の外形を積み上げて認定し、弁護人はまさか死ぬとは思わなかったという説明を支える事情を探す。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティ治療事件で正面から問われたのは、まさにこの心の中の問題だった。入院中の患者を病院から連れ出させ、必要な医療から切り離したままホテルの一室に置き続ける——望んで死なせたのか、死ぬかもしれないと分かったうえで成り行きに委ねたのか。未必の故意という言葉が実務で持つ重さが、この経過に表れている。</span>" data-brief-mark="不真正不作為犯の故意は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>結果を意欲しなくても認められる余地がある</span>（未必の故意で足りる）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「結果の発生を意欲していなくても」＝未必の故意で足りる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>故意は結果の認識・認容で足り、意欲は確定的故意の要素にすぎない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>未必的殺意による不作為の殺人を肯定（最決平17.7.4）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>意欲（積極的な望み）は故意の必須要素ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>目的犯の「目的」など意欲的要素と通常の故意を区別する。</p></div></td></tr>
-<tr data-stmt="エ" data-verdict="x" data-brief-story="作為義務が認められても、それだけでは処罰に届かない。<b>作為可能性・容易性</b>——その時その場で実際に助けられたか——が欠ければ、そもそも実行行為と評価できないからである。法は不可能を強いない、という古くからの発想が下敷きで、体系上は実行行為性を否定する要素として、義務の側（成立を広げる方向）とは<b>逆向きに働く</b>。コツは、義務の有無と可能性の有無を<b>別々に、順番に確かめる</b>こと。助けるべき立場にあったかを見たうえで、その人に電話一本・声一つの余地があったかを、距離・時間・体力といった現場の条件に即して測る。動けない者を罰しても命は救われないから、助けられたのにしなかった場合へ処罰は絞られる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、その時その場で何ができたかを具体的に再現する。救急車の到達時間、電話の有無、周囲に人がいたか、本人の体力。できたはずだという抽象論では足りず、代替手段を一つずつ潰していく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>同じシャクティ治療事件の現場は、山奥でも海上でもなく、ホテルの一室だった。電話一本で救急車を呼べる場所に患者を置きながら、その一本をかけていない。助けられなかったのではなく助けなかった——可能性が争いになりにくいのは、こうしたすぐそこに手段があった場面である。</span>" data-brief-mark="不作為犯は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>作為可能性がない場合でも成立する余地がある</span><span class='tx-stmt-fix'>→ 作為可能性・容易性がなければ実行行為性を欠き不成立</span>。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「作為可能性がない場合であっても、成立する余地がある」＝誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不可能を強いるのは無意味・不当ゆえ、作為可能性・容易性が実行行為性の要件。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>作為義務＋作為可能性・容易性が揃って初めて作為と同視できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>作為可能性がなければ実行行為性を欠き不成立（可能性がある場合に限り成立）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>過失犯でも結果回避可能性がなければ義務違反を問えないのと同じ。</p></div></td></tr>
-<tr data-stmt="オ" data-verdict="x" data-brief-story="因果関係は、動かなかったことと結果が結び付くかを見る段階で、不作為では<b>助けていれば助かったか</b>という仮定の問いになる。ここが手を下す場合との最大の違いで、実際に起きた出来事をたどれるのと違い、起きなかった救助の効果を後から評価しなければならない。だからこそ証明のハードルは下げられない。刑事責任は<b>疑わしきは被告人の利益に</b>という土台の上に立つから、救命の可能性が少しあった程度で結び付きを認めれば、どのみち助からなかったかもしれない人の死まで背負わせることになる。求められるのは<b>合理的な疑いを超える確実性</b>——十中八九は助かったといえるか、である。可能性と確実性は別物として扱う。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>救命可能性は医師の鑑定や意見書で争われる。検察官は搬送後の治療手順に沿って助かったはずだと立証し、弁護人は発見の時点ですでに手遅れだった可能性を突く。ここが主戦場になることも多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>覚醒剤を注射された被害者が錯乱状態に陥り、ホテルの客室に放置されたまま死亡した事件（最決平成元年12月15日）では、直ちに救急医療を要請していれば救命できたといえるかが正面から問われた。可能性で足りるのか確実性まで要るのかという問題が、この一件を通じて実務に刻まれている。</span>" data-brief-mark="不作為の因果関係は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>可能性さえあれば認められる余地がある</span><span class='tx-stmt-fix'>→ 合理的な疑いを超える程度の確実性が必要</span>。"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「その可能性さえあれば、認められる」＝誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不作為の処罰範囲を画するため、結果回避の確実性を要求する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>十中八九救命可能で「合理的な疑いを超える確実性」を認めた（最決平元.12.15）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>単なる回避の可能性では因果関係を認めない（確実性が必要）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>可能性と確実性を区別し、条件関係の証明度として厳格に判断する。</p></div></td></tr>
+<tr data-stmt="ア" data-verdict="o" data-brief-story="刑法は原則として『した』ことを罰する。にもかかわらず『しなかった』ことを作為犯の条文（殺人なら199条）で処罰するのが<b>不真正不作為犯</b>で、体系上は実行行為性の問題として構成要件の段階に置かれる。処罰を支える第一の柱が<b>作為義務</b>——助けるのが当たり前の立場にいたか——である。趣旨は、放っておけば死ぬ人と結果との間に立ち、その命の行方を自分の手に握ってしまった者だけを、手を下した者と同じ土俵に乗せる点にある。だから義務の淵源は<b>法令の明文に限られない</b>。契約で引き受けた、自分が危険を作り出した（先行行為）、その人を一手に抱え込んだ（排他的支配）——こうした事情を束ねて、条文の外からでも義務は生まれる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、いつからその人を一手に抱え込んだのかを時系列で固める。引受けの経緯、同居や介護の実態、救急要請の有無が裏づけの中心で、弁護人は他に助けられる人がいたことを挙げて排他性を争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティ治療事件（最決平成17年7月4日）。手のひらをかざす独自の治療を行う者のもとへ、信奉者だった親族が、脳内出血で入院中の患者を病院から運び出し、ホテルの一室へ移した。法律のどこにも治療者は患者を救えとは書かれていない。それでも、患者を病院から引き離して自分の手元へ抱え込んだ経過そのものが、義務を測る材料になった。</span>" data-brief-mark="作為義務が<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>法令に基づかない場合でも成立する余地がある</span>（契約・先行行為・排他的支配等の総合考慮）。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「法律上の規定に基づくものでない場合であっても」＝作為義務の根拠を法令に限定しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>作為義務は作為との同視を基礎づける実質的義務ゆえ、根拠を明文に限らず総合考慮する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>契約・先行行為・排他的支配・保護の引受け等を総合して作為義務を認める（最決平17.7.4）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>法令の明文がなくても作為義務は生じ得る（法令限定説は採らない）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>作為義務の淵源は法令に限られないが、危険の創出・排他的支配・引受けを欠く者には生じない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="024-ア"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">義務の淵源をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">作為義務</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">法律上の規定に基づかない → 法令上の明文がある</p><p class="dgm-cell is-ok">○ 生じる</p><p class="dgm-cell">法令も淵源の一つで、明文があればなお認めやすい</p><p class="dgm-cell is-rowhead">法令の定めなし → 危険を自ら作り出した先行行為</p><p class="dgm-cell is-ok">○ 生じる</p><p class="dgm-cell">自己の責めに帰すべき事由で生命の危険を生じさせた<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">法令の定めなし → 手当てを全面的にゆだねられた立場</p><p class="dgm-cell is-ok">○ 生じる</p><p class="dgm-cell">排他的支配・保護の引受けを総合考慮する<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">引き受けた者 → 通りかかって目撃しただけの者</p><p class="dgm-cell is-ng">✕ 生じない</p><p class="dgm-cell">道義上の義務にとどまり、排他的支配も引受けもない</p></div></div></div></td></tr>
+<tr data-stmt="イ" data-verdict="o" data-brief-story="死体遺棄罪（190条）が守るのは個人の生命や財産ではなく、<b>死者に対する社会一般の宗教感情</b>で、体系上は社会的法益に対する罪——礼拝所及び墳墓に関する罪の章に置かれる。遺棄と聞くと運んで捨てる動作を思い浮かべるが、条文が守ろうとしているのは死者が相応に弔われている状態そのものだから、<b>葬るべき者が葬らずに放置する</b>ことも同じ害をもたらす。ここで効くのが条文の読み合わせである。人を対象とする遺棄罪は、218条で不保護——生存に必要な保護をしないこと——をわざわざ書き分けているのに、190条にはその書き分けがない。<b>書き分けが無いということは、放置も遺棄という言葉に取り込める</b>ということになる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>孤独死や身元の分からない遺体では、まず戸籍と同居関係から葬るべき立場の者を特定する。年金や賃料の受給が続いていれば、動機の裏づけとして併せて調べられるのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2010年7月、東京都足立区で戸籍上111歳とされていた男性が、自宅の一室で白骨化した状態で見つかった。同居していた家族が死体遺棄の疑いで摘発され、この発覚を機に全国で所在不明高齢者の一斉調査が行われた。運んで捨てたのではなく、葬らずに置いたことが問われた一件である。</span>" data-brief-mark="死体遺棄罪について<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>不作為犯が成立する余地がある</span>（遺棄＝埋葬義務者の放置も含む）。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>死体遺棄罪（190条）の「遺棄」に埋葬義務者の放置（不作為）が含まれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>死者への敬虔感情の保護は、投棄という作為だけでなく放置という不作為でも害される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>母が新生児を埋め死体を放置した事案で死体遺棄罪成立（大判大6.11.24）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>217・218条の遺棄罪と異なり不保護規定を欠くため、不作為が「遺棄」に取り込まれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>不作為による遺棄は葬祭義務を負う者に限られ、客体が生存者なら218条の不保護に移る。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="024-イ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">放置（不作為）の主体・客体をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">死体遺棄罪</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">埋葬義務者の放置 → 義務を負わない第三者の放置</p><p class="dgm-cell is-ng">✕ 成立しない</p><p class="dgm-cell">不作為の遺棄は葬祭義務ある者に限る<span class="dgm-src">190条</span></p><p class="dgm-cell is-rowhead">死体の放置 → 遺骨・遺髪・棺に納めてある物の放置</p><p class="dgm-cell is-ok">○ 成立の余地</p><p class="dgm-cell">客体に含まれる<span class="dgm-src">190条</span></p><p class="dgm-cell is-rowhead">死体の放置 → 生存する病者の放置</p><p class="dgm-cell is-acc">別条文</p><p class="dgm-cell">生存者は不保護として書き分けられる<span class="dgm-src">218条</span></p></div></div></div></td></tr>
+<tr data-stmt="ウ" data-verdict="o" data-brief-story="故意（38条1項）は<b>結果の認識と認容</b>で足り、結果を積極的に望むこと（意欲）までは要らない。これは手を下す場合でも動かない場合でも変わらない体系の基本で、意欲まで要求されるのは目的犯の『目的』のような特別の主観的要素だけである。趣旨は、思いとどまる機会に直面しながら踏み越えた点を非難するところにあるから、望んだかどうかではなく<b>危ない結果が起こり得ると分かったうえで受け入れたか</b>が分かれ目になる。動かない場面ではこの区別がとくに効く。手を出す者は結果を望んでいることが多いが、動かない者は助からなくても仕方ないと<b>成り行きに委ねる</b>形で結果を受け入れる。これが未必の故意と呼ばれるものである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>未必の故意は本人の供述だけでは決まらない。通報までに経過した時間、容態の変化を見ていたか、その場を離れたかといった行動の外形を積み上げて認定し、弁護人はまさか死ぬとは思わなかったという説明を支える事情を探す。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティ治療事件で正面から問われたのは、まさにこの心の中の問題だった。入院中の患者を病院から連れ出させ、必要な医療から切り離したままホテルの一室に置き続ける——望んで死なせたのか、死ぬかもしれないと分かったうえで成り行きに委ねたのか。未必の故意という言葉が実務で持つ重さが、この経過に表れている。</span>" data-brief-mark="不真正不作為犯の故意は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>結果を意欲しなくても認められる余地がある</span>（未必の故意で足りる）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「結果の発生を意欲していなくても」＝未必の故意で足りる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>故意は結果の認識・認容で足り、意欲は確定的故意の要素にすぎない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>未必的殺意による不作為の殺人を肯定（最決平17.7.4）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>意欲（積極的な望み）は故意の必須要素ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>故意は認識＋認容で足り、認容を欠けば過失、意欲まで要るのは目的犯の目的に限る。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="024-ウ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">主観の中身をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">故意</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">意欲していない → 死ぬかもしれないと認識し認容した</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">未必の故意で足りる<span class="dgm-src">38条1項</span></p><p class="dgm-cell is-rowhead">意欲していない → 結果の発生を確定的に意欲した</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">確定的故意は当然に含まれる<span class="dgm-src">38条1項</span></p><p class="dgm-cell is-rowhead">認識し認容した → 認識はあるが認容していない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">認識ある過失にとどまる<span class="dgm-src">38条1項</span></p><p class="dgm-cell is-rowhead">通常の故意 → 行使の目的といった目的犯の主観</p><p class="dgm-cell is-acc">意欲が要る</p><p class="dgm-cell">特別の主観的要素として別に要求される<span class="dgm-src">148条1項</span></p></div></div></div></td></tr>
+<tr data-stmt="エ" data-verdict="x" data-brief-story="作為義務が認められても、それだけでは処罰に届かない。<b>作為可能性・容易性</b>——その時その場で実際に助けられたか——が欠ければ、そもそも実行行為と評価できないからである。法は不可能を強いない、という古くからの発想が下敷きで、体系上は実行行為性を否定する要素として、義務の側（成立を広げる方向）とは<b>逆向きに働く</b>。コツは、義務の有無と可能性の有無を<b>別々に、順番に確かめる</b>こと。助けるべき立場にあったかを見たうえで、その人に電話一本・声一つの余地があったかを、距離・時間・体力といった現場の条件に即して測る。動けない者を罰しても命は救われないから、助けられたのにしなかった場合へ処罰は絞られる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、その時その場で何ができたかを具体的に再現する。救急車の到達時間、電話の有無、周囲に人がいたか、本人の体力。できたはずだという抽象論では足りず、代替手段を一つずつ潰していく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>同じシャクティ治療事件の現場は、山奥でも海上でもなく、ホテルの一室だった。電話一本で救急車を呼べる場所に患者を置きながら、その一本をかけていない。助けられなかったのではなく助けなかった——可能性が争いになりにくいのは、こうしたすぐそこに手段があった場面である。</span>" data-brief-mark="不作為犯は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>作為可能性がない場合でも成立する余地がある</span><span class='tx-stmt-fix'>→ 作為可能性・容易性がなければ実行行為性を欠き不成立</span>。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「作為可能性がない場合であっても、成立する余地がある」＝誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不可能を強いるのは無意味・不当ゆえ、作為可能性・容易性が実行行為性の要件。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>作為義務＋作為可能性・容易性が揃って初めて作為と同視できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>作為可能性がなければ実行行為性を欠き不成立（可能性がある場合に限り成立）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>作為義務と作為可能性・容易性は別個の要件で、どちらを欠いても実行行為性は認められない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="024-エ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">現場の条件をこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">不作為犯</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">作為可能性がない → 電話一本で救急医療を呼べた</p><p class="dgm-cell is-ok">○ 成立の余地</p><p class="dgm-cell">可能性・容易性があり実行行為性を肯定<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">作為可能性がない → 泳げない者に水没した車からの救出</p><p class="dgm-cell is-ng">✕ 成立しない</p><p class="dgm-cell">法は不可能を強いず、結果回避が物理的に不可能</p><p class="dgm-cell is-rowhead">作為が容易 → 救助に自らの生命の危険を伴う</p><p class="dgm-cell is-acc">容易性で絞る</p><p class="dgm-cell">可能性に加え容易性も実行行為性の要素</p></div></div></div></td></tr>
+<tr data-stmt="オ" data-verdict="x" data-brief-story="因果関係は、動かなかったことと結果が結び付くかを見る段階で、不作為では<b>助けていれば助かったか</b>という仮定の問いになる。ここが手を下す場合との最大の違いで、実際に起きた出来事をたどれるのと違い、起きなかった救助の効果を後から評価しなければならない。だからこそ証明のハードルは下げられない。刑事責任は<b>疑わしきは被告人の利益に</b>という土台の上に立つから、救命の可能性が少しあった程度で結び付きを認めれば、どのみち助からなかったかもしれない人の死まで背負わせることになる。求められるのは<b>合理的な疑いを超える確実性</b>——十中八九は助かったといえるか、である。可能性と確実性は別物として扱う。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>救命可能性は医師の鑑定や意見書で争われる。検察官は搬送後の治療手順に沿って助かったはずだと立証し、弁護人は発見の時点ですでに手遅れだった可能性を突く。ここが主戦場になることも多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>覚醒剤を注射された被害者が錯乱状態に陥り、ホテルの客室に放置されたまま死亡した事件（最決平成元年12月15日）では、直ちに救急医療を要請していれば救命できたといえるかが正面から問われた。可能性で足りるのか確実性まで要るのかという問題が、この一件を通じて実務に刻まれている。</span>" data-brief-mark="不作為の因果関係は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>可能性さえあれば認められる余地がある</span><span class='tx-stmt-fix'>→ 合理的な疑いを超える程度の確実性が必要</span>。"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「その可能性さえあれば、認められる」＝誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不作為の処罰範囲を画するため、結果回避の確実性を要求する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>十中八九救命可能で「合理的な疑いを超える確実性」を認めた（最決平元.12.15）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>単なる回避の可能性では因果関係を認めない（確実性が必要）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>不作為の因果関係は結果回避の確実性を要し、可能性にとどまれば結果を帰せない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="024-オ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">救命の見込みをこう変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">因果関係</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">可能性さえあれば → 十中八九救命できた</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">合理的な疑いを超える確実性がある<span class="dgm-src">最決平元.12.15</span></p><p class="dgm-cell is-rowhead">十中八九救命できた → 助かった可能性はあるが確実でない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">可能性では足りず、疑わしきは被告人の利益に</p><p class="dgm-cell is-rowhead">救命できた → 発見の時点ですでに手遅れ</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">期待された作為に出ても結果は変わらない</p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

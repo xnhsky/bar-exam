@@ -5586,7 +5586,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5607,9 +5631,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6182,11 +6341,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-mark="保釈を許す場合について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>保証金額を定めずに許可することができる</span><span class='tx-stmt-fix'>→ 93条1項により保証金額を必ず定めなければならない</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>93条1項『保釈を許す場合には、保証金額を定めなければならない』（義務規定）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>保証金没収の威嚇で被告人の出頭を確保する制度ゆえ、額の設定は保釈許可の必要不可欠の条件。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>犯罪の性質・情状は保証金“額”を決める考慮要素（93条2項）であって、額を定めるか否かの裁量ではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>義務規定（定めなければならない）か裁量規定（定めることができる）かで結論が分かれ、93条1項は義務。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の語尾『〜なければならない／〜できる』で義務・裁量を機械的に判別する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-mark="裁判員裁判対象事件は89条1号に該当するから、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>保釈は認められない</span><span class='tx-stmt-fix'>→ 権利保釈は不可でも90条の裁量保釈の余地がある</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>89条は除外事由がなければ許さなければならない（権利保釈）／90条は適当と認めるとき職権で許すことができる（裁量保釈）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>89条は重い罪を類型的に権利保釈から外すが、90条が個別事情を見て救う受け皿になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>89条1号の該当は権利保釈を否定するにとどまり、裁量保釈（90条）まで否定しない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>権利保釈の可否と裁量保釈の可否は別問題で、前者がダメでも後者が残る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>一つの根拠が否定されても別ルート（例外・裁量）が残らないかを常に確認する。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-mark="保証金が納付されなければ、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>被告人は釈放されない</span>（94条1項・保証金の納付後でなければ執行できない）。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>94条1項『保釈を許す決定は、保証金の納付があった後でなければ、執行することができない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>納付なしに執行すれば没収の威嚇による出頭確保が働かず制度が空洞化するため、納付を執行の前提とした。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>保証金は現金が原則だが有価証券・保証書で代えることも許される（94条3項）。いずれも納付を要する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>保釈の許可（決定）と釈放（執行）は別段階で、納付が執行の停止条件。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>裁判の「決定（判断）」と「執行（実現）」を分けて考える。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-mark="保釈中に被告人が他の罪を犯した場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>保釈を取り消さなければならない</span><span class='tx-stmt-fix'>→ 他罪は取消事由でなく、取消は裁量（96条1項）</span>。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>96条1項は取消事由を限定列挙し『取り消すことができる』とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>保釈の取消しは被告人に不利益なため、事由を限定しつつ取り消すか否かを裁判所の裁量に委ねる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>召喚不出頭・逃亡・罪証隠滅・条件違反等が列挙され、「他罪を犯すこと」は含まれない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取消事由の該当性（列挙内か）と取消しの要否（裁量）は別で、両方を満たさなければ取消しは義務化しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>限定列挙は列挙外を原則含まず、『できる』は義務でなく裁量と読む。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-mark="被告人・弁護人のみならず、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>配偶者や直系の親族も保釈の請求をすることができる</span>（88条1項の請求権者）。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>88条1項は被告人・弁護人・法定代理人・保佐人・配偶者・直系親族・兄弟姉妹に保釈請求権を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>身柄拘束は防御と家族の生活に直結するため、本人以外の近親者にも請求権を広げた。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>列挙された者は独立して請求でき、配偶者・直系親族も当然に請求できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>請求権者が本人・代理人に限られるか近親者に及ぶかで結論が分かれ、条文は後者を採る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文が主体を列挙するときはその広がりを丁寧に読む（上訴権者355条も同様）。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="保釈は、身体の拘束を解く代わりに公判への出頭を<b>保証金という財産の威嚇</b>で担保する交換の制度である。だから保証金は制度の付属物ではなく担保の本体であり、93条1項は保釈を許す決定をするときに<b>保証金額を定めなければならない</b>と義務の語尾で書いている。額を決めないまま解いてしまえば、戻らなければ失うという担保が消え、出頭を確保する仕組みそのものが空洞になるからである。93条2項が挙げる犯罪の性質・情状、証拠の証明力、被告人の性格と資産は、<b>いくらにするかを測る材料</b>であって、定めるか否かを選ぶ材料ではない。裁量の余地があるのは<b>額の大きさの側だけ</b>で、額を定めるかどうかにはそもそも選択肢がない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は本人の収入・預貯金・援助者を疎明して額を抑えに行き、検察官は逃亡のおそれの大きさから高額を求める。決まった額を用意できないときは、額の変更を求めるか、保証書や立替で資金をつくることになる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>月収22万円の運送会社員が業務上横領で起訴され、弁護人が示せた資産は預金80万円だけだったという場面。裁判所が保釈を許すと決めた以上、額を定めずに門を開けることはできず、資産に見合う150万円と定めて、同居の母が用立てて納付する形で手続が進む。</span>" data-brief-mark="保釈を許す場合について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>保証金額を定めずに許可することができる</span><span class='tx-stmt-fix'>→ 93条1項により保証金額を必ず定めなければならない</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>93条1項『保釈を許す場合には、保証金額を定めなければならない』（義務規定）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>保証金没収の威嚇で被告人の出頭を確保する制度ゆえ、額の設定は保釈許可の必要不可欠の条件。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>犯罪の性質・情状は保証金“額”を決める考慮要素（93条2項）であって、額を定めるか否かの裁量ではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>義務規定（定めなければならない）か裁量規定（定めることができる）かで結論が分かれ、93条1項は義務。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の語尾『〜なければならない／〜できる』で義務・裁量を機械的に判別する。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="89条は<b>権利としての保釈</b>を定める規定で、各号に並ぶのは死刑・無期や短期1年以上の拘禁刑に当たる罪など、類型的に逃亡の誘因が大きい場合である。法定刑が重ければ逃げたい動機も大きいという経験則をあらかじめ条文に写し取り、その範囲では権利としての保釈を外した。もっとも89条の語法は<b>除外事由がなければ許さなければならない</b>という義務の形なので、各号に当たると外れるのは義務のほうだけで、<b>許してはならないという禁止</b>が生まれるわけではない。そこに90条が置かれ、逃亡や罪証隠滅のおそれの程度と、拘束が続くことで被告人が受ける健康上・経済上・社会生活上・防御準備上の不利益の程度を量って、裁判所が職権で許すことができる。重い罪は<b>第一の窓を閉じるだけで、第二の窓は開いている</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>重大事件では公判前整理手続の進み方が鍵になる。証人の範囲が固まり関係者と接触する危険が実質的に下がった時期を見て弁護人が請求し、検察官は余罪や共犯者との関係を挙げて争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>殺人罪で起訴され裁判員裁判の対象になった60歳の被告人が、人工透析を週3回受けているという場面。拘置所からの通院付添いに限界があり、健康上の不利益の程度が重く見られて、住居を自宅に限り毎週の出頭を条件に、職権で保釈が許される。</span>" data-brief-mark="裁判員裁判対象事件は89条1号に該当するから、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>保釈は認められない</span><span class='tx-stmt-fix'>→ 権利保釈は不可でも90条の裁量保釈の余地がある</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>89条は除外事由がなければ許さなければならない（権利保釈）／90条は適当と認めるとき職権で許すことができる（裁量保釈）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>89条は重い罪を類型的に権利保釈から外すが、90条が個別事情を見て救う受け皿になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>89条1号の該当は権利保釈を否定するにとどまり、裁量保釈（90条）まで否定しない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>権利保釈の可否と裁量保釈の可否は別問題で、前者がダメでも後者が残る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>一つの根拠が否定されても別ルート（例外・裁量）が残らないかを常に確認する。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="保釈では、<b>許すかどうかの判断</b>と<b>実際に外へ出すこと</b>が別の段階に分かれている。94条1項は、保釈を許す決定は保証金の納付があった後でなければ執行できないとし、納付を執行の入口に置いた。先に出してから後で払う形にすると、納めないまま戻らない者に対して手段が残らないので、担保を先に受け取る順序にしてあるわけである。もっとも現金を用意できないために担保の形だけで拘束が続くのは行き過ぎなので、94条2項は<b>本人以外の者が納めること</b>を、同条3項は有価証券や裁判所が適当と認める者の<b>保証書で代えること</b>を許している。許可・納付・釈放の三段で動き、間に担保の受け渡しが挟まると押さえるとよい。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>納付は裁判所の出納で行い、その確認が拘置所に伝わって初めて門が開く。夕方近くに決定が出た日は納付が間に合わず釈放が翌日に回ることもあるので、弁護人は決定前から資金と段取りを整えておく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>高額の保証金を現金で用意できない事件のために、一般社団法人日本保釈支援協会が保釈保証金の立替を行い、全国弁護士協同組合連合会は94条3項の保証書を発行する事業を続けている。どちらも納付という入口を越えるための道具で、入口そのものを無くす仕組みではない。</span>" data-brief-mark="保証金が納付されなければ、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>被告人は釈放されない</span>（94条1項・保証金の納付後でなければ執行できない）。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>94条1項『保釈を許す決定は、保証金の納付があった後でなければ、執行することができない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>納付なしに執行すれば没収の威嚇による出頭確保が働かず制度が空洞化するため、納付を執行の前提とした。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>保証金は現金が原則だが有価証券・保証書で代えることも許される（94条3項）。いずれも納付を要する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>保釈の許可（決定）と釈放（執行）は別段階で、納付が執行の停止条件。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>裁判の「決定（判断）」と「執行（実現）」を分けて考える。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="保釈は、いったん解いた拘束を<b>どういう場合に締め直せるか</b>まで含めて設計されている。96条1項は、召喚に応じないこと、逃亡し又は逃亡するおそれがあること、罪証を隠滅するおそれがあること、住居の制限その他の条件に違反したことなどを<b>限定して並べる</b>。並べ方の軸は<b>公判の実現と証拠の保全という保釈の目的が裏切られたか</b>であって、被告人が別に悪いことをしたという非難ではない。だから新たに別の罪を犯したという事実は、そこから逃亡や罪証隠滅のおそれが読み取れる限りで意味を持つにとどまる。しかも条文は<b>取り消すことができる</b>と書くので、事由に当たっても、違反の程度とその後の経過を見て取り消さない余地が残る。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>条件違反や所在不明の情報は身元引受人や捜査機関から裁判所に上がり、検察官が取消しを請求する形が多い。弁護人は経緯と再発防止の手当てを示して、取消しではなく条件の加重でとどめるよう求める。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>制限住居を指定されて保釈された被告人が、届け出をせずに引き払って3週間連絡が取れなくなり、第2回公判期日にも出頭しなかったという場面。取消しの材料になるのは、別件で万引きをしたという事実そのものではなく、召喚に応じないことと所在が分からないという経過である。</span>" data-brief-mark="保釈中に被告人が他の罪を犯した場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>保釈を取り消さなければならない</span><span class='tx-stmt-fix'>→ 他罪は取消事由でなく、取消は裁量（96条1項）</span>。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>96条1項は取消事由を限定列挙し『取り消すことができる』とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>保釈の取消しは被告人に不利益なため、事由を限定しつつ取り消すか否かを裁判所の裁量に委ねる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>召喚不出頭・逃亡・罪証隠滅・条件違反等が列挙され、「他罪を犯すこと」は含まれない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取消事由の該当性（列挙内か）と取消しの要否（裁量）は別で、両方を満たさなければ取消しは義務化しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>限定列挙は列挙外を原則含まず、『できる』は義務でなく裁量と読む。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="88条1項は、保釈を請求できる者として被告人と<b>弁護人</b>のほか、法定代理人・保佐人・配偶者・直系の親族・兄弟姉妹を並べる。弁護人は選任によって付く代理人だが、配偶者や親子・兄弟姉妹は<b>身分関係そのものに基づく独立の請求権</b>を持ち、本人の意向を待たずに自分の名で動ける。趣旨は二つある。拘束された本人は資料を集めることも書面を出すことも難しいという<b>動けない者の代わり</b>という面と、身体拘束が家計や子の養育に直接響くという<b>近親者自身の利害</b>という面である。刑訴法は同じ型を上訴でも採り、355条は被告人の法定代理人や保佐人に独立して上訴できる地位を与えている。弁護人がまだ付いていない時期にも家族が動けるところに、この広がりの実益がある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実際に請求書を作るのはほぼ弁護人だが、弁護人が選任される前や本人が争い方を決めきれない時期には、親や配偶者の名で請求が出ることがある。家族が弁護人を探して委任し、そこから請求に進む流れが多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>令和5年の刑事訴訟法改正で設けられた監督者制度では、被告人の親族や雇主など適当と認められる者が監督者に選ばれ、出頭の確保に責任を負う。近親者を手続の担い手として組み込む発想は、88条1項が請求権者を身分関係者まで広げたのと同じ流れにある。</span>" data-brief-mark="被告人・弁護人のみならず、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>配偶者や直系の親族も保釈の請求をすることができる</span>（88条1項の請求権者）。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>88条1項は被告人・弁護人・法定代理人・保佐人・配偶者・直系親族・兄弟姉妹に保釈請求権を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>身柄拘束は防御と家族の生活に直結するため、本人以外の近親者にも請求権を広げた。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>列挙された者は独立して請求でき、配偶者・直系親族も当然に請求できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>請求権者が本人・代理人に限られるか近親者に及ぶかで結論が分かれ、条文は後者を採る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文が主体を列挙するときはその広がりを丁寧に読む（上訴権者355条も同様）。</p></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6444,16 +6603,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6488,7 +6662,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6501,6 +6680,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6509,12 +6689,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

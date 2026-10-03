@@ -5403,6 +5403,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5670,6 +5685,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5973,38 +6223,26 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>ダンプカーに引きずり込んだ段階で暴行により負傷させた事例で不同意性交等致傷罪の成立を認める見解は、実行の着手時期に関して本判旨の考え方と<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>矛盾する</span><span class="tx-stmt-fix">→ どちらも犯人の計画を考慮して着手を認める＝矛盾しない</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。着手（＝犯罪の実行の開始点。<a class="ref-stat" id="ref-law-43-101" href="#bref-1-43">43条</a>）を早めに認めるという結論が似ているから、二つの判例はぶつかりそうに見える。でも本判旨（<a class="ref-stat" id="ref-law-h16-101" href="#bref-1-h16">最決平16.3.22</a>）が着手時期を決める物差しは「<strong>犯人の計画（犯行計画）を資料に取り込んで、危険が具体化する時点を探す</strong>」というもの。ダンプカー事件（<a class="ref-stat" id="ref-law-s45-101" href="#bref-1-s45">最決昭45.7.28</a>）で引きずり込み段階に着手を認める見解も、まさに「ダンプカーで運んで性交する」という計画を考慮して着手を前倒しする発想であり、物差しが同じ。だから両者は<strong>矛盾しない</strong>。「矛盾する」と述べる本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">引きずり込み段階で着手を認める見解は、クロロホルム事件と<strong>矛盾しない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">実行の着手の時期</span><span class="tx-gist-step">故意と因果</span><span class="tx-gist-step">着手を否定した場合の処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">着手を早める結論が似ている二つの判例は、互いに矛盾するのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">車で数キロ離れた人気のない場所まで運んでから性交しようと計画した者が、抵抗する相手を車の運転席へ引きずり込み、そのときの暴行でけがをさせました。古い判例は、この引きずり込みの段階で性犯罪の実行の着手を認めています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-1-43" id="ref-law-43-101">43条</a> の<strong>実行の着手</strong>をどこに置くかは、未遂と予備を分ける線引きです。引きずり込みの段階で着手を認める立場は、クロロホルム事件が着手を判断した枠組みとぶつかるのでしょうか。どちらも着手を早める方向で結論が似ているだけに、対立しそうに見えます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-1-h16" id="ref-law-h16-101">最決平16.3.22</a> は、失神させる行為が海中へ転落させる行為を確実かつ容易に行うために必要不可欠であること、以降の殺害計画を妨げる特段の事情がないこと、二つの行為の時間的場所的近接性を挙げて着手を認めました。<a class="ref-stat" href="#bref-1-s45" id="ref-law-s45-101">最決昭45.7.28</a> で引きずり込みの段階に着手を認める見解も、運んで性交するという計画を前提に、引きずり込みを性交に密接な行為とみるものです。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">どちらも、行為者の<strong>犯行計画</strong>を判断資料に取り込み、既遂に至る客観的な危険性が具体化した時点を探しています。物差しが同じなら、着手を早めるという結論が重なっても対立にはなりません。二つの立場が矛盾するかどうかは、たどり着いた結論ではなく判断基準が対立するかで決まると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>実行の着手</span></dt><dd>実行行為に密接な行為が始まり、既遂に至る客観的な危険性が生じた時点。ここを過ぎると未遂罪の成立があり得る（刑法43条）。</dd></div><div class="tx-gist-term"><dt><span>犯行計画の考慮</span></dt><dd>着手時期を判断するとき、行為者が何をどの順で進めるつもりだったかを判断資料に取り込むこと。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">矛盾するとした点が誤り。どちらの立場も犯人の計画を判断資料に取り込んで着手を前倒しする同じ物差しに立っています。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>本判旨の物差しを取り出す</strong><span class="syn-body">本判旨は、第1行為が第2行為に必要不可欠であること・特段の事情がないこと・時間的場所的近接性を挙げて、第1行為開始時に殺人の実行の着手を認めた。これらはいずれも<span class="case-emphasis freq-high">犯人の殺害計画を判断資料に取り込んだ</span>うえで危険性を評価するものだ。</span></p>
 <p><span class="syn-step">2</span><strong>ダンプカー事件の見解と重ねる</strong><span class="syn-body">引きずり込み段階で不同意性交等罪の着手を認める見解も、「ダンプカーで運んで性交する」という<span class="ron-mark freq-high">計画を前提にすれば引きずり込みが性交に密接な行為だ</span>という理由で着手を早める。逆に、被害者をどこかの家へ連れて行きそこで性交するつもりだった場合には引きずり込みは着手とはいえない——これは計画次第で着手時期が動くという、本判旨とまったく同じ発想。よって矛盾しない。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>結論が「着手を早める」で似ていても、物差し（計画を考慮する）が同じなら喧嘩にならない。似た結論＝矛盾、ではない。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>着手判断の物差し</strong>：本判旨は<a class="ref-stat" href="#bref-1-h16">最決平16.3.22</a>のとおり、犯人の犯行計画を判断資料に取り込み、密接性と客観的危険性で実行の着手を判断する。</li>
-<li><strong>ダンプカー事件との同質性</strong>：<a class="ref-stat" href="#bref-1-s45">最決昭45.7.28</a>で引きずり込み段階に着手を認める見解も計画を考慮して着手を早めるもので、物差しが共通し矛盾しない。</li>
-<li><strong>ひっかけの型</strong>：結論（着手を早める）が似ていることを「矛盾」と取り違える。矛盾か否かは結論ではなく判断基準（計画考慮）が対立するかで決まる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>計画を読んで着手を早めるのは、クロロホルムもダンプカーも同じ物差し。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-1-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為は第2行為を確実かつ容易に行うために必要不可欠なものであり、第1行為に成功した場合それ以降の殺害計画の遂行を妨げる特段の事情が存しなかったこと、第1行為と第2行為との時間的場所的近接性などに照らすと、第1行為は第2行為に密接な行為であり、<span class="ron-mark freq-high">第1行為を開始した時点で既に殺人に至る客観的な危険性が明らかに認められる</span>から、その時点で殺人罪の実行の着手があったと解するのが相当である。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-1-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為は第2行為を確実かつ容易に行うために必要不可欠なものであり、第1行為に成功した場合それ以降の殺害計画の遂行を妨げる特段の事情が存しなかったこと、第1行為と第2行為との時間的場所的近接性などに照らすと、第1行為は第2行為に密接な行為であり、<span class="ron-mark freq-high">第1行為を開始した時点で既に殺人に至る客観的な危険性が明らかに認められる</span>から、その時点で殺人罪の実行の着手があったと解するのが相当である。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程・判断枠組み</span><span class="kd-text">実行の着手時期は、実行行為に密接な行為が行われ、既遂に至る<span class="case-emphasis freq-high">客観的危険性が認められる時点</span>で判断する。その際、行為者の<span class="case-emphasis freq-high">犯行計画を考慮に入れる</span>点に特色がある。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">計画を判断資料に取り込む点で、引きずり込み段階に着手を認めるダンプカー事件の見解と発想が共通し、両者は矛盾しない（記述1）。</span></div>
 </div></div></details></div>
-<div id="bref-1-s45" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決昭和45年7月28日（ダンプカー事件・百選Ⅰ62）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被告人が、姦淫（現：不同意性交）の目的で、ダンプカーの運転席に引きずり込もうとして暴行を加えた段階で、<span class="ron-mark freq-high">姦淫に至る客観的な危険性が明らかに認められる</span>として、その時点で（現在の不同意性交等罪に当たる）罪の実行の着手を認めた。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-1-s45" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決昭和45年7月28日（ダンプカー事件・百選Ⅰ62）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被告人が、姦淫（現：不同意性交）の目的で、ダンプカーの運転席に引きずり込もうとして暴行を加えた段階で、<span class="ron-mark freq-high">姦淫に至る客観的な危険性が明らかに認められる</span>として、その時点で（現在の不同意性交等罪に当たる）罪の実行の着手を認めた。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程・計画の考慮</span><span class="kd-text">犯人の計画（引きずり込んで運び性交する）を前提にすると、引きずり込み行為は性交に密接な行為となり着手が認められる。逆に別の場所で性交する計画なら引きずり込みは着手にならない＝<span class="case-emphasis freq-high">計画次第で着手時期が動く</span>。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">計画を考慮して着手を判断する点で本判旨と同じ物差しに立つため、この見解は本判旨と矛盾しない（記述1）。</span></div>
 </div></div></details></div>
-<div id="bref-1-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-1-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">「実行の着手」は未遂と予備を分ける基準。判例・通説は実行行為に密接な行為があり既遂の客観的危険性が生じた時点とし（実質的客観説）、その判断に犯行計画を考慮する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">着手時期の判断基準は放火・性犯罪など罪名を問わず共通の枠組みであり、その物差しが同じである以上、両判例は矛盾しない（記述1）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">着手時期を分ける物差し＝密接性＋客観的危険性、そして<strong>犯行計画の考慮</strong>。この物差しが共通する以上、着手を早める結論が似ているだけでは「矛盾」とはいえない。本記述は矛盾するとする点で誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「結論が似ている＝矛盾」ではない</strong>。二つの立場が矛盾するかは、たどり着いた結論ではなく<strong>判断基準（物差し）が対立するか</strong>で決まる。本判旨もダンプカー事件の見解も、犯行計画を判断資料に取り込んで着手を前倒しする同じ物差しに立つから、着手を早める結論が重なっても矛盾しない。この「基準が同じなら結論の一致は矛盾を意味しない」という視点は、学説対立・判例射程を論じるあらゆる場面で効く cross-cut。基準の異同を先に見る癖をつける。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>着手の前倒しの判断資料に犯人の計画を取り込む物差しは、クロロホルム事件とダンプカー事件に共通する</strong>（43条）。隣で裏返るのは計画の内容で、遠方へ運んで性交する計画なら引きずり込みが性交に密接な行為となるが、近くの家へ連れ込む計画なら密接性を欠く。</span><div class="tx-dgm is-matrix" data-dgm="026-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">着手の時点は計画の内容で動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">計画</p><p class="dgm-cell is-head">着手を認める時点</p><p class="dgm-cell is-head">密接性</p><p class="dgm-cell is-rowhead">失神させ車で運んで溺死させる計画</p><p class="dgm-cell is-ok">失神させる行為の開始時点</p><p class="dgm-cell">運搬と転落が段取りで続く<span class="dgm-src">43条</span></p><p class="dgm-cell is-rowhead">遠方へ運んで性交する計画</p><p class="dgm-cell is-ok">引きずり込む暴行の時点</p><p class="dgm-cell">引きずり込みが性交に密接<span class="dgm-src">43条</span></p><p class="dgm-cell is-rowhead">近くの家へ連れ込んで性交する計画</p><p class="dgm-cell is-ng">引きずり込みでは認めない</p><p class="dgm-cell">性交に密接といえない</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6022,34 +6260,23 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>本判旨は、クロロホルムを吸引させた場所と港との距離が約2キロメートルであったことを、実行の着手時期を決する上で<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>考慮している</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。本判旨（<a class="ref-stat" id="ref-law-h16-201" href="#bref-2-h16">最決平16.3.22</a>）は、第1行為の時点で着手を認める理由として<strong>第1行為と第2行為の時間的場所的近接性</strong>（時間・場所の近さ）を挙げている。約2キロメートルという距離は、自動車で移動するという計画から見れば「近い」と評価でき、まさにこの近接性を基礎づける事情だ。判旨自身が距離を近接性の判断材料として使っているから、「距離を考慮している」という本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">約2キロの距離は<strong>時間的場所的近接性</strong>の資料として考慮されている。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">実行の着手の時期</span><span class="tx-gist-step">故意と因果</span><span class="tx-gist-step">着手を否定した場合の処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">約2キロメートルという距離は、着手時期の判断で考慮されているのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">クロロホルムを吸わせた場所と、車ごと海へ落とす予定だった港は、約2キロメートル離れていました。歩けば30分ほどかかる距離ですが、失神した相手を車に乗せて運ぶ計画なら、数分で着きます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">着手を認める柱の一つは、二つの行為の<strong>時間的場所的近接性</strong>です。約2キロという数字は、この近さを否定する事情なのか、それとも支える事情なのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-2-h16" id="ref-law-h16-201">最決平16.3.22</a> は、自動車で移動する点にかんがみれば、この距離が二つの行為の時間的場所的近接性を肯定する方向に働くとみて、距離を着手時期の判断材料として<strong>考慮</strong>しています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">近接性は生の数値だけで決まるものではなく、移動手段や犯行計画との関係で相対的に評価されます。車で運ぶ計画なら2キロは目と鼻の先であり、近さを支える事情になります。距離という事実も、計画に照らして意味づけられるのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>時間的場所的近接性</span></dt><dd>先行する行為と後の行為が、時間と場所の点でどれだけ近いかという着手判断の考慮要素。</dd></div><div class="tx-gist-term"><dt><span>客観的危険性</span></dt><dd>その行為の時点で、既遂の結果が発生する現実的なおそれが認められること。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">時間的場所的近接性は判旨が明示した考慮要素で、距離はその判断材料として用いられています。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>判旨の挙げる要素を確認する</strong><span class="syn-body">判旨は着手肯定の根拠として、①第1行為が第2行為に必要不可欠、②特段の事情の不存在、③<span class="case-emphasis freq-high">第1行為と第2行為の時間的場所的近接性</span>を挙げる。距離は③に直結する事情である。</span></p>
 <p><span class="syn-step">2</span><strong>距離を近接性に結びつける</strong><span class="syn-body">約2キロメートルは、徒歩なら遠いが、自動車で運ぶ計画では短時間で到達できる。<a class="ref-stat" href="#bref-2-h16">判旨</a>は「自動車での移動という点にかんがみれば」この距離が第1行為と第2行為の<span class="ron-mark freq-high">時間的場所的近接性を肯定する</span>方向に働くとみており、距離を着手時期の判断材料として考慮している。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「約2キロ」は近いか遠いかを移動手段で読む。車で運ぶ計画なら2キロは目と鼻の先＝近接性あり、と判旨は使っている。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>近接性という要素</strong>：本判旨は第1行為と第2行為の<a class="ref-stat" href="#bref-2-h16">時間的場所的近接性</a>を着手肯定の一要素として挙げる。</li>
-<li><strong>距離の位置づけ</strong>：約2キロメートルは、自動車移動を前提にすれば近接性を肯定する方向の事情として判旨が考慮している。</li>
-<li><strong>ひっかけの型</strong>：「距離は遠い＝考慮していない」と早合点しない。距離の遠近は移動手段・計画との関係で評価され、判旨は近接性の資料として現に用いている。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>2キロは徒歩なら遠く、車なら目と鼻の先。近接性は移動手段で読む。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為は第2行為を確実かつ容易に行うために必要不可欠であり、それ以降の殺害計画の遂行を妨げる特段の事情が存しなかったこと、<span class="ron-mark freq-high">第1行為と第2行為との間の時間的場所的近接性</span>などに照らすと、第1行為は第2行為に密接な行為であり、第1行為を開始した時点で既に殺人に至る客観的な危険性が明らかに認められる。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-2-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為は第2行為を確実かつ容易に行うために必要不可欠であり、それ以降の殺害計画の遂行を妨げる特段の事情が存しなかったこと、<span class="ron-mark freq-high">第1行為と第2行為との間の時間的場所的近接性</span>などに照らすと、第1行為は第2行為に密接な行為であり、第1行為を開始した時点で既に殺人に至る客観的な危険性が明らかに認められる。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程・近接性の中身</span><span class="kd-text">「時間的場所的近接性」は、第1行為と第2行為が時間・場所の点で密接しているかを問う要素。クロロホルム吸引場所と港の<span class="case-emphasis freq-high">約2キロメートルの距離</span>は、自動車移動という点で近接性を肯定する事情として考慮された。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">距離を着手時期の判断材料に用いているから、「距離を考慮している」という記述2は正しい。</span></div>
 </div></div></details></div>
-<div id="bref-2-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-2-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">実行の着手は、実行行為に密接な行為があり既遂の客観的危険性が生じた時点。密接性・危険性の評価に、時間的場所的近接性などの具体的事情が組み込まれる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">距離（約2キロ）は近接性を基礎づける具体的事情として着手時期の判断に取り込まれる（記述2）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">判旨は第1行為と第2行為の時間的場所的近接性を着手肯定の一要素として明示し、約2キロメートルの距離を自動車移動の観点から近接性を肯定する事情として考慮した。よって本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「距離が離れている＝着手を否定する事情」ではない</strong>。約2キロという数字だけを見て「遠いから密接性がない」と決めつけるのは早合点。近接性は<strong>移動手段・犯行計画との関係で相対的に評価</strong>される。自動車で運ぶ計画なら2キロは近接性を肯定する側の事情になる。数値そのものではなく計画に照らした意味で読む——これは、犯行計画を判断資料に取り込む本判旨の物差し（記述1・記述3と同じ）が、距離の評価にも及んでいる cross-cut。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>判旨が着手肯定の資料に挙げたのは、先行行為が後続行為に必要不可欠であること・計画遂行を妨げる特段の事情がないこと・両行為の時間的場所的近接性の三つで、距離はこの三つめに働く事情にすぎず独立の要件ではない</strong>（43条）。隣で裏返るのは距離の読み方で、車で運ぶ計画なら約2キロは近接性を肯定する側に働くが、徒歩で数時間かけて運ぶ計画に替えれば同じ距離が密接性を否定する側へ振れる。</span><div class="tx-dgm is-matrix" data-dgm="026-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">着手を支える三つの柱を一つ外すと着手はどう動くか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">柱を外すと</p><p class="dgm-cell is-head">着手</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">先行行為が後続行為に必要不可欠でなくなる</p><p class="dgm-cell is-ng">✕ 弱まる</p><p class="dgm-cell">次の行為に密接な行為といえない<span class="dgm-src">43条</span></p><p class="dgm-cell is-rowhead">計画遂行を妨げる特段の事情が加わる</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell">その時点で結果に至る客観的危険性を欠く</p><p class="dgm-cell is-rowhead">近接性が失われる（数日後に遠方へ運ぶ）</p><p class="dgm-cell is-ng">✕ 弱まる</p><p class="dgm-cell">距離と時間は近接性を支える資料</p><p class="dgm-cell is-rowhead">車で約2キロ運ぶ計画のまま三つがそろう</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">先行行為の開始時点で着手<span class="dgm-src">43条</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="3" id="stmt-3">
@@ -6066,38 +6293,26 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>本判旨が第1行為の開始時点で殺人罪の実行の着手を認めたのは、第1行為自体によってVの死の結果が生じることを甲が認識・認容していたことを<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>前提としている</span><span class="tx-stmt-fix">→ そのような認識は前提でない。第1行為＋第2行為の一連の計画の殺意で足りる</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。事例では、甲は第1行為（クロロホルム）では<strong>Vを失神させようとしただけ</strong>で、第1行為そのものでVが死ぬとは思っていない（死なせるのは第2行為＝海中転落のつもり）。それでも<a class="ref-stat" id="ref-law-h16-301" href="#bref-3-h16">本判旨</a>は第1行為開始時に殺人の着手を認めた。つまり判旨は「第1行為自体で死なせる認識」など前提にしていない。前提にしているのは<strong>第1行為・第2行為を通じてVを殺すという一連の計画の殺意</strong>だけ。だから本記述は前提を取り違えた誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">失神させる行為自体で死なせる認識は不要で、<strong>計画全体の殺意</strong>で足りる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">実行の着手の時期</span><span class="tx-gist-step is-now">故意と因果</span><span class="tx-gist-step">着手を否定した場合の処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">着手を認めるには、先行行為そのもので死なせる認識が要るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">行為者は、クロロホルムで相手を失神させ、港まで運んで車ごと海へ落として溺れさせるつもりでした。失神させる場面では、相手が死ぬとは思っていません。死なせるのは海へ落とす場面だと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">それでも判例は、失神させる行為を始めた時点で殺人の実行の着手を認めます。このとき、失神させる行為自体によって死の結果が生じるという<strong>認識・認容</strong>が、前提として必要なのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-3-h16" id="ref-law-h16-301">最決平16.3.22</a> は、二つの行為を通じて相手を殺害する計画を前提に着手を認めており、先行行為自体による死の認識・認容を要求していません。求められるのは、<strong>一連の殺害計画としての殺意</strong>だけです。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">着手も故意も、行為を切り離して一つずつ見るのではなく、計画のまとまりで評価すると説明されます。既遂と同じ「この手で結果を生じさせる認識」を着手の段階で求めてしまうと、犯行計画を判断資料に取り込んで危険性を評価するという枠組みと合わなくなります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>認識・認容</span></dt><dd>結果が起こることを分かっていて（認識）、それでもかまわないと受け入れていること（認容）。故意の内容。</dd></div><div class="tx-gist-term"><dt><span>殺人の故意</span></dt><dd>人の死という結果の認識・認容。複数の行為で殺害する計画では、計画全体として殺す意思があれば足りる（刑法199条）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">先行行為自体による死の認識を判例の前提だとした点が誤りで、必要なのは一連の計画による殺意です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>事例の主観をおさえる</strong><span class="syn-body">甲の計画は、第1行為で失神させ、第2行為（海中転落）で溺死させるというもの。第1行為の段階では<span class="case-emphasis freq-high">Vを失神させる認識しかなく</span>、第1行為自体でVが死ぬという認識・認容はない。</span></p>
 <p><span class="syn-step">2</span><strong>判旨が要求する主観は「計画全体の殺意」</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-199">殺人の故意</a>は、第1行為・第2行為をあわせた一連の殺害計画によりVを殺す意思があれば足りる。判旨は第1行為自体による死の結果の認識・認容を要求していないから、これを前提とする本記述は誤り。第1行為時点で殺害の意思を有していれば、殺人の故意も着手時に認められる。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>殺意は「この手（第1行為）で殺す」ではなく「この計画で殺す」で足りる。第1行為はまだ失神係でも、計画全体の殺意があれば着手も故意も立つ。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>事例の主観</strong>：甲は第1行為ではVを失神させる認識しかなく、第1行為自体で死なせる認識・認容はない。</li>
-<li><strong>判旨が要求する前提</strong>：<a class="ref-stat" href="#bref-3-h16">判旨</a>は第1行為自体による死の認識を前提とせず、第1行為・第2行為を通じた<a class="ref-stat" href="#bref-3-199">一連の殺害計画の故意</a>で足りるとする。</li>
-<li><strong>ひっかけの型</strong>：着手時に既遂と同じ「結果を直接生じさせる認識」が要ると誤解する。着手・故意はいずれも計画全体を基準に判断され、第1行為単体の死の認識は不要。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>殺意は「この手で殺す」ではなく「この計画で殺す」で足りる（199条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-3-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">実行犯は第1行為（クロロホルムで失神）と第2行為（海中転落）により被害者を殺害する計画であり、第1行為を開始した時点で既に殺人に至る客観的な危険性が認められるから、<span class="ron-mark freq-high">その時点で殺人罪の実行の着手があった</span>と解するのが相当である。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-3-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">実行犯は第1行為（クロロホルムで失神）と第2行為（海中転落）により被害者を殺害する計画であり、第1行為を開始した時点で既に殺人に至る客観的な危険性が認められるから、<span class="ron-mark freq-high">その時点で殺人罪の実行の着手があった</span>と解するのが相当である。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程・主観の位置づけ</span><span class="kd-text">判旨は第1行為・第2行為を通じてVを殺害する計画を前提に着手を認めており、<span class="case-emphasis freq-high">第1行為自体によって死の結果が生じる認識・認容を前提としていない</span>（甲は第1行為では失神させる認識しかない）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">第1行為自体での死の認識を前提とする記述3は、判旨の前提を取り違えており誤り。</span></div>
 </div></div></details></div>
-<div id="bref-3-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（殺人の故意）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、<span class="ron-mark freq-high">死刑又は無期若しくは5年以上の拘禁刑</span>に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-3-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（殺人の故意）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、<span class="ron-mark freq-high">死刑又は無期若しくは5年以上の拘禁刑</span>に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">故意の内容</span><span class="kd-text">殺人の故意は人の死という結果の認識・認容。複数行為で殺害する計画では、<span class="case-emphasis freq-high">一連の計画全体としてVを殺す意思</span>があれば足り、各行為ごとに死の認識を要しない。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">第1行為時に計画全体の殺意があれば着手も故意も認められ、第1行為自体での死の認識は不要（記述3）。</span></div>
 </div></div></details></div>
-<div id="bref-3-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-3-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">着手と主観</span><span class="kd-text">着手は客観的危険性の生じた時点で判断するが、その危険性評価は行為者の計画を資料に行う。求められるのは計画全体としての犯意であり、着手行為単体で結果を生じさせる認識ではない。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">第1行為単体での死の認識を前提とする記述3は着手判断の主観面を誤っている。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">甲は第1行為ではVを失神させる認識しかない。判旨は第1行為自体で死なせる認識・認容を前提とせず、第1行為・第2行為を通じた一連の殺害計画の殺意で着手・故意を認める。よって本記述は誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>着手時の主観に「既遂と同じ結果認識」を要求してしまう罠</strong>。着手（未遂）の段階で必要なのは、結果を直接生じさせる認識ではなく<strong>計画全体としての犯意</strong>。第1行為はまだ「失神させる」段階でも、計画全体で殺すつもりなら着手も殺人の故意も立つ。この「行為を分けても犯意は計画単位で見る」発想は、実行の着手・因果関係・故意を貫く cross-cut であり、離隔犯や間接正犯（毒入り小包を郵送した時点で着手を論じる場面）でも同じ物差しが効く。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>着手の時点で必要な主観は、手段として置いた先行行為それ自体で死なせる認識ではなく、先行行為と後続行為を通じて殺すという一連の計画による殺意である</strong>（199条）。隣で裏返るのは殺意が生じた時期で、失神させる段階では殺意がなく運搬の後に初めて殺意が生じたのなら、先行行為から生じた死亡結果は殺人ではなく暴行の結果的加重犯＝傷害致死罪（205条）で受け止めることになる。</span><div class="tx-dgm is-matrix" data-dgm="026-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">殺意がいつあったかで死亡結果の罪名が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">死亡結果の罪名</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">失神させる認識だけだが計画全体の殺意はある</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">計画単位の殺意で故意は足りる<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">失神させる行為それ自体で死ぬ認識まである</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">その認識は必要条件でなく結論は変わらない<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">失神させる段階では殺意がなく運搬後に生じた</p><p class="dgm-cell is-ng">傷害致死罪</p><p class="dgm-cell">着手時に殺意を欠き暴行からの結果的加重犯<span class="dgm-src">205条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6115,38 +6330,26 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>本判旨の立場に立てば、甲が第1行為によってVが死亡していることに気付き、第2行為に及ばなかった場合でも、甲に<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>殺人既遂罪が成立する</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。第1行為（クロロホルム）はもともと殺す手段のつもりではなく、殺すのは第2行為（海中転落）の予定だった。それなのに第1行為で先にVが死んでしまう——これが「<strong>早すぎた構成要件の実現</strong>」（結果が計画より早く出てしまう場面）。<a class="ref-stat" id="ref-law-h16-401" href="#bref-4-h16">本判旨</a>は第1行為開始時に殺人の<strong>実行の着手</strong>を認めるので、着手があり、計画全体の<a class="ref-stat" id="ref-law-199-401" href="#bref-4-199">殺意</a>があり、第1行為とVの死に因果関係もある——この3つがそろう。第2行為をやめても、この3つで殺人は既遂に達している。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">先行行為で死亡した以上、後の行為をやめても<strong>殺人既遂罪</strong>が成立する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">実行の着手の時期</span><span class="tx-gist-step is-now">故意と因果</span><span class="tx-gist-step">着手を否定した場合の処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">予定した最後の一手を打たなくても、殺人は既遂になるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">クロロホルムを吸わせたあと、行為者が相手の様子を見て、すでに死亡していることに気づいたとします。そこで計画を中断し、港へ運んで車ごと海へ落とす行為には及びませんでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">殺すつもりだったのは海へ落とす場面で、結果は先行行為から出ています。計画より早く結果が生じたこの<strong>早すぎた構成要件の実現</strong>で、予定の手順を踏まないまま既遂になるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-h16" id="ref-law-h16-401">最決平16.3.22</a> によれば、失神させる行為を開始した時点で着手が認められる結果、その行為は殺人罪の実行行為そのものと評価されます。実行行為と死亡との間に因果関係があり、計画全体の<a class="ref-stat" href="#bref-4-199" id="ref-law-199-401">殺意</a>もあるので、殺人既遂罪が成立します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">既遂に必要なのは、実行行為・死の結果・両者の因果関係・故意の四つで、行為者が予定した手順を最後まで踏むことではありません。計画と違う経路で結果が生じても、この因果経過のずれは故意を妨げないと説明されます。着手をどこに置くかが、既遂の成否まで一気に動かすのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>早すぎた構成要件の実現</span></dt><dd>行為者が結果を生じさせるつもりだった行為より前の段階で、先行行為から結果が生じてしまう場合。</dd></div><div class="tx-gist-term"><dt><span>実行行為</span></dt><dd>構成要件に当たる行為。実行の着手が認められた行為は、もはや予備ではなく実行行為として評価される。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">先行行為が実行行為に格上げされ、そこから死の結果が現に生じているので、後続行為に及ばなくても既遂です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>着手を第1行為時に前倒しする効果</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-h16">判旨</a>は第1行為開始時点で殺人の実行の着手を認める。つまり第1行為はもはや予備ではなく<span class="case-emphasis freq-high">殺人罪の実行行為</span>そのものと評価される。</span></p>
 <p><span class="syn-step">2</span><strong>着手・故意・因果を突き合わせる</strong><span class="syn-body">Vは第1行為（クロロホルム吸引）により死亡しているから、<span class="ron-mark freq-high">実行行為（第1行為）と死の結果との間に因果関係</span>がある。着手時点で一連の殺害計画の殺意もある。ゆえに第2行為に及ばなくても、実行行為＋故意＋因果がそろい殺人既遂罪（199条）が成立する。第2行為は既遂の成立に不可欠ではない（因果経過の錯誤は故意を阻却しない）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>殺す予定は第2幕でも、第1幕が実行行為に格上げされ、そこで死ねば幕を下ろさず（第2行為なしで）既遂。着手の前倒しが既遂まで連れて行く。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>着手の前倒し</strong>：<a class="ref-stat" href="#bref-4-h16">判旨</a>により第1行為は殺人罪の実行行為と評価される（実行の着手が第1行為時）。</li>
-<li><strong>既遂の3要件充足</strong>：実行行為（第1行為）＋一連の計画の<a class="ref-stat" href="#bref-4-199">殺意</a>＋第1行為とVの死の因果関係がそろい、第2行為なしでも殺人既遂。</li>
-<li><strong>ひっかけの型</strong>：「計画どおり第2行為まで完遂しなければ既遂にならない」と誤解する。実行行為に着手し結果が生じ因果があれば、後続行為の不作為は既遂を妨げない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>死んでいれば手順を残しても既遂、生きていればやめても未遂（43条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為を開始した時点で殺人罪の実行の着手があり、実行犯は殺人の故意に欠けるところはなく、<span class="ron-mark freq-high">クロロホルムを吸引させる行為（第1行為）と死亡との間の因果関係</span>も認められるから、たとえ第2行為の前に被害者が死亡していたとしても殺人既遂罪が成立する。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-4-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為を開始した時点で殺人罪の実行の着手があり、実行犯は殺人の故意に欠けるところはなく、<span class="ron-mark freq-high">クロロホルムを吸引させる行為（第1行為）と死亡との間の因果関係</span>も認められるから、たとえ第2行為の前に被害者が死亡していたとしても殺人既遂罪が成立する。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程・早すぎた実現</span><span class="kd-text">実行の着手を第1行為時に認めると、第1行為が実行行為となり、第1行為で死の結果が生じても実行行為と結果の因果関係が肯定される。<span class="case-emphasis freq-high">因果経過が計画とずれても（早すぎた実現）故意は阻却されない</span>。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">第2行為に及ばなくても、着手・故意・因果がそろうため殺人既遂罪が成立する（記述4）。</span></div>
 </div></div></details></div>
-<div id="bref-4-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（実行行為・故意・因果）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-4-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（実行行為・故意・因果）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">既遂の要件</span><span class="kd-text">殺人既遂は、実行行為・死の結果・両者の因果関係・殺人の故意で成立する。着手が第1行為時に認められれば第1行為が実行行為となり、第1行為から死の結果への因果で既遂に達する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">第1行為で死亡した以上、第2行為をしなくても4要件が充足され殺人既遂罪が成立する（記述4）。</span></div>
 </div></div></details></div>
-<div id="bref-4-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-4-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の<span class="ron-mark freq-high">実行に着手</span>してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">着手＝実行行為の開始</span><span class="kd-text">着手が認められた行為は実行行為として評価され、そこから既遂結果への因果が問われる。着手の前倒しは、既遂・未遂・因果の起点を前へずらす効果を持つ。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">第1行為時に着手＝第1行為が実行行為となり、第1行為による死で既遂に達する（記述4）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">着手が第1行為時に認められる結果、第1行為は殺人の実行行為となる。第1行為でVが死亡した以上、実行行為＋計画の殺意＋因果がそろい、第2行為に及ばなくても殺人既遂罪が成立する。よって本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「計画を最後まで完遂しないと既遂にならない」という思い込みが罠</strong>。既遂に必要なのは実行行為・結果・因果・故意であって、行為者が予定した手順を全部踏むことではない。着手を第1行為時に前倒しすれば、第1行為が実行行為となり、そこから生じた死で既遂になる——後続の第2行為は不要。この「実行の着手をどこに置くかが、既遂・因果・故意の帰結を一気に動かす」構造は、因果関係の錯誤（狙いと違う経路で死んだ）や離隔犯の処理にも共通する cross-cut。着手の位置決めを最初に固める癖が要。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>既遂に要るのは実行行為・死の結果・両者の因果関係・故意の四つで、行為者が予定した手順を最後まで踏むことは要らない</strong>（199条）。隣で裏返るのは結果が出ているか否かで、まだ生きているのに気づいて自分の意思で後続行為をやめたなら中止未遂（43条ただし書）、まだ生きていて第三者に救い出されたなら殺人未遂罪（203条）にとどまる。</span><div class="tx-dgm is-matrix" data-dgm="026-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">先行行為の後に何が起きたかで既遂と未遂が分かれる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">罪責</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">先行行為で死亡しており海中へ落とさなかった</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">実行行為・結果・因果・故意がそろう<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">まだ生きているのに気づき自分の意思でやめた</p><p class="dgm-cell is-acc">中止未遂</p><p class="dgm-cell">結果不発生で刑の必要的減免<span class="dgm-src">43条ただし書</span></p><p class="dgm-cell is-rowhead">まだ生きており運搬中に第三者に救出された</p><p class="dgm-cell is-ng">殺人未遂罪</p><p class="dgm-cell">死の結果が発生していない<span class="dgm-src">203条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6164,39 +6367,27 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>特段の事情が存在していた場合には、甲に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>殺人未遂罪と重過失致死罪が成立する</span><span class="tx-stmt-fix">→ 第1行為時の着手が否定され、暴行（第1行為）→死亡で傷害致死罪（205条）</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。本判旨が第1行為時に着手を認めた土台は「<strong>特段の事情がない</strong>（第1行為に成功すれば以降の計画遂行を邪魔する事情がない）」ことだった。逆に<strong>特段の事情があれば</strong>、第1行為の時点ではまだ殺人に至る客観的危険性が認められず、<a class="ref-stat" id="ref-law-43-501" href="#bref-5-h16">殺人の実行の着手</a>が<strong>否定</strong>される。着手が無ければ殺人未遂（<a class="ref-stat" id="ref-law-203-501" href="#bref-5-205">203条</a>）は成立しない。では死んだVはどうなるか。第1行為は人に対する不法な有形力の行使＝<strong>暴行</strong>で、それによりVが死亡しているので<a class="ref-stat" id="ref-law-205-502" href="#bref-5-205">傷害致死罪（205条）</a>になる。だから「殺人未遂＋重過失致死」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">特段の事情があれば着手が否定され、成立するのは<strong>傷害致死罪</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">実行の着手の時期</span><span class="tx-gist-step">故意と因果</span><span class="tx-gist-step is-now">着手を否定した場合の処理</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">着手を支える柱が崩れたとき、どの罪が成立するのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">クロロホルムを吸わせたあと、港へ向かう道が封鎖されていた、あるいは第三者が現れて見張っていたなど、以降の殺害計画を進めるのを妨げる事情があったとします。それでも相手は、クロロホルムの吸引によって死亡しました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">判例が着手を認めた柱の一つは、以降の殺害計画を妨げる<strong>特段の事情</strong>がないことでした。その柱が崩れた場合、<a class="ref-stat" href="#bref-5-h16" id="ref-law-43-501">殺人の実行の着手</a>はどうなり、死亡結果をどの罪で処理するのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">特段の事情があれば、失神させる行為の時点ではまだ殺人に至る客観的危険性が認められず、実行の着手は否定されます。着手がなければ殺人未遂罪（<a class="ref-stat" href="#bref-5-205" id="ref-law-203-501">203条</a>）は成立しません。もっとも、クロロホルムを吸わせる行為は<strong>暴行</strong>（208条）に当たり、それによって人が死亡しているので<a class="ref-stat" href="#bref-5-205" id="ref-law-205-502">傷害致死罪（205条）</a>が成立します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">着手を否定しても、暴行の故意はなお残っています。故意ある暴行から死の結果が生じた場合は、過失犯ではなく暴行・傷害の<strong>結果的加重犯</strong>で捉えるのが筋です。上位の故意犯が否定されても、下位の故意犯が残って結果的加重犯で処理されると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>特段の事情</span></dt><dd>先行行為に成功した後、以降の犯行計画を遂行する上で障害となる事情。これがあると先行行為時点の客観的危険性が否定される。</dd></div><div class="tx-gist-term"><dt><span>結果的加重犯</span></dt><dd>基本となる故意犯から、より重い結果が生じたときに重く処罰される犯罪類型。傷害致死罪（刑法205条）はその例。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">着手が否定されるので殺人未遂罪は成立せず、暴行の故意が残るので死亡結果は傷害致死罪（205条）で受け止めます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>特段の事情の有無が着手を分ける</strong><span class="syn-body">判旨は「特段の事情の不存在」を着手肯定の柱の一つに挙げた。だから<span class="case-emphasis freq-high">特段の事情が存在すれば</span>、第1行為時には死の結果発生の客観的危険性が認められず、<span class="ron-mark freq-high">殺人罪の実行の着手は認められない</span>。</span></p>
 <p><span class="syn-step">2</span><strong>着手否定後の罪責を組み立てる</strong><span class="syn-body">着手が無いので殺人未遂は不成立。もっとも第1行為は<a class="ref-stat" href="#bref-5-208">暴行罪（208条）</a>に当たる不法な有形力の行使で、それにより現にVが死亡している。よって暴行の結果的加重犯である<a class="ref-stat" href="#bref-5-205">傷害致死罪（205条）</a>が成立する。過失致死ではなく暴行の故意犯からの加重なので「重過失致死」ではない。したがって「殺人未遂＋重過失致死」は二重に誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>着手を支える柱（特段の事情なし）が折れれば、殺人未遂は立たない。残るのは暴行して死なせた事実＝205条傷害致死。過失犯に落とさない。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>着手否定</strong>：特段の事情があれば第1行為時に客観的危険性がなく、<a class="ref-stat" href="#bref-5-h16">殺人の実行の着手</a>は否定される（殺人未遂〔203条〕不成立）。</li>
-<li><strong>成立する罪</strong>：第1行為は暴行（208条）で、それによりVが死亡しているので<a class="ref-stat" href="#bref-5-205">傷害致死罪（205条）</a>が成立する。</li>
-<li><strong>ひっかけの型</strong>：着手否定の帰結を「殺人未遂＋（過失犯の）重過失致死」と組み立てる。着手がなければ未遂は立たず、死は暴行の故意犯からの加重＝傷害致死で処理する。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>柱が折れれば殺人は立たず、受け皿は過失ではなく暴行（205条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-5-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為に成功した場合、<span class="ron-mark freq-high">それ以降の殺害計画を遂行する上で障害となるような特段の事情が存しなかった</span>と認められることなどに照らし、第1行為を開始した時点で殺人に至る客観的な危険性が明らかに認められるから、その時点で殺人罪の実行の着手があったと解する。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-5-h16" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成16年3月22日（クロロホルム事件・百選Ⅰ64）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">第1行為に成功した場合、<span class="ron-mark freq-high">それ以降の殺害計画を遂行する上で障害となるような特段の事情が存しなかった</span>と認められることなどに照らし、第1行為を開始した時点で殺人に至る客観的な危険性が明らかに認められるから、その時点で殺人罪の実行の着手があったと解する。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程・裏からの読み</span><span class="kd-text">着手肯定は「特段の事情の不存在」に支えられる。<span class="case-emphasis freq-high">特段の事情が存在すれば</span>第1行為時の客観的危険性が否定され、殺人の実行の着手は認められない（着手時期が第2行為時まで後ろへずれる）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">着手否定の場合、殺人未遂は不成立。第1行為＝暴行によりVが死亡した点を傷害致死罪（205条）で捉える（記述5）。</span></div>
 </div></div></details></div>
 <div id="bref-5-205" class="tx-basis-item "><div class="tx-basis-head">📜 刑法205条 傷害致死罪／203条 殺人未遂罪<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">205</span><span class="hang-body">身体を傷害し、<span class="ron-mark freq-high">よって人を死亡させた</span>者は、3年以上の有期拘禁刑に処する。</span></p>
-<p class="hanging"><span class="para-num">203</span><span class="hang-body">第199条…の罪の未遂は、罰する。（殺人未遂罪。実行の着手が前提）</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">203</span><span class="hang-body">第199条…の罪の未遂は、罰する。（殺人未遂罪。実行の着手が前提）</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">傷害致死の構造</span><span class="kd-text">傷害致死罪は暴行・傷害の故意犯を基本犯とする<span class="case-emphasis freq-high">結果的加重犯</span>。暴行の故意で人を死亡させれば成立し、死の結果についての過失犯（重過失致死等）とは別。殺人未遂罪（203条）は実行の着手があって初めて成立する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">着手否定なら殺人未遂は不成立。第1行為＝暴行→死亡で傷害致死罪（205条）が成立し、重過失致死ではない（記述5）。</span></div>
 </div></div></details></div>
-<div id="bref-5-208" class="tx-basis-item "><div class="tx-basis-head">📜 刑法208条 暴行罪（傷害致死の基本犯）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">暴行</span>を加えた者が人を傷害するに至らなかったときは、2年以下の拘禁刑若しくは30万円以下の罰金又は拘留若しくは科料に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-5-208" class="tx-basis-item "><div class="tx-basis-head">📜 刑法208条 暴行罪（傷害致死の基本犯）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body"><span class="ron-mark freq-high">暴行</span>を加えた者が人を傷害するに至らなかったときは、2年以下の拘禁刑若しくは30万円以下の罰金又は拘留若しくは科料に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件性質を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">暴行の意義</span><span class="kd-text">暴行は人の身体に対する不法な有形力の行使。クロロホルムを吸引させる第1行為はこれに当たる。暴行の故意で死の結果を生じさせれば傷害致死罪（205条）となる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">着手否定時、第1行為は暴行として捉えられ、死亡結果と結びついて傷害致死罪の基本犯を構成する（記述5）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">特段の事情があれば第1行為時の着手が否定され殺人未遂は不成立。第1行為＝暴行によりVが死亡した点を傷害致死罪（205条）で処理する。過失犯の重過失致死ではないから、「殺人未遂＋重過失致死」は誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>着手を否定した後の死を「過失犯（重過失致死）」に落としてしまう罠</strong>。着手が否定されても、第1行為の<strong>暴行の故意はなお残っている</strong>。故意ある暴行で人が死ねば、過失犯ではなく暴行の結果的加重犯＝傷害致死罪（205条）で捉えるのが筋。故意犯の着手を否定したからといって主観までゼロにしてはいけない。この「上位の故意犯が否定されても、下位の故意犯（暴行）が残り結果的加重犯で処理する」段階的処理は、殺人未遂の否定→傷害致死、強盗の否定→恐喝・窃盗など、罪名を落とす場面に共通する cross-cut。着手肯定（記述4）と着手否定（記述5）は表裏の関係にある。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>着手を否定しても先行行為に暴行の故意（208条）は残るので、そこから生じた死亡結果は暴行の結果的加重犯＝傷害致死罪（205条）で受け止める</strong>。隣で裏返るのは残っている主観の中身で、暴行の故意すらなく著しい不注意だけなら重過失致死罪（211条後段）、過失もなければ不可罰となる。</span><div class="tx-dgm is-matrix" data-dgm="026-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">先行行為に残る主観で死亡結果の受け皿が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">先行行為に残る主観</p><p class="dgm-cell is-head">死亡結果の罪名</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">殺意あり（着手も肯定）</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">実行行為から死の結果が生じた<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">暴行の故意だけ（着手は否定）</p><p class="dgm-cell is-acc">傷害致死罪</p><p class="dgm-cell">暴行の結果的加重犯<span class="dgm-src">205条・208条</span></p><p class="dgm-cell is-rowhead">故意はなく著しい不注意だけ</p><p class="dgm-cell is-ng">重過失致死罪</p><p class="dgm-cell">故意のない場合の受け皿<span class="dgm-src">211条後段</span></p><p class="dgm-cell is-rowhead">故意も過失もない</p><p class="dgm-cell is-flat">不可罰</p><p class="dgm-cell">結果を帰責する根拠がない<span class="dgm-src">38条1項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6278,11 +6469,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:x,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="判例が後の事件を縛るのは、到達した結論そのものではなく、そこで示された<b>判断の基準（理由づけ）</b>の部分である。どこまでが縛る部分かを測ることを<b>判例の射程</b>という。実行の着手（43条）の場面で対立の焦点になっているのは、行為者の<b>犯行計画</b>を判断に取り込んでよいか、という基準のレベルの問題である。基準を共有していれば、着手を切り出す時点が事案ごとに前後しても、それは事実の違いであって考え方の対立ではない。外形上の結論が似ているか違うかだけで整合・矛盾を決めると、射程を測り損なうことになる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、相手方の引く判例に対し、事案の違いを示して射程の外だと主張するか、同じ基準の下に入ると主張するかで争う。書面では、事実の違いと基準の違いを分けて書き分けるのが要点になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年3月5日午前2時、警報を落としてから金庫室へ向かう段取りで倉庫に入り、まず配電盤のブレーカーに手を掛けた場面。金庫の前で工具を広げた場面と切り出す時点は違うが、どちらも段取りを読み込んで測っている点では同じ物差しの上にある。</span>" data-brief-mark="ダンプカー引きずり込み段階に不同意性交等罪の着手を認める見解は判旨と<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>矛盾する</span><span class='tx-stmt-fix'>→ 計画を考慮する点で物差しが共通し矛盾しない</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>実行の着手（43条）は、実行行為に密接な行為があり既遂の客観的危険性が生じた時点で認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>着手時期の判断には犯人の犯行計画を判断資料として取り込む（客観的危険性説）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>引きずり込み段階に不同意性交等罪の着手を認める見解も、計画を考慮して着手を早める点で本判旨と物差しが共通する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>矛盾するか否かは、到達した結論の一致ではなく判断基準（計画考慮）の対立の有無で決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>学説・判例の異同は、結論ではなく判断基準の対立を先に見て判定する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-story="実行の着手は、次の行為に<b>密接</b>といえるか、その時点で結果に至る<b>客観的な危険性</b>が認められるか、で測る。未遂を罰する趣旨は、法益侵害の現実的な危険が生じた段階から刑罰を及ぼす点にあるから、危険の有無は生の事実からしか測れない。時間的・場所的な近さは、その危険を支える<b>評価の資料</b>であって、それ自体が独立した合否の要件ではない。だから距離の数字そのものに意味があるのではなく、計画に照らして読み替えた後の意味が問われる。同じ2キロメートルでも、徒歩で運ぶ計画か車で運ぶ計画かで、近いか遠いかの評価は反対に振れる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、距離と所要時間、移動手段、人目の有無を実況見分調書や走行記録で押さえ、その間に計画が崩れる余地があったかを争う。弁護人は移動中の中断の余地を、検察官は段取りの一体性を主張する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年2月14日午後11時、片道7分の海沿いの道を車で運ぶ段取りだった場面。同じ距離を昼間に徒歩で運べば30分かかり人目にも触れるが、深夜に車でなら7分で着いてしまう。距離の数字は、時間帯と手段まで置いて初めて意味を持つ。</span>" data-brief-mark="判旨は約2キロメートルの距離を<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>実行の着手時期を決する上で考慮している</span>（近接性の資料）。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>判旨は第1行為と第2行為の時間的場所的近接性を着手肯定の一要素として明示する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>距離の遠近は生の数値ではなく移動手段・犯行計画との関係で相対的に評価する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>約2キロメートルは自動車移動を前提に近接性を肯定する事情として考慮されている。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「距離が離れている＝考慮していない」ではなく、計画に照らして近接性の資料に用いられている。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>具体的事実（距離・時間）は近接性・密接性の判断材料として着手時期の評価に組み込む。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="故意とは、構成要件に当たる事実の認識・認容をいう（38条1項）。複数の行為が段取りとして結びつき、全体で一個の実行行為と評価されるときは、<b>故意も計画のまとまりで問う</b>ことになる。手段として置かれた行為に、それ自体で人を死なせるという認識まで求める必要はない。趣旨から見ても、行為を細切れにして断片ごとに殺意を要求すれば、周到に段取りを組んだ犯行ほど処罰の網を抜けてしまう。<b>着手が認められた行為</b>と、<b>結果を直接もたらすつもりだった行為</b>は別の行為でよい——この読み方は、毒物を郵送する離隔犯や、事情を知らない他人を使う間接正犯にも通じている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、計画全体の殺意を、道具の購入履歴・下見・借財や保険金といった動機から積み上げて立証する。弁護人は各段階の認識を分け、その時点では殺すつもりはなかったと争うのが通例である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1月10日に毒物を仕込んだ菓子を宅配便で送り、相手の手元に届くのは12日、という場面。送った日に相手はまだ元気で、荷物だけが二日かけて進んでいく。始まりの時点と結果の時点が離れても、通して見れば一つの段取りである。</span>" data-brief-mark="判旨は第1行為自体による死の結果の認識・認容を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>前提としている</span><span class='tx-stmt-fix'>→ 一連の計画の殺意で足り、そのような認識は前提でない</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>殺人の故意・着手は、各行為ごとではなく一連の殺害計画全体を基準に判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>甲は第1行為では失神させる認識しかなく、第1行為自体で死なせる認識・認容はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>判旨は第1行為自体による死の結果の認識・認容を前提とせず、計画全体の殺意で足りる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>着手（未遂）に必要な主観は、既遂と同じ結果直接惹起の認識ではなく計画全体の犯意。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>複数行為による犯罪では、着手・故意を計画単位で捉える（離隔犯・間接正犯も同じ）。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="既遂と未遂を分けるのは、構成要件的な結果が実行行為から生じたかどうかである。43条が未遂を、犯罪の実行に着手してこれを遂げなかった場合と定めているとおり、<b>遂げたか否かは結果の発生</b>で決まり、予定した手順を最後まで踏んだかどうかでは決まらない。必要なのは、実行行為・死の結果・両者の<b>因果関係</b>・故意の四つがそろうこと、それだけである。したがって着手の位置が前に動けば、実行行為の起点も因果の起点も一緒に前へ動く。結果が出てしまった後で残りの手順をやめても、それは<b>中止未遂（43条ただし書）</b>の場面ではない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、死因と死亡の時期を特定する司法解剖と鑑定が、既遂か未遂かを決める。争点は法解釈から、鑑定の前提事実や推定時刻の幅が妥当かという事実の争いへ移っていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年5月9日、寝ている相手を殴って動けなくしてから家に火を放つ段取りで、最初の一撃で相手が死んでいた場面。火をつけないまま立ち去っても、結末はもう出ている。残り半分の手順は、結果の有無を左右しない。</span>" data-brief-mark="第2行為に及ばなくても<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>殺人既遂罪が成立する</span>（第1行為＝実行行為・死・因果・殺意）。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>着手が第1行為時に認められると、第1行為が殺人の実行行為となる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>殺人既遂は実行行為・死の結果・因果関係・殺人の故意で成立する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>第1行為でVが死亡した以上、第2行為に及ばなくても既遂となる（早すぎた実現・因果経過の錯誤は故意を阻却しない）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>既遂に必要なのは4要件の充足であって、予定した手順を最後まで踏むことではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>着手の位置決めが、実行行為・因果・既遂／未遂の起点を一気に前へずらす。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="罪名を一段落とすときは、落とした後に<b>どの故意が残っているか</b>を先に確かめる。人の身体に対する有形力の行使は暴行（208条）であり、そこから死の結果が出れば<b>傷害致死（205条）</b>で受け止める。過失致死（210条）や重過失致死（211条後段）は、そもそも故意のない場合のために置かれた受け皿だから、暴行の故意がある以上そこへは落ちない。結果的加重犯という仕組みの趣旨は、基本となる犯罪に類型的に伴う重い結果の危険を、<b>基本犯の故意</b>にひもづけて重く処罰する点にある。上の段が外れたら下の段へ、と考えるときの下の段は、過失犯ではなく残っている故意犯である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、凶器の種類・攻撃した部位・回数・その場の言動から殺意の有無を認定し、殺人か傷害致死かで量刑が大きく動く。弁護人が殺意を争い、傷害致死の枠へ落とすことを目標にする事件は多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年6月20日の深夜、口論の末に相手を一度突き飛ばし、後頭部を縁石に打って死亡した場面。突き飛ばした事実は本人も認めている。うっかり手が当たったのではない以上、受け皿は過失の側ではなく暴行の側にある。</span>" data-brief-mark="特段の事情ありの場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>殺人未遂罪と重過失致死罪が成立する</span><span class='tx-stmt-fix'>→ 着手否定で殺人未遂は不成立、暴行→死亡で傷害致死罪（205条）</span>。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>着手肯定は「特段の事情の不存在」に支えられ、事情があれば第1行為時の着手が否定される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>着手が否定されれば殺人未遂（203条）は成立しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>第1行為＝暴行によりVが死亡した点を傷害致死罪（205条）で処理する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>上位の故意犯（殺人）を否定しても暴行の故意は残り、過失犯（重過失致死）に落とさない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>罪名を落とす場面は、残る下位の故意犯からの結果的加重犯で受け止める。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="判例が後の事件を縛るのは、到達した結論そのものではなく、そこで示された<b>判断の基準（理由づけ）</b>の部分である。どこまでが縛る部分かを測ることを<b>判例の射程</b>という。実行の着手（43条）の場面で対立の焦点になっているのは、行為者の<b>犯行計画</b>を判断に取り込んでよいか、という基準のレベルの問題である。基準を共有していれば、着手を切り出す時点が事案ごとに前後しても、それは事実の違いであって考え方の対立ではない。外形上の結論が似ているか違うかだけで整合・矛盾を決めると、射程を測り損なうことになる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、相手方の引く判例に対し、事案の違いを示して射程の外だと主張するか、同じ基準の下に入ると主張するかで争う。書面では、事実の違いと基準の違いを分けて書き分けるのが要点になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年3月5日午前2時、警報を落としてから金庫室へ向かう段取りで倉庫に入り、まず配電盤のブレーカーに手を掛けた場面。金庫の前で工具を広げた場面と切り出す時点は違うが、どちらも段取りを読み込んで測っている点では同じ物差しの上にある。</span>" data-brief-mark="ダンプカー引きずり込み段階に不同意性交等罪の着手を認める見解は判旨と<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>矛盾する</span><span class='tx-stmt-fix'>→ 計画を考慮する点で物差しが共通し矛盾しない</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>実行の着手（43条）は、実行行為に密接な行為があり既遂の客観的危険性が生じた時点で認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>着手時期の判断には犯人の犯行計画を判断資料として取り込む（客観的危険性説）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>引きずり込み段階に不同意性交等罪の着手を認める見解も、計画を考慮して着手を早める点で本判旨と物差しが共通する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>矛盾するか否かは、到達した結論の一致ではなく判断基準（計画考慮）の対立の有無で決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>判例の射程は到達した結論ではなく判断基準の対立で測り、基準が同じなら着手を切り出す時点が事案ごとに動いても矛盾しない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="026-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">着手の時点は計画の内容で動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">計画</p><p class="dgm-cell is-head">着手を認める時点</p><p class="dgm-cell is-head">密接性</p><p class="dgm-cell is-rowhead">失神させ車で運んで溺死させる計画</p><p class="dgm-cell is-ok">失神させる行為の開始時点</p><p class="dgm-cell">運搬と転落が段取りで続く<span class="dgm-src">43条</span></p><p class="dgm-cell is-rowhead">遠方へ運んで性交する計画</p><p class="dgm-cell is-ok">引きずり込む暴行の時点</p><p class="dgm-cell">引きずり込みが性交に密接<span class="dgm-src">43条</span></p><p class="dgm-cell is-rowhead">近くの家へ連れ込んで性交する計画</p><p class="dgm-cell is-ng">引きずり込みでは認めない</p><p class="dgm-cell">性交に密接といえない</p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="実行の着手は、次の行為に<b>密接</b>といえるか、その時点で結果に至る<b>客観的な危険性</b>が認められるか、で測る。未遂を罰する趣旨は、法益侵害の現実的な危険が生じた段階から刑罰を及ぼす点にあるから、危険の有無は生の事実からしか測れない。時間的・場所的な近さは、その危険を支える<b>評価の資料</b>であって、それ自体が独立した合否の要件ではない。だから距離の数字そのものに意味があるのではなく、計画に照らして読み替えた後の意味が問われる。同じ2キロメートルでも、徒歩で運ぶ計画か車で運ぶ計画かで、近いか遠いかの評価は反対に振れる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、距離と所要時間、移動手段、人目の有無を実況見分調書や走行記録で押さえ、その間に計画が崩れる余地があったかを争う。弁護人は移動中の中断の余地を、検察官は段取りの一体性を主張する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年2月14日午後11時、片道7分の海沿いの道を車で運ぶ段取りだった場面。同じ距離を昼間に徒歩で運べば30分かかり人目にも触れるが、深夜に車でなら7分で着いてしまう。距離の数字は、時間帯と手段まで置いて初めて意味を持つ。</span>" data-brief-mark="判旨は約2キロメートルの距離を<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>実行の着手時期を決する上で考慮している</span>（近接性の資料）。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>判旨は第1行為と第2行為の時間的場所的近接性を着手肯定の一要素として明示する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>距離の遠近は生の数値ではなく移動手段・犯行計画との関係で相対的に評価する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>約2キロメートルは自動車移動を前提に近接性を肯定する事情として考慮されている。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「距離が離れている＝考慮していない」ではなく、計画に照らして近接性の資料に用いられている。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>時間的場所的近接性は移動手段と計画に照らして相対的に評価し、距離や時間の数値それ自体を独立の要件としない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="026-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">着手を支える三つの柱を一つ外すと着手はどう動くか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">柱を外すと</p><p class="dgm-cell is-head">着手</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">先行行為が後続行為に必要不可欠でなくなる</p><p class="dgm-cell is-ng">✕ 弱まる</p><p class="dgm-cell">次の行為に密接な行為といえない<span class="dgm-src">43条</span></p><p class="dgm-cell is-rowhead">計画遂行を妨げる特段の事情が加わる</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell">その時点で結果に至る客観的危険性を欠く</p><p class="dgm-cell is-rowhead">近接性が失われる（数日後に遠方へ運ぶ）</p><p class="dgm-cell is-ng">✕ 弱まる</p><p class="dgm-cell">距離と時間は近接性を支える資料</p><p class="dgm-cell is-rowhead">車で約2キロ運ぶ計画のまま三つがそろう</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">先行行為の開始時点で着手<span class="dgm-src">43条</span></p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="故意とは、構成要件に当たる事実の認識・認容をいう（38条1項）。複数の行為が段取りとして結びつき、全体で一個の実行行為と評価されるときは、<b>故意も計画のまとまりで問う</b>ことになる。手段として置かれた行為に、それ自体で人を死なせるという認識まで求める必要はない。趣旨から見ても、行為を細切れにして断片ごとに殺意を要求すれば、周到に段取りを組んだ犯行ほど処罰の網を抜けてしまう。<b>着手が認められた行為</b>と、<b>結果を直接もたらすつもりだった行為</b>は別の行為でよい——この読み方は、毒物を郵送する離隔犯や、事情を知らない他人を使う間接正犯にも通じている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、計画全体の殺意を、道具の購入履歴・下見・借財や保険金といった動機から積み上げて立証する。弁護人は各段階の認識を分け、その時点では殺すつもりはなかったと争うのが通例である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1月10日に毒物を仕込んだ菓子を宅配便で送り、相手の手元に届くのは12日、という場面。送った日に相手はまだ元気で、荷物だけが二日かけて進んでいく。始まりの時点と結果の時点が離れても、通して見れば一つの段取りである。</span>" data-brief-mark="判旨は第1行為自体による死の結果の認識・認容を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>前提としている</span><span class='tx-stmt-fix'>→ 一連の計画の殺意で足り、そのような認識は前提でない</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>殺人の故意・着手は、各行為ごとではなく一連の殺害計画全体を基準に判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>甲は第1行為では失神させる認識しかなく、第1行為自体で死なせる認識・認容はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>判旨は第1行為自体による死の結果の認識・認容を前提とせず、計画全体の殺意で足りる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>着手（未遂）に必要な主観は、既遂と同じ結果直接惹起の認識ではなく計画全体の犯意。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>複数の行為が段取りとして結びつく犯罪では、着手と故意を計画単位で捉え、手段行為それ自体による結果発生の認識は要しない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="026-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">殺意がいつあったかで死亡結果の罪名が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">死亡結果の罪名</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">失神させる認識だけだが計画全体の殺意はある</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">計画単位の殺意で故意は足りる<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">失神させる行為それ自体で死ぬ認識まである</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">その認識は必要条件でなく結論は変わらない<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">失神させる段階では殺意がなく運搬後に生じた</p><p class="dgm-cell is-ng">傷害致死罪</p><p class="dgm-cell">着手時に殺意を欠き暴行からの結果的加重犯<span class="dgm-src">205条</span></p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="既遂と未遂を分けるのは、構成要件的な結果が実行行為から生じたかどうかである。43条が未遂を、犯罪の実行に着手してこれを遂げなかった場合と定めているとおり、<b>遂げたか否かは結果の発生</b>で決まり、予定した手順を最後まで踏んだかどうかでは決まらない。必要なのは、実行行為・死の結果・両者の<b>因果関係</b>・故意の四つがそろうこと、それだけである。したがって着手の位置が前に動けば、実行行為の起点も因果の起点も一緒に前へ動く。結果が出てしまった後で残りの手順をやめても、それは<b>中止未遂（43条ただし書）</b>の場面ではない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、死因と死亡の時期を特定する司法解剖と鑑定が、既遂か未遂かを決める。争点は法解釈から、鑑定の前提事実や推定時刻の幅が妥当かという事実の争いへ移っていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年5月9日、寝ている相手を殴って動けなくしてから家に火を放つ段取りで、最初の一撃で相手が死んでいた場面。火をつけないまま立ち去っても、結末はもう出ている。残り半分の手順は、結果の有無を左右しない。</span>" data-brief-mark="第2行為に及ばなくても<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>殺人既遂罪が成立する</span>（第1行為＝実行行為・死・因果・殺意）。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>着手が第1行為時に認められると、第1行為が殺人の実行行為となる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>殺人既遂は実行行為・死の結果・因果関係・殺人の故意で成立する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>第1行為でVが死亡した以上、第2行為に及ばなくても既遂となる（早すぎた実現・因果経過の錯誤は故意を阻却しない）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>既遂に必要なのは4要件の充足であって、予定した手順を最後まで踏むことではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>既遂は実行行為・結果・因果関係・故意の充足で決まり、行為者が予定した手順を最後まで踏むことを要しない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="026-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">先行行為の後に何が起きたかで既遂と未遂が分かれる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">罪責</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">先行行為で死亡しており海中へ落とさなかった</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">実行行為・結果・因果・故意がそろう<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">まだ生きているのに気づき自分の意思でやめた</p><p class="dgm-cell is-acc">中止未遂</p><p class="dgm-cell">結果不発生で刑の必要的減免<span class="dgm-src">43条ただし書</span></p><p class="dgm-cell is-rowhead">まだ生きており運搬中に第三者に救出された</p><p class="dgm-cell is-ng">殺人未遂罪</p><p class="dgm-cell">死の結果が発生していない<span class="dgm-src">203条</span></p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="罪名を一段落とすときは、落とした後に<b>どの故意が残っているか</b>を先に確かめる。人の身体に対する有形力の行使は暴行（208条）であり、そこから死の結果が出れば<b>傷害致死（205条）</b>で受け止める。過失致死（210条）や重過失致死（211条後段）は、そもそも故意のない場合のために置かれた受け皿だから、暴行の故意がある以上そこへは落ちない。結果的加重犯という仕組みの趣旨は、基本となる犯罪に類型的に伴う重い結果の危険を、<b>基本犯の故意</b>にひもづけて重く処罰する点にある。上の段が外れたら下の段へ、と考えるときの下の段は、過失犯ではなく残っている故意犯である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、凶器の種類・攻撃した部位・回数・その場の言動から殺意の有無を認定し、殺人か傷害致死かで量刑が大きく動く。弁護人が殺意を争い、傷害致死の枠へ落とすことを目標にする事件は多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年6月20日の深夜、口論の末に相手を一度突き飛ばし、後頭部を縁石に打って死亡した場面。突き飛ばした事実は本人も認めている。うっかり手が当たったのではない以上、受け皿は過失の側ではなく暴行の側にある。</span>" data-brief-mark="特段の事情ありの場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>殺人未遂罪と重過失致死罪が成立する</span><span class='tx-stmt-fix'>→ 着手否定で殺人未遂は不成立、暴行→死亡で傷害致死罪（205条）</span>。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>着手肯定は「特段の事情の不存在」に支えられ、事情があれば第1行為時の着手が否定される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>着手が否定されれば殺人未遂（203条）は成立しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>第1行為＝暴行によりVが死亡した点を傷害致死罪（205条）で処理する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>上位の故意犯（殺人）を否定しても暴行の故意は残り、過失犯（重過失致死）に落とさない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>上位の故意犯の着手を否定しても、残る下位の故意犯（暴行）からの結果的加重犯で死亡結果を受け止め、過失犯へ落とさない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="026-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">先行行為に残る主観で死亡結果の受け皿が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">先行行為に残る主観</p><p class="dgm-cell is-head">死亡結果の罪名</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">殺意あり（着手も肯定）</p><p class="dgm-cell is-ok">殺人既遂罪</p><p class="dgm-cell">実行行為から死の結果が生じた<span class="dgm-src">199条</span></p><p class="dgm-cell is-rowhead">暴行の故意だけ（着手は否定）</p><p class="dgm-cell is-acc">傷害致死罪</p><p class="dgm-cell">暴行の結果的加重犯<span class="dgm-src">205条・208条</span></p><p class="dgm-cell is-rowhead">故意はなく著しい不注意だけ</p><p class="dgm-cell is-ng">重過失致死罪</p><p class="dgm-cell">故意のない場合の受け皿<span class="dgm-src">211条後段</span></p><p class="dgm-cell is-rowhead">故意も過失もない</p><p class="dgm-cell is-flat">不可罰</p><p class="dgm-cell">結果を帰責する根拠がない<span class="dgm-src">38条1項</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

@@ -5684,6 +5684,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5982,7 +6217,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>二重逮捕の危険を生ぜしめるという批判は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>緊急逮捕肯定説（Ⅱ）に向けられたもの</span>である。<span class="tx-anscomp-line">同一の被疑事実についての逮捕・勾留は原則として1回に限られる（一罪一逮捕一勾留の原則）から、既に逮捕状が発付されている被疑事実についてなお緊急逮捕（刑訴法210条）を許す見解に対しては、<strong>二重逮捕の危険</strong>を生ぜしめるとの批判が向けられる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。既に逮捕状が発付されている被疑事実について、なお<a class="ref-stat" id="ref-a-210" href="#bref-1-210">緊急逮捕</a>（刑訴法210条）を許してよいかという、身柄拘束の重複をめぐる論点である。同一の被疑事実についての逮捕・勾留は原則1回に限られ（<strong>一罪一逮捕一勾留の原則</strong>——一つの事件で身柄を取れるのは一度きり、という縛り）、逮捕状があるうえに緊急逮捕まで認めれば、同じ事件で拘束が二度重なる二重逮捕の危険が現実化する。被疑者を不必要に繰り返し捕らえないという身体の自由の保障が、この歯止めの趣旨である。イメージは同じ切符での二度乗り——一度改札を通った事件で、もう一枚切符を切らせるようなものだ。だから批判の矢は、緊急逮捕を許す肯定説へ飛ぶ。この批判が向けられる先を肯定説とする本記述は正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">二重逮捕の危険という批判は、<strong>緊急逮捕肯定説</strong>に向けられる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕状の緊急執行</span><span class="tx-gist-step">緊急逮捕否定説</span><span class="tx-gist-step is-now">緊急逮捕肯定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">既に逮捕状が出ている事件で緊急逮捕を認めると二重逮捕の危険が生じるという批判は、どちらの立場に向けられたものか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">ある事件について、裁判官が既に逮捕状を出しています。ところが現場の司法警察員は、その逮捕状を使うのではなく、同じ事件について緊急逮捕をしようとしています。重い罪で急を要するという緊急逮捕の要件は、そろっているとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ここで心配になるのは、同じ事件について身柄の拘束が二度重なってしまわないか、という点です。この<strong>二重逮捕の危険</strong>は、どちらの立場が抱える弱点なのかを見分けます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">同一の被疑事実についての逮捕・勾留は、原則として一回に限られます（一罪一逮捕一勾留の原則）。逮捕状があるうえに<a class="ref-stat" href="#bref-1-210" id="ref-a-210">緊急逮捕</a>（刑訴法210条1項）まで許せば、同じ事件で拘束が二度重なりかねません。つまりこの危険は、緊急逮捕を認める緊急逮捕肯定説の側で初めて現実のものになります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">批判は、批判される立場の外から向けられます。緊急逮捕を認めない立場では緊急逮捕そのものが行われないので、拘束が二度重なる事態は起こりません。身体の自由を不必要に繰り返し奪わないという歯止めを破りかねないのは、緊急逮捕を認める側だ、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>緊急逮捕</span></dt><dd>死刑又は無期若しくは長期3年以上の拘禁刑に当たる重い罪について、急速を要して裁判官の逮捕状を求められないとき、理由を告げて先に逮捕し、直ちに逮捕状を求める手続（刑訴法210条1項）。</dd></div><div class="tx-gist-term"><dt><span>一罪一逮捕一勾留の原則</span></dt><dd>同一の被疑事実についての逮捕・勾留は、原則として一回しか許されないという考え方。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">二重逮捕の危険という批判の宛先を緊急逮捕肯定説としている点が、批判の向きと合っています。緊急逮捕を認めない立場では二重逮捕そのものが生じないため、この批判はそちらへは向きません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>二重逮捕の危険とは</strong><span class="syn-body">同一の被疑事実に対する逮捕・勾留は原則1回（一罪一逮捕一勾留の原則）。逮捕状が発付済みなのに緊急逮捕まで重ねると、身柄拘束が二重になり、不当な逮捕の繰り返しを招きかねない。</span></p>
 <p><span class="syn-step">2</span><strong>批判の宛先を特定する</strong><span class="syn-body">この危険は『逮捕状があっても緊急逮捕を許す』肯定説（Ⅱ）で初めて現実化する。否定説（Ⅰ）は緊急逮捕を認めないから二重逮捕は生じない。ゆえに『この見解に対しては…批判がある』の"この見解"はⅡ説を指し、本記述はⅡについて述べたものである。</span></p> </div>
@@ -6013,7 +6248,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>直ちに逮捕できないことがあり得るという帰結を述べるのは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>緊急逮捕肯定説（Ⅱ）</span><span class="tx-stmt-fix">→ 緊急逮捕否定説（Ⅰ）</span>である。<span class="tx-anscomp-line">逮捕状の緊急執行（刑訴法201条2項・73条3項）は、令状をできる限り速やかに呈示し得る場合に限り相当であるから、それが相当でない場面で緊急逮捕をも認めない<strong>緊急逮捕否定説</strong>からは、手元に逮捕状のない司法警察員が指名手配中の被疑者を発見しても直ちに逮捕できない場合が生じ得る。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。手元に逮捕状を持たない警察官が指名手配中の被疑者に出会ったとき、どの方法なら捕らえられるかが問題となる。被疑事実の要旨と令状発付済みであることを告げれば令状現物なしに執行できるのが<a class="ref-stat" id="ref-i-201" href="#bref-2-201">逮捕状の緊急執行</a>（201条2項・73条3項）である。もっとも令状は<strong>できる限り速やかに</strong>——後回しは許されるが、できるだけ早く現物を見せよ、という縛り——呈示しなければならず、それが望めない場面では緊急執行は相当でない。何の令状で捕らえられたのかを被疑者に示す、という告知の趣旨による。イメージは鍵を置いてきた管理人——手元に鍵が無ければ、その場では扉を開けられない。緊急執行も緊急逮捕も塞がれれば直ちに逮捕できない場面が残るが、その不便を甘受するのは緊急逮捕否定説の側であり、これを肯定説の帰結とする本記述は誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">直ちに逮捕できない不便を負うのは、<strong>緊急逮捕否定説</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">逮捕状の緊急執行</span><span class="tx-gist-step">緊急逮捕否定説</span><span class="tx-gist-step">緊急逮捕肯定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">緊急執行が相当でない場面で直ちに逮捕できなくなるという帰結は、どちらの立場のものか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">指名手配の対象になっている被疑者を、司法警察員が街で偶然見つけました。手元に逮捕状の現物はありません。しかも、逮捕したあと速やかに令状を取り寄せて見せられる見込みも立ちません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">逮捕状が手元になくても、被疑事実の要旨と令状が発せられている旨を告げれば執行できる<a class="ref-stat" href="#bref-2-201" id="ref-i-201">逮捕状の緊急執行</a>という方法があります。しかし令状をできる限り速やかに示せないなら、この方法は相当とはいえません。では、それでも捕らえられないという帰結を語るのは、どちらの側でしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法201条2項が準用する73条3項は、令状を所持しないため示せず急速を要するときの執行を認めつつ、ただし書で「令状は、できる限り速やかにこれを示さなければならない」と定めます。速やかな呈示が望めない場面で緊急逮捕まで認めないのは緊急逮捕否定説ですから、直ちに逮捕できないことがあり得るという帰結を負うのは、この否定説の側です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">緊急執行は、何の令状で捕らえられたのかを被疑者に示すという告知の要請を、後回しにすることで成り立っています。後からでも示せる見込みがないなら、その土台が崩れるので使えません。緊急逮捕を認める立場なら別の道で捕らえられるため、この不便はそもそも生じない、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>逮捕状の緊急執行</span></dt><dd>逮捕状を所持せず示すことができない場合で急速を要するとき、被疑事実の要旨と令状が発せられている旨を告げて逮捕を執行する方法。令状はできる限り速やかに示さなければならない（刑訴法201条2項・73条3項）。</dd></div><div class="tx-gist-term"><dt><span>緊急逮捕否定説</span></dt><dd>逮捕状が発付されている被疑事実については緊急執行で対応すれば足りるとして、緊急逮捕は許されないとする立場。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">直ちに逮捕できない場合が生じ得るという帰結そのものは正しいのですが、その不便を甘受するのは緊急逮捕を認めない緊急逮捕否定説の側です。これを緊急逮捕肯定説の帰結としている点が誤りで、肯定説なら要件がそろえば緊急逮捕で捕らえられます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>逮捕状の緊急執行の仕組み</strong><span class="syn-body">被疑事実の要旨と令状発付済みを告げれば、令状が手元になくても執行できる（201条2項が73条3項を準用）。ただし但書で"令状はできる限り速やかに呈示"が要求される。</span></p>
 <p><span class="syn-step">2</span><strong>帰結の宛先を特定する</strong><span class="syn-body">速やかな呈示ができないと予想されれば緊急執行は相当でない。その場面で緊急逮捕まで否定する（Ⅰ説）と、発見しても直ちに逮捕できないことがあり得る。この帰結を語るのはⅠ説。肯定説（Ⅱ）ならむしろ緊急逮捕で捕まえられる。</span></p> </div>
@@ -6044,7 +6279,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>逮捕状は命令状とは解し難く逮捕を義務付けないことを根拠とするのは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>緊急逮捕肯定説（Ⅱ）</span>である。<span class="tx-anscomp-line">逮捕状は、裁判官があらかじめ発して逮捕を許す<strong>許可状</strong>であって逮捕を命ずる命令状ではなく（刑訴法199条1項）、捜査機関は逮捕状による逮捕を義務づけられないから、逮捕状が発付されている被疑事実についても、要件を満たす限り緊急逮捕（210条）によることができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。逮捕状が発付されている被疑事実に緊急逮捕を重ねられるかという論点では、逮捕状という令状の性質が出発点になる。逮捕状は、裁判官があらかじめ発して逮捕を許す<a class="ref-stat" id="ref-u-199" href="#bref-3-199">許可状</a>——捜査機関に捕らえてよいと<strong>許可</strong>する令状であって、必ずこの令状で捕らえよと命じる命令書ではない——と解される（199条1項）。裁判官の事前審査は不当な身柄拘束を防ぐためのものであり、捜査機関の手段の選び方まで縛る趣旨ではない。逮捕状による逮捕を義務づけられない以上、要件を満たす限り緊急逮捕という別ルートを選んでよい。イメージは通行許可証——通ってよいと許すだけで、この道を通れと命じるものではないから、別の道も塞がれない。この論法を肯定説の根拠とする本記述は正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">逮捕状は逮捕を命じない<strong>許可状</strong>だから、別の手段も塞がれない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕状の緊急執行</span><span class="tx-gist-step">緊急逮捕否定説</span><span class="tx-gist-step is-now">緊急逮捕肯定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">逮捕状は、捜査機関に逮捕状による逮捕を義務づける令状なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">逮捕状が出ている事件で、司法警察員が被疑者を見つけました。重い罪で急を要し、緊急逮捕の要件もそろっています。それでも、逮捕状があるのだから必ず逮捕状で捕らえなければならないのか、という疑問が出ます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">出発点は逮捕状という令状の性質です。裁判官が「逮捕せよ」と命じる<strong>命令状</strong>なのか、「逮捕してよい」と許す<a class="ref-stat" href="#bref-3-199" id="ref-u-199">許可状</a>なのか。この捉え方しだいで、別の手段を選べるかどうかが決まります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法199条1項は、捜査機関は「裁判官のあらかじめ発する逮捕状により、これを逮捕することができる」と定めます。できる、という書き方であって、しなければならないとはしていません。逮捕状は逮捕を許す許可状であって、捜査機関は逮捕状による逮捕を義務づけられていない、というのが緊急逮捕肯定説の根拠です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">裁判官の事前の審査は、理由のない身柄拘束を防ぐために置かれたものです。捜査機関にどの手段を使えと指示するための仕組みではない、と説明されます。逮捕状で逮捕する義務がないのなら、要件を満たす限り緊急逮捕という別の道を選んでもかまわない、という理屈になります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>許可状</span></dt><dd>一定の処分をしてよいと許す令状。その処分を行う義務まで負わせるものではなく、処分を命じる命令状と区別される。</dd></div><div class="tx-gist-term"><dt><span>緊急逮捕肯定説</span></dt><dd>逮捕状が発付されている被疑事実についても、緊急逮捕の要件がそろえば緊急逮捕も許されるとする立場。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">逮捕状は命令状とは解し難く、捜査官が逮捕状により逮捕の執行を義務づけられるわけでもない、という論法は、緊急逮捕肯定説の中核の根拠です。根拠の持ち主を肯定説としている向きが正しく、許可状と読むからこそ緊急逮捕という別の道も塞がれません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>逮捕状の性質（許可状説）</strong><span class="syn-body">逮捕状は裁判官の事前審査を経て逮捕を"許可"する令状であって、逮捕を"命令"するものではない。捜査官は逮捕状により逮捕を義務づけられているのではなく、逮捕するか・どの手段によるかに裁量が残る。</span></p>
 <p><span class="syn-step">2</span><strong>肯定説への橋渡し</strong><span class="syn-body">逮捕状で逮捕する義務がない以上、逮捕状発付済みの事件でも、要件を満たせば<a class="ref-stat" href="#bref-3-210">緊急逮捕</a>（210条）という手段を選んでよい。この論法は肯定説（Ⅱ）の中核。ゆえに記述ウはⅡについて述べたもの。</span></p> </div>
@@ -6075,7 +6310,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>206条で不都合はないと説くのは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>緊急逮捕肯定説（Ⅱ）</span><span class="tx-stmt-fix">→ 緊急逮捕否定説（Ⅰ）を擁護する主張</span>である。<span class="tx-anscomp-line">逮捕状の呈示が遅れて法定の制限時間内に勾留請求ができなくても、やむを得ない事情があれば刑訴法206条により勾留を請求し得るから実際上の不都合はないとする主張は、緊急逮捕を認めない<strong>緊急逮捕否定説</strong>を批判から擁護するものである。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。緊急逮捕を認めない立場には、批判とその反論が一組で用意されている。緊急執行では令状の呈示が後回しになるため、呈示の遅れによって法定の<a class="ref-stat" id="ref-e-206" href="#bref-4-206">制限時間</a>——逮捕から勾留請求までに守るべき時間の枠（203条〜205条）——内に勾留請求ができず不都合だ、との批判がある。これに対し、<strong>やむを得ない事情</strong>があれば206条で遅延が正当と認められ勾留状を得られるから不都合はない、と説くのは、その批判をかわして自説を保つ側である。206条は時間の枠を守れなかった場合の例外的な救済にすぎない。イメージは飛んできた矢を受ける盾——盾を構えるのは矢を射られた側、すなわち批判された緊急逮捕否定説である。これを肯定説の主張とする本記述は誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">206条で不都合はないと説くのは、<strong>緊急逮捕否定説</strong>の擁護である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕状の緊急執行</span><span class="tx-gist-step is-now">緊急逮捕否定説</span><span class="tx-gist-step">緊急逮捕肯定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">制限時間を守れなかったときの救済規定を持ち出す主張は、どちらの立場を守るものか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">手元に逮捕状のない司法警察員が、緊急執行で被疑者を逮捕しました。令状の現物を示せたのは、かなり後になってからです。その遅れのせいで、検察官は法律が定める時間の枠のうちに勾留を請求できませんでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">逮捕から勾留請求までには<a class="ref-stat" href="#bref-4-206" id="ref-e-206">制限時間</a>が定められています（刑訴法203条から205条まで）。緊急執行では令状の呈示が後回しになるため、この枠を守れない場面が出てきます。これは<strong>緊急逮捕否定説</strong>への批判になりますが、それでも不都合はないと答えるのはどちらの側でしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法206条1項は、やむを得ない事情によって前3条の時間の制限に従えなかったときは、検察官がその事由を疎明して勾留を請求できるとします。2項は、裁判官はその遅延がやむを得ない事由に基づく正当なものと認める場合でなければ勾留状を発せられないとします。この救済があるから不都合はない、と説くのは、批判を受けた緊急逮捕否定説を守る主張です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">批判はその立場の外から向けられ、反論は内側から出てきます。緊急執行で足りると言う立場は、呈示の遅れが招く不都合を自分でふさがなければ、自説を保てません。206条は時間の枠を守れなかったときの例外的な救済にすぎませんが、その逃げ道があるなら弱点は致命的ではない、という反論になる、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>制限時間</span></dt><dd>逮捕した被疑者について勾留請求までに守るべき時間の枠。司法警察員は身体の拘束から48時間以内に検察官へ送致し、検察官は受け取った時から24時間以内に勾留を請求し、通算で72時間を超えられない（刑訴法203条から205条まで）。</dd></div><div class="tx-gist-term"><dt><span>疎明</span></dt><dd>確信を抱かせるには至らない程度に、一応確からしいと裁判官に認めさせること。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">206条を持ち出して不都合はないと説くのは、呈示の遅れを突かれた緊急逮捕否定説を守るための反論です。これを緊急逮捕肯定説の主張としている点が誤りで、擁護されているのは緊急逮捕を認めない否定説の側です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>指摘された不都合</strong><span class="syn-body">勾留は適法な逮捕手続を前提とし、遅くとも勾留請求時までに逮捕状を呈示する必要がある（201条2項・73条3項）。呈示が遅れて制限時間（203条〜205条）内に勾留請求できないと不都合、という批判がある。</span></p>
 <p><span class="syn-step">2</span><strong>206条による反論の宛先</strong><span class="syn-body">『やむを得ない事情なら206条で制限時間不遵守が免責される余地があるから不都合はない』という反論は、批判をかわして否定説（Ⅰ）の立場を維持するための擁護。だからⅠについて述べたもの。</span></p> </div>
@@ -6107,7 +6342,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>数通発付で結果を回避し得ると説くのは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>緊急逮捕肯定説（Ⅱ）</span><span class="tx-stmt-fix">→ 緊急逮捕否定説（Ⅰ）を擁護する主張</span>である。<span class="tx-anscomp-line">指名手配中の被疑者については逮捕状の発付を<strong>数通</strong>受けて要所に送付しておけば（刑訴規則142条1項7号）、発見地にある令状により通常逮捕をすることができるから、この主張は、緊急逮捕を認めない緊急逮捕否定説の不都合を回避するための擁護である。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。緊急逮捕を認めない立場には、その弱点を実務の工夫で埋める擁護論がある。緊急逮捕を否定すると、緊急執行も相当でない場面では、指名手配中の被疑者を発見しても直ちに逮捕できない不都合が残る。そこで、同一の被疑事実について逮捕状を<a class="ref-stat" id="ref-o-reg" href="#bref-5-reg142">数通発付</a>——同じ内容の令状を複数枚出してもらうこと（刑訴規則142条1項7号）——して全国の要所に配っておけば、発見地に令状があり<strong>通常逮捕</strong>で直ちに対応できる、と説かれる。緊急逮捕に頼らずに弱点を消す実務上の手当てである。イメージは各地に置いた合鍵——あらかじめ配っておけば、その場ですぐ扉を開けられる。この段取りを用意するのは緊急逮捕否定説の側だから、これを肯定説の主張とする本記述は誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">数通の逮捕状を配る工夫は、<strong>緊急逮捕否定説</strong>を守る手当てである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕状の緊急執行</span><span class="tx-gist-step is-now">緊急逮捕否定説</span><span class="tx-gist-step">緊急逮捕肯定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">指名手配中の被疑者を直ちに逮捕できるようにする実務の工夫は、どちらの立場を支えるものか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">全国に指名手配された被疑者が、遠い土地で見つかるかもしれません。そこで捜査機関は、同じ被疑事実について逮捕状を何通も発してもらい、あらかじめ各地の要所へ送っておくことを考えます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">これが<a class="ref-stat" href="#bref-5-reg142" id="ref-o-reg">数通発付</a>という手当てです。発見した土地に令状があれば、それを被疑者に示して<strong>通常逮捕</strong>ができるので、直ちに逮捕できないという困りごとは起きません。では、この段取りを用意するのはどちらの側でしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">刑訴法199条1項の逮捕状による逮捕は、令状を被疑者に示して行うのが原則です（201条1項）。発見地に令状があればその原則どおりに逮捕でき、緊急逮捕に頼る必要はありません。つまりこの工夫は、緊急逮捕を認めない緊急逮捕否定説の弱点を、緊急逮捕を使わないまま埋めるためのものです。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">緊急逮捕を認めない立場には、緊急執行も相当でない場面では直ちに逮捕できないという弱点が残ります。その穴を、令状をあらかじめ各地に置いておくという段取りでふさげば、例外的な手段を広げなくても実務が回ります。例外を増やすのではなく原則の運用で対応する、という発想だと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>通常逮捕</span></dt><dd>裁判官があらかじめ発した逮捕状を被疑者に示して行う、原則どおりの逮捕（刑訴法199条1項・201条1項）。</dd></div><div class="tx-gist-term"><dt><span>数通発付</span></dt><dd>同一の被疑事実について逮捕状を複数通発してもらうこと。指名手配では各地の要所に置いておけば、発見地にある令状で逮捕できる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">数通の逮捕状を配れば直ちに逮捕できるという工夫は、緊急逮捕を使わずに済ませる手当てであって、緊急逮捕を認めない否定説の弱点をふさぐものです。これを緊急逮捕肯定説の主張としている点が誤りで、支えられているのは緊急逮捕否定説の側です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>否定説の弱点</strong><span class="syn-body">緊急逮捕を認めないと、緊急執行できない場面では指名手配犯を直ちに逮捕できない不都合が残る。</span></p>
 <p><span class="syn-step">2</span><strong>数通発付による反論の宛先</strong><span class="syn-body">逮捕状を数通発付（規則142条1項7号）して要所に置けば、発見地に令状があり通常逮捕で対応できる。これは否定説（Ⅰ）の弱点を埋める擁護であり、Ⅰについて述べたもの。緊急逮捕に頼らずに済ませる工夫である点がポイント。</span></p> </div>

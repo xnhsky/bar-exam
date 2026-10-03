@@ -5584,7 +5584,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5605,9 +5629,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6171,11 +6330,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-mark="被疑者は、自己の配偶者が弁護人を選任した場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>自ら弁護人を選任することはできない</span><span class='tx-stmt-fix'>→ 30条1項でいつでも自ら選任できる</span>。<span class='tx-anscomp-line'>被告人又は被疑者は、何時でも弁護人を選任することができ（刑訴法30条1項）、配偶者等の一定の親族は<strong>独立して</strong>弁護人を選任することができる（同条2項）。親族による選任は本人の選任権を消滅させないから、被疑者は配偶者が弁護人を選任した後であっても、自ら弁護人を選任することができる。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条1項『被告人又は被疑者は、何時でも弁護人を選任することができる』／2項の親族は『独立して』選任できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>本人の防御権を実効化しつつ親族にも独自の選任権を与える。『独立して』は本人の意思如何にかかわらず行使できる意味。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>配偶者等が2項で選任しても、被疑者本人の1項の選任権は失われず、自ら選任・解任できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『独立して』（30条2項）は親族の選任権が本人の選任権と併存する趣旨で、本人の権限を吸収しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「代わりに誰かがやれば本人はできない」と権限を一本化しない。上訴権（355条・356条）も同じく独立併存。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-mark="弁護士は、被疑者の弁護人に選任されない限り、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>立会人なくして接見することはできない</span><span class='tx-stmt-fix'>→ 「弁護人になろうとする者」も接見できる</span>。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者は、弁護人のみならず、弁護人を選任することができる者の依頼により<strong>弁護人となろうとする者</strong>とも、立会人なくして接見することができる（刑訴法39条1項）。したがって弁護士は、正式に選任される前であっても、依頼を受けていれば立会人なくして接見することができる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項は『弁護人又は…弁護人となろうとする者』と立会人なく接見できると規定。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>接見交通権は憲法34条前段の弁護人依頼権を実質化する。拘束の初期から助言を受けられるようにする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>選任の依頼を受けたが選任手続が未了の弁護士も『弁護人になろうとする者』として立会人なく接見できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>接見主体は『弁護人』に限られず『弁護人になろうとする者』を含む。選任の完了は接見の要件ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>手続の形式的完了より防御の実質を優先する（初回接見の速やかな保障・最大判平11.3.24に通底）。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-mark="弁護人は、勾留場所の変更（留置施設→拘置所）を求めて<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>準抗告をすることができる</span>（429条1項2号）。<span class='tx-anscomp-line'>裁判官がした勾留に関する裁判に不服がある者は、その裁判の取消し又は変更を請求することができる（刑訴法429条1項2号）。勾留の場所も勾留の裁判において定まる重要な事項であって『勾留に関する裁判』に含まれるから、弁護人は勾留場所の変更を求めて準抗告をすることができる。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>429条1項2号は『勾留…に関する裁判』を準抗告の対象とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>裁判官の勾留に関する裁判に不服申立ての機会を保障し、不当な勾留・処遇を是正する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>勾留場所も勾留の裁判の重要事項であり、その変更を求めて準抗告で争えるとするのが実務の大勢。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『勾留に関する裁判』は勾留の要否だけでなく勾留の内容（場所を含む）を広く指す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『関する裁判』を広く読む発想。押収・保釈に関する付随的判断も不服申立ての射程に入りうる。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-mark="弁護人は、第1回公判期日前の証人尋問に<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>立ち会う権利を有しない</span>（228条2項＝裁判官の裁量）。<span class='tx-anscomp-line'>第1回公判期日前の証人尋問（刑訴法226条・227条）について、裁判官は、捜査に支障を生ずる虞がないと認めるときは、被告人、被疑者又は弁護人を<strong>立ち会わせることができる</strong>（同法228条2項）。立会いを許すか否かは裁判官の裁量に委ねられ、弁護人に権利としての立会いはない（最決昭和28年4月25日）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>228条2項は『裁判官は…被告人、被疑者又は弁護人を…立ち会わせることができる』と規定。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>第1回公判期日前の証人尋問は非公開の捜査の一環。立会いを原則不可としつつ裁量で許す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>立会いは裁判官の裁量に委ねられ、弁護人に権利としての立会いはない（最決昭28.4.25）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>立会いが権利になるのは公判の証拠調べ。捜査段階の証人尋問は裁量にとどまる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「公判か捜査か」「権利か裁量か」を段階で切る。弁護人の権限は場面で強弱がある。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-mark="弁護人は、釈放後であっても勾留の理由の開示を請求して開示を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>受けることができる</span><span class='tx-stmt-fix'>→ 釈放後は請求権者でない（82条）</span>。<span class='tx-anscomp-line'>勾留の理由の開示を請求することができるのは、<strong>勾留されている</strong>被告人・被疑者と、その弁護人、法定代理人その他の利害関係人に限られる（刑訴法82条1項・2項）。したがって被疑者が釈放された後は、弁護人選任の効力が失われていなくても、勾留の理由の開示を請求することはできない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>82条は『勾留されている』被告人・被疑者（1項）とその弁護人等（2項）に開示請求権を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>拘禁の理由を公開の法廷で示させ不当な勾留を抑制する（憲法34条後段を具体化・83条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>釈放後は『勾留されている』に当たらず、（元）被疑者・弁護人は請求権者でない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>請求権の基礎は弁護人選任ではなく現に勾留されていること。選任の効力の残存は結論を変えない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>弁護人の地位の存続と、個別権限の発生要件（『勾留されている』等）を分けて読む。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="弁護人選任権は、憲法34条前段が保障する『直ちに弁護人に依頼する権利』を刑訴法が形にしたもので、30条1項が本人（被告人・被疑者）の選任権、2項が配偶者・直系の親族・兄弟姉妹の選任権を定める。趣旨は<b>拘束された本人は自分で弁護士を探せない</b>という現実にある。留置施設の中から知り合いの弁護士に電話をかけ報酬を約束することは事実上できないから、外にいる家族が自分の資格で動ける道を別に開いた。だから2項の『<b>独立して</b>』は、本人の委任も同意も要らないという意味であって、<b>本人の選任権を吸い取る言葉ではない</b>。権限の条文は、主語が誰かと、その権限が誰かの権限を消すと書いてあるかを、分けて読む。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>逮捕の連絡を受けた家族が弁護士会へ私選の紹介を求める一方、本人は留置施設で当番弁護士に会う。二つの経路が同時に走ることは珍しくなく、最終的に誰を弁護人として残すかは本人の意向で整理していくのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>深夜に傷害で逮捕された配送ドライバー。翌朝10時に妻が弁護士会へ電話して私選弁護人を頼み、その弁護士が午後の接見に入る。ところが本人は、同じ日に留置施設で会った当番弁護士のほうを信頼し、こちらも自分の弁護人に選んだ。送致までの48時間のうちに、選任届は二通出されることになる。</span>" data-brief-mark="被疑者は、自己の配偶者が弁護人を選任した場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>自ら弁護人を選任することはできない</span><span class='tx-stmt-fix'>→ 30条1項でいつでも自ら選任できる</span>。<span class='tx-anscomp-line'>被告人又は被疑者は、何時でも弁護人を選任することができ（刑訴法30条1項）、配偶者等の一定の親族は<strong>独立して</strong>弁護人を選任することができる（同条2項）。親族による選任は本人の選任権を消滅させないから、被疑者は配偶者が弁護人を選任した後であっても、自ら弁護人を選任することができる。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条1項『被告人又は被疑者は、何時でも弁護人を選任することができる』／2項の親族は『独立して』選任できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>本人の防御権を実効化しつつ親族にも独自の選任権を与える。『独立して』は本人の意思如何にかかわらず行使できる意味。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>配偶者等が2項で選任しても、被疑者本人の1項の選任権は失われず、自ら選任・解任できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『独立して』（30条2項）は親族の選任権が本人の選任権と併存する趣旨で、本人の権限を吸収しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「代わりに誰かがやれば本人はできない」と権限を一本化しない。上訴権（355条・356条）も同じく独立併存。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="接見交通権は、弁護人依頼権を絵に描いた餅にしないための中核で、39条1項は<b>立会人なくして</b>面会し書類や物を授受することを認める。捜査機関の耳が無い場所でしか、黙秘を勧めることも供述の危うさを指摘することもできないからである。趣旨をこう押さえると、条文が主体を『弁護人』に限らず『弁護人を選任することができる者の依頼により<b>弁護人となろうとする者</b>』まで広げた理由も見えてくる。逮捕の直後こそ取調べが集中して調書が作られる時期で、選任届という<b>書面の完成を待たせれば助言が間に合わない</b>。主体の範囲（誰が会えるか）と権利の内容（立会人なし＝秘密が守られるか）は、別の目盛りとして読む。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>当番弁護士や家族から依頼を受けた弁護士が留置施設へ駆けつける段階では、まだ選任届は出ていない。依頼を受けた事実を告げて接見を求め、その場で本人に選任届を書いてもらう運びになるのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>未明に窃盗で逮捕された学生。家族から朝いちばんに連絡を受けた弁護士が、9時前に留置施設の受付に立つ。選任届はまだ1枚も書かれていないが、依頼を受けた事実を告げれば警察官の立会いなしで面会できる。取調べが始まる前のこの30分が、供述の向きを決めることがある。</span>" data-brief-mark="弁護士は、被疑者の弁護人に選任されない限り、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>立会人なくして接見することはできない</span><span class='tx-stmt-fix'>→ 「弁護人になろうとする者」も接見できる</span>。<span class='tx-anscomp-line'>身体の拘束を受けている被疑者は、弁護人のみならず、弁護人を選任することができる者の依頼により<strong>弁護人となろうとする者</strong>とも、立会人なくして接見することができる（刑訴法39条1項）。したがって弁護士は、正式に選任される前であっても、依頼を受けていれば立会人なくして接見することができる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項は『弁護人又は…弁護人となろうとする者』と立会人なく接見できると規定。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>接見交通権は憲法34条前段の弁護人依頼権を実質化する。拘束の初期から助言を受けられるようにする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>選任の依頼を受けたが選任手続が未了の弁護士も『弁護人になろうとする者』として立会人なく接見できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>接見主体は『弁護人』に限られず『弁護人になろうとする者』を含む。選任の完了は接見の要件ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>手続の形式的完了より防御の実質を優先する（初回接見の速やかな保障・最大判平11.3.24に通底）。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="準抗告は、<b>裁判官が一人でした裁判</b>に対する不服申立ての受け皿で、429条1項が号ごとに対象を並べる。2号の『勾留に関する裁判』は、勾留するか否かという入口の判断だけを指すのではない。勾留の裁判では<b>どこに留置するか</b>も定まり、警察の留置施設か拘置所かで接見のしやすさも日々の処遇も変わるから、その部分を取り出して争えないと不服申立ての意味が薄くなる。趣旨は、身体拘束という重い処分を一人の裁判官の判断で終わらせず、<b>合議体に洗い直させる</b>ことにある。条文が『〜に関する裁判』と書いているときは、中核の判断だけでなくそれに付いて回る判断まで射程に入る、と広く構えてよい。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は勾留決定の直後に、接見の便や持病の治療体制を挙げて拘置所への移監を求める準抗告を申し立てる。勾留自体は争わず場所だけを争うこともあり、認められれば移監が実行される。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2018年11月19日に逮捕されたカルロス・ゴーン氏は、警察の留置施設ではなく東京拘置所に勾留された。どこに置かれるかで接見のしやすさも処遇も変わるから、勾留場所は当事者にとって実質的な争点になる。</span>" data-brief-mark="弁護人は、勾留場所の変更（留置施設→拘置所）を求めて<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>準抗告をすることができる</span>（429条1項2号）。<span class='tx-anscomp-line'>裁判官がした勾留に関する裁判に不服がある者は、その裁判の取消し又は変更を請求することができる（刑訴法429条1項2号）。勾留の場所も勾留の裁判において定まる重要な事項であって『勾留に関する裁判』に含まれるから、弁護人は勾留場所の変更を求めて準抗告をすることができる。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>429条1項2号は『勾留…に関する裁判』を準抗告の対象とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>裁判官の勾留に関する裁判に不服申立ての機会を保障し、不当な勾留・処遇を是正する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>勾留場所も勾留の裁判の重要事項であり、その変更を求めて準抗告で争えるとするのが実務の大勢。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『勾留に関する裁判』は勾留の要否だけでなく勾留の内容（場所を含む）を広く指す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>『関する裁判』を広く読む発想。押収・保釈に関する付随的判断も不服申立ての射程に入りうる。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="第1回公判期日前の証人尋問は、捜査の段階で裁判官の手を借りる例外的な制度で、226条は<b>取調べに出頭も供述もしない者</b>を、227条は<b>公判で供述を翻すおそれのある者</b>を対象にする。目的は、公判までに消えてしまう供述を裁判官の面前で固めて証拠を保全することにあり、当事者が向かい合って争う公判の証拠調べとは場面が違う。だから228条2項は、裁判官が『<b>捜査に支障を生ずる虞がないと認めるとき</b>』に立ち会わせることが『できる』と書く。できると書く条文は、許すか許さないかの裁量であって権利ではない。公判の証人尋問に立ち会えるのは当然だという感覚と混ぜず、いまは捜査なのか公判なのかで目盛りを切り替える。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>この請求自体がまれで、関係者への圧力が心配される事案などに限られる。弁護人は立会いを申し出ても認められないことが多く、後の公判で尋問調書の証拠能力や証明力を争う形に回る。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>唯一の目撃者が被疑者の同僚だった暴行事件。逮捕から3日後、その同僚が『よく見えなかった』と言い出し、検察官が第1回公判期日前の証人尋問を請求する。裁判官は、弁護人を立ち会わせれば同僚がさらに供述を変えかねないと見て立会いを許さない——こうした判断が裁量の中身である。</span>" data-brief-mark="弁護人は、第1回公判期日前の証人尋問に<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>立ち会う権利を有しない</span>（228条2項＝裁判官の裁量）。<span class='tx-anscomp-line'>第1回公判期日前の証人尋問（刑訴法226条・227条）について、裁判官は、捜査に支障を生ずる虞がないと認めるときは、被告人、被疑者又は弁護人を<strong>立ち会わせることができる</strong>（同法228条2項）。立会いを許すか否かは裁判官の裁量に委ねられ、弁護人に権利としての立会いはない（最決昭和28年4月25日）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>228条2項は『裁判官は…被告人、被疑者又は弁護人を…立ち会わせることができる』と規定。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>第1回公判期日前の証人尋問は非公開の捜査の一環。立会いを原則不可としつつ裁量で許す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>立会いは裁判官の裁量に委ねられ、弁護人に権利としての立会いはない（最決昭28.4.25）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>立会いが権利になるのは公判の証拠調べ。捜査段階の証人尋問は裁量にとどまる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「公判か捜査か」「権利か裁量か」を段階で切る。弁護人の権限は場面で強弱がある。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="勾留理由の開示は、勾留の理由を<b>公開の法廷</b>で述べさせる制度で、憲法34条後段が拘禁の理由を本人と弁護人の出席する公開の法廷で示せと要求したのを、刑訴法82条以下が受けたものである。密室のまま拘束が続くことを防ぎ、外から見える形で理由を確かめさせる趣旨だから、請求できる者は『<b>勾留されている</b>』被告人・被疑者とその弁護人・親族などの利害関係人に限られ、82条3項は保釈された場合に請求できないと明記する。拘束が解ければ、開示させて守るべきものが無くなるからである。弁護人の地位は選任の効力が続くかぎり残るが、個々の権限は<b>それぞれの発生要件</b>を充たす場面でだけ働く。地位と権限を一枚に重ねず、弁護人だからできると一段飛ばしにしないことである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は勾留に納得できないとき、準抗告と並べて開示請求を使い、法廷で裁判官に理由を述べさせて主張の的を探る。本人が公開の場で意見を述べる機会にもなる。釈放を勝ち取れば、この手段は用済みになる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>カルロス・ゴーン氏は勾留中の2019年1月8日、東京地裁の勾留理由開示手続に自ら出廷し、逮捕以来はじめて公開の法廷に姿を見せた。同年3月6日に保釈されて身柄が自由になった後は、弁護人がそのまま付いていても、この手続を請求する立場ではなくなる。</span>" data-brief-mark="弁護人は、釈放後であっても勾留の理由の開示を請求して開示を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>受けることができる</span><span class='tx-stmt-fix'>→ 釈放後は請求権者でない（82条）</span>。<span class='tx-anscomp-line'>勾留の理由の開示を請求することができるのは、<strong>勾留されている</strong>被告人・被疑者と、その弁護人、法定代理人その他の利害関係人に限られる（刑訴法82条1項・2項）。したがって被疑者が釈放された後は、弁護人選任の効力が失われていなくても、勾留の理由の開示を請求することはできない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>82条は『勾留されている』被告人・被疑者（1項）とその弁護人等（2項）に開示請求権を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>拘禁の理由を公開の法廷で示させ不当な勾留を抑制する（憲法34条後段を具体化・83条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>釈放後は『勾留されている』に当たらず、（元）被疑者・弁護人は請求権者でない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>請求権の基礎は弁護人選任ではなく現に勾留されていること。選任の効力の残存は結論を変えない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>弁護人の地位の存続と、個別権限の発生要件（『勾留されている』等）を分けて読む。</p></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6433,16 +6592,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6477,7 +6651,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6490,6 +6669,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6498,12 +6678,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

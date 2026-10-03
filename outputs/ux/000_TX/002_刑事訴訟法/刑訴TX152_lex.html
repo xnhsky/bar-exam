@@ -5584,7 +5584,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5605,9 +5629,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6170,7 +6329,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:o,4:x,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-mark="略式命令について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>1年以下の拘禁刑を科することができる</span><span class='tx-stmt-fix'>→ 100万円以下の罰金又は科料のみ</span>。<span class='tx-anscomp-line'>簡易裁判所は、検察官の請求により、その管轄に属する事件について、公判前、略式命令で<strong>100万円以下の罰金又は科料</strong>を科することができるにとどまり、拘禁刑等の自由刑を科することはできない（刑訴法461条）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>461条は略式命令で『100万円以下の罰金又は科料』を科せると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判を開かず書面審理で簡易・迅速に処理する制度ゆえ、被告人の負担が大きい自由刑にはなじまない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>科刑は罰金・科料に限られ、拘禁刑などの自由刑は略式命令では科せない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>金額の上限（100万円以下）と刑種（財産刑のみ）の二重の枠。自由刑を科す事件は略式の対象外。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>手続の重さと科せる刑は連動する（公判を開かない簡易な書面手続では財産刑に限定される）。</p></div></td></tr><tr data-stmt="2" data-verdict="o" data-brief-mark="検察官の略式命令の請求は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>公訴の提起と同時に、書面でしなければならない</span>（462条1項）。<span class='tx-anscomp-line'>略式命令の請求は、<strong>公訴の提起と同時に、書面で</strong>これをしなければならず、その書面には被疑者が略式手続によることに異議がない旨を明らかにした書面を添付することを要する（刑訴法462条1項・2項）。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>462条1項は略式命令の請求を『公訴の提起と同時に、書面で』すべきものとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>起訴と請求を一体で書面化し、簡易手続の入口を明確にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>時期（公訴提起と同時）と方式（書面）が要件。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>後出し・口頭の請求は認められない。462条2項の同意書面の添付も要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>略式手続は請求・同意・不服申立てを一貫して書面で残す。</p></div></td></tr><tr data-stmt="3" data-verdict="o" data-brief-mark="被疑者が略式手続によることに異議がないことは、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>書面で明らかにされなければならない</span>（461条の2第2項）。<span class='tx-anscomp-line'>検察官は略式命令の請求に際し、あらかじめ被疑者に略式手続を理解させるために必要な事項を説明し、通常の規定に従い審判を受けることができる旨を告げたうえ異議がないかを確かめなければならず、被疑者は<strong>異議がないときは書面でその旨を明らかにしなければならない</strong>（刑訴法461条の2第1項・2項）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>461条の2第2項は、被疑者は異議がないときは書面でその旨を明らかにすべきものとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判で争う機会の放棄という重要な選択ゆえ、事前説明と書面同意で手続を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官の事前説明・告知（1項）＋被疑者の書面同意（2項）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>口頭の確認では足りず、書面での明示を要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>被疑者・被告人の同意を要件に簡易化する制度では、同意を書面で残す。</p></div></td></tr><tr data-stmt="4" data-verdict="x" data-brief-mark="略式命令で罰金・科料を科す場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>刑の執行を猶予することはできない</span><span class='tx-stmt-fix'>→ 執行猶予・没収その他付随の処分ができる</span>。<span class='tx-anscomp-line'>簡易裁判所は、略式命令で罰金又は科料を科する場合において、<strong>刑の執行猶予をし、没収を科し、その他付随の処分をすることができる</strong>（刑訴法461条後段）。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>461条後段は『刑の執行猶予をし、没収を科し、その他付随の処分をすることができる』と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>略式命令でも財産刑に付随する実体判断は通常公判と同じ枠でできる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>執行猶予・没収・その他付随処分のいずれも略式命令ですることができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>手続が簡易か否かと付随処分の可否は別問題。制限されるのは刑種（財産刑限定）だけ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>罰金にも執行猶予は認められる（25条）。</p></div></td></tr><tr data-stmt="5" data-verdict="x" data-brief-mark="正式裁判の請求は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>略式命令をした簡易裁判所の上級審である地方裁判所に対して</span><span class='tx-stmt-fix'>→ 略式命令をした裁判所に書面で</span>する。<span class='tx-anscomp-line'>略式命令を受けた者又は検察官は、その告知を受けた日から14日以内に正式裁判の請求をすることができ、その請求は<strong>略式命令をした裁判所に、書面で</strong>これをしなければならない（刑訴法465条1項・2項）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>465条2項は正式裁判の請求を『略式命令をした裁判所に、書面で』すべきものとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>正式裁判の請求は上訴ではなく、同一の裁判所で通常の公判に移行させる手続。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>請求先は命令を出した簡易裁判所自身。上級審の地方裁判所ではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>期間（告知後14日以内・465条1項）は正しいが、請求先を誤ると誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>上訴（上級審へ）と正式裁判の請求（原裁判所でやり直し）を請求先で区別する。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="略式手続は、簡易裁判所が管轄する軽い事件を、公判を開かずに書面だけで処理する簡易ルートである。公開の法廷で争う機会を省く以上、科せる刑は<b>財産刑</b>、つまりお金を取り上げる刑にとどめる。これが刑の種類を絞る趣旨である。だから<b>100万円以下という額の上限</b>と、<b>罰金・科料という刑種</b>の二重の枠がかかる。科料は1000円以上1万円未満、罰金は1万円以上と、刑法が額で呼び分けている点もあわせて押さえたい。身柄を拘束する<b>自由刑（拘禁刑）</b>を科す見込みのある事件は、そもそもこのルートに乗せず、通常の公判へ回される（刑訴法463条）。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>検察官は起訴の段階で、罰金で済ませられる事件か、公判で自由刑を求める事件かを振り分ける。裁判官が記録を見て略式になじまないと判断すれば、通常の公判へ回す（463条）。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年4月10日、運送会社の配送ドライバーが国道で制限速度を40キロ超過して検挙された。反則金の納付では終わらせられない事案だが、拘禁刑の見込みはない。検察官は罰金7万円が相当と見て、公判を開かない略式命令を請求した。</span>" data-brief-mark="略式命令について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>1年以下の拘禁刑を科することができる</span><span class='tx-stmt-fix'>→ 100万円以下の罰金又は科料のみ</span>。<span class='tx-anscomp-line'>簡易裁判所は、検察官の請求により、その管轄に属する事件について、公判前、略式命令で<strong>100万円以下の罰金又は科料</strong>を科することができるにとどまり、拘禁刑等の自由刑を科することはできない（刑訴法461条）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>461条は略式命令で『100万円以下の罰金又は科料』を科せると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判を開かず書面審理で簡易・迅速に処理する制度ゆえ、被告人の負担が大きい自由刑にはなじまない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>科刑は罰金・科料に限られ、拘禁刑などの自由刑は略式命令では科せない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>金額の上限（100万円以下）と刑種（財産刑のみ）の二重の枠。自由刑を科す事件は略式の対象外。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>手続の重さと科せる刑は連動する（公判を開かない簡易な書面手続では財産刑に限定される）。</p></div></td></tr><tr data-stmt="2" data-verdict="o" data-brief-story="起訴には、公開の法廷での審理を求める公判請求と、書面で刑を決めてもらう略式命令の請求の二本がある。後者は<b>公訴の提起と同時に、書面で</b>しなければならない（462条1項）。裁判所は起訴状・請求書・同意書面・証拠書類を一括で受け取り、法廷を開かずに<b>記録だけで判断する</b>のだから、材料が最初にそろっていなければ成り立たない。同時・書面という形式は、この一括審査を支えるための段取りである。後から思いついて略式へ切り替えることはできず、公判請求をしてしまえば通常の審理が進む。請求書に<b>異議がない旨の書面を添付</b>する（同条2項）ところまでが一組である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>交通事件では、検察庁・簡易裁判所・罰金の納付窓口を同じ庁舎に置き、取調べから納付までを一日で終える運用が広く行われている。検察官は起訴状と請求書、同意書面を一つの記録にまとめて持ち込む。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年5月12日午前、検察官は速度超過で検挙された配送ドライバーの事件について、起訴状と略式命令請求書、異議がない旨の書面、実況見分調書を一つの記録にまとめ、同じ庁舎の簡易裁判所へ持ち込んだ。ドライバーは一度も法廷に立たないまま、同日中に罰金7万円の略式命令を受け取っている。</span>" data-brief-mark="検察官の略式命令の請求は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>公訴の提起と同時に、書面でしなければならない</span>（462条1項）。<span class='tx-anscomp-line'>略式命令の請求は、<strong>公訴の提起と同時に、書面で</strong>これをしなければならず、その書面には被疑者が略式手続によることに異議がない旨を明らかにした書面を添付することを要する（刑訴法462条1項・2項）。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>462条1項は略式命令の請求を『公訴の提起と同時に、書面で』すべきものとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>起訴と請求を一体で書面化し、簡易手続の入口を明確にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>時期（公訴提起と同時）と方式（書面）が要件。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>後出し・口頭の請求は認められない。462条2項の同意書面の添付も要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>略式手続は請求・同意・不服申立てを一貫して書面で残す。</p></div></td></tr><tr data-stmt="3" data-verdict="o" data-brief-story="被疑者・被告人の同意を条件に手続を軽くする制度は刑訴法にいくつかあり、略式手続はその代表である。公開の裁判を受ける権利をみずから手放す場面だから、条文は<b>説明・告知・確認</b>という検察官側の三つの義務（461条の2第1項）と、<b>書面で明らかにする</b>という被疑者側の行為（同条2項）を分けて書いている。あらかじめ略式手続の中身を説明し、通常の規定に従って審判を受けられることを告げ、そのうえで異議がないかを確かめる。ここまで踏んでようやく、異議がない旨の書面が意味を持つ。<b>口頭のやりとりだけでは足りない</b>のは、重い権利の放棄を後から検証できる形で残すためである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>取調べの終わりに検察官が略式手続の説明書を示し、被疑者が異議のない旨の書面に署名する。弁護人は、罰金額の見通しと前科が残ることを説明したうえで、争うなら同意しないよう助言する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年5月12日の朝、検察庁の一室で、速度超過で検挙された配送ドライバーは罰金の見込み額と、通常の裁判を受けることもできる旨を告げられた。その場で異議がない旨の書面に署名したのが午前10時前、記録が簡易裁判所へ回ったのはその1時間後である。説明から署名までの経過が、そのまま書面として残る。</span>" data-brief-mark="被疑者が略式手続によることに異議がないことは、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>書面で明らかにされなければならない</span>（461条の2第2項）。<span class='tx-anscomp-line'>検察官は略式命令の請求に際し、あらかじめ被疑者に略式手続を理解させるために必要な事項を説明し、通常の規定に従い審判を受けることができる旨を告げたうえ異議がないかを確かめなければならず、被疑者は<strong>異議がないときは書面でその旨を明らかにしなければならない</strong>（刑訴法461条の2第1項・2項）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>461条の2第2項は、被疑者は異議がないときは書面でその旨を明らかにすべきものとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>公判で争う機会の放棄という重要な選択ゆえ、事前説明と書面同意で手続を保障する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官の事前説明・告知（1項）＋被疑者の書面同意（2項）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>口頭の確認では足りず、書面での明示を要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>被疑者・被告人の同意を要件に簡易化する制度では、同意を書面で残す。</p></div></td></tr><tr data-stmt="4" data-verdict="x" data-brief-story="略式命令で制限されるのは刑の種類と額の上限だけで、刑を言い渡すときに付いてくる判断まで削られてはいない。<b>執行猶予・没収その他付随の処分</b>は、略式命令でもできる（461条後段）。記録を読めば判断できる事項であって、法廷での取調べを経なければ決められない性質のものではないからである。ただし数字には段差がある。執行猶予を付けられる罰金は<b>50万円以下</b>（刑法25条1項）で、略式で科せる<b>100万円以下</b>より狭い。簡易な手続だから付随処分ができない、と考えるのは誤りである一方、上限までそろっていると考えるのもまた誤りである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>罰金は即納が原則で、完納できなければ労役場に留置される（刑法18条）。そのため罰金の執行猶予が使われる場面は限られ、付随処分としては賭博の賭金や押収物の没収のほうをよく見る。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2026年6月、雀荘で現金を賭けていた客が単純賭博で略式起訴され、罰金9万円と、卓上に残っていた現金の没収が一通の略式命令でまとめて言い渡された。公判を開かなくても、没収まで同じ命令の中で片づくことが見てとれる。</span>" data-brief-mark="略式命令で罰金・科料を科す場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>刑の執行を猶予することはできない</span><span class='tx-stmt-fix'>→ 執行猶予・没収その他付随の処分ができる</span>。<span class='tx-anscomp-line'>簡易裁判所は、略式命令で罰金又は科料を科する場合において、<strong>刑の執行猶予をし、没収を科し、その他付随の処分をすることができる</strong>（刑訴法461条後段）。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>461条後段は『刑の執行猶予をし、没収を科し、その他付随の処分をすることができる』と定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>略式命令でも財産刑に付随する実体判断は通常公判と同じ枠でできる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>執行猶予・没収・その他付随処分のいずれも略式命令ですることができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>手続が簡易か否かと付随処分の可否は別問題。制限されるのは刑種（財産刑限定）だけ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>罰金にも執行猶予は認められる（25条）。</p></div></td></tr><tr data-stmt="5" data-verdict="x" data-brief-story="不服の申立てには、上級の裁判所へ持ち上げる上訴と、同じ審級で審理をやり直す道の二種類がある。略式命令に対する正式裁判の請求は後者で、請求先は<b>略式命令をした裁判所</b>、つまり命令を出した簡易裁判所自身である（465条2項）。略式命令は公判を経ていないから、上級審が点検すべき第一審の審理がまだ存在しない。だから上へ持ち上げるのではなく、同じ簡易裁判所で公判を開いて一から審理する。期間は<b>告知を受けた日から14日以内</b>（同条1項）、方式は<b>書面</b>である。簡易な処理に同意した者へ、あらためて公開の法廷で争う機会を返す制度だと押さえれば、請求先を取り違えずに済む。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>罰金額や事実を争いたいときは、弁護人が14日以内に請求書を簡易裁判所の窓口へ出す。請求は第一審の判決があるまで取り下げることができ（466条）、公判では略式命令の内容に縛られずに審理される。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>速度超過の事件で2026年5月12日に罰金7万円の略式命令を告知された配送ドライバーが、速度計の誤差を争おうと考えた。10日後の5月22日、持ち込んだ先は地方裁判所ではなく、命令を出した簡易裁判所の窓口である。請求書1通で納付は止まり、事件は通常の公判へ移った。</span>" data-brief-mark="正式裁判の請求は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>略式命令をした簡易裁判所の上級審である地方裁判所に対して</span><span class='tx-stmt-fix'>→ 略式命令をした裁判所に書面で</span>する。<span class='tx-anscomp-line'>略式命令を受けた者又は検察官は、その告知を受けた日から14日以内に正式裁判の請求をすることができ、その請求は<strong>略式命令をした裁判所に、書面で</strong>これをしなければならない（刑訴法465条1項・2項）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>465条2項は正式裁判の請求を『略式命令をした裁判所に、書面で』すべきものとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>正式裁判の請求は上訴ではなく、同一の裁判所で通常の公判に移行させる手続。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>請求先は命令を出した簡易裁判所自身。上級審の地方裁判所ではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>期間（告知後14日以内・465条1項）は正しいが、請求先を誤ると誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>上訴（上級審へ）と正式裁判の請求（原裁判所でやり直し）を請求先で区別する。</p></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6428,16 +6587,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6472,7 +6646,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6485,6 +6664,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6493,12 +6673,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

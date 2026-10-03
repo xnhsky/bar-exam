@@ -5403,6 +5403,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-ANSCOMP:BEGIN v13.1.0 答案圧縮（2026-07-28 追加・記述原文統合・版据置）
@@ -5668,6 +5683,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5951,32 +6201,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>法人でない社団が、団体としての固定資産ないし基本的財産を有しない場合、当該団体に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>当事者能力が認められる余地はない</span><span class="tx-stmt-fix">→ 固定資産等は不可欠要件でなく、当事者能力が認められる余地はある</span>。<span class="tx-anscomp-line">法人でない社団の当事者能力（<a class="ref-stat" href="#bref-1-29">民訴29条</a>）は、団体としての組織・多数決の原則・構成員の変更にかかわらぬ存続・代表方法等の確定で判断され（最判昭39.10.15）、固定資産ないし基本的財産を有することは<strong>不可欠の要件ではない</strong>（最判平14.6.7）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。裁判で当事者になるには、団体に相応の財産（土地や基金）がなければ話にならない、と思いたくなる。でも<strong>当事者能力</strong>（訴訟で原告・被告になれる資格）は、団体としての<strong>組織の実体</strong>——組織があり、多数決で動き、メンバーが入れ替わっても団体が続き、代表の決め方が定まっていること——で判断される（最判昭39.10.15の4要件）。財産はその実体を測るファクターの一つにすぎず、<a class="ref-stat" href="#bref-1-h14">最判平14.6.7</a>は固定資産ないし基本的財産を<strong>不可欠の要件ではない</strong>と明言した。だから「余地はない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">固定資産がなくても、組織の実体が備われば<strong>当事者能力</strong>は認められる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">訴訟上の当事者能力</span><span class="tx-gist-step">実体法上の権利能力</span><span class="tx-gist-step">総有をめぐる訴訟追行</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">財産を持たない団体には、訴訟の当事者になる資格が認められないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">会員から預かったお金で運営されているゴルフクラブが、会員との争いで訴訟の当事者になろうとしています。クラブ自身の名義にはコースの土地も基金もなく、目に見える財産はほとんどありません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">法人でない社団がその名で訴え、また訴えられるには<strong>当事者能力</strong>が必要です。では、その有無は団体が持っている財産の大きさで決まるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最判昭39.10.15）は、団体としての組織があること、多数決の原則が行われていること、構成員が入れ替わっても団体が存続すること、代表の方法や総会の運営・財産の管理など主要な点が確定していること、で判断するとしました。そのうえで<a class="ref-stat" href="#bref-1-h14">最判平14.6.7</a>は、財産的側面については固定資産ないし基本的財産を有することは<strong>不可欠の要件ではない</strong>と述べています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">民事訴訟法29条が当事者能力を認めるのは、法人格がなくても団体として独立した社会的活動を営む実体があるなら、その名で訴訟を追行させたほうが紛争の解決に役立つからだと説明されます。だから見るのは団体の骨格であって、財布の中身ではありません。固有の財産があるかどうかは、団体としての実体を測る材料の一つにとどまります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>当事者能力</span></dt><dd>訴訟で原告・被告となることができる一般的な資格。法人でない社団又は財団でも、代表者又は管理人の定めがあれば認められる（民事訴訟法29条）。</dd></div><div class="tx-gist-term"><dt><span>基本的財産</span></dt><dd>団体の活動の基礎になる財産。土地や建物、基金など、団体が継続して保有する資産をいう。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">財産を判断材料に数えるところまでは判例どおりですが、財産がなければ余地はないと言い切る点が誤りです。要るのは代表者又は管理人の定めと団体としての骨格で、固有財産は不可欠の要件ではありません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>当事者能力の判断枠組みを置く</strong><span class="syn-body">法人でない社団に<a class="ref-stat" href="#bref-1-29">民訴29条</a>の当事者能力が認められるには、判例（最判昭39.10.15）が挙げる<span class="case-emphasis freq-high">団体としての組織・多数決の原則・構成員の変更にかかわらぬ団体の存続・代表の方法等の確定</span>が要る。財産的側面もその判断ファクターに含まれる。</span></p>
 <p><span class="syn-step">2</span><strong>固定資産の位置づけを確かめる</strong><span class="syn-body">預託金会員制ゴルフクラブの当事者能力が問題となった<a class="ref-stat" href="#bref-1-h14">最判平14.6.7</a>は、昭39年判決を引いた上で『財産的側面についていえば、必ずしも<span class="ron-mark freq-high">固定資産ないし基本的財産を有することは不可欠の要件ではない</span>』とした。固有財産の存在は団体性を判断する諸ファクターの一つにすぎない。したがって固定資産等がなくても当事者能力が認められる余地はあり、本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>見るのは団体の“財布の中身”ではなく“骨格”。組織・多数決・存続・代表の型が整えば、固定資産ゼロでも当事者能力は立つ。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>当事者能力の要件</strong>：法人でない社団は組織・多数決・存続・代表方法等が確定していれば<a class="ref-stat" href="#bref-1-29">民訴29条</a>により当事者能力を有する（最判昭39.10.15）。</li>
-<li><strong>財産的側面の位置づけ</strong>：固定資産ないし基本的財産は団体性を測る一ファクターにすぎず、<a class="ref-stat" href="#bref-1-h14">最判平14.6.7</a>はこれを不可欠の要件ではないとする。</li>
-<li><strong>ひっかけの型</strong>：『財産のない団体は当事者になれない』と財産の有無で機械的に切ると、当事者能力の判断が組織の実体に置かれていることを見落とす。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>要るのは代表者の定め、要らないのは固定資産（民訴29条と最判平14.6.7）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-1-29" class="tx-basis-item "><div class="tx-basis-head">📜 民訴29条 法人でない社団等の当事者能力<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">法人でない社団又は財団で<span class="ron-mark freq-high">代表者又は管理人の定めがあるもの</span>は、その名において訴え、又は訴えられることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-1-29" class="tx-basis-item "><div class="tx-basis-head">📜 民訴29条 法人でない社団等の当事者能力<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">法人でない社団又は財団で<span class="ron-mark freq-high">代表者又は管理人の定めがあるもの</span>は、その名において訴え、又は訴えられることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件（判例の4要素）</span><span class="kd-text">最判昭39.10.15は当事者能力の前提となる社団性を、<span class="case-emphasis freq-high">団体としての組織・多数決の原則・構成員の変更にかかわらぬ団体の存続・代表の方法や総会運営・財産管理その他団体としての主要な点が確定していること</span>で判断する。</span></div>
 <div class="kd-item"><span class="kd-label r-shushi">趣旨</span><span class="kd-text">法人格はなくとも団体として独立の社会的活動を営む実体があれば、その名で訴訟追行させるのが紛争解決に資する。実体法上の権利能力の有無とは別問題（記述2以下）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">財産的側面は判断ファクターの一つで、固定資産等の保有は不可欠要件でない（記述1）。</span></div>
 </div></div></details></div>
-<div id="bref-1-h14" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判平成14年6月7日（当事者能力と固定資産）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">民訴29条にいう法人でない社団に当たるための要件として最判昭39.10.15の掲げる諸点のうち『財産的側面についていえば、<span class="ron-mark freq-high">必ずしも固定資産ないし基本的財産を有することは不可欠の要件ではない</span>』。固有財産の存在は、団体としての実体の有無を判断する諸ファクターの一つに位置付けられるにすぎない。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">預託金会員制ゴルフクラブの当事者能力が問題となった事案。固定資産ないし基本的財産がなくとも、組織の実体が備われば<a class="ref-stat">民訴29条</a>の当事者能力が認められる余地があり、本記述（余地なし）は誤り。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">当事者能力は組織の実体（昭39.10.15の4要素）で判断され、固定資産ないし基本的財産の保有は不可欠要件でない（平14.6.7）。財産の有無だけで当事者能力を否定する本記述は誤り。</p>
+<div id="bref-1-h14" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判平成14年6月7日（当事者能力と固定資産）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">民訴29条にいう法人でない社団に当たるための要件として最判昭39.10.15の掲げる諸点のうち『財産的側面についていえば、<span class="ron-mark freq-high">必ずしも固定資産ないし基本的財産を有することは不可欠の要件ではない</span>』。固有財産の存在は、団体としての実体の有無を判断する諸ファクターの一つに位置付けられるにすぎない。</p></div></div></div>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「当事者能力（訴訟の入口）」と「権利能力（実体権利の主体）」を混同しない</strong>。当事者能力は組織の実体で決まり、財産の多寡や実体法上の権利主体性とは別レイヤー。だから固定資産がなくても当事者能力は立つ（記述1）が、実体法上は社団自体が所有権の主体たり得ない（記述2）——この二つは矛盾しない。訴訟能力・当事者適格も同じく別々の訴訟要件で、まとめて「資格」と一括りにすると論点がつぶれる cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは「代表者又は管理人の定め」の側</strong>。民訴29条がこれを明文の要件に据えているので、固定資産を欠いても当事者能力は立つのに（最判平14.6.7）、代表者の定めを欠けば立たない。組織・多数決の原則・構成員の変更にかかわらぬ存続・代表の方法の確定という骨格（最判昭39.10.15）も同じ側で、そこが崩れれば当事者能力は否定される。</span><div class="tx-dgm is-matrix" data-dgm="021-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">当事者能力の判断材料を1語ずつ替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">固定資産・基本的財産を有しない</p><p class="dgm-cell is-ok">○ 当事者能力あり</p><p class="dgm-cell">不可欠の要件ではない<span class="dgm-src">最判平14.6.7</span></p><p class="dgm-cell is-rowhead">代表者又は管理人の定めがない</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">条文が明文で求める形式要件<span class="dgm-src">民訴29条</span></p><p class="dgm-cell is-rowhead">構成員の変更にかかわらぬ存続の定めがない</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">団体としての骨格を欠く<span class="dgm-src">最判昭39.10.15</span></p><p class="dgm-cell is-rowhead">法人でない社団 → 法人でない財団</p><p class="dgm-cell is-ok">○ 当事者能力あり</p><p class="dgm-cell">社団又は財団の双方を掲げる<span class="dgm-src">民訴29条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -5994,32 +6234,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>ある土地が法人でない社団の所有に属することの確認を求める訴えにつき、当該団体が原告となり<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>認容判決を得る余地はない</span>。<span class="tx-anscomp-line">権利能力なき社団は民訴29条により当事者能力を有しても実体法上は権利能力を欠くから、社団自体の所有に属することの確認を求める訴えは認容判決を得る余地がない（<a class="ref-stat" href="#bref-2-h55">最判昭55.2.28</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。社団が訴訟の当事者になれる（当事者能力がある）のなら、その社団の名義で「この土地は社団のものだ」と確認してもらえそうに思える。でも<strong>当事者能力</strong>（訴訟で当事者になれる資格）と<strong>権利能力</strong>（実体法上、所有権など権利の主体になれる資格）は別物。権利能力なき社団は前者はあっても後者がない。だから<strong>社団自体の所有</strong>を掲げた確認請求は、実体法上あり得ない権利の存在を求めるもので、<a class="ref-stat" href="#bref-2-h55">最判昭55.2.28</a>は請求を失当として棄却した。よって認容判決を得る余地はなく、正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">社団の所有に属することの確認は、<strong>認容判決を得る余地がない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">訴訟上の当事者能力</span><span class="tx-gist-step is-now">実体法上の権利能力</span><span class="tx-gist-step">総有をめぐる訴訟追行</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">当事者能力のある社団は、その社団の所有だという確認を求めて勝てるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">山林を代々共同で使ってきた入会集落が、この山林は集落のものだと主張し、争う相手を被告として所有権の確認を求める訴えを起こしました。集落には代表者の定めがあり、訴訟の当事者になること自体はできます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">訴訟で当事者になれることと、実体法の世界でその団体が土地の持ち主になれることは、同じではありません。法人でない社団には<strong>権利能力</strong>がないからです。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-2-h55">最判昭55.2.28</a>は、権利能力なき社団自体はそのような財産について私法上の所有権等の主体となることができないから、その点において請求はすでに失当であるとして、請求を棄却しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">確認の訴えで求めているのは、ある権利が存在するという裁判所の判断です。実体法上そもそも成り立ちようのない権利を掲げれば、事実をどれだけ立証しても認容判決には届きません。社団の財産は、社団ではなく構成員全員の総有として帰属していると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>権利能力</span></dt><dd>実体法上、権利を持ち義務を負う主体となることができる資格。自然人と法人に認められ、法人でない社団にはない。</dd></div><div class="tx-gist-term"><dt><span>総有</span></dt><dd>団体の構成員全員が一体として財産を持つ形。各構成員に持分がなく、分割を求めることもできない。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">社団の所有という訴訟物を立てた以上は認容判決を得る余地がないとする点が、判例と一致します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>当事者能力と権利能力を切り分ける</strong><span class="syn-body">社団に<a class="ref-stat" href="#bref-1-29">民訴29条</a>の当事者能力が認められても、それは訴訟追行資格の話にすぎない。実体法上、権利能力なき社団は<span class="ron-mark freq-high">私法上の所有権その他の権利の主体となることができない</span>。財産は構成員全員の総有に属する。</span></p>
 <p><span class="syn-step">2</span><strong>社団所有の確認請求に当てはめる</strong><span class="syn-body"><a class="ref-stat" href="#bref-2-h55">最判昭55.2.28</a>は、権利能力なき社団が原告となって社団所有権確認の訴えを提起した事案で、社団自体は当該財産について私法上の所有権等の主体となることができないから『その点において<span class="case-emphasis freq-high">右請求はすでに失当</span>である』として請求を棄却した。したがって社団の所有に属することの確認を求める訴えで認容判決を得る余地はなく、本記述は正しい。なお構成員全員の総有権の確認という構成なら追行できる（記述3）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>訴訟の“席”には座れても実体権利の“名義人”にはなれない。「社団の所有」と書いた瞬間、あり得ない権利を求める失当請求になる。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>権利能力の欠如</strong>：権利能力なき社団は当事者能力（<a class="ref-stat" href="#bref-1-29">民訴29条</a>）はあっても実体法上の権利能力がなく、私法上の所有権の主体たり得ない。</li>
-<li><strong>社団所有確認の帰結</strong>：<a class="ref-stat" href="#bref-2-h55">最判昭55.2.28</a>は社団自体の所有権確認請求を失当として棄却。認容判決を得る余地はない。</li>
-<li><strong>ひっかけの型</strong>：『当事者能力があるのだから社団名義の権利確認もできる』と当事者能力から実体権利へ飛躍させる。両者は別レイヤー。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>訴訟の席には就けるが、所有権の名義人には就けない（民訴29条と最判昭55.2.28）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-h55" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和55年2月28日（権利能力なき社団と所有権確認）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">権利能力なき社団が原告となって社団所有権確認の訴えを提起した事案につき、『<span class="ron-mark freq-high">権利能力なき社団自体は右のような財産について私法上所有権等の主体となることができない</span>のであるから、その点において右請求はすでに失当である』として、請求を棄却する。社団の実体は有していても実体法上の法人格（権利能力）を有しない以上、権利義務の主体とはなり得ず、社団財産はあくまで構成員全員の総有に属するという実体法上の考え方を訴訟上も貫くべきである。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">当事者能力（民訴29条）が認められると否とを問わず、社団に所有権が帰属することはあり得ない。ゆえに社団の所有に属することの確認を求める訴えで認容判決を得る余地はなく、本記述は正しい。構成員全員の総有の確認という構成をとれば不都合はない（記述3）。</span></div></div></div></details></div>
-<div id="bref-2-29ref" class="tx-basis-item "><div class="tx-basis-head">📜 民訴29条 当事者能力と実体法上の権利能力の分離<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">法人でない社団又は財団で代表者又は管理人の定めがあるものは、その名において訴え、又は訴えられることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-2-h55" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和55年2月28日（権利能力なき社団と所有権確認）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">権利能力なき社団が原告となって社団所有権確認の訴えを提起した事案につき、『<span class="ron-mark freq-high">権利能力なき社団自体は右のような財産について私法上所有権等の主体となることができない</span>のであるから、その点において右請求はすでに失当である』として、請求を棄却する。社団の実体は有していても実体法上の法人格（権利能力）を有しない以上、権利義務の主体とはなり得ず、社団財産はあくまで構成員全員の総有に属するという実体法上の考え方を訴訟上も貫くべきである。</p></div></div>
+<div id="bref-2-29ref" class="tx-basis-item "><div class="tx-basis-head">📜 民訴29条 当事者能力と実体法上の権利能力の分離<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">法人でない社団又は財団で代表者又は管理人の定めがあるものは、その名において訴え、又は訴えられることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shushi">趣旨</span><span class="kd-text">29条が与えるのは<span class="case-emphasis freq-high">訴訟上の当事者能力</span>のみで、実体法上の権利能力（所有権等の主体性）を創設するものではない。両者は制度目的が異なる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">当事者能力があっても社団自体は所有権主体たり得ず、社団所有確認は認容の余地なし（記述2）。総有構成なら追行可（記述3〜5）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">権利能力なき社団は当事者能力（29条）はあっても実体法上の権利能力を欠き、私法上所有権の主体たり得ない（最判昭55.2.28）。ゆえに社団の所有に属することの確認は失当で認容の余地なし。本記述は正しい。</p>
 </div>
 
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「当事者能力がある＝実体権利も社団に帰属する」と飛びつく罠。</strong>民訴29条は<em>訴訟の当事者になれる</em>資格を与えるだけで、社団を所有権の主体にするわけではない。だから社団<em>自体の所有</em>を確認せよという訴えは、実体法上あり得ない権利の確認を求めるもので失当（記述2）。同じ土地でも<em>構成員全員の総有</em>を掲げれば追行できる（記述3）——訴訟物の立て方一つで結論が逆転する cross-cut。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは、社団自身がどの地位に就けるかという問いの側</strong>。訴え、訴えられる当事者の地位には代表者又は管理人の定めがあれば就けるのに（民訴29条）、私法上の所有権の主体には就けないため社団の所有を掲げた確認請求は失当になる（最判昭55.2.28）。地位を金銭債権の執行を受ける債務者に替えれば、社団を債務者とする強制執行の申立てまで届く（最判平22.6.29）。</span><div class="tx-dgm is-matrix" data-dgm="021-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">権利能力なき社団はどの地位に就けるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">地位</p><p class="dgm-cell is-head">社団自身</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴え、訴えられる当事者</p><p class="dgm-cell is-ok">○ 就ける</p><p class="dgm-cell">代表者又は管理人の定めがあるとき<span class="dgm-src">民訴29条</span></p><p class="dgm-cell is-rowhead">私法上の所有権の主体</p><p class="dgm-cell is-ng">✕ 就けない</p><p class="dgm-cell">財産は構成員全員の総有に帰属<span class="dgm-src">最判昭55.2.28</span></p><p class="dgm-cell is-rowhead">不動産の登記名義人</p><p class="dgm-cell is-ng">✕ 就けない</p><p class="dgm-cell">代表者個人の名義で信託的に登記<span class="dgm-src">最判昭47.6.2</span></p><p class="dgm-cell is-rowhead">強制執行を受ける債務者</p><p class="dgm-cell is-ok">○ 就ける</p><p class="dgm-cell">社団を債務者とする申立てができる<span class="dgm-src">最判平22.6.29</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="3" id="stmt-3">
@@ -6036,27 +6266,18 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>ある土地が法人でない社団の構成員全員の総有に属することの確認を求める訴えにつき、当該団体が<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>原告となる余地はない</span><span class="tx-stmt-fix">→ 総有権確認訴訟の原告適格を有し、原告となる余地はある</span>。<span class="tx-anscomp-line">権利能力なき社団は、構成員全員の総有に属する不動産につき、これを争う者を被告とする総有権確認請求訴訟を追行する<strong>原告適格を有する</strong>（<a class="ref-stat" href="#bref-3-h6">最判平6.5.31</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。社団自体は所有権の主体になれないのだから、社団名義でどんな確認訴訟も起こせないと思いたくなる。でも問うのは「<strong>社団の所有</strong>」ではなく「<strong>構成員全員の総有</strong>」——実体権利は構成員全員に総有的に帰属している。<strong>当事者適格</strong>（誰が当事者として訴訟を追行し本案判決を受けるのが紛争解決に適切か）の観点からは、<a class="ref-stat" href="#bref-3-h6">最判平6.5.31</a>が、入会団体（権利能力なき社団）は総有権確認請求訴訟を追行する原告適格を有すると認めた。だから「原告となる余地はない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>構成員全員の総有</strong>の確認であれば、入会団体は原告となることができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">訴訟上の当事者能力</span><span class="tx-gist-step">実体法上の権利能力</span><span class="tx-gist-step is-now">総有をめぐる訴訟追行</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">社団は、総有をめぐる確認訴訟の原告になれないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">入会集落が、訴えの看板を掛け替えました。山林は集落のものだと言うのをやめ、この山林は構成員全員の総有に属すると主張して、争う相手を被告に確認を求めています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">実体法上の権利は構成員全員に帰属しています。では、その総有を訴訟で主張する役は、構成員が全員そろって務めるほかないのか、それとも団体が<strong>当事者適格</strong>として引き受けられるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-3-h6">最判平6.5.31</a>は、入会権者である一定の村落住民が入会団体を形成し、それが権利能力のない社団に当たる場合には、その入会団体は、構成員全員の総有に属する不動産について、これを争う者を被告とする総有権確認請求訴訟を追行する原告適格を有するとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">当事者適格は、誰が当事者として訴訟を追行し、誰に対して本案判決をするのが紛争の解決のために必要で有意義かという観点から決まると説明されます。入会権は団体的な色彩の濃い共同所有の形ですから、構成員を全員並べるより団体が代表して原告席に立つほうが、訴訟を複雑にも長期にもせずに解決できます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>当事者適格</span></dt><dd>特定の訴訟物について、誰が当事者として訴訟を追行し本案判決を受けるのが適切かという資格。</dd></div><div class="tx-gist-term"><dt><span>原告適格</span></dt><dd>当事者適格のうち、原告の側に立って訴訟を追行する資格。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">社団自身が所有権の主体になれないところまでは判例どおりですが、そこから原告となる余地はないと進む点が誤りです。構成員全員の総有を掲げれば入会団体に原告適格が認められます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>訴訟物を「社団の所有」でなく「総有」で立てる</strong><span class="syn-body">記述2は社団<span class="case-emphasis freq-high">自体の所有</span>を掲げて失当となった。これに対し本記述は構成員<span class="ron-mark freq-high">全員の総有</span>に属することの確認であり、実体権利の帰属主体（構成員全員）と請求内容が食い違わない。</span></p>
 <p><span class="syn-step">2</span><strong>当事者適格を判例で確かめる</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-h6">最判平6.5.31</a>は、入会団体が原告となって総有権確認請求訴訟を提起した事案で、当事者適格は『特定の訴訟物について、誰が当事者として訴訟を追行し本案判決をするのが紛争解決に必要で有意義か』という観点から決せられるとし、入会権の団体的色彩の濃い共同所有形態に鑑み、権利能力なき社団たる入会団体が<span class="case-emphasis freq-high">総有権確認請求訴訟を追行する原告適格を有する</span>とした。ゆえに社団が原告となる余地はあり、本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「社団の所有」は実体法でアウト、「構成員全員の総有」なら訴訟を回せる。看板を総有に掛け替えれば、社団自身が原告席に立てる。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>訴訟物の立て方</strong>：構成員全員の総有に属することの確認なら、実体権利の帰属（総有）と請求内容が整合し、社団自体の所有の確認と違って失当にならない。</li>
-<li><strong>当事者適格の判断</strong>：<a class="ref-stat" href="#bref-3-h6">最判平6.5.31</a>は入会団体（権利能力なき社団）に総有権確認請求訴訟の原告適格を認めた。当事者適格は紛争解決に必要・有意義かで決する。</li>
-<li><strong>ひっかけの型</strong>：社団自体の所有は確認できないことと同視して総有権確認まで否定させる。訴訟物が「総有」なら結論は逆になる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>社団の所有と書けば失当、構成員全員の総有と書けば原告適格（最判平6.5.31）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-3-h6" class="tx-basis-item is-case" data-hyakusen="民訴百選-10"><div class="tx-basis-head">⚖ 最判平成6年5月31日（入会団体の総有権確認と原告適格・百選10事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">入会権者である一定の村落住民が入会団体を形成し、それが権利能力のない社団に当たる場合には、当該入会団体は、構成員全員の総有に属する不動産につき、これを争う者を被告とする<span class="ron-mark freq-high">総有権確認請求訴訟を追行する原告適格を有する</span>。当事者適格は、特定の訴訟物について、誰が当事者として訴訟を追行し、また、誰に対して本案判決をするのが紛争の解決のために必要で有意義であるかという観点から決せられるべき事柄であり、入会権が団体的色彩の濃い共同所有の権利形態であることに鑑みると、入会団体が当事者として訴訟を追行し本案判決を受けることを認めるのが、紛争を複雑・長期化させることなく解決するために適切である。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">社団<a class="ref-stat">自体の所有</a>確認は失当（記述2・昭55.2.28）だが、構成員全員の<span class="case-emphasis freq-high">総有</span>確認であれば権利能力なき社団が原告適格を有する。ゆえに社団が原告となる余地はあり、本記述（余地なし）は誤り。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">最判平6.5.31（百選10）は入会団体（権利能力なき社団）に総有権確認請求訴訟の原告適格を認めた。社団所有確認（記述2）と異なり、総有構成なら社団が原告となる余地があり本記述は誤り。</p>
+<div class="tx-basis-items"><div id="bref-3-h6" class="tx-basis-item is-case" data-hyakusen="民訴百選-10"><div class="tx-basis-head">⚖ 最判平成6年5月31日（入会団体の総有権確認と原告適格・百選10事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">入会権者である一定の村落住民が入会団体を形成し、それが権利能力のない社団に当たる場合には、当該入会団体は、構成員全員の総有に属する不動産につき、これを争う者を被告とする<span class="ron-mark freq-high">総有権確認請求訴訟を追行する原告適格を有する</span>。当事者適格は、特定の訴訟物について、誰が当事者として訴訟を追行し、また、誰に対して本案判決をするのが紛争の解決のために必要で有意義であるかという観点から決せられるべき事柄であり、入会権が団体的色彩の濃い共同所有の権利形態であることに鑑みると、入会団体が当事者として訴訟を追行し本案判決を受けることを認めるのが、紛争を複雑・長期化させることなく解決するために適切である。</p></div></div></div>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「記述2で社団は所有権主体になれないと習った＝総有権確認もできない」と同視する罠。</strong>実体法上の帰結（社団は所有権主体たり得ない）と、訴訟上の当事者適格（誰が追行するのが適切か）は別の問い。訴訟物を<em>社団の所有</em>で立てれば失当（記述2）だが、<em>構成員全員の総有</em>で立てれば権利能力なき社団に原告適格が認められる（記述3）——実体法の否定を訴訟法の否定へ直結させない cross-cut。当事者適格は「紛争解決に必要・有意義か」で決まる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは確認の対象の側</strong>。構成員全員の総有を掲げるかぎり入会団体に原告適格が認められるのに（最判平6.5.31）、対象を社団自身の所有に替えれば実体法上あり得ない権利の確認となり認容判決の余地がない（最判昭55.2.28）。原告の側を代表者又は管理人の定めを欠く住民の集まりに替えれば、入口の当事者能力から否定される（民訴29条）。</span><div class="tx-dgm is-matrix" data-dgm="021-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">確認の対象と原告を組み替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">構成員全員の総有の確認を社団が求める</p><p class="dgm-cell is-ok">○ 原告適格あり</p><p class="dgm-cell">入会団体が総有権確認訴訟を追行できる<span class="dgm-src">最判平6.5.31</span></p><p class="dgm-cell is-rowhead">確認の対象を社団自身の所有に替える</p><p class="dgm-cell is-ng">✕ 認容の余地なし</p><p class="dgm-cell">あり得ない権利の確認で失当<span class="dgm-src">最判昭55.2.28</span></p><p class="dgm-cell is-rowhead">原告を代表者の定めを欠く住民の集まりに替える</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">入口の形式要件を満たさない<span class="dgm-src">民訴29条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6074,27 +6295,18 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>法人でない社団の旧代表者の個人名義で登記されている不動産に関し、代表者の交代に伴い、新代表者の個人名義への所有権移転登記手続を求める訴えにつき、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>新代表者が原告となる余地はない</span><span class="tx-stmt-fix">→ 新代表者は旧代表者に協力を訴求でき、原告となる余地はある</span>。<span class="tx-anscomp-line">新代表者は、旧代表者に対し、当該不動産につき自己の個人名義に所有権移転登記手続をすることの<strong>協力を求め、これを訴求することができる</strong>（<a class="ref-stat" href="#bref-4-h47">最判昭47.6.2</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。社団は権利能力がなく登記請求権を持たないから、代表者が代わっても登記を動かす訴えは起こせない、と思いたくなる。確かに社団<strong>自身</strong>の固有の原告適格は否定される。しかし総有不動産は構成員全員のために<strong>信託的に代表者個人の名義</strong>で登記される扱いだから、<a class="ref-stat" href="#bref-4-h47">最判昭47.6.2</a>は、<strong>新代表者</strong>が旧代表者に対し、自己の個人名義への移転登記手続をすることの協力を求めてこれを訴求できるとした。だから「新代表者が原告となる余地はない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>新代表者</strong>は旧代表者に対し、自己名義への移転登記の協力を訴求できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">訴訟上の当事者能力</span><span class="tx-gist-step">実体法上の権利能力</span><span class="tx-gist-step is-now">総有をめぐる訴訟追行</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">代表者が代わったとき、登記の名義を動かす訴えは誰が起こせるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">入会集落の山林は、社団の名前では登記できないため、当時の代表者個人の名義で登記されています。その後に代表者が交代しましたが、旧代表者は名義をそのままにしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">社団自身は権利能力を欠き、<strong>登記請求権</strong>を持ちません。では、名義を新しい代表者へ移す訴えは、誰も起こせないことになるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-h47">最判昭47.6.2</a>は、社団の資産である不動産についても社団は権利主体となり得ず登記請求権を有しないとしつつ、構成員の総有に属する不動産は全員のために信託的に代表者個人の所有とされるから、新代表者は旧代表者に対し、自己の個人名義に所有権移転登記手続をすることの協力を求め、これを訴求することができるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">代表者個人の名義は、代表者が自分のために持っているのではなく、構成員全員のために預かっている形だと説明されます。預かり役が交代したのなら、新しい預かり役が前の預かり役に引き継ぎを求められるのが筋です。否定されるのは社団自身の資格であって、代表者個人という別の主体の資格ではありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>登記請求権</span></dt><dd>登記名義人などに対し、登記手続に協力することを求めることができる権利。</dd></div><div class="tx-gist-term"><dt><span>信託的登記</span></dt><dd>総有に属する財産を構成員全員のために預かる形で、代表者個人の名義で登記すること。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">社団に登記請求権がないところまでは判例どおりですが、新代表者個人の訴求資格まで否定する点が誤りです。旧代表者に対し自己の個人名義への所有権移転登記手続の協力を訴求できます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>社団自身の登記請求権は否定する</strong><span class="syn-body">権利能力なき社団の資産たる不動産は構成員全員に総有的に帰属し、社団自身は権利主体となり得ないから<span class="ron-mark freq-high">登記請求権を有しない</span>（記述2と同じ実体法の帰結）。社団固有の原告適格はここでは否定される。</span></p>
 <p><span class="syn-step">2</span><strong>新代表者の訴求資格を判例で拾う</strong><span class="syn-body">総有不動産は従来から社団<span class="case-emphasis freq-high">代表者個人の名義で信託的に登記</span>される扱いである。<a class="ref-stat" href="#bref-4-h47">最判昭47.6.2</a>は、代表者はこの受託者たる地位において自己名義で登記できるとし、新代表者は旧代表者に対し、当該不動産につき<span class="case-emphasis freq-high">自己の個人名義に所有権移転登記手続をすることの協力を求め、これを訴求できる</span>とした。したがって新代表者が原告となる余地はあり、本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>社団の名前では登記を動かせないが、代表者は総有財産の“預かり役（受託者）”。新しい預かり役が前の預かり役へ「名義を私に移して」と訴えられる。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>社団固有の適格は否定</strong>：社団自身は権利能力を欠き登記請求権を有しないから、社団自身の固有の原告適格は認められない。</li>
-<li><strong>新代表者の訴求資格</strong>：総有不動産は代表者個人名義で信託的に登記される。<a class="ref-stat" href="#bref-4-h47">最判昭47.6.2</a>は、新代表者が旧代表者に対し自己個人名義への移転登記手続の協力を訴求できるとした。</li>
-<li><strong>ひっかけの型</strong>：『社団に登記請求権がない＝誰も登記を動かせない』と社団の話を新代表者個人へ横滑りさせる。訴求主体は新代表者個人。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>社団の名では登記は動かない、代表者個人の名なら動く（最判昭47.6.2）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-h47" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和47年6月2日（総有不動産と新代表者の移転登記請求）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">権利能力なき社団の資産はその社団の構成員全員に総有的に帰属しているのであって、社団自身が私法上の権利義務の主体となることはないから、社団の資産たる不動産についても社団はその権利主体となり得ず、したがって<span class="ron-mark freq-high">登記請求権を有するものではない</span>。もっとも、社団構成員の総有に属する不動産は、右構成員全員のために信託的に社団代表者個人の所有とされるものであるから、代表者は受託者たる地位においてその不動産につき自己の名義をもって登記をすることができる。ゆえに<span class="ron-mark freq-high">新代表者は、旧代表者に対して、当該不動産につき自己の個人名義に所有権移転登記手続をすることの協力を求め、これを訴求することができる</span>。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">社団<a class="ref-stat">自身</a>の固有の原告適格は否定されるが、新代表者個人は旧代表者に対する移転登記手続の協力請求を訴求できる。ゆえに新代表者が原告となる余地はあり、本記述（余地なし）は誤り。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">社団自身は登記請求権を有しない（権利能力の欠如）が、総有不動産は代表者個人名義で信託的に登記される。最判昭47.6.2は新代表者が旧代表者に自己個人名義への移転登記手続の協力を訴求できるとした。ゆえに本記述は誤り。</p>
+<div class="tx-basis-items"><div id="bref-4-h47" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和47年6月2日（総有不動産と新代表者の移転登記請求）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">権利能力なき社団の資産はその社団の構成員全員に総有的に帰属しているのであって、社団自身が私法上の権利義務の主体となることはないから、社団の資産たる不動産についても社団はその権利主体となり得ず、したがって<span class="ron-mark freq-high">登記請求権を有するものではない</span>。もっとも、社団構成員の総有に属する不動産は、右構成員全員のために信託的に社団代表者個人の所有とされるものであるから、代表者は受託者たる地位においてその不動産につき自己の名義をもって登記をすることができる。ゆえに<span class="ron-mark freq-high">新代表者は、旧代表者に対して、当該不動産につき自己の個人名義に所有権移転登記手続をすることの協力を求め、これを訴求することができる</span>。</p></div></div></div>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「社団は登記請求権がない＝登記を動かす訴えは一切起こせない」と主体をすり替える罠。</strong>否定されるのは<em>社団自身</em>の固有の原告適格。総有不動産は代表者個人名義で信託的に登記される扱いなので、<em>新代表者個人</em>は旧代表者に対し自己名義への移転登記の協力を訴求できる（記述4）。誰が権利主体で、誰が原告に立つのかを分けて考える cross-cut——記述2（社団の所有権主体性の否定）を出発点にしつつ、代表者個人の受託者地位という別ルートで結論が変わる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは原告の側</strong>。新代表者個人なら旧代表者に対し自己の個人名義への移転登記手続の協力を訴求できるのに（最判昭47.6.2）、原告を社団自身に替えれば社団は権利主体となり得ず登記請求権を欠いて通らない。移転先を社団名義に替える手も使えない。総有不動産は構成員全員のために代表者個人の名義で信託的に登記される扱いだからである。</span><div class="tx-dgm is-matrix" data-dgm="021-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">登記を動かす訴えの原告と移転先を替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">新代表者個人が旧代表者に協力を求める</p><p class="dgm-cell is-ok">○ 訴求できる</p><p class="dgm-cell">受託者たる地位で自己名義に登記できる<span class="dgm-src">最判昭47.6.2</span></p><p class="dgm-cell is-rowhead">原告を社団自身に替える</p><p class="dgm-cell is-ng">✕ 訴求できない</p><p class="dgm-cell">社団は登記請求権を有しない<span class="dgm-src">最判昭47.6.2</span></p><p class="dgm-cell is-rowhead">移転先を社団名義に替える</p><p class="dgm-cell is-ng">✕ 登記できない</p><p class="dgm-cell">総有不動産は代表者個人名義で登記<span class="dgm-src">最判昭47.6.2</span></p></div></div></div>
 
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
@@ -6113,33 +6325,23 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>法人でない社団を債務者とする金銭債権を表示した債務名義を有する債権者が、当該団体の代表者の個人名義で登記された不動産に対して<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>強制執行をする余地はない</span><span class="tx-stmt-fix">→ 所定の文書を添付すれば社団を債務者とする強制執行ができる</span>。<span class="tx-anscomp-line">総有不動産が社団のために代表者個人名義で登記されているときは、債権者は、当該不動産が構成員全員の総有に属することを確認する確定判決その他これに準ずる文書等を添付して、<strong>社団を債務者とする強制執行の申立てができる</strong>（<a class="ref-stat" href="#bref-5-h22">最判平22.6.29</a>）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。債務名義に載っているのは「社団」なのに、不動産の登記名義は「代表者個人」——名義がずれているから執行できないと思いたくなる。確かに社団を債務者とする債務名義では社団に対してしか執行できず（民執23条1項1号）、登記名義人（代表者個人）と一致しない不都合がある。しかし<a class="ref-stat" href="#bref-5-h22">最判平22.6.29</a>は、その総有不動産が社団のために代表者個人名義で登記されているときは、債権者が<strong>総有帰属を確認する確定判決等を添付</strong>して社団を債務者とする強制執行を申し立てられるとした。だから「執行をする余地はない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">総有帰属を確認する確定判決等を添えれば、社団を債務者とする<strong>強制執行</strong>ができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">訴訟上の当事者能力</span><span class="tx-gist-step">実体法上の権利能力</span><span class="tx-gist-step is-now">総有をめぐる訴訟追行</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">債務名義の債務者と登記名義人がずれていると、執行はあきらめるしかないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">入会集落にお金を貸した債権者が、集落を債務者とする判決を得ました。ところが差し押さえたい山林の登記名義は、集落ではなく代表者個人のままになっています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">執行証書以外の<strong>債務名義</strong>による強制執行は、債務名義に表示された当事者に対してしかできません（民事執行法23条1項1号）。債務者は社団、登記名義人は代表者個人という食い違いを、どう埋めるかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-h22">最判平22.6.29</a>は、構成員の総有不動産について社団のために第三者が登記名義人とされているときは、債権者は、執行文の付された債務名義の正本のほか、その不動産が構成員全員の総有に属することを確認する債権者・社団・登記名義人の間の確定判決その他これに準ずる文書を添付して、社団を債務者とする強制執行の申立てをすべきものとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">通常の不動産に対する執行とまったく同じ手続でよいと考えると、名義がずれているというだけで、債権者が社団に対して持つ権利の実現を法が拒むことになってしまいます。そこで、総有に属することを裁判所の判断で示す文書を一枚添えさせ、名義のずれを埋めたうえで執行を認める形が採られたと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>債務名義</span></dt><dd>強制執行の根拠となる文書。確定判決や仮執行の宣言を付した判決などがこれに当たる。</dd></div><div class="tx-gist-term"><dt><span>執行文</span></dt><dd>その債務名義によって強制執行をしてよいことを公証するために、正本に付ける付記。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">名義がずれるという着眼点までは正しいものの、そこから余地はないと結論づける点が誤りです。総有帰属を確認する確定判決その他これに準ずる文書を添えれば、社団を債務者とする執行ができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>名義のずれという不都合を確認する</strong><span class="syn-body">社団を債務者とする債務名義では<a class="ref-stat" href="#bref-5-mp">『債務名義に表示された当事者』である社団に対してしか強制執行ができない（民執23条1項1号）</a>。他方、社団の不動産は記述4のとおり代表者個人名義でしか登記できないため、<span class="ron-mark freq-high">債務者（社団）と登記名義人（代表者個人）とが一致しない</span>という不都合が生じる。</span></p>
 <p><span class="syn-step">2</span><strong>判例の解決を当てはめる</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-h22">最判平22.6.29</a>は、構成員の総有不動産につき社団のために第三者（代表者個人）がその登記名義人とされているときは、債権者は、執行文の付された債務名義正本のほか、<span class="case-emphasis freq-high">当該不動産が構成員全員の総有に属することを確認する債権者・社団・登記名義人間の確定判決その他これに準ずる文書を添付</span>して、社団を債務者とする強制執行の申立てをすべきとした。ゆえに強制執行をする余地はあり、本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>名義がずれても道は閉じない。「この不動産は本当は社団のもの（構成員全員の総有）」と示す確定判決等を一枚添えれば、社団への執行の扉が開く。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>名義のずれ</strong>：社団を債務者とする債務名義では社団に対してしか執行できず（民執23条1項1号）、社団不動産は代表者個人名義でしか登記できないため名義がずれる。</li>
-<li><strong>判例の解決</strong>：<a class="ref-stat" href="#bref-5-h22">最判平22.6.29</a>は、総有帰属を確認する確定判決等を添付すれば社団を債務者とする強制執行を申し立てられるとした。</li>
-<li><strong>ひっかけの型</strong>：『名義がずれる＝執行不能』と結論づける。判例は文書添付という手当てで執行の道を開いた。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>債務者は社団のまま、名義のずれは総有確認の一枚で埋める（最判平22.6.29）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-5-h22" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判平成22年6月29日（総有不動産への強制執行・重判平22民訴6事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">構成員の総有不動産につき、当該社団のために第三者がその登記名義人とされているときは、上記債権者は、強制執行の申立書に、当該社団を債務者とする執行文の付された上記債務名義の正本のほか、<span class="ron-mark freq-high">上記不動産が当該社団の構成員全員の総有に属することを確認する旨の上記債権者と当該社団及び上記登記名義人との間の確定判決その他これに準ずる文書を添付して</span>、当該社団を債務者とする強制執行の申立てをすべきものと解するのが相当である。通常の不動産に対する強制執行と全く同様の執行手続を執るべきものと解したのでは、上記債権者が権利能力のない社団に対して有する権利の実現を法が拒否するに等しいからである。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">登記記録の表題部に債務名義上の債務者以外の者が所有者として記録されている不動産への強制執行に準じる。所定の文書を添付すれば代表者個人名義の総有不動産へ執行できるから、本記述（余地なし）は誤り。</span></div></div></div></details></div>
-<div id="bref-5-mp" class="tx-basis-item "><div class="tx-basis-head">📜 民事執行法23条1項1号 執行力の主体的範囲<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">執行証書を除く債務名義による強制執行は、<span class="ron-mark freq-high">債務名義に表示された当事者</span>に対し、又はその者のためにすることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-5-h22" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判平成22年6月29日（総有不動産への強制執行・重判平22民訴6事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">構成員の総有不動産につき、当該社団のために第三者がその登記名義人とされているときは、上記債権者は、強制執行の申立書に、当該社団を債務者とする執行文の付された上記債務名義の正本のほか、<span class="ron-mark freq-high">上記不動産が当該社団の構成員全員の総有に属することを確認する旨の上記債権者と当該社団及び上記登記名義人との間の確定判決その他これに準ずる文書を添付して</span>、当該社団を債務者とする強制執行の申立てをすべきものと解するのが相当である。通常の不動産に対する強制執行と全く同様の執行手続を執るべきものと解したのでは、上記債権者が権利能力のない社団に対して有する権利の実現を法が拒否するに等しいからである。</p></div></div>
+<div id="bref-5-mp" class="tx-basis-item "><div class="tx-basis-head">📜 民事執行法23条1項1号 執行力の主体的範囲<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">執行証書を除く債務名義による強制執行は、<span class="ron-mark freq-high">債務名義に表示された当事者</span>に対し、又はその者のためにすることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shushi">趣旨</span><span class="kd-text">執行は債務名義に表示された当事者を名宛人としてのみできる。社団を債務者とする債務名義では社団に対してしか執行できず、代表者個人名義の登記との<span class="case-emphasis freq-high">ずれ</span>が問題となる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">平22.6.29はこのずれを、総有帰属確認の確定判決等を添付して社団への執行を認めることで解決した（記述5）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">社団を債務者とする執行は社団に対してのみ可（民執23条1項1号）で登記名義人（代表者個人）とずれるが、最判平22.6.29は総有帰属確認の確定判決等の添付により社団を債務者とする執行を認めた。ゆえに本記述は誤り。</p>
 </div>
 
 
 <div class="tx-v13-cross"><span class="tx-v13-cross-label">🔗 他科目横断</span><span class="tx-v13-cross-body">本問の前提「構成員全員の総有」は民法の共同所有の一類型で、入会権（民法263条・264条）に典型的に現れる。総有は各構成員に持分がなく分割請求もできない団体的所有形態で、権利能力なき社団の財産帰属を説明する実体法の受け皿になっている。民訴の当事者能力・当事者適格・執行の議論は、この<b>民法上の総有という実体権利の構造</b>の上に乗っており、民法（総則の社団・物権の共同所有）と民訴・民執をまたぐ重要横断。</span></div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「債務者（社団）と登記名義人（代表者個人）が食い違う＝執行不能」で止める罠。</strong>名義のずれは確かに障害だが、判例（平22.6.29）は<em>総有帰属を確認する確定判決等の添付</em>という手当てで社団への執行を可能にした。記述4（登記名義は代表者個人）と記述5（その名義の不動産への執行）は同じ「代表者個人名義」という土台を共有し、いずれも権利能力なき社団の実体権利を訴訟・執行でどう実現するかの cross-cut——「できない」で終わらせず判例の解決策まで押さえる。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは添付文書の側</strong>。総有帰属を確認する確定判決その他これに準ずる文書を添えれば社団を債務者とする申立てができるのに（最判平22.6.29）、これを省いて債務名義正本だけで申し立てれば債務者と登記名義人が食い違ったまま進めない。債務者を代表者個人に替える手も、執行できる相手が債務名義に表示された当事者に限られるため使えない（民執23条1項1号）。</span><div class="tx-dgm is-matrix" data-dgm="021-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">執行の申立てから1語を替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">総有帰属を確認する確定判決等を添付する</p><p class="dgm-cell is-ok">○ 申立てできる</p><p class="dgm-cell">社団を債務者とする執行ができる<span class="dgm-src">最判平22.6.29</span></p><p class="dgm-cell is-rowhead">添付を省き債務名義正本だけで申し立てる</p><p class="dgm-cell is-ng">✕ 申立てできない</p><p class="dgm-cell">債務者と登記名義人が食い違う<span class="dgm-src">最判平22.6.29</span></p><p class="dgm-cell is-rowhead">債務者を代表者個人に替えて申し立てる</p><p class="dgm-cell is-ng">✕ 執行できない</p><p class="dgm-cell">債務名義に表示された当事者に限る<span class="dgm-src">民執23条1項1号</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 </div>
@@ -6220,11 +6422,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:x,4:x,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは、法人でない社団が<b>訴訟の主体（当事者能力・当事者適格）</b>になれるかと<b>実体権利の主体（権利能力）</b>になれるかを切り分けること。入口の当事者能力は、団体としての組織・多数決・存続・代表方法の確定という骨格で判断され、財産の大小はその一要素にとどまる。だから固定資産や基本的財産を持たない団体でも当事者能力が認められる余地はある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>団体の規約・総会議事録・会計処理・代表者選任の記録から社団性を立証していく。財産目録の厚さより運営の継続性が問われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判平成14年6月7日は、預託金会員制ゴルフクラブの当事者能力が争われた事案で、固定資産ないし基本的財産を有することは当事者能力の不可欠の要件ではないと明言した。</span>" data-brief-mark="法人でない社団が固定資産ないし基本的財産を有しない場合に、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>当事者能力が認められる余地はない</span><span class='tx-stmt-fix'>→ 固定資産等は不可欠要件でなく認められる余地はある</span>。<span class='tx-anscomp-line'>法人でない社団の当事者能力（民訴29条）は、団体としての組織・多数決の原則・構成員の変更にかかわらぬ存続・代表方法等の確定で判断され（最判昭39.10.15）、固定資産ないし基本的財産を有することは<strong>不可欠の要件ではない</strong>（最判平14.6.7）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>民訴29条は代表者の定めある法人でない社団に当事者能力を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>法人格はなくとも独立の社会的活動の実体があれば、その名で訴訟追行させるのが紛争解決に資する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>当事者能力の判断枠組み（最判昭39.10.15の4要素）は財産的側面も一ファクターとして含む。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>固定資産ないし基本的財産の保有は不可欠要件ではなく、財産の有無だけで当事者能力は否定されない（最判平14.6.7）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟要件（当事者能力）は組織の実体で判断し、実体法上の権利能力とは切り分ける。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-story="訴訟の席に座れること（当事者能力）と、実体法上その社団が所有権者になれること（権利能力）は別の話。権利能力なき社団は後者を欠くため、社団名義で「この土地は社団のものだ」と確認を求める訴えは、実体法上あり得ない権利の確認を求めるものとして失当になる。社団財産は構成員全員の総有に帰属するという実体法の考え方が訴訟にも貫かれる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>訴状の請求の趣旨をどう立てるかが分岐点。「社団の所有」と書けば入口で失当、「構成員全員の総有」と書けば道が開ける。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判昭和55年2月28日は、権利能力なき社団が原告となって社団所有権確認を求めた事案で、社団自体は私法上所有権の主体となり得ないから請求はすでに失当であるとして棄却した。</span>" data-brief-mark="社団の所有に属することの確認を求める訴えにつき、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>社団が原告となり認容判決を得る余地はない</span>。<span class='tx-anscomp-line'>権利能力なき社団は民訴29条により当事者能力を有しても実体法上は権利能力を欠くから、社団自体の所有に属することの確認を求める訴えは認容判決を得る余地がない（最判昭55.2.28）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>権利能力なき社団は当事者能力（民訴29条）はあっても私法上の所有権の主体たり得ない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>社団財産は構成員全員の総有に属するという実体法の考え方を訴訟上も貫く。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>社団自体の所有に属することの確認請求は実体法上あり得ない権利を求めるもの。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>社団の所有を掲げた確認請求は失当で、認容判決を得る余地がない（最判昭55.2.28）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>当事者能力から実体権利の帰属を導かない（訴訟の主体≠権利の主体）。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="社団自体は所有権者になれなくても、実体権利は構成員全員に総有的に帰属している。だから訴訟物を「構成員全員の総有」で立てれば、その帰属を争う者に対して社団自身が確認訴訟を追行できる。当事者適格は、誰が当事者として争い本案判決を受けるのが紛争解決に有意義かという観点で決まる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>入会地や集落の共有地をめぐる紛争で、個々の構成員を全員そろえる代わりに入会団体が原告となって一挙に解決する形が使われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判平成6年5月31日（民訴百選10事件）は、入会団体が権利能力のない社団に当たる場合、構成員全員の総有不動産につき総有権確認請求訴訟を追行する原告適格を有するとした。</span>" data-brief-mark="構成員全員の総有に属することの確認を求める訴えにつき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>社団が原告となる余地はない</span><span class='tx-stmt-fix'>→ 総有権確認の原告適格を有し原告となる余地はある</span>。<span class='tx-anscomp-line'>権利能力なき社団は、構成員全員の総有に属する不動産につき、これを争う者を被告とする総有権確認請求訴訟を追行する原告適格を有する（最判平6.5.31）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>入会団体（権利能力なき社団）は構成員全員の総有不動産につき総有権確認請求訴訟の原告適格を有する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>当事者適格は誰が追行し本案判決を受けるのが紛争解決に必要・有意義かで決せられる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>入会権など団体的色彩の濃い共同所有形態で、社団による訴訟追行が適切と評価される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>訴訟物を社団の所有でなく構成員全員の総有で立てれば、社団が原告となる余地がある（最判平6.5.31）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実体法上の権利主体性の否定を、訴訟法上の当事者適格の否定へ直結させない。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="総有不動産は社団自身が登記名義人になれないため、構成員全員のために代表者個人の名義で信託的に登記される。社団自身に登記請求権はないが、代表者は総有財産の受託者の地位にあるので、代表者が交代したときは新代表者が前任者に名義移転の協力を求められる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>代表者の死亡・交代のたびに旧名義から新名義への移転登記が必要になり、旧代表者やその相続人が協力しないときに新代表者がこの訴えを起こす。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判昭和47年6月2日は、社団資産は構成員全員に総有的に帰属し社団は登記請求権を有しないとしつつ、新代表者は旧代表者に対し自己の個人名義への移転登記手続の協力を訴求できるとした。</span>" data-brief-mark="旧代表者個人名義の不動産につき新代表者個人名義への移転登記を求める訴えで、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>新代表者が原告となる余地はない</span><span class='tx-stmt-fix'>→ 旧代表者に協力を訴求でき原告となる余地はある</span>。<span class='tx-anscomp-line'>新代表者は、旧代表者に対し、当該不動産につき自己の個人名義に所有権移転登記手続をすることの協力を求め、これを訴求することができる（最判昭47.6.2）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>社団の総有不動産は構成員全員のために信託的に代表者個人名義で登記される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>社団自身は権利能力を欠き登記請求権を有しないが、代表者は受託者の地位で自己名義の登記ができる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>代表者交代に伴う登記名義の移転が問題となる場面。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>新代表者は旧代表者に対し自己個人名義への移転登記手続の協力を訴求でき、原告となる余地がある（最判昭47.6.2）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「社団に登記請求権なし」を「誰も登記を動かせない」へ横滑りさせず、代表者個人の受託者地位に着目する。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="社団にお金を貸した債権者が社団を債務者とする判決を得ても、その不動産は代表者個人名義で登記されているため、債務者と登記名義人がずれる。判例はこのずれを、当該不動産が構成員全員の総有に属することを確認する確定判決等を添付させることで乗り越え、社団を債務者とする強制執行を認めた。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>債権者はまず総有帰属を確認する判決等を取得し、それを執行の申立書に添えて代表者個人名義の不動産を差し押さえる二段構えになる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判平成22年6月29日は、通常の執行手続と同様に扱えば権利能力のない社団に対する債権者の権利実現を法が拒否するに等しいとして、文書添付による社団を債務者とする強制執行を認めた。</span>" data-brief-mark="社団を債務者とする債務名義で代表者個人名義の不動産に対し、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>強制執行をする余地はない</span><span class='tx-stmt-fix'>→ 所定の文書を添付すれば執行の余地はある</span>。<span class='tx-anscomp-line'>総有不動産が社団のために代表者個人名義で登記されているときは、債権者は、当該不動産が構成員全員の総有に属することを確認する確定判決その他これに準ずる文書等を添付して、社団を債務者とする強制執行の申立てができる（最判平22.6.29）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>社団を債務者とする債務名義による執行は債務名義に表示された当事者（社団）に対してのみできる（民執23条1項1号）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>社団不動産は代表者個人名義でしか登記できず、債務者と登記名義人がずれる不都合が生じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>登記名義人が債務者以外の者となっている総有不動産への強制執行の場面。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>総有帰属を確認する確定判決その他これに準ずる文書を添付すれば、社団を債務者とする執行の申立てができる（最判平22.6.29）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>名義のずれを「執行不能」で終わらせず、判例の文書添付という解決策まで押さえる。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="全体を貫く物差しは、法人でない社団が<b>訴訟の主体（当事者能力・当事者適格）</b>になれるかと<b>実体権利の主体（権利能力）</b>になれるかを切り分けること。入口の当事者能力は、団体としての組織・多数決・存続・代表方法の確定という骨格で判断され、財産の大小はその一要素にとどまる。だから固定資産や基本的財産を持たない団体でも当事者能力が認められる余地はある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>団体の規約・総会議事録・会計処理・代表者選任の記録から社団性を立証していく。財産目録の厚さより運営の継続性が問われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判平成14年6月7日は、預託金会員制ゴルフクラブの当事者能力が争われた事案で、固定資産ないし基本的財産を有することは当事者能力の不可欠の要件ではないと明言した。</span>" data-brief-mark="法人でない社団が固定資産ないし基本的財産を有しない場合に、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>当事者能力が認められる余地はない</span><span class='tx-stmt-fix'>→ 固定資産等は不可欠要件でなく認められる余地はある</span>。<span class='tx-anscomp-line'>法人でない社団の当事者能力（民訴29条）は、団体としての組織・多数決の原則・構成員の変更にかかわらぬ存続・代表方法等の確定で判断され（最判昭39.10.15）、固定資産ないし基本的財産を有することは<strong>不可欠の要件ではない</strong>（最判平14.6.7）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>民訴29条は代表者の定めある法人でない社団に当事者能力を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>法人格はなくとも独立の社会的活動の実体があれば、その名で訴訟追行させるのが紛争解決に資する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>当事者能力の判断枠組み（最判昭39.10.15の4要素）は財産的側面も一ファクターとして含む。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>固定資産ないし基本的財産の保有は不可欠要件ではなく、財産の有無だけで当事者能力は否定されない（最判平14.6.7）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>当事者能力は代表者又は管理人の定めと団体としての骨格で判断し、固有財産の有無は一要素にとどまる（民訴29条）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="021-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">当事者能力の判断材料を1語ずつ替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">固定資産・基本的財産を有しない</p><p class="dgm-cell is-ok">○ 当事者能力あり</p><p class="dgm-cell">不可欠の要件ではない<span class="dgm-src">最判平14.6.7</span></p><p class="dgm-cell is-rowhead">代表者又は管理人の定めがない</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">条文が明文で求める形式要件<span class="dgm-src">民訴29条</span></p><p class="dgm-cell is-rowhead">構成員の変更にかかわらぬ存続の定めがない</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">団体としての骨格を欠く<span class="dgm-src">最判昭39.10.15</span></p><p class="dgm-cell is-rowhead">法人でない社団 → 法人でない財団</p><p class="dgm-cell is-ok">○ 当事者能力あり</p><p class="dgm-cell">社団又は財団の双方を掲げる<span class="dgm-src">民訴29条</span></p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="訴訟の席に座れること（当事者能力）と、実体法上その社団が所有権者になれること（権利能力）は別の話。権利能力なき社団は後者を欠くため、社団名義で「この土地は社団のものだ」と確認を求める訴えは、実体法上あり得ない権利の確認を求めるものとして失当になる。社団財産は構成員全員の総有に帰属するという実体法の考え方が訴訟にも貫かれる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>訴状の請求の趣旨をどう立てるかが分岐点。「社団の所有」と書けば入口で失当、「構成員全員の総有」と書けば道が開ける。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判昭和55年2月28日は、権利能力なき社団が原告となって社団所有権確認を求めた事案で、社団自体は私法上所有権の主体となり得ないから請求はすでに失当であるとして棄却した。</span>" data-brief-mark="社団の所有に属することの確認を求める訴えにつき、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>社団が原告となり認容判決を得る余地はない</span>。<span class='tx-anscomp-line'>権利能力なき社団は民訴29条により当事者能力を有しても実体法上は権利能力を欠くから、社団自体の所有に属することの確認を求める訴えは認容判決を得る余地がない（最判昭55.2.28）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>権利能力なき社団は当事者能力（民訴29条）はあっても私法上の所有権の主体たり得ない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>社団財産は構成員全員の総有に属するという実体法の考え方を訴訟上も貫く。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>社団自体の所有に属することの確認請求は実体法上あり得ない権利を求めるもの。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>社団の所有を掲げた確認請求は失当で、認容判決を得る余地がない（最判昭55.2.28）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>権利能力なき社団は訴訟の当事者にはなれるが私法上の所有権の主体にはなれず、財産は構成員全員の総有に帰属する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="021-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">権利能力なき社団はどの地位に就けるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">地位</p><p class="dgm-cell is-head">社団自身</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴え、訴えられる当事者</p><p class="dgm-cell is-ok">○ 就ける</p><p class="dgm-cell">代表者又は管理人の定めがあるとき<span class="dgm-src">民訴29条</span></p><p class="dgm-cell is-rowhead">私法上の所有権の主体</p><p class="dgm-cell is-ng">✕ 就けない</p><p class="dgm-cell">財産は構成員全員の総有に帰属<span class="dgm-src">最判昭55.2.28</span></p><p class="dgm-cell is-rowhead">不動産の登記名義人</p><p class="dgm-cell is-ng">✕ 就けない</p><p class="dgm-cell">代表者個人の名義で信託的に登記<span class="dgm-src">最判昭47.6.2</span></p><p class="dgm-cell is-rowhead">強制執行を受ける債務者</p><p class="dgm-cell is-ok">○ 就ける</p><p class="dgm-cell">社団を債務者とする申立てができる<span class="dgm-src">最判平22.6.29</span></p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="社団自体は所有権者になれなくても、実体権利は構成員全員に総有的に帰属している。だから訴訟物を「構成員全員の総有」で立てれば、その帰属を争う者に対して社団自身が確認訴訟を追行できる。当事者適格は、誰が当事者として争い本案判決を受けるのが紛争解決に有意義かという観点で決まる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>入会地や集落の共有地をめぐる紛争で、個々の構成員を全員そろえる代わりに入会団体が原告となって一挙に解決する形が使われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判平成6年5月31日（民訴百選10事件）は、入会団体が権利能力のない社団に当たる場合、構成員全員の総有不動産につき総有権確認請求訴訟を追行する原告適格を有するとした。</span>" data-brief-mark="構成員全員の総有に属することの確認を求める訴えにつき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>社団が原告となる余地はない</span><span class='tx-stmt-fix'>→ 総有権確認の原告適格を有し原告となる余地はある</span>。<span class='tx-anscomp-line'>権利能力なき社団は、構成員全員の総有に属する不動産につき、これを争う者を被告とする総有権確認請求訴訟を追行する原告適格を有する（最判平6.5.31）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>入会団体（権利能力なき社団）は構成員全員の総有不動産につき総有権確認請求訴訟の原告適格を有する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>当事者適格は誰が追行し本案判決を受けるのが紛争解決に必要・有意義かで決せられる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>入会権など団体的色彩の濃い共同所有形態で、社団による訴訟追行が適切と評価される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>訴訟物を社団の所有でなく構成員全員の総有で立てれば、社団が原告となる余地がある（最判平6.5.31）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>当事者適格は誰が追行し本案判決を受けるのが紛争解決に有意義かで決まり、実体法上の権利主体性の有無とは別に判断する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="021-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">確認の対象と原告を組み替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">構成員全員の総有の確認を社団が求める</p><p class="dgm-cell is-ok">○ 原告適格あり</p><p class="dgm-cell">入会団体が総有権確認訴訟を追行できる<span class="dgm-src">最判平6.5.31</span></p><p class="dgm-cell is-rowhead">確認の対象を社団自身の所有に替える</p><p class="dgm-cell is-ng">✕ 認容の余地なし</p><p class="dgm-cell">あり得ない権利の確認で失当<span class="dgm-src">最判昭55.2.28</span></p><p class="dgm-cell is-rowhead">原告を代表者の定めを欠く住民の集まりに替える</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">入口の形式要件を満たさない<span class="dgm-src">民訴29条</span></p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="総有不動産は社団自身が登記名義人になれないため、構成員全員のために代表者個人の名義で信託的に登記される。社団自身に登記請求権はないが、代表者は総有財産の受託者の地位にあるので、代表者が交代したときは新代表者が前任者に名義移転の協力を求められる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>代表者の死亡・交代のたびに旧名義から新名義への移転登記が必要になり、旧代表者やその相続人が協力しないときに新代表者がこの訴えを起こす。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判昭和47年6月2日は、社団資産は構成員全員に総有的に帰属し社団は登記請求権を有しないとしつつ、新代表者は旧代表者に対し自己の個人名義への移転登記手続の協力を訴求できるとした。</span>" data-brief-mark="旧代表者個人名義の不動産につき新代表者個人名義への移転登記を求める訴えで、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>新代表者が原告となる余地はない</span><span class='tx-stmt-fix'>→ 旧代表者に協力を訴求でき原告となる余地はある</span>。<span class='tx-anscomp-line'>新代表者は、旧代表者に対し、当該不動産につき自己の個人名義に所有権移転登記手続をすることの協力を求め、これを訴求することができる（最判昭47.6.2）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>社団の総有不動産は構成員全員のために信託的に代表者個人名義で登記される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>社団自身は権利能力を欠き登記請求権を有しないが、代表者は受託者の地位で自己名義の登記ができる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>代表者交代に伴う登記名義の移転が問題となる場面。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>新代表者は旧代表者に対し自己個人名義への移転登記手続の協力を訴求でき、原告となる余地がある（最判昭47.6.2）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>総有不動産は構成員全員のため代表者個人の名義で信託的に登記され、登記を動かすのは代表者個人の受託者たる地位である。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="021-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">登記を動かす訴えの原告と移転先を替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">新代表者個人が旧代表者に協力を求める</p><p class="dgm-cell is-ok">○ 訴求できる</p><p class="dgm-cell">受託者たる地位で自己名義に登記できる<span class="dgm-src">最判昭47.6.2</span></p><p class="dgm-cell is-rowhead">原告を社団自身に替える</p><p class="dgm-cell is-ng">✕ 訴求できない</p><p class="dgm-cell">社団は登記請求権を有しない<span class="dgm-src">最判昭47.6.2</span></p><p class="dgm-cell is-rowhead">移転先を社団名義に替える</p><p class="dgm-cell is-ng">✕ 登記できない</p><p class="dgm-cell">総有不動産は代表者個人名義で登記<span class="dgm-src">最判昭47.6.2</span></p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="社団にお金を貸した債権者が社団を債務者とする判決を得ても、その不動産は代表者個人名義で登記されているため、債務者と登記名義人がずれる。判例はこのずれを、当該不動産が構成員全員の総有に属することを確認する確定判決等を添付させることで乗り越え、社団を債務者とする強制執行を認めた。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>債権者はまず総有帰属を確認する判決等を取得し、それを執行の申立書に添えて代表者個人名義の不動産を差し押さえる二段構えになる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最判平成22年6月29日は、通常の執行手続と同様に扱えば権利能力のない社団に対する債権者の権利実現を法が拒否するに等しいとして、文書添付による社団を債務者とする強制執行を認めた。</span>" data-brief-mark="社団を債務者とする債務名義で代表者個人名義の不動産に対し、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>強制執行をする余地はない</span><span class='tx-stmt-fix'>→ 所定の文書を添付すれば執行の余地はある</span>。<span class='tx-anscomp-line'>総有不動産が社団のために代表者個人名義で登記されているときは、債権者は、当該不動産が構成員全員の総有に属することを確認する確定判決その他これに準ずる文書等を添付して、社団を債務者とする強制執行の申立てができる（最判平22.6.29）。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>社団を債務者とする債務名義による執行は債務名義に表示された当事者（社団）に対してのみできる（民執23条1項1号）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>社団不動産は代表者個人名義でしか登記できず、債務者と登記名義人がずれる不都合が生じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>登記名義人が債務者以外の者となっている総有不動産への強制執行の場面。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>総有帰属を確認する確定判決その他これに準ずる文書を添付すれば、社団を債務者とする執行の申立てができる（最判平22.6.29）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>債務名義による執行は債務名義に表示された当事者に対してしかできず（民執23条1項1号）、登記名義のずれは総有帰属を確認する文書の添付で埋める。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="021-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">執行の申立てから1語を替えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">総有帰属を確認する確定判決等を添付する</p><p class="dgm-cell is-ok">○ 申立てできる</p><p class="dgm-cell">社団を債務者とする執行ができる<span class="dgm-src">最判平22.6.29</span></p><p class="dgm-cell is-rowhead">添付を省き債務名義正本だけで申し立てる</p><p class="dgm-cell is-ng">✕ 申立てできない</p><p class="dgm-cell">債務者と登記名義人が食い違う<span class="dgm-src">最判平22.6.29</span></p><p class="dgm-cell is-rowhead">債務者を代表者個人に替えて申し立てる</p><p class="dgm-cell is-ng">✕ 執行できない</p><p class="dgm-cell">債務名義に表示された当事者に限る<span class="dgm-src">民執23条1項1号</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

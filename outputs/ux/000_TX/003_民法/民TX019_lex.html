@@ -5585,7 +5585,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5606,9 +5630,281 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5881,7 +6177,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>制限行為能力者のした契約について、制限行為能力者及びその法定代理人が取消権を有するときは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>契約の相手方も取消権を有する</span><span class="tx-stmt-fix">→ 相手方は取消権を有しない（120条1項の限定列挙）</span>。<span class="tx-anscomp-line">取消権者は、制限行為能力者・その代理人・承継人・同意権者に限られ（120条1項）、契約の<strong>相手方は取消権を有しない</strong>。取消しは表意者保護の制度であり、相手方に取消権を付与する必要がないからである。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。契約の当事者なのだから相手方も「なかったことにしたい」と言えそう、と思える。でも取消し（いったん有効に成立した契約を、はじめにさかのぼって無効にする権利）は、判断力の弱い本人を救うための<strong>片面的な武器</strong>。<a class="ref-stat" id="ref-law-120-101" href="#bref-1-120">120条1項</a>は取り消せる人を本人・その代理人・承継人・<strong>同意権者</strong>（同意を与えられる立場の人）に限り、相手方は入れていない。相手方には代わりに<a class="ref-stat" id="ref-law-20-101" href="#bref-1-20">催告権</a>（20条・「取り消すのか追認するのかはっきりしてくれ」と迫る権利）が用意されている。だから「相手方も取消権を有する」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">取消権を持つのは本人の側だけで、契約の<strong>相手方</strong>は持たない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">主体の定型化（誰を守るか）</span><span class="tx-gist-step is-now">取消権（どう守るか）</span><span class="tx-gist-step">保護の限界（どこで止まるか）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">制限行為能力者がした契約を取り消せるのは誰か。契約の相手方も取り消せるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断能力が十分でない人が、法定代理人の同意を得ないまま高額の商品を買ってしまいました。売った相手方は、この契約がいつ取り消されるか分からない不安定な立場に置かれます。それなら相手方の側からも、こんな契約はなかったことにしたいと言えるのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">取消しは、いったん有効に成立した契約をはじめにさかのぼって無効にする強い権限です。この<strong>取消権</strong>を誰に与えるかは、条文が正面から決めています。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" id="ref-law-120-101" href="#bref-1-120">120条1項</a> は、行為能力の制限によって取り消すことができる行為を取り消せる者を、制限行為能力者・その代理人・承継人・同意をすることができる者に限ると定めています。契約の相手方はこの列挙に入っていません。相手方に用意されているのは、追認するかどうかをはっきりさせるよう迫る <a class="ref-stat" id="ref-law-20-101" href="#bref-1-20">催告権</a>（20条）です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">取消しは、判断能力の足りない側を救うための片面的な武器だと説明されます。相手方は自分の判断で契約したのですから、その意思表示を後から覆す必要がありません。そのかわり相手方は、1箇月以上の期間を定めて確答を求め、返事がなければ追認とみなすという形で、自分から不安定な状態を終わらせることができます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>取消権</span></dt><dd>いったん有効に成立した法律行為を、はじめにさかのぼって無効にする権利。行使できる者は民法120条が定める。</dd></div><div class="tx-gist-term"><dt><span>催告権</span></dt><dd>取り消すのか追認するのかを確答するよう迫ることができる相手方の権利（民法20条1項）。1箇月以上の期間内に確答がなければ追認したものとみなされる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">取消権を本人と法定代理人に認めるところまでは正しいのですが、そこから契約の相手方まで広げている点が120条1項の限定列挙とずれます。相手方が持つのは取消権ではなく催告権（20条）だけです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>120条1項の取消権者を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-120">120条1項</a>は『行為能力の制限によって取り消すことができる行為は、<span class="case-emphasis freq-high">制限行為能力者…又はその代理人、承継人若しくは同意をすることができる者に限り</span>、取り消すことができる』と規定する。列挙されているのは<span class="ron-mark freq-high">本人側の者だけ</span>で、契約の相手方は含まれていない。</span></p>
 <p><span class="syn-step">2</span><strong>相手方の地位を制度趣旨から見る</strong><span class="syn-body">取消しは<span class="ron-mark freq-high">表意者（制限行為能力者）保護</span>のための制度だから、相手方に取消権を与える必要はない。相手方は、取り消されるか追認されるか分からない不安定な地位を、<a class="ref-stat" href="#bref-1-20">催告権</a>（20条）で解消できる（期間内に確答がなければ追認擬制等）。よって相手方に取消権を認める本記述は誤り。</span></p> </div>
@@ -5927,7 +6223,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>契約を締結した成年者がその後に後見開始の審判を受けたとき、成年後見人は、その契約の当時、既にその成年者につき後見開始の事由が存在していたことを証明して、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その成年者のした契約を取り消すことができる</span><span class="tx-stmt-fix">→ 審判前の行為は9条では取り消せない（8条・9条本文）</span>。<span class="tx-anscomp-line">成年被後見人として9条により取り消せる行為は、後見開始の審判（8条）を受けた後の行為に限られ、審判前にした契約は、当時すでに後見開始の事由が存在していても、成年後見人が9条に基づき取り消すことはできない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。契約したときすでに判断力を欠いていたのだから、後から後見人がそれを証明すれば取り消せそう、と思える。でも成年被後見人の取消し（<a class="ref-stat" id="ref-law-9-201" href="#bref-2-9">9条</a>）が対象にするのは、家庭裁判所が<strong>後見開始の審判</strong>（<a class="ref-stat" id="ref-law-8-201" href="#bref-2-8">8条</a>）を出した<strong>“後”の行為だけ</strong>。制度は「いつから制限行為能力者か」を審判で線引きし、相手方が事前に能力の有無を確認できるようにしている。審判より前の行為は、当時どんなに判断力が乏しくても9条では取り消せない（意思能力が無かったなら<a class="ref-stat" href="#bref-2-3no2">3条の2</a>で無効を主張する別ルートはある）。だから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">9条で取り消せるのは<strong>後見開始の審判</strong>より後にした行為だけである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">主体の定型化（誰を守るか）</span><span class="tx-gist-step">取消権（どう守るか）</span><span class="tx-gist-step">保護の限界（どこで止まるか）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">成年後見人は、審判より前にした契約まで取り消すことができるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">判断能力が衰えていた人が、ある日マンションの売買契約を結びました。その後に家庭裁判所が後見開始の審判をし、成年後見人が付きます。成年後見人は、契約の当時すでに判断能力を欠いていたことを証明して、この売買契約を取り消したいと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">民法9条が取消しの対象にしているのは「<strong>成年被後見人</strong>の法律行為」です。契約をした時点ではまだ審判が出ていなかったのですから、その契約が9条の対象に入るかどうかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" id="ref-law-8-201" href="#bref-2-8">8条</a> は、後見開始の審判を受けた者を成年被後見人とすると定めます。成年被後見人という地位は審判によって初めて生じるので、<a class="ref-stat" id="ref-law-9-201" href="#bref-2-9">9条</a> で取り消せるのは審判より後にした行為だけです。審判前の契約について当時の判断能力を争うなら、意思表示をした時に意思能力を有しなかった法律行為を無効とする <a class="ref-stat" href="#bref-2-3no2">3条の2</a> の別ルートになります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">この制度は、誰が制限行為能力者かを年齢や審判という形で定型化しています。相手方が契約の前に行為能力の有無を確かめられるようにするためだと説明されます。後から実質を証明して取消しを審判前まで広げると、この定型化が意味を失ってしまいます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>後見開始の審判</span></dt><dd>精神上の障害により事理を弁識する能力を欠く常況にある人について、家庭裁判所が後見を開始する旨を決める審判（民法7条・8条）。これにより成年被後見人となる。</dd></div><div class="tx-gist-term"><dt><span>意思能力</span></dt><dd>自分のする行為の法律上の意味を理解できる能力。意思表示をした時にこれを欠いていた法律行為は無効となる（民法3条の2）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">後見開始の事由が契約の当時すでに存在していたと証明しても、審判より前の行為は9条では取り消せないので、取消しを認めるこの記述は誤りです。救済を求めるなら、契約の当時に意思能力がなかったことを主張して3条の2の無効を導くことになります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>8条・9条の枠組みを読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-2-8">8条</a>は『後見開始の審判を受けた者は、成年被後見人とし…』、<a class="ref-stat" href="#bref-2-9">9条本文</a>は『<span class="case-emphasis freq-high">成年被後見人の法律行為は、取り消すことができる</span>』と規定する。取消しの対象は“成年被後見人の”行為＝<span class="ron-mark freq-high">審判を受けた後の行為</span>に限られる。</span></p>
 <p><span class="syn-step">2</span><strong>定型化の趣旨と本問へのあてはめ</strong><span class="syn-body">8条の趣旨は、制限行為能力者を<span class="ron-mark freq-high">定型化</span>して相手方が事前に能力の有無を確認できるようにする点にある。よって、審判前の契約は、後見開始の事由が当時すでに存在していたと証明できても9条では取り消せない。当時意思能力が無ければ<a class="ref-stat" href="#bref-2-3no2">3条の2</a>の無効で救済を図る別問題である。</span></p> </div>
@@ -5976,7 +6272,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者は、その契約を取り消すことができることを知って契約を締結したときでも、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>その契約を取り消すことができる</span>。<span class="tx-anscomp-line">未成年者が法定代理人の同意なくした契約は取り消すことができ（5条2項・120条1項）、取り消せることを知って契約したときでも、詐術（21条）を用いたのでない限り、取消権は失われない。未成年者保護の制度だからである。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「取り消せると分かっていて契約したなら、もう文句は言えない（取り消せない）はず」と考えたくなる。でも未成年者保護の制度は、本人が“取り消せると知っていたか”という心の中の事情では揺るがない。<a class="ref-stat" id="ref-law-5-301" href="#bref-3-5">5条2項</a>は同意なき行為を取り消せるとするだけで、悪意（取消可能性の認識）を除外していない。保護を失うのは、能力者だと信じさせる<strong>詐術</strong>（<a class="ref-stat" id="ref-law-21-301" href="#bref-3-21">21条</a>）を使ったときだけ。単に知っていた程度では取消権は残る。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">取り消せると知って契約しても、未成年者の<strong>取消権</strong>は残る。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">主体の定型化（誰を守るか）</span><span class="tx-gist-step is-now">取消権（どう守るか）</span><span class="tx-gist-step">保護の限界（どこで止まるか）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">取り消せることを知っていた未成年者は、それでもその契約を取り消せるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年者が、法定代理人の同意を得ないまま高価な楽器を買いました。しかもこの未成年者は、あとで取り消せると知ったうえで契約しています。売った相手方からすれば、知っていて契約したのなら取消しは許されないはずだと言いたくなる場面です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">民法5条2項は、同意を得ずにした行為を取り消すことができるとしています。そこで、取り消せると知っていたという本人の<strong>悪意</strong>が、取消権を失わせる事情になるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" id="ref-law-5-301" href="#bref-3-5">5条2項</a> は、法定代理人の同意を得ずにした法律行為は取り消すことができるとだけ定め、本人が取消しの可能性を知っていた場合を除いていません。取消権が失われるのは、行為能力者であると信じさせるため詐術を用いたとき（<a class="ref-stat" id="ref-law-21-301" href="#bref-3-21">21条</a>）に限られます。ただ知っていたというだけでは詐術にあたりません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">未成年者の保護は、年齢という形で画一的に与えられていると説明されます。本人の心の中の事情で保護が消えるとすれば、取引のたびに本人の認識を探らねばならず、保護は骨抜きになってしまいます。条文が要件にしていない悪意を、取消しの障害として持ち込むことはできません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>詐術</span></dt><dd>行為能力者であると相手方に信じさせるために用いる手段。これを用いた制限行為能力者は、その行為を取り消すことができない（民法21条）。</dd></div><div class="tx-gist-term"><dt><span>悪意</span></dt><dd>ある事情を知っていること。制限行為能力者の保護では、取り消せると本人が知っていたかどうかは取消権の要件とされていない。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">取り消せると知っていたという点は、5条2項が定める取消しの要件に影響しません。詐術を用いたのでない限り取消権は手元に残るので、この記述は正しいです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>5条2項の取消権を確認する</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-5">5条2項</a>は、未成年者が法定代理人の同意を得ずにした法律行為を『取り消すことができる』とする（<a class="ref-stat" href="#bref-3-120">120条1項</a>で取消権者は本人・法定代理人等）。条文は<span class="ron-mark freq-high">本人の主観（取消可能性の認識）を要件にしていない</span>。</span></p>
 <p><span class="syn-step">2</span><strong>悪意でも失われない理由</strong><span class="syn-body">制度趣旨は、判断能力が不十分な未成年者の<span class="ron-mark freq-high">保護</span>にある。取り消せることを知っていた程度で保護を奪えば未成年者保護が骨抜きになる。保護が失われるのは、能力者と信じさせる<a class="ref-stat" href="#bref-3-21">詐術</a>（21条）を用いた場合に限られ、単なる悪意はこれに当たらない。よって本記述は正しい。</span></p> </div>
@@ -6025,7 +6321,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>制限行為能力者が、自己を行為能力者であると信じさせるために相手方に対して詐術を用いて法律行為をした場合は、その法律行為について重要な錯誤があるときでも、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>錯誤による取消しを主張することはできない</span><span class="tx-stmt-fix">→ 錯誤取消し（95条）は別制度で妨げられない</span>。<span class="tx-anscomp-line">21条は詐術を用いた制限行為能力者の<strong>制限行為能力を理由とする取消し</strong>を封じるにとどまり、表意者保護を目的とする錯誤（95条）は目的を異にする別制度であるから、重要な錯誤があれば、詐術を用いた場合でも錯誤による取消しを主張できる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「大人だと嘘をついた（詐術）ペナルティで、もう取消しは一切ダメ」と考えたくなる。でも<a class="ref-stat" id="ref-law-21-401" href="#bref-4-21">21条</a>が奪うのは<strong>“制限行為能力を理由とする取消し”だけ</strong>。<a class="ref-stat" id="ref-law-95-401" href="#bref-4-95">錯誤取消し</a>（95条・勘違いにもとづく意思表示を取り消す制度）は、判断力の保護ではなく“意思と表示の食い違い”から表意者を守る<strong>別の制度</strong>で、目的が違う。だから詐術を使っていても、重要な錯誤（契約の重要部分の勘違い）があれば錯誤取消しは主張できる。「錯誤取消しも主張できない」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">詐術を用いても、重要な錯誤があれば<strong>錯誤取消し</strong>は主張できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">主体の定型化（誰を守るか）</span><span class="tx-gist-step">取消権（どう守るか）</span><span class="tx-gist-step is-now">保護の限界（どこで止まるか）</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">詐術を用いた制限行為能力者は、錯誤による取消しまで封じられるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">制限行為能力者が、自分は行為能力者だと相手方に信じさせて契約を結びました。ところがその契約には、目的物の性質について契約の重要な部分にかかわる勘違いもありました。嘘をついた側が、なお勘違いを理由に取消しを求められるのかが争われます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">民法21条は、詐術を用いたときはその行為を取り消すことができないと定めます。ここで封じられるのが取消し一般なのか、それとも<strong>行為能力の制限を理由とする取消し</strong>だけなのかが問題です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" id="ref-law-21-401" href="#bref-4-21">21条</a> が奪うのは、行為能力の制限を理由とする取消権です。これに対して <a class="ref-stat" id="ref-law-95-401" href="#bref-4-95">錯誤取消し</a>（95条）は、意思表示に対応する意思を欠く錯誤などが、法律行為の目的及び取引上の社会通念に照らして重要であるときに表意者を救う制度です。目的を異にする別の制度なので、詐術があっても当然には消えません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">21条の趣旨は、行為能力者だと信じた相手方を保護する点にあると説明されます。守られるのは行為能力の定型化に対する信頼ですから、封じられる取消しもその定型化を理由とするものに限られます。意思と表示の食い違いから表意者を守る錯誤の制度は、この趣旨の射程の外にあります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>錯誤取消し</span></dt><dd>意思表示に対応する意思を欠く錯誤などがあり、それが法律行為の目的及び取引上の社会通念に照らして重要であるときに、その意思表示を取り消せること（民法95条1項）。</dd></div><div class="tx-gist-term"><dt><span>詐術</span></dt><dd>行為能力者であると相手方に信じさせるために用いる手段。用いた制限行為能力者は、行為能力の制限を理由とする取消しができなくなる（民法21条）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">詐術を用いたことで行為能力の制限を理由とする取消しができなくなる点までは正しいのですが、錯誤取消しまで封じられるとしている点が誤りです。重要な錯誤があれば、詐術を用いた場合でも95条による取消しを主張できます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>21条の効果範囲を確認する</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-21">21条</a>は『制限行為能力者が行為能力者であることを信じさせるため詐術を用いたときは、その行為を取り消すことができない』とする。ここで封じられるのは<span class="ron-mark freq-high">制限行為能力を理由とする取消権</span>である。趣旨は、詐術を用いた者より、能力者と信じた相手方を保護する点にある。</span></p>
 <p><span class="syn-step">2</span><strong>錯誤は目的を異にする別制度</strong><span class="syn-body">錯誤取消し（<a class="ref-stat" href="#bref-4-95">95条</a>）は、意思表示に対応する意思を欠くなどの場合に<span class="ron-mark freq-high">表意者を保護</span>する制度で、制限行為能力者保護制度とは<span class="case-emphasis freq-high">目的を異にする</span>。したがって21条の適用によって錯誤取消しが当然に排除されるわけではなく、重要な錯誤があれば主張できる。本記述はこれを否定する点で誤り。</span></p> </div>
@@ -6389,16 +6685,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6433,7 +6744,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6446,6 +6762,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6454,12 +6771,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

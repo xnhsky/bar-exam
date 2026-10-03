@@ -5670,6 +5670,104 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6265,11 +6363,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         <table class="statement-verdict-table" data-answer-key="ア:o,イ:x,ウ:x,エ:x,オ:o">
           <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
           <tbody>
-            <tr data-stmt="ア" data-verdict="o" data-brief-mark="心神喪失の『精神の障害』には、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>酩酊等の一時的な精神状態の異常も含まれる</span>（大判昭6.12.3・混合的方法）。<span class='tx-anscomp-line'>心神喪失とは精神の障害により弁識能力又は制御能力を欠く状態をいい（大判昭6.12.3・刑法39条1項）、その『精神の障害』には<strong>酩酊等の一時的な精神状態の異常も含まれる</strong>（混合的方法）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>心神喪失は「精神の障害により事物の理非善悪を弁識する能力又はこの弁識に従って行動する能力のない状態」をいう（刑法39条1項・大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任非難には有責に行為する能力（弁識能力・制御能力）を要するという責任主義に基づく。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>「精神の障害」は精神病等の継続的なものに限らず、酩酊・催眠等の一時的な精神状態の異常も含む（混合的方法）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>障害が継続的か一時的かで結論は変わらない＝一時的異常も「精神の障害」に当たる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>定義の「精神の障害」に何が含まれるかを問う肢は、継続性の有無ではなく弁識・制御能力への影響で判定する。</p></div></td></tr>
-            <tr data-stmt="イ" data-verdict="x" data-brief-mark="13歳の少年でも事案が重大なら、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>相当と認めるとき刑罰を科すことができる</span><span class='tx-stmt-fix'>→ 41条により14歳未満は一律に不処罰（例外なし）</span>。<span class='tx-anscomp-line'>刑法41条は14歳未満の者を年齢という外形的基準で<strong>一律に責任無能力</strong>とし（画一的・生物学的方法）、事案の重大性等を理由に刑罰を科す例外はない。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法41条「14歳に満たない者の行為は、罰しない」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>少年は発育途上で能力を欠き、人格の可塑性から刑罰より保護処分が相当（画一的・生物学的方法）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>14歳未満は年齢という外形的基準で一律に責任無能力とされる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>事案の重大性・故意の有無を考慮して例外的に処罰する余地はない（「相当と認めるとき科刑」は誤り）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>年齢による一律の線引き条文に「重大なら例外」を持ち込む肢は誤り。</p></div></td></tr>
-            <tr data-stmt="ウ" data-verdict="x" data-brief-mark="先行行為で心神耗弱を招いた以上、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>刑法39条2項を適用する余地はない</span><span class='tx-stmt-fix'>→ 原因行為時の故意を要し、先行行為のみでは適用排除を断定できない</span>。<span class='tx-anscomp-line'>原因において自由な行為による完全な責任は<strong>原因行為時に結果行為への故意（その容認）が認められること</strong>を要し（最大判昭43.2.27・百選Ⅰ39）、先行行為により心神耗弱を招いたことのみで刑法39条2項の適用が排除されるわけではない。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法39条2項「心神耗弱者の行為は、その刑を減軽する」。原因において自由な行為の明文はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力のあった原因行為時を捉えて完全な責任を問う法理（行為と責任の同時存在原則の例外的処理）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>完全な責任を問うには原因行為時に結果行為への故意（その容認）が認められることを要する（最大判昭43.2.27・福岡高判昭25.9.26）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>先行行為で心神耗弱を招いたことのみを根拠に39条2項の適用排除を断定できない（「適用の余地はない」は誤り）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>原自行為を扱う肢は、結果の招致だけでなく原因行為時の故意（連続性）を要件に含めるかで判定する。</p></div></td></tr>
-            <tr data-stmt="エ" data-verdict="x" data-brief-mark="39条2項は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>刑の任意的減軽を定めている</span><span class='tx-stmt-fix'>→ 『減軽する』＝必要的減軽で、減軽しない裁量はない</span>。<span class='tx-anscomp-line'>刑法39条2項は『心神耗弱者の行為は、その刑を減軽する』と定める<strong>必要的減軽</strong>であり、犯行時に心神耗弱であれば刑の減軽は裁判所の義務で、減軽しない裁量はない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法39条2項「その刑を減軽する」。語尾「する」は義務を意味する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>心神耗弱者は責任能力が著しく限定され、非難可能性が弱まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>39条2項は必要的減軽で、裁判所は減軽する義務を負う。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「任意的減軽（減軽しないことができる）」ではない＝語尾「する」と「することができる」の違い。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の語尾「する／することができる」で必要的か任意的かを機械的に判定する。</p></div></td></tr>
-            <tr data-stmt="オ" data-verdict="o" data-brief-mark="同一人でも、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>ある罪には責任能力があり別の罪にはないという事態は観念し得る</span>（部分的責任能力・大阪地判平11.1.12）。<span class='tx-anscomp-line'>責任能力は個々の犯罪行為との関係で判定されるから、同一人・同一の精神障害下でも<strong>ある罪には責任能力があり別の罪にはないという部分的（一部）責任能力の事態は観念し得る</strong>（大阪地判平11.1.12）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>責任能力は個々の犯罪行為との関係で判定される（部分的責任能力）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力は行為ごとの弁識・制御能力の問題であり、犯罪類型と関係する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>同一人・同一の精神障害下でも、ある罪には責任能力があり別の罪にはない事態を観念し得る（大阪地判平11.1.12）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>責任能力は人格全体で一律に決まるのではなく、行為ごとに判定する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>責任能力の有無を人単位で一律に決める前提の肢は誤り＝判定単位は行為。</p></div></td></tr>
+            <tr data-stmt="ア" data-verdict="o" data-brief-story="責任能力は犯罪論の三段階のうち最後の責任の段に座る。行為が違法でも、非難できる人でなければ刑罰は科せないという責任主義のあらわれである。心神喪失の判定は二段構えで、まず精神の障害という<b>生物学的要素</b>があるかを見て、次にその障害のせいで<b>弁識能力・制御能力</b>が失われたかという心理学的要素を見る（医学の見立てと法的な評価を重ねる混合的方法）。趣旨は、非難できるかどうかは病名で決まるのではなく、その場で善悪を見分け、判断どおりに体を動かせたかで決まる、という点にある。だから障害が一生続くものか一晩で醒めるものかは問われず、視線は<b>行為の時点</b>で能力がどうだったかへ戻る。酩酊や薬物、催眠といった一時的な状態の異常も、この生物学的要素の側に入ってくる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では精神鑑定が要になり、起訴前に鑑定留置をして本鑑定を行うことも多い。酩酊は単純酩酊・複雑酩酊・病的酩酊に分けて評価され、弁護人は飲酒量や記憶の断絶を、検察官は犯行前後の計画的な行動や証拠隠滅の動きを持ち出して争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2006年8月25日に起きた福岡の海の中道大橋の飲酒運転事故は、酔いがどの程度だったかが法廷の中心になった一件である。一審の福岡地裁は危険運転致死傷罪の成立を認めず懲役7年6月としたが、福岡高裁はこれを認めて懲役20年とし、2011年に最高裁で確定した。一晩で醒める状態の程度が、これだけ刑の重さを動かす。</span>" data-brief-mark="心神喪失の『精神の障害』には、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>酩酊等の一時的な精神状態の異常も含まれる</span>（大判昭6.12.3・混合的方法）。<span class='tx-anscomp-line'>心神喪失とは精神の障害により弁識能力又は制御能力を欠く状態をいい（大判昭6.12.3・刑法39条1項）、その『精神の障害』には<strong>酩酊等の一時的な精神状態の異常も含まれる</strong>（混合的方法）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>心神喪失は「精神の障害により事物の理非善悪を弁識する能力又はこの弁識に従って行動する能力のない状態」をいう（刑法39条1項・大判昭6.12.3）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任非難には有責に行為する能力（弁識能力・制御能力）を要するという責任主義に基づく。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>「精神の障害」は精神病等の継続的なものに限らず、酩酊・催眠等の一時的な精神状態の異常も含む（混合的方法）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>障害が継続的か一時的かで結論は変わらない＝一時的異常も「精神の障害」に当たる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>定義の「精神の障害」に何が含まれるかを問う肢は、継続性の有無ではなく弁識・制御能力への影響で判定する。</p></div></td></tr>
+            <tr data-stmt="イ" data-verdict="x" data-brief-story="41条は責任能力の判断を<b>年齢という外形</b>で切り、14歳に満たない者を一律に責任無能力とする。心神喪失のように能力を個別に測らないのは、発達の途上にある者を刑罰で非難するのは筋が通らず、成熟の度合いを一人ずつ裁判で測るのも不確かだから、法があらかじめ線を引いてしまう割り切りによる。だからこの条文には、事案の重大性を理由に例外を開く受け皿が置かれていない。読むときのコツは、<b>刑罰を科せるか</b>という問いと<b>何もしないのか</b>という問いを分けること。14歳未満でも少年法の側では<b>触法少年</b>として児童相談所や家庭裁判所が関わり、必要なら少年院へ送ることもできる。刑法が閉じている扉の隣に、別の扉が開いている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>14歳未満の事件は警察の調査を経ていったん児童相談所へ送られ、児童相談所長や都道府県知事から送致されて初めて家庭裁判所の審判に付される（少年法3条2項）。刑事裁判ではないので、検察官は原則として登場しない。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>刑法41条の14歳という線は、1907年（明治40年）の制定から一度も動いていない。動いたのは少年法の側で、2000年の改正で刑事処分にできる年齢が16歳以上から14歳以上へ下がり、2007年の改正では少年院に送れる年齢の下限がおおむね12歳以上とされた。2022年4月からは18歳・19歳が特定少年として扱われる。揺れ続けたのは処遇の入口のほうで、41条の壁だけが動いていない。</span>" data-brief-mark="13歳の少年でも事案が重大なら、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>相当と認めるとき刑罰を科すことができる</span><span class='tx-stmt-fix'>→ 41条により14歳未満は一律に不処罰（例外なし）</span>。<span class='tx-anscomp-line'>刑法41条は14歳未満の者を年齢という外形的基準で<strong>一律に責任無能力</strong>とし（画一的・生物学的方法）、事案の重大性等を理由に刑罰を科す例外はない。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法41条「14歳に満たない者の行為は、罰しない」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>少年は発育途上で能力を欠き、人格の可塑性から刑罰より保護処分が相当（画一的・生物学的方法）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>14歳未満は年齢という外形的基準で一律に責任無能力とされる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>事案の重大性・故意の有無を考慮して例外的に処罰する余地はない（「相当と認めるとき科刑」は誤り）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>年齢による一律の線引き条文に「重大なら例外」を持ち込む肢は誤り。</p></div></td></tr>
+            <tr data-stmt="ウ" data-verdict="x" data-brief-story="原因において自由な行為は、責任能力は<b>行為の時に</b>なければならないという原則（行為と責任の同時存在）の例外をどう説明するか、という問題である。自ら酒や薬で能力を落としておきながら、落ちた後の行為だけを見て減免を受けるのは筋が通らない。そこで非難の足場を、能力がまだ保たれていた<b>原因行為の時点</b>へ引き戻す。ただし足場を移す以上、その時点に故意や過失という責任の中身が揃っていなければならず、判例は原因行為時の<b>意思が結果行為まで貫かれている</b>ことを求める。趣旨は不当な逃げ道をふさぐことにあるが、ふさぎ方は「能力を落とせば全部だめ」ではなく、落とした時点の心の中身を問うという形をとる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>覚醒剤や飲酒が絡む事件では、検察官は「飲めば暴れると分かっていた」という過去の経験や周囲への発言を積み上げ、弁護人はその場の衝動で使っただけで結果まで見通してはいなかったと反論する。原因行為の時点の立証は、供述と生活歴に頼ることが多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2011年4月18日の栃木県鹿沼市のクレーン車事故では、持病の発作を抱えた運転手が薬を欠いたまま運転し、登校中の児童の列に突っ込んだ。当時の自動車運転過失致死傷罪は法定刑の上限が懲役7年で、その軽さが立法を動かす。2014年5月20日に施行された自動車運転死傷処罰法3条は、発作や酩酊のおそれを知りながら運転し、その影響で運転が困難な状態に陥って人を死傷させた場合を正面から捉えている。</span>" data-brief-mark="先行行為で心神耗弱を招いた以上、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>刑法39条2項を適用する余地はない</span><span class='tx-stmt-fix'>→ 原因行為時の故意を要し、先行行為のみでは適用排除を断定できない</span>。<span class='tx-anscomp-line'>原因において自由な行為による完全な責任は<strong>原因行為時に結果行為への故意（その容認）が認められること</strong>を要し（最大判昭43.2.27・百選Ⅰ39）、先行行為により心神耗弱を招いたことのみで刑法39条2項の適用が排除されるわけではない。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法39条2項「心神耗弱者の行為は、その刑を減軽する」。原因において自由な行為の明文はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力のあった原因行為時を捉えて完全な責任を問う法理（行為と責任の同時存在原則の例外的処理）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>完全な責任を問うには原因行為時に結果行為への故意（その容認）が認められることを要する（最大判昭43.2.27・福岡高判昭25.9.26）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>先行行為で心神耗弱を招いたことのみを根拠に39条2項の適用排除を断定できない（「適用の余地はない」は誤り）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>原自行為を扱う肢は、結果の招致だけでなく原因行為時の故意（連続性）を要件に含めるかで判定する。</p></div></td></tr>
+            <tr data-stmt="エ" data-verdict="x" data-brief-story="39条は責任能力を二段で受ける。能力を欠けば<b>心神喪失</b>として1項で不可罰、著しく減じていれば<b>心神耗弱</b>として2項で減軽となる。2項の語尾は「減軽する」であって「減軽することができる」ではなく、要件が認められた瞬間に効果が発生する<b>必要的減軽</b>である。趣旨は、非難できる程度が下がっているなら刑もその分下げるのが責任主義の筋であり、そこに裁判所の選択を挟む余地はない、という点にある。減軽の幅も法が決めており、死刑を減軽すれば無期または10年以上、無期を減軽すれば7年以上となる（68条）。裁量が働くのは減軽するかどうかではなく、減軽された枠の中での量刑のほうだと押さえておく。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>必要的減軽だからこそ、心神耗弱と認められるかどうかが公判の勝負どころになる。裁判員裁判では鑑定が対立することも珍しくなく、裁判所は鑑定の前提となった事実が崩れていないかを見たうえで、最後は法的な評価として自ら結論を出す。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2001年6月8日の大阪教育大学附属池田小学校の事件は、責任能力が最大の争点になった。複数の精神鑑定が対立したが、大阪地裁は2003年に完全責任能力を認めて死刑を言い渡し、被告人が控訴を取り下げて確定、2004年9月14日に刑が執行された。心神耗弱と認められていれば減軽は義務で、死刑という選択肢は消える。境界がこれほど激しく争われるのは、そこに裁量の余地がないからである。</span>" data-brief-mark="39条2項は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>刑の任意的減軽を定めている</span><span class='tx-stmt-fix'>→ 『減軽する』＝必要的減軽で、減軽しない裁量はない</span>。<span class='tx-anscomp-line'>刑法39条2項は『心神耗弱者の行為は、その刑を減軽する』と定める<strong>必要的減軽</strong>であり、犯行時に心神耗弱であれば刑の減軽は裁判所の義務で、減軽しない裁量はない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>刑法39条2項「その刑を減軽する」。語尾「する」は義務を意味する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>心神耗弱者は責任能力が著しく限定され、非難可能性が弱まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>39条2項は必要的減軽で、裁判所は減軽する義務を負う。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「任意的減軽（減軽しないことができる）」ではない＝語尾「する」と「することができる」の違い。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文の語尾「する／することができる」で必要的か任意的かを機械的に判定する。</p></div></td></tr>
+            <tr data-stmt="オ" data-verdict="o" data-brief-story="責任能力は人に貼るラベルではなく、<b>個々の行為に向けられた評価</b>である。犯罪の成否を構成要件ごとに判断する以上、責任の有無も行為ごとに判断するのが筋で、同じ人が同じ精神障害を抱えていても罪ごとに結論が分かれることは論理的にありうる（部分的責任能力）。趣旨の側から見ても、非難できるかと問われているのは「その人」ではなく「その行為」だから、能力者・無能力者という<b>身分</b>のように扱ってはいけない。妄想が特定の相手に向いている場合、その相手への行為では制御が利かなくても、同じ日の別の相手への行為では判断も制御も働いていた、ということが現に起こる。読み方のコツは<b>時点と対象</b>を切ることで、起訴状に複数の罪名が並べば責任能力もその数だけ問い直される。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>一人の被疑者について、ある行為は起訴し、別の行為は心神喪失で不起訴、という処理が現にある。不起訴になった重大な他害行為には、通常の刑事手続から外れて別の審判へ回る道が用意されている。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>その受け皿が心神喪失者等医療観察法で、2003年に成立し2005年7月15日に施行された。検察官の申立てを受けて、裁判官1名と精神科医である精神保健審判員1名の合議体が入院や通院を決める。対象は殺人・放火・強盗・傷害などの重大な他害行為に限られる。責任能力を行為ごとに切った結果、同じ人の行為が刑事裁判と医療観察の二つの手続に分かれて進むことになる。</span>" data-brief-mark="同一人でも、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>ある罪には責任能力があり別の罪にはないという事態は観念し得る</span>（部分的責任能力・大阪地判平11.1.12）。<span class='tx-anscomp-line'>責任能力は個々の犯罪行為との関係で判定されるから、同一人・同一の精神障害下でも<strong>ある罪には責任能力があり別の罪にはないという部分的（一部）責任能力の事態は観念し得る</strong>（大阪地判平11.1.12）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>責任能力は個々の犯罪行為との関係で判定される（部分的責任能力）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力は行為ごとの弁識・制御能力の問題であり、犯罪類型と関係する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>同一人・同一の精神障害下でも、ある罪には責任能力があり別の罪にはない事態を観念し得る（大阪地判平11.1.12）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>責任能力は人格全体で一律に決まるのではなく、行為ごとに判定する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>責任能力の有無を人単位で一律に決める前提の肢は誤り＝判定単位は行為。</p></div></td></tr>
           </tbody>
         </table>
       </div>

@@ -5585,7 +5585,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5606,9 +5630,281 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5907,7 +6203,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>Aについて失踪宣告がされた後、Aが生存することが明らかとなったにもかかわらず、Aについての失踪宣告が取り消されずにAが死亡したときは、利害関係人は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>失踪宣告の取消しを家庭裁判所に請求することができる</span>。<span class="tx-anscomp-line">失踪宣告の取消しは、失踪者の生存の証明のほか、みなし死亡の時と<strong>異なる時に死亡した</strong>ことの証明があった場合にもされ（民法32条1項前段）、本人・利害関係人はその取消しを家庭裁判所に請求できる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。失踪宣告は「もう死んだものとして扱う」制度だが、後から本人が生きていたと分かったり、死んだとみなす日と実際の死亡日がずれていたと分かれば、宣告を取り消す必要がある。ここでは失踪宣告の後にAが生存していたことが明らかになっている＝みなし死亡は事実と食い違う。その後Aが実際に死んだとしても、死亡の「時期」が擬制とずれる以上、<a class="ref-stat" id="ref-1-32a" href="#bref-1-32">32条1項前段</a>の取消事由に当たり、利害関係人は取消しを請求できる。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>異なる時の死亡</strong>の証明でも、失踪宣告の取消しを請求できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">不在者の財産の管理</span><span class="tx-gist-step">失踪宣告の要件と効力</span><span class="tx-gist-step is-now">失踪宣告の取消し</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">失踪者がすでに死亡していても、失踪宣告の取消しを請求できるか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">生死が7年間分からなかった不在者について失踪宣告が出され、留守宅では相続が始まりました。ところがその後、その人が遠い町で生きていたことが判明します。宣告はそのままにされ、やがてその人は別の年に亡くなりました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">宣告が前提にした<strong>死亡擬制</strong>の時期は、実際に亡くなった時期と食い違ったままです。この食い違いを正す道があるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-1-32" id="ref-1-32a">32条1項前段</a>は、失踪者が生存することの証明があったときだけでなく、みなし死亡の時と<strong>異なる時に死亡した</strong>ことの証明があったときも、家庭裁判所は本人又は利害関係人の請求により失踪の宣告を取り消さなければならないと定めます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">死亡したものとみなす時期がずれると、相続が始まる時期も相続人の範囲も変わってしまいます。すでに亡くなっている人についても、時期を正しい時点に直す実益があるからだと説明されます。取消しの入口が生存の証明だけに限られていないのは、このためです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>死亡擬制</span></dt><dd>一定の時点に死亡したものとして扱うこと。推定より強く、宣告が取り消されない限り死亡として扱われる。</dd></div><div class="tx-gist-term"><dt><span>利害関係人</span></dt><dd>宣告の効果に法律上の利害を持つ者。相続人・受遺者・保険金の受取人などを含む。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">生存が判明した後に異なる時期に死亡したという場面を取消事由に当たるとしている点が、条文どおりです。失踪者がすでに死亡していても利害関係人は取消しを請求できるので、正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>32条1項前段の2つの取消事由</strong><span class="syn-body">取消事由は<span class="ron-mark freq-high">失踪者の生存</span>、又は「前条（31条）に規定する時と<span class="ron-mark freq-high">異なる時に死亡した</span>」こと。いずれかの証明があれば、家庭裁判所は本人又は利害関係人の請求により失踪宣告を取り消さなければならない。</span></p>
 <p><span class="syn-step">2</span><strong>死んでいても取り消す実益</strong><span class="syn-body">死亡とみなされる時期が実際とずれると、<span class="case-emphasis freq-high">相続の開始時期・相続人の範囲</span>が変わりうる。だから本人がすでに死亡していても、擬制の時期を正すために取消しの利益があり、利害関係人が請求できる。生存判明後に異なる時に死亡した本問は取消事由に当たる。</span></p> </div>
@@ -5946,7 +6242,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>失踪宣告を受けたAが実際には別の場所で生存していたときは、Aが失踪宣告の後にした不動産の売却は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その効力を生じない</span><span class="tx-stmt-fix">→ 権利能力は失われず売却は有効</span>。<span class="tx-anscomp-line">失踪宣告の死亡擬制は、従来の住所を中心とする法律関係を清算するための便宜的なものにすぎず、失踪者の<strong>権利能力</strong>を奪わないから、失踪者が別の場所で現に生存してした不動産の売却は有効である。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。失踪宣告を受けると「もう権利を持てない人」になる、と誤解しがち。でも失踪宣告が死亡したものとみなす（死亡擬制）のは、その人がいなくなった<strong>従来の住所地での財産関係</strong>（相続・婚姻など）を整理するためだけ。実際に別の場所で生きている本人の<a class="ref-stat" id="ref-2-31a" href="#bref-2-31">権利能力</a>までは奪わない。だからAが別の場所でした不動産の売却は有効で、「効力を生じない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">失踪宣告は<strong>権利能力</strong>を奪わず、別の場所でした売却は有効である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">不在者の財産の管理</span><span class="tx-gist-step is-now">失踪宣告の要件と効力</span><span class="tx-gist-step">失踪宣告の取消し</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">失踪宣告を受けた人が別の場所でした売買は、効力を生じないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">生死が分からなくなって失踪宣告を受けた人が、実は遠い町で暮らしていました。その人は、自分の名義のままになっている土地を買主に売り、代金を受け取ります。買主は、売主が失踪宣告を受けていたことを後から知りました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">戸籍の上では死亡したものとして扱われている人です。そういう人がした売買も<strong>死亡擬制</strong>の効果でなかったことになるのか、擬制がどこまで届くのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法31条は期間が満了した時に死亡したものとみなすと定めますが、この擬制は従来の住所を中心とする法律関係を清算するための仕組みで、失踪者の<a class="ref-stat" href="#bref-2-31" id="ref-2-31a">権利能力</a>そのものを奪うものではないと解されています。別の場所で現に生きてした売却は、擬制の射程の外にあります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">失踪宣告は、残された家族や取引の相手が、いつまでも決まらない相続や婚姻の宙ぶらりんから抜け出せるようにするための制度です。片づけるべきなのは留守宅の法律関係で、本人を権利の主体から外す必要はありません。だから、宣告の取消しを待たずに、別の場所でした売却はそのまま効力を持ちます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>権利能力</span></dt><dd>権利を持ち義務を負うことができる資格。自然人は出生で取得し、死亡によって失う。</dd></div><div class="tx-gist-term"><dt><span>死亡擬制の射程</span></dt><dd>死亡したものとみなす効果が及ぶ範囲。失踪宣告では従来の住所を中心とする法律関係の清算に働く。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">効力を生じないとしている点が誤りです。失踪宣告は権利能力を奪わないので、別の場所で現に生きてした不動産の売却は有効に成立し、買主は所有権を取得できます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>死亡擬制の射程</strong><span class="syn-body">失踪宣告の効果（死亡擬制）は、<span class="ron-mark freq-high">従来の住所を中心とする私法上の法律関係</span>の清算に限って及ぶ。失踪者そのものの権利能力を一般的に消滅させる制度ではない（通説）。</span></p>
 <p><span class="syn-step">2</span><strong>別の場所でした行為</strong><span class="syn-body">失踪者が現に生存して別の場所でした法律行為は擬制の<span class="case-emphasis freq-high">射程外</span>で、宣告が取り消されるまでもなく有効に成立する。取消し（32条）は従来の住所地の擬制を覆すための手続で、別地の生存者の行為の有効性とは次元が異なる。</span></p> </div>
@@ -5985,7 +6281,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>Aの生死が7年間明らかでない場合において、Aについて失踪宣告がされたときは、Aは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>この7年の期間が満了した時に死亡したものとみなされる</span>。<span class="tx-anscomp-line">普通失踪（民法30条1項）による失踪宣告を受けた者は、生死不明となってから<strong>7年の期間が満了した時</strong>に死亡したものとみなされる（民法31条前段）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。行方不明の人を「いつ死んだこと」にするのか。普通失踪では、生死が分からなくなってから7年たった<strong>その満了の瞬間</strong>を死亡時とする（<a class="ref-stat" id="ref-3-31a" href="#bref-3-31">31条前段</a>）。宣告の裁判が出た日でも、行方不明になった初日でもない。7年間の終わりの時点だ。だから本記述は正しい（○）。特別失踪（危難失踪）が「危難が去った時」にさかのぼるのと対で押さえる。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">普通失踪は<strong>7年の期間が満了した時</strong>に死亡したものとみなされる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">不在者の財産の管理</span><span class="tx-gist-step is-now">失踪宣告の要件と効力</span><span class="tx-gist-step">失踪宣告の取消し</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">生死が7年間明らかでなかった人は、いつ死亡したものとみなされるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">ある人が家を出たまま連絡を絶ち、7年たっても生死が分かりません。利害関係人の請求により、家庭裁判所が失踪の宣告をしました。残された家族は、相続がいつ始まったことになるのかを確かめようとしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">候補は3つあります。行方が分からなくなった初日か、7年がたった時点か、宣告の裁判が出た日か。相続の開始時期はこの<strong>みなし死亡</strong>の時点で決まるので、どれを取るかで結論が変わります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-3-31" id="ref-3-31a">31条前段</a>は、生死が7年間明らかでないことを理由に宣告を受けた者は、その<strong>期間が満了した時</strong>に死亡したものとみなすと定めます。宣告の裁判がされた日ではありません。危難に遭った場合は、危難が去った時にさかのぼります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">7年という期間は、宣告をしてよいかどうかを決める門にあたります。これに対し死亡の時点は、相続をいつ始めるかという別の基準です。生死不明が始まった日を死亡時にすると証明が難しく、裁判の日にすると手続の遅れがそのまま相続の時期を動かしてしまうので、期間の終わりという動かない時点が選ばれていると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>普通失踪</span></dt><dd>不在者の生死が7年間明らかでない場合の失踪宣告（民法30条1項）。</dd></div><div class="tx-gist-term"><dt><span>特別失踪</span></dt><dd>戦地に臨んだ者や沈没した船舶の中に在った者などの生死が、危難が去った後1年間明らかでない場合の失踪宣告（民法30条2項）。みなし死亡の時期は危難が去った時。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">7年の期間が満了した時に死亡したものとみなされるとしている点が、条文どおりです。正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>普通失踪の要件と効果</strong><span class="syn-body"><a class="ref-stat" id="ref-3-30a" href="#bref-3-30">30条1項</a>は「生死が7年間明らかでない」ことを宣告の要件とし、31条前段はその<span class="ron-mark freq-high">期間が満了した時</span>を死亡時とみなす。</span></p>
 <p><span class="syn-step">2</span><strong>「宣告時」ではなく「満了時」</strong><span class="syn-body">死亡擬制の時点は失踪宣告の裁判がされた時ではない。<span class="case-emphasis freq-high">7年の期間が満了した時</span>である。相続の開始時期・相続人の確定はこの満了時を基準に決まる。特別失踪（30条2項）が危難が去った時にさかのぼる点と区別する。</span></p> </div>
@@ -6028,7 +6324,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>家庭裁判所が、不在者の財産の管理について必要な処分として管理人を選任した場合には、その後、不在者がその財産を管理することができるようになったときであっても、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>管理人の権限は、当然には消滅しない</span>。<span class="tx-anscomp-line">家庭裁判所が選任した不在者財産管理人の権限は、不在者が自ら管理できるようになっても当然には消滅せず、<strong>取消しの審判</strong>（家事事件手続法147条）を経て初めて消滅する。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。不在者のために家庭裁判所が財産管理人を選んだ後、本人が戻って自分で管理できるようになったら、管理人の役目は自動で終わる？——終わらない。<a class="ref-stat" id="ref-4-147a" href="#bref-4-147">家事事件手続法147条</a>は、本人が管理できるようになったとき等は、家庭裁判所が「財産の管理に関する処分の取消しの審判」をしなければならないと定める。つまり審判という手続を経て初めて権限が消える。だから「当然には消滅しない」は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">裁判所が選んだ管理人の権限は、<strong>取消しの審判</strong>まで消滅しない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">不在者の財産の管理</span><span class="tx-gist-step">失踪宣告の要件と効力</span><span class="tx-gist-step">失踪宣告の取消し</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">不在者が自分で管理できるようになれば、管理人の権限は自動的に消えるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">不在者が管理人を置かずに家を離れたため、家庭裁判所が利害関係人の請求により財産管理人を選任しました。数年後、その不在者が帰ってきて、自分で財産を管理できる状態になりました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">管理人を必要とした事情は、もう消えています。それでも<strong>管理人の権限</strong>が続くのか、事情が消えた時点で当然に消えるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-147" id="ref-4-147a">家事事件手続法147条</a>は、不在者が財産を管理することができるようになったときなどには、家庭裁判所が財産の管理に関する処分の<strong>取消しの審判</strong>をしなければならないと定めます。権限が消えるのはこの審判があったときで、事情が変わっただけでは消えません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">管理人の地位は、家庭裁判所が命じた処分によって作られたものです。これを事情の変化だけで消えるとすると、管理人と取引をした相手は、権限がまだ残っているのかを自分で調べなければならなくなります。裁判所が始めた管理は裁判所が畳むという形にすれば、権限の有無が審判という目に見える区切りで決まるのだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>不在者財産管理人</span></dt><dd>不在者が管理人を置かなかったときに、家庭裁判所が利害関係人又は検察官の請求により選任する管理人（民法25条1項）。</dd></div><div class="tx-gist-term"><dt><span>取消しの審判</span></dt><dd>家庭裁判所が不在者の財産の管理に関する処分を取り消す審判。これによって管理人の権限が消滅する。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">当然には消滅しないとしている点が、条文どおりです。取消しの審判を経て初めて権限が消えるので、正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>選任の根拠</strong><span class="syn-body"><a class="ref-stat" id="ref-4-25a" href="#bref-4-25">25条</a>により、家庭裁判所は不在者が管理人を置かなかったとき等に、利害関係人・検察官の請求で財産の管理について必要な処分（管理人選任）を命じる。</span></p>
 <p><span class="syn-step">2</span><strong>権限の消滅には審判が必要</strong><span class="syn-body">家事事件手続法147条は、不在者が財産を管理できるようになったとき等に、家庭裁判所が<span class="ron-mark freq-high">管理に関する処分の取消しの審判</span>をしなければならないとする。この取消しの審判があって初めて管理人の権限は消滅し、<span class="case-emphasis freq-high">審判がない限り当然には消滅しない</span>。</span></p> </div>
@@ -6070,7 +6366,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>不在者がその財産の管理人を置いた場合には、その後、不在者の生死が明らかでなくなったときであっても、利害関係人は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>管理人の改任を家庭裁判所に請求することができない</span><span class="tx-stmt-fix">→ 生死不明のときは改任を請求できる（26条）</span>。<span class="tx-anscomp-line">不在者が自ら管理人を置いた場合でも、その後に不在者の<strong>生死が明らかでない</strong>ときは、家庭裁判所は利害関係人又は検察官の請求により管理人を改任することができる（民法26条）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。不在者が自分で管理人を選んでいたのなら、あとは裁判所は口出しできない——とはならない。<a class="ref-stat" id="ref-5-26a" href="#bref-5-26">民法26条</a>は、本人が管理人を置いていても、その後に本人の生死が分からなくなったときは、家庭裁判所が利害関係人・検察官の請求で管理人を「改任」（別の人に替える）できると定める。生死不明になると本人による監督が期待できないからだ。だから「請求することができない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">生死が明らかでないときは、利害関係人は<strong>管理人の改任</strong>を請求できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">不在者の財産の管理</span><span class="tx-gist-step">失踪宣告の要件と効力</span><span class="tx-gist-step">失踪宣告の取消し</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">不在者が自分で選んだ管理人を、家庭裁判所が替えることはできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">家を離れるとき、不在者は知人に財産の管理を頼んでいました。ところがその後、本人の生死が分からなくなり、頼まれた知人は管理をおろそかにし始めます。財産が傷めば困る利害関係人は、別の人に替えてほしいと考えました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">管理人は本人が自分で選んだ相手です。そこへ家庭裁判所が手を入れるのは、本人の意思を踏み越えることにならないのか。<strong>私的自治</strong>と裁判所の関与の線引きが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-26" id="ref-5-26a">民法26条</a>は、不在者が管理人を置いた場合において、その不在者の<strong>生死が明らかでないとき</strong>は、家庭裁判所が利害関係人又は検察官の請求により管理人を改任することができると定めます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">本人が選んだ管理人に裁判所が関与しないのは、本人が自分で監督し、必要なら解任できるからです。生死が分からなくなると、その監督が働かなくなります。見張る人がいなくなった穴を家庭裁判所が埋めるのが、改任の仕組みだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>改任</span></dt><dd>家庭裁判所が、不在者の置いた管理人に代えて別の管理人を選任すること（民法26条）。</dd></div><div class="tx-gist-term"><dt><span>私的自治</span></dt><dd>自分の財産や法律関係は自分の意思で決められるという原則。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">請求することができないとしている点が誤りです。不在者の生死が明らかでないときは、利害関係人は管理人の改任を家庭裁判所に請求することができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>本人選任の管理人と不干渉の原則</strong><span class="syn-body">不在者が自ら管理人を置いた場合、原則として家庭裁判所は関与しない（私的自治）。しかし本人の<span class="ron-mark freq-high">生死が明らかでなくなる</span>と、本人による監督・解任が期待できなくなる。</span></p>
 <p><span class="syn-step">2</span><strong>26条の改任</strong><span class="syn-body">そこで26条は、不在者が管理人を置いた場合でも、その生死が明らかでないときは、家庭裁判所が<span class="case-emphasis freq-high">利害関係人又は検察官の請求により管理人を改任</span>できるとする。利害関係人は改任を請求でき、「できない」とする本記述は誤り。</span></p> </div>
@@ -6424,16 +6720,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6468,7 +6779,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6481,6 +6797,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6489,12 +6806,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

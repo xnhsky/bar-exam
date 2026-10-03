@@ -5683,6 +5683,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5978,7 +6213,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>司法警察員が平成21年5月6日午後3時45分に被疑者を逮捕し、留置の必要があると思料するときは、被疑者を検察官に送致する手続を、遅くとも<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>同月8日午後3時45分まで</span>にしなければならない。<span class="tx-anscomp-line">司法警察員は、逮捕した被疑者につき留置の必要があると思料するときは、<strong>被疑者が身体を拘束された時から48時間以内</strong>に、書類及び証拠物とともにこれを検察官に送致する手続をしなければならない（刑訴法203条1項）。時で計算する期間は即時から起算されるから（同法55条1項）、5月6日午後3時45分に逮捕した本問では、その期限は同月8日午後3時45分となる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。逮捕から検察官への引渡しまでの時間制限と、その数え方を問う記述である。<a class="ref-stat" id="ref-law-203-101" href="#bref-1-203">刑訴法203条1項</a>は、司法警察員が被疑者を逮捕し留置の必要があると思料するときは、<strong>身体を拘束された時から48時間以内</strong>——手錠がかかった瞬間から数えて丸2日以内——に検察官へ送致する手続をせよ、と定める。起点を書類の完成時ではなく逮捕の時に固定するのは、警察が被疑者を手元に置ける時間を客観的な一点から機械的に区切り、身体拘束を一刻でも短くするためだ。時で計算する期間は即時から起算するので（<a class="ref-stat" href="#bref-1-55">55条1項</a>）、初日不算入の出番はない。イメージはストップウォッチ——逮捕の瞬間に押され、止まるのは同じ時刻の2日後。5月6日午後3時45分の逮捕なら期限は同月8日午後3時45分であり、本記述は起点と満了時刻を正しく述べているので正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">送致の48時間は<strong>逮捕の時</strong>から数え、期限は2日後の同時刻である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">逮捕後の送致</span><span class="tx-gist-step">検察官の措置</span><span class="tx-gist-step">勾留の期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">送致までの48時間は、いつから数え始めるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">司法警察員が、逮捕状に基づいて殺人の疑いのある被疑者を午後3時45分に逮捕しました。警察署では取調べや書類の作成が続きますが、身柄をいつまで手元に置けるのかという期限がついて回ります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">警察の段階で身体拘束を続けられる時間には、法が48時間という枠をはめています。問題は、その<strong>起算点</strong>です。書類と証拠物がそろった時から数えるのか、それとも逮捕の瞬間から数えるのかで、期限は大きく動きます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-1-203" id="ref-law-203-101">刑訴法203条1項</a>は、留置の必要があると思料するときは、<strong>被疑者が身体を拘束された時から48時間以内</strong>に、書類及び証拠物とともに検察官に送致する手続をしなければならないと定めます。時で計算する期間は即時から起算するので（<a class="ref-stat" href="#bref-1-55">55条1項</a>）、初日を数えない原則は出てきません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">起算点を逮捕の時に固定するのは、警察が被疑者を手元に置ける時間を、誰が見ても動かせない一点から機械的に区切るためだと説明されます。書類の完成時を起点にすれば、準備を遅らせるだけで拘束を延ばせてしまいます。身体拘束は一刻でも短くという要請が、客観的な起算点となって条文に現れているのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>起算点</span></dt><dd>期間を数え始める時点。刑訴法55条1項は、時で計算する期間は即時から起算し、日・月・年で計算する期間は初日を算入しないと定める。</dd></div><div class="tx-gist-term"><dt><span>送致</span></dt><dd>逮捕した被疑者の身柄を、書類及び証拠物とともに、次の判断をする検察官へ引き継ぐ手続（刑訴法203条1項）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">起算点を逮捕の時に取り、48時間後の同じ時刻（5月8日午後3時45分）を期限としており、203条1項・55条1項のとおりです。正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>起算点は「身体拘束（逮捕）の時」</strong><span class="syn-body">203条1項は『被疑者が<span class="case-emphasis freq-high">身体を拘束された時から48時間以内</span>に…これを検察官に送致する手続をしなければならない』と定める。数える起点は、送致の準備が整った時でも書類ができた時でもなく、逮捕により身体拘束が始まった時。</span></p>
 <p><span class="syn-step">2</span><strong>単純に48時間を足す</strong><span class="syn-body">5月6日午後3時45分＋48時間＝5月8日午後3時45分。時（時間）で計算するものは即時から起算する（<a class="ref-stat" href="#bref-1-55">55条1項</a>）ので、逮捕時刻ぴったりから丸2日後の同時刻までが期限。よって『同月8日午後3時45分まで』は正しい。</span></p> </div>
@@ -6011,7 +6246,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>上記の送致の時間制限内には、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>身柄及び書類が現実に検察官のもとへ到達している必要があり、送致する手続をしただけでは足りない</span><span class="tx-stmt-fix">→ 送致する手続をすれば足り、到達は不要</span>。<span class="tx-anscomp-line">刑訴法203条1項が48時間の制限時間内に義務づけるのは、被疑者を検察官に<strong>送致する手続</strong>をすることであって、被疑者の身柄及び書類が現実に検察官のもとへ到達することまでは要しない（刑訴法203条1項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。同じ48時間の制限でも、こちらは「時間内に何を済ませればよいか」という義務の射程を問う記述である。<a class="ref-stat" id="ref-law-203-201" href="#bref-2-203">203条1項</a>が命じるのは検察官に<strong>送致する手続</strong>——身柄と書類を検察官へ引き継ぐための段取りを踏むこと——であって、被疑者や書類が現実に検察官のもとへ到達することまでは求めていない。遠隔地からの護送では、時間内に手続を済ませても到達は制限時間の後になり得るからで、到達まで要求すると距離の遠近だけで送致が不可能になり不合理だからである。イメージは消印有効——締切に間に合わせるのは発送であって到着ではなく、ポストに入れた時刻で判定される。本記述は、条文が手続としか書いていない義務を現実の到達にまで押し上げ、手続だけでは足りないとする点で誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">48時間内に要るのは<strong>送致する手続</strong>であって、現実の到達ではない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">逮捕後の送致</span><span class="tx-gist-step">検察官の措置</span><span class="tx-gist-step">勾留の期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">48時間の制限時間内に、何を済ませておく必要があるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">遠い土地で逮捕された被疑者を、警察署から地方検察庁まで護送しなければなりません。司法警察員は書類と証拠物をそろえ、制限時間内に送致の手続を終えました。ところが被疑者が検察官のもとへ着くのは、48時間を過ぎた後になりそうです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">条文が48時間以内に義務づけているのは、どこまででしょうか。<strong>送致する手続</strong>を踏むことまでなのか、身柄と書類が現実に検察官のもとへ到達することまでなのか。距離の遠い事件では、この違いが送致の可否を左右します。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-2-203" id="ref-law-203-201">203条1項</a>の文言は、検察官に「送致する手続をしなければならない」であって、到達させなければならないとは書かれていません。制限時間内に送致する手続を済ませれば、義務は果たされます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">遠隔地からの護送では、時間内に手続を終えても現実の到達が制限時間の後になることがあります。到達まで要求すると、距離が遠いという理由だけで送致が不可能になり、身柄の処理そのものが立ち行かなくなります。だから義務の内容は、捜査機関が自分で完結できる手続の側に置かれているのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>送致する手続</span></dt><dd>身柄と書類・証拠物を検察官へ引き継ぐための段取りを踏むこと。刑訴法203条1項が48時間以内に義務づけるのはこの手続であり、現実の到達は要件でない。</dd></div><div class="tx-gist-term"><dt><span>到達</span></dt><dd>身柄や書類が現実に相手方のもとへ届くこと。48時間の義務の内容には含まれない。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">条文が「送致する手続」と定める義務を現実の到達まで必要とし、手続をしただけでは足りないとしている点が誤りです。正しくは、制限時間内に送致する手続をすれば足り、到達は要件ではありません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>条文は「手続」と書く</strong><span class="syn-body">203条1項は『48時間以内に…これを検察官に<span class="case-emphasis freq-high">送致する手続をしなければならない</span>』と定める。義務づけられているのは“送致という手続をすること”で、“検察官のもとへ現実に到達させること”ではない。</span></p>
 <p><span class="syn-step">2</span><strong>「手続で足りる」の実質的理由</strong><span class="syn-body">遠隔地からの護送などでは、時間内に手続を済ませても現実の到達は制限時間後になり得る。到達まで要求すると距離次第で送致が不可能になり不合理。だから<span class="ron-mark freq-high">制限時間内に送致する手続をすれば足り</span>、現実の到達は要件でない。本記述は「到達が必要・手続だけでは足りない」とする点で誤り。</span></p> </div>
@@ -6043,7 +6278,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>司法警察員から送致された被疑者を受け取った検察官は、留置の必要があると思料するときは、被疑者に<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>弁解の機会を与えなければならない</span>。<span class="tx-anscomp-line">検察官は、司法警察員から送致された被疑者を受け取ったときは、被疑者に<strong>弁解の機会</strong>を与えた上、留置の必要がないと思料するときは直ちに釈放し、留置の必要があると思料するときは勾留を請求しなければならない（刑訴法205条1項）。この弁解の機会の付与は、弁護人等との面会である接見（同法39条）とは別個の、留置の当否を検察官に再考させるための手続である。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。送致を受けた検察官が留置に進む前に何をしなければならないか、その第一歩を問う記述である。<a class="ref-stat" id="ref-law-205-301" href="#bref-3-205">205条1項</a>は、検察官は送致された被疑者を受け取ったときは<strong>弁解の機会</strong>——被疑事実について本人に言い分や反論を述べさせる手続——を与え、留置の必要がなければ直ちに釈放し、必要なら勾留を請求せよ、と定める。身柄拘束を続けるかどうかを決める前に本人の話を聞かせ、検察官自身に留置の必要性をもう一度考え直させる趣旨である。弁護人等と会わせる接見（39条）は身柄拘束の当否とは別の権利で、ここで義務づけられるものではない。イメージは受付窓口——検察官が開くのは言い分を聞く窓口であって面会室ではない。本記述は受取後の検察官の義務として弁解の機会の付与を挙げており正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">受け取った検察官は、被疑者に<strong>弁解の機会</strong>を与えなければならない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕後の送致</span><span class="tx-gist-step is-now">検察官の措置</span><span class="tx-gist-step">勾留の期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">送致された被疑者を受け取った検察官が、まずしなければならないことは何か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">司法警察員から送致された被疑者が、検察庁に到着しました。担当の検察官は、このまま勾留を請求して身柄拘束を続けるのか、それとも釈放するのかを決めなければなりません。被疑者は、事情が違うと言いたそうな様子です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">身柄拘束を続けるかどうかを決める前に、検察官には何が義務づけられているのでしょうか。被疑者本人に言い分を述べさせる<strong>弁解の機会</strong>なのか、弁護人と会わせる接見なのか。似た場面で登場する二つを取り違えないことが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-3-205" id="ref-law-205-301">205条1項</a>は、検察官は送致された被疑者を受け取ったときは<strong>弁解の機会</strong>を与え、留置の必要がないと思料するときは直ちに釈放し、留置の必要があると思料するときは受け取った時から24時間以内に勾留を請求しなければならないと定めます。弁護人との面会である接見（刑訴法39条1項）は、ここで義務づけられるものではありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">身柄拘束を続けるかどうかは、送られてきた書類だけを見て決めるべきことではありません。本人に言い分を述べさせることで、被疑者に反論の場を保障すると同時に、検察官自身に留置の必要性をもう一度考え直させる趣旨だと説明されます。勾留請求の前に置かれたひと呼吸なのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>弁解の機会</span></dt><dd>被疑事実について被疑者本人に言い分や反論を述べさせる手続。司法警察員（刑訴法203条1項）と検察官（同法205条1項）の双方に義務づけられる。</dd></div><div class="tx-gist-term"><dt><span>接見</span></dt><dd>身体の拘束を受けている被疑者が、弁護人又は弁護人となろうとする者と立会人なくして面会し、書類・物を授受すること（刑訴法39条1項）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">受け取った検察官の義務として弁解の機会の付与を挙げており、205条1項のとおりです。正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>205条1項の柱を押さえる</strong><span class="syn-body">205条1項は、検察官は送致された被疑者を受け取ったときは『<span class="case-emphasis freq-high">弁解の機会を与え</span>、留置の必要がないと思料するときは直ちに釈放し、留置の必要があると思料するときは…勾留を請求しなければならない』と定める。弁解の機会付与は勾留請求の前提となる手続。</span></p>
 <p><span class="syn-step">2</span><strong>「接見」ではなく「弁解」</strong><span class="syn-body">接見（39条）は被疑者と弁護人等との面会で、身柄拘束の当否とは別の権利。ここで検察官に義務づけられるのは<span class="ron-mark freq-high">弁解の機会</span>＝被疑者本人に言い分を述べさせる手続。留置に入る前に、検察官に留置の必要性を再考させる意味を持つ。「弁解」を「接見」と取り違えないのが本記述のポイント。</span></p> </div>
@@ -6075,7 +6310,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>検察官は、司法警察員が逮捕した被疑者を受け取った後に勾留を請求するときは、被疑者を受け取った時から<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>36時間以内</span><span class="tx-stmt-fix">→ 24時間以内（205条1項）</span>、かつ、被疑者が身体を拘束された時から72時間以内にこれをしなければならない。<span class="tx-anscomp-line">検察官は、司法警察員が逮捕した被疑者を受け取った後に勾留を請求するときは、<strong>被疑者を受け取った時から24時間以内</strong>にこれをしなければならず（刑訴法205条1項）、かつ、この時間の制限は<strong>被疑者が身体を拘束された時から72時間</strong>を超えることができない（同条2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。勾留請求の締切が二本立てになっていることと、その数字を問う記述である。<a class="ref-stat" href="#bref-4-205">205条1項</a>は検察官が<strong>被疑者を受け取った時から24時間以内</strong>に勾留を請求せよと定め、<a class="ref-stat" id="ref-law-205-401" href="#bref-4-205">205条2項</a>はその時間の制限が身体を拘束された時から72時間を超えられないと定める。二本目の枠があるのは、48時間以内に必要なのが到達ではなく送致の手続だけである以上、受取が遅れた場合に受取から24時間を機械的に足すと逮捕からの拘束が延びすぎるからで、通算の天井をかぶせて身体拘束の総量を抑える趣旨である。イメージは二重ロック——受取から24、逮捕から72、先に来る方が扉を閉める。本記述は72時間の枠を正しく述べる一方、受取起算の枠を36時間として条文の24時間を水増ししている点で誤り＝×。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">勾留請求の締切は受取から<strong>24時間</strong>、かつ逮捕から72時間である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕後の送致</span><span class="tx-gist-step is-now">検察官の措置</span><span class="tx-gist-step">勾留の期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">検察官が勾留を請求できる時間は、どこまで認められているのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">被疑者を受け取った検察官は、留置が必要だと判断し、裁判官に勾留を請求することにしました。ただ、送致を受けるまでに時間がかかっており、逮捕からすでに二日近くが過ぎています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">勾留請求には期限があります。受け取った時から数える枠だけを見ればよいのか、それとも逮捕の時から数える枠もかぶさるのか。二つの<strong>起算点</strong>が同時に働くため、数字だけを覚えていると取り違えます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-205">205条1項</a>は、被疑者を<strong>受け取った時から24時間以内</strong>に勾留を請求しなければならないと定め、<a class="ref-stat" href="#bref-4-205" id="ref-law-205-401">205条2項</a>は、その時間の制限が身体を拘束された時から72時間を超えることができないと定めます。二つの枠が同時にかかり、先に満了する方が締切になります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">48時間以内に必要なのは到達ではなく送致の手続だけなので、検察官が身柄を受け取る時点は後ろにずれることがあります。そこで受取から24時間を機械的に足すと、逮捕からの拘束が全体として延びすぎてしまいます。逮捕の時から通算72時間という天井をかぶせて、身体拘束の総量を抑える趣旨だと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>受け取った時</span></dt><dd>検察官が送致された被疑者の身柄を現実に引き受けた時点。刑訴法205条1項の24時間はここから起算する。</dd></div><div class="tx-gist-term"><dt><span>身体を拘束された時</span></dt><dd>逮捕により身体の自由が奪われた時点。刑訴法203条1項の48時間と同法205条2項の72時間はここから起算する。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">72時間の枠は正しく述べていますが、受取から数える枠を36時間としている点が誤りです。205条1項が定めるのは受け取った時から24時間以内で、36時間という制限時間は身柄拘束の手続に存在しません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>受取時起算の枠＝24時間</strong><span class="syn-body">205条1項は、検察官は送致された被疑者を受け取ったとき、留置が必要なら『<span class="case-emphasis freq-high">被疑者を受け取った時から24時間以内</span>』に勾留を請求しなければならないと定める。本記述の「36時間」はこの24時間を差し替えた誤り。</span></p>
 <p><span class="syn-step">2</span><strong>逮捕時起算の枠＝72時間（こちらは正しい）</strong><span class="syn-body">205条2項は『前項の時間の制限は、被疑者が<span class="ron-mark freq-high">身体を拘束された時から72時間を超えることができない</span>』と定める。司法警察員の送致に時間がかかると受取から24時間を丸々使えないことがあり、逮捕時からの通算72時間が上限のキャップになる。記述の「72時間」部分は正しいが、「24時間」を「36時間」と誤った以上、記述全体は誤り。</span></p> </div>
@@ -6108,7 +6343,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>検察官が平成21年5月7日午後2時に勾留を請求した場合、勾留期間は勾留の請求をした日を算入して起算されるため、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>同月16日まで</span>である。<span class="tx-anscomp-line">被疑者の勾留期間は、<strong>勾留の請求をした日から10日</strong>であり（刑訴法208条1項）、日で計算する期間の初日不算入の原則（同法55条1項）の例外として請求をした日を算入して起算するから、5月7日に勾留を請求した本問では、その満了日は同月16日となる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。勾留期間を「いつから」数え始めるか、期間計算の原則と例外を問う記述である。期間は日で計算するものなら初日を算入しないのが原則だが（<a class="ref-stat" id="ref-law-208-501" href="#bref-5-55">55条1項</a>）、勾留期間はその例外で、<a class="ref-stat" id="ref-law-208-502" href="#bref-5-208">208条1項</a>が『勾留の<strong>請求をした日から</strong>10日以内』と定めるため、<strong>請求した日を1日目に数える</strong>。初日を切り捨てずに算入するのは、その分だけ満了が早く訪れて身体拘束が短くなり、被疑者の利益になるからである。イメージはカレンダーの丸印——請求書を出したその日のマスに1と書き込み、そこから10マス目が満了日。5月7日午後2時の請求なら7日が1日目、10日目は5月16日。本記述は請求日算入という起算の仕方と満了日をいずれも正しく述べているので正しい＝○。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">勾留の10日は<strong>請求をした日</strong>を1日目に数えて満了する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">逮捕後の送致</span><span class="tx-gist-step">検察官の措置</span><span class="tx-gist-step is-now">勾留の期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">勾留期間の10日は、いつから数え始めるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">裁判官が勾留質問を行い、その日の昼過ぎに勾留状を発付しました。執行は同じ日の午後です。勾留質問の日から数えるのか、発付や執行の時から数えるのかで、釈放すべき日が数日ずれてきます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">期間を日で計算するときは初日を数えないのが原則です。勾留期間もこの<strong>初日不算入</strong>のとおりなのか、それとも別の数え方をするのか。起算日を勾留状の発付日・執行日・請求日のどこに置くのかも、合わせて問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-55" id="ref-law-208-501">55条1項</a>は日で計算する期間の初日不算入を原則としますが、<a class="ref-stat" href="#bref-5-208" id="ref-law-208-502">208条1項</a>は「勾留の<strong>請求をした日から</strong>10日以内」に公訴を提起しないときは直ちに被疑者を釈放しなければならないと定めます。起算日は勾留状の発付日でも執行日でもなく請求の日で、しかもその日を1日目に数えます。5月7日に請求すれば、10日目は5月16日です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">初日を切り捨てずに算入すると、その分だけ満了が早く訪れ、身体拘束が短くなります。原則と逆の数え方をするのは、被疑者の利益になる方向へ期間を詰めるためだと説明されます。なお、やむを得ない事由があると認めるときは、裁判官が通じて10日を超えない範囲で期間を延長できます（刑訴法208条2項）。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>初日不算入</span></dt><dd>日・月又は年で計算する期間は、その初日を数に入れないという原則（刑訴法55条1項）。</dd></div><div class="tx-gist-term"><dt><span>請求日算入</span></dt><dd>勾留期間は勾留の請求をした日を1日目として数えるという、初日不算入の例外（刑訴法208条1項）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">請求をした日を算入して起算するという数え方と、5月7日の請求から10日目が5月16日になるという満了日を、いずれも208条1項のとおりに述べています。正しい記述です。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>勾留期間の起算点は「請求の日」</strong><span class="syn-body">208条1項は『勾留の<span class="case-emphasis freq-high">請求をした日から10日以内</span>に公訴を提起しないときは…被疑者を釈放しなければならない』。起算点は勾留状が発付された日でも執行日でもなく、勾留を<span class="ron-mark freq-high">請求した日</span>。</span></p>
 <p><span class="syn-step">2</span><strong>初日算入で日を数える</strong><span class="syn-body">55条1項本文は日で計算する期間の初日不算入を原則とするが、勾留期間は208条1項の『請求をした日から』により<span class="ron-mark freq-high">請求日を算入</span>する（被疑者の利益のため拘束を短く見積もる）。5月7日を1日目とすると、10日目は5月16日。よって『同月16日まで』は正しい。なお裁判官はやむを得ない事由があれば10日を超えない範囲で延長できる（208条2項）。</span></p> </div>

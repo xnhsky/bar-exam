@@ -5584,7 +5584,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5605,9 +5629,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6176,11 +6335,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:x,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-mark="検察官は、証拠調べのはじめに、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>証明すべき事実を明らかにしなければならない</span>（296条本文＝冒頭陳述）。<span class='tx-anscomp-line'>検察官は、証拠調べのはじめに、証拠により証明すべき事実を明らかにしなければならない（刑訴法296条本文）。これは<strong>冒頭陳述</strong>であり、裁判所に審理方針樹立の資料を与え、被告人の防御に資する趣旨である。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>296条本文＝検察官は、証拠調べのはじめに、証拠により証明すべき事実を明らかにしなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>証拠調べの冒頭で審理の見取り図を示し、裁判所の審理方針樹立・証拠の関連性判断に資し、被告人の防御にも資する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官の冒頭陳述は義務（「しなければならない」）で、ただし書は証拠にできない資料での予断喚起を禁じる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「証拠調べのはじめに」＝証拠調べの冒頭であり、公判冒頭手続とは別の場面。時系列の位置を条文どおり押さえる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>冒頭陳述は主張の予告。証拠調べ前に両当事者が見取り図を示す構造を、316条の30（被告人側）と対で押さえる。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-mark="公判前整理手続事件の被告人側の冒頭陳述について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>検察官請求証拠の取調べ後に明らかにする</span><span class='tx-stmt-fix'>→ 296条の手続に引き続き（＝冒頭陳述の直後）</span>。<span class='tx-anscomp-line'>公判前整理手続に付された事件については、被告人又は弁護人は、証拠により証明すべき事実その他の事実上及び法律上の主張があるときは、<strong>296条の手続に引き続き</strong>（＝検察官の冒頭陳述の直後）、これを明らかにしなければならない（刑訴法316条の30）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の30前段＝被告人側の主張は『第296条の手続に引き続き』これを明らかにしなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>争点を早期に明示させ、公判前整理手続で整理した争点・証拠に沿った計画的・集中的審理を実現する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公判前整理手続に付された事件の被告人・弁護人の冒頭陳述の時期を定める。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「296条の手続」＝検察官の冒頭陳述。その直後（証拠調べ前）であって、証拠取調べ後ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「〜の手続に引き続き」型は、引かれた条文が何の場面かを確定してから時期・順序を読む。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-mark="検察官は論告において、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>被告人が無罪である旨の陳述をしてはならない</span><span class='tx-stmt-fix'>→ 無罪の意見を述べることも許される</span>。<span class='tx-anscomp-line'>証拠調べが終わった後、検察官は、事実及び法律の適用について意見を陳述しなければならない（刑訴法293条1項）。検察官は<strong>公益の代表者</strong>（検察庁法4条）として公平な立場で論告を行うから、証拠上相当であれば無罪・免訴・公訴棄却の意見を述べることも許される。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>293条1項＝証拠調べが終わった後、検察官は事実及び法律の適用について意見を陳述しなければならない（論告）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>検察官は公益の代表者（検察庁法4条）として、当事者的立場にとらわれず公平な立場で意見を述べるべきもの。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>論告の結論は有罪主張に限られず、無罪・免訴・公訴棄却の意見を述べるべき場合もある。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>検察官は訴追側の一方当事者であると同時に公益の代表者。無罪意見を禁じる理由はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>検察官の客観義務（被告人に有利な証拠の収集・被告人のための上告等）と一貫させて理解する。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-mark="弁護人は弁論において、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>具体的な刑の内容を陳述してはならない</span><span class='tx-stmt-fix'>→ 陳述することも許される</span>。<span class='tx-anscomp-line'>被告人及び弁護人は、証拠調べが終わった後、意見を陳述することができる（刑訴法293条2項）。弁論の範囲は検察官の論告に対応するところ、検察官は<strong>求刑</strong>として具体的刑罰の種類・量についての意見を述べうる（最判昭24.3.17）から、弁護人も具体的な刑の内容を陳述することが許される。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>293条2項＝被告人及び弁護人は、意見を陳述することができる（弁論）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>弁論の範囲は相手方の論告に対応（事実及び法律の適用）すべきものと解される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官が具体的な刑（求刑）を述べうる（最判昭24.3.17）以上、弁護人も具体的な刑の内容を陳述できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>量刑の判断権は裁判所だが、当事者が量刑の意見を述べる自由とは別問題。求刑と対称に弁論も可。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>論告と弁論を対称の当事者活動として捉える（求刑↔量刑弁論）。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-mark="弁護人は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>被告人の明示した意思に反しても上訴できる</span><span class='tx-stmt-fix'>→ 356条により明示した意思に反してはできない</span>。<span class='tx-anscomp-line'>原審における代理人又は弁護人は、被告人のため上訴をすることができる（刑訴法355条）が、この上訴は<strong>被告人の明示した意思に反して</strong>これをすることができない（同法356条）。355条の上訴権は被告人の上訴権に基づく包括代理権にとどまるからである。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>356条＝353条ないし355条の上訴は、被告人の明示した意思に反してこれをすることができない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>これらの上訴権は被告人の上訴権に基づく包括代理権で、本権不行使の明示意思があれば代理権も消滅する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>355条の原審の弁護人による上訴を含め、353条〜355条の上訴が対象。上訴の最終決定権は被告人本人。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>弁護人に上訴権があること（355条）と、その行使が本人の明示意思で縛られること（356条）は別問題。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「本人のため＝本人の意思に反してもよい」ではない。権限の有無と行使の限界を切り分ける。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="公判は、人定質問や起訴状の朗読といった冒頭手続で幕を開け、続いて証拠調べ、当事者の意見陳述、判決へと進む。その証拠調べの入り口に置かれるのが<b>冒頭陳述</b>で、これから何をどの証拠で証明するのかという見取り図を先に示す手続である。冒頭陳述は証拠そのものではなく主張の予告にすぎないが、これがあるから裁判所は審理の見通しを立てられ、被告人も何に備えればよいかが分かる。だから296条本文は検察官に対し、証拠により証明すべき事実を明らかに<b>しなければならない</b>と、義務の形で書いている。もっとも同条ただし書は、取り調べを請求する意思のない資料に基づいて裁判所に<b>予断</b>を生じさせるおそれのある事項を述べることを禁じており、見取り図はあくまで証拠に裏づけられた範囲にとどまる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>検察官は事件の筋を時系列で語り、弁護人はそこで示された立証の構造を聞き取って争点を絞り込む。冒頭陳述で語られた事実が後の証拠調べで出てこなければ、弁論でその穴を突かれることになる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1966年の事件で死刑が確定し、2014年に釈放された袴田巌さんの再審公判は、2023年に静岡地裁で開かれた。その法廷でも、検察官が有罪立証を維持する方針を述べる冒頭陳述から証拠調べが動き出している。</span>" data-brief-mark="検察官は、証拠調べのはじめに、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>証明すべき事実を明らかにしなければならない</span>（296条本文＝冒頭陳述）。<span class='tx-anscomp-line'>検察官は、証拠調べのはじめに、証拠により証明すべき事実を明らかにしなければならない（刑訴法296条本文）。これは<strong>冒頭陳述</strong>であり、裁判所に審理方針樹立の資料を与え、被告人の防御に資する趣旨である。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>296条本文＝検察官は、証拠調べのはじめに、証拠により証明すべき事実を明らかにしなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>証拠調べの冒頭で審理の見取り図を示し、裁判所の審理方針樹立・証拠の関連性判断に資し、被告人の防御にも資する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官の冒頭陳述は義務（「しなければならない」）で、ただし書は証拠にできない資料での予断喚起を禁じる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「証拠調べのはじめに」＝証拠調べの冒頭であり、公判冒頭手続とは別の場面。時系列の位置を条文どおり押さえる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>冒頭陳述は主張の予告。証拠調べ前に両当事者が見取り図を示す構造を、316条の30（被告人側）と対で押さえる。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="争点と証拠をあらかじめ絞り込む<b>公判前整理手続</b>に付された事件では、被告人の側にも主張を表に出すことが求められる。316条の30は、被告人又は弁護人に事実上・法律上の主張があるときは、検察官の冒頭陳述に<b>引き続き</b>これを明らかにしなければならないと定める。置かれる位置は証拠調べに入る前であって、証拠がひととおり出そろった後ではない。趣旨は、双方の見取り図を先に並べて争点を固定し、連日開廷の集中審理に耐える審理計画を作ることにある。通常の事件では被告人側の冒頭陳述が必ず行われるわけではなく、<b>整理手続に付されたこと</b>が主張を明示する義務を生む、という作りになっている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は整理手続の段階で主張を出すか伏せるかの判断を迫られる。手続が終わった後はやむを得ない事由がなければ証拠調べを請求できなくなる（316条の32第1項）ため、出し惜しみが後で効かなくなることもある。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2009年8月3日、東京地裁で日本初の裁判員裁判が開かれた。裁判員裁判の対象事件は必ず公判前整理手続に付される（裁判員法49条）ため、この法廷でも検察官の冒頭陳述に弁護人の冒頭陳述が続き、そのうえで証拠調べに入る流れがとられている。</span>" data-brief-mark="公判前整理手続事件の被告人側の冒頭陳述について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>検察官請求証拠の取調べ後に明らかにする</span><span class='tx-stmt-fix'>→ 296条の手続に引き続き（＝冒頭陳述の直後）</span>。<span class='tx-anscomp-line'>公判前整理手続に付された事件については、被告人又は弁護人は、証拠により証明すべき事実その他の事実上及び法律上の主張があるときは、<strong>296条の手続に引き続き</strong>（＝検察官の冒頭陳述の直後）、これを明らかにしなければならない（刑訴法316条の30）。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の30前段＝被告人側の主張は『第296条の手続に引き続き』これを明らかにしなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>争点を早期に明示させ、公判前整理手続で整理した争点・証拠に沿った計画的・集中的審理を実現する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公判前整理手続に付された事件の被告人・弁護人の冒頭陳述の時期を定める。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「296条の手続」＝検察官の冒頭陳述。その直後（証拠調べ前）であって、証拠取調べ後ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「〜の手続に引き続き」型は、引かれた条文が何の場面かを確定してから時期・順序を読む。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="証拠調べが終わると、当事者が事実と法律の適用について意見を述べる段階に入る。293条は、1項で検察官の意見陳述を<b>義務</b>とし、2項で被告人・弁護人については意見を述べることが<b>できる</b>と権利の形で置いていて、立場の違いが語尾に表れている。検察官は訴追する一方の当事者でありながら、同時に<b>公益の代表者</b>（検察庁法4条）として、被告人に有利な事情からも目をそらさない客観的な立場を求められる。だから証拠を調べ切った結果として有罪の確信が持てなければ、論告で無罪や公訴棄却が相当だと述べる道が開かれている。求刑はこの意見の一部にすぎず、必ず有罪を求めなければならないという縛りはない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>証拠が崩れたときは訴因変更や訴因の一部撤回で着地点を探るのが通常で、法廷で無罪を求める論告は例外的な場面に限られる。それでも意見が有罪一択でないことが、検察官の証拠評価の公正さを支えている。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>袴田事件の再審公判で、検察官は有罪立証を続け、2024年5月の論告で改めて死刑を求刑した。無罪の意見を述べる道は制度として開かれていたが、検察側はそれを選ばず、同年9月26日に静岡地裁が言い渡したのは無罪判決だった。</span>" data-brief-mark="検察官は論告において、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>被告人が無罪である旨の陳述をしてはならない</span><span class='tx-stmt-fix'>→ 無罪の意見を述べることも許される</span>。<span class='tx-anscomp-line'>証拠調べが終わった後、検察官は、事実及び法律の適用について意見を陳述しなければならない（刑訴法293条1項）。検察官は<strong>公益の代表者</strong>（検察庁法4条）として公平な立場で論告を行うから、証拠上相当であれば無罪・免訴・公訴棄却の意見を述べることも許される。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>293条1項＝証拠調べが終わった後、検察官は事実及び法律の適用について意見を陳述しなければならない（論告）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>検察官は公益の代表者（検察庁法4条）として、当事者的立場にとらわれず公平な立場で意見を述べるべきもの。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>論告の結論は有罪主張に限られず、無罪・免訴・公訴棄却の意見を述べるべき場合もある。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>検察官は訴追側の一方当事者であると同時に公益の代表者。無罪意見を禁じる理由はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>検察官の客観義務（被告人に有利な証拠の収集・被告人のための上告等）と一貫させて理解する。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="論告に続く<b>弁論</b>は、被告人と弁護人が事実と法律の適用について意見を述べる場で、293条2項はこれを権利として認めている。述べてよい範囲は検察官の論告に対応すると考えられており、検察官が懲役何年が相当だという具体的な刑を求められる以上、向かい側に立つ弁護人も刑の中身に踏み込んでよい。<b>求刑</b>にも量刑についての弁論にも裁判所を縛る力はなく、どちらも判断の材料として差し出される意見にすぎない。刑を決めるのは裁判所だという<b>判断権</b>の話と、当事者が意見を述べてよいかという陳述の自由の話は、層が違う。有罪を争わない事件では、弁論の重心は事実の否認ではなく、執行猶予が相当だといった刑の中身の議論へ移っていく。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は示談の成立や被害弁償、監督者の確保といった情状を積み上げ、執行猶予や求刑より軽い刑を具体的に求める。裁判所は求刑に縛られないが、判決がその枠の内側に収まることは多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>袴田事件の再審公判では、弁護側の弁論は刑の重さではなく無罪を求めるものだった。検察官が死刑という具体的な刑を挙げる場である以上、向かい側も刑の中身に踏み込める場であり、有罪を争わない事件では執行猶予が相当だという意見がこの枠に置かれる。</span>" data-brief-mark="弁護人は弁論において、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>具体的な刑の内容を陳述してはならない</span><span class='tx-stmt-fix'>→ 陳述することも許される</span>。<span class='tx-anscomp-line'>被告人及び弁護人は、証拠調べが終わった後、意見を陳述することができる（刑訴法293条2項）。弁論の範囲は検察官の論告に対応するところ、検察官は<strong>求刑</strong>として具体的刑罰の種類・量についての意見を述べうる（最判昭24.3.17）から、弁護人も具体的な刑の内容を陳述することが許される。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>293条2項＝被告人及び弁護人は、意見を陳述することができる（弁論）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>弁論の範囲は相手方の論告に対応（事実及び法律の適用）すべきものと解される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官が具体的な刑（求刑）を述べうる（最判昭24.3.17）以上、弁護人も具体的な刑の内容を陳述できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>量刑の判断権は裁判所だが、当事者が量刑の意見を述べる自由とは別問題。求刑と対称に弁論も可。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>論告と弁論を対称の当事者活動として捉える（求刑↔量刑弁論）。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="上訴するかどうかを決める力は、まず被告人本人にある。刑訴法はそのうえで、法定代理人や保佐人（353条）、原審の代理人・弁護人（355条）にも<b>被告人のため</b>上訴する道を開き、本人が動けない場面でも短い上訴期間を空費しないようにしている。ただし356条は、これら<b>前三条</b>の上訴について、被告人の明示した意思に反してすることができないと定める。与えられているのは本人の上訴権を代わりに行使する<b>包括代理権</b>であって、本人から独立した固有の権利ではないからである。上訴すれば判決の確定は遅れ、身体の拘束や負担も続くのだから、最終的な決断は本人に残す、という価値判断がこの並びに表れている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>控訴の申立期間は14日と短いため、弁護人は判決直後に本人の意思を確かめ、迷いがあるときはひとまず申し立てて後で取り下げる運用もとられる。取下げの段階でも本人の意思が問題になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2024年9月26日、静岡地裁は袴田事件の再審で無罪を言い渡し、控訴するかどうかの判断は検察側に委ねられた。同年10月に控訴を断念する判断が示され、無罪が確定している。上訴するかしないかの決断を誰が握るかで、手続はそこで終わるか続くかが分かれる。</span>" data-brief-mark="弁護人は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>被告人の明示した意思に反しても上訴できる</span><span class='tx-stmt-fix'>→ 356条により明示した意思に反してはできない</span>。<span class='tx-anscomp-line'>原審における代理人又は弁護人は、被告人のため上訴をすることができる（刑訴法355条）が、この上訴は<strong>被告人の明示した意思に反して</strong>これをすることができない（同法356条）。355条の上訴権は被告人の上訴権に基づく包括代理権にとどまるからである。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>356条＝353条ないし355条の上訴は、被告人の明示した意思に反してこれをすることができない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>これらの上訴権は被告人の上訴権に基づく包括代理権で、本権不行使の明示意思があれば代理権も消滅する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>355条の原審の弁護人による上訴を含め、353条〜355条の上訴が対象。上訴の最終決定権は被告人本人。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>弁護人に上訴権があること（355条）と、その行使が本人の明示意思で縛られること（356条）は別問題。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「本人のため＝本人の意思に反してもよい」ではない。権限の有無と行使の限界を切り分ける。</p></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6438,16 +6597,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6482,7 +6656,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6495,6 +6674,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6503,12 +6683,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

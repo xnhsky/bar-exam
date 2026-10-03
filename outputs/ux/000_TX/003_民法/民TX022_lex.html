@@ -5583,7 +5583,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5604,9 +5628,281 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5898,7 +6194,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者がした売買契約は、親権者の同意を得ないでした場合であっても、その契約が日常生活に関するものであるときは、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>取り消すことができない</span><span class="tx-stmt-fix">→ 未成年者に日常生活行為の特則はなく、取り消すことができる</span>。<span class="tx-anscomp-line">日常生活に関する行為について取消しを排除する特則は<strong>成年被後見人（9条ただし書）に固有</strong>であり、未成年者には同様の規定がない。親権者の同意を得ない未成年者の売買契約は、日常生活に関するものであっても5条2項により取り消すことができる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。制限行為能力者はどの類型も「日常の買い物くらいは有効」だろう、と思いたくなる。でも<strong>日常生活に関する行為だから取り消せない</strong>という特則（取消しを外す例外）が置かれているのは<a class="ref-stat" id="ref-law-9-101" href="#bref-1-9">9条ただし書</a>＝<strong>成年被後見人だけ</strong>。未成年者には同じ規定がなく、<a class="ref-stat" id="ref-law-5-101" href="#bref-1-5">5条</a>は親権者の同意なき法律行為を（日常生活行為かどうかを問わず）取り消せるとする。だから「取り消すことができない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">日常行為の特則は<strong>成年被後見人</strong>だけにあり、未成年者の契約は取り消せる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">包括的に保護する類型</span><span class="tx-gist-step">特定の行為だけ同意が要る類型</span><span class="tx-gist-step">取消権が消える期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">未成年者が親権者の同意なくした日常の買い物は、取り消せないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年者が、親権者に相談しないまま自分で店へ行き、文房具や参考書を買ってきました。数百円から数千円ほどの、暮らしの中でごく当たり前にある買い物です。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">判断が十分でない人を守るため、同意のない契約は取り消せます。しかし日用品の購入のような<strong>日常生活に関する行為</strong>まで取り消せるとすると、売った店の側も落ち着きません。そこで取消しを外す特則が置かれているのですが、それはどの類型に用意されているのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">取消しを外す特則は<a class="ref-stat" href="#bref-1-9" id="ref-law-9-101">9条ただし書</a>にあり、これは成年被後見人についての規定です。未成年者を定める<a class="ref-stat" href="#bref-1-5" id="ref-law-5-101">5条</a>には同じ特則が置かれておらず、法定代理人の同意を得ないでした法律行為は、2項によって取り消すことができます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">未成年者には親権者などの保護者がいることが前提で、日常の買い物の必要は、目的を定めて処分を許された財産（5条3項）という別の道で満たせると説明されます。だから日常生活に関する行為を取消しから外す特則までは要らない、という建て付けです。類型ごとに用意された例外の顔ぶれは違います。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>日常生活に関する行為</span></dt><dd>日用品の購入など、暮らしの中で繰り返される小さな取引。成年被後見人については9条ただし書で取消しの対象から外される。</dd></div><div class="tx-gist-term"><dt><span>法定代理人</span></dt><dd>本人に代わって契約などをする権限を法律上与えられた者。未成年者では親権者や未成年後見人がこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">日常生活に関するものであるときは取り消すことができない、としている点が誤りです。この特則は成年被後見人に固有のもので、未成年者の日常生活に関する売買契約も、親権者の同意がなければ5条2項により取り消すことができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>特則の在り処を確かめる</strong><span class="syn-body">「日用品の購入その他日常生活に関する行為はこの限りでない」という取消し排除の特則は、<a class="ref-stat" href="#bref-1-9">9条ただし書</a>にだけ書かれている。これは判断能力を常に欠く<span class="ron-mark freq-high">成年被後見人</span>について、日常の買い物まで取り消すのは本人にも取引社会にも不便だから設けられた例外。</span></p>
 <p><span class="syn-step">2</span><strong>未成年者には投影しない</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-5">5条</a>は1項で親権者等の同意を要求し、2項で同意なき行為の取消しを認める。日常生活行為を取消しから外す規定は無い。未成年者は親権者・後見人という保護者の存在が前提で、処分を許された財産（5条3項）等の別ルートで日常の必要は満たせるため、9条ただし書のような特則は不要とされる。よって未成年者の日常生活に関する売買契約も、同意がなければ<span class="case-emphasis freq-high">取り消すことができる</span>。</span></p> </div>
@@ -5945,7 +6241,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人がした売買契約は、成年後見人の同意を得てした場合であっても、その契約が日常生活に関するものであるときを除き、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>取り消すことができる</span>。<span class="tx-anscomp-line">成年後見人には同意権がなく、成年被後見人の法律行為は同意を得てしても<strong>取り消すことができる</strong>（9条本文）。ただし日用品の購入その他日常生活に関する行為はこの限りでない（9条ただし書）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。保佐人・補助人のように、後見人の同意を得ればもう取り消せないのでは、と思える。でも<a class="ref-stat" id="ref-law-9-201" href="#bref-2-9">9条本文</a>は成年被後見人の法律行為を端的に「取り消すことができる」とし、後見人には<strong>同意権が与えられていない</strong>。判断能力を常に欠くのが通常で、同意どおりの行為をする保証がないからだ。だから同意を得ても取り消せる。ただし<strong>日常生活に関する行為</strong>は9条ただし書で取消しの対象外。記述はこの例外も正しく除いているから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">後見人には<strong>同意権</strong>がなく、同意を得た契約も取り消すことができる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">包括的に保護する類型</span><span class="tx-gist-step">特定の行為だけ同意が要る類型</span><span class="tx-gist-step">取消権が消える期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">成年後見人が同意していれば、その契約はもう取り消せなくなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">成年被後見人が高額な品物を買うにあたり、成年後見人が事前に「それなら構わない」と同意したうえで契約したとします。保護者のお墨付きがある以上、もう取り消せないようにも見えます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">被保佐人や被補助人では、保護者の<strong>同意</strong>を得た行為はもう取り消せません。同じ理屈が成年被後見人にも及ぶのか、それとも後見だけ扱いが違うのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-2-9" id="ref-law-9-201">9条本文</a>は、成年被後見人の法律行為は取り消すことができる、と端的に定めるだけで、後見人に同意権を与える規定を置いていません。保佐の13条1項・補助の17条1項にある「その同意を得なければならない」に当たる条文が、後見には無いのです。だから同意を得ても取消権は残ります。ただし日用品の購入その他日常生活に関する行為は、9条ただし書で取消しの対象から外れます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">成年被後見人は、物事の道理をわきまえる力を欠くのが通常の状態だとされます。事前に同意を与えても、そのとおりに行動することを期待できないので、同意によって行為を有効にするという保護の仕方が、はじめから採られていないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>同意権</span></dt><dd>保護者が事前に同意を与えることで、本人の行為を取り消せないものにする権限。保佐人（13条1項）と補助人（17条1項）にはあり、成年後見人には無い。</dd></div><div class="tx-gist-term"><dt><span>成年被後見人</span></dt><dd>精神上の障害により事理を弁識する能力を欠く常況にあるとして、後見開始の審判を受けた者。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">後見人の同意を得てしても取り消せるとし、そのうえで日常生活に関する行為を除いている点が、9条の本文とただし書の双方に合っています。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>後見に同意権規定が無いことを確かめる</strong><span class="syn-body">保佐（<a class="ref-stat" href="#bref-2-13">13条</a>）・補助（<a class="ref-stat" href="#bref-2-17">17条</a>）には「保護者の同意を得なければならない」旨の規定があるのに、後見（9条）にはこれが無い。成年被後見人は<span class="ron-mark freq-high">意思能力を欠くことが多く、同意を与えても同意どおり行為することが期待できない</span>ため、同意を前提とする保護方式が採られていない。</span></p>
 <p><span class="syn-step">2</span><strong>同意があっても結論は変わらない</strong><span class="syn-body">後見人の同意には行為を有効にする効力がない。よって成年被後見人の売買契約は、後見人の同意を得ていても<span class="case-emphasis freq-high">取り消すことができる</span>。もっとも<a class="ref-stat" href="#bref-2-9">9条ただし書</a>により、日用品購入その他<span class="ron-mark freq-high">日常生活に関する行為</span>は取り消せない。記述はこの限定を正しく付しているので正しい。</span></p> </div>
@@ -5991,7 +6287,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>被保佐人がした保証契約は、保佐人の同意を得てした場合には、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>取り消すことができない</span>。<span class="tx-anscomp-line">保証は保佐人の同意を要する行為（13条1項2号「借財又は保証をすること」）に当たり、<strong>保佐人の同意を得てした保証契約は取り消すことができない</strong>（13条4項の反対解釈）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。制限行為能力者の行為は取り消せるのが原則だから、被保佐人の保証も取り消せそう、と思える。でも被保佐人は<strong>13条1項が列挙する重要行為だけ</strong>保佐人の同意を要し、同意を得てした行為はもう取り消せない。保証は<a class="ref-stat" id="ref-law-13-301" href="#bref-3-13">13条1項2号「借財又は保証をすること」</a>にはっきり挙がっているから、保佐人の同意を得てした保証契約は<strong>取り消すことができない</strong>。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>保証</strong>は13条1項が挙げる要同意行為で、同意があれば取り消せない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">包括的に保護する類型</span><span class="tx-gist-step is-now">特定の行為だけ同意が要る類型</span><span class="tx-gist-step">取消権が消える期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">被保佐人が保佐人の同意を得てした保証契約は、なお取り消せるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">被保佐人が、知人の借金について保証人になってほしいと頼まれました。保佐人に相談して同意をもらったうえで、保証契約を結んだとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">保証は、他人の借金を自分が背負うことになりかねない重い約束です。被保佐人がこれをするには保佐人の<strong>同意</strong>が要るのか、そして同意を得た後になお取り消せるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">被保佐人は原則として自分ひとりで有効に契約でき、同意が要るのは13条1項が挙げた行為だけです。保証は<a class="ref-stat" href="#bref-3-13" id="ref-law-13-301">13条1項2号「借財又は保証をすること」</a>に明記されています。そして13条4項が取消しを認めるのは「その同意又はこれに代わる許可を得ないでした」行為なので、同意を得てした保証契約は取り消せません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">保佐は、本人の自己決定をできるだけ尊重しつつ、財産を大きく減らしかねない行為にだけ保護をかける仕組みだと説明されます。だから保護の網は13条1項の列挙に絞られ、その網の中の行為であっても、保佐人が同意したのなら本人を守る必要がなくなるので、契約は完全に有効になります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>被保佐人</span></dt><dd>精神上の障害により事理を弁識する能力が著しく不十分だとして、保佐開始の審判を受けた者。</dd></div><div class="tx-gist-term"><dt><span>保証</span></dt><dd>主たる債務者が支払わないときに、代わって支払う義務を負う契約。13条1項2号で保佐人の同意を要する行為とされている。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">保証を同意が要る行為と捉え、同意があれば取り消せないとしている点が、13条1項2号と4項のとおりです。同意も、同意に代わる家庭裁判所の許可も得ないでしたときは、取り消すことができます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>保証を13条1項の列挙に位置づける</strong><span class="syn-body">被保佐人は原則として単独で有効に法律行為ができ、<a class="ref-stat" href="#bref-3-13">13条1項</a>が列挙する重要行為についてだけ保佐人の同意を要する。保証は<span class="ron-mark freq-high">2号「借財又は保証をすること」</span>に明記されている典型の要同意行為。</span></p>
 <p><span class="syn-step">2</span><strong>同意があれば取消権は生じない</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-13">13条4項</a>は「保佐人の同意…を得ないでした」行為を取り消せるとする。反対解釈すれば、<span class="case-emphasis freq-high">同意を得てした行為は取り消せない</span>。保佐人の同意を得た保証契約は完全に有効で、取消しの余地がない。よって記述は正しい。</span></p> </div>
@@ -6035,7 +6331,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>被補助人が、補助人の同意を得なければならない行為を、その同意又はこれに代わる家庭裁判所の許可を得ないでしたときは、その行為は<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>取り消すことができる</span>。<span class="tx-anscomp-line">補助人の同意を得なければならない行為であって、その同意又はこれに代わる許可を得ないでしたものは、<strong>取り消すことができる</strong>（17条4項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。補助はいちばん軽い保護類型だから取消しまでは認められないのでは、と迷うかもしれない。でも<a class="ref-stat" id="ref-law-17-401" href="#bref-4-17">17条4項</a>は、補助人の同意を要する行為を「その同意又はこれに代わる家庭裁判所の許可を得ないでした」場合に、その行為を<strong>取り消すことができる</strong>と正面から定める。記述は条文そのままだから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">同意も代わりの許可も無い要同意行為は、<strong>17条4項</strong>で取り消せる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">包括的に保護する類型</span><span class="tx-gist-step is-now">特定の行為だけ同意が要る類型</span><span class="tx-gist-step">取消権が消える期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">いちばん軽い保護類型である補助でも、取消しまで認められるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">家庭裁判所の審判で、不動産を売るには補助人の同意が要ると定められた被補助人が、誰にも相談しないまま自宅を売ってしまいました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">補助は、判断能力の衰えがいちばん軽い人のための類型です。保護が薄いぶん効果も助言どまりで、<strong>取消し</strong>までは認められないのではないか、と迷うところです。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-17" id="ref-law-17-401">17条4項</a>は、補助人の同意を得なければならない行為であって、その同意又はこれに代わる許可を得ないでしたものは取り消すことができる、と正面から定めています。保佐の13条4項とまったく同じ形の規定です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">補助で薄いのは保護の範囲であって、保護の強さではないと説明されます。同意が要る行為は審判で選ばれた特定の法律行為だけに絞られますが（17条1項）、いったんその網に入った行為については、保佐と同じく取消しという強い効果が与えられます。なお補助人が理由なく同意しないときは、本人が家庭裁判所に同意に代わる許可を求められます（17条3項）。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>被補助人</span></dt><dd>精神上の障害により事理を弁識する能力が不十分だとして、補助開始の審判を受けた者。</dd></div><div class="tx-gist-term"><dt><span>同意に代わる許可</span></dt><dd>保護者が本人の利益を害するおそれがないのに同意しないとき、家庭裁判所が同意の代わりに与える許可（17条3項・13条3項）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">同意も代わりの許可も得ないでした要同意行為を取り消せるとしている点が、17条4項の文言そのままです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>補助の同意権は審判で作られる</strong><span class="syn-body">被補助人は原則単独で有効に行為でき、<a class="ref-stat" href="#bref-4-17">17条1項</a>の審判で定められた<span class="ron-mark freq-high">特定の法律行為</span>についてだけ補助人の同意を要する。保佐（13条＝法定列挙）と違い、同意対象は審判で個別に画される。</span></p>
 <p><span class="syn-step">2</span><strong>同意も許可も無ければ取り消せる</strong><span class="syn-body">同意を要する行為を本人が独断でした場合でも、補助人が同意を拒むのが不当なら、本人は家庭裁判所に<span class="case-emphasis freq-high">同意に代わる許可</span>を求められる（17条3項）。しかし<a class="ref-stat" href="#bref-4-17">17条4項</a>は、その<strong>同意も許可も得ないでした</strong>行為を取り消せるとする。被補助人の財産管理を支援する趣旨。記述はこの4項の要件を正確に述べており正しい。</span></p> </div>
@@ -6079,7 +6375,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>成年被後見人の行為であることを理由とする取消権の消滅時効の起算点は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>成年被後見人が行為能力者となった時である</span><span class="tx-stmt-fix">→ 行為能力者となり、かつ当該法律行為がされたことを了知した時</span>。<span class="tx-anscomp-line">取消権の消滅時効の起算点である「追認をすることができる時」（126条）は、取消しの原因となっていた状況が消滅し、かつ取消権を有することを知った時（124条1項）。成年被後見人については、<strong>後見開始の審判が取り消され（行為能力回復）、かつ当該法律行為がされたことを了知した時</strong>である（大判明治39年2月9日）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。取消権は「後見が終わって能力を取り戻した時」から時効が進むと言い切りたくなる。でも取消権の消滅時効の起算点＝<a class="ref-stat" id="ref-law-126-501" href="#bref-5-126">126条の「追認をすることができる時」</a>は、<a class="ref-stat" id="ref-law-124-501" href="#bref-5-124">124条1項</a>により<strong>取消しの原因が消滅し、かつ取消権を有することを知った時</strong>。成年被後見人なら、行為能力を回復しただけでは足りず、<strong>問題の法律行為がされたことを了知</strong>して初めて起算する（<a class="ref-case" id="ref-case-taihan-501">大判明39.2.9</a>）。だから「行為能力者となった時」だけとする記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">時効の起算には能力の回復に加え<strong>行為がされたことの了知</strong>が要る。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">包括的に保護する類型</span><span class="tx-gist-step">特定の行為だけ同意が要る類型</span><span class="tx-gist-step is-now">取消権が消える期間</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">取消権の消滅時効は、後見が終わって能力を取り戻した時から走り出すのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">後見開始の審判が取り消され、かつて成年被後見人だった人が行為能力を取り戻しました。ところが、後見が続いていた間に自分の土地が売られていたことを、本人はまだ知りません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">取消権はいつまでも行使できるわけではなく、<strong>消滅時効</strong>にかかります。その5年の数え始めを、能力が戻った時点に置いてよいのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-126" id="ref-law-126-501">126条の「追認をすることができる時」</a>とは、<a class="ref-stat" href="#bref-5-124" id="ref-law-124-501">124条1項</a>にいう、取消しの原因となっていた状況が消滅し、かつ取消権を有することを知った時のことです。判例（<a class="ref-case" id="ref-case-taihan-501">大判明39.2.9</a>）は、成年被後見人について、後見開始の審判が取り消されることと、後見が開始している間にその法律行為がされたことを了知することとの両方がそろった時を起算点としました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">取り消せると気づきようのない人に対して時計を進めるのは酷だからだ、と説明されます。判断能力を欠いていた間の出来事は本人の記憶に残っていないとみるべきで、能力が戻っただけでは、取消権を行使するかどうかを決めようがありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>追認をすることができる時</span></dt><dd>取消しの原因となっていた状況が消滅し、かつ取消権を有することを知った時（124条1項）。126条の5年の起算点でもある。</dd></div><div class="tx-gist-term"><dt><span>消滅時効</span></dt><dd>権利を行使しないまま一定の期間が過ぎることで、その権利が消える制度。取消権は5年で、行為の時から20年でも消える（126条）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">起算点を行為能力者となった時だけに置いている点が誤りです。正しくは、行為能力を回復し、かつその法律行為がされたことを了知した時から5年を数えます（このほかに、行為の時から20年という期間もあります）。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>起算点の条文を辿る</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-126">126条</a>は取消権が「追認をすることができる時から5年」で時効消滅するとし、その<span class="ron-mark freq-high">「追認をすることができる時」</span>は<a class="ref-stat" href="#bref-5-124">124条1項</a>で「取消しの原因となっていた状況が消滅し、かつ、取消権を有することを知った」時と定義される。単なる能力回復では足りない。</span></p>
 <p><span class="syn-step">2</span><strong>成年被後見人への当てはめ</strong><span class="syn-body">判例（<a class="ref-case">大判明39.2.9</a>）は、成年被後見人の取消権の消滅時効の起算点を、<span class="case-emphasis freq-high">①後見開始の審判が取り消されること（行為能力の回復）、②後見開始中に問題の法律行為がされたことの了知</span>、の2要件を充足した時とする。心神喪失中の法律行為は記憶していないものとみなされるべきだからだ。よって「行為能力者となった時」だけを起算点とする記述は誤り。</span></p> </div>
@@ -6450,16 +6746,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6494,7 +6805,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6507,6 +6823,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6515,12 +6832,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

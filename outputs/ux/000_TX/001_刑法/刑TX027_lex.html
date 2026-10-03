@@ -5403,6 +5403,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5670,6 +5685,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5960,27 +6210,19 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>事例Ⅰで甲だけが心臓の異常を認識していた場合、条件説・折衷的相当因果関係説からは因果関係が肯定されるが、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>客観的相当因果関係説からは因果関係が否定される</span><span class="tx-stmt-fix">→ 客観説も行為時に存在した全事情を基礎とするため肯定される</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。行為者だけが被害者の隠れた弱さ（素因）を知っていた場面。<a class="ref-stat" href="#bref-1-jyoken">条件説</a>は条件関係だけで肯定、<a class="ref-stat" href="#bref-1-setchu">折衷的相当因果関係説</a>は「行為者が現に知っていた事情」を土台に取り込めるから肯定——ここまでは記述どおり。でも<a class="ref-stat" id="ref-th-kyakkan-a" href="#bref-1-kyakkan">客観的相当因果関係説</a>（＝相当性を判断する土台に<strong>行為当時に存在した全事情</strong>を、誰が予見できたかを問わず置く立場）では、心臓の異常は行為の時に現に存在した事情だから当然に土台に入り、因果関係は<strong>肯定</strong>される。だから「客観説からは否定される」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">客観的相当因果関係説からも、素因を基礎に取り込んで因果関係は<strong>肯定</strong>される。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">条件関係の有無</span><span class="tx-gist-step is-now">相当性の判断基底</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">行為者だけが被害者の素因を知っていた場合、三つの説は因果関係をどう判断するのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">行為者が被害者を後ろから突き飛ばし、被害者は転倒して頭を打ちます。被害者には心臓の異常があって心筋こうそくを起こしやすい状態で、この転倒が引き金となって心筋こうそくが起こり、被害者は死亡しました。行為の時、周囲の一般人にはこの心臓の異常を見抜くことができませんでしたが、行為者はこれを知っていました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">突き飛ばしと死亡とを因果関係で結べるかが問題になります。条件関係があること自体は動きませんので、争点は<strong>相当性</strong>を判断する土台に、被害者の心臓の異常という事情を乗せられるかです。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-1-jyoken">条件説</a>は条件関係だけで足りるとするので肯定します。<a class="ref-stat" href="#bref-1-setchu">折衷的相当因果関係説</a>は、行為者が特に認識・予見していた事情を基礎にできるので、心臓の異常を土台に乗せて肯定します。そして<a class="ref-stat" href="#bref-1-kyakkan" id="ref-th-kyakkan-a">客観的相当因果関係説</a>は、行為当時に存在した事情をすべて基礎とするため、心臓の異常は当然に土台に入り、やはり肯定します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">客観的相当因果関係説でいう客観とは、判断の土台を行為者の頭の中に縛らないという意味だと説明されます。誰が予見できたかを問わず、行為の時に現に存在していた事情を広く土台に置く立場です。被害者の素因はまさに行為の時に存在した事情なので、この立場では土台から外す理由がありません。名称の語感ではなく、各説が土台に何を置くと定義したかで結論が決まります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>素因</span></dt><dd>被害者がもともと持っていた病気や体質など、結果の発生を招きやすくする身体の事情。</dd></div><div class="tx-gist-term"><dt><span>相当性</span></dt><dd>その行為からその結果が生ずることが経験上もっともだと認められること。条件関係に加えて要求される。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">客観的相当因果関係説から否定とする後半がずれる。被害者の素因は行為の時に存在した事情として同説の基礎に入るので、三説とも肯定になる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>三説の判断基底を並べる</strong><span class="syn-body">条件説＝<span class="ron-mark freq-high">条件関係で足りる</span>。折衷説＝一般人が予見できた事情＋<span class="case-emphasis freq-high">行為者が現に認識していた事情</span>を基礎。客観説＝<span class="case-emphasis freq-high">行為時に存在した全事情</span>＋一般人予見可能な行為後事情を基礎。素因（心臓の異常）は「行為時に存在した事情」に位置づけられる。</span></p>
 <p><span class="syn-step">2</span><strong>素因を各説の土台に当てる</strong><span class="syn-body">折衷説は「甲が現に認識していた」ので基礎に取り込め、相当性を認めて<span class="ron-mark freq-high">肯定</span>。客観説は「行為時に存在した全事情」に素因が当然含まれるから、予見可能性を問わず基礎に入り<span class="ron-mark freq-high">肯定</span>。よってA・B・Cすべて肯定となり、「Cから否定」とする本記述は結論を取り違えた誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>客観説の土台は「行為の時に本当にあった事情、全部」。予見できたかは問わない。だから被害者の素因は、客観説では必ず土台に乗る。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>三説の判断基底</strong>：条件説＝条件関係のみ／折衷説＝一般人予見可能＋<a class="ref-stat" href="#bref-1-setchu">行為者の現実の認識</a>／客観説＝<a class="ref-stat" href="#bref-1-kyakkan">行為時の全事情</a>＋一般人予見可能な行為後事情。</li>
-<li><strong>素因の扱い</strong>：行為時に存在した被害者の素因は、折衷説では行為者の現実認識により、客観説では全事情基底により、いずれも相当性の基礎に取り込まれ因果関係は肯定される。</li>
-<li><strong>ひっかけの型</strong>：「客観説は行為者の主観を考慮しないから素因を切り捨てる」と誤解させる。客観説はむしろ行為時の客観的事情を広く取り込むため、素因を基礎に入れて肯定する。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>客観説の土台は行為の時にあった事情は全部、行為の後の事情は一般人が読める分だけ。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-1-jyoken" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件説（因果関係の判断基準）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">その行為がなかったならばその結果が発生しなかったであろうという<span class="ron-mark freq-high">条件関係</span>があれば足り、相当性の判断を要しない。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">突き飛ばさなければ転倒による心筋こうそく死は生じなかったから条件関係があり、条件説では相当性を問わず因果関係を肯定する（記述ア・イ）。</span></div></div></div></details></div>
-<div id="bref-1-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（相当性の判断基底）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に、行為当時<span class="case-emphasis freq-high">一般人に認識・予見可能だった事情</span>及び<span class="ron-mark freq-high">行為者が特に認識・予見していた事情</span>を基礎として相当性を判断する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-youken">基礎の限定</span><span class="kd-text">行為者側で基礎にできるのは「特に認識・予見<strong>していた</strong>」現実の事情であり、認識・予見「できた」にとどまる事情は基礎にできない（記述イの決め手）。</span></div><div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲が現に認識していた心臓の異常は基礎に入り、折衷説でも相当性を認めて肯定（記述ア）。</span></div></div></div></details></div>
-<div id="bref-1-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（相当性の判断基底）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に、行為当時に<span class="ron-mark freq-high">存在した全事情</span>及び行為後の事情のうち一般人に予見可能だったものを基礎として相当性を判断する。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">被害者の心臓の異常は行為時に現に存在した事情ゆえ、予見可能性を問わず基礎に取り込まれ、客観説でも因果関係は肯定される。「客観説から否定」は誤り（記述ア）。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">条件説＝条件関係で足りる／折衷説＝一般人予見可能＋行為者の現実認識を基礎／客観説＝行為時の全事情を基礎。行為時に存在した素因は折衷説（現実認識）でも客観説（全事情）でも基礎に入り、三説とも肯定。本記述は客観説からの否定とする点で誤り。</p>
+<div class="tx-basis-items"><div id="bref-1-jyoken" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件説（因果関係の判断基準）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">その行為がなかったならばその結果が発生しなかったであろうという<span class="ron-mark freq-high">条件関係</span>があれば足り、相当性の判断を要しない。</span></p></div></div>
+<div id="bref-1-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（相当性の判断基底）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に、行為当時<span class="case-emphasis freq-high">一般人に認識・予見可能だった事情</span>及び<span class="ron-mark freq-high">行為者が特に認識・予見していた事情</span>を基礎として相当性を判断する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-youken">基礎の限定</span><span class="kd-text">行為者側で基礎にできるのは「特に認識・予見<strong>していた</strong>」現実の事情であり、認識・予見「できた」にとどまる事情は基礎にできない（記述イの決め手）。</span></div></div></div></details></div>
+<div id="bref-1-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（相当性の判断基底）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に、行為当時に<span class="ron-mark freq-high">存在した全事情</span>及び行為後の事情のうち一般人に予見可能だったものを基礎として相当性を判断する。</span></p></div></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「客観説＝主観を見ない＝素因を無視」という語感の罠。</strong>「客観的」の語から、客観説は被害者の隠れた素因を切り捨てると誤読しやすい。だが客観説の「客観」は<em>判断基底を行為者の主観に縛らず、行為時に存在した客観的事情を広く取り込む</em>という意味で、むしろ素因は必ず基礎に入る。名称の語感ではなく<strong>各説が土台に何を置くと定義したか</strong>で判定する——これは学説対立一般（違法論の行為無価値／結果無価値、故意の認識対象）でも通用する読み方の作法。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body">隣で裏返るのは事情の<strong>時点</strong>の側。客観的相当因果関係説が予見可能性を問わず基礎に取り込むのは<strong>行為の時に存在した</strong>事情（被害者の素因など）で、行為の後に生じた事情は一般人に予見可能なものだけが基礎になるから、素因を行為後の介在事情に置き換えると同じ説から相当性が否定されうる。</span><div class="tx-dgm is-matrix" data-dgm="027-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">同じ事情でも、いつのものかで基礎に入るかが変わる</p><div class="tx-dgm-matrix is-c4"><p class="dgm-cell is-head">事情の時点と予見可能性</p><p class="dgm-cell is-head">折衷的相当因果関係説</p><p class="dgm-cell is-head">客観的相当因果関係説</p><p class="dgm-cell is-head">分かれ目</p><p class="dgm-cell is-rowhead">行為時に存在／一般人は予見不可／行為者が現に認識</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell">行為者の現実認識と行為時の全事情で、どちらの土台にも乗る</p><p class="dgm-cell is-rowhead">行為時に存在／一般人は予見不可／行為者も不認識</p><p class="dgm-cell is-ng">✕ 基礎に入らない</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell">客観説だけが行為時の事情を認識の有無を問わず基礎化</p><p class="dgm-cell is-rowhead">行為後に発生／一般人は予見可能</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell">行為後の事情は一般人の予見可能性が入口になる</p><p class="dgm-cell is-rowhead">行為後に発生／一般人も行為者も予見不可</p><p class="dgm-cell is-ng">✕ 基礎に入らない</p><p class="dgm-cell is-ng">✕ 基礎に入らない</p><p class="dgm-cell">客観説でも行為後は予見可能な分に限られる</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -5998,27 +6240,19 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>事例Ⅰで一般人も甲も認識せず、甲は認識・予見できたにとどまる場合、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>条件説・折衷的相当因果関係説・客観的相当因果関係説のいずれからも因果関係が肯定される</span><span class="tx-stmt-fix">→ 折衷説は行為者が現に認識した事情のみを基礎とするため否定される</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。行為者の認識が「していた」ではなく「<strong>できた（にとどまる）</strong>」にとどまる場面。<a class="ref-stat" href="#bref-2-jyoken">条件説</a>は条件関係だけで肯定、<a class="ref-stat" id="ref-th-kyakkan-b" href="#bref-2-kyakkan">客観的相当因果関係説</a>は行為時の全事情として素因を取り込むから肯定。だが<a class="ref-stat" href="#bref-2-setchu">折衷的相当因果関係説</a>の行為者側の土台は「特に認識・予見<strong>していた</strong>」現実の事情に限られ、「できた」だけでは基礎にできない。すると心臓に異常のない健康な人を突き飛ばしただけと評価され、心筋こうそく死は相当でない＝<strong>否定</strong>。だから「いずれからも肯定」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">折衷的相当因果関係説は<strong>現に認識していた</strong>事情だけを基礎とし、因果関係を否定する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">条件関係の有無</span><span class="tx-gist-step is-now">相当性の判断基底</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">行為者が素因を知り得ただけで現には知らなかった場合、折衷的相当因果関係説は因果関係を認めるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">やはり行為者が被害者を突き飛ばし、転倒が引き金となって心筋こうそくが起こり、被害者は死亡しました。ただし今度は、周囲の一般人にも心臓の異常は見抜けず、行為者も現にはそれを知っていませんでした。注意して見れば気づけたはずだ、という関係にとどまります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">行為者について土台にできるのは、現に知っていた事情に限られるのか、知り得た事情まで含むのか。<strong>折衷的相当因果関係説</strong>の基礎の範囲が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-2-setchu">折衷的相当因果関係説</a>が行為者側で基礎にできるのは、特に認識・予見していた現実の事情だけで、認識・予見できたにとどまる事情は基礎に含めません。すると土台に心臓の異常が乗らず、相当性は否定されます。これに対し<a class="ref-stat" href="#bref-2-jyoken">条件説</a>は条件関係だけで肯定し、<a class="ref-stat" href="#bref-2-kyakkan" id="ref-th-kyakkan-b">客観的相当因果関係説</a>は行為当時に存在した全事情として素因を取り込むので肯定します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">折衷的相当因果関係説は、行為者が自分の行為の危険を測るときに織り込めた事情までを土台にする立場だと説明されます。現に知らなかった事情は、その行為の危険性を測る材料にはならないと考えるのです。土台から素因が落ちると、健康な人を突き飛ばしただけという評価になり、そこから心筋こうそくで死亡するのはもっともだとは言えなくなります。行為者側で決め手になるのは、知っていたか知り得ただけかの一語です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>折衷的相当因果関係説</span></dt><dd>条件関係を前提に、行為当時に一般人が認識・予見できた事情と行為者が特に認識・予見していた事情を基礎として相当性を判断する立場。</dd></div><div class="tx-gist-term"><dt><span>予見可能性</span></dt><dd>その事情や結果を前もって見通すことができたという可能性。現に見通していたこと（現実の認識）とは区別される。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">認識・予見できたにとどまる事情は折衷的相当因果関係説の基礎に入らず同説は否定するので、いずれからも肯定とする点がずれる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>折衷説の行為者側基底は「現実の認識」</strong><span class="syn-body"><a class="ref-stat" href="#bref-2-setchu">折衷説</a>が基礎にするのは、一般人が予見可能な事情と、行為者が<span class="case-emphasis freq-high">特に認識・予見していた事情</span>。「認識・予見することが<span class="ron-mark freq-high">できた</span>」は可能性にすぎず、現に認識していない以上、行為者側の基礎に取り込めない。</span></p>
 <p><span class="syn-step">2</span><strong>基礎に素因が乗らないと相当性は否定</strong><span class="syn-body">一般人も予見不可能・甲も現に不認識だと、折衷説の土台には心臓の異常が入らない。健康な人を突き飛ばしただけでは心筋こうそくを起こして死亡するのは相当とはいえず、折衷説は<span class="ron-mark freq-high">否定</span>。条件説・客観説は肯定するが、折衷説が否定する以上「いずれからも肯定」は誤り。記述アとの分かれ目は<span class="case-emphasis freq-high">「していた」か「できた」か</span>の一語。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>折衷説の行為者側は「現に持っていた知識」だけがカード。「知り得た」は手札に加えられない。知っていた→加える、知り得ただけ→加えない。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>折衷説の基礎の限定</strong>：行為者側で基礎にできるのは<a class="ref-stat" href="#bref-2-setchu">現に認識・予見していた事情</a>のみ。「認識・予見できた」（可能性）は基礎にできない。</li>
-<li><strong>「していた」と「できた」の分岐</strong>：行為者が「認識していた」なら折衷説の基礎に入り肯定、「認識できた」だけなら基礎に入らず折衷説は否定。この一語で折衷説だけが結論を変える。</li>
-<li><strong>ひっかけの型</strong>：「予見できたのだから折衷説でも肯定できる」と誘う。折衷説の行為者側基底は現実の認識であって予見可能性ではない（可能性で足りるのは一般人側の事情）。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>現に知っていた事情は土台に足せる、知り得ただけの事情は足せない（折衷説）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-jyoken" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件説（因果関係の判断基準）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">その行為がなかったならば結果が発生しなかったであろうという<span class="ron-mark freq-high">条件関係</span>があれば足りる。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">突き飛ばしと心筋こうそく死に条件関係がある以上、認識の有無を問わず条件説は肯定する（記述イでも肯定）。</span></div></div></div></details></div>
-<div id="bref-2-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（行為者側基底の限定）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">一般人に予見可能だった事情＋<span class="ron-mark freq-high">行為者が特に認識・予見していた</span>事情を基礎とする。認識・予見「できた」にとどまる事情は基礎に含めない。</span></p></div><details class="tx-basis-more"><summary>＋ 切断点・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-youken">切断点</span><span class="kd-text">「していた」＝現実の認識は基礎に入る（記述ア＝肯定）。「できた」＝予見可能性にとどまるものは基礎に入らない（記述イ＝否定）。</span></div><div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">一般人予見不可能・甲も現に不認識では素因が基礎に乗らず、健康な人への暴行と評価され相当性が否定される。</span></div></div></div></details></div>
-<div id="bref-2-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（行為時の全事情を基礎）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">行為当時に<span class="ron-mark freq-high">存在した全事情</span>を基礎とするため、認識の有無を問わず素因を取り込んで相当性を判断する。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">記述イでも心臓の異常は行為時に存在した事情ゆえ基礎に入り、客観説は肯定する（折衷説だけが否定に振れる）。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">折衷説の行為者側基底は「現に認識・予見していた」事情に限られ、「できた」（可能性）は基礎にできない。記述イは可能性にとどまるため折衷説は否定。条件説・客観説は肯定するので「いずれからも肯定」は誤り。記述アとの差は「していた／できた」の一語。</p>
+<div class="tx-basis-items"><div id="bref-2-jyoken" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件説（因果関係の判断基準）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">その行為がなかったならば結果が発生しなかったであろうという<span class="ron-mark freq-high">条件関係</span>があれば足りる。</span></p></div></div>
+<div id="bref-2-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（行為者側基底の限定）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">一般人に予見可能だった事情＋<span class="ron-mark freq-high">行為者が特に認識・予見していた</span>事情を基礎とする。認識・予見「できた」にとどまる事情は基礎に含めない。</span></p></div><details class="tx-basis-more"><summary>＋ 切断点を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-youken">切断点</span><span class="kd-text">「していた」＝現実の認識は基礎に入る（記述ア＝肯定）。「できた」＝予見可能性にとどまるものは基礎に入らない（記述イ＝否定）。</span></div></div></div></details></div>
+<div id="bref-2-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（行為時の全事情を基礎）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">行為当時に<span class="ron-mark freq-high">存在した全事情</span>を基礎とするため、認識の有無を問わず素因を取り込んで相当性を判断する。</span></p></div></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「予見可能性」と「現実の認識」を混ぜる罪。</strong>折衷説は<em>一般人側は「予見可能性」で足り、行為者側は「現に認識していた」現実の事情に限る</em>という非対称構造をもつ。この二本立てを片方に潰すと、記述ア（していた＝加える）と記述イ（できた＝加えない）の分岐を読み違える。過失犯の「予見可能性」や故意の「認識」も、可能性で足りるのか現実の認識を要するのかで結論が変わる——<strong>可能性レベルか現実レベルか</strong>を切り分ける発想は刑法総論を貫く横串。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body">隣で裏返るのは行為者側の知識を表す<strong>一語</strong>。折衷的相当因果関係説が行為者側の柱に乗せるのは<strong>現に認識・予見していた</strong>事情だけで、認識・予見<strong>できた</strong>にとどまる事情は乗らないから、この一語が入れ替わるだけで同説の答えは肯定と否定の間で動く。可能性のレベルで足りるのか現実の認識を要するのかという切り分けは、過失の予見可能性と故意の認識の対立にも同じ形で現れる。</span><div class="tx-dgm is-matrix" data-dgm="027-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">行為者側の知識を一語変えると折衷的相当因果関係説の答えが動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">折衷的相当因果関係説</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">認識・予見できた → 現に認識・予見していた</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">行為者が特に認識・予見していた事情は基礎に入る<span class="dgm-src">行為者側の柱</span></p><p class="dgm-cell is-rowhead">認識・予見できた → 一般人も予見できた</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">一般人側の柱に乗れば行為者の認識は問わない<span class="dgm-src">一般人側の柱</span></p><p class="dgm-cell is-rowhead">認識・予見できた → およそ認識も予見もできなかった</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell">どちらの柱にも乗らず、素因が土台から落ちる</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6036,28 +6270,20 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>事例Ⅱで一般人は自動車の通行を予見できたが甲は予見できなかった場合、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>条件説・折衷的相当因果関係説・客観的相当因果関係説のいずれからも因果関係が肯定される</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。今度は行為の<strong>後</strong>に自動車が割り込む場面（介在事情）。<a class="ref-stat" href="#bref-3-jyoken">条件説</a>は条件関係があるから肯定。ここで効くのは、折衷説も客観説も<strong>一般人が予見できた事情なら土台にできる</strong>点。放置場所が自動車の通る道だという事情は一般人に予見可能だから、<a class="ref-stat" href="#bref-3-setchu">折衷説</a>では一般人側の基礎として、<a class="ref-stat" id="ref-th-kyakkan-c" href="#bref-3-kyakkan">客観説</a>では一般人予見可能な行為後事情として、いずれも取り込める。すると意識不明者を車道に放置すれば轢かれて死ぬのは相当＝<strong>肯定</strong>。甲本人が予見できなくても結論は変わらないから、「いずれからも肯定」は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>一般人が予見できた</strong>介在事情なら、行為者が知らなくても三説とも肯定する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">条件関係の有無</span><span class="tx-gist-step is-now">相当性の判断基底</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">行為者が予見できなかった介在事情が割り込んだ場合でも、因果関係は肯定されるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">行為者が被害者の頭を鉄パイプで殴り、被害者は脳挫傷で意識不明の重体になりました。行為者は被害者を路上に放置して立ち去り、その直後に通りかかった自動車が被害者をひいて、被害者は内臓破裂で即死します。その路上は自動車の通行がある場所で、一般人ならそのことを予見できましたが、行為者自身は予見できていませんでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">行為の後に運転者の行為が割り込んでいます。この<strong>介在事情</strong>を相当性の土台に乗せられるかが、行為者がそれを予見できていない点との関係で問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-3-setchu">折衷的相当因果関係説</a>の土台は、一般人に認識・予見可能だった事情と行為者が特に認識・予見していた事情の二本立てで、前者だけでも基礎になります。<a class="ref-stat" href="#bref-3-kyakkan" id="ref-th-kyakkan-c">客観的相当因果関係説</a>も、行為後の事情は一般人に予見可能だった範囲で基礎に取り込みます。<a class="ref-stat" href="#bref-3-jyoken">条件説</a>は条件関係だけで肯定します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">一般人が予見できる事情は、その行為が社会の中でどれだけ危険かを測るうえで当然に考慮すべき事情だと説明されます。だから行為者本人が見落としていても、土台から外れることはありません。自動車の通行がある路上に意識のない重傷者を置き去りにすれば、車にひかれて死亡することは十分にありうるので、相当性も認められます。行為者側の認識が決め手になる場面とは、効いている土台の柱が違うのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>介在事情</span></dt><dd>行為の後に割り込んで結果の発生に影響を与えた事情。第三者の行為や被害者自身の行動などがある。</dd></div><div class="tx-gist-term"><dt><span>客観的相当因果関係説</span></dt><dd>条件関係を前提に、行為当時に存在した全事情と行為後の事情のうち一般人に予見可能だったものを基礎として相当性を判断する立場。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">一般人が予見できた介在事情は行為者の不知を問わず基礎になり、条件関係もあるので三説とも肯定で、判断基礎の定義どおり。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>一般人予見可能なら行為者の不知は関係ない</strong><span class="syn-body">折衷説の基礎は「<span class="case-emphasis freq-high">一般人が予見可能な事情</span>＋行為者が現に認識していた事情」。前段だけで足りるから、甲が予見できなくても、自動車通行という一般人予見可能な事情を基礎にできる。客観説も行為後事情のうち<span class="ron-mark freq-high">一般人予見可能なもの</span>を基礎にでき、同じ結論。</span></p>
-<p><span class="syn-step">2</span><strong>相当性を認めて三説とも肯定</strong><span class="syn-body">自動車の通行がある路上に意識不明の重傷者を放置すれば、通行車にひかれて死亡することは<span class="ron-mark freq-high">相当</span>。条件説（条件関係のみ）はもとより、折衷説・客観説も基礎事情から相当性を肯定する。<a class="ref-case" href="#bref-3-nanko">判例（最決平2.11.20）</a>も、介在事情があっても行為の危険が結果へ現実化していれば因果関係を認める。三説とも肯定で本記述は正しい。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>折衷説の土台は二段構え。「一般人が予見できた」だけでOKの段があるから、行為者が知らなくても一般人が読める事情なら乗る。行為者側で決まる場面と一般人側で決まる場面は裏表。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>折衷説の基礎は二本立て</strong>：<a class="ref-stat" href="#bref-3-setchu">一般人予見可能な事情</a>だけでも基礎にできるため、行為者が予見できなくても一般人予見可能なら相当性を基礎づけられる。</li>
-<li><strong>客観説の行為後事情</strong>：<a class="ref-stat" href="#bref-3-kyakkan">行為後の介在事情</a>も、一般人に予見可能だった範囲で基礎に取り込む。自動車通行は予見可能ゆえ肯定。</li>
-<li><strong>ひっかけの型</strong>：「行為者（甲）が予見できなかったから相当性が否定される」と誘う。折衷説の行為者側基底が効くのは行為者だけが知る特別事情の場面で、一般人予見可能な事情はそれと独立に基礎化される。</li>
-</ol>
+<p><span class="syn-step">2</span><strong>相当性を認めて三説とも肯定</strong><span class="syn-body">自動車の通行がある路上に意識不明の重傷者を放置すれば、通行車にひかれて死亡することは<span class="ron-mark freq-high">相当</span>。条件説（条件関係のみ）はもとより、折衷説・客観説も基礎事情から相当性を肯定する。<a class="ref-case" href="#bref-3-nanko">判例（最決平2.11.20）</a>も、介在事情があっても行為の危険が結果へ現実化していれば因果関係を認める。</span></p> </div>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>一般人が読める事情は行為者が知らなくても土台に乗る。落ちるのは誰も読めない事情。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-3-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（一般人側の基礎）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body"><span class="ron-mark freq-high">一般人に予見可能だった事情</span>＋行為者が特に認識・予見していた事情を基礎とする。一般人予見可能な事情は、行為者の認識がなくても基礎になる。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">自動車通行のある路上という事情は一般人予見可能ゆえ、甲が予見できなくても基礎に入り、折衷説でも相当性を肯定する（記述ウ）。</span></div></div></div></details></div>
-<div id="bref-3-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（行為後事情の基礎）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">行為時に存在した全事情＋<span class="ron-mark freq-high">行為後の事情のうち一般人に予見可能だったもの</span>を基礎とする。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">自動車にひかれる介在事情は一般人予見可能な行為後事情として基礎に入り、客観説も相当性を肯定する（記述ウ）。</span></div></div></div></details></div>
-<div id="bref-3-jyoken" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件説（因果関係の判断基準）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係があれば足りる。鉄パイプ殴打・路上放置がなければ轢過による即死はなかったから条件関係があり肯定。</span></p></div><details class="tx-basis-more"><summary>＋ 本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">条件説は相当性を問わず肯定。三説が肯定で一致する（記述ウ）。</span></div></div></div></details></div>
-<div id="bref-3-nanko" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成2年11月20日（大阪南港事件）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">犯人の暴行により被害者の死因となる傷害が形成された場合には、その後に第三者による暴行が加わって死期が早められたとしても、<span class="ron-mark freq-high">犯人の暴行による傷害と死亡との間の因果関係を肯定</span>できる。行為の危険が結果へ現実化したかで判断する。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">介在事情があっても行為の危険が結果に現実化していれば因果関係を認める判例の発想は、意識不明者の車道放置→轢過死という本事案（記述ウ）でも因果関係肯定を支える。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">折衷説・客観説とも一般人予見可能な事情を基礎にできる。自動車通行という一般人予見可能な事情ゆえ、甲が予見できなくても基礎に入り相当性を肯定。条件説も肯定で三説一致。判例（最決平2.11.20）の危険の現実化の発想とも整合する。本記述は正しい。</p>
+<div class="tx-basis-items"><div id="bref-3-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（一般人側の基礎）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body"><span class="ron-mark freq-high">一般人に予見可能だった事情</span>＋行為者が特に認識・予見していた事情を基礎とする。一般人予見可能な事情は、行為者の認識がなくても基礎になる。</span></p></div></div>
+<div id="bref-3-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（行為後事情の基礎）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">行為時に存在した全事情＋<span class="ron-mark freq-high">行為後の事情のうち一般人に予見可能だったもの</span>を基礎とする。</span></p></div></div>
+<div id="bref-3-jyoken" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件説（因果関係の判断基準）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係があれば足りる。鉄パイプ殴打・路上放置がなければ轢過による即死はなかったから条件関係があり肯定。</span></p></div></div>
+<div id="bref-3-nanko" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成2年11月20日（大阪南港事件）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">犯人の暴行により被害者の死因となる傷害が形成された場合には、その後に第三者による暴行が加わって死期が早められたとしても、<span class="ron-mark freq-high">犯人の暴行による傷害と死亡との間の因果関係を肯定</span>できる。行為の危険が結果へ現実化したかで判断する。</p></div></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「行為者が予見できなかった＝相当性なし」と短絡する罠。</strong>記述イでは行為者の不認識が結論を左右したが、記述ウでは<em>一般人が予見できる</em>介在事情なので、行為者の不知は無関係。折衷説の基礎は「一般人予見可能」と「行為者の現実認識」の<strong>二本立て</strong>で、どちらか一方が満たされれば土台に乗る。似た事案でも<strong>効いている基礎がどちらの柱か</strong>を見分けるのが要——過失犯の結果回避可能性や、共犯の因果性でも「誰の予見・認識で決まる話か」を仕分ける横串になる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body">隣で裏返るのは介在事情を<strong>誰が</strong>予見できたかの側。ここで答えを支えているのは一般人側の柱なので、一般人にも予見できない介在事情へ置き換えると、相当性を要求する二説は否定に振れるのに、条件説だけは条件関係があるかぎり肯定のまま残る。</span><div class="tx-dgm is-matrix" data-dgm="027-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">介在事情の予見可能性を変えると、説ごとに答えの分かれ方が違う</p><div class="tx-dgm-matrix is-c4"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">条件説</p><p class="dgm-cell is-head">相当性を要求する二説</p><p class="dgm-cell is-head">分かれ目</p><p class="dgm-cell is-rowhead">行為者は予見できなかった → 行為者も予見していた</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">一般人側の柱で足りるので、行為者側の上乗せは不要</p><p class="dgm-cell is-rowhead">一般人は予見できた → 一般人も予見できなかった</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell is-ng">✕ 否定に振れる</p><p class="dgm-cell">行為後の事情は一般人の予見可能性が入口</p><p class="dgm-cell is-rowhead">放置された路上での轢過 → 条件関係のない別原因による死亡</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell">条件関係は三説に共通する入口</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6075,27 +6301,19 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>事例Ⅱで乙に過失があった場合、乙の行為とVの死亡との因果関係は、条件説からは肯定されるが、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>折衷的相当因果関係説・客観的相当因果関係説からは否定される</span><span class="tx-stmt-fix">→ 付け加え禁止で条件関係を肯定でき、相当性も認められ両説とも肯定される</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。乙にひかれなくても翌日には脳挫傷で死んでいた——この「別の原因でも死んでいた」に引っ張られて、条件関係を否定したくなる場面。でも条件関係の定式は「その行為を<strong>除いて</strong>結果が生じたか」を見るもので、<a class="ref-stat" id="ref-th-teishiki-d" href="#bref-4-teishiki">現実には起きていない別原因（脳挫傷での翌日死）を付け足して判断してはならない</a>（付け加え禁止）。現に乙の轢過が即死をもたらした以上、乙の行為とVの死亡の条件関係は<strong>肯定</strong>。条件説だけでなく、<a class="ref-stat" href="#bref-4-setchu">折衷説</a>・<a class="ref-stat" href="#bref-4-kyakkan">客観説</a>も、条件関係を前提に「自動車でひけば内臓破裂で即死する」のは相当だから<strong>肯定</strong>。だから「折衷説・客観説から否定される」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>付け加え禁止</strong>により条件関係は認められ、相当性を要求する二説も肯定する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">条件関係の有無</span><span class="tx-gist-step">相当性の判断基底</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">別の原因でも翌日には死亡していたという事情は、因果関係を否定する理由になるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">意識不明の重傷者が路上に放置され、通りかかった自動車がこれをひいて、被害者は内臓破裂で即死しました。運転者には過失がありました。ただし、車にひかれなくても被害者は翌日には脳挫傷で死亡していたと認められる、という事情が付いています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">運転行為と死亡との<strong>条件関係</strong>を考えるときに、現実には起きていない翌日の死亡を計算に入れてよいのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">条件関係は、その行為がなかったならばその結果は発生しなかったであろうかを問うものですが、これはその行為だけを取り除く趣旨であり、<a class="ref-stat" href="#bref-4-teishiki" id="ref-th-teishiki-d">他の仮定的な原因を付け加えて判断することは許されません</a>。現に運転行為が即死をもたらしたのですから条件関係は認められ、<a class="ref-stat" href="#bref-4-setchu">折衷的相当因果関係説</a>と<a class="ref-stat" href="#bref-4-kyakkan">客観的相当因果関係説</a>も、自動車でひけば内臓破裂で即死することは相当だとして肯定します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">仮定の原因を足してよいとすると、現に結果を生じさせた行為についてまで因果関係を失わせてしまいます。どうせ死んでいたという事情は、現実に起きた経過を変えるものではないからです。条件関係は、起きた経過からその行為だけを引き算して確かめるものだと説明されます。二つの原因がそれぞれ単独で結果を生じさせる場面のように公式が働かない例もありますが、それは公式の修正で処理される別の問題です。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>条件関係</span></dt><dd>その行為がなかったならばその結果は発生しなかったであろうという関係。因果関係の出発点となる。</dd></div><div class="tx-gist-term"><dt><span>仮定的因果関係</span></dt><dd>現実には結果を生じさせていない別の原因を仮に想定して結果の発生を考えること。条件関係の判断に付け加えてはならない。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">付け加え禁止により条件関係が認められ、即死も相当といえるので、相当性を要求する二説から否定とする点がずれる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>付け加え禁止で条件関係を肯定</strong><span class="syn-body">条件関係は「その行為がなかったならば結果は発生しなかったであろう」で判断するが、これは<span class="case-emphasis freq-high">その行為だけを取り除く</span>意味で、<span class="ron-mark freq-high">他の仮定的原因（翌日の脳挫傷死）を付け加えて判断してはならない</span>。現に乙の轢過で即死した以上、乙の行為を除けばその即死は生じなかったから条件関係は肯定される。条件説はこれで肯定（記述どおり）。</span></p>
 <p><span class="syn-step">2</span><strong>相当性も認められ両説も肯定</strong><span class="syn-body">折衷説・客観説も、条件関係が肯定できることを前提に相当性を判断する。意識不明者を車道に放置した状況で、Vを自動車でひくという乙の過失行為から内臓破裂による即死が生ずることは<span class="ron-mark freq-high">相当</span>。よって折衷説・客観説も因果関係を<span class="ron-mark freq-high">肯定</span>する。仮定的因果関係は条件関係の否定材料にならず、相当性判断でも結論は変わらない。「B・Cから否定」は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「どうせ明日死んでいた」は言い訳にならない。条件関係は現に起きた経過だけで見て、起きていない別の死に方を足し算しない（付け加え禁止）。現に殺したのは、その行為。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>条件関係の定式と付け加え禁止</strong>：「その行為を除いて結果が生じたか」を見る。<a class="ref-stat" href="#bref-4-teishiki">現実に生じていない仮定的原因を付け加えてはならない</a>から、翌日の脳挫傷死を理由に条件関係を否定できない。</li>
-<li><strong>相当性でも肯定</strong>：条件関係を前提に、<a class="ref-stat" href="#bref-4-setchu">折衷説</a>・<a class="ref-stat" href="#bref-4-kyakkan">客観説</a>とも、自動車でひく過失行為から即死が生ずることは相当として肯定する。</li>
-<li><strong>ひっかけの型</strong>：「別の原因でも死んでいたのだから条件関係がない」と誘う。仮定的因果関係（付け加えた別原因）は条件関係の存否に影響しない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>取り除くのは問題にしている行為だけ、起きていない死に方は足さない。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-teishiki" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件関係の定式と付け加え禁止（仮定的因果関係の処理）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">定式</span><span class="hang-body">条件関係は「その行為がなかったならばその結果は発生しなかったであろう」で判断する。これは<span class="case-emphasis freq-high">その行為のみを除く</span>趣旨であり、その行為以外の<span class="ron-mark freq-high">他の仮定的原因を付け加えて判断することは許されない</span>（付け加え禁止）。</span></p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">Vが翌日に脳挫傷で死亡していたとしても、それは仮定的原因であり付け加えてはならない。現に乙の轢過が即死をもたらした以上、乙の行為とVの死亡の条件関係は肯定される（記述エ）。</span></div><div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">条件説はこれで肯定。条件関係が肯定できるので、相当性を要求する折衷説・客観説も相当性を認めて肯定に至る。</span></div></div></div></details></div>
-<div id="bref-4-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（相当性の判断）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に相当性を判断する。条件関係が肯定できる本事案で、自動車でひく過失行為から内臓破裂の即死が生ずることは<span class="ron-mark freq-high">相当</span>ゆえ肯定。</span></p></div><details class="tx-basis-more"><summary>＋ 本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">仮定的因果関係は相当性判断でも否定材料にならず、折衷説も肯定する。「折衷説から否定」は誤り（記述エ）。</span></div></div></div></details></div>
-<div id="bref-4-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（相当性の判断）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に、行為時の全事情等を基礎として相当性を判断する。条件関係が肯定でき、轢過による即死も相当ゆえ<span class="ron-mark freq-high">肯定</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">客観説も肯定する。「客観説から否定」は誤り（記述エ）。三説とも乙の行為とVの死亡の因果関係を肯定する。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">条件関係は「その行為のみを除く」定式で判断し、仮定的原因（翌日の脳挫傷死）を付け加えてはならない（付け加え禁止）。現に乙の轢過が即死をもたらした以上、条件関係は肯定。条件説のみならず折衷説・客観説も相当性を認めて肯定する。本記述は「B・Cから否定」とする点で誤り。</p>
+<div class="tx-basis-items"><div id="bref-4-teishiki" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 条件関係の定式と付け加え禁止（仮定的因果関係の処理）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">定式</span><span class="hang-body">条件関係は「その行為がなかったならばその結果は発生しなかったであろう」で判断する。これは<span class="case-emphasis freq-high">その行為のみを除く</span>趣旨であり、その行為以外の<span class="ron-mark freq-high">他の仮定的原因を付け加えて判断することは許されない</span>（付け加え禁止）。</span></p></div></div>
+<div id="bref-4-setchu" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 折衷的相当因果関係説（相当性の判断）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に相当性を判断する。条件関係が肯定できる本事案で、自動車でひく過失行為から内臓破裂の即死が生ずることは<span class="ron-mark freq-high">相当</span>ゆえ肯定。</span></p></div></div>
+<div id="bref-4-kyakkan" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 客観的相当因果関係説（相当性の判断）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">基底</span><span class="hang-body">条件関係を前提に、行為時の全事情等を基礎として相当性を判断する。条件関係が肯定でき、轢過による即死も相当ゆえ<span class="ron-mark freq-high">肯定</span>。</span></p></div></div></div>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「どうせ別の原因で死んでいた」を条件関係の否定に使う罠。</strong>仮定的因果関係（起きていない別原因）を条件公式に持ち込むと、現に結果を生じさせた行為の条件関係まで否定してしまう。正しくは<em>その行為だけを取り除いて現実の経過を見る</em>（付け加え禁止）。逆に、二つの原因が同時に単独で結果を生じさせる<strong>択一的競合</strong>では公式が機能しないため合法則的条件関係で処理する——「仮定的原因は足さない／同時原因は公式を修正する」という条件関係の扱いは、不作為の因果関係や過失の結果回避可能性まで貫く総論の横串。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body">隣で裏返るのは<strong>取り除く対象</strong>の側。条件関係は問題にしている行為だけを取り除いて現実の経過を見る規律だから、起きていない別の死に方を足して判断すると、現に結果を生じさせた行為の条件関係まで消えてしまう。</span><div class="tx-dgm is-matrix" data-dgm="027-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">条件関係の公式に何を足し引きするかで結論が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">条件関係</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">自動車の運転行為だけを取り除く → 翌日の脳挫傷死を付け加える</p><p class="dgm-cell is-ng">✕ 誤った処理</p><p class="dgm-cell">他の仮定的原因は判断に入れない<span class="dgm-src">付け加え禁止</span></p><p class="dgm-cell is-rowhead">現に即死させた → 二つの原因がそれぞれ単独で同じ結果を生じさせた</p><p class="dgm-cell is-acc">別の処理</p><p class="dgm-cell">択一的競合では公式が働かず、合法則的条件関係で処理する</p><p class="dgm-cell is-rowhead">轢過した運転者 → 死因となる傷害を与えた殴打者</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">死因が形成されていれば死期が早められても肯定<span class="dgm-src">最決平成2年11月20日</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6182,10 +6400,10 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-story="因果関係は、構成要件該当性の中で行為と結果を結ぶ関門で、人が死んだ・傷ついたという結果を要求する犯罪では必ず通る。土台は条件関係で、その上に<b>相当性</b>——その結果が生じるのはもっともだと言えるか——を重ねるかどうかで説が分かれる。相当性を要求する趣旨は、条件関係だけで足りるとすると偶然の結果まで行為者に背負わせることになるので、処罰の範囲を常識の届く広さに絞ることにある。ここで<b>客観的</b>という語は、判断の材料を行為の時に現に存在した事実に取るという意味であって、被害者の身体に隠れている事情を落とすという意味ではない。客観的相当因果関係説はむしろ<b>基礎に置く事情がいちばん広い</b>説で、誰も気づかない持病も、現にあった以上は最初から土台に乗る。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、被害者の身体の事情は司法解剖の結果とカルテ、既往歴の照会で固められる。弁護人は死因が暴行以外にあると争い、検察官は解剖医の証言で暴行と死との結び付きを立てにいく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件（最決平成2年11月20日）では、被告人の暴行によって死因となる傷害が既に生じていた被害者に、大阪南港で第三者の暴行が加わった。後から加わった側にとって、被害者が死に至る傷害を負っているという事情は目に見えない。それでも現に存在してはいた。客観説が土台に乗せるのは、まさにこの種の事情である。</span>" data-brief-mark="事例Ⅰで甲だけが素因を認識していた場合、条件説・折衷説は肯定、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>客観説からは因果関係が否定される</span><span class='tx-stmt-fix'>→ 客観説も行為時の全事情を基礎とし肯定</span>。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>客観的相当因果関係説は、行為当時に存在した全事情を基礎として相当性を判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>相当性判断の客観性を確保するため、予見可能性を問わず行為時の客観的事情を広く基礎に取り込む。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>行為当時に現に存在した被害者の素因（心臓の異常）は、行為時の全事情として客観説の基礎に入る。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>素因は折衷説（行為者の現実認識）でも客観説（全事情）でも基礎に入り、三説とも肯定。「客観説から否定」が誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「客観説＝主観を見ない＝素因を無視」の語感に流されず、各説が土台に置くと定義した事情で判定する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="折衷的相当因果関係説は、相当性を測る土台を二本立てにする。一本は<b>一般人が予見できた事情</b>、もう一本は<b>行為者が現に知っていた事情</b>である。二本目を置く趣旨は、たまたま知っていてそれを利用した者を、何も知らない一般人と同じ扱いにするのは不当だという点にあり、一般人の目線に例外的な上乗せをする窓と考えるとよい。上乗せを正当化しているのは現実に知っているという優越した立場だから、<b>知り得たにとどまる</b>者は一般人と同じ土俵にいて、この窓は開かない。可能性のレベルと現実のレベルを分けるこの読み方は、知り得た（過失）と知っていた（故意）の切り分けと同じ発想で、刑法の各所に顔を出す。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、行為者が持病などの事情を現に知っていたかを、供述のほか同居の有無・通院への付添い・やり取りの履歴といった間接事実で詰める。弁護人は知らなかったを、検察官は知っていたを、この土俵で押し合う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件では、被告人が暴行を加えた時点と、その後に第三者の暴行が加わった時点とが、証拠によって切り分けられている。誰がいつ何を現に知っていたかも、同じようにひとつずつの事実を積み上げてしか決まらない。知り得たはずという評価で、その穴を埋めることはできない。</span>" data-brief-mark="事例Ⅰで一般人も甲も認識せず甲は認識できたにとどまる場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>三説のいずれからも因果関係が肯定される</span><span class='tx-stmt-fix'>→ 折衷説は現に認識した事情のみを基礎とし否定</span>。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>折衷的相当因果関係説の基礎は、一般人に予見可能な事情＋行為者が特に認識・予見していた事情。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>行為者側は現実に有していた事情のみを基礎とし、行為時の行為者の立場から相当性を評価する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>認識・予見「できた」にとどまる素因は基礎にできず、健康な人への暴行と評価され折衷説は否定する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「認識していた」なら基礎に入り肯定、「認識できた」だけなら基礎に入らず折衷説は否定する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>行為者側は現実の認識、一般人側は予見可能性——可能性レベルか現実レベルかを切り分ける。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-story="介在事情の場面では、折衷的相当因果関係説の二本の柱のうち<b>どちらか一本が立てば土台に乗る</b>という構造が効いてくる。行為者が鈍感でその事情に思い至らなかったとしても、<b>一般人が予見できた</b>のであれば、その事情は基礎に入る。原則を一般人の目線に置く趣旨は、行為の危険さは社会一般から見た評価で測るべきもので、行為者本人が気づかなかったからといって現実の危険が小さくなるわけではないからである。そして<b>行為の後に生じた事情</b>は、客観的相当因果関係説であっても一般人が予見できた範囲でしか基礎に入らない。行為の時点にまだ存在しない以上、現に知っていたという柱はそもそも立てようがなく、残るのは予見可能性の柱だけだからである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実況見分では、放置された場所の交通量・見通し・時間帯が写真と図面で残され、その事情を一般人が予見できたかを評価する資料になる。弁護人は人通りのない場所だったと争い、検察官は通行の頻度を数字で示す。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件で挟まったのは、車の通る道路のような予見しやすい事情ではなく、後から加わった第三者の暴行という、一般人にはおよそ見通せない介在だった。相当性という物差しでは測りにくいこの一件が、のちの議論を、行為の危険が結果に現れたかを問う枠組みへと押し出す引き金になっている。</span>" data-brief-mark="事例Ⅱで一般人は自動車通行を予見でき甲は予見できなかった場合、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>三説のいずれからも因果関係が肯定される</span>（一般人予見可能な介在事情）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>折衷説・客観説とも、一般人に予見可能だった事情を相当性判断の基礎にできる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>一般人予見可能な事情は行為者の認識と独立に基礎化され、相当性を客観的に裏づける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>自動車通行のある路上という一般人予見可能な介在事情ゆえ、甲の不知を問わず三説とも肯定。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>行為者側の柱では否定に振れる場面でも、一般人側の柱が立てば肯定する（効いている基礎の柱が違う）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>折衷説の基礎は「一般人予見可能」と「行為者の現実認識」の二本立て。どちらの柱で決まるかを見分ける。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="条件関係は三つの説すべてに共通する入口で、<b>その行為がなかったら結果は生じなかったか</b>を問う。ここで大切なのは、取り除いてよいのは問題にしている行為だけで、起きてもいない原因を足してはいけないという規律（<b>付け加え禁止</b>）である。趣旨は単純で、仮定の原因を足してよいことにすると、人はいつか必ず死ぬのだから、どんな殺害についても因果関係を否定できてしまい、条文が空洞になるからである。しかも相当性を要求する説も、現に起きた経過を前提に評価する。即死という経過をたどった以上、そこに<b>もっともらしさ</b>を欠く飛躍はなく、相当性を求める説でも結論は同じ側へ落ちる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>余命が短かった、持病で近く亡くなる状況だったといった事情は、因果関係を切る材料としては通らず、量刑や情状の場面で扱われるのが通常である。弁護人がここを争うなら、土俵を責任・量刑へ移すことになる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件は、被告人の暴行で死因となる傷害が生じた後、第三者の暴行が加わって死期が早められた、という経過をたどった事件である。どのみち助からなかったのではないか——仮定の話が最も入り込みやすい形だが、条件関係の入口に持ち込めるのは、現に起きた経過のほうだけである。</span>" data-brief-mark="事例Ⅱで乙の行為とVの死亡につき条件説は肯定、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>折衷説・客観説からは因果関係が否定される</span><span class='tx-stmt-fix'>→ 付け加え禁止で条件関係を肯定でき相当性も認められ両説とも肯定</span>。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>条件関係は「その行為がなければ結果は生じなかった」で判断し、他の仮定的原因を付け加えない（付け加え禁止）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>現実に生じた因果経過を評価するため、その行為のみを除去し、起きていない別原因を持ち込まない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>翌日の脳挫傷死は仮定的原因ゆえ付け加えず、現に轢過が即死をもたらした以上、条件関係は肯定される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>条件関係が肯定できる以上、相当性を要する折衷説・客観説も即死は相当として肯定。「折衷説・客観説から否定」が誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>仮定的原因は足さない／択一的競合は公式を修正する——条件関係の扱いは不作為・過失の因果でも貫く。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="因果関係は、構成要件該当性の中で行為と結果を結ぶ関門で、人が死んだ・傷ついたという結果を要求する犯罪では必ず通る。土台は条件関係で、その上に<b>相当性</b>——その結果が生じるのはもっともだと言えるか——を重ねるかどうかで説が分かれる。相当性を要求する趣旨は、条件関係だけで足りるとすると偶然の結果まで行為者に背負わせることになるので、処罰の範囲を常識の届く広さに絞ることにある。ここで<b>客観的</b>という語は、判断の材料を行為の時に現に存在した事実に取るという意味であって、被害者の身体に隠れている事情を落とすという意味ではない。客観的相当因果関係説はむしろ<b>基礎に置く事情がいちばん広い</b>説で、誰も気づかない持病も、現にあった以上は最初から土台に乗る。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、被害者の身体の事情は司法解剖の結果とカルテ、既往歴の照会で固められる。弁護人は死因が暴行以外にあると争い、検察官は解剖医の証言で暴行と死との結び付きを立てにいく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件（最決平成2年11月20日）では、被告人の暴行によって死因となる傷害が既に生じていた被害者に、大阪南港で第三者の暴行が加わった。後から加わった側にとって、被害者が死に至る傷害を負っているという事情は目に見えない。それでも現に存在してはいた。客観説が土台に乗せるのは、まさにこの種の事情である。</span>" data-brief-mark="事例Ⅰで甲だけが素因を認識していた場合、条件説・折衷説は肯定、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>客観説からは因果関係が否定される</span><span class='tx-stmt-fix'>→ 客観説も行為時の全事情を基礎とし肯定</span>。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>客観的相当因果関係説は、行為当時に存在した全事情を基礎として相当性を判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>相当性判断の客観性を確保するため、予見可能性を問わず行為時の客観的事情を広く基礎に取り込む。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>行為当時に現に存在した被害者の素因（心臓の異常）は、行為時の全事情として客観説の基礎に入る。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>素因は折衷説（行為者の現実認識）でも客観説（全事情）でも基礎に入り、三説とも肯定。「客観説から否定」が誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>客観的相当因果関係説の基礎は行為の時に存在した全事情＋行為後は一般人に予見可能な事情で、被害者の素因は予見可能性を問わず基礎に乗る。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="027-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">同じ事情でも、いつのものかで基礎に入るかが変わる</p><div class="tx-dgm-matrix is-c4"><p class="dgm-cell is-head">事情の時点と予見可能性</p><p class="dgm-cell is-head">折衷的相当因果関係説</p><p class="dgm-cell is-head">客観的相当因果関係説</p><p class="dgm-cell is-head">分かれ目</p><p class="dgm-cell is-rowhead">行為時に存在／一般人は予見不可／行為者が現に認識</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell">行為者の現実認識と行為時の全事情で、どちらの土台にも乗る</p><p class="dgm-cell is-rowhead">行為時に存在／一般人は予見不可／行為者も不認識</p><p class="dgm-cell is-ng">✕ 基礎に入らない</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell">客観説だけが行為時の事情を認識の有無を問わず基礎化</p><p class="dgm-cell is-rowhead">行為後に発生／一般人は予見可能</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell is-ok">○ 基礎に入る</p><p class="dgm-cell">行為後の事情は一般人の予見可能性が入口になる</p><p class="dgm-cell is-rowhead">行為後に発生／一般人も行為者も予見不可</p><p class="dgm-cell is-ng">✕ 基礎に入らない</p><p class="dgm-cell is-ng">✕ 基礎に入らない</p><p class="dgm-cell">客観説でも行為後は予見可能な分に限られる</p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="折衷的相当因果関係説は、相当性を測る土台を二本立てにする。一本は<b>一般人が予見できた事情</b>、もう一本は<b>行為者が現に知っていた事情</b>である。二本目を置く趣旨は、たまたま知っていてそれを利用した者を、何も知らない一般人と同じ扱いにするのは不当だという点にあり、一般人の目線に例外的な上乗せをする窓と考えるとよい。上乗せを正当化しているのは現実に知っているという優越した立場だから、<b>知り得たにとどまる</b>者は一般人と同じ土俵にいて、この窓は開かない。可能性のレベルと現実のレベルを分けるこの読み方は、知り得た（過失）と知っていた（故意）の切り分けと同じ発想で、刑法の各所に顔を出す。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、行為者が持病などの事情を現に知っていたかを、供述のほか同居の有無・通院への付添い・やり取りの履歴といった間接事実で詰める。弁護人は知らなかったを、検察官は知っていたを、この土俵で押し合う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件では、被告人が暴行を加えた時点と、その後に第三者の暴行が加わった時点とが、証拠によって切り分けられている。誰がいつ何を現に知っていたかも、同じようにひとつずつの事実を積み上げてしか決まらない。知り得たはずという評価で、その穴を埋めることはできない。</span>" data-brief-mark="事例Ⅰで一般人も甲も認識せず甲は認識できたにとどまる場合、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>三説のいずれからも因果関係が肯定される</span><span class='tx-stmt-fix'>→ 折衷説は現に認識した事情のみを基礎とし否定</span>。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>折衷的相当因果関係説の基礎は、一般人に予見可能な事情＋行為者が特に認識・予見していた事情。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>行為者側は現実に有していた事情のみを基礎とし、行為時の行為者の立場から相当性を評価する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>認識・予見「できた」にとどまる素因は基礎にできず、健康な人への暴行と評価され折衷説は否定する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「認識していた」なら基礎に入り肯定、「認識できた」だけなら基礎に入らず折衷説は否定する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>折衷的相当因果関係説の行為者側の基礎は現に認識・予見していた事情に限られ、認識可能性にとどまる事情は基礎に入らない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="027-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">行為者側の知識を一語変えると折衷的相当因果関係説の答えが動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">折衷的相当因果関係説</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">認識・予見できた → 現に認識・予見していた</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">行為者が特に認識・予見していた事情は基礎に入る<span class="dgm-src">行為者側の柱</span></p><p class="dgm-cell is-rowhead">認識・予見できた → 一般人も予見できた</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">一般人側の柱に乗れば行為者の認識は問わない<span class="dgm-src">一般人側の柱</span></p><p class="dgm-cell is-rowhead">認識・予見できた → およそ認識も予見もできなかった</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell">どちらの柱にも乗らず、素因が土台から落ちる</p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="介在事情の場面では、折衷的相当因果関係説の二本の柱のうち<b>どちらか一本が立てば土台に乗る</b>という構造が効いてくる。行為者が鈍感でその事情に思い至らなかったとしても、<b>一般人が予見できた</b>のであれば、その事情は基礎に入る。原則を一般人の目線に置く趣旨は、行為の危険さは社会一般から見た評価で測るべきもので、行為者本人が気づかなかったからといって現実の危険が小さくなるわけではないからである。そして<b>行為の後に生じた事情</b>は、客観的相当因果関係説であっても一般人が予見できた範囲でしか基礎に入らない。行為の時点にまだ存在しない以上、現に知っていたという柱はそもそも立てようがなく、残るのは予見可能性の柱だけだからである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実況見分では、放置された場所の交通量・見通し・時間帯が写真と図面で残され、その事情を一般人が予見できたかを評価する資料になる。弁護人は人通りのない場所だったと争い、検察官は通行の頻度を数字で示す。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件で挟まったのは、車の通る道路のような予見しやすい事情ではなく、後から加わった第三者の暴行という、一般人にはおよそ見通せない介在だった。相当性という物差しでは測りにくいこの一件が、のちの議論を、行為の危険が結果に現れたかを問う枠組みへと押し出す引き金になっている。</span>" data-brief-mark="事例Ⅱで一般人は自動車通行を予見でき甲は予見できなかった場合、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>三説のいずれからも因果関係が肯定される</span>（一般人予見可能な介在事情）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>折衷説・客観説とも、一般人に予見可能だった事情を相当性判断の基礎にできる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>一般人予見可能な事情は行為者の認識と独立に基礎化され、相当性を客観的に裏づける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>自動車通行のある路上という一般人予見可能な介在事情ゆえ、甲の不知を問わず三説とも肯定。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>行為者側の柱では否定に振れる場面でも、一般人側の柱が立てば肯定する（効いている基礎の柱が違う）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>折衷的相当因果関係説の基礎は一般人の予見可能性と行為者の現実認識の二本立てで、どちらか一本が立てば事情は基礎に乗る。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="027-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">介在事情の予見可能性を変えると、説ごとに答えの分かれ方が違う</p><div class="tx-dgm-matrix is-c4"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">条件説</p><p class="dgm-cell is-head">相当性を要求する二説</p><p class="dgm-cell is-head">分かれ目</p><p class="dgm-cell is-rowhead">行為者は予見できなかった → 行為者も予見していた</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">一般人側の柱で足りるので、行為者側の上乗せは不要</p><p class="dgm-cell is-rowhead">一般人は予見できた → 一般人も予見できなかった</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell is-ng">✕ 否定に振れる</p><p class="dgm-cell">行為後の事情は一般人の予見可能性が入口</p><p class="dgm-cell is-rowhead">放置された路上での轢過 → 条件関係のない別原因による死亡</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell is-ng">✕ 否定</p><p class="dgm-cell">条件関係は三説に共通する入口</p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="条件関係は三つの説すべてに共通する入口で、<b>その行為がなかったら結果は生じなかったか</b>を問う。ここで大切なのは、取り除いてよいのは問題にしている行為だけで、起きてもいない原因を足してはいけないという規律（<b>付け加え禁止</b>）である。趣旨は単純で、仮定の原因を足してよいことにすると、人はいつか必ず死ぬのだから、どんな殺害についても因果関係を否定できてしまい、条文が空洞になるからである。しかも相当性を要求する説も、現に起きた経過を前提に評価する。即死という経過をたどった以上、そこに<b>もっともらしさ</b>を欠く飛躍はなく、相当性を求める説でも結論は同じ側へ落ちる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>余命が短かった、持病で近く亡くなる状況だったといった事情は、因果関係を切る材料としては通らず、量刑や情状の場面で扱われるのが通常である。弁護人がここを争うなら、土俵を責任・量刑へ移すことになる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大阪南港事件は、被告人の暴行で死因となる傷害が生じた後、第三者の暴行が加わって死期が早められた、という経過をたどった事件である。どのみち助からなかったのではないか——仮定の話が最も入り込みやすい形だが、条件関係の入口に持ち込めるのは、現に起きた経過のほうだけである。</span>" data-brief-mark="事例Ⅱで乙の行為とVの死亡につき条件説は肯定、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>折衷説・客観説からは因果関係が否定される</span><span class='tx-stmt-fix'>→ 付け加え禁止で条件関係を肯定でき相当性も認められ両説とも肯定</span>。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>条件関係は「その行為がなければ結果は生じなかった」で判断し、他の仮定的原因を付け加えない（付け加え禁止）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>現実に生じた因果経過を評価するため、その行為のみを除去し、起きていない別原因を持ち込まない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>翌日の脳挫傷死は仮定的原因ゆえ付け加えず、現に轢過が即死をもたらした以上、条件関係は肯定される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>条件関係が肯定できる以上、相当性を要する折衷説・客観説も即死は相当として肯定。「折衷説・客観説から否定」が誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条件関係は問題にしている行為だけを取り除いて現実の経過で判断し、他の仮定的原因を付け加えない（付け加え禁止）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="027-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">条件関係の公式に何を足し引きするかで結論が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">条件関係</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">自動車の運転行為だけを取り除く → 翌日の脳挫傷死を付け加える</p><p class="dgm-cell is-ng">✕ 誤った処理</p><p class="dgm-cell">他の仮定的原因は判断に入れない<span class="dgm-src">付け加え禁止</span></p><p class="dgm-cell is-rowhead">現に即死させた → 二つの原因がそれぞれ単独で同じ結果を生じさせた</p><p class="dgm-cell is-acc">別の処理</p><p class="dgm-cell">択一的競合では公式が働かず、合法則的条件関係で処理する</p><p class="dgm-cell is-rowhead">轢過した運転者 → 死因となる傷害を与えた殴打者</p><p class="dgm-cell is-ok">○ 肯定</p><p class="dgm-cell">死因が形成されていれば死期が早められても肯定<span class="dgm-src">最決平成2年11月20日</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

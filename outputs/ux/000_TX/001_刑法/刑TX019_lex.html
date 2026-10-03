@@ -5399,6 +5399,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5666,6 +5681,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5945,32 +6195,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>利用者標準説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>利用者が被利用者に働き掛けた時点で実行の着手が認められ、店長には殺人未遂罪が成立する</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。他人を道具に使う間接正犯で、「実行行為」を犯人（利用者）自身の働き掛けそのものと見る立場。道具である被利用者の動きは結果に至る<strong>因果経過</strong>（結果へつながる通り道）にすぎないと考えるから、犯人が道具を動かし始めた時点＝店長が従業員に指示した時点で実行の着手があり、殺人未遂罪が成立する。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">利用者標準説では、<strong>働き掛けた時点</strong>で実行の着手が認められる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">利用者標準説</span><span class="tx-gist-step">被利用者標準説</span><span class="tx-gist-step">個別化説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">他人を道具として使う場合、犯罪の実行はいつ始まったといえるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">飲食店の店長が客を殺そうと考え、毒を入れたグラスを用意しました。そして、事情を何も知らない従業員に、そのグラスを客の席へ運ぶよう指示します。店長自身は手を下していませんが、他人を道具のように使って結果を実現しようとしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">この形を間接正犯といいます。犯罪の<strong>実行行為</strong>を、指示を出した利用者の行為とみるのか、それとも実際に動く被利用者の行為とみるのか。ここが決まらないと、実行の着手がいつなのかも決まりません。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">実行行為は利用者の利用行為そのものであり、被利用者の動きは結果へつながる因果経過にすぎない、とみるのが利用者標準説です。この立場では、利用者が被利用者に働き掛けた時点で実行の着手（刑法43条）が認められ、殺人未遂罪（刑法199条、203条）が成立します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">道具として使われる人は、利用者の思いどおりに動く手足のようなものだと考えるからです。手足が動き始めれば、それを動かした本人がもう実行に入っているとみるのが自然だ、と説明されます。だから着手の時点は、道具を動かし始めた働き掛けのところに置かれます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>間接正犯</span></dt><dd>事情を知らない他人などを道具のように利用して、自分の犯罪を実現する正犯の形。</dd></div><div class="tx-gist-term"><dt><span>実行の着手</span></dt><dd>犯罪の実行行為が始まったと評価される時点。これがあれば未遂、なければ予備にとどまる（刑法43条）。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 正しい。実行行為を利用者の利用行為そのものと見る立場の帰結どおりで、働き掛けの時点を着手とし、店長に殺人未遂罪を認める点が対応している。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>実行行為をどこに見るか</strong><span class="syn-body">利用者標準説は、間接正犯の実行行為は<b>利用者の利用行為</b>そのものであり、被利用者（道具）の行為は因果経過にすぎないと解する。よって利用行為の開始が<a class="ref-stat" href="#bref-1-43">実行の着手</a>になる。</span></p>
 <p><span class="syn-step">2</span><strong>本事案への当てはめ</strong><span class="syn-body">事情を知らない従業員に毒入りグラスを運ぶよう<b>働き掛けた時点</b>で実行の着手が認められ、客が死亡しなくても店長に<a class="ref-stat" href="#bref-1-199">殺人未遂罪</a>が成立する。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「道具を握らせた瞬間が着手」──犯人が道具（人）を動かし始めれば、もう実行は始まっている。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>実行行為の所在</strong>：利用者標準説は実行行為を利用者の利用行為そのものと見る（被利用者の行為は因果経過）。</li>
-<li><strong>着手時点</strong>：利用行為の開始＝働き掛けた時点で実行の着手。本事案では殺人未遂罪が成立する。</li>
-<li><strong>ひっかけの型</strong>：道具が動いていなくても着手を認める点をどう評価するかが、次の批判につながる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>道具なら利用者の働き掛けが実行行為、事情を知れば共犯（61条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-1-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の実行に着手してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-1-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂減免（実行の着手）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の実行に着手してこれを遂げなかった者は、その刑を減軽することができる。ただし、自己の意思により犯罪を中止したときは、その刑を減軽し、又は免除する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">実行の着手</span><span class="kd-text">未遂と予備を分ける基準。判例・通説は結果発生の現実的危険性を含む行為の開始を実行の着手とする。間接正犯ではこの時点を利用者・被利用者いずれの行為に置くかで学説が分かれる。</span></div>
 </div></div></details></div>
-<div id="bref-1-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪／201条 殺人予備<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">199</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。（201条：第199条の罪を犯す目的で、その予備をした者は、2年以下の拘禁刑に処する。）</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">利用者標準説では利用行為の開始時に着手を認めるため殺人罪（199条）の未遂が成立する。着手前なら殺人予備罪（201条）にとどまる。</span></div>
-</div></div></details></div>
+<div id="bref-1-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪／201条 殺人予備<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">199</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。（201条：第199条の罪を犯す目的で、その予備をした者は、2年以下の拘禁刑に処する。）</span></p></div></div>
 </div>
-<p style="font-size:.92em; margin-top:6px;">利用者標準説では、利用者の利用行為（働き掛け）の開始時に43条の実行の着手を認め、殺人罪（199条）の未遂が成立する。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「間接正犯は道具を使うから着手も遅い」という思い込みが罠。</strong>利用者標準説はむしろ<em>犯人自身の働き掛け</em>を実行行為と見るため着手はむしろ早い。実行の着手をどちらの主体の行為に置くかで結論が<strong>反転</strong>する分水嶺で、被利用者標準説と<strong>対で</strong>覚えるべき論点である。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>裏返るのは、道具役が事情を知っていた場合である。</strong>従業員が毒入りと知って運べば、その者は道具でなくなるため間接正犯は成立せず、店長は教唆犯（61条1項）にとどまり、正犯である従業員が実行に着手するまで殺人未遂の責任は生じない。基準を被利用者標準説に替えても着手は道具役の行為開始時へ移り、指示どまりは殺人予備罪（201条）になる。</span><div class="tx-dgm is-matrix" data-dgm="019-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">働き掛けだけで止まった場面を、語を入れ替えて見る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">利用者標準説 → 被利用者標準説</p><p class="dgm-cell is-ng">✕ 殺人未遂にならない</p><p class="dgm-cell">着手は道具役の行為開始時。指示どまりは殺人予備<span class="dgm-src">201条</span></p><p class="dgm-cell is-rowhead">事情を知らない従業員 → 毒入りと知って運ぶ従業員</p><p class="dgm-cell is-ng">✕ 殺人未遂にならない</p><p class="dgm-cell">道具でなくなり教唆の問題。正犯が着手するまで未遂は無い<span class="dgm-src">61条</span></p><p class="dgm-cell is-rowhead">利用者標準説 → 個別化説</p><p class="dgm-cell is-acc">別の判断</p><p class="dgm-cell">時点を主体で固定せず、現実的危険性が生じたかで測る</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -5988,30 +6228,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>利用者標準説に対しては、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>利用者にとって偶然の事情によって実行の着手時期が左右されるという批判</span><span class="tx-stmt-fix">→ それは被利用者標準説への批判。利用者標準説には『危険が切迫しない時点で着手を認める』との批判</span>が向けられる。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。批判の宛先が入れ替わっている。利用者標準説は道具が動く前（働き掛けの時点）でも着手を認めるので、「まだ結果発生の危険が差し迫っていない段階で実行の着手を認めてしまう」というのが利用者標準説への批判。これに対し「利用者にとって偶然の事情（道具がいつ動くか）で着手時期が決まる」は、道具の行為開始を基準にする<strong>被利用者標準説</strong>への批判。宛先を取り違えているから誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">利用者標準説への批判は、<strong>危険が切迫しない時点</strong>での着手である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">利用者標準説</span><span class="tx-gist-step">被利用者標準説</span><span class="tx-gist-step">個別化説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">利用者標準説に向けられる批判は、どのような内容のものか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">店長が従業員に指示を出した直後、従業員はまだグラスに手も触れていません。客の身に危険が及ぶ気配は、まだどこにもない段階です。それでも利用者標準説は、もう実行の着手があったとみます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未遂として重く処罰できるのは、結果が起こりそうだという<strong>現実的危険性</strong>が生じたからだ、と考えられています。危険がまだ生まれていない段階で着手を認めてよいのか。ここが弱点として突かれます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">利用者標準説には、被利用者が動く前でも着手を認めることになり、結果発生の危険がなお切迫していない時点で未遂（刑法43条）を認めてしまう、という批判が向けられます。これに対し、利用者にとって偶然の事情で着手時期が左右されるという批判は、被利用者の行為開始を基準とする被利用者標準説へ向けられるものです。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">批判は、その立場が切り捨てたところから来ます。利用者標準説は被利用者の動きを因果経過として切り捨てたので、危険の切迫を軽く見たと突かれます。逆に被利用者標準説は着手の時点を道具の動きに委ねたので、利用者には偶然でしかない事情で未遂か予備かが変わってしまうと突かれるのです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>現実的危険性</span></dt><dd>その行為から結果が実際に起こりそうだといえる危なさ。実行の着手を判断する基準とされる。</dd></div><div class="tx-gist-term"><dt><span>予備</span></dt><dd>実行の着手に至る前の準備段階。殺人については刑法201条が2年以下の拘禁刑で処罰する。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">× 誤り。偶然の事情で着手時期が左右されるという批判は、着手を道具役の行為開始時に置く被利用者標準説へ向かうもので、宛先が入れ替わっている。利用者標準説へ向かうのは、危険がまだ切迫しない時点で着手を認めるという批判である。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>利用者標準説への批判</strong><span class="syn-body">被利用者の行為がなくても利用行為の開始で着手を認めるため、<b>結果発生の危険がなお切迫していない時点</b>でも着手を認めることになる、という点が批判される。</span></p>
 <p><span class="syn-step">2</span><strong>混同しやすい別の批判</strong><span class="syn-body">「利用者にとって偶然の事情で着手時期が決まる」は、<b>被利用者の行為開始</b>を基準にする被利用者標準説への批判。どちらの立場への批判かを主体で切り分ける。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「批判は反対の発想から来る」──早すぎる着手＝利用者説への批判／偶然で決まる＝被利用者説への批判。宛先を逆にしない。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>利用者標準説への批判</strong>：危険が切迫しない時点（道具が動く前）で着手を認めることになる。</li>
-<li><strong>被利用者標準説への批判</strong>：利用者にとって偶然の事情で実行の着手時期が左右される。</li>
-<li><strong>ひっかけの型</strong>：二つの批判を入れ替えて提示する。どちらの立場への批判かを主体で切り分ける。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>早すぎる着手は利用者標準説へ、偶然で決まるは被利用者標準説へ。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂（実行の着手の基準）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の実行に着手してこれを遂げなかった者は、その刑を減軽することができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-2-43" class="tx-basis-item "><div class="tx-basis-head">📜 刑法43条 未遂（実行の着手の基準）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">犯罪の実行に着手してこれを遂げなかった者は、その刑を減軽することができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">危険の切迫</span><span class="kd-text">実行の着手は結果発生の現実的危険性を基準に判断される。利用行為の開始という早い時点に着手を認める利用者標準説には、危険がなお切迫していない段階で着手を認めるとの批判が生じる。</span></div>
 <div class="kd-item"><span class="kd-label r-ate">批判の対応</span><span class="kd-text">利用者標準説への批判＝危険未切迫での着手／被利用者標準説への批判＝利用者に偶然の事情で着手が左右される。両者は反対の立場から向けられる。</span></div>
 </div></div></details></div>
 </div>
-<p style="font-size:.92em; margin-top:6px;">実行の着手は結果発生の現実的危険性を基準に判断されるため、利用行為の開始という早い時点に着手を認める利用者標準説には「危険が切迫しない時点で着手を認める」との批判が向けられる。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>学説への批判は必ず反対の発想から来る。</strong>「早すぎる着手」＝利用者標準説への批判、「偶然で着手が決まる」＝被利用者標準説への批判、と宛先を<strong>対で</strong>固定する。批判の主体を<strong>混同</strong>させて提示するのは学説問題で差がつく典型のひっかけで、二つの批判を対照して押さえる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>批判の宛先を被利用者標準説に替えれば、同じ文がそのまま正しくなる。</strong>着手を道具役の行為開始時に置く立場では、道具役がいつ動くかという利用者の側では決められない事情で着手の時点が動くため、偶然の事情で着手時期が左右されるという批判が当たる。利用者の利用行為を基準にする立場に当たるのは、結果発生の危険がまだ切迫しない時点で着手を認めることになる、という批判である。</span><div class="tx-dgm is-matrix" data-dgm="019-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">どの批判が、どの立場に向かうか</p><div class="tx-dgm-matrix is-c4"><p class="dgm-cell is-head">批判の内容</p><p class="dgm-cell is-head">利用者標準説</p><p class="dgm-cell is-head">被利用者標準説</p><p class="dgm-cell is-head">個別化説</p><p class="dgm-cell is-rowhead">危険がまだ切迫しない時点で着手を認める</p><p class="dgm-cell is-ok">○ この立場への批判</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-rowhead">利用者の側で決められない事情で着手時期が動く</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ok">○ この立場への批判</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-rowhead">着手の時点があらかじめ定まらない</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ok">○ この立場への批判</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6029,29 +6261,19 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>被利用者標準説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>被利用者が被害者の法益を侵害する行為を開始した時点で着手が認められ、店長は殺人予備罪にとどまる</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。現実の危険が生まれるのは道具（被利用者）が動き出したときだ、と考える立場。だから着手は被利用者が被害者の法益を侵害する行為を始めた時点になる。本事案では従業員がまだ客への加害行為に入っていない（グラスを落として頓挫）ため、店長は殺人の実行の着手に至らず<strong>殺人予備罪</strong>にとどまる。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">被利用者標準説では、道具が動くまでは<strong>殺人予備罪</strong>にとどまる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">利用者標準説</span><span class="tx-gist-step is-now">被利用者標準説</span><span class="tx-gist-step">個別化説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">危険の切迫を基準にすると、実行の着手はいつになるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">店長の指示を受けた従業員が、毒入りのグラスを持って客の席へ向かおうとします。ところが途中でグラスを落としてしまい、客に危害を加える行為には入らないまま終わりました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">結果発生の切迫した危険が生まれるのは、道具として使われた人が実際に動き出したときだ、とみるのが<strong>被利用者標準説</strong>です。この立場では、利用者が指示を出しただけの段階をどう扱うかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">被利用者標準説によれば、実行の着手は、被利用者が被害者の法益を侵害する行為を開始した時点に認められます。従業員が加害行為に入る前に頓挫した場合、店長には実行の着手（刑法43条）がなく、殺人予備罪（刑法201条）が成立するにとどまります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">未遂として重く処罰する根拠は、結果が起こりそうな現実の危険が生じたことにあります。指示を出しただけでは、被害者の身にまだ危険は届いていません。危険が現実に動き出すのは道具が動いたときだから、そこまでは準備段階にすぎない、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>殺人予備罪</span></dt><dd>人を殺す目的でその準備をする罪。2年以下の拘禁刑で、情状により刑を免除できる（刑法201条）。</dd></div><div class="tx-gist-term"><dt><span>法益侵害</span></dt><dd>法が守ろうとしている利益（生命・身体・財産など）を害すること。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 正しい。危険の切迫を道具役の行為時に見る立場の帰結どおりで、指示どまりの店長は殺人予備罪（201条）にとどまる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>危険の発生時点</strong><span class="syn-body">被利用者標準説は、結果発生の切迫した危険は<b>被利用者の行為時</b>に生じると見る。よって被利用者が被害者の法益侵害を開始した時点が実行の着手。</span></p>
 <p><span class="syn-step">2</span><strong>本事案への当てはめ</strong><span class="syn-body">従業員が客に危害を加える行為を開始する前に頓挫したため、店長には殺人未遂は成立せず<a class="ref-stat" href="#bref-3-201">殺人予備罪</a>が成立するにとどまる。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「道具が動いて初めて着手」──犯人が指示しても、道具が被害者へ手を伸ばすまでは予備。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>着手時点</strong>：被利用者が被害者の法益侵害行為を開始した時点で実行の着手。</li>
-<li><strong>店長の罪責</strong>：被利用者が加害行為に入る前に頓挫したため、殺人未遂ではなく殺人予備罪にとどまる。</li>
-<li><strong>ひっかけの型</strong>：利用者標準説と結論（未遂か予備か）が逆になる。どちらの主体の行為を基準にするかで帰結が変わる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>殺人・強盗は予備で捕まえ、窃盗・傷害は手前が空く。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-3-201" class="tx-basis-item "><div class="tx-basis-head">📜 刑法201条 殺人予備／199条 殺人罪<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">201</span><span class="hang-body">第199条の罪を犯す目的で、その予備をした者は、2年以下の拘禁刑に処する。ただし、情状により、その刑を免除することができる。（199条：人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。）</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">被利用者標準説は被利用者の行為開始時を基準とするため、被利用者が加害行為に入る前は実行の着手が認められず、利用者には殺人予備罪（201条）が成立するにとどまる。</span></div>
-</div></div></details></div>
+<div class="tx-basis-items"><div id="bref-3-201" class="tx-basis-item "><div class="tx-basis-head">📜 刑法201条 殺人予備／199条 殺人罪<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">201</span><span class="hang-body">第199条の罪を犯す目的で、その予備をした者は、2年以下の拘禁刑に処する。ただし、情状により、その刑を免除することができる。（199条：人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。）</span></p></div></div>
 </div>
-<p style="font-size:.92em; margin-top:6px;">被利用者標準説は被利用者の行為開始時を基準とするため、被利用者が加害行為に入る前は実行の着手が認められず、利用者には殺人予備罪（201条）が成立するにとどまる。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「間接正犯でも犯人が指示すれば未遂」という早合点が罠。</strong>被利用者標準説では<em>道具が動くまでは予備</em>にとどまり、利用者標準説（指示で未遂）と結論が<strong>反転</strong>する。着手をどちらの主体の行為に置くかという<strong>同じ物差し</strong>の表裏なので、両説を対で押さえる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>罪名を窃盗や傷害に替えると、同じ帰結にならない。</strong>着手を道具役の行為開始時まで後ろへずらす立場で手前の段階を捕まえるのは予備罪の規定だけであり、殺人（201条）や強盗（237条）には受け皿があるが、窃盗・傷害には予備を処罰する規定が無いため、指示どまりの段階はそのまま不可罰になる。</span><div class="tx-dgm is-matrix" data-dgm="019-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">道具役が動く前に止まったとき、手前に受け皿があるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">罪名</p><p class="dgm-cell is-head">予備の処罰規定</p><p class="dgm-cell is-head">指示どまりの帰結</p><p class="dgm-cell is-rowhead">殺人<span class="dgm-src">199条</span></p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell">殺人予備罪が成立する<span class="dgm-src">201条</span></p><p class="dgm-cell is-rowhead">強盗<span class="dgm-src">236条</span></p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell">強盗予備罪が成立する<span class="dgm-src">237条</span></p><p class="dgm-cell is-rowhead">窃盗<span class="dgm-src">235条</span></p><p class="dgm-cell is-ng">✕ ない</p><p class="dgm-cell">不可罰にとどまる</p><p class="dgm-cell is-rowhead">傷害<span class="dgm-src">204条</span></p><p class="dgm-cell is-ng">✕ ない</p><p class="dgm-cell">不可罰にとどまる</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6069,29 +6291,21 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>被利用者標準説は、離隔犯において<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>毒物などを発送した時点で実行の着手を認める発送時説と親和的</span><span class="tx-stmt-fix">→ 親和的なのは、危険が切迫する到達時に着手を認める到達時説</span>である。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。離隔犯（犯人と結果の場所が離れた事案、たとえば毒物を郵送する型）では、実行の着手を「発送した時点」に置く発送時説と、「相手に到達した時点」に置く到達時説が対立する。被利用者標準説は現実の危険が切迫した時点を重視するから、危険が生じる<strong>到達時</strong>に着手を認める到達時説と親和的。発送時説と結びつけるのは取り違えで、誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">被利用者標準説と親和的なのは、<strong>到達時説</strong>である。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">利用者標準説</span><span class="tx-gist-step is-now">被利用者標準説</span><span class="tx-gist-step">個別化説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">離隔犯の着手時期をめぐる対立のうち、被利用者標準説はどちらと結びつくのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">被害者を毒殺しようと、毒物を混ぜた食品を郵便で送る場合を考えます。犯人の手を離れてから被害者のもとへ届くまでに、日をまたぐこともあります。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">このように犯人の行為と結果の発生とが場所的・時間的に離れた事案を<strong>離隔犯</strong>といいます。実行の着手を、毒物を送り出した時点に置くのか、被害者のもとへ届いた時点に置くのか。ここで二つの立場が対立します。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">判例（大判大正7年11月16日）は、毒物入りの食品が被害者のもとに到達し、被害者がいつでも飲食できる状態に置かれた時点で実行の着手を認めました。これが到達時説です。危険の切迫を基準とする被利用者標準説は、この到達時説と親和的です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">どちらも、危険が相手のところまで届いたかどうかを見ているからです。発送しただけの段階では、被害者の身にまだ何も起きていません。危険が現実のものになる瞬間を着手とみる点で、二つは同じ発想に立つと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>離隔犯</span></dt><dd>犯人の行為と結果の発生との間に場所的・時間的な隔たりがある犯罪。毒物の郵送などが典型。</dd></div><div class="tx-gist-term"><dt><span>到達時説</span></dt><dd>離隔犯の実行の着手を、毒物などが被害者のもとに到達した時点に認める立場。送り出した時点に認める発送時説と対立する。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">× 誤り。危険の切迫を基準にする被利用者標準説と重なるのは到達時説であって、発送時説ではない。郵便に託しただけの段階では毒物が相手に届いておらず、危険が現実になっていない。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>離隔犯の着手時期の対立</strong><span class="syn-body">毒物を郵送する型では、着手を発送時に見るか（発送時説）、被害者への到達時に見るか（到達時説）が対立する。判例（<a class="ref-stat" href="#bref-4-hanrei">大判大正7.11.16</a>）は毒物が被害者に到達した時に着手を認めた（到達時説）。</span></p>
 <p><span class="syn-step">2</span><strong>被利用者標準説との対応</strong><span class="syn-body">被利用者標準説は結果発生の切迫した危険を基準にするので、危険が現実化する<b>到達時</b>に着手を認める到達時説と親和的。発送時説と親和的とするのは取り違え。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「危険が届いてから着手」──被利用者標準説も到達時説も、危険が相手に切迫した瞬間を着手とみる同じ発想。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>離隔犯の対立</strong>：着手を発送時に置く発送時説と、到達時に置く到達時説が対立する。</li>
-<li><strong>被利用者標準説の親和先</strong>：危険の切迫を基準にするため、到達時説と親和的（発送時説ではない）。</li>
-<li><strong>ひっかけの型</strong>：発送時説と到達時説を入れ替える。危険がいつ切迫するかで親和先が決まる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>発送時説は送った人を見る、到達時説は届いた危険を見る。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-hanrei" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 判例：大判大正7年11月16日（毒物郵送・到達時説）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">判旨</span><span class="hang-body judgment-text">被害者を毒殺しようと毒物を混入した食品を郵送し、これが被害者のもとに<span class="ron-mark freq-high">到達</span>した場合には、被害者がこれを受領していつでも飲食し得る状態に置かれた時点で実行の着手があると解される（離隔犯につき到達時説を採ったものと理解される）。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-4-hanrei" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 判例：大判大正7年11月16日（毒物郵送・到達時説）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">判旨</span><span class="hang-body judgment-text">被害者を毒殺しようと毒物を混入した食品を郵送し、これが被害者のもとに<span class="ron-mark freq-high">到達</span>した場合には、被害者がこれを受領していつでも飲食し得る状態に置かれた時点で実行の着手があると解される（離隔犯につき到達時説を採ったものと理解される）。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">犯人の手を離れてから結果発生まで距離がある離隔犯（郵送型・間接正犯型）の着手時期を、危険が現実に切迫する到達時に置く。危険の切迫を基準とする被利用者標準説と親和的。</span></div>
 </div></div></details></div>
 </div>
-<p style="font-size:.92em; margin-top:6px;">離隔犯の着手時期につき判例（大判大正7.11.16）は毒物が被害者に到達した時点で実行の着手を認める（到達時説）。危険の切迫を基準とする被利用者標準説はこの到達時説と親和的で、発送時説とは結びつかない。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「離隔犯＝送った時点で着手」と反射的に発送時説へ飛びつく罠。</strong>危険が切迫するのは<em>相手に届いた時</em>だから、危険重視の被利用者標準説は到達時説と<strong>対に</strong>なる。発送時説と到達時説の<strong>対比</strong>を取り違えると親和先を誤る、間接正犯・離隔犯を貫く分かれ目である。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>親和する立場を利用者標準説に替えれば、発送時説で正しくなる。</strong>毒物を郵便に託した時点を着手とする発送時説は、利用者自身の行為を実行行為と見る発想と重なり、相手に到達していつでも飲食し得る状態に置かれた時点を着手とする到達時説（大判大正7.11.16）は、危険の切迫を基準にする発想と重なる。</span><div class="tx-dgm is-matrix" data-dgm="019-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">離隔犯で着手をどこに置くか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">離隔犯の立場</p><p class="dgm-cell is-head">着手の時点</p><p class="dgm-cell is-head">重なる発想</p><p class="dgm-cell is-rowhead">発送時説</p><p class="dgm-cell">毒物を郵便に託した時点</p><p class="dgm-cell">利用者自身の行為を実行行為と見る</p><p class="dgm-cell is-rowhead">到達時説</p><p class="dgm-cell">相手に到達し、いつでも飲食し得る状態になった時点<span class="dgm-src">大判大正7.11.16</span></p><p class="dgm-cell">危険の切迫を基準にする</p><p class="dgm-cell is-rowhead">現実的危険性で測る立場</p><p class="dgm-cell">危険が現実になった時点<span class="dgm-src">最決平成16.3.22</span></p><p class="dgm-cell">時点を主体で固定しない</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6109,30 +6323,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>個別化説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>店長に殺人未遂が成立するか否かは、結果発生の現実的危険性が発生したといえるかどうかの判断による</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。3つ目の立場は「どっちつかずで曖昧」と敬遠したくなる。でも個別化説は、着手の時点を利用者・被利用者どちらの行為かと主体で決め打ちせず、事案ごとに実質的にみて<strong>結果発生の現実的危険性</strong>（結果が現実に起こりそうな危なさ）が生じた一点を着手とみる立場。だから店長が殺人未遂になるかどうかは、その現実的な危険が生じたといえるかの個別判断で決まる。この「危険が現実になった瞬間を探す」発想は、実は判例の実行の着手の考え方に近い。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">個別化説は、<strong>現実的危険性</strong>が発生した時点を着手とする。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">利用者標準説</span><span class="tx-gist-step">被利用者標準説</span><span class="tx-gist-step is-now">個別化説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">着手の時点を主体で決め打ちしない立場は、何を基準に判断するのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">同じように他人を道具として使う場合でも、指示した直後に道具が動き出すこともあれば、何日も先に動く段取りになっていることもあります。主体で一律に決めてしまうと、危険の度合いがまるで違う事案が同じ扱いになってしまいます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">そこで、着手の時点を利用者の行為か被利用者の行為かであらかじめ固定せず、事案ごとに実質的に判断するのが個別化説です。基準になるのは、結果発生の<strong>現実的危険性</strong>が生じたといえるかどうかです。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">判例（最決平成16年3月22日）も、実行の着手は、構成要件的結果を生じさせる現実的危険性のある行為の開始があったといえるかどうかで判断するとしています。個別化説によれば、指示にとどまった店長に殺人未遂罪が成立するかどうかも、その現実的危険性が発生したといえるかどうかの判断によります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">未遂として処罰できるのは危険が生まれたからであって、誰の行為かという形式で決まるものではない、と考えるからです。だから主体をあらかじめ固定せず、事案の具体的な経過をみて、危険が現実になった一点を探します。主体で決め打ちする二つの立場の間に立つ折衷的な考え方だと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>個別化説</span></dt><dd>間接正犯の実行の着手時期を主体で固定せず、実質的・個別的にみて結果発生の現実的危険性が生じた時点に認める立場。</dd></div><div class="tx-gist-term"><dt><span>折衷説</span></dt><dd>対立する二つの立場のどちらにも偏らず、双方の考慮を取り入れて判断しようとする立場。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 正しい。着手の時点を主体で固定せず、結果発生の現実的危険性が生じたといえるかどうかで未遂の成否を測る点が、個別化説の基準どおりである。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>個別化説の基準</strong><span class="syn-body">個別化説は、間接正犯の着手時期を主体で一律に決めず、<b>実質的見地から個別的にみて結果発生の現実的危険性が発生した時点</b>とする。</span></p>
 <p><span class="syn-step">2</span><strong>本事案への当てはめ</strong><span class="syn-body">店長に殺人未遂が成立するかは、その現実的危険性が発生したといえるかどうかの評価による。実行の着手を現実的危険性で捉える判例（<a class="ref-stat" href="#bref-5-hanrei">最決平成16.3.22</a>）の発想と親和的。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「危険が現実になった一点を探す」──主体で決め打ちせず、危険が生じた瞬間を事案ごとに見極める。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>個別化説の基準</strong>：実質的・個別的にみて結果発生の現実的危険性が発生した時点で実行の着手。</li>
-<li><strong>帰結</strong>：店長の未遂成否は、現実的危険性が発生したといえるかどうかの判断による。</li>
-<li><strong>ひっかけの型</strong>：時点をあらかじめ主体で固定する2説と違い、危険の実質的評価に委ねる点が特徴。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>危険が無ければ不能犯、生まれれば未遂、自ら消せば中止（43条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-5-hanrei" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 判例：最決平成16年3月22日（クロロホルム事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">判旨</span><span class="hang-body judgment-text">実行の着手は、当該行為が構成要件的結果を生じさせる<span class="ron-mark freq-high">現実的危険性</span>を有する行為の開始があったといえるかによって判断される。第1行為が第2行為に密接な行為であり、第1行為の時点で結果発生の現実的危険性が認められるときは、その時点で実行の着手があるとされた。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-5-hanrei" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 判例：最決平成16年3月22日（クロロホルム事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">判旨</span><span class="hang-body judgment-text">実行の着手は、当該行為が構成要件的結果を生じさせる<span class="ron-mark freq-high">現実的危険性</span>を有する行為の開始があったといえるかによって判断される。第1行為が第2行為に密接な行為であり、第1行為の時点で結果発生の現実的危険性が認められるときは、その時点で実行の着手があるとされた。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">実行の着手を結果発生の現実的危険性で捉える判断枠組み。危険の実質的発生時点を着手とする個別化説の発想と親和的で、間接正犯・離隔犯の着手時期にも及ぶ。</span></div>
 </div></div></details></div>
 </div>
-<p style="font-size:.92em; margin-top:6px;">実行の着手を結果発生の現実的危険性で捉える判例（最決平成16.3.22）は、危険の実質的発生時点を着手とする個別化説の発想と親和的。個別化説では店長の未遂成否は危険性の発生評価による。</p>
 </div>
 <div class="tx-v13-cross"><span class="tx-v13-cross-label">🔗 他科目横断</span><span class="tx-v13-cross-body">実行の着手を結果発生の現実的危険性で捉える発想は、危険性が全く無ければ処罰しない<b>不能犯</b>との限界や、着手後の<b>中止犯</b>（43条但書）の成否とも接続する。危険性の判断という一本の糸が、間接正犯・離隔犯・不能犯を貫いて流れている。</span></div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>個別化説を「どちらの説とも違う曖昧な立場」と切り捨てる誤解が罠。</strong>実質的にみて<em>現実的危険性が発生した時点</em>という判例の実行の着手基準と<strong>同型</strong>で、主体固定の2説の<strong>分かれ目</strong>を危険発生の一点で<strong>束ね</strong>る折衷説である。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>危険性の評価が反対へ振れれば、未遂ではなくなる。</strong>結果発生の現実的危険性がおよそ生じえない場合は不能犯として不可罰であり、危険が生じた後に自己の意思で犯罪を中止すれば中止未遂として刑の必要的減免を受ける（43条ただし書）。危険という一本の物差しの上で、不可罰・未遂・中止未遂が分かれる。</span><div class="tx-dgm is-matrix" data-dgm="019-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">結果発生の現実的危険性をどう測るかで帰結が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">危険性の評価</p><p class="dgm-cell is-head">着手</p><p class="dgm-cell is-head">帰結</p><p class="dgm-cell is-rowhead">結果発生の危険がおよそ生じえない</p><p class="dgm-cell is-ng">✕ 認めない</p><p class="dgm-cell">不能犯として不可罰</p><p class="dgm-cell is-rowhead">現実的危険性が生じた</p><p class="dgm-cell is-ok">○ 認める</p><p class="dgm-cell">未遂罪として刑の任意的減軽<span class="dgm-src">43条本文</span></p><p class="dgm-cell is-rowhead">危険が生じた後に自己の意思で中止した</p><p class="dgm-cell is-ok">○ 認める</p><p class="dgm-cell">中止未遂として刑の必要的減免<span class="dgm-src">43条ただし書</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6214,11 +6420,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:o,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="実行の着手（刑法43条）は、未遂と予備を分ける境界線である。間接正犯——事情を知らない他人を道具のように使って犯罪を実現する形——について、実行行為を<b>利用者の利用行為そのもの</b>と見るのが利用者標準説で、道具役の動きは結果へつながる通り道と位置づける。趣旨は正犯性の所在にある。道具を支配して結果を引き起こしているのは利用者なのだから、その支配的な働き掛けこそが実行行為だ、という筋である。考え方のコツは順序にあって、<b>誰の行為を実行行為と見るか</b>を先に決めれば、着手の時点も、利用者の罪が未遂（199条・43条）か予備（201条）かも一直線に決まる。実行行為を主体で固定する立場なので判断は安定する反面、<b>着手の時点は前へ寄る</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、指示を出した日時を通話記録や送信履歴、防犯カメラで特定したうえで着手時期を争う。検察官は利用者の働き掛けが完了した点を押し出し、弁護人は道具役がまだ動いていない点を押し返すのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大正7年の毒物郵送事件では、毒を混ぜた食品を郵便に託した時点で、差出人の働き掛けはすでに終わっていた。利用者の行為こそが実行行為だと見れば、この投函の一点が着手になる。大審院が判断を示したのは大正7年11月16日である。</span>" data-brief-mark="利用者標準説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>利用者が働き掛けた時点で実行の着手が認められ、店長に殺人未遂罪が成立する</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>利用者標準説は実行行為を利用者の利用行為そのものと解し、被利用者の行為は因果経過にすぎないとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>間接正犯でも実行行為は利用者自身の働き掛けであり、道具の動きは結果への通り道と捉える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用行為の開始（働き掛けの時点）で実行の着手を認め、殺人未遂罪が成立する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：実行行為を利用者の利用行為に置くため、被利用者が動く前でも着手を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>間接正犯の着手時期は、実行行為を利用者・被利用者どちらの行為に見るかで決まると押さえる。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="学説への批判は、必ず反対の立場から、その説が犠牲にしたものを突いて向けられる。利用者標準説が犠牲にするのは<b>危険の切迫</b>で、道具役がまだ動いていない段階でも着手を認めるため、法益侵害の現実的な危険が生じる前に未遂を認めてしまうと批判される。これに対して被利用者標準説が犠牲にするのは<b>着手時期の安定</b>で、道具役がいつ動くかという、利用者の側では決められない事情によって着手の時点が動いてしまうと批判される。背景では、未遂処罰の根拠を結果発生の現実的危険に求める要請と、正犯者自身の行為に処罰の基礎を置く要請とが引き合っており、どちらの説も一方を立てて他方を譲っている。<b>どちらの要請を譲ったか</b>を見れば、その説に向かう批判は自然に出てくる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務で学説名そのものが争われることは少なく、どの行為にどれだけの危険があったかが事実として争われる。弁護人は道具役が動く前に計画が止まった経緯を、検察官は利用者の支配の強さと計画の具体性を立証していく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大正7年の毒物郵送事件では、毒入りの食品を郵便に託した後、それがいつ相手に届くかは差出人の手を離れていた。到達の時点を着手とすれば、着手時期は郵便の動き次第で前後する。反対に投函の時点を着手とすれば、毒がまだ誰にも近づいていない段階で殺人未遂になる。二つの批判は、同じ一つの事件の別の場面を突いている。</span>" data-brief-mark="利用者標準説に対しては、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>利用者にとって偶然の事情で着手時期が左右されるとの批判</span><span class="tx-stmt-fix">→ それは被利用者標準説への批判。利用者標準説には『危険が切迫しない時点で着手』との批判</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>利用者標準説への批判は、結果発生の危険が切迫していない時点で実行の着手を認めることになる点にある。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>利用行為の開始という早い時点に着手を認めるため、危険未切迫での着手を問題視する批判が生じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>『利用者にとって偶然の事情で着手時期が左右される』は被利用者標準説への批判で、宛先が異なる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：危険未切迫での着手＝利用者説批判／偶然で着手が決まる＝被利用者説批判、と対で切る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>学説への批判は反対の立場から来る。批判の主体を取り違えないよう対照して押さえる。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-story="未遂処罰の根拠を、法益侵害の<b>現実的な危険</b>が生じたことに求める立場から出てくるのが被利用者標準説である。刑法43条が実行に着手してと定めるのは、危険が現実に生まれてはじめて処罰に値するという発想の表れで、その危険は道具役が被害者に向けて動き出したときに生まれる、と見る。だから利用者が指示を出しただけの段階は未遂ではなく、殺人であれば予備（201条）にとどまる。ここで効いてくるのが<b>受け皿の有無</b>で、殺人や強盗のように予備罪が用意されている犯罪なら手前の段階も捕まえられるが、予備罪の規定が無い犯罪では、着手を後ろへずらした分がそのまま不可罰の領域になる。着手の時点をどこに置くかは、処罰の範囲そのものを動かしている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>道具役が動く前に発覚した事件は、殺人予備で立件されるほか、毒物や凶器の入手それ自体を捉える特別法違反で処理されることもある。捜査側は、準備がどこまで進んでいたかを時系列で固めていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大正7年の毒物郵送事件で、毒入りの食品を実際に被害者のもとまで運んだのは、事情を知らない郵便の配達人だった。危険が相手に届いたのは、この道具役が現実に動いたあとである。手を下していない差出人の側では、その時までまだ何も相手に近づいていなかった。</span>" data-brief-mark="被利用者標準説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>被利用者が法益侵害を開始した時点で着手が認められ、店長は殺人予備罪にとどまる</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>被利用者標準説は結果発生の切迫した危険が被利用者の行為時に生じるとして、被利用者の行為開始時を基準とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>現実の危険は道具が動き出したときに生じると捉え、着手を被利用者の法益侵害開始時に置く。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被利用者が加害行為に入る前は着手が認められず、利用者には殺人予備罪が成立するにとどまる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：着手＝被利用者の行為開始時ゆえ、指示だけの段階は未遂でなく予備。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>着手をどちらの主体の行為に置くかで、利用者の罪が未遂か予備かが反転すると押さえる。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="離隔犯——犯人のいる場所と結果が生じる場所とが離れている型——でも、同じ問いが形を変えて現れる。毒物を郵送する事案で、実行の着手を郵便に託した時点に置くのが<b>発送時説</b>、相手に届いた時点に置くのが<b>到達時説</b>である。趣旨に立ち返れば、被害者にとっての危険は、毒が手元に届いていつでも口にできる状態になったときに現実のものとなる。だから、危険の切迫を基準にする被利用者標準説は、危険が現実化する到達の時点に着手を認める到達時説と同じ発想の上に立つ。<b>危険がいつ相手に届くか</b>——この一点を軸に据えれば、間接正犯の着手時期論と離隔犯の着手時期論は、地続きの一本の話になる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>郵送型では、差出日と配達日、受領者の署名や追跡記録が着手時期の決め手になる。郵便や宅配の記録をどこまで押さえられているかで、未遂か予備かの見立てが変わってくる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大判大正7年11月16日の毒物郵送事件。毒を混ぜた食品が郵送され、被害者のもとへ到達して、いつでも飲食できる状態に置かれた。着手の時点が置かれたのはこの到達の場面であって、投函の場面ではない。発送時説と到達時説の分かれ目は、この一通の郵便物の上にある。</span>" data-brief-mark="被利用者標準説は離隔犯で<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>発送時説と親和的</span><span class="tx-stmt-fix">→ 親和的なのは危険が切迫する到達時説</span>。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>被利用者標準説は、離隔犯において危険が切迫する到達時に着手を認める到達時説と親和的である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>危険の切迫を基準とするため、危険が現実化する到達時を着手とする発想と結びつく。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>判例（大判大正7.11.16）は毒物の到達時に着手を認める（到達時説）。発送時説とは結びつかない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：親和先は到達時説であって発送時説ではない。危険がいつ切迫するかで親和先が決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>離隔犯の発送時説・到達時説の対比を、間接正犯の着手時期論と地続きで押さえる。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-story="主体を決めて時点を固定する二つの立場に対し、時点を事案ごとの実質判断に委ねるのが個別化説である。実行の着手を<b>結果発生の現実的危険性</b>が生じた時点と捉え、利用者の行為か道具役の行為かをあらかじめ決めずに、危険がいつ現実になったのかを事案の中で測る。趣旨は、未遂処罰が危険を根拠にする以上、危険の有無こそが基準であって、主体の形式で一律に決めるのは順序が逆だという点にある。考え方のコツは、この<b>危険という物差しが二方向に伸びている</b>ことで、危険がまったく無ければ不能犯として処罰されず、危険が生じたあとに思いとどまれば中止未遂（43条ただし書）の問題になる。着手・不能犯・中止犯は、同じ危険という一本の軸の上に並んでいる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、計画の具体性、次の行為までの時間的・場所的な近さ、障害となる事情がどれだけ残っていたかを積み上げて危険の有無を評価する。学説の名前ではなく、この積み上げの厚さで未遂か予備かが決まっていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最決平成16年3月22日のクロロホルム事件。被害者を事故死に見せかけて殺害する計画のもと、まずクロロホルムを吸わせて失神させ、その後、自動車ごと海中へ転落させた。二つの行為のどちらの時点で殺人の実行が始まったのかが争われ、危険がいつ現実になったかという物差しで判断された。</span>" data-brief-mark="個別化説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>店長の未遂成否は結果発生の現実的危険性が発生したといえるかの判断による</span>。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>個別化説は、実質的見地から個別的にみて結果発生の現実的危険性が発生した時点で実行の着手を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>着手時点を主体で一律に固定せず、危険の実質的発生時点を事案ごとに見極める折衷的立場。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用者の未遂成否は結果発生の現実的危険性が発生したといえるかどうかの判断による。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：時点を主体で固定する2説と異なり、危険の実質的評価に着手時期を委ねる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実行の着手を現実的危険性で捉える判例（最決平成16.3.22）の発想と同型で押さえる。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="実行の着手（刑法43条）は、未遂と予備を分ける境界線である。間接正犯——事情を知らない他人を道具のように使って犯罪を実現する形——について、実行行為を<b>利用者の利用行為そのもの</b>と見るのが利用者標準説で、道具役の動きは結果へつながる通り道と位置づける。趣旨は正犯性の所在にある。道具を支配して結果を引き起こしているのは利用者なのだから、その支配的な働き掛けこそが実行行為だ、という筋である。考え方のコツは順序にあって、<b>誰の行為を実行行為と見るか</b>を先に決めれば、着手の時点も、利用者の罪が未遂（199条・43条）か予備（201条）かも一直線に決まる。実行行為を主体で固定する立場なので判断は安定する反面、<b>着手の時点は前へ寄る</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、指示を出した日時を通話記録や送信履歴、防犯カメラで特定したうえで着手時期を争う。検察官は利用者の働き掛けが完了した点を押し出し、弁護人は道具役がまだ動いていない点を押し返すのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大正7年の毒物郵送事件では、毒を混ぜた食品を郵便に託した時点で、差出人の働き掛けはすでに終わっていた。利用者の行為こそが実行行為だと見れば、この投函の一点が着手になる。大審院が判断を示したのは大正7年11月16日である。</span>" data-brief-mark="利用者標準説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>利用者が働き掛けた時点で実行の着手が認められ、店長に殺人未遂罪が成立する</span>。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>利用者標準説は実行行為を利用者の利用行為そのものと解し、被利用者の行為は因果経過にすぎないとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>間接正犯でも実行行為は利用者自身の働き掛けであり、道具の動きは結果への通り道と捉える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用行為の開始（働き掛けの時点）で実行の着手を認め、殺人未遂罪が成立する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：実行行為を利用者の利用行為に置くため、被利用者が動く前でも着手を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実行行為を利用者の利用行為そのものと見る立場では、道具役が動く前でも利用行為の開始時に着手を認める。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">働き掛けだけで止まった場面を、語を入れ替えて見る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">利用者標準説 → 被利用者標準説</p><p class="dgm-cell is-ng">✕ 殺人未遂にならない</p><p class="dgm-cell">着手は道具役の行為開始時。指示どまりは殺人予備<span class="dgm-src">201条</span></p><p class="dgm-cell is-rowhead">事情を知らない従業員 → 毒入りと知って運ぶ従業員</p><p class="dgm-cell is-ng">✕ 殺人未遂にならない</p><p class="dgm-cell">道具でなくなり教唆の問題。正犯が着手するまで未遂は無い<span class="dgm-src">61条</span></p><p class="dgm-cell is-rowhead">利用者標準説 → 個別化説</p><p class="dgm-cell is-acc">別の判断</p><p class="dgm-cell">時点を主体で固定せず、現実的危険性が生じたかで測る</p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="学説への批判は、必ず反対の立場から、その説が犠牲にしたものを突いて向けられる。利用者標準説が犠牲にするのは<b>危険の切迫</b>で、道具役がまだ動いていない段階でも着手を認めるため、法益侵害の現実的な危険が生じる前に未遂を認めてしまうと批判される。これに対して被利用者標準説が犠牲にするのは<b>着手時期の安定</b>で、道具役がいつ動くかという、利用者の側では決められない事情によって着手の時点が動いてしまうと批判される。背景では、未遂処罰の根拠を結果発生の現実的危険に求める要請と、正犯者自身の行為に処罰の基礎を置く要請とが引き合っており、どちらの説も一方を立てて他方を譲っている。<b>どちらの要請を譲ったか</b>を見れば、その説に向かう批判は自然に出てくる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務で学説名そのものが争われることは少なく、どの行為にどれだけの危険があったかが事実として争われる。弁護人は道具役が動く前に計画が止まった経緯を、検察官は利用者の支配の強さと計画の具体性を立証していく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大正7年の毒物郵送事件では、毒入りの食品を郵便に託した後、それがいつ相手に届くかは差出人の手を離れていた。到達の時点を着手とすれば、着手時期は郵便の動き次第で前後する。反対に投函の時点を着手とすれば、毒がまだ誰にも近づいていない段階で殺人未遂になる。二つの批判は、同じ一つの事件の別の場面を突いている。</span>" data-brief-mark="利用者標準説に対しては、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>利用者にとって偶然の事情で着手時期が左右されるとの批判</span><span class="tx-stmt-fix">→ それは被利用者標準説への批判。利用者標準説には『危険が切迫しない時点で着手』との批判</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>利用者標準説への批判は、結果発生の危険が切迫していない時点で実行の着手を認めることになる点にある。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>利用行為の開始という早い時点に着手を認めるため、危険未切迫での着手を問題視する批判が生じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>『利用者にとって偶然の事情で着手時期が左右される』は被利用者標準説への批判で、宛先が異なる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：危険未切迫での着手＝利用者説批判／偶然で着手が決まる＝被利用者説批判、と対で切る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>学説への批判は、その説が譲ったもの（危険の切迫か、着手時期の安定か）を突く形で向かう。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">どの批判が、どの立場に向かうか</p><div class="tx-dgm-matrix is-c4"><p class="dgm-cell is-head">批判の内容</p><p class="dgm-cell is-head">利用者標準説</p><p class="dgm-cell is-head">被利用者標準説</p><p class="dgm-cell is-head">個別化説</p><p class="dgm-cell is-rowhead">危険がまだ切迫しない時点で着手を認める</p><p class="dgm-cell is-ok">○ この立場への批判</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-rowhead">利用者の側で決められない事情で着手時期が動く</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ok">○ この立場への批判</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-rowhead">着手の時点があらかじめ定まらない</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ok">○ この立場への批判</p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="未遂処罰の根拠を、法益侵害の<b>現実的な危険</b>が生じたことに求める立場から出てくるのが被利用者標準説である。刑法43条が実行に着手してと定めるのは、危険が現実に生まれてはじめて処罰に値するという発想の表れで、その危険は道具役が被害者に向けて動き出したときに生まれる、と見る。だから利用者が指示を出しただけの段階は未遂ではなく、殺人であれば予備（201条）にとどまる。ここで効いてくるのが<b>受け皿の有無</b>で、殺人や強盗のように予備罪が用意されている犯罪なら手前の段階も捕まえられるが、予備罪の規定が無い犯罪では、着手を後ろへずらした分がそのまま不可罰の領域になる。着手の時点をどこに置くかは、処罰の範囲そのものを動かしている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>道具役が動く前に発覚した事件は、殺人予備で立件されるほか、毒物や凶器の入手それ自体を捉える特別法違反で処理されることもある。捜査側は、準備がどこまで進んでいたかを時系列で固めていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大正7年の毒物郵送事件で、毒入りの食品を実際に被害者のもとまで運んだのは、事情を知らない郵便の配達人だった。危険が相手に届いたのは、この道具役が現実に動いたあとである。手を下していない差出人の側では、その時までまだ何も相手に近づいていなかった。</span>" data-brief-mark="被利用者標準説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>被利用者が法益侵害を開始した時点で着手が認められ、店長は殺人予備罪にとどまる</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>被利用者標準説は結果発生の切迫した危険が被利用者の行為時に生じるとして、被利用者の行為開始時を基準とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>現実の危険は道具が動き出したときに生じると捉え、着手を被利用者の法益侵害開始時に置く。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被利用者が加害行為に入る前は着手が認められず、利用者には殺人予備罪が成立するにとどまる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：着手＝被利用者の行為開始時ゆえ、指示だけの段階は未遂でなく予備。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>着手を後ろへずらす立場では、予備罪の規定がある犯罪だけが手前の段階を捕まえられ、規定の無い犯罪は不可罰になる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">道具役が動く前に止まったとき、手前に受け皿があるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">罪名</p><p class="dgm-cell is-head">予備の処罰規定</p><p class="dgm-cell is-head">指示どまりの帰結</p><p class="dgm-cell is-rowhead">殺人<span class="dgm-src">199条</span></p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell">殺人予備罪が成立する<span class="dgm-src">201条</span></p><p class="dgm-cell is-rowhead">強盗<span class="dgm-src">236条</span></p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell">強盗予備罪が成立する<span class="dgm-src">237条</span></p><p class="dgm-cell is-rowhead">窃盗<span class="dgm-src">235条</span></p><p class="dgm-cell is-ng">✕ ない</p><p class="dgm-cell">不可罰にとどまる</p><p class="dgm-cell is-rowhead">傷害<span class="dgm-src">204条</span></p><p class="dgm-cell is-ng">✕ ない</p><p class="dgm-cell">不可罰にとどまる</p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="離隔犯——犯人のいる場所と結果が生じる場所とが離れている型——でも、同じ問いが形を変えて現れる。毒物を郵送する事案で、実行の着手を郵便に託した時点に置くのが<b>発送時説</b>、相手に届いた時点に置くのが<b>到達時説</b>である。趣旨に立ち返れば、被害者にとっての危険は、毒が手元に届いていつでも口にできる状態になったときに現実のものとなる。だから、危険の切迫を基準にする被利用者標準説は、危険が現実化する到達の時点に着手を認める到達時説と同じ発想の上に立つ。<b>危険がいつ相手に届くか</b>——この一点を軸に据えれば、間接正犯の着手時期論と離隔犯の着手時期論は、地続きの一本の話になる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>郵送型では、差出日と配達日、受領者の署名や追跡記録が着手時期の決め手になる。郵便や宅配の記録をどこまで押さえられているかで、未遂か予備かの見立てが変わってくる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>大判大正7年11月16日の毒物郵送事件。毒を混ぜた食品が郵送され、被害者のもとへ到達して、いつでも飲食できる状態に置かれた。着手の時点が置かれたのはこの到達の場面であって、投函の場面ではない。発送時説と到達時説の分かれ目は、この一通の郵便物の上にある。</span>" data-brief-mark="被利用者標準説は離隔犯で<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>発送時説と親和的</span><span class="tx-stmt-fix">→ 親和的なのは危険が切迫する到達時説</span>。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>被利用者標準説は、離隔犯において危険が切迫する到達時に着手を認める到達時説と親和的である。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>危険の切迫を基準とするため、危険が現実化する到達時を着手とする発想と結びつく。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>判例（大判大正7.11.16）は毒物の到達時に着手を認める（到達時説）。発送時説とは結びつかない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：親和先は到達時説であって発送時説ではない。危険がいつ切迫するかで親和先が決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>離隔犯の到達時説は、毒物が相手に到達していつでも飲食し得る状態に置かれた時点を着手とする（大判大正7.11.16）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">離隔犯で着手をどこに置くか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">離隔犯の立場</p><p class="dgm-cell is-head">着手の時点</p><p class="dgm-cell is-head">重なる発想</p><p class="dgm-cell is-rowhead">発送時説</p><p class="dgm-cell">毒物を郵便に託した時点</p><p class="dgm-cell">利用者自身の行為を実行行為と見る</p><p class="dgm-cell is-rowhead">到達時説</p><p class="dgm-cell">相手に到達し、いつでも飲食し得る状態になった時点<span class="dgm-src">大判大正7.11.16</span></p><p class="dgm-cell">危険の切迫を基準にする</p><p class="dgm-cell is-rowhead">現実的危険性で測る立場</p><p class="dgm-cell">危険が現実になった時点<span class="dgm-src">最決平成16.3.22</span></p><p class="dgm-cell">時点を主体で固定しない</p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="主体を決めて時点を固定する二つの立場に対し、時点を事案ごとの実質判断に委ねるのが個別化説である。実行の着手を<b>結果発生の現実的危険性</b>が生じた時点と捉え、利用者の行為か道具役の行為かをあらかじめ決めずに、危険がいつ現実になったのかを事案の中で測る。趣旨は、未遂処罰が危険を根拠にする以上、危険の有無こそが基準であって、主体の形式で一律に決めるのは順序が逆だという点にある。考え方のコツは、この<b>危険という物差しが二方向に伸びている</b>ことで、危険がまったく無ければ不能犯として処罰されず、危険が生じたあとに思いとどまれば中止未遂（43条ただし書）の問題になる。着手・不能犯・中止犯は、同じ危険という一本の軸の上に並んでいる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、計画の具体性、次の行為までの時間的・場所的な近さ、障害となる事情がどれだけ残っていたかを積み上げて危険の有無を評価する。学説の名前ではなく、この積み上げの厚さで未遂か予備かが決まっていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>最決平成16年3月22日のクロロホルム事件。被害者を事故死に見せかけて殺害する計画のもと、まずクロロホルムを吸わせて失神させ、その後、自動車ごと海中へ転落させた。二つの行為のどちらの時点で殺人の実行が始まったのかが争われ、危険がいつ現実になったかという物差しで判断された。</span>" data-brief-mark="個別化説によれば、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>店長の未遂成否は結果発生の現実的危険性が発生したといえるかの判断による</span>。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>個別化説は、実質的見地から個別的にみて結果発生の現実的危険性が発生した時点で実行の着手を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>着手時点を主体で一律に固定せず、危険の実質的発生時点を事案ごとに見極める折衷的立場。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>利用者の未遂成否は結果発生の現実的危険性が発生したといえるかどうかの判断による。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>切断点：時点を主体で固定する2説と異なり、危険の実質的評価に着手時期を委ねる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実行の着手は、当該行為が結果を生じさせる現実的危険性を有する行為の開始があったかで判断する（最決平成16.3.22）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">結果発生の現実的危険性をどう測るかで帰結が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">危険性の評価</p><p class="dgm-cell is-head">着手</p><p class="dgm-cell is-head">帰結</p><p class="dgm-cell is-rowhead">結果発生の危険がおよそ生じえない</p><p class="dgm-cell is-ng">✕ 認めない</p><p class="dgm-cell">不能犯として不可罰</p><p class="dgm-cell is-rowhead">現実的危険性が生じた</p><p class="dgm-cell is-ok">○ 認める</p><p class="dgm-cell">未遂罪として刑の任意的減軽<span class="dgm-src">43条本文</span></p><p class="dgm-cell is-rowhead">危険が生じた後に自己の意思で中止した</p><p class="dgm-cell is-ok">○ 認める</p><p class="dgm-cell">中止未遂として刑の必要的減免<span class="dgm-src">43条ただし書</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

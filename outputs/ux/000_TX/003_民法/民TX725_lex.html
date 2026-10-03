@@ -5667,6 +5667,104 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6244,11 +6342,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:o,3:x,4:o,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-mark="遺贈は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>成年に達しなければすることができない</span><span class='tx-stmt-fix'>→ 15歳に達すればできる（遺言能力・961条）</span>。<span class='tx-anscomp-line'>遺贈は遺言による無償の財産処分（民法964条）であり、遺言能力は<strong>15歳に達した者</strong>に認められる（961条1項）。行為能力の制限規定は遺言に適用されず（962条）、成年でなくても15歳に達していれば遺贈できる。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>961条1項『15歳に達した者は、遺言をすることができる』。遺贈は遺言による処分（964条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>遺言は本人の最終意思を尊重すべき行為ゆえ、財産取引の行為能力より低い15歳で認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>未成年者でも15歳以上なら単独で有効に遺贈できる（法定代理人の同意は不要）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>遺言能力（15歳・961条）と行為能力（18歳・契約）は別基準で、962条が行為能力の制限規定を遺言に不適用とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>身分行為に準じる行為（遺言・婚姻・認知等）は、財産取引の行為能力とは別の年齢・要件で規律される。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-mark="寄与分は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>遺贈の価額を控除した残額を超えることができない</span>（904条の2第3項）。<span class='tx-anscomp-line'>寄与分は、被相続人が相続開始の時に有した財産の価額から<strong>遺贈の価額を控除した残額</strong>を超えることができない（904条の2第3項）。遺贈が寄与分に優先する。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>904条の2第3項『寄与分は…遺贈の価額を控除した残額を超えることができない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>共同相続人間の衡平と、遺言者の意思（遺贈）の尊重の調整。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>寄与分は遺贈に劣後し、遺贈控除後の残額が上限となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>寄与分は遺贈に劣後する（904条の2第3項）が、遺留分侵害額請求は遺贈をも取り戻す別制度で方向が逆。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>相続分の修正制度（寄与分・特別受益・遺留分）は、誰の取り分をどちらが削るかの優先順位で整理する。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-mark="一部割合の包括受遺者は、相続財産の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>債務を承継しない</span><span class='tx-stmt-fix'>→ 割合に応じ債務も承継する（990条）</span>。<span class='tx-anscomp-line'>包括受遺者は相続人と同一の権利義務を有する（民法990条）から、包括遺贈の割合に応じて相続財産に属する<strong>債務も当然に承継</strong>する（896条・899条）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>990条『包括受遺者は、相続人と同一の権利義務を有する』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>包括遺贈は相続財産の割合的承継で相続に類似するため、相続人と同一に扱う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>包括受遺者は割合に応じ積極財産・消極財産（債務）を承継し、遺産分割にも加わる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>包括受遺者は債務を承継するが、特定受遺者は特定物のみ取得し原則債務を負わない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「割合」で受ければ包括＝債務込み、「特定物」で受ければ特定＝債務なし、で受遺者の型を切り分ける。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-mark="生前贈与のBと遺贈で登記したCが争う場合、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>登記未了のBはCに対抗できない</span>（Cが相続人でも）。<span class='tx-anscomp-line'>生前贈与と遺贈による物権変動の優劣は対抗要件たる登記の具備の有無で決する（最判昭46.11.16・177条）。CがAの相続人でも、遺贈を原因とする物権変動につきCは第三者的地位に立ち、先に登記を備えたCが優先し、登記未了のBはCに対抗できない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>177条『不動産に関する物権の得喪変更は、登記をしなければ第三者に対抗できない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>取引の安全と権利関係の公示。遺贈による物権変動も対抗要件主義に服する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>生前贈与と遺贈の優劣は登記の先後で決する（最判昭46.11.16）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>受遺者が相続人であっても、遺贈による物権変動については登記で優劣を決する第三者的地位に立つ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「当事者か第三者か（登記なくして対抗できるか）」を、相続の包括承継と遺贈の物権変動で場面ごとに切り分ける。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-mark="遺贈は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>遺言者の死亡以前に受遺者が死亡すればその効力を生じない</span>（994条1項）。<span class='tx-anscomp-line'>遺贈は、遺言者の死亡以前に受遺者が死亡したときは、その効力を生じない（994条1項）。受遺者は遺贈の効力発生時（遺言者の死亡時）に生存していなければならない（同時存在の原則）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>994条1項『遺贈は、遺言者の死亡以前に受遺者が死亡したときは、その効力を生じない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>遺贈は特定人への意思に基づく処分ゆえ、効力発生時にその者がいなければ効力を生じない（同時存在の原則）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>受遺者が遺言者より先に死亡すれば遺贈は失効し、目的物は原則相続人に帰属する（995条）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>受遺者の子への代襲は生じない。代襲相続（887条2項）は法定相続人についての制度で、受遺者には及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「相続」と「遺贈」で当事者死亡時の扱い（代襲の有無）が違う点を対にして押さえる。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="能力の制度は二本立てで考える。取引の場面で使う行為能力は、判断の未熟な人が結んだ契約を後から取り消して元に戻すための道具で、守られるのは本人であり、取り消されうる相手方も見える形で保護される。これに対し遺言能力は、本人が亡くなった後に効力の生じる意思を、生きているうちにどこまで残させるかという話で、取り消して元に戻すという発想がそもそも働かない。本人はもういないからである。だから民法は<b>遺言をする能力を15歳で区切り</b>（961条）、未成年者や成年被後見人を守るための<b>制限行為能力者の規定を遺言には持ち込まない</b>と明言した（962条）。年齢の数字を覚えるのではなく、その規定が誰を守るために置かれているかで読み分ける。もっとも能力が全く問われないわけではなく、成年被後見人が遺言をするには事理弁識能力を回復した時に<b>医師二人以上の立会い</b>が要る（973条）。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、作成時に判断能力があったかどうかが、後の遺言無効確認訴訟の主戦場になる。公証人や弁護人側は診断書を取り、作成時の問答をカルテや録画で残して、後から能力を検証できる形にしておくのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>成年年齢は2022年4月1日に20歳から18歳へ引き下げられた（平成30年法律第59号）。婚姻できる年齢も男女とも18歳に揃った。それでも961条の15歳は動いていない。遺言は取引ではないから、成年年齢に連動させる理由がそもそもなかったのである。</span>" data-brief-mark="遺贈は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>成年に達しなければすることができない</span><span class='tx-stmt-fix'>→ 15歳に達すればできる（遺言能力・961条）</span>。<span class='tx-anscomp-line'>遺贈は遺言による無償の財産処分（民法964条）であり、遺言能力は<strong>15歳に達した者</strong>に認められる（961条1項）。行為能力の制限規定は遺言に適用されず（962条）、成年でなくても15歳に達していれば遺贈できる。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>961条1項『15歳に達した者は、遺言をすることができる』。遺贈は遺言による処分（964条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>遺言は本人の最終意思を尊重すべき行為ゆえ、財産取引の行為能力より低い15歳で認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>未成年者でも15歳以上なら単独で有効に遺贈できる（法定代理人の同意は不要）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>遺言能力（15歳・961条）と行為能力（18歳・契約）は別基準で、962条が行為能力の制限規定を遺言に不適用とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>身分行為に準じる行為（遺言・婚姻・認知等）は、財産取引の行為能力とは別の年齢・要件で規律される。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="法定相続分を後から修正する装置は三つある。生前にもらいすぎた分を差し引く特別受益（903条）、財産の維持や増加に特別の貢献をした人へ上乗せする寄与分（904条の2）、そして遺言でも奪えない最低保障である遺留分（1042条以下）である。このうち<b>寄与分は、被相続人が何も言い残さなかった場合に、その人ならこう分けただろうという意思を裁判所が補ってやる制度</b>にすぎない。遺言者がはっきり言い残した遺贈は、補われた意思より強い。だから<b>遺贈をまず取り分け、残った額の中でだけ寄与を計算する</b>（904条の2第3項）。遺言が語っているところに補充は入らない、と読めばよい。<b>遺留分だけは向きが逆</b>で、遺言があってもそこから削り取れる最低限として働く。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>寄与分はまず相続人どうしの協議で決め、まとまらなければ家庭裁判所の調停・審判で争う（904条の2第2項）。主張する側は療養看護の期間と一日あたりの相当額を積み上げ、他の相続人は親族としての扶養義務の範囲内だと反論するのが典型である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2019年7月1日に施行された相続法改正（平成30年法律第72号）で、相続人ではない親族にも特別の寄与が認められた（1050条）。長男の妻が義父を何年介護しても、相続人でないため一円も受け取れない。その不満が立法の引き金であった。そして1050条4項は、特別寄与料についても遺贈の価額を控除した残額を超えられないという、同じ高さの天井を置いている。</span>" data-brief-mark="寄与分は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>遺贈の価額を控除した残額を超えることができない</span>（904条の2第3項）。<span class='tx-anscomp-line'>寄与分は、被相続人が相続開始の時に有した財産の価額から<strong>遺贈の価額を控除した残額</strong>を超えることができない（904条の2第3項）。遺贈が寄与分に優先する。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>904条の2第3項『寄与分は…遺贈の価額を控除した残額を超えることができない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>共同相続人間の衡平と、遺言者の意思（遺贈）の尊重の調整。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>寄与分は遺贈に劣後し、遺贈控除後の残額が上限となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>寄与分は遺贈に劣後する（904条の2第3項）が、遺留分侵害額請求は遺贈をも取り戻す別制度で方向が逆。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>相続分の修正制度（寄与分・特別受益・遺留分）は、誰の取り分をどちらが削るかの優先順位で整理する。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="遺贈は二つの型に分かれる。全部または何割という<b>割合で与える包括遺贈</b>と、この土地、この預金と<b>個別に指定して与える特定遺贈</b>である（964条）。割合で与えるということは、プラスの財産とマイナスの債務が混ざった相続財産という塊を、その割合のまま引き受けさせるということにほかならない。良いところだけ抜き取れるとすれば、債権者は取り立て先を失い、相続人だけが借金を背負うことになる。そこで民法は<b>包括受遺者に相続人と同一の権利義務を与えた</b>（990条）。型が決まれば、債務を負うか、遺産分割協議に加わるか、放棄に期限があるかまでが芋づる式に決まる。包括受遺者の放棄や限定承認は、自己のために遺贈があったと知った時から三か月以内にしなければならない（915条）。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>債権者は包括受遺者にも割合に応じて請求してくる。受け取る側は財産目録で債務超過かどうかを確かめ、危なければ三か月以内に家庭裁判所へ放棄を申述する。いつでも放棄できる特定遺贈（986条1項）との差が、ここで実務上の分かれ目になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2024年3月に亡くなった自営業の男性が、全財産の四分の一を長年世話になった友人へ遺贈していた。遺した不動産と預金は4000万円、事業の借入は2000万円。友人が手にするのは1000万円ではなく、資産1000万円と債務500万円の組み合わせである。三か月を過ぎれば、そのまま引き受けたものとして扱われる。</span>" data-brief-mark="一部割合の包括受遺者は、相続財産の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>債務を承継しない</span><span class='tx-stmt-fix'>→ 割合に応じ債務も承継する（990条）</span>。<span class='tx-anscomp-line'>包括受遺者は相続人と同一の権利義務を有する（民法990条）から、包括遺贈の割合に応じて相続財産に属する<strong>債務も当然に承継</strong>する（896条・899条）。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>990条『包括受遺者は、相続人と同一の権利義務を有する』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>包括遺贈は相続財産の割合的承継で相続に類似するため、相続人と同一に扱う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>包括受遺者は割合に応じ積極財産・消極財産（債務）を承継し、遺産分割にも加わる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>包括受遺者は債務を承継するが、特定受遺者は特定物のみ取得し原則債務を負わない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「割合」で受ければ包括＝債務込み、「特定物」で受ければ特定＝債務なし、で受遺者の型を切り分ける。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="不動産の権利の取り合いは、当事者どうしの問題か、第三者との問題かで扱いが変わる。相続による承継は被相続人の地位をそのまま引き継ぐ包括承継だが、<b>遺贈は遺言者の意思に基づいて所有権が移る物権変動</b>であり、売買や贈与と同じ土俵に乗る。登記という制度は、誰が権利者かを外から見える形にして取引を安全にするために置かれている。当事者の間だけで交わされた見えない取り決めの先後で勝敗を決めていては、買おうとする者は誰も安心できない。だから<b>同じ不動産をめぐって権利を争う者どうしは、先に登記を備えた方が勝つ</b>（177条）。受遺者がたまたま相続人であっても、<b>遺贈を原因とする移転については第三者の側に立つ</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>受遺者は遺言者の死亡後ただちに所有権移転登記へ動く。遺言執行者がいればその者だけが遺贈の履行を行い（1012条2項）、いなければ相続人全員の協力が要るため、遺言執行者を指定してあるかどうかが登記の速さを左右する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>相続や相続人への遺贈で不動産を得た人の登記申請は、2024年4月1日から義務になった（不動産登記法76条の2）。取得を知った日から三年以内に申請せず、正当な理由もなければ10万円以下の過料が科される。所有者の分からない土地が九州の面積を上回るという推計が、この義務化の引き金であった。</span>" data-brief-mark="生前贈与のBと遺贈で登記したCが争う場合、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>登記未了のBはCに対抗できない</span>（Cが相続人でも）。<span class='tx-anscomp-line'>生前贈与と遺贈による物権変動の優劣は対抗要件たる登記の具備の有無で決する（最判昭46.11.16・177条）。CがAの相続人でも、遺贈を原因とする物権変動につきCは第三者的地位に立ち、先に登記を備えたCが優先し、登記未了のBはCに対抗できない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>177条『不動産に関する物権の得喪変更は、登記をしなければ第三者に対抗できない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>取引の安全と権利関係の公示。遺贈による物権変動も対抗要件主義に服する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>生前贈与と遺贈の優劣は登記の先後で決する（最判昭46.11.16）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>受遺者が相続人であっても、遺贈による物権変動については登記で優劣を決する第三者的地位に立つ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「当事者か第三者か（登記なくして対抗できるか）」を、相続の包括承継と遺贈の物権変動で場面ごとに切り分ける。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="遺言は遺言者が亡くなった時に効力を生じる（985条1項）。その瞬間に受け取る人がいなければ、権利の行き先がない。これが<b>同時存在の原則</b>で、相続にも遺贈にも共通する土台である。もっとも相続には代襲という例外が用意されていて、先に亡くなった子の取り分は孫へ下りる（887条2項）。これは<b>法律が血縁をたどって取り分を下ろしてやる仕組み</b>だから、本人の意思をいちいち確かめなくても動く。これに対し遺贈は、この人だから渡すという個別の意思に支えられている。意思の向けられていない子へ勝手に下ろすわけにはいかないから、<b>受遺者が先に亡くなれば遺贈は効力を生じない</b>（994条1項）。行き先を失った分は相続人に帰るが、遺言者が別段の意思を書き残していればそれに従う（995条）。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>そこで遺言書には、先に亡くなっていたときはその子に遺贈する、という予備的遺贈を書き添えるのが定石である。高齢の相手や同世代の友人を受遺者に指定するときほど、この一行の有無が結果を分ける。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>法務局が自筆の遺言書を預かる制度は2020年7月10日に始まった。ただし法務局が確かめるのは、日付や署名押印といった方式が整っているかどうかだけで、指定した相手が生きているか、内容が実現できるかまでは見ない。20年前に預けた一通が、相手に先立たれたまま眠っているという事態は、誰も止めてくれない。</span>" data-brief-mark="遺贈は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>遺言者の死亡以前に受遺者が死亡すればその効力を生じない</span>（994条1項）。<span class='tx-anscomp-line'>遺贈は、遺言者の死亡以前に受遺者が死亡したときは、その効力を生じない（994条1項）。受遺者は遺贈の効力発生時（遺言者の死亡時）に生存していなければならない（同時存在の原則）。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>994条1項『遺贈は、遺言者の死亡以前に受遺者が死亡したときは、その効力を生じない』。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>遺贈は特定人への意思に基づく処分ゆえ、効力発生時にその者がいなければ効力を生じない（同時存在の原則）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>受遺者が遺言者より先に死亡すれば遺贈は失効し、目的物は原則相続人に帰属する（995条）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>受遺者の子への代襲は生じない。代襲相続（887条2項）は法定相続人についての制度で、受遺者には及ばない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「相続」と「遺贈」で当事者死亡時の扱い（代襲の有無）が違う点を対にして押さえる。</p></div></td></tr>
 </tbody>
 </table>
 </div>

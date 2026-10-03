@@ -5584,7 +5584,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5605,9 +5629,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6178,11 +6337,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:o,4:x,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-mark="本位的訴因と併合罪の関係にある事実を予備的訴因とすることは<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>許されない</span>（予備的記載も公訴事実の同一性の枠内）。<span class='tx-anscomp-line'>起訴状における訴因の予備的・択一的記載（刑訴法256条5項）が許されるのは<strong>公訴事実の同一性</strong>の範囲内に限られるから、本位的訴因と併合罪の関係に立つ事実を予備的訴因として記載することは許されない（同法312条1項参照）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>256条5項の予備的・択一的記載も、公訴事実の同一性（312条1項の訴因変更の限界と同じ枠）の範囲内に限られる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>束ねられるのは一つの事件として一緒に裁ける範囲に限り、同一性を超える事実は本来別訴によるべきである。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公訴事実の同一性＝単一性＋狭義の同一性で、単一性の有無は実体法上の罪数で決まる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>科刑上一罪は単一性あり／併合罪は数罪＝単一性なしで同一性が認められず、予備的訴因にできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>予備的記載の限界も訴因変更の限界も、同じ「公訴事実の同一性」で判定する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-mark="起訴状に3個以上の訴因を予備的又は択一的に記載することは<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>許されない</span><span class='tx-stmt-fix'>→ 「数個」に上限なく3個以上も可</span>。<span class='tx-anscomp-line'>刑訴法256条5項は<strong>数個の</strong>訴因及び罰条を予備的又は択一的に記載できると定め、その個数に上限を置いていないから、公訴事実の同一性の範囲内であれば3個以上の訴因を予備的・択一的に記載することも許される。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>256条5項「数個の訴因及び罰条」は個数の上限を置かない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>事実・法律評価が微妙な事案で複数の主張を並べ、本来有罪の被告人が無罪になる不都合を防ぐ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>本命（甲）→第2次（乙）→第3次（丙）と3個以上を予備的・択一的に並べられる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>限界は個数ではなく公訴事実の同一性で画される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文が「数個」と言うときは個数上限を読み込まず、限界は別の要件で確かめる。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-mark="審理の途中で予備的訴因を追加することも<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>許される</span>（312条1項の訴因追加）。<span class='tx-anscomp-line'>裁判所は、検察官の請求があるときは<strong>公訴事実の同一性</strong>を害しない限度において訴因の追加を許さなければならないから（刑訴法312条1項）、審理の途中で予備的訴因を追加することも許される（同法256条5項参照）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>312条1項は公訴事実の同一性を害しない限度で訴因の追加・撤回・変更を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>追加＝元の訴因を残して新しい訴因を付け加えること。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>起訴時に予備的記載（256条5項）が許される以上、審理途中の予備的訴因の追加も認められる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>限界はやはり公訴事実の同一性で、これを超える追加は許されない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>起訴の入口で可なら審理途中でも可、という発想で複数記載と訴因変更を接続する。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-mark="訴因を予備的・択一的に記載しても罰条を予備的・択一的に記載することは<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>許されない</span><span class='tx-stmt-fix'>→ 罰条も予備的・択一的に記載できる（256条5項）</span>。<span class='tx-anscomp-line'>刑訴法256条5項は数個の訴因<strong>及び罰条</strong>を予備的又は択一的に記載できると定めるから、訴因につき「罪となるべき事実」の特定（同条3項）が必要であることと両立して、罰条を予備的・択一的に記載することも許される。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>256条5項は「訴因及び罰条」を予備的・択一的に記載できると明記する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>数個の罰条を表示でき、法律判断の相違で本来有罪の被告人が無罪になる不都合を防ぐ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>罪となるべき事実の特定（256条3項・事実の層）と罰条の予備的・択一的記載（法的評価の層）は両立する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>特定要請は事実レベルで、罰条の予備的・択一的記載を否定する理由にならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>事実と法的評価を分ける発想は訴因変更の要否の判断にも通じる。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-mark="本位的訴因について有罪判決を言い渡す場合、予備的訴因について<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>無罪判決を言い渡さなければならない</span><span class='tx-stmt-fix'>→ 予備的訴因は審判不要（無罪判決なし）</span>。<span class='tx-anscomp-line'>予備的記載は本位的訴因が認定できないことを<strong>停止条件</strong>として予備的訴因の認定を求めるものであるから（刑訴法256条5項）、本位的訴因について有罪判決を言い渡す場合、予備的訴因は審判の必要がなく、これについて無罪の言渡しをすることを要しない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>予備的記載は本位的訴因が認定されないことを停止条件に予備的訴因の認定を求める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>順位に従い、まず本位的訴因を判断し、認定できなければ予備的訴因へ進む。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>本位的訴因が有罪なら停止条件は成就せず、予備的訴因は審判不要となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>予備的（順位あり・停止条件付き）と択一的（順位なし・いずれか一つ認定）で審判の仕方が異なる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>一つの公訴事実で本位的訴因が有罪となる以上、予備的訴因に別途無罪の言渡しをする余地はない。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="予備的・択一的記載は、起訴状という一枚の紙にいくつの主張を載せてよいかという訴因の設定の話である。載せられる範囲を決めるのは<b>公訴事実の同一性</b>、つまり一つの事件として一緒に裁ける枠で、この枠は被告人に守るべき的を絞らせ、判決が確定したあとどこまで蒸し返せないか（一事不再理の及ぶ範囲）を画すために引かれている。枠の外の事実まで控えとして忍ばせると、被告人はどこを防御すればよいのか分からなくなるので、束ねられるのは同じ枠の中に限られる。考え方のコツは、<b>科刑上一罪</b>（観念的競合や牽連犯＝実体は数個の行為でも訴訟の上では一個の事件として扱う罪）は枠の内側、<b>併合罪</b>（足し算で処罰される数個の罪）は端から別の事件、と線を引いて見ることである。別の事件は控えではなく、別に起こす起訴＝<b>追起訴</b>という形で法廷に持ち込む。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>検察官は、枠に収まらない事実は追起訴し、裁判所が弁論を併合して一緒に審理するのが通常である。弁護人は起訴状を受け取った段階で、控えとして書かれた事実が枠の外へ出ていないかを確かめ、出ていれば記載そのものを争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>ゴーン氏の事件では、2018年11月の逮捕のあと、まず有価証券報告書の虚偽記載（金融商品取引法違反）で起訴された。会社の資金をめぐる特別背任はこれとは別個の罪なので、同じ起訴状へ控えとして書き足されたのではなく、2019年1月の追起訴という別の入口から持ち込まれている。</span>" data-brief-mark="本位的訴因と併合罪の関係にある事実を予備的訴因とすることは<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>許されない</span>（予備的記載も公訴事実の同一性の枠内）。<span class='tx-anscomp-line'>起訴状における訴因の予備的・択一的記載（刑訴法256条5項）が許されるのは<strong>公訴事実の同一性</strong>の範囲内に限られるから、本位的訴因と併合罪の関係に立つ事実を予備的訴因として記載することは許されない（同法312条1項参照）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>256条5項の予備的・択一的記載も、公訴事実の同一性（312条1項の訴因変更の限界と同じ枠）の範囲内に限られる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>束ねられるのは一つの事件として一緒に裁ける範囲に限り、同一性を超える事実は本来別訴によるべきである。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公訴事実の同一性＝単一性＋狭義の同一性で、単一性の有無は実体法上の罪数で決まる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>科刑上一罪は単一性あり／併合罪は数罪＝単一性なしで同一性が認められず、予備的訴因にできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>予備的記載の限界も訴因変更の限界も、同じ「公訴事実の同一性」で判定する。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="256条5項は<b>起訴状の書き方</b>を定めた規定であって、限界そのものを定めた規定ではない。条文は数個の訴因及び罰条と言うだけで、二個までとも三個までとも書いていないから、個数の上限をここに読み込まない。限界を画すのはあくまで<b>公訴事実の同一性</b>という別の要件で、その枠に収まる限り、本命・第二次・第三次…と何段でも重ねられる。趣旨は審理の一回性にある。証拠の出方によって同じ出来事の法的な顔が変わりうるとき、あらかじめ候補を並べておけば、一つ崩れるたびに起訴をやり直して被告人を二度三度と法廷に立たせずに済む。<b>予備は二択</b>という日常語のイメージは、条文の数個という語には入っていない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>一つの金の流れをめぐって窃盗か横領か詐欺かが証拠次第で動く事件では、検察官が順位をつけて三段以上を並べることがある。弁護人は並んだ全部について防御の筋を立てる必要があり、公判前整理手続で順位と中身を確認しておく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>会社の経理担当者が2023年4月に会社名義の口座から800万円を引き出した、という一つの出来事を思い浮かべればよい。金の占有が会社側にあったなら窃盗、担当者に委ねられていたなら業務上横領、上司を欺いて決裁を取っていたなら詐欺と、同じ800万円に三つの顔があり得る。だからこそ本命から第三次まで三段で並べる余地が生まれる。</span>" data-brief-mark="起訴状に3個以上の訴因を予備的又は択一的に記載することは<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>許されない</span><span class='tx-stmt-fix'>→ 「数個」に上限なく3個以上も可</span>。<span class='tx-anscomp-line'>刑訴法256条5項は<strong>数個の</strong>訴因及び罰条を予備的又は択一的に記載できると定め、その個数に上限を置いていないから、公訴事実の同一性の範囲内であれば3個以上の訴因を予備的・択一的に記載することも許される。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>256条5項「数個の訴因及び罰条」は個数の上限を置かない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>事実・法律評価が微妙な事案で複数の主張を並べ、本来有罪の被告人が無罪になる不都合を防ぐ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>本命（甲）→第2次（乙）→第3次（丙）と3個以上を予備的・択一的に並べられる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>限界は個数ではなく公訴事実の同一性で画される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文が「数個」と言うときは個数上限を読み込まず、限界は別の要件で確かめる。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="入口の書き方を定める256条5項と、審理が始まってからの動きを定める<b>312条1項</b>は別の条文だが、限界はどちらも公訴事実の同一性で引かれている。訴因は検察官が立てた仮説であり、証人尋問や書証の取調べによって事実の輪郭は動くから、動くたびに起訴をやり直させるのは被告人にも裁判所にも重すぎる。そこで枠の内側であれば、元の訴因を残して付け足す<b>追加</b>、別の訴因へ入れ替える<b>変更</b>、取り下げる撤回を認めた。読み方のコツは条文の語尾にある。312条1項は許すことができるではなく<b>許さなければならない</b>と書かれており、枠内なら裁判所に拒む裁量はなく、逆に枠を超える請求は許可できない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>証拠調べの途中で事実の見立てが動いたとき、検察官が期日間に訴因の追加を請求し、裁判所が許可したうえで弁護人に続行期日や追加立証という防御の機会を与えるのが通常の流れである。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>配達員が客から預かった荷物を持ち去ったとして、2022年6月の出来事につき窃盗一本で起訴された場面を考える。第三回公判の証人尋問で、荷物がいったん適法に配達員へ預けられていたことが出てきたなら、検察官はその後に業務上横領を予備的訴因として追加するよう請求し、裁判所の許可を得て審理が続いていく。</span>" data-brief-mark="審理の途中で予備的訴因を追加することも<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>許される</span>（312条1項の訴因追加）。<span class='tx-anscomp-line'>裁判所は、検察官の請求があるときは<strong>公訴事実の同一性</strong>を害しない限度において訴因の追加を許さなければならないから（刑訴法312条1項）、審理の途中で予備的訴因を追加することも許される（同法256条5項参照）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>312条1項は公訴事実の同一性を害しない限度で訴因の追加・撤回・変更を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>追加＝元の訴因を残して新しい訴因を付け加えること。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>起訴時に予備的記載（256条5項）が許される以上、審理途中の予備的訴因の追加も認められる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>限界はやはり公訴事実の同一性で、これを超える追加は許されない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>起訴の入口で可なら審理途中でも可、という発想で複数記載と訴因変更を接続する。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="起訴状に書くものは層が二つに分かれている。一つは訴因＝<b>罪となるべき事実</b>で、できる限り日時・場所・方法を示して特定せよと求められる（256条3項）。もう一つは罪名と<b>罰条</b>＝その事実に当てる条文で、事実への法的な評価のラベルにあたる（同条4項）。特定を厳しく求める趣旨は被告人の防御の的を定めることにあり、防御は事実に向けられるから、事実さえ動かなければ当てる条文の候補が複数示されても不意打ちにはならない。だから5項は数個の訴因<b>及び罰条</b>と並べて書いている。特定しろというのは事実の話、幅を持たせてよいというのは評価の話と、層を分けて読むのがコツである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>罰条の記載は裁判所の法の適用を縛るものではないが、審理の途中で当てる条文を動かすときは、被告人の防御に実質的な不利益が及ばないよう罰条変更の手続を経るのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>市の建設課長が2021年10月に業者から現金100万円を受け取った、という一つの事実を考える。いつ・どこで・いくらは動かないのに、請託を受けていたと認められるかどうかで当てはまる条文は刑法197条1項の前段（単純収賄）と後段（受託収賄）に分かれる。事実の特定を崩さないまま、当てる条文の側を並べて示すことになる。</span>" data-brief-mark="訴因を予備的・択一的に記載しても罰条を予備的・択一的に記載することは<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>許されない</span><span class='tx-stmt-fix'>→ 罰条も予備的・択一的に記載できる（256条5項）</span>。<span class='tx-anscomp-line'>刑訴法256条5項は数個の訴因<strong>及び罰条</strong>を予備的又は択一的に記載できると定めるから、訴因につき「罪となるべき事実」の特定（同条3項）が必要であることと両立して、罰条を予備的・択一的に記載することも許される。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>256条5項は「訴因及び罰条」を予備的・択一的に記載できると明記する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>数個の罰条を表示でき、法律判断の相違で本来有罪の被告人が無罪になる不都合を防ぐ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>罪となるべき事実の特定（256条3項・事実の層）と罰条の予備的・択一的記載（法的評価の層）は両立する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>特定要請は事実レベルで、罰条の予備的・択一的記載を否定する理由にならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>事実と法的評価を分ける発想は訴因変更の要否の判断にも通じる。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="予備的記載は順位をつける書き方なので、判決の側にも順序が生まれる。控えの訴因は、本命の訴因が認定できないことを<b>停止条件</b>（その条件が満たされて初めて効き始める仕組み）として判断を求めるものだから、本命で有罪になれば条件が成就せず、控えは審理の対象に上がらないまま終わる。一個の公訴事実について裁判所が出す<b>答えは一つ</b>であり、有罪と無罪を同じ事件に重ねて言い渡す余地はない。<b>択一的記載</b>（順位なし）でも、並べたうちの一つを認定すれば残りに無罪を言い渡さない点は同じで、違うのは判断に順番があるかどうかだけである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>判決書では本位的訴因について有罪の理由だけを書き、控えの訴因には触れない。本命を認定できないときは、まずそのことを示してから控えの判断へ進む。控訴審で本命の認定が覆れば、控えの訴因が改めて審理の対象になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>倉庫から在庫品300万円分が消えた件で、本命を窃盗、控えを業務上横領として書かれた起訴状を思い浮かべればよい。窃盗で有罪となる判決なら、判決書は業務上横領に一行も触れない。逆に窃盗が認められなかったときに初めて、控えの業務上横領が審理の場へ出てくる。</span>" data-brief-mark="本位的訴因について有罪判決を言い渡す場合、予備的訴因について<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>無罪判決を言い渡さなければならない</span><span class='tx-stmt-fix'>→ 予備的訴因は審判不要（無罪判決なし）</span>。<span class='tx-anscomp-line'>予備的記載は本位的訴因が認定できないことを<strong>停止条件</strong>として予備的訴因の認定を求めるものであるから（刑訴法256条5項）、本位的訴因について有罪判決を言い渡す場合、予備的訴因は審判の必要がなく、これについて無罪の言渡しをすることを要しない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>予備的記載は本位的訴因が認定されないことを停止条件に予備的訴因の認定を求める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>順位に従い、まず本位的訴因を判断し、認定できなければ予備的訴因へ進む。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>本位的訴因が有罪なら停止条件は成就せず、予備的訴因は審判不要となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>予備的（順位あり・停止条件付き）と択一的（順位なし・いずれか一つ認定）で審判の仕方が異なる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>一つの公訴事実で本位的訴因が有罪となる以上、予備的訴因に別途無罪の言渡しをする余地はない。</p></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6440,16 +6599,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6484,7 +6658,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6497,6 +6676,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6505,12 +6685,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

@@ -5581,7 +5581,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5602,9 +5626,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6109,10 +6268,10 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="x" data-brief-mark="防御が相反する共同被告人について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>必ず弁論を分離しなければならない</span><span class='tx-stmt-fix'>→ 権利保護に必要と認めるとき分離すべきで、相反だけでは必ずしも要しない（規則210条）</span>。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>規則210条＝防御が相反する等の事由で被告人の権利保護に必要と認めるとき、決定で弁論を分離しなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>併合審理で被告人の権利が犠牲にされ実体的真実の発見・訴訟手続の公正を害するのを防ぐ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>分離・併合は原則裁量。相反は必要的分離を導く一事由にとどまる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>単に主張が相反するだけでは必ずしも分離を要さず実質的判断で決するから、『必ず分離』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>共同審理の運用は各被告人の権利保護の必要に応じて調整される。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-mark="他方の被告人が関連性を争う証拠について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>関連性の有無にかかわらずその被告人との関係で採用・取調べが許される</span><span class='tx-stmt-fix'>→ 手続は被告人ごとに別個で、関連性がなければ証拠能力なく採用できない</span>。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>事実の認定は証拠による（317条）。証拠採用には要証事実との関連性を要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>関連性を欠く証拠を排し、被告人ごとの手続の独立を保つ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>訴訟手続は被告人ごとに別個で、一方の被告人との関係の証拠が当然に他方の証拠になるわけではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>関連性がなければ証拠能力が認められず採用できない。『有無にかかわらず採用可』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>証拠の評価・採否は被告人ごとに個別に判断する。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-mark="共同被告人の一方への被告人質問について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>共同被告人又はその弁護人も裁判長に告げて供述を求める質問ができる</span>（311条3項）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>311条3項＝陪席裁判官・検察官・弁護人・共同被告人又はその弁護人は、裁判長に告げて被告人の供述を求めることができる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>共同審理で利害が対立し得るため、相手方被告人に供述を求める道を開く。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>質問権者に共同被告人・その弁護人が含まれる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『質問できるのは当該被告人側だけ』と限定すると誤り。共同被告人の弁護人も可。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>共同審理では各被告人が独立の当事者として振る舞う。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-mark="共犯者・自己の自白と補強法則について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>共犯者の自白は補強不要で共同被告人は有罪とされ得るが、自己の自白には補強証拠が必要で請求がなければ有罪とされない</span>（319条2項・最大判昭33.5.28）。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>319条2項＝被告人は、自白が自己に不利益な唯一の証拠である場合には有罪とされない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>自白偏重による誤判を防ぐ。補強を要するのは本人の自白。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>共犯者の自白は本人の自白でなく第三者の供述と同様で補強不要（最大判昭33.5.28）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『自白には常に補強が要る』と一律に読むと誤り。誰にとっての自白かで要否が裏返る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>証拠の評価は『誰にとってのものか』で被告人ごとに個別化される。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="x" data-brief-story="数人を一つの法廷でまとめて裁く併合審理は、同じ証拠を何度も調べずに済ませるための<b>便宜の制度</b>で、弁論の分離・併合はもともと裁判所の裁量に委ねられている（313条1項）。ただし共犯とされた者が並ぶと、一方の言い分がそのまま他方の不利益に働き、防御の機会が実質的に削られることがある。そこで規則210条は、<b>被告人の権利を保護するため必要があると認めるとき</b>に分離を義務づけた。読み方のコツは、語尾の強さ（しなければならない）と、そのスイッチを入れる要件とを分けて見ることである。防御が互いに相反することは<b>分離を導く一事由</b>にすぎず、食い違いがあれば自動で分離されるのではなく、裁判所が権利保護の必要という評価を一つ挟んで決める。裁量が原則、必要があるときだけ義務に変わる——この段構えが共同審理の全体を支えている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>分離は弁護人の請求でも職権でも動き、裁判所が訴訟指揮の中で決定する。弁護人は共同被告人の不利な供述が出る前に申し立てるのが通常で、遅れれば供述が先に法廷へ入ってしまう。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>オウム真理教の一連の刑事裁判では、松本智津夫の公判が1996年から東京地裁で単独の被告人として進み、実行を担ったとされる元幹部らは別に起訴されて、その法廷に証人として呼ばれた。同じ法廷に並べるか切り離すか——その選択が、共犯とされた者の供述をどの形で法廷に入れるかを決めていった。</span>" data-brief-mark="防御が相反する共同被告人について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>必ず弁論を分離しなければならない</span><span class='tx-stmt-fix'>→ 権利保護に必要と認めるとき分離すべきで、相反だけでは必ずしも要しない（規則210条）</span>。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>規則210条＝防御が相反する等の事由で被告人の権利保護に必要と認めるとき、決定で弁論を分離しなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>併合審理で被告人の権利が犠牲にされ実体的真実の発見・訴訟手続の公正を害するのを防ぐ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>分離・併合は原則裁量。相反は必要的分離を導く一事由にとどまる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>単に主張が相反するだけでは必ずしも分離を要さず実質的判断で決するから、『必ず分離』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>共同審理の運用は各被告人の権利保護の必要に応じて調整される。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="事実の認定は証拠による（317条）。その入口に置かれているのが<b>関連性</b>、すなわち証明したい事実と結びついているかという最初のふるいである。結びつかない物をいくら並べても判断を誤らせるだけなので、関連性を欠く証拠はそもそも法廷へ入れない。そしてもう一つ、共同審理は<b>法廷を一つにまとめただけ</b>で、訴訟そのものは被告人ごとに別々に係属している。だから証拠を採るかどうかの判断も被告人ごとに立ち、一方の側が争わないからといって、他方の側でも当然に通るわけではない。同じ物であっても、誰との関係で何を証明するために出すのかが変われば、<b>入口のふるいは別々に掛かる</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>検察官は証拠調べを請求するとき、どの被告人との関係で何を立証するのかを示し、裁判所は双方の意見を聴いてから採否を決める。証拠決定が一方には採用、他方には却下と分かれることも珍しくない。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>共同経営者と経理担当者が架空発注の共犯として一緒に裁かれる法廷を思い浮かべたい。検察官が請求した総額4,200万円の振込履歴について、経理担当者の側は争わず、共同経営者の側は自分とは結びつかないと述べる。裁判所は前者との関係でだけ取り調べ、後者との関係では結びつきを確かめてから決める。同じ一冊の資料が、右と左で別々の扱いになる。</span>" data-brief-mark="他方の被告人が関連性を争う証拠について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>関連性の有無にかかわらずその被告人との関係で採用・取調べが許される</span><span class='tx-stmt-fix'>→ 手続は被告人ごとに別個で、関連性がなければ証拠能力なく採用できない</span>。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>事実の認定は証拠による（317条）。証拠採用には要証事実との関連性を要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>関連性を欠く証拠を排し、被告人ごとの手続の独立を保つ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>訴訟手続は被告人ごとに別個で、一方の被告人との関係の証拠が当然に他方の証拠になるわけではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>関連性がなければ証拠能力が認められず採用できない。『有無にかかわらず採用可』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>証拠の評価・採否は被告人ごとに個別に判断する。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="被告人は裁かれる相手であると同時に<b>手続の当事者</b>であって、証人ではない。だから終始沈黙することも、個々の質問に答えないこともできる（311条1項）。証人尋問とは別に<b>被告人質問</b>という手続が置かれているのはこのためで、宣誓も偽証罪の制裁もない代わりに、答えるかどうかは本人が決める。そのうえで311条3項は、質問できる者として陪席の裁判官・検察官・弁護人と並べて<b>共同被告人又はその弁護人</b>を明記した。共同審理では、一方が認め他方が否認するというように利害が正面からぶつかるのが通常だから、相手方にも問う道を開いておかなければ、同席させられた側の防御が細ってしまう。裁判長に告げて行うという作りは、進行を裁判所が握るという建て付けの表れである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>相手方の弁護人は、被告人質問で自分の依頼人に有利な事実を引き出しにかかる。もっとも黙秘されればそこで止まるので、どうしても要る供述は弁論の分離を求め、宣誓させた証人尋問へ切り替えることを考える。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>ロッキード事件の丸紅ルートでは、元首相の田中角栄と、資金を渡した側とされる丸紅の幹部らが同じ法廷に並び、それぞれに弁護団が付いた。1983年10月12日、東京地裁は田中に懲役4年・追徴金5億円を言い渡している。立場の異なる者が同席する法廷では、相手方の側から問える道が要る。</span>" data-brief-mark="共同被告人の一方への被告人質問について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>共同被告人又はその弁護人も裁判長に告げて供述を求める質問ができる</span>（311条3項）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>311条3項＝陪席裁判官・検察官・弁護人・共同被告人又はその弁護人は、裁判長に告げて被告人の供述を求めることができる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>共同審理で利害が対立し得るため、相手方被告人に供述を求める道を開く。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>質問権者に共同被告人・その弁護人が含まれる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『質問できるのは当該被告人側だけ』と限定すると誤り。共同被告人の弁護人も可。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>共同審理では各被告人が独立の当事者として振る舞う。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="自白の扱いは二段に分かれている。まず任意にされたものでない疑いのある自白は証拠にできず（319条1項）、それを通り抜けても、自白が自己に不利益な唯一の証拠であるときは有罪とされない（319条2項、憲法38条3項）。後者が<b>補強法則</b>で、自白偏重が生む誤判を防ぐため、裏づけの証拠を必ず要求する仕組みである。読むときのコツは、条文にいう<b>本人の自白</b>の「本人」が誰を指すかを、有罪と認定される側から見ることにある。ある人の自白は、その人自身を有罪にするときは本人の自白だが、隣に座る別の被告人を有罪にするときは<b>被告人以外の者の供述</b>となり、補強法則の外へ出る。もっとも、自分の責任を軽くするために他人を引き込む危険は残るので、補強が要らないことと信用してよいことは別だと、学説からくり返し指摘されている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>共犯者が認めているだけでは足りないので、検察官は通話履歴や所持品の状況といった客観証拠を重ね、供述が変遷していないかを調書と突き合わせる。弁護人は取調べの経緯を洗い、引き込みの動機を突く。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>共犯者の自白について引かれる最大判昭33.5.28は、練馬事件と呼ばれる。1951年12月、東京都練馬区で警察官が襲われて死亡した事件で、共犯とされた複数の者が起訴され、その供述をどう扱うかが最高裁大法廷まで争われた。判決が言い渡されたのは1958年5月28日である。</span>" data-brief-mark="共犯者・自己の自白と補強法則について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>共犯者の自白は補強不要で共同被告人は有罪とされ得るが、自己の自白には補強証拠が必要で請求がなければ有罪とされない</span>（319条2項・最大判昭33.5.28）。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>319条2項＝被告人は、自白が自己に不利益な唯一の証拠である場合には有罪とされない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>自白偏重による誤判を防ぐ。補強を要するのは本人の自白。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>共犯者の自白は本人の自白でなく第三者の供述と同様で補強不要（最大判昭33.5.28）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>『自白には常に補強が要る』と一律に読むと誤り。誰にとっての自白かで要否が裏返る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>証拠の評価は『誰にとってのものか』で被告人ごとに個別化される。</p></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6371,16 +6530,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6415,7 +6589,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6428,6 +6607,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6436,12 +6616,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

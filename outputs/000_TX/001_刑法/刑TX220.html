@@ -3242,6 +3242,408 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 .basis-card .kd-item{ display:flex !important; flex-direction:column !important; }
 .basis-card .kd-item .kd-label{ align-self:flex-start !important; margin:0 0 6px 0 !important; }
 .basis-card .kd-item .kd-text{ display:block !important; margin-left:0 !important; padding-left:0 !important; text-indent:1em !important; }
+
+/* === 解法ナビ（Lexia用・軽量版・常時表示） === */
+/* ============================================================
+   解法ナビ（試作・議論形式）── 検討順に本物の5択を1つずつ判断し、残った番号へ導く
+   公式 ox-grid は不変。ナビは独立ウィジェット。要所で解法アドバイスを表示。
+   ============================================================ */
+/* 解法ナビは「裏ルート」＝既定で非表示。body.snav-on のときだけ出す（フラグで点灯） */
+.solve-nav{display:none; margin:18px 0 16px; border:1.5px solid var(--accent); border-radius:12px;
+  background:var(--light,#fff); overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05);}
+body.snav-on .solve-nav{display:block;}
+.sn-head{padding:12px 16px; font-weight:700; font-family:var(--font-display,sans-serif);
+  color:#fff; background:var(--accent); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.sn-head .sn-sub{font-weight:500; font-size:.78em; opacity:.92; flex-basis:100%;}
+.sn-body{padding:14px 16px 16px;}
+.sn-combos{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px;}
+.sn-combo{flex:1 1 0; min-width:86px; border:1.5px solid var(--border-mid,#ccc); border-radius:9px;
+  padding:7px 6px; text-align:center; background:#fff; transition:.18s; font-size:.76em; line-height:1.5;}
+.sn-combo .sn-cno{display:inline-flex; width:22px; height:22px; border-radius:50%; background:var(--soft,#eee);
+  color:var(--bg-dark,#333); font-weight:800; align-items:center; justify-content:center; margin-bottom:3px;}
+.sn-combo .sn-cseq{color:var(--bg-dark,#555); letter-spacing:.01em;}
+.sn-combo .sn-cseq b{color:var(--accent);}
+.sn-combo.live{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,0,0,.04);}
+.sn-combo.dead{opacity:.3; text-decoration:line-through; filter:grayscale(.7);}
+.sn-combo.win{border-color:var(--recall-correct-light,#43a047); background:#eef8ef;}
+.sn-combo.win .sn-cno{background:var(--recall-correct-light,#43a047); color:#fff;}
+.sn-remain{font-size:.78em; color:var(--bg-dark,#666); margin:0 0 12px;}
+.sn-progress{font-size:.78em; color:var(--bg-dark,#666); margin-bottom:6px; font-weight:600;}
+.sn-step-q{font-weight:700; margin:0 0 3px; color:var(--accent); font-size:1.02em;}
+.sn-step-loc{font-size:.82em; color:var(--bg-dark,#666); margin:0 0 10px;}
+.sn-tip{margin:0 0 12px; padding:9px 11px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.7;}
+.sn-tip .sn-tip-h{font-weight:700; color:var(--accent); margin-right:4px;}
+.sn-tip .sn-tip-b{display:block; padding-left:1.5em; margin-top:3px;}
+.sn-opts{display:flex; flex-direction:column; gap:8px;}
+.sn-opt{display:flex; gap:10px; align-items:flex-start; text-align:left; width:100%;
+  border:1.5px solid var(--border-mid,#ccc); border-radius:9px; padding:11px 12px; background:#fff;
+  cursor:pointer; font-size:.92em; line-height:1.6; color:var(--bg-dark,#333);
+  -webkit-tap-highlight-color:transparent;}
+.sn-opt:hover{border-color:var(--accent);}
+.sn-opt .sn-key{flex:0 0 auto; width:24px; height:24px; border-radius:6px; background:var(--soft,#eee);
+  color:var(--accent); font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.9em;}
+.sn-trail{margin-top:12px; font-size:.85em; line-height:1.9;}
+.sn-trail .sn-pick{display:inline-block; margin:2px 6px 2px 0; padding:2px 9px; border-radius:6px;
+  background:var(--soft,#eee); color:var(--bg-dark,#333); font-weight:600;}
+.sn-feedback{margin-top:10px; padding:9px 11px; border-radius:8px; font-size:.86em; line-height:1.7;
+  background:#eef8ef; border-left:4px solid var(--recall-correct-light,#43a047);}
+.sn-result{margin-top:14px; padding:13px 15px; border-radius:9px; background:#eef8ef;
+  border-left:5px solid var(--recall-correct-light,#43a047); line-height:1.75; font-size:.92em;}
+.sn-result.miss{background:#fff4f6; border-left-color:var(--recall-incorrect,#c62828);}
+.sn-result .sn-big{font-size:1.15em; font-weight:800;}
+.sn-actions{margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;}
+.sn-btn{border:none; border-radius:8px; padding:10px 14px; font-weight:700; font-size:.9em; cursor:pointer;}
+.sn-btn.primary{background:var(--accent); color:#fff;}
+.sn-btn.ghost{background:none; border:1.5px solid var(--accent); color:var(--accent);}
+/* 公式回答を「オリジナルの5択（組合せ番号）」に置換（ox-grid は DOM 保持・Lexia 記録用に裏で駆動） */
+.answer-area.combo-mode .answer-instruction,
+.answer-area.combo-mode .answer-ox-grid,
+.answer-area.combo-mode > .reveal-answer-btn,
+.answer-area.combo-mode #answer-feedback{display:none;}
+.cp-hint{margin:2px 0 8px; padding:10px 12px; border-radius:8px; background:var(--soft,#f3f3f3);
+  border-left:4px solid var(--accent); font-size:.86em; line-height:1.6; color:var(--bg-dark,#444);}
+
+/* === 解法ナビ統合：ox-grid を多肢選択の一問一答に === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-stmt{ flex:1 1 200px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; flex:1 1 100%; width:100%; margin-top:6px; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+
+/* === ox-grid 3要素：設問＋過去問選択肢＋自己完結命題（プール単位） === */
+.answer-ox-grid .ox-row.mc{ display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px 10px; }
+.answer-ox-grid .ox-row.mc .ox-main{ flex:1 1 100%; }
+.answer-ox-grid .ox-row.mc .ox-q{ font-weight:700; margin:0 0 8px; color:var(--bg-dark,#333); }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc{ display:flex; flex-direction:column; gap:8px; width:100%; }
+.answer-ox-grid .ox-row.mc .ox-btn-group.mc .ox-btn{ width:100%; height:auto; text-align:left; justify-content:flex-start; align-items:flex-start; padding:11px 13px; font-size:.92em; line-height:1.55; white-space:normal; }
+.ox-btn-group.mc .mc-key{ display:inline-flex; width:22px; height:22px; border-radius:6px; background:var(--soft,#eee); color:var(--accent); font-weight:800; align-items:center; justify-content:center; margin-right:9px; flex:0 0 auto; }
+.answer-ox-grid .ox-row.mc.sn-current{ outline:2px solid var(--accent); outline-offset:3px; border-radius:8px; }
+/* 自己完結命題＝reveal 後に展開（解く前は隠す＝ネタバレ防止）。Lexia は .ox-stmt(純命題) を records */
+.answer-ox-grid .ox-core-wrap{ display:none; margin:10px 0 2px; padding:11px 13px; border-radius:9px;
+  background:#fffdf0; border-left:5px solid #e0c200; line-height:1.7; font-size:.92em; color:var(--bg-dark,#333); }
+.answer-area.answered .answer-ox-grid .ox-core-wrap{ display:block; }
+.answer-ox-grid .ox-core-wrap .ox-stmt{ display:block; padding-left:1.5em; margin-top:3px; }
+.ox-core-wrap .ox-core-tag{ display:inline-block; margin-right:4px; padding:1px 8px; border-radius:5px;
+  background:#e0c200; color:#3a3000; font-weight:800; font-size:.82em; }
+/* TX-LEX short-answer reflex core: 文言・趣旨・射程・切断点・転用 */
+.tx-reflex-core{display:grid;gap:6px;margin:0;font-size:.94em;line-height:1.7;}
+.tx-reflex-line{margin:0;padding-left:5.4em;text-indent:-5.4em;}
+.tx-reflex-tag{display:inline-block;min-width:4.2em;margin-right:.55em;padding:.12em .48em;border-radius:999px;border:1px solid #d7cfa8;background:#efe7cb;color:#65581d;font-weight:800;text-align:center;text-indent:0;}
+.tx-reflex-cut .tx-reflex-tag{border-color:#dba9b2;background:#ffefe7;color:#774252;}
+
+
+/* === blank-mode polish (恒久) === */
+.fa-narrative b{ color:var(--accent-darker,var(--accent)); font-weight:560; }
+.fa-narrative b{ font-weight:520 !important; }
+
+.tx-cycle-aids{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:4px 0 2px; }
+
+.tx-cycle-aids p,
+.tx-cycle-aids .tx-cycle-aid,
+.tx-cycle-aids>.tx-cycle-aid{
+  position:relative; margin:0; padding:36px 16px 15px; border:1px solid rgba(166,139,207,.40);
+  border-radius:15px; background:linear-gradient(180deg,#f7f2fe 0%,#f1eafb 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.74), 0 3px 11px -3px rgba(110,80,150,.16);
+}
+
+.tx-cycle-aids p:has(.tx-cycle-label.is-compress),
+.tx-cycle-aids .tx-cycle-aid.compress,
+.tx-cycle-aids>.tx-cycle-aid.compress{ border-color:rgba(222,128,163,.40); background:linear-gradient(180deg,#fff3f7 0%,#ffe9f0 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.74), 0 3px 11px -3px rgba(200,90,140,.16); }
+
+.tx-cycle-label,
+.tx-cycle-title{
+  position:absolute; top:-11px; left:12px; display:inline-flex; align-items:center;
+  min-height:28px; padding:2px 13px 3px; border:1px solid #cbbdea; border-radius:999px;
+  background:#e8ddfb; color:#584a93; font-weight:900; font-family:var(--font-soft);
+  box-shadow:0 1px 3px rgba(80,60,120,.12);
+}
+
+.tx-cycle-label.is-compress,
+.tx-cycle-aid.compress .tx-cycle-title{ border-color:#eebac6; background:#ffdce5; color:#91485b; }
+
+.tx-cycle-body{ display:block; text-indent:1em; color:#3e364d; font-weight:560; line-height:1.8; }
+
+.tx-cycle-label.is-compress + .tx-cycle-body,
+.tx-cycle-aid.compress .tx-cycle-body{ color:#4c3239; }
+
+  .tx-cycle-aids{ grid-template-columns:1fr; }
+
+.tx-cycle-aids{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  width:min(92%,1120px);
+  margin:24px auto 0;
+  padding:0;
+}
+
+.tx-cycle-aids p,
+.tx-cycle-aids .tx-cycle-aid,
+.tx-cycle-aids>.tx-cycle-aid{
+  display:block;
+  position:relative;
+  margin:0;
+  padding:34px 24px 18px 28px;
+  border:1px solid rgba(166,139,207,.40);
+  border-radius:15px;
+  background:linear-gradient(180deg,rgba(245,241,252,.96) 0%,rgba(250,248,255,.92) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.74), 0 3px 11px -3px rgba(110,80,150,.16);
+  text-indent:0 !important;
+}
+
+.tx-cycle-aids p:has(.tx-cycle-label.is-compress),
+.tx-cycle-aids .tx-cycle-aid.compress,
+.tx-cycle-aids>.tx-cycle-aid.compress{
+  border-color:rgba(222,128,163,.40);
+  background:linear-gradient(180deg,rgba(255,241,247,.96) 0%,rgba(255,248,251,.92) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.74), 0 3px 11px -3px rgba(200,90,140,.16);
+}
+
+.tx-cycle-label,
+.tx-cycle-title{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  position:absolute;
+  top:-13px;
+  left:18px;
+  min-width:8.2em;
+  box-sizing:border-box;
+  padding:4px 10px 5px 38px;
+  border-radius:999px 10px 10px 999px;
+  border:1px solid #c8b5e5;
+  background:linear-gradient(180deg,#fbf9ff 0%,#e9def8 100%);
+  color:#5f467e;
+  font-family:var(--font-soft);
+  font-weight:900;
+  letter-spacing:.02em;
+  line-height:1.2;
+  z-index:1;
+}
+
+.tx-cycle-label::before,
+.tx-cycle-title::before{
+  content:'記';
+  position:absolute;
+  left:5px;
+  top:50%;
+  transform:translateY(-50%);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:#8a72b8;
+  color:#fff;
+  font-family:var(--font-display);
+  font-weight:900;
+  font-size:.88em;
+}
+
+.tx-cycle-label::after{
+  content:'';
+  position:absolute;
+  right:-6px;
+  top:50%;
+  transform:translateY(-50%) rotate(45deg);
+  width:10px;
+  height:10px;
+  border-top:1px solid #c8b5e5;
+  border-right:1px solid #c8b5e5;
+  background:#e9def8;
+}
+
+.tx-cycle-label.is-compress{ border-color:#ebb4ca; background:linear-gradient(180deg,#fff9fc 0%,#f7dce8 100%); color:#8f4263; }
+
+.tx-cycle-label.is-compress::before{ content:'答'; background:#c76e94; }
+
+.tx-cycle-label.is-compress::after{ border-top-color:#ebb4ca; border-right-color:#ebb4ca; background:#f7dce8; }
+
+.tx-cycle-body{
+  display:block;
+  min-width:0;
+  color:#3b3346;
+  font-family:var(--font-answer);
+  font-weight:540;
+  line-height:1.92;
+  letter-spacing:.03em;
+  text-indent:0;
+}
+
+  .tx-cycle-aids{ grid-template-columns:1fr; width:100%; margin:16px 0 0; gap:12px; }
+
+  .tx-cycle-aids p,
+  .tx-cycle-aids .tx-cycle-aid,
+.tx-cycle-aids>.tx-cycle-aid{ padding:34px 12px 14px !important; }
+
+
+/* === TX360 concrete template override: memory/compression centered two-column cards === */
+.tx-cycle-aids{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  width:min(92%,1120px);
+  margin:24px auto 0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow:visible;
+}
+
+.tx-cycle-aids p,
+.tx-cycle-aids .tx-cycle-aid,
+.tx-cycle-aids>.tx-cycle-aid{
+  display:block;
+  position:relative;
+  margin:0;
+  padding:34px 22px 18px 26px;
+  border:1px solid rgba(166,139,207,.34);
+  border-radius:6px;
+  background:linear-gradient(180deg,rgba(245,241,252,.96) 0%,rgba(250,248,255,.92) 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.88) inset,
+    0 4px 11px rgba(102,76,150,.08);
+  text-indent:0 !important;
+}
+
+.tx-cycle-aids p:has(.tx-cycle-label.is-compress),
+.tx-cycle-aids .tx-cycle-aid.compress,
+.tx-cycle-aids>.tx-cycle-aid.compress{
+  border-color:rgba(222,128,163,.34);
+  background:linear-gradient(180deg,rgba(255,241,247,.96) 0%,rgba(255,248,251,.92) 100%);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.88) inset,
+    0 4px 11px rgba(196,94,137,.08);
+}
+
+.tx-cycle-label,
+.tx-cycle-title{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  position:absolute;
+  top:-13px;
+  left:18px;
+  width:auto;
+  min-width:8.2em;
+  box-sizing:border-box;
+  padding:4px 10px 5px 38px;
+  border-radius:999px 10px 10px 999px;
+  border:1px solid #c8b5e5;
+  background:linear-gradient(180deg,#fbf9ff 0%,#e9def8 100%);
+  color:#5f467e;
+  font-family:var(--font-soft);
+  font-weight:900;
+  letter-spacing:.02em;
+  text-indent:0;
+  line-height:1.2;
+  z-index:1;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.86) inset,
+    0 2px 5px rgba(102,76,150,.13);
+}
+
+.tx-cycle-label::after,
+.tx-cycle-title::after{
+  content:'';
+  position:absolute;
+  right:-6px;
+  top:50%;
+  transform:translateY(-50%) rotate(45deg);
+  width:10px;
+  height:10px;
+  border-top:1px solid #c8b5e5;
+  border-right:1px solid #c8b5e5;
+  background:#e9def8;
+}
+
+.tx-cycle-label.is-compress,
+.tx-cycle-aid.compress .tx-cycle-title{ border-color:#ebb4ca; background:linear-gradient(180deg,#fff9fc 0%,#f7dce8 100%); color:#8f4263; }
+
+.tx-cycle-label.is-compress::before,
+.tx-cycle-aid.compress .tx-cycle-title::before{ content:'答'; background:#c76e94; }
+
+.tx-cycle-label.is-compress::after,
+.tx-cycle-aid.compress .tx-cycle-title::after{ border-top-color:#ebb4ca; border-right-color:#ebb4ca; background:#f7dce8; }
+.tx-article-flow > p:has(.tx-flow-label.is-cut){ border-color:rgba(224,126,148,.42); background:linear-gradient(180deg,#fff0f3 0%,#fffafa 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72), 0 2px 8px -3px rgba(200,90,120,.13); }
+.tx-article-flow > p:has(.tx-flow-label.is-cut){ border-color:rgba(224,126,148,.42); background:linear-gradient(180deg,rgba(255,239,244,.96) 0%,rgba(255,247,250,.88) 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72), 0 2px 8px -3px rgba(200,90,120,.13); }
+.tx-article-flow > p:has(.tx-flow-label.is-cut),
+.tx-article-flow > p:nth-child(4){
+  border-color:rgba(224,126,148,.36);
+  background:linear-gradient(180deg,rgba(255,239,244,.96) 0%,rgba(255,247,250,.88) 100%);
+}
+.tx-article-flow .tx-flow-label{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:auto;
+  min-width:0;
+  box-sizing:border-box;
+  margin:0;
+  justify-self:start;
+  padding:3px 9px 4px;
+  border-radius:999px;
+  background:linear-gradient(180deg,#fff0a0 0%,#ffdf76 52%,#ffd862 100%);
+  border:1px solid #d4ba4c;
+  color:#5e4708;
+  font-family:var(--font-soft);
+  font-weight:800;
+  font-size:.88em;
+  text-align:center;
+  letter-spacing:.06em;
+  text-indent:.06em !important;
+  line-height:1.15;
+  white-space:nowrap;
+  vertical-align:.05em;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    inset 0 -2px 3px rgba(176,138,28,.22),
+    0 2px 5px rgba(150,118,28,.26);
+}
+.tx-article-flow .tx-flow-label.is-cut{
+  background:linear-gradient(180deg,#ffd2dd 0%,#f7bccb 52%,#f3afc0 100%);
+  border-color:#dc8aa0;
+  color:#7e1c2e;
+  letter-spacing:.02em;
+  text-indent:.02em !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.82),
+    inset 0 -2px 3px rgba(190,80,110,.22),
+    0 2px 5px rgba(170,72,102,.26);
+}
+
+/* --- 選択肢(空欄)行：交互背景＋重厚化＋質感 --- */
+.answer-ox-grid{ display:grid; gap:12px; }
+.answer-ox-grid .ox-row{ position:relative; border:1.5px solid rgba(150,128,72,.34) !important;
+  border-radius:13px !important; padding:16px 18px 14px !important; margin:0 !important;
+  box-shadow:0 6px 16px -9px rgba(120,96,44,.34), inset 0 1px 0 rgba(255,255,255,.65) !important; }
+.answer-ox-grid .ox-row:nth-of-type(odd){ background:linear-gradient(180deg,#fffdf7 0%,#fbf5e8 100%) !important; }
+.answer-ox-grid .ox-row:nth-of-type(even){ background:linear-gradient(180deg,#fbf3e2 0%,#f5ecd6 100%) !important; }
+.answer-ox-grid .ox-row:hover{ box-shadow:0 9px 22px -10px rgba(120,96,44,.44), inset 0 1px 0 rgba(255,255,255,.7) !important; }
+.answer-ox-grid .ox-label{ display:inline-flex; align-items:center; justify-content:center;
+  min-width:2em; height:2em; padding:0 .35em; border-radius:9px; font-weight:850; font-size:1.0em;
+  color:#fff; background:linear-gradient(180deg,#9a7d3e 0%,#7d6330 100%);
+  box-shadow:0 3px 8px -3px rgba(120,90,40,.55), inset 0 1px 0 rgba(255,255,255,.4); margin-bottom:6px; }
+.answer-ox-grid .ox-row .ox-q, .answer-ox-grid .ox-row .ox-stmt{ line-height:1.85; color:#3f3524; }
+/* 選択肢ボタン(mc)の質感 */
+.ox-row.mc .ox-btn-group.mc .ox-btn{ border:1.5px solid rgba(150,128,72,.5) !important;
+  border-radius:11px !important; background:linear-gradient(180deg,#fffef9 0%,#f7efdc 100%) !important;
+  box-shadow:0 3px 9px -5px rgba(120,96,44,.34), inset 0 1px 0 rgba(255,255,255,.7) !important;
+  color:#5a4a22 !important; transition:box-shadow .14s, transform .05s; }
+.ox-row.mc .ox-btn-group.mc .ox-btn:hover:not(:disabled){ box-shadow:0 6px 15px -6px rgba(120,96,44,.44) !important; }
+.ox-row.mc .ox-btn-group.mc .ox-btn.selected{ background:linear-gradient(180deg,#efe6c4 0%,#e6d9a8 100%) !important;
+  box-shadow:0 0 0 3px rgba(160,138,70,.4), inset 0 1px 0 rgba(255,255,255,.5) !important; color:#463c14 !important; }
+.ox-btn-group.mc .mc-key{ background:linear-gradient(180deg,#a8894a,#8a6d34) !important; color:#fff !important;
+  box-shadow:0 2px 5px -2px rgba(120,90,40,.5); }
+
 </style>
 </head>
 <body id="top">
@@ -3288,14 +3690,11 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 
   <div class="marker-legend" aria-label="マーカー凡例">
     <span class="lg-title">凡例</span>
-    <span class="lg-item"><span class="lg-sample lg-ron">論</span>論点</span>
+    <span class="lg-item"><span class="lg-sample lg-ron">論</span>論文と重複</span>
     <span class="lg-divider">|</span>
     <span class="lg-item"><span class="exam-mark freq-high">高</span>頻出</span>
     <span class="lg-item"><span class="exam-mark freq-mid">中</span>標準度</span>
     <span class="lg-item"><span class="exam-mark freq-low">低</span>参照</span>
-    <span class="lg-divider">|</span>
-    <span class="lg-item"><span class="statute-emphasis freq-high">条</span>条文</span>
-    <span class="lg-item"><span class="case-emphasis freq-high">判</span>裁判例</span>
   </div>
 
   <!-- ============================================================
@@ -3304,7 +3703,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
   <div class="part-title">PART A ── 問題情報</div>
 
   <section class="section" id="part-a">
-    <nav class="sec-nav"><a href="#answer-area">↓解答</a><a href="#choice-1">↓肢1</a></nav>
+    <nav class="sec-nav"><a href="#answer-area">↓解答</a><a href="#choice-1">↓記述ア</a></nav>
     <h2 class="section-title"><span class="sec-icon">❀</span>問題と解答</h2>
 
     <p style="font-weight:600;">学生A、B及びCは、【事例】について、【会話】のとおり議論している。【会話】中の①から⑦までの（　）に【語句群】から適切なものを入れた場合、正しいものの組合せは1から5までのうちどれか。なお、①から⑦までの（　）内には、それぞれ異なるものが入る。</p>
@@ -3312,64 +3711,68 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
     <div class="case-description">
       <div class="case-scene">
         <div class="case-scene-label"><span class="case-scene-num">事</span><span class="case-scene-title">事例 ── 胎児への侵害が、出生後の「人」の死をもたらした</span></div>
-        <p class="case-paragraph">甲は、<strong>過失により</strong>妊婦Xの<strong>胎児</strong>に侵害作用を及ぼし、同胎児に病変を生じさせた。Xは、出産予定日に上記病変に伴う傷害を負ったYを出産したが、<strong>その1年後にYは同傷害により死亡</strong>した。</p>
+        <p class="case-paragraph">甲は、過失により妊婦Xの胎児に侵害作用を及ぼし、同胎児に病変を生じさせた。Xは、出産予定日に上記病変に伴う傷害を負ったYを出産したが、その1年後にYは同傷害により死亡した。</p>
       </div>
-
       <div class="case-scene">
         <div class="case-scene-label"><span class="case-scene-num">話</span><span class="case-scene-title">会話 ── 甲に過失致死罪（業務上過失致死罪）が成立するか</span></div>
         <p class="case-paragraph"><strong>学生A</strong>：胎児に侵害作用を及ぼし、「人」の機能の萌芽に障害を生じさせた場合、出生後「人」となってから、その「人」に対して致死の結果を発生させる危険性が十分に存在します。したがって、その危険性が存在する場合、（①）で「人」が存在している必要はなく、（②）で「人」が存在していれば足り、（③）に致死の結果をもたらしたとして、甲に過失致死罪が成立すると考えます。</p>
         <p class="case-paragraph"><strong>学生B</strong>：（①）で「人」が存在している必要がないとしても、少なくとも（④）で「人」が存在している必要はあるのではないですか。私は、判例と同様に、胎児に病変を生じさせることは、（⑤）に傷害を負わせたと考えた上で、（⑥）類似の論理により、（⑤）に傷害を負わせ、（③）に致死の結果をもたらしたとして、甲に過失致死罪が成立すると考えます。</p>
         <p class="case-paragraph"><strong>学生C</strong>：胎児が（⑤）であるなら、自己堕胎は自傷行為として不可罰とすべきですが、現行法は自己堕胎を処罰しており、体系的に矛盾していませんか。また、母体傷害の時点では、加害対象である「人」が存在しない以上、（⑥）類似の論理によっても過失致死罪の成立を認めるのは無理がありませんか。</p>
-        <p class="case-paragraph"><strong>学生A</strong>：裁判例には、交通事故で妊娠7か月の妊婦に傷害を負わせ、これが原因で早産した子が水頭症等を発症した事案について、「胎児に病変を発生させることは、（⑤）に対するものなり、人に病変を発生させることにほかならず、そして、胎児が出生して人となった後、同病変に起因して傷害が増悪した場合は、結局、人に病変を発生させて人に傷害を負わせたことに帰することとなる。」旨判示したものがありますが、この判決は（⑦）の考え方と同じですね。</p>
+        <p class="case-paragraph"><strong>学生A</strong>：裁判例には、交通事故で妊娠7か月の妊婦に傷害を負わせ、これが原因で早産した子が水頭症等を発症した事案について、「胎児に病変を発生させることは、（⑤）に対するものであり、人に病変を発生させることにほかならず、そして、胎児が出生して人となった後、同病変に起因して傷害が増悪した場合は、結局、人に病変を発生させて人に傷害を負わせたことに帰することとなる。」旨判示したものがありますが、この判決は（⑦）の考え方と同じですね。</p>
       </div>
-
       <div class="case-scene">
         <div class="case-scene-label"><span class="case-scene-num">語</span><span class="case-scene-title">語句群（①〜⑦に入れる候補・それぞれ異なるものが入る）</span></div>
         <p class="case-paragraph">a. 侵害作用が及んだ時点　／　b. 致死の結果が発生した時点　／　c. 実行行為の時点　／　d.「人」である母体の一部　／　e. 生まれてきた「人」　／　f. 人の始期に関する一部露出説　／　g. 錯誤論における抽象的法定符合説　／　h. 私　／　i. Bさん</p>
       </div>
+      <div class="case-scene">
+        <div class="case-scene-label"><span class="case-scene-num">組</span><span class="case-scene-title">組合せ（①〜⑦に入れる候補の組合せ・1〜5から選ぶ）</span></div>
+        <p class="case-paragraph">1.　①a　②c　④b　⑥f　／　2.　①b　③e　④a　⑥g　／　3.　①c　③e　⑤d　⑥g　／　4.　②a　③d　⑤e　⑦h　／　5.　②b　④c　⑤d　⑦i</p>
+      </div>
     </div>
 
-    <h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 各肢の組合せが正しいか○×を判定（自分で○×を付けてから「解答を表示」）</h3>
+    
 
-    <div class="answer-area" id="answer-area" data-correct-value="××○××" data-answer-type="ox-grid" data-explanation="正しい当てはめは ①c（実行行為の時点）・②b（致死の結果が発生した時点）・③e（生まれてきた『人』）・④a（侵害作用が及んだ時点）・⑤d（『人』である母体の一部）・⑥g（抽象的法定符合説）・⑦i（Bさん）。学生Aは熊本水俣病事件（熊本地判昭54.3.22）の論理＝実行行為時に人不要・結果発生時に人がいれば足りる、を述べる。学生Bは最決昭63.2.29＝胎児を母体の一部とみて侵害作用時の母体傷害を出生後の人の傷害に帰せしめる論理を述べる。各肢は組合せ全体が正しいかで○×を付ける（肢3のみすべて正しい当てはめと合致）。番号の暗記ではなく、各語句が依拠する規範で正誤を見抜くのが学習資産。">
-      <p class="answer-instruction">肢1〜5それぞれに ○（その組合せはすべて正しい）／×（誤った当てはめを含む）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全肢に○×を付けてから reveal）。</p>
+<h3 style="background:transparent; border-left:none; padding:8px 0 4px 0; margin:26px 0 8px 0; border-bottom:2px dotted var(--border-mid); color:var(--accent); font-family:var(--font-display);">【解答】── 上の解法ナビの順に、各記述を一つずつ判断（全部選んだら「解答を表示」）</h3>
+
+    <div class="answer-area" id="answer-area" data-correct-value="○○○××" data-answer-type="ox-grid" data-explanation="各記述ア〜オは、胎児傷害で甲に業務上過失致死罪が成立するかをめぐる各見解・判例の内容について、それぞれ単独で正誤を判定する。記述ごとに依拠する規範（実行行為時／結果発生時の客体、胎児＝人である母体の一部、抽象的法定符合説）で当否を見抜くのが学習資産。">
+      <p class="answer-instruction">記述ア〜オそれぞれに ○（正しい）／×（誤り）を付けてから「解答を表示」を押してください（導き書§3-1：必ず全記述に○×を付けてから reveal）。</p>
 
       <div class="answer-ox-grid">
-        <div class="ox-row" data-stmt="1">
-          <span class="ox-label">肢1</span>
-          <span class="ox-stmt">①a・②c・④b・⑥f</span>
+        <div class="ox-row" data-stmt="ア">
+          <span class="ox-label">記述ア</span>
+          <span class="ox-stmt">業務上の過失により妊婦の胎児に病変を生じさせ、出生して人となった子が当該病変に起因して死亡した場合、業務上過失致死罪の成立には、実行行為の時点で客体である「人」が存在している必要はなく、致死の結果が発生した時点で「人」が存在していれば足りるとした裁判例がある。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
         </div>
-        <div class="ox-row" data-stmt="2">
-          <span class="ox-label">肢2</span>
-          <span class="ox-stmt">①b・③e・④a・⑥g</span>
+        <div class="ox-row" data-stmt="イ">
+          <span class="ox-label">記述イ</span>
+          <span class="ox-stmt">最高裁は、胎児に病変を発生させることは人である母体の一部に病変を発生させることにほかならず、胎児が出生して人となった後に当該病変に起因して死亡した場合は、人に病変を発生させて人に死の結果をもたらしたことに帰するとして、業務上過失致死罪の成立を認めた。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
         </div>
-        <div class="ox-row" data-stmt="3">
-          <span class="ox-label">肢3</span>
-          <span class="ox-stmt">①c・③e・⑤d・⑥g</span>
+        <div class="ox-row" data-stmt="ウ">
+          <span class="ox-label">記述ウ</span>
+          <span class="ox-stmt">胎児を人である母体の一部と捉えて業務上過失致死罪の成立を認める最高裁の理論は、客体を具体的に区別しない点において、錯誤論における抽象的法定符合説に通じるものがあると評されている。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
         </div>
-        <div class="ox-row" data-stmt="4">
-          <span class="ox-label">肢4</span>
-          <span class="ox-stmt">②a・③d・⑤e・⑦h</span>
+        <div class="ox-row" data-stmt="エ">
+          <span class="ox-label">記述エ</span>
+          <span class="ox-stmt">胎児を人である母体の一部と解する立場は、自己堕胎を自傷行為として不可罰とする帰結を導くため、自己堕胎を処罰する現行法の立場と体系的に整合する。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
           </span>
         </div>
-        <div class="ox-row" data-stmt="5">
-          <span class="ox-label">肢5</span>
-          <span class="ox-stmt">②b・④c・⑤d・⑦i</span>
+        <div class="ox-row" data-stmt="オ">
+          <span class="ox-label">記述オ</span>
+          <span class="ox-stmt">胎児に侵害を加えて出生後の人を死亡させた事案につき、判例は、人の始期に関する一部露出説を根拠として、侵害作用の時点で胎児が既に「人」に当たると構成することにより、業務上過失致死罪の成立を認めている。</span>
           <span class="ox-btn-group">
             <button class="answer-slot ox-btn" type="button" data-value="○">○</button>
             <button class="answer-slot ox-btn" type="button" data-value="×">×</button>
@@ -3381,15 +3784,14 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
       <div id="answer-feedback" hidden=""></div>
 
       <div class="final-answer" hidden="">
-        <p class="fa-summary"><strong>正解</strong>　各肢の○×は下表のとおり。肢番号を暗記するのではなく、各語句が依拠する<strong>規範（実行行為時／結果発生時、胎児＝母体の一部、抽象的法定符合説）</strong>で正誤を判定する。下表「論点のコア」が学習資産。</p>
-        <table class="statement-verdict-table" data-answer-key="1:x,2:x,3:o,4:x,5:x">
-          <thead><tr><th style="width:3em;">肢</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（転用可能な法理）</th></tr></thead>
+        <table class="statement-verdict-table" data-answer-key="ア:o,イ:o,ウ:o,エ:x,オ:x">
+          <thead><tr><th style="width:4em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
           <tbody>
-            <tr data-stmt="1" data-verdict="x"><td style="text-align:center;font-weight:700;">肢1</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>①を「侵害作用が及んだ時点」、⑥を「一部露出説」とする当てはめは、A説（実行行為時に人不要）・判例（抽象的法定符合説類似）のいずれの規範にも合致しない。語句fは「人の始期」論であり⑥の論証道具ではない。</td></tr>
-            <tr data-stmt="2" data-verdict="x"><td style="text-align:center;font-weight:700;">肢2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>③e・④a・⑥gは正しいが、①を「致死の結果が発生した時点(b)」とする点が誤り。A説は「①＝実行行為の時点では人不要」と論じる文脈であり、①にbを入れると文意が崩れる。</td></tr>
-            <tr data-stmt="3" data-verdict="o"><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td style="text-align:center;font-weight:700;">肢3</td><td>①c（実行行為時に人不要）・③e（生まれた人に致死結果）・⑤d（胎児＝人である母体の一部）・⑥g（抽象的法定符合説類似）。A説とB説（最決昭63.2.29）の核を正しく配置した唯一の組合せ。</td></tr>
-            <tr data-stmt="4" data-verdict="x"><td style="text-align:center;font-weight:700;">肢4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>③d・⑤e は⑤と③の役割が逆。⑤は「胎児を何とみるか＝母体の一部(d)」、③は「致死結果が誰に生じたか＝生まれた人(e)」。⑦hも誤り（Aが指す裁判例＝B説と同旨なので⑦はBさん）。</td></tr>
-            <tr data-stmt="5" data-verdict="x"><td style="text-align:center;font-weight:700;">肢5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td>②b・⑤d・⑦iは正しいが、④を「実行行為の時点(c)」とする点が誤り。④はB説が「少なくとも人が存在している必要がある」とする時点＝「侵害作用が及んだ時点(a)」であり、cではない。</td></tr>
+            <tr data-stmt="ア" data-verdict="o"><td style="text-align:center;font-weight:700;">記述ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>211条は「人を死傷させた」と定める＝客体は「人」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>過失致死の処罰範囲を、生じた死の結果を過失行為に帰属できる限度で画する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>実行行為時に人が不在でも、致死結果が「生まれてきた人」に生じれば客体要件を満たす。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>客体「人」の存在を要する時点を、実行行為時に置くか、結果発生時に置くか。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>構成要件該当性は結果発生時の客体で判断しうる＝時点をずらす時点論。</p></div></td></tr>
+            <tr data-stmt="イ" data-verdict="o"><td style="text-align:center;font-weight:700;">記述イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>胎児を「人である母体の一部」と捉える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>胎児への侵害を母体＝人への侵害に取り込み、行為時の客体不在を回避する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>出生後の人の死は「人に病変→人に死」と帰せしめられる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>侵害作用時に『人』が不在でも、母体を『人』として侵害を捉えられるか。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>客体論で難点（行為時の人の不在）を乗り越える構成＝最決昭63.2.29。</p></div></td></tr>
+            <tr data-stmt="ウ" data-verdict="o"><td style="text-align:center;font-weight:700;">記述ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>客体を具体的に区別しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>符合は「人」というレベルで足りるとする錯誤論の発想に通じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>胎児と出生後の人を同一客体レベルで扱う理論的基礎づけ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>客体の具体的同一性まで要求するか否か。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>抽象的法定符合説の発想を因果経過・客体のずれに応用する視点。</p></div></td></tr>
+            <tr data-stmt="エ" data-verdict="x"><td style="text-align:center;font-weight:700;">記述エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>自己堕胎は212条で可罰（一年以下の拘禁刑）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>堕胎罪は胎児の生命・身体を独自に保護＝母体とは別個の客体として扱う。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>胎児＝母体の一部とすれば自己堕胎は自傷として不可罰のはず。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>母体の一部説は自己堕胎処罰と「整合」か「矛盾」か（批判の向き）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>客体論への体系的批判＝自己堕胎の可罰性との衝突を指摘する視点。</p></div></td></tr>
+            <tr data-stmt="オ" data-verdict="x"><td style="text-align:center;font-weight:700;">記述オ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>一部露出説は「人」の始期（堕胎罪と殺人罪の境界）を画する基準。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>出生過程のどの段階で「人」になるかを決める議論であって、客体符合の論理ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>胎児傷害の帰属や論証道具の選択を基礎づける根拠ではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>論証道具が「抽象的法定符合説」か「人の始期の一部露出説」か。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>始期論（いつ人か）と客体符合論（何を侵害したか）の混同を避ける。</p></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -3401,133 +3803,70 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
   <!-- ============================================================
        PART B ── 記述別解説（ア〜エ）
        ============================================================ -->
-  <div class="part-title">PART B ── 肢別解説（肢1〜5）</div>
+  <div class="part-title">PART B ── 記述別解説（記述ア〜オ）</div>
 
-  <!-- =============== 肢1 =============== -->
   <section class="choice-section odd" id="choice-1">
-    <nav class="sec-nav"><a href="#answer-area">↑解答</a><a href="#choice-2">肢2→</a></nav>
+    <nav class="sec-nav"><a href="#answer-area">↑解答</a><a href="#choice-2">記述イ→</a></nav>
 
     <div class="choice-header-block">
-      <div class="choice-big-badge">1</div>
-      <span class="verdict verdict-incorrect">✗ ×（誤った当てはめを含む）</span>    </div>
-
-    <div class="choice-premise">
-      <div class="cp-head">🔎 この肢が前提とする見解</div>
-      <p class="cp-title">A説（学生Aの論理＝熊本水俣病事件の立場）</p>
-      <p class="cp-body">胎児に侵害作用を及ぼし「人」の機能の萌芽に障害を生じさせた場合、出生後「人」となってからその「人」に致死の結果を発生させる危険性が十分に存在する。したがって、（①）で「人」が存在している必要はなく、（②）で「人」が存在していれば足り、（③）に致死の結果をもたらしたとして、甲に過失致死罪が成立する。</p>
-      <p class="cp-title">⑥が問う論証道具（語句g／f の区別）</p>
-      <p class="cp-body">g. 錯誤論における抽象的法定符合説＝客体を具体的に区別せず「人」というレベルで符合を認める考え方。f. 人の始期に関する一部露出説＝「人」となる時点（始期）を論じる説で、客体の符合を基礎づける論理ではない。</p>
+      <div class="choice-big-badge">ア</div>
+      <span class="verdict verdict-correct">✓ ○（正しい）── A説＝実行行為時に客体「人」不要・致死結果発生時に人で足る</span>
     </div>
 
     <div class="sub-card synthesis">
       <h4>🎯 統合解説</h4>
-      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 当てはめ</span>肢1＝①a（侵害作用が及んだ時点）・②c（実行行為の時点）・④b（致死の結果が発生した時点）・⑥f（一部露出説）</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>A説は「①＝<strong>実行行為の時点</strong>では人不要／②＝<strong>致死結果発生時</strong>に人がいれば足りる」と論じる。肢1は①②を逆に置き、さらに⑥に「人の始期」を論じる一部露出説（f）を入れる点で、A説の論理構造とかみ合わない。</p>
+      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>業務上の過失により妊婦の胎児に病変を生じさせ、出生して人となった子が当該病変に起因して死亡した場合、業務上過失致死罪の成立には、実行行為の時点で客体である「人」が存在している必要はなく、致死の結果が発生した時点で「人」が存在していれば足りるとした裁判例がある。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>過失致死罪は「人」を死なせる罪です。ところが<strong>行為のとき</strong>はまだ胎児で『人』がいません。この見解は、人がいるべきなのは<strong>結果（死）が生じたとき</strong>でよいと考えます。生まれてきた子に死の結果が生じれば足り、行為時に客体がいないことは問題にしない立場で、熊本水俣病事件の第一審（熊本地判昭54.3.22）が採りました。</p>
       <div class="syn-path">
-        <p><span class="syn-step">1</span><strong>①の正は「実行行為の時点(c)」</strong><span class="syn-body">A説の眼目は「行為時に客体＝人が存在しなくてもよい」こと。①には c が入る。肢1は①に a（侵害作用が及んだ時点）を入れており、文意がずれる。</span></p>
-        <p><span class="syn-step">2</span><strong>②の正は「致死結果発生時(b)」</strong><span class="syn-body">「②で人が存在していれば足りる」＝結果発生時に人がいればよい、の意。②には b が入る。肢1は②に c を入れており誤り。</span></p>
-        <p><span class="syn-step">3</span><strong>⑥は抽象的法定符合説(g)</strong><span class="syn-body">客体（胎児／人）を具体的に区別しない論理が⑥の中身。一部露出説(f)は「いつから人か」という別問題で、⑥の論証には使えない。</span></p>      </div>
-      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>「いつ撮ったか（行為時）」と「いつ現像で像が出たか（結果発生時）」を取り違えた写真。A説は行為時の客体を問わず、像が結ばれた瞬間に人がいれば足りる、と言っているのに、肢1は順序を入れ替えている。</p>
+        <p><span class="syn-step">1</span><strong>A説の眼目</strong><span class="syn-body">行為時に客体「人」は不要とする。①＝実行行為の時点に人がいなくてよい。</span></p>
+        <p><span class="syn-step">2</span><strong>人がいるべき時点</strong><span class="syn-body">致死の結果が発生した時点（②）に、生まれてきた人（③）へ結果が生じれば足りる。</span></p>
+        <p><span class="syn-step">3</span><strong>出典</strong><span class="syn-body">熊本水俣病事件の第一審（熊本地判昭54.3.22）が採った『時点をずらす』構成。</span></p>
+      </div>
+      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>行為のときは問わない。死の結果が出たとき人がいればいい。</p>
     </div>
 
     <div class="choice-points">
       <ol>
-        <li><strong>実行行為時に客体不要という規範</strong>：A説（<a class="ref-case" href="#case-kumamoto">熊本水俣病事件</a>）は、実行行為の時点で「人」が存在することを構成要件として要求しない。</li>
-        <li><strong>結果発生時の客体存在で足りる</strong>：致死の結果が「生まれてきた人」に生じれば、過失致死罪の客体要件を満たす。</li>
-        <li><strong>「人の始期」論との切り分け</strong>：一部露出説は人の始期（堕胎罪と殺人罪の境界）の議論であり、客体の符合を基礎づける論理ではない。</li>
+        <li><strong>時点論</strong>：実行行為時に客体「人」を要せず、致死結果の発生時に「人」がいれば足りる。</li>
+        <li><strong>熊本水俣病1審</strong>：胎児は人の萌芽で価値的に差がないとして業務上過失致死を肯定。</li>
       </ol>
     </div>
 
     <div class="sub-card basis-link">
       <h4>📚 根拠条文・判例</h4>
       <div class="back-link-row">
-        <a class="back-link" href="#case-kumamoto">→ 熊本水俣病事件（熊本地判昭54.3.22）</a>
+        <a class="back-link" href="#case-kumamoto">→ 熊本水俣病1審（熊本地判昭54.3.22）</a>
         <a class="back-link" href="#law-211">→ 業務上過失致死罪（211条）</a>
       </div>
-      <p style="font-size:.92em; margin-top:6px;">A説は熊本水俣病事件の論理。実行行為時には人の存在を要せず、致死結果発生時に人がいれば足りるとする。「人の始期」論（一部露出説）は別系統の論点。</p>
     </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
 
-  <!-- =============== 肢2 =============== -->
   <section class="choice-section even" id="choice-2">
-    <nav class="sec-nav"><a href="#choice-1">←肢1</a><a href="#choice-3">肢3→</a></nav>
+    <nav class="sec-nav"><a href="#choice-1">←記述ア</a><a href="#choice-3">記述ウ→</a></nav>
 
     <div class="choice-header-block">
-      <div class="choice-big-badge">2</div>
-      <span class="verdict verdict-incorrect">✗ ×（一語だけ誤り）</span>    </div>
-
-    <div class="choice-premise">
-      <div class="cp-head">🔎 この肢が前提とする見解</div>
-      <p class="cp-title">A説（学生Aの論理）における①②③の位置づけ</p>
-      <p class="cp-body">A説では、（①）で「人」が存在している必要はなく、（②）で「人」が存在していれば足り、（③）に致死の結果をもたらしたとして過失致死罪が成立する。①＝実行行為の時点、②＝致死の結果が発生した時点、③＝生まれてきた「人」、が文意に整合する。</p>
+      <div class="choice-big-badge">イ</div>
+      <span class="verdict verdict-correct">✓ ○（正しい）── 最決＝胎児は人である母体の一部、人への侵害に帰せしめる</span>
     </div>
 
     <div class="sub-card synthesis">
       <h4>🎯 統合解説</h4>
-      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 当てはめ</span>肢2＝①b（致死の結果が発生した時点）・③e（生まれてきた「人」）・④a（侵害作用が及んだ時点）・⑥g（抽象的法定符合説）</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>③e・④a・⑥g は正しい配置だが、①に b（致死結果発生時）を入れる点が誤り。A説は「①＝実行行為の時点では人不要」と述べる文脈であり、①には c が入る。<strong>一語の取り違えで肢全体が×</strong>になる典型。</p>
+      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>最高裁は、胎児に病変を発生させることは人である母体の一部に病変を発生させることにほかならず、胎児が出生して人となった後に当該病変に起因して死亡した場合は、人に病変を発生させて人に死の結果をもたらしたことに帰するとして、業務上過失致死罪の成立を認めた。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>こちらは時点ではなく<strong>客体の捉え方</strong>で難点を乗り越えます。胎児は母体（＝人）の一部だから、胎児への侵害は『人である母体』への侵害そのもの。生まれた子がその病変で死ねば「人に病変→人に死」と言えて業務上過失致死罪になる、という最高裁（最決昭63.2.29）の論理です。</p>
       <div class="syn-path">
-        <p><span class="syn-step">1</span><strong>①は「実行行為の時点(c)」が正</strong><span class="syn-body">「①で人が存在している必要はなく」＝行為時に客体不要、の意。①にbを入れると「致死結果発生時に人がいらない」となり、A説の結論（②で人がいれば足りる）と矛盾する。</span></p>
-        <p><span class="syn-step">2</span><strong>④a・③eは正しい</strong><span class="syn-body">④＝侵害作用が及んだ時点（B説が最低限の客体存在を要求する時点）、③＝生まれてきた人（致死結果の帰属先）。この2語は正しく置かれている。</span></p>
-        <p><span class="syn-step">3</span><strong>⑥g（<a class="ref-case" id="ref-case-s63-201" href="#case-s63-2-29">最決昭63.2.29</a>）も正しい</strong><span class="syn-body">客体を具体的に区別しない＝<a class="ref-case" href="#case-s63-2-29">抽象的法定符合説</a>類似、で正しい。だが①の誤りが残るため肢全体は×。</span></p>      </div>
-      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>4つの歯車のうち3つは正しく噛み合うが、①の歯車だけ位置がずれている時計。3対1でも、1か所狂えば時刻は合わない。</p>
-    </div>
-
-    <div class="choice-points">
-      <ol>
-        <li><strong>①＝実行行為時で人不要</strong>：A説の出発点は「行為時に客体が存在しなくてよい」こと（<a class="ref-case" href="#case-kumamoto">熊本水俣病事件</a>）。①には c が入る。</li>
-        <li><strong>組合せ問題は全語一致で○</strong>：3語正しくても1語誤れば肢は×。各語を独立に規範へ照合する習慣が必要。</li>
-        <li><strong>⑥は抽象的法定符合説</strong>：客体を具体的に区別しない論理（<a class="ref-case" href="#case-s63-2-29">最決昭63.2.29</a>が通じると評される）。</li>
-      </ol>
-    </div>
-
-    <div class="sub-card basis-link">
-      <h4>📚 根拠条文・判例</h4>
-      <div class="back-link-row">
-        <a class="back-link" href="#case-kumamoto">→ 熊本水俣病事件（熊本地判昭54.3.22）</a>
-        <a class="back-link" href="#case-s63-2-29">→ 最決昭63.2.29（百選Ⅱ2）</a>
+        <p><span class="syn-step">1</span><strong>難点の解決</strong><span class="syn-body">行為時に人がいないという難点を、客体の捉え方で乗り越える。</span></p>
+        <p><span class="syn-step">2</span><strong>母体の一部構成</strong><span class="syn-body">胎児＝人である母体の一部→胎児への侵害は人への侵害にほかならない。</span></p>
+        <p><span class="syn-step">3</span><strong>帰結</strong><span class="syn-body">出生後の人の死に帰せしめ業務上過失致死罪が成立（最決昭63.2.29）。</span></p>
       </div>
-      <p style="font-size:.92em; margin-top:6px;">①の正は「実行行為の時点(c)」。A説は行為時に客体不要・結果発生時に人がいれば足りるとする。⑥の抽象的法定符合説は最決昭63.2.29の論理に通じる。</p>
-    </div>
-
-    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
-  </section>
-
-  <!-- =============== 肢3（正解） =============== -->
-  <section class="choice-section odd" id="choice-3">
-    <nav class="sec-nav"><a href="#choice-2">←肢2</a><a href="#choice-4">肢4→</a></nav>
-
-    <div class="choice-header-block">
-      <div class="choice-big-badge">3</div>
-      <span class="verdict verdict-correct">✓ ○（すべて正しい当てはめ）</span>    </div>
-
-    <div class="choice-premise">
-      <div class="cp-head">🔎 この肢が前提とする見解</div>
-      <p class="cp-title">A説（学生Aの論理＝熊本水俣病事件）</p>
-      <p class="cp-body">（①）で「人」が存在している必要はなく、（②）で「人」が存在していれば足り、（③）に致死の結果をもたらしたとして過失致死罪が成立する。＝実行行為時に客体不要・結果発生時に人がいれば足りる、という立場。</p>
-      <p class="cp-title">B説（学生Bの論理＝最決昭63.2.29の立場）</p>
-      <p class="cp-body">胎児に病変を生じさせることは、（⑤）に傷害を負わせたと考えた上で、（⑥）類似の論理により、（⑤）に傷害を負わせ、（③）に致死の結果をもたらしたとして過失致死罪が成立する。＝胎児を「人である母体の一部」とみて、客体を具体的に区別しない論理で帰責する立場。</p>
-    </div>
-
-    <div class="sub-card synthesis">
-      <h4>🎯 統合解説</h4>
-      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 当てはめ</span>肢3＝①c（実行行為の時点）・③e（生まれてきた「人」）・⑤d（「人」である母体の一部）・⑥g（抽象的法定符合説）</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>A説の核（①c＝行為時に人不要／③e＝生まれた人に致死結果）とB説の核（⑤d＝胎児は人である母体の一部／⑥g＝抽象的法定符合説類似）を<strong>すべて正しく配置した唯一の組合せ</strong>。よって肢3が正解。</p>
-      <div class="syn-path">
-        <p><span class="syn-step">1</span><strong>①c：実行行為の時点では人不要</strong><span class="syn-body">A説の出発点。行為時に客体（人）が存在しなくても、後に人に結果が生じれば足りる（<a class="ref-case" id="ref-case-kumamoto-301" href="#case-kumamoto">熊本水俣病事件</a>）。</span></p>
-        <p><span class="syn-step">2</span><strong>③e：致死結果は「生まれてきた人」に</strong><span class="syn-body">結果（死）が帰属する客体は、出生して「人」となったY。胎児ではなく人に対する致死として捉える。</span></p>
-        <p><span class="syn-step">3</span><strong>⑤d：胎児＝「人である母体の一部」</strong><span class="syn-body">B説（<a class="ref-case" id="ref-case-s63-301" href="#case-s63-2-29">最決昭63.2.29</a>）は、胎児への侵害を「人である母体の一部」への侵害と捉え、母体傷害＝人への傷害とみる。</span></p>
-        <p class="syn-concl"><span class="syn-step">4</span><strong>⑥g：抽象的法定符合説類似で帰責</strong><span class="syn-body">客体を具体的に区別しない（母体＝人として把握する）点で、最高裁の理論は<a class="ref-case" href="#case-s63-2-29">抽象的法定符合説</a>に通じる。4語すべて整合し、肢3が○。</span></p>      </div>
-      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>2人の論者（A・B）が別ルートで同じ頂上（過失致死罪の成立）に登る。肢3は両ルートの正しい足場（①c・③e／⑤d・⑥g）を1枚の地図に正確に配置したもの。</p>
+      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>胎児を打つのは、人（母体）を打つこと。</p>
     </div>
 
     <div class="choice-points">
       <ol>
-        <li><strong>A説とB説の核を区別して記憶</strong>：A説＝時点論（行為時不要・結果発生時に人）、B説＝客体論（胎児＝母体の一部＋抽象的法定符合説類似）。</li>
-        <li><strong>⑤d は B説の生命線</strong>：胎児を「人である母体の一部」とみることで、客体（人）の不存在という難点を回避する（<a class="ref-case" href="#case-s63-2-29">最決昭63.2.29</a>）。</li>
-        <li><strong>⑥g の射程</strong>：客体を具体的に区別しない論理。最高裁理論が抽象的法定符合説に「通じる」と評される点が決め手。</li>
+        <li><strong>客体論</strong>：胎児＝人である母体の一部＝胎児への侵害は人への侵害にほかならない。</li>
+        <li><strong>最決昭63.2.29</strong>：出生後の人の死を『人に病変→人に死』と帰せしめる。</li>
       </ol>
     </div>
 
@@ -3535,94 +3874,113 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
       <h4>📚 根拠条文・判例</h4>
       <div class="back-link-row">
         <a class="back-link" href="#case-s63-2-29">→ 最決昭63.2.29（百選Ⅱ2）</a>
-        <a class="back-link" href="#case-kumamoto">→ 熊本水俣病事件（熊本地判昭54.3.22）</a>
+        <a class="back-link" href="#case-kagoshima">→ 鹿児島地判平15.9.2</a>
         <a class="back-link" href="#law-211">→ 業務上過失致死罪（211条）</a>
       </div>
-      <p style="font-size:.92em; margin-top:6px;">A説（①c・③e）とB説（⑤d・⑥g）の核を正しく配置。⑤d＝胎児は人である母体の一部、⑥g＝抽象的法定符合説類似、が最決昭63.2.29の論理。</p>
     </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
 
-  <!-- =============== 肢4 =============== -->
+  <section class="choice-section odd" id="choice-3">
+    <nav class="sec-nav"><a href="#choice-2">←記述イ</a><a href="#choice-4">記述エ→</a></nav>
+
+    <div class="choice-header-block">
+      <div class="choice-big-badge">ウ</div>
+      <span class="verdict verdict-correct">✓ ○（正しい）── 最決の理論は抽象的法定符合説に通じると評される</span>
+    </div>
+
+    <div class="sub-card synthesis">
+      <h4>🎯 統合解説</h4>
+      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>胎児を人である母体の一部と捉えて業務上過失致死罪の成立を認める最高裁の理論は、客体を具体的に区別しない点において、錯誤論における抽象的法定符合説に通じるものがあると評されている。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>最高裁は「侵害したのが胎児か人か」を細かく区別しません。『人』というレベルで符合していれば足りる——この発想は、錯誤論の<strong>抽象的法定符合説</strong>（客体を具体的に区別せず同じ構成要件の範囲で符合を認める考え方）に通じる、と評されます。ここで問われている論証道具はこの抽象的法定符合説です。</p>
+      <div class="syn-path">
+        <p><span class="syn-step">1</span><strong>区別しない</strong><span class="syn-body">最決は侵害客体が胎児か人かを具体的に区別しない。</span></p>
+        <p><span class="syn-step">2</span><strong>符合のレベル</strong><span class="syn-body">『人』というレベルの符合で足りる＝抽象的法定符合説の発想。</span></p>
+        <p><span class="syn-step">3</span><strong>⑥の中身</strong><span class="syn-body">⑥に入るのは一部露出説ではなく抽象的法定符合説。</span></p>
+      </div>
+      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>『人』でさえあれば符合——どの人かまでは問わない。</p>
+    </div>
+
+    <div class="choice-points">
+      <ol>
+        <li><strong>抽象的法定符合説に類似</strong>：客体を具体的に区別しない点で符合説の発想に通じる。</li>
+        <li><strong>一部露出説との区別</strong>：論証道具として問われるのは客体符合の話で、人の始期論ではない。</li>
+      </ol>
+    </div>
+
+    <div class="sub-card basis-link">
+      <h4>📚 根拠条文・判例</h4>
+      <div class="back-link-row">
+        <a class="back-link" href="#case-s63-2-29">→ 最決昭63.2.29（百選Ⅱ2）</a>
+      </div>
+    </div>
+
+    <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
+  </section>
+
   <section class="choice-section even" id="choice-4">
-    <nav class="sec-nav"><a href="#choice-3">←肢3</a><a href="#choice-5">肢5→</a></nav>
+    <nav class="sec-nav"><a href="#choice-3">←記述ウ</a><a href="#choice-5">記述オ→</a></nav>
 
     <div class="choice-header-block">
-      <div class="choice-big-badge">4</div>
-      <span class="verdict verdict-incorrect">✗ ×（複数の取り違え）</span>    </div>
-
-    <div class="choice-premise">
-      <div class="cp-head">🔎 この肢が前提とする見解</div>
-      <p class="cp-title">B説（学生Bの論理＝最決昭63.2.29）における⑤③の役割</p>
-      <p class="cp-body">胎児に病変を生じさせることは、（⑤）に傷害を負わせたと考えた上で、（⑤）に傷害を負わせ、（③）に致死の結果をもたらしたとして過失致死罪が成立する。⑤＝何を侵害したか（胎児＝人である母体の一部）、③＝致死結果が生じた客体（生まれてきた人）。</p>
-      <p class="cp-title">⑦が問う「同旨の論者」（語句h／i の区別）</p>
-      <p class="cp-body">Aが挙げた裁判例（鹿児島地判平15.9.2）は、最決昭63.2.29＝B説と同旨の論理である。したがって⑦＝Bさん(i)。h（私＝学生C）は反対論者であり同旨ではない。</p>
+      <div class="choice-big-badge">エ</div>
+      <span class="verdict verdict-incorrect">✗ ×（誤り）── 向きが逆。自己堕胎の処罰と「矛盾」するとの批判（学生C）</span>
     </div>
 
     <div class="sub-card synthesis">
       <h4>🎯 統合解説</h4>
-      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 当てはめ</span>肢4＝②a（侵害作用が及んだ時点）・③d（「人」である母体の一部）・⑤e（生まれてきた「人」）・⑦h（私）</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>③と⑤の中身が<strong>逆</strong>。⑤は「何を侵害したか＝母体の一部(d)」、③は「致死結果が誰に＝生まれた人(e)」。さらに⑦をh（私＝C）とする点も誤り（同旨はBさん＝i）。複数の取り違えで×。</p>
+      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>胎児を人である母体の一部と解する立場は、自己堕胎を自傷行為として不可罰とする帰結を導くため、自己堕胎を処罰する現行法の立場と体系的に整合する。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>もし胎児＝母体の一部なら、自分で堕ろす自己堕胎は『自分の体を傷つけただけ』で不可罰のはず。ところが現行法は自己堕胎を罰しています（212条）。だからこの立場は自己堕胎の処罰と<strong>かみ合わない（矛盾する）</strong>、という批判が向けられます（母体の一部説の弱点）。『整合する』は向きが逆で誤りです。</p>
       <div class="syn-path">
-        <p><span class="syn-step">1</span><strong>⑤d・③e の役割が逆</strong><span class="syn-body">B説では「胎児への侵害＝⑤（人である母体の一部）への傷害」と捉え、「③（生まれた人）に致死結果」が生じる。肢4は③d・⑤eと入れ替えており、文意が崩れる。</span></p>
-        <p><span class="syn-step">2</span><strong>②a も誤り</strong><span class="syn-body">A説の②は「致死の結果が発生した時点(b)」。aは「侵害作用が及んだ時点」で、B説が客体存在を要求する④に対応する語であり、②には入らない。</span></p>
-        <p><span class="syn-step">3</span><strong>⑦h は誤り（正は i）</strong><span class="syn-body">Aが挙げた裁判例（<a class="ref-case" id="ref-case-kagoshima-401" href="#case-kagoshima">鹿児島地判平15.9.2</a>）は<a class="ref-case" href="#case-s63-2-29">最決昭63.2.29</a>と同旨＝学生B(i)の考え方。h（私＝C）は反対論者で同旨でない。</span></p>      </div>
-      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>「凶器」と「被害者」のラベルを貼り違えた事件メモ。⑤＝侵害された客体（母体の一部）、③＝死んだ人（生まれた子）。役割を取り違えると物語全体がねじれる。</p>
+        <p><span class="syn-step">1</span><strong>前提</strong><span class="syn-body">胎児＝母体の一部なら、自己堕胎は自傷として不可罰のはず。</span></p>
+        <p><span class="syn-step">2</span><strong>現行法</strong><span class="syn-body">しかし212条は自己堕胎を可罰としている。</span></p>
+        <p><span class="syn-step">3</span><strong>帰結</strong><span class="syn-body">ゆえに『整合』ではなく体系的『矛盾』との批判（学生C）。本記述は誤り。</span></p>
+      </div>
+      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>母体の一部なら自己堕胎は無罪のはず——でも罰している＝矛盾。</p>
     </div>
 
     <div class="choice-points">
       <ol>
-        <li><strong>⑤＝侵害客体／③＝致死客体</strong>：B説は「⑤＝人である母体の一部に傷害→③＝生まれた人に致死結果」と二段で帰責する（<a class="ref-case" href="#case-s63-2-29">最決昭63.2.29</a>）。</li>
-        <li><strong>②の正は「致死結果発生時(b)」</strong>：A説の論理。a（侵害作用が及んだ時点）は④に対応する別の語。</li>
-        <li><strong>⑦は同旨判例の判定</strong>：Aの裁判例（<a class="ref-case" href="#case-kagoshima">鹿児島地判平15.9.2</a>）は最決昭63.2.29と同旨＝Bさん(i)。</li>
+        <li><strong>自己堕胎の可罰性</strong>：212条は自己堕胎（一年以下の拘禁刑）を処罰する。</li>
+        <li><strong>体系的整合性</strong>：母体の一部説だと自己堕胎が不可罰となり矛盾する（母体の一部説への批判）。</li>
       </ol>
     </div>
 
     <div class="sub-card basis-link">
       <h4>📚 根拠条文・判例</h4>
       <div class="back-link-row">
+        <a class="back-link" href="#law-212">→ 自己堕胎罪（212条）</a>
         <a class="back-link" href="#case-s63-2-29">→ 最決昭63.2.29（百選Ⅱ2）</a>
-        <a class="back-link" href="#case-kagoshima">→ 鹿児島地判平15.9.2</a>
       </div>
-      <p style="font-size:.92em; margin-top:6px;">⑤d（人である母体の一部）と③e（生まれた人）は役割が固定。鹿児島地判平15.9.2は最決昭63.2.29と同旨＝Bさん(i)で、⑦にh（私＝C）は入らない。</p>
     </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
 
-  <!-- =============== 肢5 =============== -->
   <section class="choice-section odd" id="choice-5">
-    <nav class="sec-nav"><a href="#choice-4">←肢4</a><a href="#cross-column-sec">横断コラム→</a></nav>
+    <nav class="sec-nav"><a href="#choice-4">←記述エ</a><a href="#basis">参考条文判例→</a></nav>
 
     <div class="choice-header-block">
-      <div class="choice-big-badge">5</div>
-      <span class="verdict verdict-incorrect">✗ ×（一語だけ誤り）</span>    </div>
-
-    <div class="choice-premise">
-      <div class="cp-head">🔎 この肢が前提とする見解</div>
-      <p class="cp-title">B説（学生B）の批判＝④の位置づけ</p>
-      <p class="cp-body">学生Bは「（①）で人が存在している必要がないとしても、少なくとも（④）で人が存在している必要はあるのではないか」と述べる。④は、A説への批判として「最低限ここでは客体（人）が要る」とする時点＝侵害作用が及んだ時点。</p>
-      <p class="cp-title">⑦が問う「同旨の論者」</p>
-      <p class="cp-body">Aの挙げた裁判例（鹿児島地判平15.9.2）は最決昭63.2.29＝B説と同旨。よって⑦＝Bさん(i)。</p>
+      <div class="choice-big-badge">オ</div>
+      <span class="verdict verdict-incorrect">✗ ×（誤り）── 根拠は一部露出説でなく「母体の一部」構成（最決昭63.2.29）</span>
     </div>
 
     <div class="sub-card synthesis">
       <h4>🎯 統合解説</h4>
-      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 当てはめ</span>肢5＝②b（致死の結果が発生した時点）・④c（実行行為の時点）・⑤d（「人」である母体の一部）・⑦i（Bさん）</p>
-      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>②b・⑤d・⑦i は正しいが、④に c（実行行為の時点）を入れる点が誤り。④はB説が「少なくとも人が存在している必要がある」とする時点＝<strong>侵害作用が及んだ時点(a)</strong>であり、cではない。一語の誤りで×。</p>
+      <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>胎児に侵害を加えて出生後の人を死亡させた事案につき、判例は、人の始期に関する一部露出説を根拠として、侵害作用の時点で胎児が既に「人」に当たると構成することにより、業務上過失致死罪の成立を認めている。</p>
+      <p class="syn-lead"><span class="syn-tag">💡 THE GIST</span><strong>一部露出説</strong>は「いつから人か」という人の始期の基準（堕胎罪と殺人罪の境目）の話で、客体の符合を基礎づける道具ではありません。判例は一部露出説で胎児を『人』としたのではなく、『母体の一部』と捉えて処理しました。侵害作用の時点ではまだ『人』はいないのです。</p>
       <div class="syn-path">
-        <p><span class="syn-step">1</span><strong>④の正は「侵害作用が及んだ時点(a)」</strong><span class="syn-body">B説の批判は「①（実行行為時）で人が要らないとしても、せめて④（侵害作用が及んだ時点）では人が要る」という構造。④にc（実行行為の時点）を入れると、①との区別が消え批判が成り立たない。</span></p>
-        <p><span class="syn-step">2</span><strong>②b・⑤d は正しい</strong><span class="syn-body">②＝致死結果発生時（A説）、⑤＝人である母体の一部（B説の客体把握）。この2語は正しく置かれている。</span></p>
-        <p><span class="syn-step">3</span><strong>⑦i も正しい</strong><span class="syn-body">Aの裁判例（<a class="ref-case" id="ref-case-kagoshima-501" href="#case-kagoshima">鹿児島地判平15.9.2</a>）は<a class="ref-case" href="#case-s63-2-29">最決昭63.2.29</a>＝Bさんと同旨。⑦＝iで正しいが、④の誤りが残るため肢全体は×。</span></p>      </div>
-      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>「行為の瞬間」と「侵害が届いた瞬間」は同じに見えて別の点。④は後者（侵害作用が及んだ時点）でなければ、Bの「せめてここでは人が要る」という一段の譲歩が描けない。</p>
+        <p><span class="syn-step">1</span><strong>一部露出説とは</strong><span class="syn-body">人の始期（堕胎罪と殺人罪の境界）を画する基準。</span></p>
+        <p><span class="syn-step">2</span><strong>判例の実際</strong><span class="syn-body">判例は一部露出説でなく『母体の一部』構成で処理する。</span></p>
+        <p><span class="syn-step">3</span><strong>帰結</strong><span class="syn-body">侵害作用の時点で胎児を『人』とするのは誤り。本記述は誤り。</span></p>
+      </div>
+      <p class="syn-image"><span class="syn-tag">💭 INTUITION</span>一部露出は『いつ人か』の話。符合の道具ではない。</p>
     </div>
 
     <div class="choice-points">
       <ol>
-        <li><strong>④＝侵害作用が及んだ時点(a)</strong>：B説のA説批判の核。①（行為時）より後ろの一点で客体存在を要求する構造。</li>
-        <li><strong>②b・⑤d・⑦i は正配置</strong>：致死結果発生時・人である母体の一部・同旨はBさん。3語正しくても④の一語誤りで肢は×。</li>
-        <li><strong>①と④の段差を読む</strong>：A説（行為時不要）→B説批判（侵害作用が及んだ時点では要る）の「譲歩の段差」を捉えるのが決め手。</li>
+        <li><strong>一部露出説の位置</strong>：人の始期（堕胎罪と殺人罪の境界）の基準にすぎない。</li>
+        <li><strong>判例の実際の構成</strong>：母体の一部構成であり、一部露出説を根拠としない。</li>
       </ol>
     </div>
 
@@ -3630,9 +3988,7 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
       <h4>📚 根拠条文・判例</h4>
       <div class="back-link-row">
         <a class="back-link" href="#case-s63-2-29">→ 最決昭63.2.29（百選Ⅱ2）</a>
-        <a class="back-link" href="#case-kagoshima">→ 鹿児島地判平15.9.2</a>
       </div>
-      <p style="font-size:.92em; margin-top:6px;">④の正は「侵害作用が及んだ時点(a)」。B説がA説に対し「少なくともこの時点では人が要る」と批判する一点。②b・⑤d・⑦iは正しい。</p>
     </div>
 
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
@@ -3702,48 +4058,66 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
         <p class="hanging"><span class="para-num">211前段</span><span class="hang-body"><span class="ron-mark freq-high">業務上必要な注意を怠り</span>、よって人を死傷させた者は、5年以下の拘禁刑又は100万円以下の罰金に処する。</span></p>
         <p class="hanging"><span class="para-num">210条</span><span class="hang-body">過失により人を死亡させた者は、50万円以下の罰金に処する。</span></p>
         <div class="note">
-          <div class="kd-item"><span class="kd-label r-hogo">保護法益</span><span class="kd-text">「人」の生命。胎児はここでいう「人」ではないため、胎児への直接侵害だけでは本罪の客体を満たさない＝本問の出発点の難点。</span></div>
-          <div class="kd-item"><span class="kd-label r-youken">客体要件</span><span class="kd-text">客体は「人」。いつ・誰が「人」として存在していれば客体要件を満たすか（実行行為時か結果発生時か、胎児を母体の一部とみるか）が本問の核心。</span></div>
-          <div class="kd-item"><span class="kd-label r-shushi">本問での役割</span><span class="kd-text">胎児に侵害作用を及ぼし、出生後の人（Y）が死亡した事案で、過失致死罪（業務上過失致死罪）の成否を客体論として論じる。</span></div>
+          <div class="kd-item"><span class="kd-label r-hogo">保護法益</span><span class="kd-text">「人」の生命。胎児はここでいう「人」ではないため、胎児への直接侵害だけでは本罪の客体を満たさない＝本問の出発点の難点（記述ア・記述イ）。</span></div>
+          <div class="kd-item"><span class="kd-label r-youken">客体要件</span><span class="kd-text">客体は「人」。いつ「人」として存在していれば客体要件を満たすか（実行行為時か結果発生時か、胎児を母体の一部とみるか）が核心（記述ア・記述ウ）。</span></div>
         </div>
-        <div class="ref-backlinks"><a class="rb-chip" href="#choice-1">肢1</a><a class="rb-chip" href="#choice-3">肢3</a></div>
+        <div class="ref-backlinks"><a class="rb-chip" href="#choice-1">記述ア</a><a class="rb-chip" href="#choice-2">記述イ</a></div>
+      </div>
+    </div>
+
+    <div class="basis-card statute-card" id="law-212">
+      <div class="basis-card-header">📜 自己堕胎罪（刑法212条）<span class="freq-badge freq-mid">★★</span></div>
+      <div class="basis-card-body">
+        <p class="hanging"><span class="para-num">212条</span><span class="hang-body">妊娠中の女子が薬物を用い、又はその他の方法により、堕胎したときは、<span class="ron-mark freq-high">1年以下の拘禁刑に処する</span>。</span></p>
+        <div class="note">
+          <div class="kd-item"><span class="kd-label r-shushi">制度趣旨</span><span class="kd-text">堕胎罪は胎児の生命・身体を独自に保護する＝胎児を母体とは別個の客体として扱う前提に立つ（記述エ）。</span></div>
+          <div class="kd-item"><span class="kd-label r-chui">本問での役割</span><span class="kd-text">胎児を「人である母体の一部」と解すると自己堕胎は自傷行為で不可罰となるはずだが、212条が自己堕胎を処罰することと体系的に矛盾する、という学生Cの批判の根拠（記述エ）。</span></div>
+        </div>
+        <div class="ref-backlinks"><a class="rb-chip" href="#choice-4">記述エ</a></div>
       </div>
     </div>
 
     <div class="basis-card case-card" id="case-kumamoto">
-      <div class="basis-card-header">⚖ 熊本水俣病事件（熊本地判昭54.3.22）── A説の立場<span class="freq-badge freq-high">★★★</span></div>
+      <div class="basis-card-header">⚖ 熊本水俣病事件 第一審（熊本地判昭54.3.22）── A説（時点論）の立場<span class="freq-badge freq-high">★★★</span></div>
       <div class="basis-card-body">
         <p class="judgment-text">胎児は「人」の萌芽であり胎児と人は価値として差がなく、<span class="ron-mark freq-high">実行行為時点で「人」が存在している必要はなく、致死結果が発生した時点で「人」が存在していれば足り</span>、生まれてきた人に対して致死の結果をもたらしたことを理由に、業務上過失致死罪が成立する。</p>
         <div class="note">
-          <div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">学生Aの第一発言の論拠。①＝実行行為の時点(c)では人不要、②＝致死結果が発生した時点(b)に人がいれば足りる、③＝生まれてきた人(e)に致死結果、という「時点をずらす」論理。</span></div>
-          <div class="kd-item"><span class="kd-label r-chui">批判（注意）</span><span class="kd-text">「実行行為時に人不要としても、少なくとも侵害作用が及んだ時点(④a)では人が必要ではないか」というB説からの批判を受ける。</span></div>
+          <div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">学生Aの第一発言の論拠。①＝実行行為の時点では人不要、②＝致死結果が発生した時点に人がいれば足り、③＝生まれてきた人に致死結果、という「時点をずらす」論理（記述ア）。</span></div>
+          <div class="kd-item"><span class="kd-label r-chui">批判（注意）</span><span class="kd-text">「実行行為時に人不要としても、少なくとも侵害作用が及んだ時点では人が必要ではないか」というB説（学生B）からの批判を受ける。</span></div>
         </div>
-        <div class="ref-backlinks"><a class="rb-chip" href="#ref-case-kumamoto-301">肢3 道筋</a><a class="rb-chip" href="#choice-1">肢1</a></div>
+        <div class="ref-backlinks"><a class="rb-chip" href="#choice-1">記述ア</a></div>
       </div>
     </div>
 
-    <div class="basis-card case-card" id="case-s63-2-29">
-      <div class="basis-card-header">⚖ 最決昭63.2.29（百選Ⅱ2事件）── B説の立場<span class="freq-badge freq-high">★★★</span></div>
+    <div class="basis-card case-card" id="case-s63-2-29" data-hyakusen="刑法百選II-2">
+      <div class="basis-card-header">⚖ 胎児性水俣病事件 上告審（最決昭63.2.29・刑集42巻2号314頁／百選Ⅱ2）── B説（客体論）の立場<span class="freq-badge freq-high">★★★</span></div>
       <div class="basis-card-body">
         <p class="judgment-text">業務上過失致死罪の成否を論ずるに当たっては、<span class="ron-mark freq-high">胎児に病変を発生させることは、人である母体の一部に対するものとして、人に病変を発生させることにほかならない</span>。そして、胎児が出生し人となった後、右病変に起因して死亡するに至った場合は、結局、人に病変を発生させて人に死の結果をもたらしたことに帰するから、同罪が成立するものと解するのが相当である。</p>
         <div class="note">
-          <div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">学生Bの論拠。⑤＝胎児は「人である母体の一部」(d)、⑥＝客体を具体的に区別しない＝抽象的法定符合説(g)類似、で過失致死罪を肯定。最高裁の理論は客体を具体的に区別しない点で抽象的法定符合説に通じるとされる。</span></div>
-          <div class="kd-item"><span class="kd-label r-chui">注意（限界）</span><span class="kd-text">学生Cは、胎児を「人である母体の一部」とみると自己堕胎が自傷行為で不可罰となるはずだが現行法は自己堕胎を処罰しており体系矛盾だ、と批判する（B説の弱点）。</span></div>
+          <div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">学生Bの論拠。胎児を「人である母体の一部」とみて（⑤）、客体を具体的に区別しない＝抽象的法定符合説（⑥）に通じる発想で業務上過失致死罪を肯定（記述イ・記述ウ）。母体の一部構成であって、人の始期に関する一部露出説を根拠とするものではない（記述オ）。</span></div>
+          <div class="kd-item"><span class="kd-label r-chui">注意（限界）</span><span class="kd-text">学生Cは、胎児を「人である母体の一部」とみると自己堕胎が自傷行為で不可罰となるはずだが現行法は自己堕胎を処罰しており体系的に矛盾する、と批判する（B説の弱点）。</span></div>
+          <div class="kd-item"><span class="kd-label r-shatei">同一事件</span><span class="kd-text">熊本地判昭54.3.22（第一審）と本決定（上告審）は同一のチッソ水俣病刑事事件であり、別個の事件ではない。第一審はA説的構成（実行行為時に客体不要）、上告審は母体一部説（B説）と整理される。</span></div>
         </div>
-        <div class="ref-backlinks"><a class="rb-chip" href="#ref-case-s63-301">肢3 道筋</a><a class="rb-chip" href="#ref-case-s63-201">肢2 道筋</a><a class="rb-chip" href="#choice-4">肢4</a><a class="rb-chip" href="#choice-5">肢5</a></div>
+        <div class="ref-backlinks"><a class="rb-chip" href="#choice-2">記述イ</a><a class="rb-chip" href="#choice-3">記述ウ</a><a class="rb-chip" href="#choice-5">記述オ</a></div>
       </div>
     </div>
 
     <div class="basis-card case-card" id="case-kagoshima">
-      <div class="basis-card-header">⚖ 鹿児島地判平15.9.2 ── ⑦の同旨判例<span class="freq-badge freq-mid">★★</span></div>
+      <div class="basis-card-header">⚖ 鹿児島地判平15.9.2 ── 学生Aが引用した裁判例（B説と同旨）<span class="freq-badge freq-mid">★★</span></div>
       <div class="basis-card-body">
-        <p class="judgment-text">胎児に病変を発生させることは、人である母体の一部に対するものなり、人に病変を発生させることにほかならず、胎児が出生して人となった後、同病変に起因して傷害が増悪した場合は、結局、人に病変を発生させて人に傷害を負わせたことに帰する。</p>
+        <p class="judgment-text">胎児に病変を発生させることは、人である母体の一部に対するものであり、人に病変を発生させることにほかならず、胎児が出生して人となった後、同病変に起因して傷害が増悪した場合は、結局、人に病変を発生させて人に傷害を負わせたことに帰する。</p>
         <div class="note">
-          <div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">学生Aが第二発言で挙げた裁判例。判示の論理は最決昭63.2.29＝学生B(i)と同旨であり、⑦＝Bさん(i)が正解の根拠。h（私＝学生C）は反対論者で同旨でない。</span></div>
+          <div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">学生Aが第二発言で挙げた裁判例。交通事故で妊娠7か月の妊婦に傷害を負わせ早産した子が水頭症等を発症した事案。判示の論理は最決昭63.2.29＝学生Bと同旨であり、⑦＝Bさんが正解の根拠（記述イ）。学生C（私）は反対論者で同旨ではない。</span></div>
         </div>
-        <div class="ref-backlinks"><a class="rb-chip" href="#ref-case-kagoshima-401">肢4 道筋</a><a class="rb-chip" href="#ref-case-kagoshima-501">肢5 道筋</a></div>
+        <div class="ref-backlinks"><a class="rb-chip" href="#choice-2">記述イ</a></div>
       </div>
     </div>
+
+    <div class="tx-current-law-note">
+      <p class="cln-head">📝 最新法令ノート（刑罰の種類の改正）</p>
+      <p class="cln-body">令和4年法律第67号により、懲役と禁錮は「拘禁刑」へ一本化され、令和7年（2025年）6月1日に施行された。本問に関わる211条（業務上過失致死傷罪）・212条（自己堕胎罪）も、旧「懲役・禁錮」表記は現行法では「拘禁刑」となる（法定刑の長短・罰金額に変更はない）。確認日：2026-10-01／参照：e-Gov 法令検索。胎児傷害の客体論（記述ア〜オ）の結論には影響しない。</p>
+    </div>
+
     <div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div>
   </section>
 
@@ -3912,10 +4286,10 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
   <div class="footer-spec">
     <p class="footer-problem"><strong>刑TX220</strong>・刑法（R7-5 胎児傷害と業務上過失致死罪）── v11.1.0 LOOP-CORE（肢1〜5 ox-grid＋PART B+横断比較罠＋参考条文判例＋体系/放射SVG）</p>
     <p class="footer-meta-info">正答率 61%／難度 ★★★</p>
-<p class="footer-date lexia-genmeta" data-generated="2026-06-21T12:00+09:00">Generated: 2026-06-21 12:00 / TX v11.1.0 LOOP-CORE</p>
+<p class="footer-date lexia-genmeta" data-generated="2026-10-01T12:00+09:00">Generated: 2026-10-01 12:00 / TX v11.1.0 LOOP-CORE</p>
     <!-- v11 内部メタデータ（validate-tx-core.py 用・非表示） -->
     <p class="footer-meta-hidden" hidden="">
-      <span class="feature-tag" hidden="">TX v11.1.0 LOOP-CORE</span>
+      <span class="feature-tag" hidden="">TX v11.1.0 LOOP-CORE</span><span class="feature-tag" hidden="">official-5choice</span>
       <span class="feature-tag" hidden="">genesis-core-baseline</span>
       <span class="feature-tag" hidden="">part-b-statement-unit</span>
       <span class="feature-tag" hidden="">oxgrid-statement-answer-key</span>
@@ -4341,4 +4715,5 @@ a.rb-chip:hover{ background:var(--accent); color:#fff !important; }
 </script>
 
 
+<!-- track: official-5choice / 本物5択（組合せ） -->
 </body></html>

@@ -5584,7 +5584,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5605,9 +5629,281 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5905,7 +6201,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>所有者不明土地管理命令の対象とされた土地の管理及び処分をする権利は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その土地の所有者と所有者不明土地管理人の双方に属する</span><span class="tx-stmt-fix">→ 管理処分権は所有者不明土地管理人に専属する（所有者には属さない）</span>。<span class="tx-anscomp-line">所有者不明土地管理命令の対象とされた土地等の管理及び処分をする権利は、<strong>所有者不明土地管理人に専属する</strong>（民法264条の3第1項）。所有者はその管理処分権を失う。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。持ち主（<a class="ref-stat" id="ref-law-2643-a1" href="#bref-a-2643">所有者</a>）がいなくなっても土地の所有権そのものは残るのだから、管理する権利も所有者と管理人で分け合うように思える。でも所有者不明土地管理命令が出ると、管理・処分の権利は<strong>専属</strong>（その人だけに集中し他の人には残らないこと）として、選任された所有者不明土地管理人に一本化される（264条の3第1項）。所有者は管理処分権を失うから、「所有者と管理人の双方に属する」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">対象の土地を管理し処分する権利は、選ばれた管理人に<strong>専属</strong>する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">管理と処分の権限</span><span class="tx-gist-step">管理人の義務</span><span class="tx-gist-step">訴訟と費用の負担</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">管理命令が出たあと、土地を管理し処分する権利は誰に残るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">所在が分からなくなった所有者の土地が、草木に埋もれて近隣を困らせています。利害関係人の申立てを受けた裁判所が管理命令を出し、その土地を預かる管理人を選びました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">所有者が見つからなくても、土地の所有権そのものは所有者に残ったままです。ならば管理し処分する権利も所有者に残り、管理人と分け合うことになるのでしょうか。それとも<strong>管理処分権</strong>だけが管理人へ移るのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-a-2643" id="ref-law-2643-a1">264条の3第1項</a>は、対象の土地などの管理及び処分をする権利は<strong>所有者不明土地管理人に専属する</strong>と定めています。所有者は、所有権を持ったまま管理処分権を失います。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">所有者が自分で管理できないからこそ、裁判所が代わりの管理人を選ぶ制度です。もし所有者にも管理処分権が残ると、その土地を買いたい相手方は、誰と交渉すればよいのか分からなくなります。窓口を管理人ひとりに絞って初めて、第三者は安心して取引できると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>専属</span></dt><dd>その権利がその人だけに帰属し、ほかの者には残らないこと。所有者は管理処分権を行使できなくなる。</dd></div><div class="tx-gist-term"><dt><span>管理処分権</span></dt><dd>財産を管理し、売却などの処分をする権限。その財産が誰のものかという所有権の帰属とは、別に考える。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">管理処分権が所有者と管理人の双方に属するとしている点が、専属と定める条文と逆です。正しくは管理人だけに属し、所有者は所有権を持ったまま管理処分権を失います。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「専属」の意味をとらえる</strong><span class="syn-body">264条の3第1項は、対象土地等の『管理及び処分をする権利は、所有者不明土地管理人に<span class="case-emphasis freq-high">専属する</span>』と定める。専属とは、その権利がその人だけに帰属し他の者（ここでは所有者）には残らないという意味で、所有者の管理処分権は管理人へ移り、二人で分け持つ状態にはならない。</span></p>
 <p><span class="syn-step">2</span><strong>なぜ管理人に一本化するのか</strong><span class="syn-body">所有者が所在不明で自ら管理できないからこそ裁判所が管理人を選任する制度である。もし所有者にも管理処分権が残ると、取引の相手方は誰と交渉すればよいか分からなくなる。権限を<a class="ref-stat" href="#bref-a-2643">管理人</a>に集約して初めて第三者は安全に取引できるから、「A及びCに属する」とする本記述は誤り。</span></p> </div>
@@ -5948,7 +6244,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>所有者不明土地管理人は、その選任を申し立てた利害関係人のためではなく、対象とされた土地の所有者のために、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>善良な管理者の注意をもってその権限を行使しなければならない</span>。<span class="tx-anscomp-line">所有者不明土地管理人は、<strong>所有者（その共有持分を有する者を含む）のために、善良な管理者の注意をもって</strong>その権限を行使しなければならない（民法264条の5第1項）。申立人のためではない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。管理人は申立人が裁判所に頼んで選ばれた人だから、選任のきっかけを作った申立人のために働くようにも見える。でも制度が守るのは、その土地の<strong>所有者</strong>の財産。だから管理人は所有者のために、<strong>善良な管理者の注意</strong>（自分の財産より一段高い、その立場で通常求められる注意）をもって権限を行使する義務を負う（<a class="ref-stat" id="ref-law-2645-b1" href="#bref-b-2645">264条の5第1項</a>）。申立人のためではないから、この記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">管理人は<strong>所有者</strong>のために、善良な管理者の注意をもって権限を行使する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">管理と処分の権限</span><span class="tx-gist-step is-now">管理人の義務</span><span class="tx-gist-step">訴訟と費用の負担</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">管理人は誰のために、どれだけ丁寧に働く義務を負うのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">選ばれた管理人が、荒れた土地の草を刈り、傾いた塀を直そうとしています。この管理人を選ぶよう裁判所に申し立てたのは、隣に住んで迷惑を受けていた利害関係人でした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">申立人は、自分の困りごとを解決してもらうために手続を起こしました。管理人は、頼んできた申立人のために働くのでしょうか。また求められる丁寧さは、自分の財産を扱うときと同じ程度でよいのでしょうか。<strong>善管注意義務</strong>の相手方と水準が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-b-2645" id="ref-law-2645-b1">264条の5第1項</a>は、管理人は所有者不明土地等の<strong>所有者のために、善良な管理者の注意をもって</strong>その権限を行使しなければならないと定めています。申立人のためではありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">管理人の権限は、所在不明の所有者の財産を後見的に守るために与えられたものです。だから義務を負う相手も、その財産の持ち主である所有者になります。申立人は制度を動かすきっかけを作った人にとどまる、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>善良な管理者の注意</span></dt><dd>その職業や地位にある者に一般に期待される程度の注意。自己の財産に対するのと同一の注意という軽い基準とは違う。</dd></div><div class="tx-gist-term"><dt><span>利害関係人</span></dt><dd>管理命令の申立てができる者。土地が放置されて不利益を受ける隣地の所有者や、その土地を取得したい者などがこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">申立人のためではなく所有者のために、善良な管理者の注意をもって権限を行使するとしている点が、条文のとおりです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>義務の相手方は「所有者」</strong><span class="syn-body">264条の5第1項は、管理人は『所有者不明土地等の<span class="case-emphasis freq-high">所有者（その共有持分を有する者を含む。）のために</span>、善良な管理者の注意をもって、その権限を行使しなければならない』と定める。守られるのは所有者の利益であって、選任を申し立てた利害関係人の利益ではない。</span></p>
 <p><span class="syn-step">2</span><strong>申立人と所有者の役割を分ける</strong><span class="syn-body">利害関係人（申立人）は、放置された土地の管理を裁判所に求める<span class="ron-mark freq-high">起動役</span>にすぎず、管理人が仕えるべき相手ではない。管理人は<a class="ref-stat" href="#bref-b-2645">善管注意義務</a>を所有者に対して負い、その注意を怠れば所有者に対する責任が生じる。よって「Bではなく Aのために」とする本記述は正しい。</span></p> </div>
@@ -5991,7 +6287,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>所有者不明土地管理人は、裁判所の許可を得たときは、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>対象とされた土地を売却することができる</span>。<span class="tx-anscomp-line">土地の売却は保存・利用改良の範囲を超える行為だが、<strong>裁判所の許可を得れば</strong>所有者不明土地管理人は対象土地を売却することができる（民法264条の3第2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。管理人はあくまで“管理する人”だから、土地を売り飛ばす（＝<strong>処分</strong>）ような重い行為まではできないように思える。たしかに売却は、現状維持の<strong>保存行為</strong>や、性質を変えない範囲の<strong>利用・改良行為</strong>の枠を超える。でも枠を超える行為が絶対にできないわけではなく、<a class="ref-stat" id="ref-law-2643-c2" href="#bref-c-2643">264条の3第2項</a>は<strong>裁判所の許可</strong>を得ればできると定める。だから「許可を得たときは売却できる」は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>裁判所の許可</strong>を得れば、管理人は対象の土地を売却できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">管理と処分の権限</span><span class="tx-gist-step">管理人の義務</span><span class="tx-gist-step">訴訟と費用の負担</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">管理する人である管理人が、土地を売ることまでできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">管理人が土地を見回ったところ、草を刈り続けても費用がかさむばかりでした。買い手がいるので、売ってしまったほうが所有者のためになりそうです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">売却は、現状を保つ保存行為でもなく、性質を変えない範囲の利用や改良でもありません。所有権を失わせる<strong>処分行為</strong>です。管理する人にすぎない管理人は、これほど重い行為をおよそできないのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-c-2643" id="ref-law-2643-c2">264条の3第2項</a>は、保存行為と、性質を変えない範囲で利用又は改良を目的とする行為の範囲を超える行為をするには<strong>裁判所の許可</strong>を得なければならないと定めます。禁止ではなく許可制なので、許可を得れば売却できます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">放置された土地を第三者へ売って活用させることも、所有者の財産を守る道になります。そこで条文は、重い行為を一律に禁じるのではなく、裁判所の判断を挟んで行わせる形にしたと説明されます。なお、許可がないことをもって善意の第三者に対抗することはできません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>保存行為</span></dt><dd>財産の現状を維持する行為。建物の修繕や、消滅しそうな権利の保全などがこれに当たる。</dd></div><div class="tx-gist-term"><dt><span>処分行為</span></dt><dd>財産の権利関係を変動させる行為。売却や抵当権の設定などがこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">裁判所の許可を得たときは売却できるとしている点が、許可制を定める条文のとおりです。管理人だからおよそ処分できない、というわけではありません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>売却は枠を超える行為</strong><span class="syn-body">264条の3第2項は、①保存行為、②性質を変えない範囲での利用・改良行為の<span class="case-emphasis freq-high">範囲を超える行為</span>には裁判所の許可を要するとする。土地の売却は所有権を失わせる<span class="ron-mark freq-high">処分行為</span>で、①②の枠を明らかに超える。</span></p>
 <p><span class="syn-step">2</span><strong>許可があればできる</strong><span class="syn-body">枠を超える行為も、<a class="ref-stat" href="#bref-c-2643">裁判所の許可</a>を得れば適法にできる。所在不明の所有者に代わって、放置された土地を第三者へ売却し活用する必要がある場面を想定した仕組み。よって「許可を得たときは売却できる」とする本記述は正しい。なお許可を得ずにした行為は、善意の第三者に対抗できないにとどまる（同項ただし書相当の保護）。</span></p> </div>
@@ -6033,7 +6329,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>所有者不明土地管理命令が発せられた場合、対象とされた土地に関する訴えについては、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>所有者不明土地管理人が原告又は被告となる</span>。<span class="tx-anscomp-line">所有者不明土地管理命令が発せられた場合、所有者不明土地等に関する訴えについては、<strong>所有者不明土地管理人を原告又は被告とする</strong>（民法264条の4）。所有者に代わる法定訴訟担当である。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。訴訟は権利の持主である所有者が自分でやるのが原則だから、行方不明の所有者を相手取るように思える。でも管理処分権が管理人に専属している以上、訴訟でも所有者に代わって管理人が矢面に立つ。<a class="ref-stat" id="ref-law-2644-d1" href="#bref-d-2644">264条の4</a>は、対象土地に関する訴えでは管理人を<strong>原告又は被告とする</strong>と定める（これを<strong>法定訴訟担当</strong>＝法律上、他人の権利について当事者として訴訟できる立場という）。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">対象の土地に関する訴えでは、<strong>管理人</strong>が原告又は被告となる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">管理と処分の権限</span><span class="tx-gist-step">管理人の義務</span><span class="tx-gist-step is-now">訴訟と費用の負担</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">土地をめぐる裁判で、当事者の席に座るのは誰か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">対象の土地を自分のものだと主張する人が現れ、裁判で決着をつけたいと言い出しました。しかし、その土地の所有者は所在が分かりません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">訴訟は、権利を持つ本人が当事者になるのが原則です。所在不明の所有者を相手にしたままでは、訴状も届かず裁判が進みません。権限を預かる管理人を当事者に据えることができるのでしょうか。これが<strong>法定訴訟担当</strong>の問題です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-d-2644" id="ref-law-2644-d1">264条の4</a>は、管理命令が発せられた場合には、所有者不明土地等に関する訴えについては<strong>管理人を原告又は被告とする</strong>と定めています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">管理し処分する権利が管理人に専属している以上、その権利をめぐる争いも、権限を実際に握る管理人が担うのが筋道です。実体の権限の所在と、法廷での当事者の座を一致させた仕組みだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>法定訴訟担当</span></dt><dd>法律の規定により、他人の権利について自分の名で当事者となって訴訟を行う立場。</dd></div><div class="tx-gist-term"><dt><span>原告又は被告</span></dt><dd>訴訟で訴える側と訴えられる側。どちらの立場になる場合も、管理人が当事者となる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">対象の土地に関する訴えについて管理人が原告又は被告となるとしている点が、条文のとおりです。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>264条の4の当事者ルール</strong><span class="syn-body">264条の4は『所有者不明土地管理命令が発せられた場合には、所有者不明土地等に関する訴えについては、<span class="case-emphasis freq-high">所有者不明土地管理人を原告又は被告とする</span>』と定める。所在不明の所有者を当事者にしても訴訟が進まないため、管理人を当事者に据える。</span></p>
 <p><span class="syn-step">2</span><strong>専属との一貫性</strong><span class="syn-body">管理処分権が<a class="ref-stat" href="#bref-d-2644">管理人に専属</a>する（264条の3①）ことと平仄が合う。実体的な管理処分権を握る者が、訴訟という場面でも<span class="ron-mark freq-high">法定訴訟担当</span>として当事者になる。所有者に代わって訴え、また訴えられる立場になるから、本記述は正しい。</span></p> </div>
@@ -6076,7 +6372,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>所有者不明土地管理人による対象土地の管理に必要な費用は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その選任を申し立てた利害関係人が負担する</span><span class="tx-stmt-fix">→ 管理に必要な費用及び報酬は、土地の所有者が負担する</span>。<span class="tx-anscomp-line">所有者不明土地管理人による管理に必要な費用及び報酬は、<strong>所有者不明土地等の所有者の負担</strong>とする（民法264条の7第2項）。申立人（利害関係人）は負担しない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。管理人の選任を裁判所に申し立てたのは申立人だから、その費用も言い出しっぺの申立人が負担するように思える。でも管理はあくまで<strong>所有者の財産</strong>のために行われ、その利益は所有者に帰属する。だから管理に必要な費用及び管理人の報酬は<a class="ref-stat" id="ref-law-2647-e2" href="#bref-e-2647">264条の7第2項</a>により<strong>所有者</strong>の負担とされる。申立人が負担するとする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">管理に必要な費用と管理人の報酬は、<strong>所有者</strong>が負担する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">管理と処分の権限</span><span class="tx-gist-step">管理人の義務</span><span class="tx-gist-step is-now">訴訟と費用の負担</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">管理にかかった費用と管理人の報酬は、最後に誰が払うのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">管理人が草刈りや塀の修繕を行い、かかった費用と自分の報酬を請求します。手続を起こしたのは隣の利害関係人でしたから、言い出した人が払うようにも見えます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">管理人は対象の土地などから費用の前払や報酬を受けられますが、それとは別に、終局的に懐から払う人を決めなければなりません。<strong>受益者負担</strong>の考え方からは、誰が負担することになるでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民法<a class="ref-stat" href="#bref-e-2647" id="ref-law-2647-e2">264条の7第2項</a>は、管理に必要な費用及び報酬は<strong>所有者不明土地等の所有者の負担とする</strong>と定めています。申立てをした利害関係人は、終局的な負担者ではありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">管理によって荒廃を免れ、価値を保たれるのは所有者の財産です。利益を受ける人が、それに対応する負担も負うのが公平だと説明されます。申立人は制度を起動しただけで、他人の財産の維持費を背負う理由はありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>受益者負担</span></dt><dd>ある仕組みから利益を受ける者が、それに対応する費用を負うという考え方。</dd></div><div class="tx-gist-term"><dt><span>費用の前払</span></dt><dd>管理人が、管理に必要な出費をあらかじめ対象の財産から受け取ること（264条の7第1項）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">費用を申立てをした利害関係人が負担するとしている点が誤りです。正しくは、管理に必要な費用も管理人の報酬も、土地の所有者が負担します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>費用・報酬の負担者は所有者</strong><span class="syn-body">264条の7第2項は、管理人による管理に必要な『費用及び報酬は、<span class="case-emphasis freq-high">所有者不明土地等の所有者（その共有持分を有する者を含む。）の負担とする</span>』と定める。利益（管理による財産の保全）が帰属する所有者が、対応する負担も負うという受益者負担の考え方。</span></p>
 <p><span class="syn-step">2</span><strong>申立人は負担しない</strong><span class="syn-body">利害関係人（申立人）は、放置された土地の管理を求める<a class="ref-stat" href="#bref-e-2647">起動役</a>にすぎず、費用の終局的な負担者ではない。管理人は所有者不明土地等から費用の前払・報酬を受けられ（同条1項）、最終的な負担は<span class="ron-mark freq-high">所有者</span>に帰属する。よって費用をBが負担するとする本記述は誤り。</span></p> </div>
@@ -6445,16 +6741,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6489,7 +6800,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6502,6 +6818,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6510,12 +6827,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

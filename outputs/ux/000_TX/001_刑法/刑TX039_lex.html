@@ -5669,6 +5669,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5952,7 +6187,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>約3時間の執拗な暴行から逃れようとしたVが高速道路に進入し自動車に衝突され死亡した場合、殴打行為とVの死亡との間に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>因果関係はない</span><span class="tx-stmt-fix">→ 因果関係はある（暴行の危険が現実化）</span>。<span class="tx-anscomp-line">被害者が逃走中に高速道路へ進入して死亡しても、その行動が甲らの執拗な暴行に誘発され<strong>著しく不自然・不相当とはいえない</strong>以上、暴行の危険が結果に現実化したものとして因果関係が認められる（最決平15.7.16）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。Vが自分から高速道路に飛び出したのだから、死んだのは甲のせいではない、と切りたくなる。でも判例（<a class="ref-stat" id="ref-case-101" href="#bref-1-case">最決平15.7.16</a>）は、行為者の行為に含まれる危険が結果へ実現したか（＝<strong>危険の現実化</strong>。実行行為の危険が現実の因果の道すじを通って結果になったといえるか）で判断する。長時間の執拗な暴行から必死に逃げる中でとっさに選んだ行動なら、たとえ高速道路進入でも「著しく不自然・不相当」とはいえず、暴行の危険が現実化したとみて<strong>因果関係を肯定</strong>する。だから「因果関係はない」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">執拗な暴行に誘発された<strong>高速道路への逃走</strong>でも、因果関係は認められる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">被害者の行為が介在</span><span class="tx-gist-step">被害者の素因が介在</span><span class="tx-gist-step">第三者の行為が介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">暴行から逃げた被害者が自分で危険な場所へ飛び込んだとき、暴行と死の因果関係は切れるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">六人がかりで約三時間、木刀で頭部や腹部を何度も殴られた被害者が、極度の恐怖から必死に逃げ出します。追跡から逃れようとして高速道路へ入り、走ってきた自動車にはねられて亡くなりました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">高速道路へ飛び込んだのは被害者自身の判断でした。それでも暴行と死を結びつけてよいのか、<strong>因果関係</strong>の有無が問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-1-case" id="ref-case-101">最決平15.7.16</a>）は、被害者の逃走が長時間の激しく執拗な暴行から必死に逃れる過程でとっさに選ばれたもので、逃げる方法として著しく不自然・不相当であったとはいえないとして、死亡は暴行に起因すると評価し、<strong>因果関係を肯定</strong>しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">判例は、実行行為に含まれる危険がそのまま結果へ実を結んだかという危険の現実化で判断すると説明されます。相手を追い詰めた側は、追い詰められた者がとる危険な逃げ方まで引き受けるべきだからです。挟まった行動が自分の暴行に誘発されたものなら、その異常性は低く、暴行の危険はなお死へ届いていると評価されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>危険の現実化</span></dt><dd>実行行為に含まれる危険が、現実の因果の道すじを通って結果になったといえるかで法的な因果関係を判断する判例の考え方。</dd></div><div class="tx-gist-term"><dt><span>条件関係</span></dt><dd>その行為がなければその結果は生じなかったという関係。法的な因果関係を認める前提になる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">因果関係はないとしている点が、判例と逆です。暴行に誘発された逃走は著しく不自然・不相当とはいえないので因果関係は認められ、殴った者たちには傷害致死罪（刑法205条）が成立します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>判例の判断枠組み</strong><span class="syn-body">条件関係（あれば結果あり・なければ結果なし）を前提に、<span class="case-emphasis freq-high">実行行為の危険が結果に現実化したか</span>で法的因果を判断する。介在事情があるときは、実行行為の危険性の大きさ・介在事情の異常性・結果への寄与度を総合する。</span></p>
 <p><span class="syn-step">2</span><strong>本事案へのあてはめ</strong><span class="syn-body">約3時間の執拗な暴行→極度の恐怖→必死の逃走→高速道路進入。逃走は暴行に誘発された行動で、逃げる方法として<span class="ron-mark freq-high">著しく不自然・不相当とはいえない</span>。よって暴行の危険が現実化し因果関係が肯定される。因果関係を否定する本記述は誤り。</span></p> </div>
@@ -5990,7 +6225,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>致命傷になり得る頸部刺創を負ったVが安静にせず病室内を歩き回り治療効果が上がらず刺創に基づく障害で死亡した場合、刺突行為とVの死亡との間に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>因果関係はない</span><span class="tx-stmt-fix">→ 因果関係はある（致命的傷害の危険が現実化）</span>。<span class="tx-anscomp-line">行為による傷害が<strong>それ自体死の結果をもたらし得る身体の損傷</strong>である以上、被害者が安静に努めず治療効果が上がらなかった事情が介在しても、刺突行為とVの死亡との間に因果関係が認められる（最決平16.2.17）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。手術で一旦助かり、その後Vが安静を守らなかったせいで死んだのだから、甲の刺突との因果は切れた、と考えたくなる。でも判例（<a class="ref-stat" id="ref-case-201" href="#bref-2-case">最決平16.2.17</a>）は、そもそもの傷害が<strong>それ自体死をもたらし得る身体の損傷</strong>だった点を重視する。致命的な傷の危険がなお残る中で、被害者が安静に努めなかったという事情（＝治療に協力しない<strong>不作為</strong>）が介在しても、刺突行為の危険が結果に現実化したとみて<strong>因果関係を肯定</strong>する。だから「因果関係はない」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>死に至り得る傷害</strong>なら、被害者が安静を守らなくても因果関係は残る。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">被害者の行為が介在</span><span class="tx-gist-step">被害者の素因が介在</span><span class="tx-gist-step">第三者の行為が介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">いったん救命された被害者が安静を守らずに死亡したとき、最初の刺突との因果関係は切れるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">包丁で頸部を刺され、それ自体で死に至り得る深い傷を負った被害者が、緊急手術でいったん命を取り戻します。あと数週間安静にしていれば退院できるところ、病室内を歩き回ったため治療の効果が上がらず、その刺創による血液循環障害から亡くなりました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">死を招いたのは安静を守らなかった被害者自身の振る舞いにも見えます。この<strong>介在事情</strong>があると、刺した者の行為と死の結びつきは断たれるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-2-case" id="ref-case-201">最決平16.2.17</a>）は、受けた傷害がそれ自体死の結果をもたらし得る身体の損傷であったことを重くみて、被害者が医師の指示に従わず安静に努めなかったために治療の効果が上がらなかったという事情が介在しても、傷害と死亡との間に<strong>因果関係がある</strong>と判断しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">もともとの傷が致命的なら、その危険は治療中もなお働き続けていると評価できます。安静に努めなかったというのは治療を受けないという不作為にとどまり、新たに死の危険を作り出す出来事ではありません。だから結果への寄与は小さく、最初の刺突の危険がそのまま死へ実を結んだとみられると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>介在事情</span></dt><dd>実行行為のあとに挟まって結果に影響した出来事。被害者や第三者の行動、被害者の素因などがある。</dd></div><div class="tx-gist-term"><dt><span>不作為</span></dt><dd>期待された行為をしないこと。ここでは治療に協力しないという形で現れる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">因果関係はないとしている点が誤りです。致命傷の危険が保たれたまま死の結果になった以上、因果関係は認められ、刺した者には傷害致死罪（刑法205条）が成立します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>実行行為の危険性を測る</strong><span class="syn-body">頸部への刺突は<span class="case-emphasis freq-high">それ自体死の結果をもたらし得る身体の損傷</span>を生じさせている。実行行為の危険が大きいほど、多少の介在事情では因果関係は切れない。</span></p>
 <p><span class="syn-step">2</span><strong>介在事情を評価する</strong><span class="syn-body">被害者が医師の指示に従わず安静に努めなかったのは、治療を受けないという<span class="ron-mark freq-high">不作為</span>にとどまり、介在事情の結果への寄与が否定される。当初の刺突行為の危険が医師の治療により妨げられることなく死の結果へ現実化したといえるから、因果関係が肯定される。否定する本記述は誤り。</span></p> </div>
@@ -6028,7 +6263,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>Vの顔面を1回足で蹴ったところ、一般人も甲も認識できなかった特殊な病気で脆弱化していた脳組織が崩壊してVが死亡した場合、足蹴り行為とVの死亡との間に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>因果関係はない</span><span class="tx-stmt-fix">→ 因果関係はある（行為時の素因は認識不要）</span>。<span class="tx-anscomp-line">行為時に被害者に存在した<strong>特殊な身体的素因</strong>は、行為者や一般人がその存在を認識・予測できなくても因果判断に取り込まれ、暴行がその素因と相まって死の結果を生じさせた以上、因果関係が認められる（最判昭25.3.31）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。誰も知りようのない特殊な病気のせいで死んだのだから、たった1回の顔面蹴りと死は結びつかない、と考えたくなる。でも判例（<a class="ref-stat" id="ref-case-301" href="#bref-3-case">最判昭25.3.31</a>）は、被害者に<strong>行為時に存在した素因</strong>（生まれつき・持病などその人に元からある弱さ）は、行為者も一般人も認識・予測できなくても因果関係の判断に取り込む立場をとる。暴行がその素因と相まって死の結果を生じさせた以上、<strong>因果関係を肯定</strong>する。だから「因果関係はない」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">行為時にあった<strong>特殊な素因</strong>は、気づけなくても因果判断に取り込まれる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">被害者の行為が介在</span><span class="tx-gist-step is-now">被害者の素因が介在</span><span class="tx-gist-step">第三者の行為が介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">誰も気づけない病気のせいで死んだとき、一回の暴行と死との因果関係は認められるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">顔面を一度足で蹴られた被害者が、脳の組織を崩されて亡くなりました。その脳は特殊な病気で極度に脆くなっていましたが、病気の存在は蹴った者にも周囲の一般人にも見て取れないものでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">普通の人なら死なない程度の暴行です。行為の時に被害者が抱えていた<strong>素因</strong>を、気づけなかった行為者の不利に数え入れてよいのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-3-case" id="ref-case-301">最判昭25.3.31</a>）は、行為の当時その特殊事情があることを知らず予測もできなかったとしても、行為がその特殊事情と相まって致死の結果を生ぜしめたときは<strong>因果関係を認める</strong>ことができるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">判例の物差しは、行為者が何を見通せたかではなく、行為の危険が客観的に結果へ実を結んだかどうかです。行為の時点で相手に備わっていた弱さは、そこにあった現実そのものなので、判断の土台から外す理由がないと説明されます。もっとも学説には、行為の時に一般人が知り得た事情だけを土台にする折衷的相当因果関係説もあり、そちらでは結論が逆に傾きます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>素因</span></dt><dd>行為の時点で被害者に元からあった身体の弱さ。持病や生まれつきの体質など。</dd></div><div class="tx-gist-term"><dt><span>折衷的相当因果関係説</span></dt><dd>行為の時に一般人が認識できた事情と行為者が特に認識していた事情だけを土台にして因果関係を判断する学説。認識できない素因は土台から外す。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">認識できなかったことを理由に因果関係を否定している点が、判例と逆です。行為時の素因は認識可能性を問わず取り込まれるので因果関係は認められ、蹴った者には傷害致死罪（刑法205条）が成立します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>判例の立場を確認する</strong><span class="syn-body">判例は、行為時に客観的に存在した特殊事情（被害者の素因）を因果判断の基礎に取り込み、<span class="case-emphasis freq-high">行為者がその特殊事情を知らず予測もできなかったとしても</span>、行為がその特殊事情と相まって致死の結果を生ぜしめたときは因果関係を認める。</span></p>
 <p><span class="syn-step">2</span><strong>本事案にあてはめる</strong><span class="syn-body">Vの脳組織を脆くしていた特殊な病気は<span class="ron-mark freq-high">行為時に既に存在した素因</span>。足蹴りがこの素因と相まって脳組織の崩壊・死亡を生じさせた以上、認識可能性の有無にかかわらず因果関係が肯定される。認識できなかったことを理由に否定する本記述は誤り。</span></p> </div>
@@ -6066,7 +6301,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>柔道整復師の甲が医学的に誤った治療法を繰り返し指示し、忠実に従ったVが症状を悪化させ脱水症状で死亡した場合、指示行為とVの死亡との間に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>因果関係はない</span><span class="tx-stmt-fix">→ 因果関係はある（危険な指示に被害者が誘発され従った）</span>。<span class="tx-anscomp-line">誤った治療法の指示行為が<strong>それ自体病状を悪化させ死亡を引き起こしかねない危険性</strong>を有し、被害者がその指示に忠実に従った以上、医師にかからず甲に依存した被害者側の落ち度が介在しても、指示行為とVの死亡との間に因果関係が認められる（最決昭63.5.11）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。医師にかからず甲だけを信じたVの側にも落ち度があるのだから、死の責任は甲に及ばない、と考えたくなる。でも判例（<a class="ref-stat" id="ref-case-401" href="#bref-4-case">最決昭63.5.11</a>）は、誤った治療法の指示が<strong>それ自体、病状を悪化させ死亡をも引き起こしかねない危険性</strong>を持っていた点を重視する。被害者は甲を信頼してその危険な指示に<strong>誘発されて忠実に従った</strong>のだから、被害者側に落ち度があっても指示行為の危険が結果に現実化したとみて<strong>因果関係を肯定</strong>する。だから「因果関係はない」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>誘発された落ち度</strong>は因果関係を切らず、誤った指示と死は結びつく。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">被害者の行為が介在</span><span class="tx-gist-step">被害者の素因が介在</span><span class="tx-gist-step">第三者の行為が介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">医師にかからず資格のない者だけを信じたという被害者側の落ち度は、因果関係を切るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">風邪の相談を受けた柔道整復師が、食事も水分も控えて汗をかけという医学的に明らかに誤った治療法を繰り返し指示します。全幅の信頼を寄せていた相談者はそのとおり忠実に実行し、症状を悪化させて脱水症状で亡くなりました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">医師の診察を受けず資格のない者だけに頼った点は、たしかに被害者側の落ち度です。この落ち度があると、危険な<strong>指示行為</strong>と死の結びつきは断たれるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-4-case" id="ref-case-401">最決昭63.5.11</a>）は、その指示がそれ自体病状を悪化させ、ひいては死亡の結果をも引き起こしかねない危険性を有していたとして、被害者側にも落度があったことは否定できないとしても<strong>因果関係がある</strong>と判断しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">刑法の因果関係には、民事の過失相殺のように被害者の落ち度で責任を削る仕組みがありません。しかもこの落ち度は、危険な指示を繰り返して相手を信じ込ませた側が、自ら引き出したものです。自分が誘発した行動を理由に因果関係を切ることはできないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>実行行為の危険性</span></dt><dd>その行為そのものが結果を引き起こす見込みの大きさ。危険が大きいほど、途中に何かが挟まっても因果関係は切れにくい。</dd></div><div class="tx-gist-term"><dt><span>過失相殺</span></dt><dd>民事で、被害者にも過失があるときに賠償額を減らす仕組み。刑法の因果関係には同じ仕組みがない。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">因果関係はないとしている点が誤りです。誤った治療法の指示それ自体に死の危険があり、被害者側の落ち度もその指示に誘発されたものなので、指示行為と死亡との間の因果関係は認められます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>実行行為の危険性を測る</strong><span class="syn-body">医学的に明らかに誤った治療法（食事・水分を控え発汗を促す）の繰り返しの指示は、<span class="case-emphasis freq-high">それ自体が病状を悪化させ死亡をも引き起こしかねない危険性</span>を有していた。</span></p>
 <p><span class="syn-step">2</span><strong>介在事情を評価する</strong><span class="syn-body">Vが医師の診察を受けず甲だけに依存した点は被害者側の落ち度だが、それは甲の<span class="ron-mark freq-high">危険な指示に誘発された行動</span>（被告人が被害者の不適切な行為を誘発している）である。したがって被害者側に落ち度があっても指示行為の危険が死へ現実化したといえ、因果関係が肯定される。否定する本記述は誤り。</span></p> </div>
@@ -6105,7 +6340,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>同乗者が走行中の屋根からVを引きずり降ろして転落させ、Vが死亡したがその傷害が衝突時か転落時か不明であった場合、衝突行為とVの死亡との間に<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>因果関係はない</span>。<span class="tx-anscomp-line"><strong>異常な介入行為</strong>（同乗者が走行中の車の屋根から被害者を引きずり降ろす行為）が介在し、しかも死因が衝突時か転落時か不明のときは、衝突行為の危険が現実化したとはいえず因果関係は否定される（最決昭42.10.24）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。最初にはねたのは甲なのだから死との因果もありそう、と思える。でも判例（<a class="ref-stat" id="ref-case-501" href="#bref-5-case">最決昭42.10.24</a>）は2点を重くみる。第一に、同乗者が走行中の車の屋根から被害者を引きずり降ろすのは<strong>経験上普通は予想できない異常な介入</strong>であること。第二に、死因の頭部の傷害が最初の衝突で生じたのか転落で生じたのか<strong>確定しがたい（死因不明）</strong>こと。この場合、甲の衝突行為の危険が結果に現実化したとは到底いえず<strong>因果関係を否定</strong>する。だから「因果関係はない」とする本記述は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body"><strong>異常な介入</strong>に死因の不明が重なると、最初の衝突との因果関係は切れる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">被害者の行為が介在</span><span class="tx-gist-step">被害者の素因が介在</span><span class="tx-gist-step is-now">第三者の行為が介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">第三者が割り込み、致命傷がどちらの出来事によるか分からないとき、因果関係は認められるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">過失で通行人をはねた運転者は、被害者を屋根に跳ね上げたことに気づかず走り続けます。これに気づいた同乗者が、走行中の車の屋根から被害者を逆さまに引きずり降ろして路上へ転落させ、被害者は頭部打撲による脳くも膜下出血で亡くなりました。その頭部の傷が衝突のときにできたのか転落のときにできたのかは、分かりませんでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">最初に危険を作ったのは運転者です。しかし途中で<strong>第三者の介入</strong>が挟まり、しかもどちらの出来事が致命傷を与えたのかも確定できません。この状態で衝突と死を結びつけられるかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" href="#bref-5-case" id="ref-case-501">最決昭42.10.24</a>）は、走行中の自動車の屋根から被害者をさかさまに引きずり降ろして舗装道路上に転落させることは経験上普通は予想し得ず、しかも死因となった頭部の傷害が衝突の際に生じたか転落の際に生じたかも確定しがたいとして、死の結果が経験則上当然予想し得るとは到底いえないと述べ、<strong>因果関係を否定</strong>しました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">因果関係を切るには、挟まった出来事が異常だというだけでは足りません。異常性が高いうえに、致命傷が最初の行為から来たのか介入から来たのかも分からないとなると、最初の危険が結果へ実を結んだとは言い切れなくなります。死因が分からないまま結果の責任を負わせられないという刑事裁判の考え方も、ここで働いていると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>介在事情の異常性</span></dt><dd>挟まった出来事が経験上普通は予想できるものかどうかという評価。予想できないほど因果関係を切る方向に働く。</dd></div><div class="tx-gist-term"><dt><span>死因の不明</span></dt><dd>致命傷が実行行為によるものか介在行為によるものか確定できないこと。異常性の高さと重なると因果関係を否定する決め手になる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">因果関係はないとしている点が、判例と一致します。異常な介入と死因の不明が重なる場面でだけ因果関係は切れるので、異常な介入があっても致命傷が最初の行為によると明らかな場合には、逆に因果関係が認められます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>介在事情の異常性を測る</strong><span class="syn-body">走行中の自動車の屋根から被害者をさかさまに引きずり降ろして路上に転落させることは、<span class="case-emphasis freq-high">経験上、普通、予想しえられるところではない</span>異常な第三者の介入行為である。</span></p>
 <p><span class="syn-step">2</span><strong>死因の不明を評価する</strong><span class="syn-body">死因となった頭部の傷害が<span class="ron-mark freq-high">衝突の際に生じたか転落の際に生じたか確定しがたい</span>。異常な介入が挟まり、しかも死因が実行行為由来か介在行為由来か不明である以上、衝突行為の危険が結果に現実化したとは到底いえず、因果関係は否定される。因果関係を否定する本記述は正しい。</span></p> </div>

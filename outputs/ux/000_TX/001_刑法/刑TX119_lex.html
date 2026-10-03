@@ -5670,6 +5670,104 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6148,7 +6246,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:o,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-mark="甲が酩酊して正常な運転が困難な状態で走行し乙を死亡させた行為は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>危険運転致死罪（自動車運転死傷行為処罰法2条1号）の構成要件に該当する</span>。<span class='tx-anscomp-line'>アルコールの影響により正常な運転が困難な状態で自動車を走行させて人を死亡させた者には、危険運転致死罪（自動車の運転により人を死傷させる行為等の処罰に関する法律2条1号）が成立する。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 危険運転致死罪は、正常な運転が困難な状態で自動車を走行させ人を死傷させる行為を捉える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 飲酒等による危険な運転そのものが重大な結果の危険を高めるため、過失犯より重く処罰する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 正常な運転が困難な状態での走行による死傷に及び、単なる不注意の過失運転致死とは区別される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 過失運転致死との分かれ目は、運転が「正常な運転が困難な状態」といえるほど危険だったかにある。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 飲酒運転事故を見たら、まず正常な運転が困難な状態だったかで危険運転致死か過失運転致死かを振り分ける。</p></div></td></tr><tr data-stmt="2" data-verdict="x" data-brief-mark="弁識・制御能力を欠く状態で結果を実現した者は、実行行為時に<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>行為能力を欠くから責任を問えない</span><span class='tx-stmt-fix'>→ 責任能力を欠く（行為能力は民法概念）</span>。<span class='tx-anscomp-line'>是非善悪を識別し、その識別に従って行動を制御する能力を責任能力といい（刑法39条参照）、実行行為の時点に存在することを要する。行為能力は単独で有効に法律行為をなし得る資格をいう民法上の概念であり、両者は異なる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 是非を弁別し、その弁別に従って行動を制御する能力を責任能力という（刑法39条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 非難可能性を基礎づけるのは責任能力であり、これを欠けば責任非難ができないため罰しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 責任能力の有無は刑事責任の要件で、法律行為をなし得る資格である民法の行為能力とは場面が異なる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 責任能力と行為能力の分かれ目は、刑事責任の非難可能性の問題か、私法上の法律行為の資格かにある。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 「〜能力」の語が出たら、是非弁別・行動制御（刑法の責任能力）か法律行為の資格（民法の行為能力）かを確かめる。</p></div></td></tr><tr data-stmt="3" data-verdict="o" data-brief-mark="自ら責任無能力状態を招きその状態で結果を実現した場合に完全な責任を問う法理を、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>原因において自由な行為という</span>（前提は同時存在の原則）。<span class='tx-anscomp-line'>責任能力は実行行為の時点に存在することを要する（行為と責任の同時存在の原則）が、自ら責任無能力状態を招いてその状態で犯罪結果を実現した場合に完全な責任を問いうるとする法理が、原因において自由な行為である。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 責任能力は実行行為の時点に存在することを要する（行為と責任の同時存在の原則）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 責任主義から実行行為時の責任能力を要求しつつ、自ら招いた責任無能力状態を放置しない要請を調和させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 自ら責任無能力状態を招いてその状態で結果を実現した場合に完全な責任を問う法理（原因において自由な行為）に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 「原因において自由な行為」と「原因において違法な行為」は、責任論か違法論かで守備範囲が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 実行行為時に責任能力を欠く事案では、その状態を自ら招いたかを見て原因において自由な行為の可否を検討する。</p></div></td></tr><tr data-stmt="4" data-verdict="x" data-brief-mark="責任無能力の自己を道具として利用したと捉える構成要件モデルは、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>共謀共同正犯と同様に考える見解である</span><span class='tx-stmt-fix'>→ 間接正犯と同様（間接正犯類似説）</span>。<span class='tx-anscomp-line'>同時存在の原則を維持し、責任無能力状態の自己を道具として利用したと捉えて構成要件該当事実を原因行為まで遡及させる構成要件モデルは、他人を道具として利用する間接正犯と同様に考える間接正犯類似説として位置づけられる。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 責任無能力の自己を道具として利用したと捉える構成は、間接正犯類似説として位置づけられる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 他人を道具として利用する間接正犯と同じく、道具の背後の利用者に正犯性を認める発想による。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 同時存在の原則を維持しつつ実行行為を原因行為に求める構成要件モデルに及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 間接正犯類似説と共謀共同正犯は、一方的な道具利用か、意思連絡ある複数人の共同かで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 「道具として利用」という語を見たら間接正犯の系列を、「意思連絡・共同」を見たら共同正犯の系列を想起する。</p></div></td></tr><tr data-stmt="5" data-verdict="o" data-brief-mark="道具性が問題となるのは<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>心神耗弱の場合</span>で、判例は飲酒時に運転の意思があれば39条2項の減軽をせず<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>原因において自由な行為の理論を適用している</span>。<span class='tx-anscomp-line'>実行行為時に心神耗弱（限定責任能力）にとどまる場合は「道具」といいにくいが、判例（最決昭43.2.27）は、飲酒酩酊により心神耗弱の状態で酒酔い運転をした者でも飲酒の際に酒酔い運転の意思が認められるときは刑法39条2項による刑の減軽をすべきでないとして、原因において自由な行為の理論を適用している。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 道具性が問題となるのは心神耗弱の場合で、判例は原因において自由な行為の理論を適用している。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 限定責任能力では意思による制御の余地が残り、道具構成をそのまま貫きにくいため批判が生じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 飲酒の際に酒酔い運転の意思が認められる心神耗弱の事案に及び、39条2項の減軽が否定される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 心神喪失（責任無能力）と心神耗弱（限定責任能力）は、意思による制御の余地が残るか否かで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 判例の結論は減軽の否定＝理論の適用であり、「適用していない」と結論の向きを反転させない。</p></div></td></tr></tbody>
+<tr data-stmt="1" data-verdict="o" data-brief-story="人の死傷を招く運転の処罰は、危険な状態をあえて作って走った危険運転致死傷（2条）、その手前の準危険運転（3条）、不注意にとどまる過失運転（5条）という<b>三段構え</b>になっている。もとは刑法208条の2に置かれていたものを、2013年に自動車運転死傷行為処罰法という特別法へまとめて移した。重く扱う趣旨は、事故が起きても不思議でない状態を自分で作り出したうえで公道に出た点にあり、単なる不注意とは非難の質が違うからである。考え方のコツは、2条1号の決め手が<b>酒の量や呼気の数値そのものではない</b>ところにある。条文が求めるのは<b>正常な運転が困難な状態</b>——まっすぐ走らせる、前をきちんと見る、危険に気づいて止まる、というハンドルさばきが保てなくなっていたか——であり、ふらつきや信号の見落とし、直前まで全く減速していないといった走り方から判断する。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では呼気検査の数値に加え、事故前の走行状況、目撃者の話、飲んだ量と時間、直後の受け答えや歩行の様子を積み上げる。弁護人は数値が低いことや正常に走れていた区間を挙げて2条を争い、過失運転への引き下げを求める。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2006年8月に福岡市の海の中道大橋で起きた飲酒運転の追突事故では、まさにこの線引きが審級ごとに割れた。一審は危険運転致死傷罪の成立を認めず過失の罪にとどめたが、控訴審はこれを認めて懲役20年とし、最高裁も上告を退けて確定した。同じ事実でも、正常な運転が困難な状態といえるかの評価は動きうる。</span>" data-brief-mark="甲が酩酊して正常な運転が困難な状態で走行し乙を死亡させた行為は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>危険運転致死罪（自動車運転死傷行為処罰法2条1号）の構成要件に該当する</span>。<span class='tx-anscomp-line'>アルコールの影響により正常な運転が困難な状態で自動車を走行させて人を死亡させた者には、危険運転致死罪（自動車の運転により人を死傷させる行為等の処罰に関する法律2条1号）が成立する。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 危険運転致死罪は、正常な運転が困難な状態で自動車を走行させ人を死傷させる行為を捉える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 飲酒等による危険な運転そのものが重大な結果の危険を高めるため、過失犯より重く処罰する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 正常な運転が困難な状態での走行による死傷に及び、単なる不注意の過失運転致死とは区別される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 過失運転致死との分かれ目は、運転が「正常な運転が困難な状態」といえるほど危険だったかにある。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 飲酒運転事故を見たら、まず正常な運転が困難な状態だったかで危険運転致死か過失運転致死かを振り分ける。</p></div></td></tr><tr data-stmt="2" data-verdict="x" data-brief-story="犯罪の成否は、構成要件該当性・違法性・責任の三段階で見ていく。責任の段階で問うのは、他のふるまい方もできたのにあえてこれを選んだ、と<b>行為者を非難できるか</b>であり、責任能力はその入口に当たる。是非善悪を分かる力と、分かったとおりに自分を止める力の<b>両方</b>が要るのは、どちらか一方でも欠ければ非難のしようがないからである。ここで気をつけたいのが「能力」という語で、法域ごとに中身がまるで違う。民法の<b>行為能力</b>は、一人で有効に契約などができる資格——取引の相手方を守るために、年齢や家庭裁判所の審判で類型的に線を引く制度である。刑法の<b>責任能力</b>は資格ではなく、その行為をしたまさにその時点の精神状態を事件ごとに個別に見るものであり、判断の土俵がそもそも違う。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>責任能力が争われる事件では、精神科医の鑑定を経て、犯行時の精神障害の有無とその影響の程度を詰めていく。検察官は計画性や犯行後の隠ぺい行動から弁識・制御が保たれていたと主張し、弁護人は病状の重さを示して争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2000年4月1日、民法の禁治産・準禁治産の制度は成年後見制度に改められた。判断力が衰えた人の行為能力を家庭裁判所の審判で制限し、後見人が取引を支える仕組みで、審判の内容は登記される。もっとも、その登記があるからといって刑事で当然に責任無能力とされるわけではなく、二つの能力は最後まで別の線路を走る。</span>" data-brief-mark="弁識・制御能力を欠く状態で結果を実現した者は、実行行為時に<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>行為能力を欠くから責任を問えない</span><span class='tx-stmt-fix'>→ 責任能力を欠く（行為能力は民法概念）</span>。<span class='tx-anscomp-line'>是非善悪を識別し、その識別に従って行動を制御する能力を責任能力といい（刑法39条参照）、実行行為の時点に存在することを要する。行為能力は単独で有効に法律行為をなし得る資格をいう民法上の概念であり、両者は異なる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 是非を弁別し、その弁別に従って行動を制御する能力を責任能力という（刑法39条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 非難可能性を基礎づけるのは責任能力であり、これを欠けば責任非難ができないため罰しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 責任能力の有無は刑事責任の要件で、法律行為をなし得る資格である民法の行為能力とは場面が異なる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 責任能力と行為能力の分かれ目は、刑事責任の非難可能性の問題か、私法上の法律行為の資格かにある。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 「〜能力」の語が出たら、是非弁別・行動制御（刑法の責任能力）か法律行為の資格（民法の行為能力）かを確かめる。</p></div></td></tr><tr data-stmt="3" data-verdict="o" data-brief-story="責任能力は実行行為のその瞬間に備わっていなければならない——<b>行為と責任の同時存在の原則</b>——というのが出発点で、原因において自由な行為は、この原則がそのままでは不都合を生む場面のために用意された処理である。趣旨は、二つの要請の両立にある。非難できない者を罰しないという原則は守りたい。しかし、自分で酒や薬に手を伸ばして責任無能力の状態を作り、そこへ逃げ込めば罰を免れるというのでは、原則そのものが悪用の道具になってしまう。そこで<b>視線を一段前へ戻し</b>、まだ自由に選べた<b>原因行為の時点</b>に責任の根拠を求める。考え方のコツは、その時点にさかのぼって、まず責任能力があったか、次に結果についての故意または過失があったか、最後にそこから結果までの流れが見込みどおりつながっているか、を順に確かめること。酒を飲んだという事実だけでは足りず、飲む時点で何を思っていたかが要になる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>飲酒や薬物がらみの事件では、飲む前に何をするつもりだったかが勝負どころになる。捜査側は同席者の供述や事前の言動から運転や犯行の意思を拾い、弁護側は泥酔は予想外だったとして原因行為の時点の故意・過失を争う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>立法がこの発想を条文の形にした例がある。2013年に成立し2014年5月に施行された自動車運転死傷行為処罰法の3条は、アルコールや薬物の影響で走行中に正常な運転に支障が生じるおそれがある状態で運転し、その影響で運転が困難な状態に陥って人を死傷させた場合を処罰する。危険が現実になった瞬間ではなく、ハンドルを握った時点をつかまえる条文である。</span>" data-brief-mark="自ら責任無能力状態を招きその状態で結果を実現した場合に完全な責任を問う法理を、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>原因において自由な行為という</span>（前提は同時存在の原則）。<span class='tx-anscomp-line'>責任能力は実行行為の時点に存在することを要する（行為と責任の同時存在の原則）が、自ら責任無能力状態を招いてその状態で犯罪結果を実現した場合に完全な責任を問いうるとする法理が、原因において自由な行為である。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 責任能力は実行行為の時点に存在することを要する（行為と責任の同時存在の原則）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 責任主義から実行行為時の責任能力を要求しつつ、自ら招いた責任無能力状態を放置しない要請を調和させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 自ら責任無能力状態を招いてその状態で結果を実現した場合に完全な責任を問う法理（原因において自由な行為）に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 「原因において自由な行為」と「原因において違法な行為」は、責任論か違法論かで守備範囲が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 実行行為時に責任能力を欠く事案では、その状態を自ら招いたかを見て原因において自由な行為の可否を検討する。</p></div></td></tr><tr data-stmt="4" data-verdict="x" data-brief-story="結果を自分の手で直接引き起こさない形には、大きく二つの系統がある。事情を知らない他人や責任を問えない他人を<b>道具</b>として動かす間接正犯と、複数の者が意思を通じ合って役割を分け合う共同正犯である。原因において自由な行為を、責任無能力になった自分を道具に使ったと説明する<b>構成要件モデル</b>は、この前者の発想を自分自身へ向けたものであり、だから間接正犯類似説と呼ばれる。趣旨は、同時存在の原則をどこも壊さずに済ませる点にある。実行行為そのものが原因行為の時点で始まっていたと捉えれば、その時点に責任能力があった以上、原則は最初から満たされていることになる。考え方のコツは、この説を採ると<b>実行の着手時期が前へずれる</b>という副作用まで見ておくこと。酒を飲んだ時点で実行に着手したことになるなら、そこから先は未遂の領域に入るのか、という別の問いが生まれてくる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務で日々争われるのは、間接正犯と共同正犯のどちらに寄せるかである。指示を受けて動いた者が事情を知らされていなければ上位者の一方的な道具にとどまり、未必の故意をもって輪に加わっていれば自らも正犯として責任を負う。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1951年12月、東京都練馬区で労働争議をめぐり、呼び出された警察官が集団に襲われて死亡する事件が起きた。現場にいなかった者まで正犯として処罰できるかが問われ、この練馬事件をきっかけに、実行に手を下さなくても共謀に加わっていれば正犯となるという考え方が実務に根を下ろしていった。</span>" data-brief-mark="責任無能力の自己を道具として利用したと捉える構成要件モデルは、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>共謀共同正犯と同様に考える見解である</span><span class='tx-stmt-fix'>→ 間接正犯と同様（間接正犯類似説）</span>。<span class='tx-anscomp-line'>同時存在の原則を維持し、責任無能力状態の自己を道具として利用したと捉えて構成要件該当事実を原因行為まで遡及させる構成要件モデルは、他人を道具として利用する間接正犯と同様に考える間接正犯類似説として位置づけられる。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 責任無能力の自己を道具として利用したと捉える構成は、間接正犯類似説として位置づけられる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 他人を道具として利用する間接正犯と同じく、道具の背後の利用者に正犯性を認める発想による。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 同時存在の原則を維持しつつ実行行為を原因行為に求める構成要件モデルに及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 間接正犯類似説と共謀共同正犯は、一方的な道具利用か、意思連絡ある複数人の共同かで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 「道具として利用」という語を見たら間接正犯の系列を、「意思連絡・共同」を見たら共同正犯の系列を想起する。</p></div></td></tr><tr data-stmt="5" data-verdict="o" data-brief-story="責任能力はあるかないかの二択ではなく、<b>段階</b>で捉える。是非を弁別する力も自分を制御する力も失われていれば心神喪失として罰せられず（刑法39条1項）、著しく減退しているにとどまれば心神耗弱として刑が必ず減軽される（同条2項）。非難できる度合いが下がれば科す刑も下がる、という趣旨がそのまま条文になったもので、有期の刑は68条によって長期も短期も半分まで下げられる。考え方のコツは、この<b>段差が理論の弱点をあぶり出す</b>ところにある。意思を完全に奪われた自分であれば道具に見立てられるが、判断力が鈍っただけならハンドルを自分で切る余地がなお残っており、<b>道具</b>とは言いにくい。責任非難だけを原因行為の時点へ遡らせる例外モデルであれば、この段差をまたぎやすい。どちらの説明を採るかが、心神耗弱の場面でこそ効いてくる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>酩酊事件では、飲んだ量や種類、事故直前の言動や直後の受け答えの記録から酩酊の程度を詰め、争いが深ければ精神科医の鑑定に進む。減軽が認められるか否かで刑の幅が倍ほど違うため、双方が最も力を入れる場面になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2003年に成立し2005年7月に施行された心神喪失者等医療観察法は、殺人や放火などの重大な行為を心神喪失または心神耗弱の状態で行い、不起訴や無罪、刑の減軽を受けた人を対象とする。裁判官と精神科医が合議して入院や通院を決める仕組みで、刑を減らして終わりにしない道が別に用意されている。</span>" data-brief-mark="道具性が問題となるのは<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>心神耗弱の場合</span>で、判例は飲酒時に運転の意思があれば39条2項の減軽をせず<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>原因において自由な行為の理論を適用している</span>。<span class='tx-anscomp-line'>実行行為時に心神耗弱（限定責任能力）にとどまる場合は「道具」といいにくいが、判例（最決昭43.2.27）は、飲酒酩酊により心神耗弱の状態で酒酔い運転をした者でも飲酒の際に酒酔い運転の意思が認められるときは刑法39条2項による刑の減軽をすべきでないとして、原因において自由な行為の理論を適用している。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span> 道具性が問題となるのは心神耗弱の場合で、判例は原因において自由な行為の理論を適用している。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span> 限定責任能力では意思による制御の余地が残り、道具構成をそのまま貫きにくいため批判が生じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span> 飲酒の際に酒酔い運転の意思が認められる心神耗弱の事案に及び、39条2項の減軽が否定される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span> 心神喪失（責任無能力）と心神耗弱（限定責任能力）は、意思による制御の余地が残るか否かで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span> 判例の結論は減軽の否定＝理論の適用であり、「適用していない」と結論の向きを反転させない。</p></div></td></tr></tbody>
 </table>
 </div>
 </div><div class="back-to-top"><a href="#top">↑ ページ先頭へ</a></div></section><!-- ============================================================

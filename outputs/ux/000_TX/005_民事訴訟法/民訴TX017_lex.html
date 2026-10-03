@@ -5401,6 +5401,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-ANSCOMP:BEGIN v13.1.0 答案圧縮（2026-07-28 追加・記述原文統合・版据置）
@@ -5666,6 +5681,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5950,36 +6200,25 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴訟能力を欠く当事者がした訴訟行為は、これを有するに至った当該当事者の追認により、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>行為の時にさかのぼってその効力を生ずる</span>。<span class="tx-anscomp-line">訴訟能力・法定代理権・訴訟行為に必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<strong>追認</strong>により、行為の時にさかのぼってその効力を生ずる（民訴34条2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。訴訟能力（自分ひとりで有効に訴訟行為をする力＝民法の行為能力に対応する資格）を欠く者の行為は、そのままでは有効になりません。でもいきなり無効で切り捨てず、後から能力を備えた本人が「あれでよい」と<strong>追認</strong>すれば、<a class="ref-stat" id="ref-law-34-101" href="#bref-1-34">34条2項</a>により<strong>行為の時にさかのぼって</strong>有効になります。条文そのままなので正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">訴訟能力を欠く者の訴訟行為は、<strong>追認</strong>により行為の時にさかのぼって有効になる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">訴訟能力</span><span class="tx-gist-step">訴訟担当</span><span class="tx-gist-step">社団の当事者能力</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">訴訟能力を欠く者がした訴訟行為を、後から有効にできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年の人が、親を法定代理人に立てないまま自分の名で訴えを起こし、何度も期日を重ねてきました。審理が進んだところでその人が成年に達し、これまで自分でしてきた訴訟行為をそれでよいと認めると述べています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者には原則として<strong>訴訟能力</strong>がなく、その訴訟行為はそのままでは効力を持ちません。では、それまで積み上げてきた手続は全部やり直しになるのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民事訴訟法<a class="ref-stat" href="#bref-1-34" id="ref-law-34-101">34条2項</a>は、訴訟能力・法定代理権・訴訟行為をするのに必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者または法定代理人の<strong>追認</strong>により、行為の時にさかのぼってその効力を生ずると定めます。裁判所は欠けていることが分かった段階で、まず期間を定めて補正を命じます（同条1項）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">能力を欠く行為を一律に無効としてしまうと、それまで進んだ審理がすべて徒労に終わり、守られるはずの本人にとってもかえって不利益になります。そこで効力をいったん保留しておき、能力を備えた本人が認めたときは初めからやり直さずに済ませる仕組みにしたと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>訴訟能力</span></dt><dd>単独で有効に訴訟行為をし、また受けることができる能力。民事訴訟法28条により、原則として民法上の行為能力に従う。</dd></div><div class="tx-gist-term"><dt><span>追認</span></dt><dd>効力の確定していない行為を、後から認めて有効なものとする意思表示。民事訴訟法34条2項では、効力は行為の時にさかのぼって生じる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">追認により行為の時にさかのぼるとしており、34条2項の文言どおり。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>条文の文言を読む</strong><span class="syn-body"><a class="ref-stat" href="#bref-1-34">34条2項</a>は『訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<span class="case-emphasis freq-high">追認</span>により、<span class="case-emphasis freq-high">行為の時にさかのぼって</span>その効力を生ずる』と定める。本記述はこれをそのまま述べている。</span></p>
 <p><span class="syn-step">2</span><strong>なぜ遡及なのか</strong><span class="syn-body">能力を欠く行為を一律に無効とすると、それまで積み上げた訴訟が無駄になり本人にも酷。そこで<span class="ron-mark freq-high">追認による治癒＝遡及的有効化</span>を認め、手続の安定と本人保護を両立させる。まず補正を命じ（34条1項）、追認があれば初めから有効に扱う構造。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>能力を欠く行為は「無効」ではなく「保留（宙づり）」。あとで本人がハンコを押せば、その日ではなく最初の日付で効き始める。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>34条2項の効果</strong>：能力・代理権・授権を欠く者の訴訟行為は、追認により<a class="ref-stat">行為の時にさかのぼって</a>効力を生ずる（遡及的有効化）。</li>
-<li><strong>手続の流れ</strong>：欠缺が判明したらまず裁判所が補正を命じ（<a class="ref-stat" href="#bref-1-34">34条1項</a>）、能力等を備えた本人・法定代理人の追認で治癒する。</li>
-<li><strong>趣旨</strong>：一律無効による手続の徒労を避け、手続の安定と制限行為能力者の保護を両立させる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>欠けた行為は無効ではなく宙づり。追認すれば最初の日から効く（34条2項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-1-34" class="tx-basis-item "><div class="tx-basis-head">📜 民訴34条 訴訟能力等を欠く場合の措置・追認（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠くときは、裁判所は、期間を定めて、その<span class="ron-mark freq-high">補正を命じ</span>なければならない。この場合において、遅滞のため損害を生ずるおそれがあるときは、裁判所は、一時訴訟行為をさせることができる。</span></p>
-<p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<span class="case-emphasis freq-high">追認</span>により、<span class="ron-mark freq-high">行為の時にさかのぼって</span>その効力を生ずる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<span class="case-emphasis freq-high">追認</span>により、<span class="ron-mark freq-high">行為の時にさかのぼって</span>その効力を生ずる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">能力・法定代理権・授権を欠く訴訟行為は当然無効ではなく<span class="case-emphasis freq-high">追認により遡及的に有効</span>となる（2項）。裁判所はまず補正を命じる（1項）。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">趣旨</span><span class="kd-text">一律無効とすると手続が徒労に帰し本人にも不利益。治癒の余地を残し、手続の安定と制限行為能力者・本人の保護を調和させる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">本記述は34条2項の文言そのままであり正しい（記述1）。34条3項により選定当事者が訴訟行為をする場合にも準用される。</span></div>
 </div></div></details></div>
-<div id="bref-1-28" class="tx-basis-item "><div class="tx-basis-head">📜 民訴28条 当事者能力・訴訟能力の原則<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">当事者能力、訴訟能力及び訴訟無能力者の法定代理は、この法律に特別の定めがある場合を除き、<span class="ron-mark freq-high">民法その他の法令に従う</span>。訴訟行為をするのに必要な授権についても、同様とする。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-1-28" class="tx-basis-item "><div class="tx-basis-head">📜 民訴28条 当事者能力・訴訟能力の原則<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">当事者能力、訴訟能力及び訴訟無能力者の法定代理は、この法律に特別の定めがある場合を除き、<span class="ron-mark freq-high">民法その他の法令に従う</span>。訴訟行為をするのに必要な授権についても、同様とする。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">意義</span><span class="kd-text">訴訟能力は原則として<span class="case-emphasis freq-high">民法上の行為能力</span>に対応する（性質説）。未成年者・成年被後見人は訴訟無能力者として法定代理人によることを要する（31条）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">訴訟能力の有無は民法の行為能力に連動するため、成年擬制の有無で訴訟能力の要否が変わる（記述5）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">訴訟能力等を欠く者の訴訟行為は当然無効ではなく、追認により行為時に遡って有効となる（34条2項）。まず補正を命じる（1項）のが手続。本記述は条文どおりで正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「能力を欠く行為＝当然無効」と決めつけるのが罠</strong>。訴訟能力・法定代理権・授権のいずれを欠いても、扱いは<em>無効ではなく治癒可能な瑕疵</em>で、追認すれば行為時に遡って有効になる（34条2項）。これは民法の制限行為能力者の行為が「取り消しうる」にとどまるのと同じ発想で、<em>手続を無駄にせず本人を保護する</em>一本の物差し。上訴審で当事者能力・訴訟能力の欠缺が判明しても、追認による治癒の余地を先に考える。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>34条2項は訴訟能力・法定代理権・授権の三つを同じ扱いにし、追認があれば行為の時にさかのぼる。</strong>隣で裏返るのは遡及の起点と追認できる者で、追認の時から将来に向かって効くと書けば誤りになり、相手方が同意しても治癒しない。欠缺が判明した段階では、裁判所はまず期間を定めて補正を命じる（34条1項）。</span><div class="tx-dgm is-matrix" data-dgm="017-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">34条2項の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴訟能力 → 法定代理権・訴訟行為の授権</p><p class="dgm-cell is-ok">○ 同じく追認で治癒</p><p class="dgm-cell">三つを並べて同じ扱いにする<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">行為の時にさかのぼって → 追認の時から将来に向かって</p><p class="dgm-cell is-ng">✕ 誤り</p><p class="dgm-cell">遡及効を条文が明記する<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">当事者又は法定代理人の追認 → 相手方の同意</p><p class="dgm-cell is-ng">✕ 治癒しない</p><p class="dgm-cell">追認できるのは能力等を備えるに至った当事者又は法定代理人<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">追認を待つ → 裁判所が期間を定めて補正を命じる</p><p class="dgm-cell is-acc">先に来る段階</p><p class="dgm-cell">欠缺が判明したらまず補正命令<span class="dgm-src">34条1項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -5997,35 +6236,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>遺言で遺言執行者が定められている場合に、既に完了している遺贈による登記について、相続人が原告となって抹消登記手続を求める訴えを提起するときは、受遺者ではなく、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>遺言執行者を被告としなければならない</span><span class="tx-stmt-fix">→ 受遺者を被告とすべき（最判昭51.7.19）</span>。<span class="tx-anscomp-line">遺贈の目的不動産につき遺贈の登記が既に完了している場合、相続人が抹消登記手続を求める訴えは、遺言執行者ではなく<strong>受遺者を被告</strong>として提起すべきである（最判昭51.7.19）。遺贈が登記により実現され遺言執行者の職務が終了しているからである。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。遺言執行者（遺言の内容を実現する役目の人）がいるなら、遺贈がらみの訴訟はいつでも執行者を相手にする、と思いたくなります。でも問題は<strong>遺贈の登記がもう済んでいる</strong>場面。遺言はその点ではすでに実現され、執行者の仕事は終わっています。だから抹消を争う相手は執行者ではなく、その登記で利益を得ている<strong>受遺者</strong>です（<a class="ref-case" id="ref-case-igon-201" href="#bref-2-case">最判昭51.7.19</a>）。執行者を被告とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">遺贈の登記が済んだ後の抹消請求は、<strong>受遺者</strong>を被告として提起すべきである。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">訴訟能力</span><span class="tx-gist-step is-now">訴訟担当</span><span class="tx-gist-step">社団の当事者能力</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">遺言執行者がいるとき、完了した遺贈の登記の抹消を争う相手は誰か。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">遺言で不動産を与えるとされた受遺者への所有権移転登記が、遺言執行者の手で既に済んでいます。これに納得しない相続人が、その登記を消してほしいと訴えようとしています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">遺言執行者は、遺言の内容を実現するために自分の名で訴え、また訴えられることができる<strong>法定訴訟担当</strong>です。では、遺贈の登記が済んだ後でも、抹消を争う相手は執行者のままなのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-case" href="#bref-2-case" id="ref-case-igon-201">最判昭51.7.19</a>）は、遺贈の目的不動産について既に受遺者宛てに遺贈による所有権移転登記がされているときに相続人がその抹消登記手続を求める場合は、遺言執行者ではなく<strong>受遺者</strong>を被告として訴えを提起すべきであるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">遺言執行者の当事者適格は、遺言の執行に必要な範囲に限られます（民法1012条1項）。遺贈の履行そのものは執行者だけが行いますが（同条2項）、登記まで済めばその点について執行の仕事は終わっており、登記名義を得て実際に利害を持つのは受遺者だからだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>法定訴訟担当</span></dt><dd>法律の定めによって、他人の権利をめぐる訴訟を自分の名で追行する資格を与えられた者。遺言執行者がその例。</dd></div><div class="tx-gist-term"><dt><span>受遺者</span></dt><dd>遺言によって財産を与えられる者。遺贈を受けて登記名義を得た者がこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">「遺言執行者を被告としなければならない」が逆で、登記が完了した後の抹消は受遺者を被告とする。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>遺言執行者の当事者適格の根拠</strong><span class="syn-body">遺言執行者は、遺言の執行に必要な一切の行為をする権利義務を持ち（<a class="ref-stat" href="#bref-2-1012">民法1012条</a>）、その資格で自己の名において訴訟を追行できる<span class="ron-mark freq-high">法定訴訟担当</span>。ただし当事者適格が及ぶのは「遺言の執行として必要な範囲」に限られる。</span></p>
-<p><span class="syn-step">2</span><strong>「登記完了」で射程を切る</strong><span class="syn-body">遺贈の登記が既に完了していれば、遺贈はその限りで実現済みで、遺言執行者の職務は終わっている。抹消登記手続で争うべき実質的な利害関係人は<span class="case-emphasis freq-high">受遺者</span>だから、判例（<a class="ref-case" href="#bref-2-case">最判昭51.7.19</a>）は「相続人は、遺言執行者ではなく、受遺者を被告として訴えを提起すべき」とする。執行者を被告とすべきとする本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>遺言執行者は「工事中だけの現場監督」。遺贈登記という工事が完成した後の文句（抹消）は、完成品を受け取った受遺者に言う。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>遺言執行者＝法定訴訟担当</strong>：遺言の執行に必要な範囲で当事者適格を持つ（<a class="ref-stat" href="#bref-2-1012">民法1012条・1015条</a>）。射程は「執行として必要か」で画される。</li>
-<li><strong>登記完了後の抹消</strong>：遺贈の登記が完了した後は執行者の職務は終了し、抹消請求の被告は<a class="ref-case" href="#bref-2-case">受遺者</a>（最判昭51.7.19）。</li>
-<li><strong>ひっかけの型</strong>：『遺言執行者がいる＝遺贈関係の被告は常に執行者』と一般化する誤り。遺贈が未履行か履行済みかで被告が変わる。</li>
-</ol>
+<p><span class="syn-step">2</span><strong>「登記完了」で射程を切る</strong><span class="syn-body">遺贈の登記が既に完了していれば、遺贈はその限りで実現済みで、遺言執行者の職務は終わっている。抹消登記手続で争うべき実質的な利害関係人は<span class="case-emphasis freq-high">受遺者</span>だから、判例（<a class="ref-case" href="#bref-2-case">最判昭51.7.19</a>）は「相続人は、遺言執行者ではなく、受遺者を被告として訴えを提起すべき」とする。</span></p> </div>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>未登記なら執行者、登記済みなら受遺者。工事中と完成後で相手が変わる。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-2-1012" class="tx-basis-item "><div class="tx-basis-head">📜 民法1012条・1015条 遺言執行者の権利義務・地位<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">1012①</span><span class="hang-body">遺言執行者は、遺言の内容を実現するため、相続財産の管理その他<span class="ron-mark freq-high">遺言の執行に必要な一切の行為をする権利義務</span>を有する。</span></p>
-<p class="hanging"><span class="para-num">1015</span><span class="hang-body">遺言執行者がその権限内において遺言執行者であることを示してした行為は、<span class="case-emphasis freq-mid">相続人に対して直接にその効力を生ずる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">1015</span><span class="hang-body">遺言執行者がその権限内において遺言執行者であることを示してした行為は、<span class="case-emphasis freq-mid">相続人に対して直接にその効力を生ずる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">当事者適格の性質</span><span class="kd-text">遺言執行者は遺言執行に必要な限度で自己の名において原告・被告となる<span class="case-emphasis freq-high">法定訴訟担当</span>。適格の範囲は「遺言の執行として必要か」で画される。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">遺贈の登記が完了した後の抹消請求は執行の範囲外＝執行者は被告適格を持たず、受遺者を被告とすべき（記述2）。</span></div>
 </div></div></details></div>
-<div id="bref-2-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和51年7月19日（民訴百選11事件・遺贈登記抹消の被告適格）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">遺贈の目的不動産につき遺言の執行として<span class="exam-mark freq-high">すでに受遺者宛に遺贈による所有権移転登記あるいは所有権移転仮登記がされている</span>ときに相続人が右登記の抹消登記手続を求める場合においては、相続人は、<span class="ron-mark freq-high">遺言執行者ではなく、受遺者を被告として</span>訴えを提起すべきである。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-2-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和51年7月19日（民訴百選11事件・遺贈登記抹消の被告適格）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">遺贈の目的不動産につき遺言の執行として<span class="exam-mark freq-high">すでに受遺者宛に遺贈による所有権移転登記あるいは所有権移転仮登記がされている</span>ときに相続人が右登記の抹消登記手続を求める場合においては、相続人は、<span class="ron-mark freq-high">遺言執行者ではなく、受遺者を被告として</span>訴えを提起すべきである。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">遺贈の登記が完了した後は、その点について遺言執行者の職務は終了しており、当事者適格を欠く。抹消をめぐる実質的利害関係人は登記名義を得た<span class="case-emphasis freq-high">受遺者</span>。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問適用</span><span class="kd-text">既に完了した遺贈登記の抹消は受遺者を被告とすべきで、遺言執行者を被告とすべきとする本記述は誤り（記述2）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">遺言執行者は遺言執行に必要な範囲で当事者適格を持つ法定訴訟担当（民法1012条）。遺贈の登記が既に完了していればその職務は終了しており、抹消請求の被告は受遺者（最判昭51.7.19）。遺言執行者を被告とする本記述は誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>訴訟担当は「担当の射程」で被告・原告が変わる</strong>。遺言執行者がいるからといって遺贈関係の訴訟の相手が常に執行者になるわけではない。<em>まだ遺贈が実現していない履行請求なら執行者を被告</em>とするが、<em>登記が完了して執行が終わった後の抹消なら受遺者を被告</em>とする（最判昭51.7.19）。第三者が他人の権利を追行する訴訟担当では、いつも「その担当権限がその請求に及ぶか」を先に確かめる——選定当事者（記述3）や社団の代表（記述4）でも共通する発想。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>遺言執行者を被告とするかは、遺贈が実現したかどうかで入れ替わる。</strong>登記が未了で遺贈の履行を求めるなら執行者だけが相手になるが（民法1012条2項）、登記が完了して執行が終わった後の抹消は受遺者を被告とする（最判昭51.7.19）。執行者は遺言の執行に必要な範囲で自己の名において訴訟を追行する法定訴訟担当にすぎず、権限の射程を外れた請求の相手にはならない。</span><div class="tx-dgm is-matrix" data-dgm="017-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">遺贈をめぐる訴えは執行の前後で相手が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">登記が完了している → 登記が未了で遺贈の履行を求める</p><p class="dgm-cell is-acc">遺言執行者が被告</p><p class="dgm-cell">遺贈の履行は遺言執行者のみが行う<span class="dgm-src">民法1012条2項</span></p><p class="dgm-cell is-rowhead">遺言執行者が定められている → 執行者が選任されていない</p><p class="dgm-cell is-ok">受遺者が被告</p><p class="dgm-cell">登記名義を得た受遺者が相手で変わらない</p><p class="dgm-cell is-rowhead">相続人が原告となる → 執行者が自己の名で原告となる</p><p class="dgm-cell is-ok">○ できる</p><p class="dgm-cell">遺言の執行に必要な一切の行為をする権利義務<span class="dgm-src">民法1012条1項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6043,33 +6271,23 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>係属中の訴訟の原告と共同の利益を有する者がその原告を自己のためにも原告となるべき者として選定するためには、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>自ら訴えを提起して係属中の訴訟との併合を求め、共同訴訟関係を成立させなければならない</span><span class="tx-stmt-fix">→ 訴訟係属後の追加的選定（30条3項）で足り、別訴提起・併合は不要</span>。<span class="tx-anscomp-line">訴訟係属後は、その当事者と共同の利益を有する第三者は、当該当事者を自己のためにも選定当事者に選定でき（民訴30条3項）、<strong>自ら別訴を提起して併合を求める必要はない</strong>。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。選定当事者（大勢の共同の利益を持つ人たちが、代表者一人に自分の分も訴訟をまかせる制度）に加わるには、自分でも別に訴えを起こして合流しないといけない、と思いたくなります。でも<a class="ref-stat" id="ref-law-30-301" href="#bref-3-30">30条3項</a>は、<strong>訴訟がすでに始まった後でも</strong>、係属中の当事者と共同の利益を持つ第三者はその当事者を自分のための選定当事者に選べる、と定めます（追加的選定）。わざわざ別訴を起こして併合を求める必要はないので、本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">訴訟係属後は、その当事者を自分のための<strong>選定当事者</strong>に選べば足りる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">訴訟能力</span><span class="tx-gist-step is-now">訴訟担当</span><span class="tx-gist-step">社団の当事者能力</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">係属中の訴訟の原告を自分のためにも原告とするには、別に訴えを起こす必要があるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">同じ事故で被害を受けた人たちのうち、一人が先に損害賠償の訴えを起こして審理が始まっています。残りの人たちは、自分の分もまとめてその原告にまかせたいと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">共同の利益を有する多数の者は、その中から全員のために原告または被告となるべき者を選ぶことができます（民事訴訟法30条1項）。これは<strong>任意的訴訟担当</strong>ですが、訴訟が始まった後から加わる場合の手順が問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民事訴訟法<a class="ref-stat" href="#bref-3-30" id="ref-law-30-301">30条3項</a>は、係属中の訴訟の原告または被告と共同の利益を有する者で当事者でないものは、その原告または被告を自己のためにも原告または被告となるべき者として選定することができると定めます。選定するだけで足り、自分で訴えを起こす必要はありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">共同の利益をめぐる多数の紛争を一人の当事者に集約して、訴訟を簡明で経済的なものにするのが選定当事者の趣旨です。途中から加わるたびに別の訴えと併合の手間を要求すれば、この簡便さが失われてしまうからだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>任意的訴訟担当</span></dt><dd>権利を持つ本人の授権によって、他人がその権利について自分の名で訴訟を追行すること。選定当事者がその例。</dd></div><div class="tx-gist-term"><dt><span>選定当事者</span></dt><dd>共同の利益を有する多数の者が、全員のために原告または被告となるべき者として選んだ者（民事訴訟法30条1項）。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">自ら訴えを提起して併合を求める必要はなく、30条3項の選定で足りる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>選定当事者の基本形（30条1項）</strong><span class="syn-body">共同の利益を有する多数の者は、その中から全員のために原告・被告となるべき者を選定できる（<a class="ref-stat" href="#bref-3-30">30条1項</a>）。これは<span class="ron-mark freq-high">任意的訴訟担当</span>の一場面で、選ばれた者が全員分の訴訟を追行する。</span></p>
-<p><span class="syn-step">2</span><strong>係属後の追加的選定（30条3項）で足りる</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-30">30条3項</a>は『訴訟の係属の後、…原告又は被告となるべき者を選定することができる』とし、係属後に第三者が既存当事者を自己のための選定当事者に選定することを認める。<span class="case-emphasis freq-high">別訴の提起や併合の申立ては不要</span>で、選定により当然に選定者が当事者となる（脱退の規律は3項後段）。したがって『自ら訴えを提起して併合を求めなければならない』とする本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>選定当事者は「相乗り」。走っているバスに、別のバスを出してから合流するのではなく、共同の利益があれば途中からそのまま同乗できる（30条3項）。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>制度の性質</strong>：選定当事者は共同の利益を有する者が代表者に訴訟追行を委ねる<a class="ref-stat" href="#bref-3-30">任意的訴訟担当</a>（30条1項）。</li>
-<li><strong>係属後の追加的選定</strong>：訴訟係属後も、係属中の当事者と共同の利益を有する第三者は当該当事者を選定でき（<a class="ref-stat" href="#bref-3-30">30条3項</a>）、別訴提起・併合は不要。</li>
-<li><strong>ひっかけの型</strong>：『共同訴訟にするには各自が訴えを起こして併合させる必要がある』と一般化する誤り。30条3項は係属後の直接選定を用意する。</li>
-</ol>
+<p><span class="syn-step">2</span><strong>係属後の追加的選定（30条3項）で足りる</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-30">30条3項</a>は『訴訟の係属の後、…原告又は被告となるべき者を選定することができる』とし、係属後に第三者が既存当事者を自己のための選定当事者に選定することを認める。<span class="case-emphasis freq-high">別訴の提起や併合の申立ては不要</span>で、選定により当然に選定者が当事者となる（脱退の規律は3項後段）。</span></p> </div>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>訴え前は仲間の中から選ぶ、係属後は走っている当事者に乗る（30条1項と3項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-3-30" class="tx-basis-item "><div class="tx-basis-head">📜 民訴30条 選定当事者（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">共同の利益を有する多数の者で前条の規定に該当しないものは、その中から、<span class="ron-mark freq-high">全員のために原告又は被告となるべき一人又は数人を選定</span>することができる。</span></p>
 <p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟の係属の後、選定者は、その選定を取り消し、又は選定した当事者を変更することができる。</span></p>
-<p class="hanging"><span class="para-num">③</span><span class="hang-body"><span class="case-emphasis freq-high">係属中の訴訟の原告又は被告と共同の利益を有する者で当事者でないものは、その原告又は被告を自己のためにも原告又は被告となるべき者として選定することができる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">③</span><span class="hang-body"><span class="case-emphasis freq-high">係属中の訴訟の原告又は被告と共同の利益を有する者で当事者でないものは、その原告又は被告を自己のためにも原告又は被告となるべき者として選定することができる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・効果</span><span class="kd-text">3項は<span class="case-emphasis freq-high">訴訟係属後の追加的選定</span>を認める。第三者は係属中の当事者を自己のための選定当事者に選定でき、別訴提起・併合を要しない。選定により選定者はその請求について当事者となる。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">趣旨</span><span class="kd-text">共同の利益を持つ多数の紛争を一人の当事者に集約し、訴訟を簡明・経済的にする（任意的訴訟担当）。係属後の合流も簡便に認める。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">3項があるため、自ら訴えを提起して併合を求める必要はない。本記述は誤り（記述3）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">選定当事者は共同の利益を有する者が代表者に訴訟追行を委ねる任意的訴訟担当（30条1項）。30条3項は訴訟係属後に係属中の当事者を自己のための選定当事者に選定することを認めるから、別訴提起・併合は不要。本記述は誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「共同で争う＝各自が訴えを起こして束ねる」と決めつける罠</strong>。訴訟に多数を巻き込む道は共同訴訟（各自が当事者）だけではない。選定当事者は<em>一人に追行を委ねて自分は当事者にとどまらない</em>任意的訴訟担当で、30条3項は係属後の途中参加まで別訴なしで認める。第三者が他人の名で・他人のために訴訟に関わる形（訴訟担当）は、遺言執行者（記述2）・社団（記述4）にも通じる一本の糸。「当事者を増やす＝共同訴訟」という短絡を外す。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>選定できるのは共同の利益を有する者に限られ、係属後は別訴を出さずそのまま選べる（30条3項）。</strong>隣で裏返るのは選定の時期と主体で、訴え提起前なら多数の者の中から全員のための当事者を選び（30条1項）、係属後にその選定をすれば他の当事者は当然に訴訟から脱退する（30条2項）。代表者の定めがある団体は自己の名において訴えられるので、そもそも選定当事者の制度に乗らない（29条・30条1項）。</span><div class="tx-dgm is-matrix" data-dgm="017-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">選定当事者は時期と主体で条文が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">共同の利益を有する者 → 共同の利益を欠く者</p><p class="dgm-cell is-ng">✕ 選定できない</p><p class="dgm-cell">選定できるのは共同の利益を有する者<span class="dgm-src">30条1項・3項</span></p><p class="dgm-cell is-rowhead">係属中の当事者を選ぶ → 訴え提起前に仲間の中から選ぶ</p><p class="dgm-cell is-ok">○ できる</p><p class="dgm-cell">多数の者が全員のための原告・被告を選定する<span class="dgm-src">30条1項</span></p><p class="dgm-cell is-rowhead">当事者でない第三者が選ぶ → 当事者どうしで選ぶ</p><p class="dgm-cell is-acc">他の当事者は脱退</p><p class="dgm-cell">その選定をしたときは当然に訴訟から脱退する<span class="dgm-src">30条2項</span></p><p class="dgm-cell is-rowhead">共同の利益を有する多数の者 → 代表者の定めがある社団</p><p class="dgm-cell is-acc">別の制度</p><p class="dgm-cell">社団は自己の名において訴え、選定当事者の対象外<span class="dgm-src">29条・30条1項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6087,35 +6305,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>権利能力のない社団は、構成員全員に総有的に帰属する不動産について、その所有権の登記名義人に対し、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>当該社団の代表者の個人名義に所有権移転登記手続をすることを求める訴えの原告適格を有する</span>。<span class="tx-anscomp-line">権利能力のない社団は、構成員全員に総有的に帰属する不動産について、その所有権の登記名義人に対し、<strong>当該社団の代表者の個人名義</strong>に所有権移転登記手続をすることを求める訴えの原告適格を有する（最判平26.2.27）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。権利能力のない社団（法人格はないが団体としての実体を備えた集まり＝町内会・同窓会など）は、法人でないのに原告になれるの？ と迷います。でも<a class="ref-stat" id="ref-law-29-401" href="#bref-4-29">29条</a>が社団自身に当事者能力を認めます。社団の不動産は構成員全員の<strong>総有</strong>ですが、登記実務では社団名義の登記ができないため代表者個人名義にします。そこで判例（<a class="ref-case" id="ref-case-shadan-401" href="#bref-4-case">最判平26.2.27</a>）は、社団が登記名義人に対し<strong>代表者個人名義への移転登記手続</strong>を求める訴えの原告適格を認めました。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">社団は総有の不動産について<strong>代表者個人名義</strong>への移転登記を請求できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">訴訟能力</span><span class="tx-gist-step">訴訟担当</span><span class="tx-gist-step is-now">社団の当事者能力</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">法人でない団体が、自分の名で不動産の登記を求める原告になれるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">町内会のように法人格のない団体が、構成員の出したお金で土地を買いました。ところが登記の名義は売主のままです。団体の名では登記ができないため、代表者個人の名義に移してもらうほかありません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">団体の不動産は構成員全員の<strong>総有</strong>に属します。権利能力を持たない団体が、それでも自分の名で登記の移転を求める原告として立てるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民事訴訟法<a class="ref-stat" href="#bref-4-29" id="ref-law-29-401">29条</a>は、代表者または管理人の定めがある法人でない社団・財団は、その名において訴え、また訴えられることができると定め、<strong>当事者能力</strong>を認めます。そして最高裁（<a class="ref-case" href="#bref-4-case" id="ref-case-shadan-401">最判平26.2.27</a>）は、社団が登記名義人に対し、代表者の個人名義に所有権移転登記手続をすることを求める訴えの原告適格を有するとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">実体を備えた団体をめぐる紛争を、構成員全員を並べずに団体自身の名で処理できるようにするのが29条の趣旨です。総有の財産を管理する主体は団体自身なので、登記の受け皿として代表者個人の名義を使うしかない場面でも、請求する資格は団体に認めてよいと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>当事者能力</span></dt><dd>訴訟の主体となることができる一般的な資格。民事訴訟法29条は、法人でない社団・財団にもこれを認める。</dd></div><div class="tx-gist-term"><dt><span>総有</span></dt><dd>団体の構成員全員に帰属する共同所有の形。各人の持分の処分や分割の請求が認められない点で共有と異なる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">代表者の個人名義への移転登記請求について原告適格を認める判例の判断どおり。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>社団に当事者能力がある</strong><span class="syn-body"><a class="ref-stat" href="#bref-4-29">29条</a>は『法人でない社団又は財団で代表者又は管理人の定めがあるものは、その名において訴え、又は訴えられることができる』とし、権利能力のない社団に<span class="ron-mark freq-high">当事者能力</span>を認める。社団自身が原告として土俵に立てる。</span></p>
 <p><span class="syn-step">2</span><strong>総有財産と登記の受け皿</strong><span class="syn-body">社団の不動産は構成員全員に<span class="case-emphasis freq-high">総有的に帰属</span>するが、登記実務上は社団を登記名義人にできないため代表者個人名義で登記する。判例（<a class="ref-case" href="#bref-4-case">最判平26.2.27</a>）は、社団が総有財産の管理主体として、登記名義人に対し<span class="ron-mark freq-high">代表者個人名義への移転登記手続</span>を求める訴えの原告適格を有するとした。本記述はこの判旨どおりで正しい。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>社団は「名前で登記できない団体」。だから自分の名で訴え（29条）、勝ったら“代表者個人名義”という間に合わせの箱に登記を移す。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>社団の当事者能力</strong>：代表者の定めのある権利能力なき社団は自己の名で訴え・訴えられる（<a class="ref-stat" href="#bref-4-29">29条</a>）。</li>
-<li><strong>原告適格の判例</strong>：総有不動産につき登記名義人に対し<a class="ref-case" href="#bref-4-case">代表者個人名義への移転登記手続</a>を求める訴えの原告適格を社団が有する（最判平26.2.27）。</li>
-<li><strong>ひっかけの型</strong>：『法人でないから原告になれない／登記できないから請求できない』と早合点する誤り。社団に当事者能力があり、代表者個人名義を受け皿に請求できる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>訴えるのは社団の名、登記を移すのは代表者個人の名（29条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-29" class="tx-basis-item "><div class="tx-basis-head">📜 民訴29条 法人でない社団等の当事者能力（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">法人でない社団又は財団で<span class="ron-mark freq-high">代表者又は管理人の定めがあるもの</span>は、その名において訴え、又は訴えられることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-4-29" class="tx-basis-item "><div class="tx-basis-head">📜 民訴29条 法人でない社団等の当事者能力（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">法人でない社団又は財団で<span class="ron-mark freq-high">代表者又は管理人の定めがあるもの</span>は、その名において訴え、又は訴えられることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件</span><span class="kd-text">①団体としての組織を備え②多数決の原則が行われ③構成員の変更に影響されず存続し④代表の方法・総会の運営等が確立していること（権利能力なき社団の要件・最判昭39.10.15）。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">趣旨</span><span class="kd-text">実体を備えた団体をめぐる紛争を、構成員全員でなく<span class="case-emphasis freq-high">団体自身の名</span>で処理させ、手続を簡明にする。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">社団は当事者能力を持ち、総有不動産の登記請求の原告となれる（記述4）。</span></div>
 </div></div></details></div>
-<div id="bref-4-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判平成26年2月27日（民訴百選9事件・社団の登記請求の原告適格）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">権利能力のない社団は、構成員全員に<span class="exam-mark freq-high">総有的に帰属する不動産</span>について、その所有権の登記名義人に対し、当該社団の<span class="ron-mark freq-high">代表者の個人名義に所有権移転登記手続をすることを求める訴えの原告適格を有する</span>。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-4-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判平成26年2月27日（民訴百選9事件・社団の登記請求の原告適格）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">権利能力のない社団は、構成員全員に<span class="exam-mark freq-high">総有的に帰属する不動産</span>について、その所有権の登記名義人に対し、当該社団の<span class="ron-mark freq-high">代表者の個人名義に所有権移転登記手続をすることを求める訴えの原告適格を有する</span>。</p></div><details class="tx-basis-more"><summary>＋ 射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">社団名義の登記は認められないため、総有財産の管理主体たる社団が、代表者個人名義への移転登記手続を求める限度で原告適格を持つ。社団の総有財産に関する管理処分権を訴訟の場面に反映させた判断。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問適用</span><span class="kd-text">本記述は判旨そのままであり正しい（記述4）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">権利能力なき社団は自己の名で訴えられる当事者能力を持つ（29条）。総有不動産につき、登記名義人に対し代表者個人名義への移転登記手続を求める訴えの原告適格を有する（最判平26.2.27）。本記述は判旨どおりで正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「法人でないから当事者になれない」と切り捨てる罠</strong>。当事者能力（訴訟の主体になれる一般資格）は法人格の有無だけで決まらない。実体を備えた団体は29条で自己の名で訴え・訴えられ、胎児（実体法上の例外的権利能力）や清算中の法人（存続擬制）も限度付きで当事者能力を持つ——<em>「訴訟の主体になれるか」は権利能力の有無に厳密には縛られず、実体に応じて拡張される</em>という一本の物差し。ここでも「入口＝当事者能力」と「主役＝当事者適格」を分けて考えると混乱しない。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>29条の当事者能力は法人格ではなく、代表者又は管理人の定めがあるかで決まる。</strong>隣で裏返るのは登記の受け皿と団体の実体で、社団自身を登記名義人にすることは求められず受け皿は代表者の個人名義になり、代表者の定めのない団体は自己の名において訴えることもできない。29条は「訴え、又は訴えられる」と定めるので、被告の側に立つ資格も同じく認められる。</span><div class="tx-dgm is-matrix" data-dgm="017-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">29条の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">代表者の個人名義 → 社団自身の名義</p><p class="dgm-cell is-ng">✕ 求められない</p><p class="dgm-cell">社団は登記名義人になれず受け皿は代表者の個人名義</p><p class="dgm-cell is-rowhead">代表者又は管理人の定めがある → その定めがない団体</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">定めがあることが要件<span class="dgm-src">29条</span></p><p class="dgm-cell is-rowhead">原告適格を有する → 被告として訴えられる</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">その名において訴え、又は訴えられる<span class="dgm-src">29条</span></p></div></div></div>
 
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
@@ -6134,11 +6341,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>未成年者が両親を法定代理人として訴えを提起した後に婚姻した後であっても、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その両親は、法定代理人として訴訟行為をしなければならない</span><span class="tx-stmt-fix">→ 旧法では成年擬制で法定代理不要（×）／現行法では未成年者は婚姻できず解答不能</span>。<span class="tx-anscomp-line">婚姻による成年擬制（旧民法753条）の下では、婚姻した未成年者は訴訟能力を取得し、<strong>法定代理人による訴訟行為を要しない</strong>（旧法）。もっとも平成30年民法改正で成年年齢・婚姻適齢が18歳に統一され成年擬制は廃止されたため、現行法では未成年者の婚姻自体が生じ得ず本肢は解答不能となる。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>この肢は<strong>出題当時から解答不能</strong>とされたもの（配点対象外）。旧法の理屈では×です。未成年者は原則として自分では訴訟行為ができず、両親などの法定代理人によります（<a class="ref-stat" id="ref-law-31-501" href="#bref-5-31">31条</a>）。ところが旧法では、婚姻すれば成年に達したものとみなされ（成年擬制・<a class="ref-stat" id="ref-law-mimpo-501" href="#bref-5-mimpo">旧民法753条</a>）、行為能力＝訴訟能力を得るので、以後は両親の法定代理は要りません。だから『両親が法定代理人として訴訟行為をしなければならない』は誤り（×）。ただし平成30年改正で<strong>成年擬制の制度自体が廃止</strong>されたため、いまは前提が成り立たず解答不能です。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">婚姻による<strong>成年擬制</strong>があった旧法では、婚姻後に親の法定代理は不要だった。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">訴訟能力</span><span class="tx-gist-step">訴訟担当</span><span class="tx-gist-step">社団の当事者能力</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">訴えを起こした後に婚姻した未成年者について、親の法定代理はなお必要なのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">未成年の人が両親を法定代理人として訴えを起こし、その後に婚姻した。出題された当時はこういう場面が考えられました。婚姻したあとも、両親が代理して訴訟を続けなければならないのかが問われます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">未成年者は原則として法定代理人によらなければ訴訟行為ができませんが（民事訴訟法<a class="ref-stat" href="#bref-5-31" id="ref-law-31-501">31条</a>本文）、独立して法律行為をすることができる場合は例外です（同条ただし書）。婚姻がこの例外に当たるかが<strong>訴訟能力</strong>の問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民事訴訟法28条は、訴訟能力は民法その他の法令に従うと定めます。削除された<a class="ref-stat" href="#bref-5-mimpo" id="ref-law-mimpo-501">旧民法753条</a>は、未成年者が婚姻をしたときは成年に達したものとみなすとしていたので、婚姻した未成年者は31条ただし書に当たり、自ら訴訟行為ができました。いまは民法4条と731条で成年となる年齢も婚姻できる年齢も18歳にそろい、この規定は削除されています。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">訴訟能力の有無を手続法が独自に決めず、民法上その人が独立して法律行為をできるかどうかに合わせる。これが28条の考え方です。婚姻して独立の生活を営む者を一人前として扱う旧法の発想が、そのまま訴訟の場にも及んでいたと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>成年擬制</span></dt><dd>婚姻した未成年者を成年に達したものとみなす制度。旧民法753条が定めていたが、成年年齢と婚姻できる年齢が18歳にそろったため削除された。</dd></div><div class="tx-gist-term"><dt><span>法定代理人</span></dt><dd>本人の意思によらず法律の定めによって代理権を持つ者。未成年者については親権者がこれに当たる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">婚姻後も両親の法定代理を要するとする点が旧法では誤りで、成年擬制により自ら訴訟行為できた。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>原則は法定代理（31条）</strong><span class="syn-body">未成年者は法定代理人によらなければ訴訟行為ができない（<a class="ref-stat" href="#bref-5-31">31条</a>本文）。もっとも『<span class="ron-mark freq-high">独立して法律行為をすることができる場合</span>』は例外（同条ただし書）で、その場合は自ら訴訟行為ができる。</span></p>
 <p><span class="syn-step">2</span><strong>旧法の成年擬制で法定代理は不要になる</strong><span class="syn-body">旧法では婚姻により未成年者は成年に達したものとみなされ（<a class="ref-stat" href="#bref-5-mimpo">旧民法753条</a>）、独立して法律行為をなしうる者となる。よって31条ただし書に当たり、婚姻後は<span class="case-emphasis freq-high">自ら訴訟行為ができ、両親の法定代理は不要</span>。訴え提起後に婚姻したなら、以後は本人が追行するので本記述は×。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>旧法では「結婚＝一足先に大人扱い」。大人になれば親の代理は卒業。ただし今は結婚できる年齢＝成年年齢＝18歳にそろい、この“先取り大人”制度そのものが消えた。</p>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>旧法は婚姻で大人扱い、今は営業の許可だけが残る（民法6条1項）。</p>
 </div>
 
 <div class="tx-current-law-note">
@@ -6150,30 +6357,19 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="tx-law-note-row"><span class="tx-law-note-label">試験対策上の扱い</span><span class="tx-law-note-body">現行法下では本肢のような未成年婚を前提とする設問は出題されない。訴訟能力の要否は民法上の行為能力に連動する（28条）という骨格を押さえ、31条ただし書「独立して法律行為をすることができる場合」の例が改正で失われた点として整理すれば足りる。</span></div>
 </div>
 </div>
-
-<div class="choice-points">
-<ol>
-<li><strong>訴訟能力の原則</strong>：未成年者は法定代理人によらなければ訴訟行為ができない（<a class="ref-stat" href="#bref-5-31">31条</a>本文）。ただし独立して法律行為ができる場合は例外（同ただし書）。</li>
-<li><strong>旧法の帰結（×の理由）</strong>：婚姻による成年擬制（<a class="ref-stat" href="#bref-5-mimpo">旧民法753条</a>）で訴訟能力を取得し、以後は法定代理が不要となる。</li>
-<li><strong>現行法（解答不能の理由）</strong>：平成30年改正で成年年齢・婚姻適齢を18歳に統一し成年擬制を廃止したため、未成年婚の前提が消え本肢は解答不能。</li>
-</ol>
-</div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-5-31" class="tx-basis-item "><div class="tx-basis-head">📜 民訴31条 未成年者・成年被後見人の訴訟能力（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">未成年者及び成年被後見人は、<span class="ron-mark freq-high">法定代理人によらなければ、訴訟行為をすることができない</span>。ただし、<span class="case-emphasis freq-high">未成年者が独立して法律行為をすることができる場合</span>……は、この限りでない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-5-31" class="tx-basis-item "><div class="tx-basis-head">📜 民訴31条 未成年者・成年被後見人の訴訟能力（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">未成年者及び成年被後見人は、<span class="ron-mark freq-high">法定代理人によらなければ、訴訟行為をすることができない</span>。ただし、<span class="case-emphasis freq-high">未成年者が独立して法律行為をすることができる場合</span>……は、この限りでない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件</span><span class="kd-text">未成年者は原則として訴訟無能力者で、法定代理人（親権者等）によることを要する。例外は『独立して法律行為をすることができる場合』（同ただし書）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">旧法では成年擬制がただし書の例に当たり、婚姻後は法定代理が不要だった。改正でこの例が失われた（記述5）。</span></div>
 </div></div></details></div>
 <div id="bref-5-mimpo" class="tx-basis-item "><div class="tx-basis-head">📜 民法4条・731条・（旧）753条 成年年齢・婚姻適齢・成年擬制<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">4</span><span class="hang-body">年齢<span class="ron-mark freq-high">18歳</span>をもって、成年とする。</span></p>
 <p class="hanging"><span class="para-num">731</span><span class="hang-body">婚姻は、<span class="ron-mark freq-high">18歳</span>にならなければ、することができない。</span></p>
-<p class="hanging"><span class="para-num">旧753</span><span class="hang-body">（削除）未成年者が婚姻をしたときは、これによって成年に達したものとみなす。＝<span class="case-emphasis freq-mid">婚姻による成年擬制</span>（平成30年改正で廃止）。</span></p></div><details class="tx-basis-more"><summary>＋ 改正・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">旧753</span><span class="hang-body">（削除）未成年者が婚姻をしたときは、これによって成年に達したものとみなす。＝<span class="case-emphasis freq-mid">婚姻による成年擬制</span>（平成30年改正で廃止）。</span></p></div><details class="tx-basis-more"><summary>＋ 改正を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">改正の内容</span><span class="kd-text">平成30年改正（令和4年4月1日施行）で成年年齢・婚姻適齢を18歳に統一。未成年婚が消滅し、成年擬制（旧753条）は削除された。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">前提となる未成年婚が生じ得ず、本肢は解答不能（記述5）。旧法では成年擬制で法定代理不要＝×。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">未成年者は法定代理人によらなければ訴訟行為ができない（31条本文）が、独立して法律行為ができる場合は例外（同ただし書）。旧法では婚姻による成年擬制（旧753条）でこれに当たり、婚姻後は法定代理不要（×）。改正で成年擬制が廃止され、現行法では未成年婚が生じ得ず解答不能。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>訴訟能力は民法の行為能力に連動する（28条）</strong>——これが横串。訴訟能力の有無を単独で暗記せず、まず<em>民法上その人が独立して法律行為をなしうるか</em>を見る。旧法の成年擬制はその橋渡しで、婚姻＝行為能力取得＝訴訟能力取得＝法定代理不要とつながった。改正で成年年齢・婚姻適齢が18歳にそろい橋そのものが撤去された結果、この設問は前提を失った。実体法（民法）の改正が手続法（民訴）の結論を動かす典型で、「訴訟能力は民法に従う（28条）」を軸に据えると迷わない。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>自ら訴訟行為できるかは、民法で独立して法律行為ができるかに連動する（28条・31条ただし書）。</strong>営業を許された未成年者はその営業に関して自ら訴訟行為でき（民法6条1項）、成年被後見人にはただし書の例外がなく常に法定代理人による。被保佐人は自ら訴訟行為をするが保佐人の同意を要する（民法13条1項4号）。</span><div class="tx-dgm is-matrix" data-dgm="017-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">能力を補う仕組みは人ごとに違う</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">婚姻した → 営業を許された</p><p class="dgm-cell is-ok">○ 自ら訴訟行為できる</p><p class="dgm-cell">その営業に関して成年者と同一の行為能力<span class="dgm-src">民法6条1項</span></p><p class="dgm-cell is-rowhead">未成年者 → 成年被後見人</p><p class="dgm-cell is-ng">✕ 自らはできない</p><p class="dgm-cell">ただし書の例外がない<span class="dgm-src">31条</span></p><p class="dgm-cell is-rowhead">未成年者 → 被保佐人</p><p class="dgm-cell is-acc">同意が要る</p><p class="dgm-cell">訴訟行為に保佐人の同意を要するが応訴には不要<span class="dgm-src">民法13条1項4号・32条1項</span></p><p class="dgm-cell is-rowhead">訴えの提起後に婚姻 → 訴えの提起後に18歳に達した</p><p class="dgm-cell is-ok">○ 以後は本人が追行</p><p class="dgm-cell">訴訟能力は民法の行為能力に従う<span class="dgm-src">28条・民法4条</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6255,11 +6451,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは、当事者論を<b>能力（訴訟の主体になれるか・自ら有効に訴訟行為できるか）</b>と<b>適格（この訴訟で誰が原告・被告に立つか）</b>の二階に分けること。この記述は能力の階。訴訟能力を欠く者の行為は当然無効ではなく、能力を備えた本人の追認で最初にさかのぼって有効になる（34条2項）。無駄を出さず本人も守る、治癒可能な瑕疵という発想。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>成年被後見人が後見人を通さず自分で訴えを起こしてしまった後、後見人が「その訴えでよい」と追認した場面。訴え提起の時点にさかのぼって有効な訴えとして扱われ、それまでの手続がやり直しにならない。</span>" data-brief-mark="訴訟能力を欠く者の訴訟行為は、能力を備えた者の<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>追認により行為の時にさかのぼって効力を生ずる</span>（34条2項の文言どおり）。<span class='tx-anscomp-line'>訴訟能力・法定代理権・訴訟行為に必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<strong>追認</strong>により、行為の時にさかのぼってその効力を生ずる（民訴34条2項）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>34条2項は、能力・法定代理権・授権を欠く者の訴訟行為が追認により行為の時にさかのぼって効力を生ずると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>一律無効を避け、手続の安定と制限行為能力者の保護を調和させる（治癒可能な瑕疵）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>訴訟能力・法定代理権・訴訟行為に必要な授権のいずれの欠缺にも及び、選定当事者にも準用される（34条3項）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>能力を欠く訴訟行為は「当然無効」ではなく、追認まで効力未確定で、追認により遡及的に有効となる点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>能力・代理権・授権の欠缺は、まず補正命令（34条1項）→追認による治癒（同2項）の順で処理する。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="訴訟担当（他人の権利を自分の名で追行する形）では、担当の<b>射程</b>がどこまで及ぶかが決め手になる。遺言執行者は遺言の実現が仕事で、遺贈の登記がもう完了していればその点の職務は終わっている。だから完了済み登記の抹消を争う相手は執行者ではなく、登記を得た受遺者。遺言が未実現か実現済みかで相手が入れ替わる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>遺言で「甲土地を友人に遺贈する」とされ、既に友人名義への移転登記まで済んでいた場面。相続人が「その遺贈は無効だ」と登記の抹消を求めるなら、被告は遺言執行者ではなく登記名義を得た友人（受遺者）になる。</span>" data-brief-mark="既に完了した遺贈登記の抹消を相続人が求める訴えは、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>遺言執行者を被告としなければならない</span><span class='tx-stmt-fix'>→ 受遺者を被告とすべき（最判昭51.7.19）</span>。<span class='tx-anscomp-line'>遺贈の目的不動産につき遺贈の登記が既に完了している場合、相続人が抹消登記手続を求める訴えは、遺言執行者ではなく<strong>受遺者を被告</strong>として提起すべきである（最判昭51.7.19）。遺贈が登記により実現され遺言執行者の職務が終了しているからである。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>遺言執行者は遺言の執行に必要な一切の行為をする権利義務を有する法定訴訟担当（民法1012条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>当事者適格は遺言執行に必要な範囲に限られ、執行が終われば失われる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>遺贈の登記が完了した後の抹消請求では執行者の職務が終了しており、被告は受遺者（最判昭51.7.19）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>遺贈が未履行なら執行者を被告、登記完了後の抹消なら受遺者を被告、と履行の前後で相手方が分かれる点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟担当では「担当権限がその請求に及ぶか（射程）」を先に確かめる。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="多数を訴訟に関与させる道は、各自が当事者になる共同訴訟だけではない。代表者一人に追行を委ね自分は当事者にとどまらない選定当事者（任意的訴訟担当）がある。30条3項は、訴訟が始まった後でも、共同の利益をもつ第三者が係属中の当事者を自分のための代表に選べるとし、別訴の提起も併合の申立ても要らない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>同じ欠陥商品の被害者50人のうち、まず1人が売主を訴えて訴訟が始まった場面。残りの被害者は、自分で別々に訴えを起こして合流しなくても、先に訴えているその1人を自分のための選定当事者に選べば、1つの訴訟にまとめられる。</span>" data-brief-mark="係属中の訴訟の当事者と共同の利益を有する者が選定当事者に選定するには、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>自ら訴えを提起して併合を求めなければならない</span><span class='tx-stmt-fix'>→ 訴訟係属後の追加的選定（30条3項）で足り別訴・併合は不要</span>。<span class='tx-anscomp-line'>訴訟係属後は、その当事者と共同の利益を有する第三者は、当該当事者を自己のためにも選定当事者に選定でき（民訴30条3項）、<strong>自ら別訴を提起して併合を求める必要はない</strong>。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条3項は、訴訟係属後に、係属中の当事者と共同の利益を有する者がその当事者を選定できると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>共同の利益をもつ多数の紛争を一人の当事者に集約し、訴訟を簡明・経済的にする（任意的訴訟担当）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>係属後の追加的選定は別訴提起・併合を要さず、選定により選定者はその請求について当事者となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「共同訴訟にするため各自が訴えを起こして併合する」必要はなく、30条3項の選定で足りる点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>多数当事者を訴訟に関与させる道は共同訴訟だけでなく、選定当事者（任意的訴訟担当）もある。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="当事者能力（訴訟の主体になれる一般資格）は法人格の有無だけでは決まらない。実体を備えた団体は29条で自己の名で訴え・訴えられる。団体の不動産は構成員みんなの総有だが、登記実務では団体名義の登記ができない。そこで判例は、団体が総有財産の管理主体として、代表者個人名義への移転登記手続を求める原告適格を持つとした。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>ある町内会が寄付を受けた集会所の土地について、以前の名義人がそのまま登記に残っていた場面。町内会は自分の名で原告となり、その名義人に対し「町内会長個人の名義に移す登記をせよ」と求める訴えを起こせる。</span>" data-brief-mark="権利能力のない社団は、総有不動産につき登記名義人に対し、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>代表者個人名義への移転登記手続を求める訴えの原告適格を有する</span>（最判平26.2.27）。<span class='tx-anscomp-line'>権利能力のない社団は、構成員全員に総有的に帰属する不動産について、その所有権の登記名義人に対し、<strong>当該社団の代表者の個人名義</strong>に所有権移転登記手続をすることを求める訴えの原告適格を有する（最判平26.2.27）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>29条は、代表者又は管理人の定めのある法人でない社団が自己の名で訴え・訴えられると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>実体を備えた団体の紛争を団体自身の名で処理させ、手続を簡明にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>社団名義の登記はできないため、総有不動産につき代表者個人名義への移転登記手続を求める原告適格を持つ（最判平26.2.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「法人でない＝当事者になれない」ではなく、29条で当事者能力があり、登記の受け皿は代表者個人名義とする点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>当事者能力は権利能力に厳密には縛られず、社団・胎児・清算法人など実体に応じて拡張される。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="訴訟能力の要否は、民法で「独立して法律行為ができるか」に連動する（28条）。旧法では、婚姻すれば成年に達したものとみなされ（成年擬制）、未成年でも自分で訴訟でき親の法定代理は不要になった。だから旧法の理屈でも本記述の結論は誤り。もっとも平成30年改正で成年年齢・婚姻適齢が18歳にそろい、この橋渡しの制度そのものが廃止されたため、いまは前提が成り立たず解答不能。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>旧法下で、17歳のときに親を代理人として訴えを起こした人が、訴訟の途中で婚姻した場面。婚姻で成年とみなされ自ら訴訟できるようになるので、以後は親の代理を要しなかった。現行法では17歳での婚姻自体ができないため、この場面は起こり得ない。</span>" data-brief-mark="未成年者が訴え提起後に婚姻しても、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>両親がなお法定代理人として訴訟行為をしなければならない</span><span class='tx-stmt-fix'>→ 旧法では成年擬制で法定代理不要（×）／現行法では未成年婚が生じ得ず解答不能</span>。<span class='tx-anscomp-line'>婚姻による成年擬制（旧民法753条）の下では、婚姻した未成年者は訴訟能力を取得し、<strong>法定代理人による訴訟行為を要しない</strong>（旧法）。もっとも平成30年民法改正で成年年齢・婚姻適齢が18歳に統一され成年擬制は廃止されたため、現行法では未成年者の婚姻自体が生じ得ず本肢は解答不能となる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>未成年者は法定代理人によらなければ訴訟行為ができない（31条本文）が、独立して法律行為ができる場合は例外（同ただし書）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>訴訟能力は民法上の行為能力に連動する（28条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>旧法では婚姻による成年擬制（旧753条）が31条ただし書の例に当たり、婚姻後は法定代理が不要だった。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「未成年である間は常に法定代理が必要」ではなく、独立して法律行為ができる場合は自ら訴訟行為できる点（旧法では成年擬制がこれ）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟能力の要否は民法の行為能力から判断する。成年年齢・婚姻適齢の改正（H30）が結論を動かす。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く物差しは、当事者論を<b>能力（訴訟の主体になれるか・自ら有効に訴訟行為できるか）</b>と<b>適格（この訴訟で誰が原告・被告に立つか）</b>の二階に分けること。この記述は能力の階。訴訟能力を欠く者の行為は当然無効ではなく、能力を備えた本人の追認で最初にさかのぼって有効になる（34条2項）。無駄を出さず本人も守る、治癒可能な瑕疵という発想。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>成年被後見人が後見人を通さず自分で訴えを起こしてしまった後、後見人が「その訴えでよい」と追認した場面。訴え提起の時点にさかのぼって有効な訴えとして扱われ、それまでの手続がやり直しにならない。</span>" data-brief-mark="訴訟能力を欠く者の訴訟行為は、能力を備えた者の<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>追認により行為の時にさかのぼって効力を生ずる</span>（34条2項の文言どおり）。<span class='tx-anscomp-line'>訴訟能力・法定代理権・訴訟行為に必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<strong>追認</strong>により、行為の時にさかのぼってその効力を生ずる（民訴34条2項）。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>34条2項は、能力・法定代理権・授権を欠く者の訴訟行為が追認により行為の時にさかのぼって効力を生ずると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>一律無効を避け、手続の安定と制限行為能力者の保護を調和させる（治癒可能な瑕疵）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>訴訟能力・法定代理権・訴訟行為に必要な授権のいずれの欠缺にも及び、選定当事者にも準用される（34条3項）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>能力を欠く訴訟行為は「当然無効」ではなく、追認まで効力未確定で、追認により遡及的に有効となる点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>能力・代理権・授権の欠缺は、まず期間を定めた補正命令（34条1項）、追認があれば行為の時に遡って治癒する（同2項）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">34条2項の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴訟能力 → 法定代理権・訴訟行為の授権</p><p class="dgm-cell is-ok">○ 同じく追認で治癒</p><p class="dgm-cell">三つを並べて同じ扱いにする<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">行為の時にさかのぼって → 追認の時から将来に向かって</p><p class="dgm-cell is-ng">✕ 誤り</p><p class="dgm-cell">遡及効を条文が明記する<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">当事者又は法定代理人の追認 → 相手方の同意</p><p class="dgm-cell is-ng">✕ 治癒しない</p><p class="dgm-cell">追認できるのは能力等を備えるに至った当事者又は法定代理人<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">追認を待つ → 裁判所が期間を定めて補正を命じる</p><p class="dgm-cell is-acc">先に来る段階</p><p class="dgm-cell">欠缺が判明したらまず補正命令<span class="dgm-src">34条1項</span></p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="訴訟担当（他人の権利を自分の名で追行する形）では、担当の<b>射程</b>がどこまで及ぶかが決め手になる。遺言執行者は遺言の実現が仕事で、遺贈の登記がもう完了していればその点の職務は終わっている。だから完了済み登記の抹消を争う相手は執行者ではなく、登記を得た受遺者。遺言が未実現か実現済みかで相手が入れ替わる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>遺言で「甲土地を友人に遺贈する」とされ、既に友人名義への移転登記まで済んでいた場面。相続人が「その遺贈は無効だ」と登記の抹消を求めるなら、被告は遺言執行者ではなく登記名義を得た友人（受遺者）になる。</span>" data-brief-mark="既に完了した遺贈登記の抹消を相続人が求める訴えは、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>遺言執行者を被告としなければならない</span><span class='tx-stmt-fix'>→ 受遺者を被告とすべき（最判昭51.7.19）</span>。<span class='tx-anscomp-line'>遺贈の目的不動産につき遺贈の登記が既に完了している場合、相続人が抹消登記手続を求める訴えは、遺言執行者ではなく<strong>受遺者を被告</strong>として提起すべきである（最判昭51.7.19）。遺贈が登記により実現され遺言執行者の職務が終了しているからである。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>遺言執行者は遺言の執行に必要な一切の行為をする権利義務を有する法定訴訟担当（民法1012条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>当事者適格は遺言執行に必要な範囲に限られ、執行が終われば失われる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>遺贈の登記が完了した後の抹消請求では執行者の職務が終了しており、被告は受遺者（最判昭51.7.19）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>遺贈が未履行なら執行者を被告、登記完了後の抹消なら受遺者を被告、と履行の前後で相手方が分かれる点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟担当では担当権限がその請求に及ぶかを先に確かめる。遺贈は執行の前後で相手方が入れ替わる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">遺贈をめぐる訴えは執行の前後で相手が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">登記が完了している → 登記が未了で遺贈の履行を求める</p><p class="dgm-cell is-acc">遺言執行者が被告</p><p class="dgm-cell">遺贈の履行は遺言執行者のみが行う<span class="dgm-src">民法1012条2項</span></p><p class="dgm-cell is-rowhead">遺言執行者が定められている → 執行者が選任されていない</p><p class="dgm-cell is-ok">受遺者が被告</p><p class="dgm-cell">登記名義を得た受遺者が相手で変わらない</p><p class="dgm-cell is-rowhead">相続人が原告となる → 執行者が自己の名で原告となる</p><p class="dgm-cell is-ok">○ できる</p><p class="dgm-cell">遺言の執行に必要な一切の行為をする権利義務<span class="dgm-src">民法1012条1項</span></p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="多数を訴訟に関与させる道は、各自が当事者になる共同訴訟だけではない。代表者一人に追行を委ね自分は当事者にとどまらない選定当事者（任意的訴訟担当）がある。30条3項は、訴訟が始まった後でも、共同の利益をもつ第三者が係属中の当事者を自分のための代表に選べるとし、別訴の提起も併合の申立ても要らない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>同じ欠陥商品の被害者50人のうち、まず1人が売主を訴えて訴訟が始まった場面。残りの被害者は、自分で別々に訴えを起こして合流しなくても、先に訴えているその1人を自分のための選定当事者に選べば、1つの訴訟にまとめられる。</span>" data-brief-mark="係属中の訴訟の当事者と共同の利益を有する者が選定当事者に選定するには、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>自ら訴えを提起して併合を求めなければならない</span><span class='tx-stmt-fix'>→ 訴訟係属後の追加的選定（30条3項）で足り別訴・併合は不要</span>。<span class='tx-anscomp-line'>訴訟係属後は、その当事者と共同の利益を有する第三者は、当該当事者を自己のためにも選定当事者に選定でき（民訴30条3項）、<strong>自ら別訴を提起して併合を求める必要はない</strong>。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条3項は、訴訟係属後に、係属中の当事者と共同の利益を有する者がその当事者を選定できると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>共同の利益をもつ多数の紛争を一人の当事者に集約し、訴訟を簡明・経済的にする（任意的訴訟担当）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>係属後の追加的選定は別訴提起・併合を要さず、選定により選定者はその請求について当事者となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「共同訴訟にするため各自が訴えを起こして併合する」必要はなく、30条3項の選定で足りる点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>多数を訴訟に関与させる道は共同訴訟だけでなく選定当事者もあり、係属後の選定は別訴を要しない（30条3項）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">選定当事者は時期と主体で条文が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">共同の利益を有する者 → 共同の利益を欠く者</p><p class="dgm-cell is-ng">✕ 選定できない</p><p class="dgm-cell">選定できるのは共同の利益を有する者<span class="dgm-src">30条1項・3項</span></p><p class="dgm-cell is-rowhead">係属中の当事者を選ぶ → 訴え提起前に仲間の中から選ぶ</p><p class="dgm-cell is-ok">○ できる</p><p class="dgm-cell">多数の者が全員のための原告・被告を選定する<span class="dgm-src">30条1項</span></p><p class="dgm-cell is-rowhead">当事者でない第三者が選ぶ → 当事者どうしで選ぶ</p><p class="dgm-cell is-acc">他の当事者は脱退</p><p class="dgm-cell">その選定をしたときは当然に訴訟から脱退する<span class="dgm-src">30条2項</span></p><p class="dgm-cell is-rowhead">共同の利益を有する多数の者 → 代表者の定めがある社団</p><p class="dgm-cell is-acc">別の制度</p><p class="dgm-cell">社団は自己の名において訴え、選定当事者の対象外<span class="dgm-src">29条・30条1項</span></p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="当事者能力（訴訟の主体になれる一般資格）は法人格の有無だけでは決まらない。実体を備えた団体は29条で自己の名で訴え・訴えられる。団体の不動産は構成員みんなの総有だが、登記実務では団体名義の登記ができない。そこで判例は、団体が総有財産の管理主体として、代表者個人名義への移転登記手続を求める原告適格を持つとした。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>ある町内会が寄付を受けた集会所の土地について、以前の名義人がそのまま登記に残っていた場面。町内会は自分の名で原告となり、その名義人に対し「町内会長個人の名義に移す登記をせよ」と求める訴えを起こせる。</span>" data-brief-mark="権利能力のない社団は、総有不動産につき登記名義人に対し、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>代表者個人名義への移転登記手続を求める訴えの原告適格を有する</span>（最判平26.2.27）。<span class='tx-anscomp-line'>権利能力のない社団は、構成員全員に総有的に帰属する不動産について、その所有権の登記名義人に対し、<strong>当該社団の代表者の個人名義</strong>に所有権移転登記手続をすることを求める訴えの原告適格を有する（最判平26.2.27）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>29条は、代表者又は管理人の定めのある法人でない社団が自己の名で訴え・訴えられると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>実体を備えた団体の紛争を団体自身の名で処理させ、手続を簡明にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>社団名義の登記はできないため、総有不動産につき代表者個人名義への移転登記手続を求める原告適格を持つ（最判平26.2.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「法人でない＝当事者になれない」ではなく、29条で当事者能力があり、登記の受け皿は代表者個人名義とする点。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>当事者能力は法人格ではなく代表者又は管理人の定めで決まり（29条）、登記の受け皿は代表者の個人名義。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">29条の記述を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">代表者の個人名義 → 社団自身の名義</p><p class="dgm-cell is-ng">✕ 求められない</p><p class="dgm-cell">社団は登記名義人になれず受け皿は代表者の個人名義</p><p class="dgm-cell is-rowhead">代表者又は管理人の定めがある → その定めがない団体</p><p class="dgm-cell is-ng">✕ 当事者能力なし</p><p class="dgm-cell">定めがあることが要件<span class="dgm-src">29条</span></p><p class="dgm-cell is-rowhead">原告適格を有する → 被告として訴えられる</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">その名において訴え、又は訴えられる<span class="dgm-src">29条</span></p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="訴訟能力の要否は、民法で「独立して法律行為ができるか」に連動する（28条）。旧法では、婚姻すれば成年に達したものとみなされ（成年擬制）、未成年でも自分で訴訟でき親の法定代理は不要になった。だから旧法の理屈でも本記述の結論は誤り。もっとも平成30年改正で成年年齢・婚姻適齢が18歳にそろい、この橋渡しの制度そのものが廃止されたため、いまは前提が成り立たず解答不能。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>旧法下で、17歳のときに親を代理人として訴えを起こした人が、訴訟の途中で婚姻した場面。婚姻で成年とみなされ自ら訴訟できるようになるので、以後は親の代理を要しなかった。現行法では17歳での婚姻自体ができないため、この場面は起こり得ない。</span>" data-brief-mark="未成年者が訴え提起後に婚姻しても、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>両親がなお法定代理人として訴訟行為をしなければならない</span><span class='tx-stmt-fix'>→ 旧法では成年擬制で法定代理不要（×）／現行法では未成年婚が生じ得ず解答不能</span>。<span class='tx-anscomp-line'>婚姻による成年擬制（旧民法753条）の下では、婚姻した未成年者は訴訟能力を取得し、<strong>法定代理人による訴訟行為を要しない</strong>（旧法）。もっとも平成30年民法改正で成年年齢・婚姻適齢が18歳に統一され成年擬制は廃止されたため、現行法では未成年者の婚姻自体が生じ得ず本肢は解答不能となる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>未成年者は法定代理人によらなければ訴訟行為ができない（31条本文）が、独立して法律行為ができる場合は例外（同ただし書）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>訴訟能力は民法上の行為能力に連動する（28条）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>旧法では婚姻による成年擬制（旧753条）が31条ただし書の例に当たり、婚姻後は法定代理が不要だった。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「未成年である間は常に法定代理が必要」ではなく、独立して法律行為ができる場合は自ら訴訟行為できる点（旧法では成年擬制がこれ）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟能力の要否は民法の行為能力から判断する（28条）。独立して法律行為ができれば自ら訴訟行為できる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="017-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">能力を補う仕組みは人ごとに違う</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">婚姻した → 営業を許された</p><p class="dgm-cell is-ok">○ 自ら訴訟行為できる</p><p class="dgm-cell">その営業に関して成年者と同一の行為能力<span class="dgm-src">民法6条1項</span></p><p class="dgm-cell is-rowhead">未成年者 → 成年被後見人</p><p class="dgm-cell is-ng">✕ 自らはできない</p><p class="dgm-cell">ただし書の例外がない<span class="dgm-src">31条</span></p><p class="dgm-cell is-rowhead">未成年者 → 被保佐人</p><p class="dgm-cell is-acc">同意が要る</p><p class="dgm-cell">訴訟行為に保佐人の同意を要するが応訴には不要<span class="dgm-src">民法13条1項4号・32条1項</span></p><p class="dgm-cell is-rowhead">訴えの提起後に婚姻 → 訴えの提起後に18歳に達した</p><p class="dgm-cell is-ok">○ 以後は本人が追行</p><p class="dgm-cell">訴訟能力は民法の行為能力に従う<span class="dgm-src">28条・民法4条</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

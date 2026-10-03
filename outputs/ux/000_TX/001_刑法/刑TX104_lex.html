@@ -5667,6 +5667,104 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6251,11 +6349,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:o,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-mark="防衛行為者と第三者との関係を「正対不正」と捉える見解によれば、第三者に対する行為について<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>正当防衛が成立する</span>。<span class='tx-anscomp-line'>防衛行為者と、防衛行為の結果侵害された攻撃者以外の第三者との関係を「正対不正」と捉える見解からは、第三者に対する行為についても<strong>正当防衛</strong>（刑法36条1項）が成立する。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>正当防衛（36条1項）は「急迫不正の侵害」に対する反撃で、正（防衛者）対不正（侵害者）の関係を前提とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>相手が不正であるからこそ、補充性や厳格な法益権衡を問わずに反撃が正当化される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>防衛行為者と第三者の関係も「正対不正」と捉える立場では、第三者への行為も正当防衛として違法性が阻却される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>第三者との関係を「正対正」とみる立場（緊急避難説）とは、相手を不正とみるか正当とみるかで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>緊急行為の性質は、まず相手が不正な侵害者か・無関係の正当な者かを確定してから決める。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-mark="防衛行為者と第三者との関係を「正対正」と捉える見解では、第三者に対する行為について<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>正当防衛が成立する</span><span class='tx-stmt-fix'>→ 正当防衛ではなく緊急避難（37条1項本文）の成否が問題</span>。<span class='tx-anscomp-line'>防衛行為者と第三者との関係を「正対正」と捉える見解からは、第三者に対する行為には正当防衛は成立せず、正当な利益を有する第三者を犠牲にする行為として<strong>緊急避難</strong>（刑法37条1項本文）の成否が問題となる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>緊急避難（37条1項本文）は「現在の危難」を避けるため正当な第三者を犠牲にする行為で、正対正の関係を前提とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>無関係で正当な第三者を害する以上、補充性と法益権衡という厳格な要件で正当化を絞る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>正当な第三者との関係（正対正）では正当防衛は成立せず、緊急避難の成否が検討対象となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「正対正」という前提から「正当防衛」という帰結は出てこない。前提と帰結の対応の崩れが誤りの正体。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>前提（相手の性質）と帰結（正当防衛か緊急避難か）が一対一で対応しているかを常に確かめる。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-mark="攻撃者の急迫不正の侵害に対し防衛の意思で反撃した者は、反撃が第三者に命中した場合でも<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>主観的には正当防衛に当たると認識して行為している</span>。<span class='tx-anscomp-line'>攻撃者の急迫不正の侵害に対し防衛の意思で反撃した行為者は、反撃が第三者に命中した場合でも、主観的には自己の行為が<strong>正当防衛</strong>に当たると認識して行為している。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「防衛するため」＝防衛の意思。急迫不正の侵害を認識し、これを避けようとする心理で反撃している。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>問われているのは行為者の主観（認識）であって、現実に生じた客観的結果ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>反撃が無関係の第三者に命中しても、甲の主観は正当防衛の認識のままである。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>客観的な第三者侵害の結果と、行為者の主観的認識とを混同しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>錯誤論では、まず行為者が何を認識して行為したか（主観）を固定してから客観とのズレを評価する。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-mark="主観は正当防衛・客観は無関係の第三者侵害という場合は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>誤想避難と評価される</span><span class='tx-stmt-fix'>→ 誤想防衛（誤想する対象が正当防衛の前提）と評価される</span>。<span class='tx-anscomp-line'>主観的には正当防衛と認識して第三者を侵害した場合は、急迫不正の侵害があると誤信して反撃した場合と類似し、<strong>誤想防衛</strong>（誤想避難ではない）に準じて処理される。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>誤想防衛＝急迫不正の侵害が存在しないのに存在すると誤信して反撃する場合。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>誤想の対象が正当防衛の前提（急迫不正の侵害）か、緊急避難の前提（現在の危難）かで名称が決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>甲が認識していたのは正当防衛だから、対応するのは誤想防衛であって誤想避難ではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>誤想防衛と誤想避難は、行為者が何を正当化事情だと誤信したかで区別する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「誤想◯◯」の類型は、行為者が思い描いた正当化事情の種類で名前が決まる。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-mark="正当化事情の存在を誤信した場合には犯意を認め得ないとする判例（大判昭8.6.29）によれば、誤想防衛では<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>故意が阻却される</span>（違法性ではない）。<span class='tx-anscomp-line'>誤想防衛について、犯罪の成立を阻却すべき客観的事情が存在すると誤信した場合には犯意を認め得ないとする判例（大判昭8.6.29）によれば、<strong>故意（責任故意）が阻却</strong>される。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>大判昭8.6.29は、正当化事情の存在を誤信した場合には「犯意あると為すを得ず」とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>正当化事情があると信じた行為者には、わざと違法な行為をしたという故意非難を向けられない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>誤想防衛では客観的に行為は違法（違法性は残る）が、責任レベルの故意が阻却される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>阻却されるのは違法性ではなく故意。違法性阻却事由の誤信を違法性阻却と直結させない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>違法性の層と責任（故意）の層を分けて処理する視点は、過剰防衛や責任能力の議論にも通じる。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="正当防衛（36条1項）と緊急避難（37条1項本文）は、切羽詰まった場面で例外的に処罰を免れる規定として並んで置かれているが、向き合う相手が違う。36条は<b>不正な侵害者へ向けた反撃</b>なので、ほかに逃げ道が無かったかまでは問われない。37条は<b>何も悪くない者を犠牲にする</b>行為なので、その者を害するほかに手段が無かったこと（補充性）まで求められる。どちらの規定に乗るかを決める入口は、行為の相手を不正な侵害者とみるか無関係の正当な者とみるかという<b>関係の性質</b>にある。反撃を一連一体のものと捉え、その全体が不正な侵害者へ向けられたと評価する正当防衛説に立てば、巻き添えになった者との関係も正対不正の枠内にとどまり、36条1項で処理されることになる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は反撃行為の一体性を前面に出して36条の枠に乗せようとし、検察官は侵害者への行為と第三者への行為を切り離して評価しようとする。どちらに乗るかで補充性を問われるかが変わるからである。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>昭和62年に最高裁の判断が出た勘違い騎士道事件では、路上のもみ合いを見た英国人男性が空手の回し蹴りで相手を倒し、死亡させた。相手が本当に不正の侵害者であったなら36条の枠で完結したはずの事件で、入口の関係の性質が事件の行方を決めた。</span>" data-brief-mark="防衛行為者と第三者との関係を「正対不正」と捉える見解によれば、第三者に対する行為について<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>正当防衛が成立する</span>。<span class='tx-anscomp-line'>防衛行為者と、防衛行為の結果侵害された攻撃者以外の第三者との関係を「正対不正」と捉える見解からは、第三者に対する行為についても<strong>正当防衛</strong>（刑法36条1項）が成立する。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>正当防衛（36条1項）は「急迫不正の侵害」に対する反撃で、正（防衛者）対不正（侵害者）の関係を前提とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>相手が不正であるからこそ、補充性や厳格な法益権衡を問わずに反撃が正当化される。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>防衛行為者と第三者の関係も「正対不正」と捉える立場では、第三者への行為も正当防衛として違法性が阻却される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>第三者との関係を「正対正」とみる立場（緊急避難説）とは、相手を不正とみるか正当とみるかで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>緊急行為の性質は、まず相手が不正な侵害者か・無関係の正当な者かを確定してから決める。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="相手が何も悪くない者であれば、そこに成り立つのは<b>正対正</b>の関係で、不正な侵害者を押し返すという36条の構図からは外れる。攻撃してこない者を犠牲にして危難を逃れる行為は、条文の系統としては37条1項本文の緊急避難へ移る。避難が許されるのは、その者を害するほかに手段が無く（<b>補充性</b>）、避けようとした害が生じた害を下回らない場合に限られる。無関係の者には降りかかった危難を引き受ける理由が無いのだから、条件が一段重くなるという価値判断がここにある。だから相手を正当な者と置いた前提から正当防衛という結論だけを取り出すことはできず、<b>前提と条文は連動する</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>緊急避難では、本当に逃げられなかったのかという補充性が最大の攻防点になる。弁護側は退避や助けを求める余地が無かった状況を、時間と距離に落として具体的に立証していく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1884年のミニョネット号事件では、難破して漂流した英国のヨットの乗員が、衰弱した同乗の船員を殺して生き延びた。帰国後に殺人罪で死刑判決を受け、のちに恩赦で禁錮6か月まで減軽されている。何も悪くない者を犠牲にする行為が、どれほど重く扱われるかを示す一件である。</span>" data-brief-mark="防衛行為者と第三者との関係を「正対正」と捉える見解では、第三者に対する行為について<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>正当防衛が成立する</span><span class='tx-stmt-fix'>→ 正当防衛ではなく緊急避難（37条1項本文）の成否が問題</span>。<span class='tx-anscomp-line'>防衛行為者と第三者との関係を「正対正」と捉える見解からは、第三者に対する行為には正当防衛は成立せず、正当な利益を有する第三者を犠牲にする行為として<strong>緊急避難</strong>（刑法37条1項本文）の成否が問題となる。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>緊急避難（37条1項本文）は「現在の危難」を避けるため正当な第三者を犠牲にする行為で、正対正の関係を前提とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>無関係で正当な第三者を害する以上、補充性と法益権衡という厳格な要件で正当化を絞る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>正当な第三者との関係（正対正）では正当防衛は成立せず、緊急避難の成否が検討対象となる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「正対正」という前提から「正当防衛」という帰結は出てこない。前提と帰結の対応の崩れが誤りの正体。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>前提（相手の性質）と帰結（正当防衛か緊急避難か）が一対一で対応しているかを常に確かめる。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="犯罪の成否は、外から見た行為と結果（客観）と、行為者が何を分かって動いたか（主観）の二つの面から組み立てる。急迫不正の侵害を受けて反撃した者の頭の中にあるのは、目の前の侵害者を押し返すという<b>防衛の認識</b>であって、無関係の者を害する認識ではない。弾がそれて別の者に当たったという事実は客観の側で起きた出来事であり、行為の時点にあった認識そのものを後から書き換えるものではない。錯誤の議論とは、この<b>主観と客観のズレ</b>をどう評価するかという問いなので、まず認識の中身を固定し、それから実際に起きたこととの距離を測るという順序になる。認識は結果が出た後ではなく<b>行為の時点に立って</b>捉える。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、反撃の直前に何が見えて何を思ったかを供述調書で固める作業になる。凶器の向き、相手との距離、周囲に人がいると分かっていたかが、のちの評価を大きく左右する。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>勘違い騎士道事件の英国人男性は、女性が暴行を受けていると思い込んで助けに入ったと述べていた。空手三段の回し蹴りという客観の重さと、助けるつもりだったという主観の軽さが正面からぶつかり、昭和62年に最高裁の判断が出るまで争われている。</span>" data-brief-mark="攻撃者の急迫不正の侵害に対し防衛の意思で反撃した者は、反撃が第三者に命中した場合でも<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>主観的には正当防衛に当たると認識して行為している</span>。<span class='tx-anscomp-line'>攻撃者の急迫不正の侵害に対し防衛の意思で反撃した行為者は、反撃が第三者に命中した場合でも、主観的には自己の行為が<strong>正当防衛</strong>に当たると認識して行為している。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>「防衛するため」＝防衛の意思。急迫不正の侵害を認識し、これを避けようとする心理で反撃している。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>問われているのは行為者の主観（認識）であって、現実に生じた客観的結果ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>反撃が無関係の第三者に命中しても、甲の主観は正当防衛の認識のままである。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>客観的な第三者侵害の結果と、行為者の主観的認識とを混同しない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>錯誤論では、まず行為者が何を認識して行為したか（主観）を固定してから客観とのズレを評価する。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="誤想という語が付く類型は、行為者が<b>何を正当化事情だと思い描いたか</b>で名前が決まる。急迫不正の侵害があると思って反撃したなら誤想防衛、現在の危難があると思って無関係の者を害したなら誤想避難で、条文でいえば前者は36条、後者は37条の前提を誤信した場合にあたる。目の前の侵害者へ反撃したつもりの者が思い描いていたのは正当防衛の前提であり、結果として無関係の者を害したからといって、思い描いた中身のほうが避難に変わるわけではない。名前は<b>結果の当たり先ではなく認識の中身</b>で決まる、というのがこの区別の勘所である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>どの正当化事情を誤信したのかは、弁護人が構成を組み立てるときの出発点になる。ここを取り違えると、求める効果が故意の否定なのか刑の減免なのかまで食い違ってしまう。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>勘違い騎士道事件で誤信されていたのは、女性が暴行されているという急迫不正の侵害の存在だった。そのため議論は終始、誤想防衛と、程度を超えた誤想過剰防衛のどちらかという軸で進み、避難の誤信が持ち出されることはなかった。</span>" data-brief-mark="主観は正当防衛・客観は無関係の第三者侵害という場合は、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>誤想避難と評価される</span><span class='tx-stmt-fix'>→ 誤想防衛（誤想する対象が正当防衛の前提）と評価される</span>。<span class='tx-anscomp-line'>主観的には正当防衛と認識して第三者を侵害した場合は、急迫不正の侵害があると誤信して反撃した場合と類似し、<strong>誤想防衛</strong>（誤想避難ではない）に準じて処理される。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>誤想防衛＝急迫不正の侵害が存在しないのに存在すると誤信して反撃する場合。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>誤想の対象が正当防衛の前提（急迫不正の侵害）か、緊急避難の前提（現在の危難）かで名称が決まる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>甲が認識していたのは正当防衛だから、対応するのは誤想防衛であって誤想避難ではない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>誤想防衛と誤想避難は、行為者が何を正当化事情だと誤信したかで区別する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「誤想◯◯」の類型は、行為者が思い描いた正当化事情の種類で名前が決まる。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="犯罪の成立は、構成要件に当たるか、違法か、責任を問えるかという三つの層を順に通していく。正当化事情が<b>実際に存在すれば違法性の層</b>で行為そのものが適法になるが、存在しないのに存在すると信じただけでは、外から見た行為の違法性までは消えない。消えるのは<b>責任の層にある故意</b>で、犯罪となる事実をあえて実現する意識が欠けるから、故意犯としては問えなくなる。犯罪の成立を妨げる事情があると誤信した者に犯意は認められないとした大判昭8.6.29は、この筋道を示したものである。もっとも故意が消えても不注意は残りうるので、<b>過失犯の処罰規定があるかを別に検討する</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では故意犯としての起訴を維持できるかに直結し、誤信したことに落ち度があれば過失致死傷での処理へ切り替わる。誤信が本当にあったのかは、供述の信用性の問題として争われる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>勘違い騎士道事件は傷害致死罪で有罪とされ、審理の焦点は故意があるかではなく刑を減らせるかどうかへ移っていった。誤信さえあれば故意がいつでも消えるわけではなく、反撃が程度を超えれば層の分かれ方が変わる。昭和62年まで争われたのはその境目である。</span>" data-brief-mark="正当化事情の存在を誤信した場合には犯意を認め得ないとする判例（大判昭8.6.29）によれば、誤想防衛では<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>故意が阻却される</span>（違法性ではない）。<span class='tx-anscomp-line'>誤想防衛について、犯罪の成立を阻却すべき客観的事情が存在すると誤信した場合には犯意を認め得ないとする判例（大判昭8.6.29）によれば、<strong>故意（責任故意）が阻却</strong>される。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>大判昭8.6.29は、正当化事情の存在を誤信した場合には「犯意あると為すを得ず」とする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>正当化事情があると信じた行為者には、わざと違法な行為をしたという故意非難を向けられない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>誤想防衛では客観的に行為は違法（違法性は残る）が、責任レベルの故意が阻却される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>阻却されるのは違法性ではなく故意。違法性阻却事由の誤信を違法性阻却と直結させない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>違法性の層と責任（故意）の層を分けて処理する視点は、過剰防衛や責任能力の議論にも通じる。</p></div></td></tr>
 </tbody>
 </table>
 </div>

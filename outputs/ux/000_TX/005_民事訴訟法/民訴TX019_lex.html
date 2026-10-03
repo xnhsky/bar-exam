@@ -5403,6 +5403,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-ANSCOMP:BEGIN v13.1.0 答案圧縮（2026-07-28 追加・記述原文統合・版据置）
@@ -5668,6 +5683,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5963,34 +6213,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴訟の目的である権利が同一の事実上及び法律上の原因に基づき、かつ、主要な攻撃防御方法が共通である複数の者は、民事訴訟法第30条第1項の<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>「共同の利益を有する多数の者」に当たる</span>。<span class="tx-anscomp-line">「共同の利益を有する多数の者」（30条1項）とは、<strong>権利が同一の事実上及び法律上の原因に基づき、かつ主要な攻撃防御方法を共通にする</strong>関係にある者をいう（最判昭33.4.17）。本記述はこれに合致する。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。選定当事者は、大勢の当事者が<strong>代表者一人（数人）に訴訟をまとめて任せる</strong>制度（訴訟を身軽にする仕組み）。誰でも束ねられるわけではなく、束ねられるのは<a class="ref-stat" id="ref-law-30-101" href="#bref-1-30">30条1項</a>の<strong>共同の利益を有する多数の者</strong>——争いの土台（原因）と勝ち負けの決め手（攻撃防御方法）が揃った人たち——に限られる。判例（最判昭33.4.17）はこの中身を、権利が同一の事実上・法律上の原因に基づくことと、主要な攻撃防御方法が共通であること、として示した。本記述はこの二つをそのまま述べており正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">原因が同一で主要な攻撃防御方法が共通なら<strong>共同の利益</strong>に当たる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">選定の要件</span><span class="tx-gist-step">選定の効果</span><span class="tx-gist-step">地位・権限と変動</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">「共同の利益を有する多数の者」といえるには、何がどこまで共通していなければならないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">同じ建売住宅地に住む数十人の買主が、同じ業者の同じ手抜き工事で家に傷みが出たとして、まとめて損害賠償を求めたいと考えています。全員が別々に訴えれば、同じ証拠調べを何十回も繰り返すことになります。そこで、その中の数人に全員分の訴訟を任せたいと考えました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">大勢をまとめて一人（数人）に任せられるのは、<strong>共同の利益を有する多数の者</strong>に限られます。では、請求の内容や争点がどこまでそろっていれば、この要件を満たすのでしょうか。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最判昭33.4.17）は、訴訟の目的である権利が同一の事実上及び法律上の原因に基づき、かつ主要な攻撃防御方法が共通であるときに、<a class="ref-stat" href="#bref-1-30" id="ref-law-30-101">30条1項</a>の「共同の利益を有する多数の者」に当たるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">権利の中身が完全に同じでなくても、争いの土台が同じで勝ち負けの決め手も同じなら、審理は一つで足ります。大勢の訴訟を一人（数人）に集約する仕組みは審理を簡明にするためのものなので、その入口の要件も「審理が共通に進むか」という実質で測られると説明されます。関連はあっても原因や主要な争点が別々なら、まとめる意味がありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>共同の利益を有する多数の者</span></dt><dd>民事訴訟法30条1項が選定の前提とする関係。権利が同一の事実上及び法律上の原因に基づき、かつ主要な攻撃防御方法を共通にする者をいう。</dd></div><div class="tx-gist-term"><dt><span>主要な攻撃防御方法</span></dt><dd>勝ち負けを左右する中心の主張と証拠。攻撃は請求する側の、防御は争う側の言い分をさす。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">原因の同一と主要な攻撃防御方法の共通の二つを挙げる点が判例の示した基準と重なり、団体としてのまとまりは要らない。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>条文の要件を確認する</strong><span class="syn-body">30条1項は『<span class="case-emphasis freq-high">共同の利益を有する多数の者</span>で前条（29条・法人でない社団等）の規定に該当しないもの』は、その中から全員のために原告又は被告となるべき者を選定できると定める。ポイントは『共同の利益』という括り方の中身。</span></p>
 <p><span class="syn-step">2</span><strong>判例の基準にあてはめる</strong><span class="syn-body"><a class="ref-case" id="ref-case-33417-101">最判昭33.4.17</a>は、共同訴訟人となり得る者が『共同の利益を有する多数の者』に当たるための基準として、<span class="ron-mark freq-high">①訴訟の目的たる権利が同一の事実上及び法律上の原因に基づくこと、②主要な攻撃防御方法を共通にすること</span>を示した。本記述の文言はこの二要件をそのまま述べており、判例の趣旨に合致する。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「共同の利益」＝土台（同じ原因）と決め手（同じ攻防）の二つが揃うこと。ただの寄り合いでは束ねられず、争いの中身がそろって初めて一人に任せられる。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>30条1項の要件</strong>：選定できるのは<a class="ref-stat" href="#bref-1-30">「共同の利益を有する多数の者」</a>で、29条の法人でない社団等に当たらないもの。</li>
-<li><strong>判例の基準（最判昭33.4.17）</strong>：共同の利益＝同一の事実上及び法律上の原因に基づくことと、主要な攻撃防御方法を共通にすること。</li>
-<li><strong>転用</strong>：選定当事者を選べるか否かは、団体性ではなく「共同の利益」の有無（原因と主要な攻防の共通性）で判定する。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>団体なら社団が自ら訴え（29条）、団体でなくても共同の利益なら代表を選べる（30条1項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-1-30" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法30条 選定当事者（本問の核心条文）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body"><span class="ron-mark freq-high">共同の利益を有する多数の者</span>で前条の規定に該当しないものは、その中から、全員のために原告又は被告となるべき一人又は数人を選定することができる。</span></p>
 <p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟の係属の後、前項の規定により原告又は被告となるべき者を選定したときは、<span class="case-emphasis freq-high">その他の当事者は、当然に訴訟から脱退する</span>。</span></p>
-<p class="hanging"><span class="para-num">⑤</span><span class="hang-body">選定当事者のうち死亡その他の事由によりその資格を喪失した者があるときは、<span class="case-emphasis freq-mid">他の選定当事者において全員のために訴訟行為をすることができる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">⑤</span><span class="hang-body">選定当事者のうち死亡その他の事由によりその資格を喪失した者があるときは、<span class="case-emphasis freq-mid">他の選定当事者において全員のために訴訟行為をすることができる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">『共同の利益を有する多数の者』（29条の社団等に当たらないもの）が、自らの中から全員のための当事者を選ぶ<span class="case-emphasis freq-high">任意的訴訟担当</span>。選定当事者は当事者本人であり、代理人ではない。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">制度趣旨</span><span class="kd-text">利害を共通にする多数の者の訴訟を一人（数人）に集約し、審理を簡明にして訴訟経済を図る。判決効は選定者にも及ぶ（115条1項2号）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">共同の利益＝同一原因＋主要な攻撃防御方法の共通（記述1）。選定で選定者は当然脱退し（2項・記述4）、一部の資格喪失でも他が全員のため続行する（5項・記述2）。</span></div>
 </div></div></details></div>
-<div id="bref-1-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和33年4月17日（「共同の利益」の意義）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被上告人（被控訴人）全員につき<span class="ron-mark freq-high">同一の事実上及び法律上の原因に基くもの</span>というべく、しかも、本訴における当事者双方の<span class="case-emphasis freq-high">主要な攻撃防禦の方法は被上告人全員につき共通</span>であると認められる場合には、30条1項の『共同の利益を有する多数の者』に該当する。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">『共同の利益』は権利の完全な同一までは要せず、<a class="ref-stat">同一の事実上・法律上の原因＋主要な攻撃防御方法の共通</a>で足りる。本記述はこの二要件をそのまま述べており判例の趣旨に合致する（○）。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">『共同の利益を有する多数の者』＝①同一の事実上及び法律上の原因＋②主要な攻撃防御方法の共通（最判昭33.4.17）。権利の完全同一までは不要で、原因と主要な攻防が共通なら足りる。本記述はこの基準に合致する。</p>
+<div id="bref-1-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和33年4月17日（「共同の利益」の意義）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">被上告人（被控訴人）全員につき<span class="ron-mark freq-high">同一の事実上及び法律上の原因に基くもの</span>というべく、しかも、本訴における当事者双方の<span class="case-emphasis freq-high">主要な攻撃防禦の方法は被上告人全員につき共通</span>であると認められる場合には、30条1項の『共同の利益を有する多数の者』に該当する。</p></div></div></div>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「共同の利益」は「同一の権利」ではない</strong>。判例が要求するのは権利の完全な同一ではなく、<strong>原因の同一＋主要な攻撃防御方法の共通</strong>という二要件。関連はあっても原因や争点が別々の請求は束ねられない。これは29条の『法人でない社団』（団体そのものが当事者になるルート）とは別系統——団体性が無くても、共同の利益さえあれば選定当事者で束ねられる cross-cut。共同訴訟の要件（38条・訴訟の目的である権利義務が同種で同一の事実上及び法律上の原因に基づく）とも発想が通底する。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「共同の利益」は「同一の権利」ではなく、選べる相手も仲間の中に限られる。</strong>判例が求めるのは原因の同一と主要な攻撃防御方法の共通の二つで（最判昭33.4.17）、原因が同じでも主要な争点が別々なら束ねられない。</span><div class="tx-dgm is-matrix" data-dgm="019-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">30条1項の要件を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">主要な攻撃防御方法が共通 → 原因は同一だが主要な争点が別々</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell">原因の同一と主要な攻防の共通の二つを要求<span class="dgm-src">最判昭33.4.17</span></p><p class="dgm-cell is-rowhead">共同の利益を有する多数の者 → 代表者の定めのある法人でない社団</p><p class="dgm-cell is-ng">✕ 選定できない</p><p class="dgm-cell">社団自身の名で訴え訴えられる<span class="dgm-src">29条・30条1項</span></p><p class="dgm-cell is-rowhead">その中から選定 → 共同の利益を有しない第三者を選定</p><p class="dgm-cell is-ng">✕ 選定できない</p><p class="dgm-cell">選べる相手は「その中から」に限る<span class="dgm-src">30条1項</span></p><p class="dgm-cell is-rowhead">同一の原因＋主要な攻防の共通 → 権利が同種で同種の原因</p><p class="dgm-cell is-acc">△ 共同訴訟は組める</p><p class="dgm-cell">同種の原因は共同訴訟の要件にとどまる<span class="dgm-src">38条後段</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6008,32 +6248,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>複数の選定当事者が選定されている場合において、その一部が訴訟係属中に死亡したときは、他の選定当事者は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>その資格を失う</span><span class="tx-stmt-fix">→ 資格を失わず、全員のために訴訟行為を続けられる（30条5項）</span>。<span class="tx-anscomp-line">選定当事者のうち死亡その他の事由で資格を喪失した者があるときは、<strong>他の選定当事者が全員のために訴訟行為をすることができ</strong>（30条5項）、他の選定当事者はその資格を失わない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。選定当事者が複数いて一人が欠けたら、残りも一緒に脱落してしまうのでは、と不安になる。でも<a class="ref-stat" id="ref-law-30-201" href="#bref-2-30">30条5項</a>は逆で、選定当事者のうち死亡などで資格を失った者が出ても、<strong>残りの選定当事者が全員のために訴訟を続けられる</strong>とする。数人の選定当事者がもつ訴訟追行権は一体（合有）で、欠けた人の分は残りに吸収される。だから「他の選定当事者は資格を失う」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">一部が死亡しても、他の選定当事者は<strong>資格を失わない</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">選定の要件</span><span class="tx-gist-step">選定の効果</span><span class="tx-gist-step is-now">地位・権限と変動</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">選定当事者が数人いて、そのうち一人が訴訟の途中で死亡したとき、残った者の資格はどうなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">数十人の買主から選ばれた三人が、全員のために建物の損害賠償を求めて訴えを続けています。ところが審理の途中で、そのうちの一人が亡くなってしまいました。残った二人は、このまま訴訟を進められるのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">選ばれた者が欠けたことで、残った者もまとめて<strong>資格を喪失</strong>し、訴訟が止まってしまうのか。それとも残った者だけで全員分を担えるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-2-30" id="ref-law-30-201">30条5項</a>は、選定当事者のうち死亡その他の事由によりその資格を喪失した者があるときは、<strong>他の選定当事者において全員のために訴訟行為をすることができる</strong>と定めています。残った者は資格を失わず、そのまま全員分の訴訟を続けられます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">数人の選定当事者がもつ訴訟追行権は一体のものとして与えられており、欠けた者の分は残った者に吸収されると説明されます。欠員が出るたびに訴訟が中断したり選び直しが必要になるのでは、審理を簡明にするために大勢を集約した意味が失われます。そこで法は、残った者だけで続行できる道をあらかじめ用意しています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>資格の喪失</span></dt><dd>選定当事者としての地位を失うこと。死亡のほか、選定の取消しや変更によっても生じる（民事訴訟法30条4項）。</dd></div><div class="tx-gist-term"><dt><span>訴訟追行権</span></dt><dd>当事者として主張・立証を行い、訴訟手続を進めていく権能。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">他の選定当事者が資格を失うとした点が30条5項と正反対で、残った者は資格を失わず全員のために訴訟行為を続けられる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>30条5項の規律を読む</strong><span class="syn-body">30条5項は『選定当事者のうち<span class="case-emphasis freq-high">死亡その他の事由によりその資格を喪失した者があるとき</span>は、他の選定当事者において全員のために訴訟行為をすることができる』と定める。欠員が出ても残りが全員分を担う設計で、訴訟は中断しない。</span></p>
 <p><span class="syn-step">2</span><strong>追行権の合有で理由づける</strong><span class="syn-body">数人の選定当事者の<span class="ron-mark freq-high">訴訟追行権は合有</span>されており、資格を喪失した者の追行権は他の選定当事者に吸収される。したがって、一部が死亡しても他の選定当事者はその資格を失わず、むしろ全員のために訴訟を続行できる。本記述は結論を正反対にした誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>選定当事者が複数なら「一人欠けても残りが全員分を背負う」。欠員で総崩れにはならず、訴訟も止まらない。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>30条5項</strong>：選定当事者の一部が死亡等で資格喪失→<a class="ref-stat" href="#bref-2-30">他の選定当事者が全員のために訴訟行為</a>ができる。</li>
-<li><strong>理由（追行権の合有）</strong>：数人の選定当事者の訴訟追行権は合有され、欠けた者の分は他に吸収される。残りは資格を失わない。</li>
-<li><strong>転用</strong>：選定当事者が複数の場合、一部の欠落で訴訟は中断せず、残りが全員のため続行する。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>一部が欠ければ残りが背負い（30条5項）、全員が欠ければ手続が止まる（124条1項6号）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-2-30" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法30条5項 選定当事者の一部の資格喪失<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">⑤</span><span class="hang-body">選定当事者のうち死亡その他の事由によりその資格を喪失した者があるときは、<span class="ron-mark freq-high">他の選定当事者において全員のために訴訟行為をすることができる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-2-30" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法30条5項 選定当事者の一部の資格喪失<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">⑤</span><span class="hang-body">選定当事者のうち死亡その他の事由によりその資格を喪失した者があるときは、<span class="ron-mark freq-high">他の選定当事者において全員のために訴訟行為をすることができる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">選定当事者が数人選定されている場合、その一部が<span class="case-emphasis freq-high">死亡その他の事由により資格を喪失</span>しても、残る選定当事者が全員のために訴訟を追行できる。数人の訴訟追行権は<span class="ron-mark freq-high">合有</span>される。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">制度趣旨</span><span class="kd-text">欠員による訴訟の停滞・中断を避け、審理の連続性を確保する。資格喪失者の追行権は他の選定当事者に吸収されるため、あらためて選定し直す必要もない。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">一部の選定当事者が訴訟係属中に死亡しても、<span class="case-emphasis freq-high">他の選定当事者は資格を失わず</span>、全員のために訴訟行為を続けられる。よって「他の選定当事者はその資格を失う」とする本記述は誤り（記述2）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">30条5項＝選定当事者の一部が死亡等で資格喪失しても、他の選定当事者が全員のため訴訟行為をできる。数人の訴訟追行権は合有され、欠けた者の分は他に吸収される。他の選定当事者は資格を失わず、本記述は結論を逆にした誤り。</p>
 </div>
 
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「一人欠けたら全員資格喪失で訴訟中断」と考える罠。</strong>30条5項は逆に、<em>残りの選定当事者が全員のために訴訟を続けられる</em>とし、欠員で総崩れにさせない。数人の追行権は合有され、欠けた分は他に吸収される——一人の当事者に生じた事由が他の共同的地位に波及しない発想は、共同訴訟における通常共同訴訟人独立の原則（39条）とも通底する cross-cut。「複数いれば一人欠けても続く」を軸に押さえる。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>欠員の処理は「何人残っているか」で裏返る。</strong>一部が死亡その他の事由で資格を喪失しても他の選定当事者が全員のために訴訟行為をできるが（30条5項）、選定当事者の全員が資格を喪失すると訴訟手続は中断し、選定者の全員又は新たな選定当事者が受け継ぐ（124条1項6号）。</span><div class="tx-dgm is-matrix" data-dgm="019-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">欠けたのが誰かで訴訟の行方が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">欠けたのは</p><p class="dgm-cell is-head">訴訟の行方</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">選定当事者の一部</p><p class="dgm-cell is-ok">○ 中断せず続行</p><p class="dgm-cell">他の選定当事者が全員のために訴訟行為をできる<span class="dgm-src">30条5項</span></p><p class="dgm-cell is-rowhead">選定当事者の全員</p><p class="dgm-cell is-ng">✕ 手続は中断</p><p class="dgm-cell">選定者の全員又は新たな選定当事者が受け継ぐ<span class="dgm-src">124条1項6号</span></p><p class="dgm-cell is-rowhead">破産管財人など一定の資格で当事者となる者</p><p class="dgm-cell is-ng">✕ 手続は中断</p><p class="dgm-cell">同一の資格を有する者が受け継ぐ<span class="dgm-src">124条1項5号</span></p><p class="dgm-cell is-rowhead">全員が欠けたが訴訟代理人がいる</p><p class="dgm-cell is-ok">○ 中断しない</p><p class="dgm-cell">中断の規定は訴訟代理人がある間は適用しない<span class="dgm-src">124条2項</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="3" id="stmt-3">
@@ -6050,32 +6280,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>選定当事者は、選定者の<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>特別の授権がなければ、…することができない</span><span class="tx-stmt-fix">→ 特別の授権なくとも訴えの取下げ・和解・放棄・認諾ができる（当事者ゆえ55条2項不適用）</span>。<span class="tx-anscomp-line">選定当事者は訴訟代理人ではなく<strong>当事者</strong>であるから、55条2項の適用を受けず、<strong>特別の授権を要さずに</strong>訴えの取下げ・和解・請求の放棄及び認諾をすることができる（最判昭43.8.27）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。訴えの取下げや和解は結末を決める重大な処分だから、選定当事者でも本人（選定者）から特別のOKをもらわないとできないはず、と考えたくなる。でも<a class="ref-stat" id="ref-law-55-301" href="#bref-3-55">55条2項</a>が特別の授権を求めるのは<strong>訴訟代理人</strong>の話。選定当事者は代理人ではなく<strong>当事者そのもの</strong>なので、この条文の適用を受けない。判例（最判昭43.8.27＝百選A3事件）も、選定当事者は訴訟上の和解を含む一切の訴訟行為を特別の委任なしにできるとした。だから「特別の授権がなければできない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">選定当事者は当事者本人だから、<strong>特別の授権なく</strong>和解も取下げもできる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">選定の要件</span><span class="tx-gist-step">選定の効果</span><span class="tx-gist-step is-now">地位・権限と変動</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">訴えの取下げや和解のような重い処分を、選定当事者は選定者の特別の授権なしにできるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">全員のために訴訟を進めてきた選定当事者のもとに、相手方から和解の提案が届きました。金額としては悪くない内容ですが、和解に応じたり訴えを取り下げたりすれば、任せた人たちの権利の行き先がその場で決まってしまいます。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">弁護士のような<strong>訴訟代理人</strong>がこうした処分をするには、特別の委任が要ります。選定当事者にも同じ制限がかかるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最判昭43.8.27）は、選定当事者は訴訟代理人ではなく当事者であるから、<a class="ref-stat" href="#bref-3-55" id="ref-law-55-301">55条2項</a>の適用を受けず、訴訟上の和解を含むいっさいの訴訟行為を特別の委任なしにできるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">特別の委任を求められているのは、あくまで代理人です。代理人は他人の名で他人の権利を動かす立場なので、結末を決めてしまう重い処分には本人の同意を別に要求して歯止めをかけています。選定当事者は自分の名で訴訟をする当事者そのものなので、この歯止めの対象に入らないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>訴訟代理人</span></dt><dd>当事者から委任を受け、当事者の名で訴訟行為をする者。訴えの取下げ・和解・請求の放棄若しくは認諾には特別の委任が必要（民事訴訟法55条2項2号）。</dd></div><div class="tx-gist-term"><dt><span>任意的訴訟担当</span></dt><dd>権利の帰属者から任されて、自分の名で他人のための訴訟を行うこと。選定当事者はその典型。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">特別の授権がなければできないとした点が判例と逆で、当事者本人である選定当事者は授権なく取下げ・和解ができる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>55条2項は代理人の権限制限</strong><span class="syn-body"><a class="ref-stat" href="#bref-3-55">55条2項</a>は、<span class="case-emphasis freq-high">訴訟代理人</span>が反訴の提起・訴えの取下げ・和解・請求の放棄若しくは認諾・訴訟からの脱退・上訴等をするには『特別の委任』を要すると定める。名宛人はあくまで代理人であり、これらは本人の重大な利益に関わるため代理権を制限したもの。</span></p>
-<p><span class="syn-step">2</span><strong>選定当事者は当事者である</strong><span class="syn-body"><a class="ref-case" id="ref-case-43827-301">最判昭43.8.27（百選A3事件）</a>は、選定当事者は<span class="ron-mark freq-high">訴訟代理人ではなく当事者である</span>から、55条2項（当時の81条2項）の適用を受けず、選定者の特別の授権がなくとも訴えの取下げ・和解・請求の放棄及び認諾を含む一切の訴訟行為ができるとした。よって特別授権を要件とする本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>「特別の授権が要る」のは代理人の話。選定当事者は当事者本人だから、和解も取下げも自分の権限でできる。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>55条2項の名宛人</strong>：特別の委任（授権）を要するのは<a class="ref-stat" href="#bref-3-55">訴訟代理人</a>（55条2項）。取下げ・和解・放棄・認諾は代理権制限事項。</li>
-<li><strong>選定当事者は当事者（最判昭43.8.27）</strong>：代理人でなく当事者だから55条2項不適用。特別授権なく取下げ・和解・放棄・認諾ができる。</li>
-<li><strong>転用</strong>：「代理人か当事者本人か」で、処分行為に特別授権が要るか否かが決まる。</li>
-</ol>
+<p><span class="syn-step">2</span><strong>選定当事者は当事者である</strong><span class="syn-body"><a class="ref-case" id="ref-case-43827-301">最判昭43.8.27（百選A3事件）</a>は、選定当事者は<span class="ron-mark freq-high">訴訟代理人ではなく当事者である</span>から、55条2項（当時の81条2項）の適用を受けず、選定者の特別の授権がなくとも訴えの取下げ・和解・請求の放棄及び認諾を含む一切の訴訟行為ができるとした。</span></p> </div>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>授権が要るのは代理人と後見人、当事者本人には要らない。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-3-55" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法55条2項 訴訟代理人の特別委任事項<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟代理人は、次に掲げる事項については、<span class="ron-mark freq-high">特別の委任</span>を受けなければならない。</span></p>
-<p class="hanging"><span class="para-num">二</span><span class="hang-body"><span class="case-emphasis freq-high">訴えの取下げ、和解、請求の放棄若しくは認諾</span>又は第48条の規定による脱退。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">二</span><span class="hang-body"><span class="case-emphasis freq-high">訴えの取下げ、和解、請求の放棄若しくは認諾</span>又は第48条の規定による脱退。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">本条は<span class="case-emphasis freq-high">訴訟代理人</span>の代理権の範囲を制限する規定。訴えの取下げ・和解・放棄・認諾等は本人の実体的利益を左右するため、代理人には別途『特別の委任』を要求する。</span></div>
-<div class="kd-item"><span class="kd-label r-hogo">本問への帰結</span><span class="kd-text">選定当事者は<span class="case-emphasis freq-high">当事者であって代理人ではない</span>から、本条の適用を受けない。特別の授権なく取下げ・和解等ができる（記述3・最判昭43.8.27）。</span></div>
 </div></div></details></div>
-<div id="bref-3-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和43年8月27日（百選A3事件・選定当事者の権限）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">選定当事者は、<span class="ron-mark freq-high">訴訟上の和解を含むいっさいの訴訟行為を特別の委任なしに行うことができる</span>。その理由として、選定当事者は<span class="case-emphasis freq-high">訴訟代理人ではなく当事者である</span>から、その権限については55条2項（当時の81条2項）の適用を受けない。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">選定当事者は当事者本人ゆえ<a class="ref-stat">55条2項の代理権制限</a>を受けず、選定者の特別の授権がなくとも訴えの取下げ・和解・請求の放棄及び認諾ができる。特別授権を要件とする本記述は誤り（記述3）。</span></div></div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">55条2項（特別委任）の名宛人は訴訟代理人。選定当事者は当事者であって代理人でないから、同項の適用を受けず、特別の授権なく訴えの取下げ・和解・請求の放棄及び認諾ができる（最判昭43.8.27＝百選A3事件）。本記述は誤り。</p>
+<div id="bref-3-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最判昭和43年8月27日（百選A3事件・選定当事者の権限）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">選定当事者は、<span class="ron-mark freq-high">訴訟上の和解を含むいっさいの訴訟行為を特別の委任なしに行うことができる</span>。その理由として、選定当事者は<span class="case-emphasis freq-high">訴訟代理人ではなく当事者である</span>から、その権限については55条2項（当時の81条2項）の適用を受けない。</p></div></div></div>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「重大な訴訟行為＝必ず特別授権が要る」と一般化する罠。</strong>特別の授権（委任）が要るのは<em>訴訟代理人</em>（55条2項）であって、当事者本人にはこの制限がかからない。選定当事者は任意的訴訟担当だが地位は当事者そのものなので、和解・取下げ・放棄・認諾を自分の権限でできる。「代理人か本人か」で処分権限の線を引く発想は、法定代理人・支配人など他の訴訟追行者の権限論にも横に効く cross-cut。まず名宛人を確かめる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>特別の授権の要否は、その人が当事者本人か代理人かで裏返る。</strong>選定当事者は訴訟代理人ではなく当事者だから55条2項の適用を受けず、選定者の授権なく訴えの取下げ・和解・請求の放棄及び認諾ができる（最判昭43.8.27）。同じ行為でも、名宛人が代理人であれば特別の委任・授権が要る。</span><div class="tx-dgm is-matrix" data-dgm="019-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">取下げ・和解・放棄・認諾に特別の授権が要るか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">誰がするか</p><p class="dgm-cell is-head">特別の授権</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">選定当事者（当事者本人）</p><p class="dgm-cell is-ok">○ 要らない</p><p class="dgm-cell">訴訟代理人ではなく当事者だから55条2項の適用がない<span class="dgm-src">最判昭43.8.27</span></p><p class="dgm-cell is-rowhead">訴訟代理人である弁護士</p><p class="dgm-cell is-ng">✕ 特別の委任が要る</p><p class="dgm-cell">取下げ・和解・放棄・認諾は特別の委任事項<span class="dgm-src">55条2項2号</span></p><p class="dgm-cell is-rowhead">後見人その他の法定代理人</p><p class="dgm-cell is-ng">✕ 特別の授権が要る</p><p class="dgm-cell">同じ行為に特別の授権を要求<span class="dgm-src">32条2項1号</span></p><p class="dgm-cell is-rowhead">支配人など法令上の訴訟代理人</p><p class="dgm-cell is-ok">○ 要らない</p><p class="dgm-cell">法令により裁判上の行為をできる代理人の権限を妨げない<span class="dgm-src">55条4項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6093,31 +6313,21 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴訟係属後に選定当事者が選定された場合には、選定者は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>脱退のための行為をしなくとも、当該訴訟から脱退する</span>。<span class="tx-anscomp-line">訴訟の係属後に30条1項により選定当事者を選定したときは、選定した他の当事者（選定者）は、<strong>脱退のための行為を要さず当然に訴訟から脱退する</strong>（30条2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。訴訟の途中で「この人に任せる」と選定当事者を立てても、元の当事者（選定者）はいったん脱退届のような手続を踏まないと当事者のまま残るのでは、と思える。でも<a class="ref-stat" id="ref-law-30-401" href="#bref-4-30">30条2項</a>は、係属後に選定当事者を選定したら、選定者は<strong>当然に（何もしなくても）訴訟から脱退する</strong>と定める。選定という一つの行為で当事者が入れ替わる仕組みで、脱退のための別の行為は要らない。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">係属後に選定すれば、選定者は<strong>当然に</strong>訴訟から脱退する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">選定の要件</span><span class="tx-gist-step is-now">選定の効果</span><span class="tx-gist-step">地位・権限と変動</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">訴訟の途中で選定当事者を立てたとき、もとの当事者は脱退の手続を踏まなければ当事者のまま残るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">すでに数十人が共同原告として訴えを起こし、期日を重ねています。審理が煩雑になってきたので、その中の三人を全員のための当事者に選ぶことにしました。残る人たちは、あらためて脱退の届けを出す必要があるのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">訴訟から出ていくには、ふつう何らかの行為が要ると考えたくなります。ここでは、選定という一つの行為だけで<strong>当事者の地位</strong>が入れ替わるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-30" id="ref-law-30-401">30条2項</a>は、訴訟の係属の後に原告又は被告となるべき者を選定したときは、他の当事者は<strong>当然に訴訟から脱退する</strong>と定めています。脱退のための行為は要りません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">選定は、全員のための訴訟を選ばれた者に一本化する行為です。ここでさらに脱退の届けを求めても手続が増えるだけで、誰の利益にもなりません。脱退しても確定判決の効力は選定者に及ぶので（民事訴訟法115条1項2号）、訴訟から抜けることで権利の行き先が決まらなくなる心配もありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>選定者</span></dt><dd>自分たちのために原告又は被告となるべき者を選んだ者（民事訴訟法30条4項）。選定を取り消し、又は選定当事者を変更することができる。</dd></div><div class="tx-gist-term"><dt><span>当然に</span></dt><dd>別の意思表示や届出を待たず、法律上ただちに効果が生じること。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">脱退のための行為をしなくとも脱退するとした点が30条2項どおりで、選定という一行為で当事者が入れ替わる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>30条2項の文言を読む</strong><span class="syn-body">30条2項は『訴訟の係属の後、前項の規定により原告又は被告となるべき者を選定したときは、<span class="case-emphasis freq-high">その他の当事者は、当然に訴訟から脱退する</span>』と定める。選定という行為があれば、それだけで脱退の効果が生じる。</span></p>
 <p><span class="syn-step">2</span><strong>「当然に」の意味を詰める</strong><span class="syn-body">『当然に』とは、<span class="ron-mark freq-high">脱退のための別個の意思表示・届出を要さず、法律上当然に当事者の地位を失う</span>という趣旨。以後の訴訟追行は選定当事者に一本化され、判決の効力は脱退した選定者にも及ぶ（115条1項2号）。本記述は「脱退のための行為をしなくとも脱退する」としており、この規律に合致する（○）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>係属後に選定当事者を立てたら、選定者は「自動ドア」で退場。脱退届のような手続は要らない。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>30条2項</strong>：訴訟係属後に選定当事者を選定したときは、<a class="ref-stat" href="#bref-4-30">その他の当事者（選定者）は当然に訴訟から脱退する</a>。</li>
-<li><strong>「当然に」＝脱退行為不要</strong>：選定の効果として法律上当然に当事者の地位を失う。判決効は脱退した選定者にも及ぶ（115条1項2号）。</li>
-<li><strong>転用</strong>：選定当事者の選定は、当事者の交代（選定者の退場）を法律上当然に生じさせる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>選定による脱退は承諾なく当然に（30条2項）、参加後の訴訟脱退は承諾が要る（48条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-4-30" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法30条2項 選定による選定者の当然脱退<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟の係属の後、前項の規定により原告又は被告となるべき者を選定したときは、<span class="ron-mark freq-high">その他の当事者は、当然に訴訟から脱退する</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-4-30" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法30条2項 選定による選定者の当然脱退<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟の係属の後、前項の規定により原告又は被告となるべき者を選定したときは、<span class="ron-mark freq-high">その他の当事者は、当然に訴訟から脱退する</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">訴訟係属後に30条1項の選定がされると、選定者（その他の当事者）は<span class="case-emphasis freq-high">当然に</span>訴訟から脱退する。『当然に』＝<span class="ron-mark freq-high">脱退のための意思表示・届出を要しない</span>。以後の追行は選定当事者に集約される。</span></div>
 <div class="kd-item"><span class="kd-label r-hogo">判決効の帰属</span><span class="kd-text">脱退した選定者にも、選定当事者が受けた確定判決の効力が及ぶ（115条1項2号）。脱退は当事者の地位を失うだけで、権利義務の帰属主体でなくなるわけではない。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">選定者は脱退のための行為をしなくとも当然に脱退する。本記述はこの規律どおりで正しい（記述4）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">30条2項＝訴訟係属後の選定で、選定者（その他の当事者）は当然に訴訟から脱退する。『当然に』は脱退のための別個の行為を要さない趣旨。判決効は脱退した選定者にも及ぶ（115条1項2号）。本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「脱退には脱退の手続（意思表示）が必要」と思い込む罠。</strong>30条2項の脱退は<em>選定の効果として当然に</em>生じ、別個の脱退行為を要しない。ここで混同しやすいのが訴訟脱退（48条）——独立当事者参加や参加承継の場面での脱退は<strong>相手方の承諾</strong>を要し、任意の行為として行われる。「当然脱退（選定当事者・30条2項）」と「承諾を要する脱退（48条）」は別物という cross-cut。脱退という言葉が出たら、どちらの脱退かを先に切り分ける。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>同じ「脱退」でも、当然に生じる脱退と承諾が要る脱退がある。</strong>係属後の選定による脱退は別個の意思表示も相手方の同意も要らないが（30条2項）、独立当事者参加を受けた従来の当事者が抜ける訴訟脱退は相手方の承諾を得なければならない（48条）。</span><div class="tx-dgm is-matrix" data-dgm="019-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">30条2項の要件を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴訟の係属の後 → 係属の前に選定</p><p class="dgm-cell is-flat">── 脱退は起きない</p><p class="dgm-cell">はじめから選定当事者だけが原告又は被告になる<span class="dgm-src">30条1項</span></p><p class="dgm-cell is-rowhead">訴訟から脱退する → 判決の効力も及ばなくなる</p><p class="dgm-cell is-ng">✕ 効力は及ぶ</p><p class="dgm-cell">他人のために当事者となった場合のその他人に及ぶ<span class="dgm-src">115条1項2号</span></p><p class="dgm-cell is-rowhead">原告の中から選定 → 被告の中から選定</p><p class="dgm-cell is-ok">○ 同じく当然に脱退</p><p class="dgm-cell">原告側・被告側のどちらでも同じ<span class="dgm-src">30条1項・2項</span></p></div></div></div>
 
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
@@ -6136,34 +6346,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>選定者が訴訟係属後に選定当事者の選定の取消しをした場合には、当該選定者が<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>裁判所に対しその事実を書面で証明しなければ、当該取消しの効力は生じない</span><span class="tx-stmt-fix">→ 効力は相手方への通知によって生じる（36条2項→1項準用）。書面裁判所証明（規則17条）は効力要件でない</span>。<span class="tx-anscomp-line">選定当事者の選定の取消しの効力は、<strong>相手方への通知</strong>によってはじめて生じる（36条2項による同条1項の準用）。裁判所に対する書面証明（規則17条）は証明方法にすぎず、効力発生要件ではない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。取消しは裁判所に届け出て書面で証明しないと効いてこない、と思える（規則17条が書面証明を求めるから）。でも取消しの<strong>効力を発生させる</strong>のは、相手方への<strong>通知</strong>。<a class="ref-stat" id="ref-law-36-501" href="#bref-5-36">36条2項</a>が、法定代理権の消滅は相手方への通知で効力を生じるとする36条1項を選定の取消し・変更に準用しており、取消しは相手方に通知してはじめて効力を生じる。規則17条の書面裁判所証明は「取消しがあったこと」の証明方法であって、効力のスイッチではない。だから「裁判所への書面証明がなければ効力が生じない」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">選定の取消しは、<strong>相手方への通知</strong>によって効力を生じる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">選定の要件</span><span class="tx-gist-step">選定の効果</span><span class="tx-gist-step is-now">地位・権限と変動</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">選定の取消しの効力は、裁判所への書面の提出によって生じるのか、相手方への通知によって生じるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">任せたはずの選定当事者の進め方に納得できなくなった人が、選定をやめると決めました。そこで裁判所に書面を出しましたが、相手方にはまだ何も伝えていません。この時点で、取消しはもう効いているのでしょうか。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">取消しがあれば、誰を相手に訴訟をすればよいのかが変わります。そこで、何をもって<strong>効力発生要件</strong>とするかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-36" id="ref-law-36-501">36条2項</a>は、法定代理権の消滅は相手方に通知しなければその効力を生じないとする同条1項を、選定の取消し及び変更に準用しています。取消しの効力は、<strong>相手方への通知</strong>によってはじめて生じます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">訴訟を任された者が交代すれば、相手方は誰に主張し誰に書類を送ればよいのかが変わります。知らないうちに相手が入れ替わっていては手続を進められないので、法は相手方が知る機会を効力発生の条件に据えたと説明されます。民事訴訟規則が求める書面による証明は、取消しがあったことを裁判所に示す方法であって、効力を生じさせるものではありません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>効力発生要件</span></dt><dd>その行為が法律上の効果を生じるために満たさなければならない条件。裁判所に対する証明の手続とは次元が違う。</dd></div><div class="tx-gist-term"><dt><span>準用</span></dt><dd>ある事項について定めた規定を、それと似た別の事項に当てはめて使うこと。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">裁判所への書面の証明がなければ効力が生じないとした点が誤りで、取消しの効力は相手方への通知によって生じる。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>効力発生要件は相手方への通知</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-36">36条2項</a>は、『法定代理権の消滅は、本人又は代理人から相手方に通知しなければ、その効力を生じない』とする<span class="case-emphasis freq-high">36条1項を、選定当事者の選定の取消し及び変更に準用</span>する。したがって選定の取消しの効力は、<span class="ron-mark freq-high">相手方への通知によってはじめて生じる</span>。</span></p>
-<p><span class="syn-step">2</span><strong>書面裁判所証明は別次元</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-kisoku17">民訴規則17条</a>は選定・変更・取消しを<span class="case-emphasis freq-mid">書面で証明</span>すべきとするが、これは裁判所に対する<span class="ron-mark freq-high">証明方法（手続要件）であって、効力発生要件ではない</span>。効力発生要件（相手方通知）と証明方法（裁判所への書面）を取り違えた点で本記述は誤り。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>効力を生むのは「相手方への通知」。裁判所への書面は取消しがあったことの証明手段で、効力のスイッチではない。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>取消しの効力発生（36条2項→1項準用）</strong>：選定の取消し・変更は<a class="ref-stat" href="#bref-5-36">相手方への通知</a>によってはじめて効力を生じる。</li>
-<li><strong>規則17条の書面証明</strong>：裁判所に対する証明方法（手続要件）であって、効力発生要件ではない。</li>
-<li><strong>転用</strong>：訴訟上の地位・権限の消滅（法定代理権の消滅・選定の取消し）は「相手方への通知」で効力を生じる。</li>
-</ol>
+<p><span class="syn-step">2</span><strong>書面裁判所証明は別次元</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-kisoku17">民訴規則17条</a>は選定・変更・取消しを<span class="case-emphasis freq-mid">書面で証明</span>すべきとするが、これは裁判所に対する<span class="ron-mark freq-high">証明方法（手続要件）であって、効力発生要件ではない</span>。</span></p> </div>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>効力のスイッチは相手方への通知、裁判所への書面は証明の手段。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-5-36" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法36条 法定代理権消滅の通知（2項＝選定の取消し・変更に準用）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">法定代理権の消滅は、本人又は代理人から<span class="ron-mark freq-high">相手方に通知しなければ、その効力を生じない</span>。</span></p>
-<p class="hanging"><span class="para-num">②</span><span class="hang-body">前項の規定は、<span class="case-emphasis freq-high">選定当事者の選定の取消し及び変更</span>について準用する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">②</span><span class="hang-body">前項の規定は、<span class="case-emphasis freq-high">選定当事者の選定の取消し及び変更</span>について準用する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">36条2項が1項を準用する結果、選定当事者の選定の取消し・変更は<span class="case-emphasis freq-high">相手方への通知によってはじめて効力を生じる</span>。訴訟追行者が交替する場面で、相手方の手続的地位（誰を相手に訴訟をするか）を保護する趣旨。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">取消しの効力発生要件は<span class="case-emphasis freq-high">相手方への通知</span>であって、裁判所に対する書面証明ではない。効力発生要件を取り違えた本記述は誤り（記述5）。</span></div>
 </div></div></details></div>
-<div id="bref-5-kisoku17" class="tx-basis-item "><div class="tx-basis-head">📜 民訴規則17条 選定・変更・取消しの証明<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">17</span><span class="hang-body">選定当事者の選定及び変更並びにその選定の取消しは、<span class="case-emphasis freq-mid">書面で証明</span>しなければならない。</span></p></div><details class="tx-basis-more"><summary>＋ 位置づけ・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-5-kisoku17" class="tx-basis-item "><div class="tx-basis-head">📜 民訴規則17条 選定・変更・取消しの証明<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">17</span><span class="hang-body">選定当事者の選定及び変更並びにその選定の取消しは、<span class="case-emphasis freq-mid">書面で証明</span>しなければならない。</span></p></div><details class="tx-basis-more"><summary>＋ 位置づけを開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">位置づけ</span><span class="kd-text">選定・変更・取消しがあったことを裁判所に対して明らかにするための<span class="ron-mark freq-high">証明方法（手続要件）</span>。取消しの効力発生要件ではない（効力は36条2項→1項準用により相手方通知で生じる）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">選定の取消しの効力は、36条2項による同条1項の準用により、相手方への通知によってはじめて生じる。規則17条の書面裁判所証明は証明方法（手続要件）であって効力発生要件ではない。効力発生要件を取り違えた本記述は誤り。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「裁判所に書面で出す＝効力発生」と考える罠。</strong>効力を生むのは<em>相手方への通知</em>（36条2項→1項準用）。裁判所への書面証明（規則17条）は取消しの事実を示す証明方法にすぎず、効力発生要件ではない。相手方への通知で効力・対抗を生じる構造は、法定代理権の消滅（36条1項）・訴訟代理権の消滅（58条→36条準用）と共通する cross-cut。「効力発生要件（通知）」と「証明方法（書面）」を切り分ける発想を持ち回る。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>通知が要るのは意思による取消し・消滅の側で、死亡による資格喪失は通知を待たない。</strong>選定の取消し及び変更は相手方に通知しなければ効力を生じないが（36条2項による同条1項の準用）、選定当事者の一部が死亡して資格を失った場合は、通知をしなくても他の選定当事者が全員のために訴訟行為をできる（30条5項）。</span><div class="tx-dgm is-matrix" data-dgm="019-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">相手方に通知するまで効力が生じないもの</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">消滅・変動の型</p><p class="dgm-cell is-head">相手方への通知まで</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">選定当事者の選定の取消し及び変更</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">36条1項を準用<span class="dgm-src">36条2項</span></p><p class="dgm-cell is-rowhead">法定代理権の消滅</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">本人又は代理人から相手方に通知しなければ効力を生じない<span class="dgm-src">36条1項</span></p><p class="dgm-cell is-rowhead">訴訟代理権の消滅</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">36条1項を訴訟代理について準用<span class="dgm-src">59条</span></p><p class="dgm-cell is-rowhead">選定当事者の一部の死亡による資格喪失</p><p class="dgm-cell is-ok">○ 通知を待たず続行</p><p class="dgm-cell">他の選定当事者が全員のために訴訟行為をできる<span class="dgm-src">30条5項</span></p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6245,11 +6445,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:x,4:o,5:x">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く軸は「選定当事者は<b>当事者本人</b>」であること。まず入口の要件が『共同の利益』で、判例は権利の完全な同一までは求めず、同一の事実上・法律上の原因と主要な攻撃防御方法の共通で足りるとした。関連はあっても原因や主要な争点が別々なら束ねられない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>同じ製品事故が原因でも、契約に基づいて請求する者と不法行為に基づいて請求する者が混在し、主要な攻撃防御方法が別々になる場合は、共同の利益を認めにくい。</span>" data-brief-mark="訴訟の目的である権利が同一の事実上及び法律上の原因に基づき、かつ主要な攻撃防御方法が共通である複数の者は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>30条1項の「共同の利益を有する多数の者」に当たる</span>。<span class='tx-anscomp-line'>「共同の利益を有する多数の者」（30条1項）とは、<strong>権利が同一の事実上及び法律上の原因に基づき、かつ主要な攻撃防御方法を共通にする</strong>関係にある者をいう（最判昭33.4.17）。本記述はこれに合致する。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条1項「共同の利益を有する多数の者」で、29条の社団等に当たらないものが全員のため原告・被告となる者を選定できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>利害を共通にする多数者の訴訟を一人（数人）に集約し、審理を簡明にして訴訟経済を図る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>権利の完全な同一までは不要。同一の事実上及び法律上の原因＋主要な攻撃防御方法の共通で足りる（最判昭33.4.17）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>束ねられるかは「共同の利益」の有無で決まる。原因や主要な争点が別々なら束ねられない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>団体性がなくても共同の利益があれば選定当事者で束ねられる（29条の社団ルートとは別系統）。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="選定当事者が複数いる場合の欠員処理の回。法は、残った選定当事者が全員分を担うとし、数人の訴訟追行権は合有されるので欠けた人の分は他に吸収される。だから一部が欠けても訴訟は中断せず、他の選定当事者は資格を失わない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>三人の選定当事者のうち一人が審理の途中で死亡しても、残る二人がそのまま全員のために弁論を続けられ、あらためて選定し直す必要もない。</span>" data-brief-mark="複数の選定当事者の一部が訴訟係属中に死亡した場合、他の選定当事者は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>その資格を失う</span><span class='tx-stmt-fix'>→ 資格を失わず、全員のため訴訟行為を続けられる（30条5項）</span>。<span class='tx-anscomp-line'>選定当事者のうち死亡その他の事由で資格を喪失した者があるときは、<strong>他の選定当事者が全員のために訴訟行為をすることができ</strong>（30条5項）、他の選定当事者はその資格を失わない。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条5項「他の選定当事者において全員のために訴訟行為をすることができる」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>欠員による訴訟の中断・停滞を避け、審理の連続性を確保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>数人の選定当事者の訴訟追行権は合有され、資格喪失者の追行権は他の選定当事者に吸収される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>一部が死亡等で資格喪失しても、他の選定当事者は資格を失わず全員のため続行できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>複数いれば一人欠けても訴訟は中断せず残りが続行する（一人の事由が他の共同的地位に波及しない）。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-story="権限の広さは「当事者か代理人か」で決まる回。特別の授権を求める55条2項は代理人の規定で、当事者本人である選定当事者には及ばない。だから取下げ・和解のような重大な処分も、選定者の個別のOKなしにできる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>選定当事者が相手方と訴訟上の和解をする場面で、選定者から個別の同意を取っていなくても、その和解は有効に成立する。</span>" data-brief-mark="選定当事者は選定者の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>特別の授権がなければ訴えの取下げ・和解・放棄・認諾ができない</span><span class='tx-stmt-fix'>→ 特別の授権なくできる（当事者ゆえ55条2項不適用）</span>。<span class='tx-anscomp-line'>選定当事者は訴訟代理人ではなく<strong>当事者</strong>であるから、55条2項の適用を受けず、<strong>特別の授権を要さずに</strong>訴えの取下げ・和解・請求の放棄及び認諾をすることができる（最判昭43.8.27）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>55条2項は「訴訟代理人」が取下げ・和解・放棄・認諾等をするには特別の委任を要するとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>これらは本人の実体的利益を左右するため、代理人の代理権を制限したもの。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>選定当事者は当事者であって代理人でないから、55条2項の適用を受けない（最判昭43.8.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>特別の授権が要るのは代理人。当事者本人（選定当事者）は授権なく処分できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「代理人か当事者本人か」で、処分行為に特別授権が要るか否かが決まる。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-story="選定の効果として選定者が退場する回。脱退届のような別の行為は要らず、選定という一行為で当事者が入れ替わる。退場しても判決効は選定者に及ぶので、権利義務の主体でなくなるわけではない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>係属中に原告側の一人が全員のための選定当事者に選ばれると、他の原告たちは何の手続もせずその瞬間に訴訟から抜け、以後は選定当事者だけが訴訟を追行する。</span>" data-brief-mark="訴訟係属後に選定当事者が選定された場合、選定者は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>脱退のための行為をしなくとも当然に訴訟から脱退する</span>。<span class='tx-anscomp-line'>訴訟の係属後に30条1項により選定当事者を選定したときは、選定した他の当事者（選定者）は、<strong>脱退のための行為を要さず当然に訴訟から脱退する</strong>（30条2項）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条2項「その他の当事者は、当然に訴訟から脱退する」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>訴訟追行を選定当事者に一本化し、当事者を簡明にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>「当然に」＝脱退のための意思表示・届出を要さず、法律上当然に当事者の地位を失う。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>脱退のための別個の行為は不要（選定の効果として当然に脱退する）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>判決効は脱退した選定者にも及ぶ（115条1項2号）ので、権利義務の帰属主体でなくなるわけではない。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="x" data-brief-story="地位の消滅は相手方への通知で効く回。取消しの効力を生むのは通知であって、裁判所への書面証明（規則）は取消しの事実を示す手段にすぎない。効力発生要件（通知）と証明方法（書面）を切り分ける。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>選定者が選定を取り消しても、その旨が相手方に通知されるまでは、相手方は従来の選定当事者を相手に訴訟活動を続けてよい。</span>" data-brief-mark="選定の取消しは、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>裁判所に対し書面で証明しなければ効力を生じない</span><span class='tx-stmt-fix'>→ 効力は相手方への通知で生じる（36条2項→1項準用）。書面証明（規則17条）は効力要件でない</span>。<span class='tx-anscomp-line'>選定当事者の選定の取消しの効力は、<strong>相手方への通知</strong>によってはじめて生じる（36条2項による同条1項の準用）。裁判所に対する書面証明（規則17条）は証明方法にすぎず、効力発生要件ではない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>36条2項が、法定代理権消滅の通知の規定（36条1項）を選定の取消し・変更に準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>訴訟追行者が交替する場面で、相手方の手続的地位（誰を相手にするか）を保護する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>取消しの効力は相手方への通知によってはじめて生じる（36条2項→1項準用）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>効力発生要件は「相手方への通知」。規則17条の書面裁判所証明は証明方法で効力要件でない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟上の地位・権限の消滅は相手方への通知で効力・対抗を生じる（法定代理権消滅と同構造）。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="全体を貫く軸は「選定当事者は<b>当事者本人</b>」であること。まず入口の要件が『共同の利益』で、判例は権利の完全な同一までは求めず、同一の事実上・法律上の原因と主要な攻撃防御方法の共通で足りるとした。関連はあっても原因や主要な争点が別々なら束ねられない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>同じ製品事故が原因でも、契約に基づいて請求する者と不法行為に基づいて請求する者が混在し、主要な攻撃防御方法が別々になる場合は、共同の利益を認めにくい。</span>" data-brief-mark="訴訟の目的である権利が同一の事実上及び法律上の原因に基づき、かつ主要な攻撃防御方法が共通である複数の者は、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>30条1項の「共同の利益を有する多数の者」に当たる</span>。<span class='tx-anscomp-line'>「共同の利益を有する多数の者」（30条1項）とは、<strong>権利が同一の事実上及び法律上の原因に基づき、かつ主要な攻撃防御方法を共通にする</strong>関係にある者をいう（最判昭33.4.17）。本記述はこれに合致する。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条1項「共同の利益を有する多数の者」で、29条の社団等に当たらないものが全員のため原告・被告となる者を選定できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>利害を共通にする多数者の訴訟を一人（数人）に集約し、審理を簡明にして訴訟経済を図る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>権利の完全な同一までは不要。同一の事実上及び法律上の原因＋主要な攻撃防御方法の共通で足りる（最判昭33.4.17）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>束ねられるかは「共同の利益」の有無で決まる。原因や主要な争点が別々なら束ねられない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>共同の利益は権利の同一ではなく、同一の事実上及び法律上の原因と主要な攻撃防御方法の共通で判断する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">30条1項の要件を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">主要な攻撃防御方法が共通 → 原因は同一だが主要な争点が別々</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell">原因の同一と主要な攻防の共通の二つを要求<span class="dgm-src">最判昭33.4.17</span></p><p class="dgm-cell is-rowhead">共同の利益を有する多数の者 → 代表者の定めのある法人でない社団</p><p class="dgm-cell is-ng">✕ 選定できない</p><p class="dgm-cell">社団自身の名で訴え訴えられる<span class="dgm-src">29条・30条1項</span></p><p class="dgm-cell is-rowhead">その中から選定 → 共同の利益を有しない第三者を選定</p><p class="dgm-cell is-ng">✕ 選定できない</p><p class="dgm-cell">選べる相手は「その中から」に限る<span class="dgm-src">30条1項</span></p><p class="dgm-cell is-rowhead">同一の原因＋主要な攻防の共通 → 権利が同種で同種の原因</p><p class="dgm-cell is-acc">△ 共同訴訟は組める</p><p class="dgm-cell">同種の原因は共同訴訟の要件にとどまる<span class="dgm-src">38条後段</span></p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="選定当事者が複数いる場合の欠員処理の回。法は、残った選定当事者が全員分を担うとし、数人の訴訟追行権は合有されるので欠けた人の分は他に吸収される。だから一部が欠けても訴訟は中断せず、他の選定当事者は資格を失わない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>三人の選定当事者のうち一人が審理の途中で死亡しても、残る二人がそのまま全員のために弁論を続けられ、あらためて選定し直す必要もない。</span>" data-brief-mark="複数の選定当事者の一部が訴訟係属中に死亡した場合、他の選定当事者は<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>その資格を失う</span><span class='tx-stmt-fix'>→ 資格を失わず、全員のため訴訟行為を続けられる（30条5項）</span>。<span class='tx-anscomp-line'>選定当事者のうち死亡その他の事由で資格を喪失した者があるときは、<strong>他の選定当事者が全員のために訴訟行為をすることができ</strong>（30条5項）、他の選定当事者はその資格を失わない。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条5項「他の選定当事者において全員のために訴訟行為をすることができる」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>欠員による訴訟の中断・停滞を避け、審理の連続性を確保する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>数人の選定当事者の訴訟追行権は合有され、資格喪失者の追行権は他の選定当事者に吸収される。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>一部が死亡等で資格喪失しても、他の選定当事者は資格を失わず全員のため続行できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>他人のために当事者となる者が欠けたときは、残る者がいれば続行し、全員が欠けたときに手続が中断する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">欠けたのが誰かで訴訟の行方が変わる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">欠けたのは</p><p class="dgm-cell is-head">訴訟の行方</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">選定当事者の一部</p><p class="dgm-cell is-ok">○ 中断せず続行</p><p class="dgm-cell">他の選定当事者が全員のために訴訟行為をできる<span class="dgm-src">30条5項</span></p><p class="dgm-cell is-rowhead">選定当事者の全員</p><p class="dgm-cell is-ng">✕ 手続は中断</p><p class="dgm-cell">選定者の全員又は新たな選定当事者が受け継ぐ<span class="dgm-src">124条1項6号</span></p><p class="dgm-cell is-rowhead">破産管財人など一定の資格で当事者となる者</p><p class="dgm-cell is-ng">✕ 手続は中断</p><p class="dgm-cell">同一の資格を有する者が受け継ぐ<span class="dgm-src">124条1項5号</span></p><p class="dgm-cell is-rowhead">全員が欠けたが訴訟代理人がいる</p><p class="dgm-cell is-ok">○ 中断しない</p><p class="dgm-cell">中断の規定は訴訟代理人がある間は適用しない<span class="dgm-src">124条2項</span></p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="権限の広さは「当事者か代理人か」で決まる回。特別の授権を求める55条2項は代理人の規定で、当事者本人である選定当事者には及ばない。だから取下げ・和解のような重大な処分も、選定者の個別のOKなしにできる。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>選定当事者が相手方と訴訟上の和解をする場面で、選定者から個別の同意を取っていなくても、その和解は有効に成立する。</span>" data-brief-mark="選定当事者は選定者の<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>特別の授権がなければ訴えの取下げ・和解・放棄・認諾ができない</span><span class='tx-stmt-fix'>→ 特別の授権なくできる（当事者ゆえ55条2項不適用）</span>。<span class='tx-anscomp-line'>選定当事者は訴訟代理人ではなく<strong>当事者</strong>であるから、55条2項の適用を受けず、<strong>特別の授権を要さずに</strong>訴えの取下げ・和解・請求の放棄及び認諾をすることができる（最判昭43.8.27）。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>55条2項は「訴訟代理人」が取下げ・和解・放棄・認諾等をするには特別の委任を要するとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>これらは本人の実体的利益を左右するため、代理人の代理権を制限したもの。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>選定当事者は当事者であって代理人でないから、55条2項の適用を受けない（最判昭43.8.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>特別の授権が要るのは代理人。当事者本人（選定当事者）は授権なく処分できる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>処分行為に特別の授権が要るかは、その者が当事者本人か代理人・法定代理人かで決まる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">取下げ・和解・放棄・認諾に特別の授権が要るか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">誰がするか</p><p class="dgm-cell is-head">特別の授権</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">選定当事者（当事者本人）</p><p class="dgm-cell is-ok">○ 要らない</p><p class="dgm-cell">訴訟代理人ではなく当事者だから55条2項の適用がない<span class="dgm-src">最判昭43.8.27</span></p><p class="dgm-cell is-rowhead">訴訟代理人である弁護士</p><p class="dgm-cell is-ng">✕ 特別の委任が要る</p><p class="dgm-cell">取下げ・和解・放棄・認諾は特別の委任事項<span class="dgm-src">55条2項2号</span></p><p class="dgm-cell is-rowhead">後見人その他の法定代理人</p><p class="dgm-cell is-ng">✕ 特別の授権が要る</p><p class="dgm-cell">同じ行為に特別の授権を要求<span class="dgm-src">32条2項1号</span></p><p class="dgm-cell is-rowhead">支配人など法令上の訴訟代理人</p><p class="dgm-cell is-ok">○ 要らない</p><p class="dgm-cell">法令により裁判上の行為をできる代理人の権限を妨げない<span class="dgm-src">55条4項</span></p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="選定の効果として選定者が退場する回。脱退届のような別の行為は要らず、選定という一行為で当事者が入れ替わる。退場しても判決効は選定者に及ぶので、権利義務の主体でなくなるわけではない。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>係属中に原告側の一人が全員のための選定当事者に選ばれると、他の原告たちは何の手続もせずその瞬間に訴訟から抜け、以後は選定当事者だけが訴訟を追行する。</span>" data-brief-mark="訴訟係属後に選定当事者が選定された場合、選定者は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>脱退のための行為をしなくとも当然に訴訟から脱退する</span>。<span class='tx-anscomp-line'>訴訟の係属後に30条1項により選定当事者を選定したときは、選定した他の当事者（選定者）は、<strong>脱退のための行為を要さず当然に訴訟から脱退する</strong>（30条2項）。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>30条2項「その他の当事者は、当然に訴訟から脱退する」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>訴訟追行を選定当事者に一本化し、当事者を簡明にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>「当然に」＝脱退のための意思表示・届出を要さず、法律上当然に当事者の地位を失う。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>脱退のための別個の行為は不要（選定の効果として当然に脱退する）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>他人のために当事者となった者が受けた確定判決の効力は、その他人にも及ぶ（115条1項2号）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">30条2項の要件を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴訟の係属の後 → 係属の前に選定</p><p class="dgm-cell is-flat">── 脱退は起きない</p><p class="dgm-cell">はじめから選定当事者だけが原告又は被告になる<span class="dgm-src">30条1項</span></p><p class="dgm-cell is-rowhead">訴訟から脱退する → 判決の効力も及ばなくなる</p><p class="dgm-cell is-ng">✕ 効力は及ぶ</p><p class="dgm-cell">他人のために当事者となった場合のその他人に及ぶ<span class="dgm-src">115条1項2号</span></p><p class="dgm-cell is-rowhead">原告の中から選定 → 被告の中から選定</p><p class="dgm-cell is-ok">○ 同じく当然に脱退</p><p class="dgm-cell">原告側・被告側のどちらでも同じ<span class="dgm-src">30条1項・2項</span></p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="x" data-brief-story="地位の消滅は相手方への通知で効く回。取消しの効力を生むのは通知であって、裁判所への書面証明（規則）は取消しの事実を示す手段にすぎない。効力発生要件（通知）と証明方法（書面）を切り分ける。<span class='tx-vb-ex'><span class='tx-vb-ex-tag'>たとえば</span>選定者が選定を取り消しても、その旨が相手方に通知されるまでは、相手方は従来の選定当事者を相手に訴訟活動を続けてよい。</span>" data-brief-mark="選定の取消しは、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>裁判所に対し書面で証明しなければ効力を生じない</span><span class='tx-stmt-fix'>→ 効力は相手方への通知で生じる（36条2項→1項準用）。書面証明（規則17条）は効力要件でない</span>。<span class='tx-anscomp-line'>選定当事者の選定の取消しの効力は、<strong>相手方への通知</strong>によってはじめて生じる（36条2項による同条1項の準用）。裁判所に対する書面証明（規則17条）は証明方法にすぎず、効力発生要件ではない。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>36条2項が、法定代理権消滅の通知の規定（36条1項）を選定の取消し・変更に準用する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>訴訟追行者が交替する場面で、相手方の手続的地位（誰を相手にするか）を保護する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>取消しの効力は相手方への通知によってはじめて生じる（36条2項→1項準用）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>効力発生要件は「相手方への通知」。規則17条の書面裁判所証明は証明方法で効力要件でない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟上の地位・権限の消滅は、相手方への通知によってはじめて効力を生じる。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="019-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">相手方に通知するまで効力が生じないもの</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">消滅・変動の型</p><p class="dgm-cell is-head">相手方への通知まで</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">選定当事者の選定の取消し及び変更</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">36条1項を準用<span class="dgm-src">36条2項</span></p><p class="dgm-cell is-rowhead">法定代理権の消滅</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">本人又は代理人から相手方に通知しなければ効力を生じない<span class="dgm-src">36条1項</span></p><p class="dgm-cell is-rowhead">訴訟代理権の消滅</p><p class="dgm-cell is-ng">✕ 効力を生じない</p><p class="dgm-cell">36条1項を訴訟代理について準用<span class="dgm-src">59条</span></p><p class="dgm-cell is-rowhead">選定当事者の一部の死亡による資格喪失</p><p class="dgm-cell is-ok">○ 通知を待たず続行</p><p class="dgm-cell">他の選定当事者が全員のために訴訟行為をできる<span class="dgm-src">30条5項</span></p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

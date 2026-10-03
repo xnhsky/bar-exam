@@ -5666,6 +5666,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5953,7 +6188,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>まだ生きているVを既に死亡したものと思って遺棄した無関係の乙について、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>死体遺棄罪の成立を肯定することができる</span><span class="tx-stmt-fix">→ 保護法益が異なり重なり合わず死体遺棄罪は成立しない（不可罰）</span>。<span class="tx-anscomp-line">認識事実（死体遺棄罪＝刑法190条）と実現事実（単純遺棄罪＝刑法217条）は保護法益（宗教的感情 vs 生命・身体）を異にし構成要件的に重なり合わないため、実質的符合説によっても死体遺棄罪の故意は認められず、乙に死体遺棄罪は成立しない（不可罰）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。乙は「もう死んでいる人を捨てた」つもり（死体遺棄）だが、実際は「まだ生きている人を置き去りにした」（単純遺棄）。認識と現実が<strong>別々の犯罪</strong>にまたがる<strong>抽象的事実の錯誤</strong>（構成要件を跨ぐ勘違い）だ。法定的符合説（実質的符合説）は、二つの罪が<strong>保護法益</strong>（その罪が守ろうとする利益）で重なり合う範囲でだけ軽い罪の故意を認める。ところが<a class="ref-stat" href="#bref-1-190">死体遺棄罪</a>が守るのは<strong>死者への宗教的感情</strong>、<a class="ref-stat" href="#bref-1-217">単純遺棄罪</a>が守るのは<strong>人の生命・身体</strong>。守る利益がまるで違うので重なり合わず、乙に死体遺棄罪の故意は認められない。だから「肯定できる」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">保護法益が重ならない以上、<strong>死体遺棄罪</strong>の故意は認められない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的事実の錯誤</span><span class="tx-gist-step is-now">抽象的事実の錯誤</span><span class="tx-gist-step">因果関係の錯誤</span><span class="tx-gist-step">錯誤論の外</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">死んだと思って生きた人を遺棄した者に、死体遺棄罪の故意を認めてよいか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">重傷を負って路上に倒れていた人を、通りかかった第三者が見つけます。顔色から「もう亡くなっている」と思い込み、人目につかない場所へ運んで置き去りにしました。ところが、その人はまだ生きていました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">第三者の頭の中にあったのは死者を捨てる罪、現実に起きたのは生きた要扶助者を置き去りにする罪です。認識した罪と実現した罪が別の構成要件にまたがる<strong>抽象的事実の錯誤</strong>として、どちらの故意を問えるかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">法定的符合説（実質的符合説）は、二つの構成要件が保護法益と行為のかたちで共通する限度でだけ、軽い罪の故意を認めます。<a class="ref-stat" href="#bref-1-190">死体遺棄罪</a>（刑法190条）が守るのは死者に対する宗教的感情、<a class="ref-stat" href="#bref-1-217">単純遺棄罪</a>（刑法217条）が守るのは要扶助者の生命・身体ですから、重なり合いは認められません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">思い込みの強さで故意の有無を決めてしまうと、罪の種類ごとに守ろうとする利益が違うことを無視することになります。そこで重なり合いは、守る利益が共通するかどうかという客観的なものさしで測ると説明されます。宗教的感情と生命・身体のあいだには、そのものさしで橋が架かりません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>抽象的事実の錯誤</span></dt><dd>認識した犯罪事実と実現した犯罪事実とが、別の構成要件にまたがってずれている場合。</dd></div><div class="tx-gist-term"><dt><span>保護法益</span></dt><dd>その犯罪類型が守ろうとしている利益。死体遺棄罪は死者に対する宗教的感情、単純遺棄罪は要扶助者の生命・身体。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">死体遺棄罪の成立を肯定できるとしている点が誤りです。重なり合いを欠くので死体遺棄罪の故意は認められず、生きた人を遺棄した点も過失にとどまって処罰規定がないため、この第三者は不可罰となります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>重なり合いは保護法益で測る</strong><span class="syn-body">実質的符合説では、異なる構成要件間の錯誤でも<span class="case-emphasis freq-high">保護法益と構成要件的行為が共通する限度</span>で軽い罪の故意を認める。死体遺棄罪の保護法益は<span class="ron-mark freq-high">死者に対する国民の宗教的感情（敬虔感情）</span>、単純遺棄罪の保護法益は<span class="ron-mark freq-high">要扶助者の生命・身体の安全</span>。両者は法益を全く異にする。</span></p>
 <p><span class="syn-step">2</span><strong>重なりが無ければ故意は生まれない</strong><span class="syn-body">保護法益の共通性を欠く以上、認識した死体遺棄罪と実現した単純遺棄罪との間に重なり合いは認められず、乙に<a class="ref-stat" href="#bref-1-190">死体遺棄罪</a>の故意は認められない。乙の行為は死体遺棄罪の未遂又は不能犯にとどまり、生きた人を遺棄した点も過失による遺棄にすぎないから、いずれも処罰規定がなく<span class="case-emphasis freq-mid">不可罰</span>となる。よって死体遺棄罪の成立を肯定する本記述は誤り。</span></p> </div>
@@ -6000,7 +6235,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>V1に命中した弾丸がV2にも当たり両名死亡した場合、V1に結果が発生した以上、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>V2に対する殺人罪の成立を肯定する余地はない</span><span class="tx-stmt-fix">→ 数故意犯説によればV2にも殺人罪の成立を肯定し得る</span>。<span class="tx-anscomp-line">法定的符合説のうち<strong>数故意犯説</strong>によれば、「人を殺す」認識があれば足り客体の数は責任の量の問題にすぎないから、併発したV2に対しても殺人既遂罪（刑法199条）の成立を肯定し得る。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。1発の弾がV1を貫きV2にも当たって二人が死亡。「V1でもう結果が出たのだから、V2の分はもう殺人にならない」と思いたくなる。これは同一構成要件内の<strong>方法の錯誤（併発事案）</strong>で、法定的符合説の通説である<strong>数故意犯説</strong>（「人を殺す」意思があれば、当たった相手ごとに故意を認める考え）では、当たったV2に対しても<a class="ref-stat" href="#bref-2-199">殺人罪</a>が成立し得る。殺される人数は<strong>責任の量</strong>の問題にすぎず、故意そのものは失われない。だから「余地はない」と言い切る本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">数故意犯説によれば、併発した相手にも<strong>殺人罪</strong>は成立し得る。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">具体的事実の錯誤</span><span class="tx-gist-step">抽象的事実の錯誤</span><span class="tx-gist-step">因果関係の錯誤</span><span class="tx-gist-step">錯誤論の外</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">一発の弾が二人に当たったとき、狙っていなかった相手への故意を認められるか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">撃った者は、目の前の相手を殺すつもりでけん銃を発射します。弾はその相手に命中したうえ、さらに後ろにいた別の人にも当たり、二人とも死亡しました。殺すつもりだったのは一人だけです。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">狙った相手では結果が出ています。すると、意図しなかったもう一人の死は<strong>方法の錯誤</strong>として故意の外に出るのか、それとも二人分の故意を認めるのかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">法定的符合説は、故意の中身を「人を殺す」という構成要件のレベルで捉え、相手が誰かは故意を左右しないとします。その通説である数故意犯説は当たった相手それぞれに故意を認めるので、併発した相手に対しても<a class="ref-stat" href="#bref-2-199">殺人罪</a>（刑法199条）が成立し得ます（最判昭53.7.28も同じ発想です）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">殺人罪の条文は「人を殺した」と定めるだけで、被害者が誰であるかを要件にしていません。だから結果が何人に生じても故意そのものは失われず、人数の多さは故意の有無ではなく責任の重さで調整すれば足りると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>方法の錯誤</span></dt><dd>狙った客体ではなく別の客体に結果が生じた場合。打撃の錯誤ともいう。</dd></div><div class="tx-gist-term"><dt><span>数故意犯説</span></dt><dd>法定的符合説のうち、併発した客体それぞれについて故意犯の成立を認める考え方。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">成立を肯定する余地はないと言い切っている点が誤りです。数故意犯説によれば、併発した相手についても殺人既遂罪が成立し得ます。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>「人を殺す」認識で足りる</strong><span class="syn-body">法定的符合説では、故意の対象は<span class="case-emphasis freq-high">「人」という構成要件のレベル</span>で足り、狙った相手か否かは故意を左右しない（具体的事実の錯誤＝方法の錯誤）。甲は「人を殺す」認識でV2にも死の結果を生じさせている。</span></p>
 <p><span class="syn-step">2</span><strong>故意の個数は数故意犯説で処理</strong><span class="syn-body">併発した複数の結果につき、故意の個数を問題とする場面。<span class="ron-mark freq-high">数故意犯説</span>は「人を殺す」認識があれば足り、殺される人数は<span class="case-emphasis freq-mid">責任の量</span>で考慮すべきとして、V1・V2双方に殺人既遂の故意を認める（<a class="ref-case" href="#bref-2-case">最判昭53.7.28</a>と同じ発想）。よって法定的符合説からもV2に対する殺人罪の成立を肯定し得るから、「余地はない」とする本記述は誤り。</span></p> </div>
@@ -6040,7 +6275,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>頭部で即死させるつもりが下腿部に命中させ搬送先の病院で死亡させた場合、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>殺人罪の成立は否定される</span><span class="tx-stmt-fix">→ 因果関係の錯誤は故意を阻却せず殺人罪が成立する</span>。<span class="tx-anscomp-line">予期した因果経過（頭部命中で即死）と現実の因果経過（下腿部受傷→搬送先で死亡）はいずれも相当因果関係の範囲内で符合し、認識不要説によっても因果関係の錯誤は故意を阻却しないから、殺人既遂罪（刑法199条）が成立する。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。頭を狙ったのに足に当たり、運ばれた病院で死んだ。「予定と違う道筋で死んだから殺人は否定される」と読みたくなる。でもこれは<strong>因果関係の錯誤</strong>（死に至る道筋の食い違い）にすぎない。予定した経過も現実の経過も<strong>相当因果関係</strong>（社会通念上ありふれた因果の範囲）に収まる限り、<a class="ref-stat" href="#bref-3-199">殺人</a>の故意は消えない。そもそも因果経過の認識までは要らないとする説（認識不要説）でも結論は同じ。よって殺人罪は成立し、「否定される」は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">相当因果関係の範囲で符合する以上、<strong>殺人既遂罪</strong>が成立する。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的事実の錯誤</span><span class="tx-gist-step">抽象的事実の錯誤</span><span class="tx-gist-step is-now">因果関係の錯誤</span><span class="tx-gist-step">錯誤論の外</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">思い描いた死に至る道筋と現実の道筋がずれると、故意は消えるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">撃った者は、頭に当てて即死させるつもりでけん銃を発射します。弾は頭をそれて下肢に当たり、相手は搬送された病院で死亡しました。狙った部位も、死に至る経過も、思い描いたものとは違っています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">死という結果そのものは狙いどおりに生じています。ずれたのは死に至る道筋だけです。この<strong>因果関係の錯誤</strong>が故意を阻却するかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">予見した因果経過と現実の因果経過が相当因果関係の範囲内で符合する限り、故意は阻却されません。殺意で撃った弾による受傷から死亡に至る経過はありふれたものですから、<a class="ref-stat" href="#bref-3-199">殺人</a>の故意は残り、殺人既遂罪（刑法199条）が成立します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">故意に必要なのは実行行為と結果の認識であって、死に至る細かい道筋まで的中している必要はありません。因果経過の認識はそもそも故意の要素でないとする認識不要説からは、このずれは初めから問題になりません。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>因果関係の錯誤</span></dt><dd>行為者が予見した因果経過と、現実に結果へ至った因果経過とがずれている場合。</dd></div><div class="tx-gist-term"><dt><span>相当因果関係</span></dt><dd>その行為からその結果が生じることが、社会生活上ありふれていると評価できる関係。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">殺人罪の成立は否定されるとしている点が誤りです。因果経過のずれは故意を阻却しないので、殺人既遂罪が成立します。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>相当因果の範囲で符合すれば故意存続</strong><span class="syn-body">因果関係の錯誤は、行為者の<span class="case-emphasis freq-high">予見した因果経過と現実の因果経過とが相当因果関係の範囲内で符合する限り</span>、故意を阻却しない。予見した「頭部命中で即死」も現実の「下腿部受傷→搬送先で死亡」も、殺意で撃った弾による死という点で<span class="ron-mark freq-high">相当因果関係の範囲内</span>にあり符合する。</span></p>
 <p><span class="syn-step">2</span><strong>認識不要説でも結論は同じ</strong><span class="syn-body">そもそも<span class="ron-mark freq-high">因果関係の認識不要説</span>によれば、故意は結果発生の認識で足り、因果経過の具体的な認識は不要だから、因果経過のズレは故意を阻却しない。いずれの見解でも殺人の故意が認められ、<a class="ref-stat" href="#bref-3-199">殺人既遂罪</a>が成立する。よって「否定される」とする本記述は誤り。</span></p> </div>
@@ -6083,7 +6318,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>殺意で撃った弾がVでなくVの犬に当たり死なせた場合、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>器物損壊罪の成立は否定される</span>。<span class="tx-anscomp-line">認識事実（殺人＝人の生命）と実現事実（器物損壊＝他人の財産）は保護法益を異にし構成要件的に重なり合わないため、実質的符合説によっても器物損壊罪の故意は認められず、甲に器物損壊罪は成立しない（Vにつき殺人未遂罪、犬につき過失器物損壊で不可罰）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。人を狙った弾が外れ、そばの犬に当たった。狙いは殺人、実現したのは<a class="ref-stat" href="#bref-4-261">器物損壊</a>（他人の財物＝犬を壊す罪）。これも<strong>抽象的事実の錯誤</strong>だ。だが<a class="ref-stat" href="#bref-4-199">殺人罪</a>が守るのは<strong>人の生命</strong>、器物損壊罪が守るのは<strong>他人の財産</strong>。守る利益が重なり合わないので、器物損壊罪の故意は認められず、器物損壊罪は成立しない（犬を死なせた点は過失にとどまり不可罰、Vに向けた点は殺人未遂の問題）。だから「否定される」は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">生命と財産は重なり合わないから、<strong>器物損壊罪</strong>は成立しない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的事実の錯誤</span><span class="tx-gist-step is-now">抽象的事実の錯誤</span><span class="tx-gist-step">因果関係の錯誤</span><span class="tx-gist-step">錯誤論の外</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">人を狙った弾が物に当たったとき、器物損壊罪の故意を認められるか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">撃った者は、目の前の相手を殺すつもりでけん銃を発射します。弾は相手をそれて、その人が散歩に連れていた犬に当たり、犬は死にました。人には当たっていません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">頭にあったのは人を殺す罪、現実に起きたのは他人の物を壊す罪です。動物も刑法上の「物」に当たるので、結果だけ見れば物が壊れています。ここでも<strong>抽象的事実の錯誤</strong>の処理が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-4-199">殺人罪</a>（刑法199条）が守るのは人の生命、<a class="ref-stat" href="#bref-4-261">器物損壊</a>罪（刑法261条）が守るのは他人の財産です。保護法益に共通性がないので重なり合いを欠き、器物損壊罪の故意は認められません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">重なり合いを欠く場面では、結果が現に生じていてもその罪の故意犯にはなりません。犬を死なせた点は過失による器物損壊にとどまり、処罰規定がないので不可罰です。人に向けて撃った点は、危険の発生を前提に殺人未遂罪（刑法203条・199条）の問題として別に評価されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>器物損壊罪</span></dt><dd>他人の物を損壊し、又は傷害する罪（刑法261条）。動物も「物」に含まれ、殺傷は「傷害」に当たる。未遂も過失も処罰されない。</dd></div><div class="tx-gist-term"><dt><span>重なり合い</span></dt><dd>認識した構成要件と実現した構成要件が、保護法益と行為態様を共通にする部分。その限度で軽い罪の故意が認められる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">器物損壊罪の成立は否定されるという結論は正しいです。重なり合いを欠くため器物損壊罪の故意がなく、同罪は成立しません。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>殺人と器物損壊は法益を異にする</strong><span class="syn-body">認識事実は<a class="ref-stat" href="#bref-4-199">殺人罪</a>（保護法益＝人の生命）、実現事実は<a class="ref-stat" href="#bref-4-261">器物損壊罪</a>（保護法益＝他人の財産＝物の効用）。構成要件を跨ぐ抽象的事実の錯誤だが、<span class="ron-mark freq-high">保護法益に共通性がない</span>ため重なり合いを欠く。</span></p>
 <p><span class="syn-step">2</span><strong>重なりが無いから器物損壊罪の故意は無い</strong><span class="syn-body">重なり合いを欠く以上、甲に器物損壊罪の故意は認められず、器物損壊罪は成立しない。犬を死なせた点は<span class="case-emphasis freq-mid">過失による器物損壊</span>にとどまり処罰規定がなく不可罰、Vに向けて発砲した点は危険発生を条件に<span class="case-emphasis freq-high">殺人未遂罪</span>（203条・199条）の問題となる。よって「器物損壊罪の成立は否定される」は正しい。</span></p> </div>
@@ -6127,7 +6362,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>空き巣を唆されたが乙が断念し帰途に自分のため新たに万引きした場合、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>甲について窃盗（既遂）教唆罪の成立を肯定することができる</span><span class="tx-stmt-fix">→ 着手なし・新犯意で因果性なく窃盗教唆罪は成立しない</span>。<span class="tx-anscomp-line">空き巣は乙が実行に着手しておらず（共犯従属性）、コンビニでの万引きは乙が新たな窃盗の犯意を生じたもので教唆と正犯の窃盗との因果性を欠くから、錯誤の見解いかんにかかわらず甲に窃盗（既遂）教唆罪は成立しない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。空き巣をそそのかしたが、実行役の乙は戸締まりが固くて諦め、帰り道に自分の空腹で別のパンを万引きした。「結局は盗んだのだから教唆も成立」と思いたくなる。でも狙われたV宅の空き巣は乙が<strong>実行の着手</strong>すらしておらず、<a class="ref-stat" href="#bref-5-61">教唆犯</a>は正犯の実行行為があって初めて成立する（共犯従属性）から不成立。コンビニの<a class="ref-stat" href="#bref-5-235">万引き</a>は乙が<strong>新たな犯意</strong>（別に盗む決意）で起こしたもので、そそのかしとの<strong>因果性</strong>（原因と結果のつながり）が切れている。だから錯誤の議論を待つまでもなく窃盗教唆罪は成立しない（×）。この記述だけは錯誤論でなく共犯の因果性で決まる引っかけだ。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">着手がなく新たな犯意も介在するから、<strong>窃盗教唆罪</strong>は成立しない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的事実の錯誤</span><span class="tx-gist-step">抽象的事実の錯誤</span><span class="tx-gist-step">因果関係の錯誤</span><span class="tx-gist-step is-now">錯誤論の外</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">唆した窃盗とは別の窃盗が実行されたとき、唆した者に教唆の罪を問えるか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">唆した者は、ある家に空き巣に入るよう実行役をそそのかします。実行役は現場まで行きましたが、戸締まりが厳重なので諦めて帰ります。その帰り道、自宅近くのコンビニで急に空腹を覚え、自分で食べるためにパンを万引きしました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">結果として窃盗は実現しています。しかしそれは唆された空き巣ではありません。唆した者に<strong>教唆犯</strong>の責任を負わせられるかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-61">教唆犯</a>（刑法61条）は、正犯が教唆に基づいて犯罪を実行して初めて成立します（共犯従属性）。空き巣は実行の着手すらないので教唆は成立せず、コンビニでの<a class="ref-stat" href="#bref-5-235">万引き</a>は実行役が新たな犯意で起こしたものですから、教唆行為との因果性も認められません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">教唆を処罰する根拠は、人に犯意を生じさせてその犯罪を実現させた点にあります。実行役が自分の判断で別の犯罪を決意したのなら、その結果はもはや唆した者の働きかけに結びつきません。だから故意の錯誤をどう考えるかとは無関係に、結論が決まります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>共犯従属性</span></dt><dd>教唆犯や従犯の成立は、正犯が実行行為に出ることを前提とするという考え方。</dd></div><div class="tx-gist-term"><dt><span>教唆の因果性</span></dt><dd>教唆行為と正犯の実行行為とのつながり。正犯が独立に新たな犯意を生じた場合は否定される。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">窃盗（既遂）教唆罪の成立を肯定することができるとしている点が誤りです。着手がなく因果性も切れているので、唆した者には窃盗既遂の教唆も未遂の教唆も成立せず、不可罰となります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>V宅の空き巣は着手なしで教唆不成立</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-61">教唆犯（61条）</a>は、正犯者が教唆に基づいて<span class="case-emphasis freq-high">犯罪を実行</span>してはじめて成立する（共犯従属性）。乙はV宅の戸締まりが厳重で<span class="ron-mark freq-high">実行の着手すらしていない</span>から、教唆者たる甲にも窃盗（未遂・既遂）教唆罪は成立しない。</span></p>
 <p><span class="syn-step">2</span><strong>コンビニ万引きは新犯意で因果性が切れる</strong><span class="syn-body">乙は空き巣を断念して帰宅する途中、自宅近くのコンビニで急に空腹を覚え、自分で食べるために<span class="ron-mark freq-high">新たな窃盗の犯意</span>を生じて万引きした。これは甲の教唆に基づく行為ではなく、教唆と乙の窃盗との<span class="case-emphasis freq-high">因果性が否定される</span>。したがって、錯誤についてどの見解に立つかにかかわらず、甲に<a class="ref-stat" href="#bref-5-235">窃盗（既遂）教唆罪</a>は成立しない。よって成立を肯定する本記述は誤り。</span></p> </div>

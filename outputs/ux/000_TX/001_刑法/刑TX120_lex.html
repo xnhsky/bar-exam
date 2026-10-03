@@ -5671,6 +5671,104 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6237,11 +6335,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:x,4:o,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>原因行為説では原因行為（覚醒剤使用）が実行行為で、二重の故意もそろい計画どおり結果発生＝<b>殺人既遂が成立し得る</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>原因行為説では責任能力ある原因行為が実行行為となり、原因行為時に二重の故意（結果の予見と責任無能力に陥る予見）がそろえば、心神喪失下で計画どおり結果を生じさせても<strong>殺人既遂</strong>が成立し得る。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項は心神喪失者の行為を罰しないが、原因行為説は責任能力のある原因行為を実行行為に据える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任非難には行為時の責任能力を要する（責任主義）。実行行為を原因行為へ前倒しして完全な責任を保つ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為時に結果の予見と責任無能力に陥る予見（二重の故意）がそろう計画実行型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>原因行為の時点で故意も責任能力もそろい、結果が計画どおり発生したかが分かれ目。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為を原因行為へ前倒しできるか」を各事例の故意・着手の有無に当てはめる型。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>実行行為の時点と着手時期を分ければ、結果の危険が未発生の事例Ⅱは着手なく<b>殺人未遂も成立しない</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>原因行為説を採っても殺人未遂（43条）の成立には結果発生の現実的危険が必要であり、実行行為の開始と実行の着手時期を区別すれば、危険が生じる前に頓挫した事案では<strong>殺人未遂は成立しない</strong>。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>43条の未遂は「実行に着手してこれを遂げない」こと。実行行為の開始と着手時期を区別できるか。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>未遂処罰の根拠は結果発生の現実的危険。危険が生じて初めて実行の着手を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為（覚醒剤使用）はしたが被害者宅へ向かわず危険が未発生の頓挫型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>実行行為が始まっても、結果発生の現実的危険が生じたかで殺人未遂の成否が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為の時点」と「着手時期」を切り分ける発想を、原因において自由な行為の未遂に応用する。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-mark="<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>原因行為時は暴行の習癖を認識するのみで殺意を欠き、故意が認められないから<b>殺人既遂は成立しない</b></span><span class='tx-stmt-fix'>→ 「成立し得る」は誤り</span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>原因行為説でも構成要件的故意（38条1項）は原因行為の時点で必要であり、原因行為時に殺意を欠き心神喪失後に殺意が生じたにすぎない場合は<strong>殺人既遂は成立しない</strong>。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>38条1項の故意は構成要件該当事実の認識。原因行為説でも故意は原因行為時に要る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>前倒しできるのは実行行為の枠であって、殺意（故意）まで擬制はできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為時に暴行の習癖しか認識せず、殺意が心神喪失後に後発した殺意後発型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>原因行為の時点で殺意があったか。後発の殺意では殺人の故意を欠き既遂は立たない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為を前倒ししても故意まで前借りできない」を、故意の存在時点の検討に使う。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="o" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>結果行為説でも意思決定時に責任能力があれば39条1項の適用が排除され<b>殺人既遂が成立し得る</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>結果行為説では責任能力は意思決定時に存すれば足り、殺害を決意した時点で責任能力がある以上、心神喪失下の結果行為による殺害でも<strong>刑法39条1項</strong>の適用が排除され殺人既遂が成立し得る。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項の「心神喪失者の行為」該当性を、意思決定時の責任能力で排除できるか。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力と実行行為の同時存在の原則に例外を認め、意思決定時の能力で足りるとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>責任無能力下の結果行為を実行行為としつつ、決意時に責任能力があった計画実行型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>殺害の決意（意思決定）の時点で責任能力があったかが、39条1項排除の分かれ目。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「能力は意思決定時で足りる」という例外モデルを、原因行為説と対比して使い分ける。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>結果行為が実行行為＝殺害に着手していない事例Ⅱは実行の着手なく<b>殺人未遂も成立しない</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>結果行為説では結果行為（殺害行為）が実行行為であるから、殺害行為に全く着手していない事案では実行の着手（43条）を欠き<strong>殺人未遂は成立しない</strong>。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>43条の実行の着手を、実行行為＝結果行為とみる立場から判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>結果行為説では実行行為が結果行為なので、着手も結果行為の開始で判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被害者宅へ赴かず殺害行為に全く取りかからなかった未着手型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>殺害行為（結果行為）に着手したか。着手が全くなければ殺人未遂の入口にも立たない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為をどこに置くか」で着手の判断基準が変わることを、原因行為説の帰結と比べて確認する。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="責任なければ刑罰なし。39条1項が心神喪失者の行為を罰しないと定めるのは、善悪を見分けて自分を止める力のない人に、刑罰で動機づけても意味がないからである。ところが自分から薬物や酒で我を失ってよいなら、この原則はそのまま処罰の抜け穴になる。そこで<b>実行行為を、まだ正気だった原因行為まで前倒しする</b>のが原因行為説で、犯罪のかたち（構成要件）そのものを原因行為の段階で満たすと考える。前倒しには代償がつき、故意も予見もその時点でそろっていなければならない――結果を起こすという認識と、<b>これから自分は我を失うという予見</b>の二つである。責任を遡らせるなら、遡らせた先に判断材料が全部そろっていることを求める――この<b>対価関係</b>が原因行為説の芯である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>薬物や飲酒の事案では、検察官が使用前の計画性（下見・凶器の用意・事前の言動）を集めて原因行為時の認識を立証し、弁護人はその時点では漠然とした不満しかなかったと争うのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>原因の時点に責任の起点を置く発想は、立法にも現れている。2013年に成立し2014年5月に施行された自動車運転死傷行為処罰法は、その3条で、アルコールや薬物の影響により走行中に正常な運転に支障が生じるおそれがある状態で運転を始めたこと自体を要件に組み込んだ。事故の瞬間ではなく、ハンドルを握った時点を責任の起点に据えた条文である。</span>" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>原因行為説では原因行為（覚醒剤使用）が実行行為で、二重の故意もそろい計画どおり結果発生＝<b>殺人既遂が成立し得る</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>原因行為説では責任能力ある原因行為が実行行為となり、原因行為時に二重の故意（結果の予見と責任無能力に陥る予見）がそろえば、心神喪失下で計画どおり結果を生じさせても<strong>殺人既遂</strong>が成立し得る。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項は心神喪失者の行為を罰しないが、原因行為説は責任能力のある原因行為を実行行為に据える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任非難には行為時の責任能力を要する（責任主義）。実行行為を原因行為へ前倒しして完全な責任を保つ。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為時に結果の予見と責任無能力に陥る予見（二重の故意）がそろう計画実行型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>原因行為の時点で故意も責任能力もそろい、結果が計画どおり発生したかが分かれ目。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為を原因行為へ前倒しできるか」を各事例の故意・着手の有無に当てはめる型。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="未遂を罰するのは、結果が出ていなくても結果発生の現実的な危険が生じたからである（43条）。だから危険がどこにも生まれていない段階は、まだ刑法の網の外にある。実行行為を原因行為へ前倒ししても、この危険の線引きまで一緒に前倒しされるわけではない――<b>実行行為をどこに置くかは理論が決めるが、危険がいつ生じたかは事実が決める</b>からである。そこで、実行行為の開始と実行の着手時期はずれてよい、と考える。薬を使って我を失っただけで、相手の身辺に何の危険も及んでいなければ、着手がなく未遂も立たない。原因行為説は<b>処罰の穴を塞ぐ理論</b>であって、<b>危険のない段階まで処罰を広げる理論ではない</b>。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>薬物を使った段階で止まった事案は殺人未遂では起訴できず、原因行為そのものを捉えた覚醒剤取締法違反として処理されるのが通常である。弁護人は、危険がどこまで及んだかを争点に置く。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>原因行為が空振りにならないのは、使用そのものが罪になるからである。戦後、ヒロポンという商品名で薬局にも並んだ覚醒剤の濫用が社会問題になり、1951年（昭和26年）に覚せい剤取締法が作られ、使用や所持それ自体が独立の罪とされた。殺人未遂に届かない段階でも、この罪は残る。</span>" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>実行行為の時点と着手時期を分ければ、結果の危険が未発生の事例Ⅱは着手なく<b>殺人未遂も成立しない</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>原因行為説を採っても殺人未遂（43条）の成立には結果発生の現実的危険が必要であり、実行行為の開始と実行の着手時期を区別すれば、危険が生じる前に頓挫した事案では<strong>殺人未遂は成立しない</strong>。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>43条の未遂は「実行に着手してこれを遂げない」こと。実行行為の開始と着手時期を区別できるか。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>未遂処罰の根拠は結果発生の現実的危険。危険が生じて初めて実行の着手を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為（覚醒剤使用）はしたが被害者宅へ向かわず危険が未発生の頓挫型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>実行行為が始まっても、結果発生の現実的危険が生じたかで殺人未遂の成否が分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為の時点」と「着手時期」を切り分ける発想を、原因において自由な行為の未遂に応用する。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="38条1項は、罪を犯す意思のない行為は罰しないと定める。故意は実行行為の時点に存在しなければならず、<b>後から生まれた意思で過去の行為を故意犯に塗り替えることはできない</b>。この一本の原則は実行行為を前倒しした場面でもそのまま効き、実行行為を原因行為に置けば<b>故意の基準時も原因行為の時点へ移る</b>。その時点にあったのが「酔うと荒っぽくなる」という自覚だけなら、それは人を殴ることの予見であって、人を殺すことの認識ではない。人は予見していた危険の種類と重さの範囲でしか責任を負わない。<b>責任は遡らせられても、故意は前借りできない</b>――ここが原因行為説の限界線である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>鑑定や供述から殺意の発生時期が酩酊後と評価されると、訴因は殺人から傷害致死や傷害へ落ちる。検察官は使用前のやり取りや購入履歴を拾い、殺意の前倒しを立証しようとする。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>飲む時点に人を殺す意図はないのに重い結果が出る型を、法は殺人とは別の罪で受け止めてきた。2001年の刑法改正で危険運転致死傷罪が新設されたのはその一例で、酒や薬物の影響下の運転による死傷を、殺意を問わずに重く処罰する枠が作られた。</span>" data-brief-mark="<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>原因行為時は暴行の習癖を認識するのみで殺意を欠き、故意が認められないから<b>殺人既遂は成立しない</b></span><span class='tx-stmt-fix'>→ 「成立し得る」は誤り</span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>原因行為説でも構成要件的故意（38条1項）は原因行為の時点で必要であり、原因行為時に殺意を欠き心神喪失後に殺意が生じたにすぎない場合は<strong>殺人既遂は成立しない</strong>。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>38条1項の故意は構成要件該当事実の認識。原因行為説でも故意は原因行為時に要る。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>前倒しできるのは実行行為の枠であって、殺意（故意）まで擬制はできない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為時に暴行の習癖しか認識せず、殺意が心神喪失後に後発した殺意後発型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>原因行為の時点で殺意があったか。後発の殺意では殺人の故意を欠き既遂は立たない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為を前倒ししても故意まで前借りできない」を、故意の存在時点の検討に使う。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="o" data-brief-story="同じ結論へ、別の道からも行ける。結果行為説は実行行為を<b>殺害行為そのままに置き</b>、動かすのは責任能力をいつ測るかという判定時だけである。意思決定の時点に責任能力があれば、心神喪失の状態で手を下しても39条1項の適用を排除できると考える。支えになるのは、39条1項が罰しないとする理由が、やめる力のない人を責められないという点にあることである。自分の正気な決断を無責任状態に乗せて実現した人には、この理由が当てはまらない。原因行為説が実行行為を動かすのに対し、結果行為説は<b>責任能力の判定時だけを動かす</b>――<b>どこを動かす理論なのか</b>で整理すると、両説の違いは一目で見える。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>責任能力は鑑定人の意見を踏まえた裁判所の法律判断で、心神喪失とされれば不起訴や無罪となり、手続は刑事処罰ではなく医療の枠組みへ移る。鑑定のため留置が続くこともある。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>39条1項で罰しないとされた人の行き先は、長く法律で決まっていなかった。2001年の大阪・附属池田小学校事件をきっかけに議論が進み、心神喪失等の状態で重大な他害行為をした人の処遇を定める医療観察法が2003年に成立し、2005年7月に施行された。</span>" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>結果行為説でも意思決定時に責任能力があれば39条1項の適用が排除され<b>殺人既遂が成立し得る</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>結果行為説では責任能力は意思決定時に存すれば足り、殺害を決意した時点で責任能力がある以上、心神喪失下の結果行為による殺害でも<strong>刑法39条1項</strong>の適用が排除され殺人既遂が成立し得る。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>39条1項の「心神喪失者の行為」該当性を、意思決定時の責任能力で排除できるか。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力と実行行為の同時存在の原則に例外を認め、意思決定時の能力で足りるとする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>責任無能力下の結果行為を実行行為としつつ、決意時に責任能力があった計画実行型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>殺害の決意（意思決定）の時点で責任能力があったかが、39条1項排除の分かれ目。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「能力は意思決定時で足りる」という例外モデルを、原因行為説と対比して使い分ける。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="結果行為説で実行行為が殺害行為そのものだとすれば、<b>実行の着手も殺害行為の開始を待つ</b>ことになる。薬を使って我を失ったまま一歩も動かなければ、未遂の入口にも立たない。結論は原因行為説でも同じだが理由は別で、原因行為説は<b>危険がまだ生じていない</b>からと言い、結果行為説は<b>そもそも実行行為が始まっていない</b>からと言う。結論の一致を見て同じ話だと片づけると、どこを動かした理論なのかを見失う。なお着手がなくても、殺人の目的で準備まで進んでいれば殺人予備罪（201条）で捉える余地は残る。処罰は着手の有無で白黒が切れるのではなく、予備・未遂・既遂と段を踏んで上がっていく。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>着手がないと判断された事案では、捜査は凶器の購入や下見といった準備行為へ向き、殺人予備罪で立てられるかが検討される。立たなければ、薬物の使用など原因行為だけが残る。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>午後10時に居酒屋を出た会社員が、恨みを晴らすつもりで酒を重ね、帰宅後に自室で眠り込んだ――相手の住まいは3キロ先のままである。翌朝になっても相手の身辺には何一つ起きていない。準備が整っていれば予備が問題になるが、未遂の段はまだ踏んでいない。</span>" data-brief-mark="<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>結果行為が実行行為＝殺害に着手していない事例Ⅱは実行の着手なく<b>殺人未遂も成立しない</b></span><span class='tx-anscomp-line'><span class='tx-anscomp-tag'>✍ 答案圧縮</span>結果行為説では結果行為（殺害行為）が実行行為であるから、殺害行為に全く着手していない事案では実行の着手（43条）を欠き<strong>殺人未遂は成立しない</strong>。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>43条の実行の着手を、実行行為＝結果行為とみる立場から判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>結果行為説では実行行為が結果行為なので、着手も結果行為の開始で判断する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被害者宅へ赴かず殺害行為に全く取りかからなかった未着手型に及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>殺害行為（結果行為）に着手したか。着手が全くなければ殺人未遂の入口にも立たない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「実行行為をどこに置くか」で着手の判断基準が変わることを、原因行為説の帰結と比べて確認する。</p></div></td></tr>
 </tbody>
 </table>
 </div>

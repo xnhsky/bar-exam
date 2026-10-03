@@ -5403,6 +5403,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-ANSCOMP:BEGIN v13.1.0 答案圧縮（2026-07-28 追加・記述原文統合・版据置）
@@ -5668,6 +5683,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5951,31 +6201,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴訟能力を欠く者がした訴訟行為は、これを有するに至った当事者又は法定代理人の<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>追認により、行為の時にさかのぼってその効力を生ずる</span>。<span class="tx-anscomp-line">訴訟能力を欠く者の訴訟行為も、能力を取得・回復した本人又は法定代理人の<strong>追認</strong>により、行為の時にさかのぼって効力を生ずる（民訴法34条2項）。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。能力を欠く者の訴訟行為は当然に無効で終わり、と思いたくなる。でも訴訟行為には形が残り相手方も関わるので、無駄にせず活かす道が用意されている。それが<strong>追認</strong>（あとから「あれでよい」と認めること）で、能力を得た本人や法定代理人が追認すれば、その行為は<strong>行為の時までさかのぼって</strong>有効になる（<a class="ref-stat" id="ref-law-34-a1" href="#bref-ア-34">34条2項</a>）。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">能力を欠く者の訴訟行為も、<strong>追認</strong>により行為の時にさかのぼって有効になる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">能力欠缺の治癒</span><span class="tx-gist-step">却下判決への控訴</span><span class="tx-gist-step">上訴の利益</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">能力を欠く者がした訴訟行為は、あとから追認されたとき、いつの時点から有効になるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">成年被後見人が、法定代理人を付けないまま自分で訴えを起こし、何か月も主張と証拠の提出を重ねてきました。その途中で、本人に訴訟能力がないことが判明します。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">訴訟能力を欠く者の訴訟行為は、本来は無効です。積み上げてきた手続をすべて無駄にするのか、それとも<strong>追認</strong>で活かせるのか。活かせるとして効力はいつから生じるのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民訴法<a class="ref-stat" href="#bref-ア-34" id="ref-law-34-a1">34条2項</a>は、訴訟能力を欠く者がした訴訟行為は、これを有するに至った当事者又は法定代理人の追認により、<strong>行為の時にさかのぼって</strong>その効力を生ずると定めます。追認した時から先だけ有効になるのではありません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">訴訟行為は書面や期日として外形が残り、相手方もそれに応じて手続を進めています。一律に無効として切り捨てるより、追認で活かせる道を残すほうが手続経済にかないます。さかのぼらせるのは、それまでに積み上がった手続をまとめて生かすためだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>訴訟能力</span></dt><dd>自分ひとりで有効に訴訟行為をし、また相手方の訴訟行為を受けることができる資格。民訴法28条により、原則として民法上の行為能力に対応する。</dd></div><div class="tx-gist-term"><dt><span>追認</span></dt><dd>効力の定まらない行為を、あとから有効なものとして認める意思表示。ここでは能力を取得・回復した本人又は法定代理人が行う。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 追認により行為の時にさかのぼって効力を生ずるとする点が、34条2項の文言と一致する。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>条文の文言を見る</strong><span class="syn-body">34条2項は、能力等を欠く者がした訴訟行為も、能力を有するに至った当事者又は法定代理人の追認により、行為の時にさかのぼって効力を生ずると定める。</span></p>
 <p><span class="syn-step">2</span><strong>遡及効の意味をつかむ</strong><span class="syn-body">追認した瞬間から有効になるのではなく、<span class="case-emphasis freq-high">はじめから有効だった</span>ものとして扱う。無効を確定させず、行われた手続を活かすための仕組み。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>追認は「後出しのハンコ」。押した時点ではなく、<strong>行為の時までさかのぼって</strong>効く。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>34条2項の追認</strong>：能力を欠く者の訴訟行為も、能力を得た本人・法定代理人の追認で有効になる。</li>
-<li><strong>遡及効</strong>：効力は行為の時にさかのぼって生ずる（追認の時からではない）。</li>
-<li><strong>ひっかけの型</strong>：『無効だから確定的に効力なし』と即断させる。追認で治癒しうる点を見落とさない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>補正は先へ進めるため、追認は過去を生かすため（34条1項と2項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-ア-34" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法34条 訴訟能力等を欠く場合の措置（2項＝追認の遡及効）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<span class="ron-mark freq-high">追認により、行為の時にさかのぼってその効力を生ずる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-ア-34" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法34条 訴訟能力等を欠く場合の措置（2項＝追認の遡及効）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">②</span><span class="hang-body">訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠く者がした訴訟行為は、これらを有するに至った当事者又は法定代理人の<span class="ron-mark freq-high">追認により、行為の時にさかのぼってその効力を生ずる</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">能力を欠く者の訴訟行為は本来無効。だが能力を取得・回復した本人又は法定代理人が追認すれば、<span class="case-emphasis freq-high">行為の時にさかのぼって</span>有効になる（遡及効）。</span></div>
 <div class="kd-item"><span class="kd-label r-shushi">趣旨</span><span class="kd-text">訴訟行為には外形があり相手方も関わる。無効として一律に切り捨てるより、追認で活かせる道を残す方が手続経済にかなう。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">追認により行為の時に遡って効力を生ずるとする記述アは正しい。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">34条2項＝能力を欠く者の訴訟行為も、能力を得た本人・法定代理人の追認により行為の時にさかのぼって有効になる。無効を確定させず手続を活かす仕組み。</p>
 </div>
 <div class="tx-v13-cross"><span class="tx-v13-cross-label">🔗 他科目横断</span><span class="tx-v13-cross-body">訴訟能力は、民法上の<b>行為能力</b>（単独で有効に法律行為をする資格）を訴訟の場に投影した概念で、原則として行為能力に対応する（民法上の行為能力者は訴訟能力者）。追認により無効・不確定な行為を遡って有効にする発想も、民法の無権代理の追認（116条）・取り消しうる行為の追認（122条）と共通する。実体法（民法）で身につけた能力と追認の理解が、そのまま訴訟法に生きる重要横断。</span></div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「追認＝遡及」は実体法と手続法に共通する物差し。</strong>民法の無権代理の追認（116条）や取り消しうる行為の追認（122条）も原則さかのぼって効力を確定させる。訴訟能力を欠く行為の追認（34条2項）も同じ発想で行為の時に遡る——実体法で身につけた「追認は後出しで過去を固める」という感覚を手続にそのまま持ち込める cross-cut。ただし訴訟行為は手続の安定のため、個々の行為ではなくまとめて追認するのが原則という違いは押さえる。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>34条2項で裏返るのは「誰が追認したか」と「どこまで遡るか」の二点。</strong>追認できるのは能力を有するに至った当事者か法定代理人だけで、相手方の同意や裁判所の職権では治せず、効力が生じるのは追認の時ではなく行為の時である。この遡及が生ずると、法定代理権の欠缺を理由とする上告はできなくなる（312条2項4号ただし書）。</span><div class="tx-dgm is-matrix" data-dgm="023-ア"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">追認の条文を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">追認により → 追認を待たず当然に</p><p class="dgm-cell is-ng">✕ 効力は生じない</p><p class="dgm-cell">治癒には追認が要る<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">行為の時にさかのぼって → 追認の時から先へ</p><p class="dgm-cell is-ng">✕ 誤り</p><p class="dgm-cell">効力は行為の時に遡る<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">訴訟能力を欠く者 → 法定代理権を欠く者</p><p class="dgm-cell is-ok">○ 同じく遡って有効</p><p class="dgm-cell">能力・代理権・授権を並べて規定<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">当事者又は法定代理人の追認 → 相手方の同意</p><p class="dgm-cell is-ng">✕ 治らない</p><p class="dgm-cell">追認できるのは能力を得た当事者か法定代理人<span class="dgm-src">34条2項</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="イ" id="stmt-イ">
@@ -5992,30 +6233,21 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>訴状を送達したところ被告に訴訟能力が欠けていることが明らかになったときは、裁判所は、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>期間を定めてその補正を命じなければならない</span>。<span class="tx-anscomp-line">訴訟能力等を欠くときは、裁判所は<strong>期間を定めてその補正を命じなければならない</strong>（民訴法34条1項前段）。追認で治癒しうる以上、直ちに却下しない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。能力が足りないなら、いきなり門前払い（却下）でよさそうに思える。でも追認で治る可能性がある以上、すぐ切り捨てるのは酷だ。<a class="ref-stat" id="ref-law-34-i1" href="#bref-イ-34">34条1項前段</a>は、裁判所に「<strong>期間を定めて補正を命じなければならない</strong>」と義務づける（「命じることができる」ではない）。被告の側に能力が欠けていた場合も同じで、裁判所はまず直す機会を与える。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">訴訟能力の欠缺には、裁判所が期間を定めて<strong>補正</strong>を命じなければならない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">能力欠缺の治癒</span><span class="tx-gist-step">却下判決への控訴</span><span class="tx-gist-step">上訴の利益</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">被告に訴訟能力が欠けていると分かったとき、裁判所はまず何をしなければならないのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">訴状を送り届けたところ、被告が成年被後見人で、法定代理人が付いていないことが分かりました。このまま審理を進めることはできません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">能力が欠けているなら、訴えをそのまま却下してしまえば早く済みます。しかし追認で治る見込みが残っています。裁判所が<strong>補正命令</strong>を出すのは義務なのか、それとも裁量なのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民訴法<a class="ref-stat" href="#bref-イ-34" id="ref-law-34-i1">34条1項前段</a>は、訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠くときは、裁判所は期間を定めてその補正を命じなければならないと定めます。<strong>必要的</strong>であって、命じることができるという裁量ではありません。欠けているのが原告側でも被告側でも変わりません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">能力の欠缺は追認で治せる欠陥ですから、直す機会を与えないまま門前払いにするのは酷です。訴えの却下は、定められた期間内に補正がされなかったときの最後の手段として残されていると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>補正命令</span></dt><dd>訴訟能力・法定代理権・訴訟行為に必要な授権の欠缺を、期間を定めて直すよう裁判所が命ずる処分（民訴法34条1項前段）。</dd></div><div class="tx-gist-term"><dt><span>必要的</span></dt><dd>裁判所が行うかどうかを選べず、要件が満たされれば必ずしなければならないこと。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 期間を定めて補正を命じなければならないとする点が、34条1項前段の文言と一致する。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>34条1項前段の文言を読む</strong><span class="syn-body">能力等の欠缺があれば、裁判所は<span class="case-emphasis freq-high">期間を定めて補正を命じなければならない</span>（必要的）。欠缺が原告側でも被告側でも同じ。</span></p>
 <p><span class="syn-step">2</span><strong>なぜ補正が先か</strong><span class="syn-body">追認で治癒しうる以上、いきなり却下するのは酷。まず直す機会を与え、補正されなければ却下する（却下は最後の手段）。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>いきなり却下ではなく「まず直す時間をあげる」。補正命令は裁判所の<strong>義務</strong>（〜しなければならない）。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>34条1項前段</strong>：能力等の欠缺があれば、裁判所は期間を定め補正を命じなければならない（必要的）。</li>
-<li><strong>原告・被告を問わない</strong>：被告に能力欠缺が判明した場合も補正命令の対象になる。</li>
-<li><strong>ひっかけの型</strong>：『能力を欠けば直ちに却下』と短絡させる。補正の機会が先で、却下は最後の手段。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>能力の欠缺は裁判所が命じ、訴状の不備は裁判長が命じる（34条1項と137条1項）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-イ-34" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法34条 訴訟能力等を欠く場合の措置（1項前段＝補正命令）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠くときは、裁判所は、<span class="ron-mark freq-high">期間を定めて、その補正を命じなければならない</span>。この場合において、遅滞のため損害を生ずるおそれがあるときは、裁判長は、一時訴訟行為をさせることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-イ-34" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法34条 訴訟能力等を欠く場合の措置（1項前段＝補正命令）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">訴訟能力、法定代理権又は訴訟行為をするのに必要な授権を欠くときは、裁判所は、<span class="ron-mark freq-high">期間を定めて、その補正を命じなければならない</span>。この場合において、遅滞のため損害を生ずるおそれがあるときは、裁判長は、一時訴訟行為をさせることができる。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">能力等の欠缺があれば、裁判所は期間を定めて補正を命じる<span class="case-emphasis freq-high">義務</span>を負う（「命じなければならない」＝必要的）。原告側・被告側の欠缺を問わない。</span></div>
 <div class="kd-item"><span class="kd-label r-shushi">趣旨</span><span class="kd-text">追認（34条2項）で治癒しうる以上、直ちに却下せず補正の機会を与える。訴え却下は補正がされない場合の最後の手段。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">被告に能力欠缺が判明した場合も裁判所は補正を命じなければならないとする記述イは正しい。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">34条1項前段＝能力等の欠缺があれば裁判所は期間を定め補正を命じなければならない（必要的）。追認で治癒しうるため却下を急がず、まず補正の機会を与える。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「能力を欠けば直ちに却下」という短絡が罠。</strong>34条は訴訟能力だけでなく、法定代理権・訴訟行為に必要な授権の欠缺も<em>まとめて補正の対象</em>にする。裁判所はまず期間を定めて補正を命じ、補正されなければ却下する。門前払いは最後の手段で、補正命令が先に来る手順を全ての欠缺で共通に押さえる。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>補正命令で裏返るのは「何の不備を、誰が命じるか」の側。</strong>訴訟能力・法定代理権・授権の欠缺は裁判所が期間を定めて補正を命じるが（34条1項前段）、訴状の記載事項の不備は裁判長が相当の期間を定めて命じ、直らなければ命令で訴状を却下する（134条2項・137条）。訴え自体が不適法で補正できないときは、補正を命じるまでもなく口頭弁論を経ないで却下できる（140条）。</span><div class="tx-dgm is-matrix" data-dgm="023-イ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">補正を命じるのは誰か、直らないとどうなるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">不備の種類</p><p class="dgm-cell is-head">命じる者</p><p class="dgm-cell is-head">直らないとき</p><p class="dgm-cell is-rowhead">訴訟能力・法定代理権・授権の欠缺<span class="dgm-src">34条1項</span></p><p class="dgm-cell is-ok">裁判所が期間を定めて命じる（義務）</p><p class="dgm-cell">訴えを却下する判決</p><p class="dgm-cell is-rowhead">訴状の記載事項の不備<span class="dgm-src">134条2項</span></p><p class="dgm-cell is-ok">裁判長が相当の期間を定めて命じる（義務）</p><p class="dgm-cell">命令で訴状を却下<span class="dgm-src">137条2項</span></p><p class="dgm-cell is-rowhead">訴えが不適法で補正できないとき</p><p class="dgm-cell is-acc">補正を命じる余地がない</p><p class="dgm-cell">口頭弁論を経ないで却下できる<span class="dgm-src">140条</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="ウ" id="stmt-ウ">
@@ -6032,30 +6264,21 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>原告に訴訟能力が欠けていることを理由とする訴え却下判決に対して原告が控訴した場合において、控訴裁判所が訴訟能力が欠けているとの判断に達したときは、訴訟能力を欠く者のした控訴であるから、同裁判所は、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>控訴を不適法なものとして却下しなければならない</span><span class="tx-stmt-fix">→ 控訴を棄却（第一審の却下が相当・302条1項）／控訴自体は適法</span>。<span class="tx-anscomp-line">訴え却下判決への控訴は能力の有無を争う限度で適法であり、控訴審が能力欠缺と判断したときは第一審が相当だから<strong>控訴を棄却</strong>する（民訴法302条1項）。控訴却下ではない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。能力がない人がした控訴なのだから、その控訴も不適法として却下すべき、と一見筋が通る。でも「能力がない」と言われて却下された人に、その判断の当否を争う道（控訴）まで閉ざすのは酷なので、能力の有無を争う<strong>控訴それ自体は適法</strong>とされる。そして控訴審も「能力なし」と判断したなら、第一審の却下は正しかったことになるから、控訴は「却下」ではなく<strong>棄却</strong>（<a class="ref-stat" id="ref-law-302-u1" href="#bref-ウ-302">302条1項</a>）。理由も結論も誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">能力なしと判断したときは、控訴却下ではなく控訴<strong>棄却</strong>になる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">能力欠缺の治癒</span><span class="tx-gist-step is-now">却下判決への控訴</span><span class="tx-gist-step">上訴の利益</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">訴え却下判決に控訴した者が、控訴審でもやはり能力なしと判断されたら、控訴はどう処理されるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">訴訟能力を欠くという理由で訴えを却下された原告が、その判断は誤りだと考えて控訴しました。控訴裁判所も記録を調べ、やはり能力はないという結論に達します。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">能力を欠く者がした控訴なのだから、控訴も不適法として<strong>却下</strong>すべきではないか。そう考えると、能力がないと言われた者は、その判断を争う道を閉ざされます。控訴の適法性と控訴審の処理の両方が問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">能力の有無を争う限度で控訴それ自体は適法であり、争う機会が保障されます。そのうえで控訴審も能力なしと判断したなら、第一審の却下は相当だったことになるので、民訴法<a class="ref-stat" href="#bref-ウ-302" id="ref-law-302-u1">302条1項</a>により控訴を<strong>棄却</strong>します。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">却下は、訴訟要件を欠くために入口で退けるときの処理です。控訴審は能力の有無という控訴の中身を判断できているのですから、入口で退ける形にはなりません。第一審判決を相当と認めて退ける、つまり控訴棄却になると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>却下</span></dt><dd>訴訟要件を欠くために、申立ての中身に立ち入らないまま入口で退ける裁判。</dd></div><div class="tx-gist-term"><dt><span>棄却</span></dt><dd>申立ての中身を判断したうえで、理由がないとして退ける裁判。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">× 控訴それ自体は適法で、第一審の却下を相当とするなら控訴却下ではなく控訴棄却になる（302条1項）。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>控訴の適法性を確定する</strong><span class="syn-body">訴え却下判決に対しては、能力の有無を争う限度で控訴が<span class="ron-mark freq-high">適法</span>（本人に争う機会を保障）。『能力なき者の控訴だから却下』という理由づけ自体が誤り。</span></p>
 <p><span class="syn-step">2</span><strong>控訴審の処理を当てる</strong><span class="syn-body">控訴審も能力なしと判断すれば第一審の却下が相当となり、<a class="ref-stat" href="#bref-ウ-302">302条1項</a>で<span class="ron-mark freq-high">控訴棄却</span>。本案（能力の有無）を判断できている以上『却下』ではない。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>中身を判断できたなら「却下」ではない。第一審が正しいなら控訴は<strong>棄却</strong>。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>却下判決への控訴は適法</strong>：能力の有無を争う限度で控訴でき、本人に争う機会が保障される。</li>
-<li><strong>302条1項＝控訴棄却</strong>：控訴審も能力なしと判断すれば第一審が相当だから控訴を棄却する。</li>
-<li><strong>ひっかけの型</strong>：『却下』と『棄却』を混同させる。本案を判断できた以上『却下』ではない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>中身を判断できたら棄却、入口で止めるなら却下（302条1項と290条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-ウ-302" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法302条1項 控訴棄却（＋訴え却下判決への控訴の適法性）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">控訴裁判所は、<span class="ron-mark freq-high">第一審判決を相当とするときは、控訴を棄却しなければならない</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-ウ-302" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法302条1項 控訴棄却（＋訴え却下判決への控訴の適法性）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">控訴裁判所は、<span class="ron-mark freq-high">第一審判決を相当とするときは、控訴を棄却しなければならない</span>。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・射程を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">第一審判決の結論が正当なら控訴は<span class="case-emphasis freq-high">棄却</span>。入口で退ける不適法<span class="case-emphasis freq-high">却下</span>とは区別される。</span></div>
 <div class="kd-item"><span class="kd-label r-shatei">射程</span><span class="kd-text">訴え却下判決を受けた原告は、能力の有無を争うため控訴でき、控訴自体は適法（争う機会の保障）。控訴審も能力なしと判断すれば第一審の却下は相当となり控訴棄却となる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">控訴を不適法として却下するとした記述ウは誤り。正しくは控訴棄却（302条1項）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">302条1項＝第一審判決が相当なら控訴は棄却。訴え却下判決への控訴は能力を争う限度で適法で、控訴審が能力なしと判断すれば却下でなく棄却。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「却下」と「棄却」を区別する。</strong>却下＝訴訟要件を欠き入口で門前払い（本案・当否に立ち入らない）／棄却＝中身を判断して退ける。控訴審が能力の有無という<em>本案を判断できている</em>以上、結論が第一審支持でも「控訴却下」にはならず「控訴棄却」（302条1項）。この却下／棄却の区別は、訴え却下と請求棄却の区別（記述オの場面）とも通底する cross-cut。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>却下と棄却で裏返るのは「控訴そのものが入口で止まるか」の側。</strong>控訴期間経過後の控訴のように不適法で不備を補正できない控訴なら、控訴裁判所は口頭弁論を経ないで判決で控訴を却下できる（290条）。能力の有無という中身を判断して第一審を支持するときは却下ではなく控訴棄却であり、第一審の理由が不当でも結論が正当なら同じく棄却になる（302条）。</span><div class="tx-dgm is-matrix" data-dgm="023-ウ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">控訴審は却下・棄却・取消しをどう使い分けるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">控訴審がたどりつく判断</p><p class="dgm-cell is-head">処理</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">控訴期間経過後など不適法で補正できない控訴</p><p class="dgm-cell is-ng">控訴を却下</p><p class="dgm-cell">口頭弁論を経ないで判決で却下できる<span class="dgm-src">290条</span></p><p class="dgm-cell is-rowhead">能力を欠くと判断し第一審の却下を相当とする</p><p class="dgm-cell is-ok">控訴を棄却</p><p class="dgm-cell">第一審判決を相当とするとき<span class="dgm-src">302条1項</span></p><p class="dgm-cell is-rowhead">第一審の理由は不当だが結論は正当</p><p class="dgm-cell is-ok">控訴を棄却</p><p class="dgm-cell">他の理由により正当であるとき<span class="dgm-src">302条2項</span></p><p class="dgm-cell is-rowhead">第一審判決を不当とする</p><p class="dgm-cell is-acc">第一審判決を取り消す</p><p class="dgm-cell">不当とするときは取消し<span class="dgm-src">305条</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="エ" id="stmt-エ">
@@ -6072,31 +6295,22 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>原告に訴訟能力が欠けていることを理由とする訴え却下判決に対して原告が控訴した場合において、控訴裁判所が訴訟能力があるとの判断に達したときは、同裁判所は、第一審判決を取り消して、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>自ら本案について判決をしなければならない</span><span class="tx-stmt-fix">→ 事件を第一審裁判所に差し戻す（必要的差戻し・307条本文）</span>。<span class="tx-anscomp-line">訴えを不適法却下した第一審判決を取り消す場合、控訴審は<strong>事件を第一審裁判所に差し戻さなければならない</strong>（必要的差戻し・民訴法307条本文）。自判ではない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「能力はある」と分かったなら、そのまま中身（本案）を判決した方が早い、と思える。でも第一審は入口（却下）で終わっていて、本案の審理を一度もしていない。控訴審がいきなり本案を判決すると、当事者は第一審で審理を受ける機会（<strong>審級の利益</strong>）を失う。だから<a class="ref-stat" id="ref-law-307-e1" href="#bref-エ-307">307条本文</a>は「訴え却下判決を取り消す場合は事件を第一審裁判所に差し戻さなければならない」とする（必要的差戻し）。自判とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">却下判決を取り消すときは自判ではなく、事件を第一審へ<strong>差し戻す</strong>。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">能力欠缺の治癒</span><span class="tx-gist-step is-now">却下判決への控訴</span><span class="tx-gist-step">上訴の利益</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">能力はあると判断した控訴裁判所は、第一審の却下判決を取り消したうえで、自ら中身を判決できるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">訴訟能力を欠くという理由で訴えを却下された原告が控訴し、控訴裁判所は、本人には訴訟能力があると判断しました。第一審は入口で終わっており、請求に理由があるのかという中身は一度も審理されていません。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">能力があると分かったのなら、控訴裁判所がそのまま中身を判決したほうが早く済みます。しかしそれでは、当事者は第一審で中身の審理を受ける機会を失います。<strong>審級の利益</strong>をどう扱うかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">民訴法<a class="ref-stat" href="#bref-エ-307" id="ref-law-307-e1">307条本文</a>は、訴えを不適法として却下した第一審判決を取り消す場合には、事件を第一審裁判所に差し戻さなければならないと定めます。<strong>必要的差戻し</strong>であって、自判が原則ではありません。更に弁論をする必要がないときだけ、ただし書の例外が認められます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">第一審が門前払いで終わっている以上、中身の審理はまるごと残っています。控訴裁判所がいきなり判決してしまえば、当事者は事実上ひとつの審級しか使えません。第一審に戻して審理させるのは、この機会を保障するためだと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>必要的差戻し</span></dt><dd>訴えを不適法として却下した第一審判決を取り消す場合に、原則として事件を第一審裁判所へ戻さなければならないこと（民訴法307条本文）。</dd></div><div class="tx-gist-term"><dt><span>審級の利益</span></dt><dd>当事者が、法律の定める審級の数だけ審理と判断を受けられるという利益。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">× 訴え却下判決を取り消すときは自判ではなく、事件を第一審裁判所に差し戻す（307条本文）。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>取消しの意味を確認する</strong><span class="syn-body">控訴審が能力ありと判断すれば、第一審の却下判決は不当だから取り消す。ただし第一審は入口で終わり<span class="case-emphasis freq-high">本案は未審理</span>のまま。</span></p>
 <p><span class="syn-step">2</span><strong>必要的差戻しにあてはめる</strong><span class="syn-body"><a class="ref-stat" href="#bref-エ-307">307条本文</a>は、訴え却下判決を取り消す場合は事件を第一審裁判所に差し戻さなければならないとする（<span class="ron-mark freq-high">必要的差戻し</span>）。審級の利益を保障するためで、自判は原則できない。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>入口（却下）で終わった事件は、入口（第一審）へ戻す。却下判決の取消しは原則<strong>差戻し</strong>。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>307条本文＝必要的差戻し</strong>：訴え却下判決を取り消す場合は、事件を第一審裁判所に差し戻す。</li>
-<li><strong>審級の利益</strong>：第一審が本案未審理のまま控訴審が自判すると、当事者の審級の利益を奪う。</li>
-<li><strong>ひっかけの型</strong>：『取り消して自判』と誤らせる。却下判決の取消しは原則差戻し。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>入口で終わった事件は入口へ戻し、中身まで進んだ事件は自判でよい（307条と308条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
 <div class="tx-basis-items"><div id="bref-エ-307" class="tx-basis-item "><div class="tx-basis-head">📜 民訴法307条 事件の差戻し（訴え却下判決取消し＝必要的差戻し）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">控訴裁判所は、<span class="ron-mark freq-high">訴えを不適法として却下した第一審判決を取り消す場合には、事件を第一審裁判所に差し戻さなければならない</span>。</span></p>
-<p class="hanging"><span class="para-num">ただし書</span><span class="hang-body">ただし、事件につき更に弁論をする必要がないときは、この限りでない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">ただし書</span><span class="hang-body">ただし、事件につき更に弁論をする必要がないときは、この限りでない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・趣旨を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">訴え却下判決を取り消す場合は、原則として第一審への<span class="case-emphasis freq-high">差戻しが必要</span>（必要的差戻し）。通常の取消しの任意的差戻し（308条）より差戻しの要請が強い。</span></div>
 <div class="kd-item"><span class="kd-label r-shushi">趣旨</span><span class="kd-text">第一審は入口（却下）で終わり本案が未審理。控訴審がいきなり本案を判決すると当事者の<span class="case-emphasis freq-high">審級の利益</span>を奪うため、第一審に戻して審理させる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">第一審判決を取り消して自ら本案判決すべきとした記述エは誤り。原則は必要的差戻し（ただし書の例外はあるが原則は差戻し）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">307条本文＝訴え却下判決を取り消す場合は事件を第一審に差し戻す（必要的差戻し）。審級の利益を保障するためで、控訴審の自判は原則できない。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>通常の取消しは任意的差戻し（308条）だが、訴え却下判決の取消しは必要的差戻し（307条本文）。</strong>「取り消したら自判か差戻しか」は場面で変わる。<em>門前払い（却下）を覆したときだけ</em>差戻しが原則になる、という例外の強さが分かれ目。第一審が本案を審理していない以上、控訴審がいきなり本案判決すると審級の利益を奪うからである cross-cut。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>差戻しで裏返るのは「取り消す対象が入口の判決か中身の判決か」。</strong>訴えを不適法として却下した第一審判決を取り消すときだけ差戻しが義務になるが（307条本文）、更に弁論をする必要がないときは控訴審が自ら判決できる（307条ただし書）。本案まで判断した判決を取り消す場合の差戻しは「できる」にとどまる（308条1項）。</span><div class="tx-dgm is-matrix" data-dgm="023-エ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">取り消したあと、自判か差戻しか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">取り消す第一審判決</p><p class="dgm-cell is-head">控訴審の処理</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴えを不適法として却下した判決</p><p class="dgm-cell is-ok">第一審裁判所に差し戻す（義務）</p><p class="dgm-cell">必要的差戻し<span class="dgm-src">307条本文</span></p><p class="dgm-cell is-rowhead">却下判決だが更に弁論をする必要がない</p><p class="dgm-cell is-acc">控訴審が自ら判決できる</p><p class="dgm-cell">差戻しの例外<span class="dgm-src">307条ただし書</span></p><p class="dgm-cell is-rowhead">本案について判断した判決（請求棄却など）</p><p class="dgm-cell is-acc">差し戻すこともできる（裁量）</p><p class="dgm-cell">任意的差戻し<span class="dgm-src">308条1項</span></p><p class="dgm-cell is-rowhead">第一審の判決の手続が法律に違反した</p><p class="dgm-cell is-ok">取り消さなければならない</p><p class="dgm-cell">手続違反による取消し<span class="dgm-src">306条</span></p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="オ" id="stmt-オ">
@@ -6113,29 +6327,20 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>第一審において、被告に訴訟能力が欠けていることを看過して請求棄却判決が言い渡された場合には、勝訴している被告の法定代理人は、本人に訴訟能力がないことを理由として<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>控訴することはできない</span>。<span class="tx-anscomp-line">請求棄却で全部勝訴した被告は主文上の不利益がなく<strong>上訴の利益がない</strong>から、訴訟能力の欠缺を理由としても控訴することはできない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。能力を見落とした違法な判決なのだから、能力がないことを理由に争えそうに思える。でも上訴できるのは「判決で不利益を受けた者」だけ（<a class="ref-stat" id="ref-law-joso-o1" href="#bref-オ-joso">上訴の利益</a>）。請求が棄却されたなら被告は全部勝っていて、主文で何の不利益も受けていない。しかも訴訟能力が備わっているかは裁判所が職権で調べる事項で、勝った被告に「もっとキレイに勝たせろ（訴え却下にしろ）」と求める申立権はない。だから控訴できない。正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">請求棄却で全部勝訴した被告には、<strong>上訴の利益</strong>がなく控訴できない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">能力欠缺の治癒</span><span class="tx-gist-step">却下判決への控訴</span><span class="tx-gist-step is-now">上訴の利益</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">能力の欠缺を見落とした判決であっても、その判決で勝った側は控訴できるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">被告に訴訟能力が欠けていることを見落としたまま審理が進み、第一審は請求を棄却しました。被告は全部勝っていますが、その法定代理人は、能力を欠いたまま進んだ手続は違法だと考えています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">違法のある判決なら争えるはずだ、と考えたくなります。しかし控訴できるのは、判決で不利益を受けた者に限られます。全部勝った側に<strong>上訴の利益</strong>が認められるかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">通説である形式的不服説によれば、<a class="ref-stat" href="#bref-オ-joso" id="ref-law-joso-o1">上訴の利益</a>が認められるのは、原判決により申立てに対して不利益な裁判を受けた当事者に限られます。請求棄却は被告の<strong>全部勝訴</strong>で、判決の主文に不利益はないので、控訴はできません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">上訴は、判決で受けた不利益を取り除くための手段です。勝った側が訴えの却下というより形のよい勝ち方を求めても、取り除くべき不利益がありません。加えて訴訟要件が備わっているかは裁判所が職権で調べる事項で、当事者に訴訟判決を求める申立権もないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>上訴の利益</span></dt><dd>上訴を申し立てるための要件として、原判決により不利益な裁判を受けたことを要するという考え方。通説は判決の主文を基準に判断する（形式的不服説）。</dd></div><div class="tx-gist-term"><dt><span>職権調査事項</span></dt><dd>当事者の申立てを待たずに、裁判所が自ら調べなければならない事柄。訴訟要件が備わっているかはこれにあたる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">○ 請求棄却で全部勝訴した被告には主文上の不利益がなく、上訴の利益がない。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>上訴の利益を確認する</strong><span class="syn-body">上訴できるのは、原判決により<span class="case-emphasis freq-high">不利益な裁判を受けた当事者</span>に限る（形式的不服説）。請求棄却＝被告の全部勝訴で、主文上の不利益がない。</span></p>
 <p><span class="syn-step">2</span><strong>職権調査事項という壁</strong><span class="syn-body">訴訟要件（訴訟能力）の具備は<a class="ref-stat" href="#bref-オ-joso">職権調査事項</a>で、勝訴した被告に訴訟判決（訴え却下）を求める申立権は認められない。だから能力欠缺を理由とする控訴もできない。</span></p>
 </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>勝った者は上訴できない。「もっとキレイな勝ち方」を求める利益は認められない。</p>
-</div>
-<div class="choice-points">
-<ol>
-<li><strong>上訴の利益</strong>：上訴できるのは原判決で不利益を受けた者に限る（形式的不服説）。</li>
-<li><strong>請求棄却＝全部勝訴</strong>：被告は主文で不利益を受けておらず、上訴の利益がない。</li>
-<li><strong>職権調査事項</strong>：訴訟要件の具備は職権調査事項で、勝訴被告に訴え却下を求める申立権はない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>主文で負けた者だけが上訴でき、勝ち方の不満は上訴の理由にならない。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="bref-オ-joso" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 上訴の利益（形式的不服説・通説）／訴訟要件は職権調査事項<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">通説</span><span class="hang-body">上訴できるのは、原判決により<span class="ron-mark freq-high">申立てに対して不利益な裁判を受けた当事者</span>に限られる（形式的不服説）。請求棄却で全部勝訴した被告は主文で不利益を受けておらず、上訴の利益がない。</span></p></div><details class="tx-basis-more"><summary>＋ 対立説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="bref-オ-joso" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 上訴の利益（形式的不服説・通説）／訴訟要件は職権調査事項<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">通説</span><span class="hang-body">上訴できるのは、原判決により<span class="ron-mark freq-high">申立てに対して不利益な裁判を受けた当事者</span>に限られる（形式的不服説）。請求棄却で全部勝訴した被告は主文で不利益を受けておらず、上訴の利益がない。</span></p></div><details class="tx-basis-more"><summary>＋ 対立説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-shatei">対立説・射程</span><span class="kd-text">より有利な判決（訴え却下）を求める実益を考慮する見解もあるが、訴訟要件の具備は<span class="case-emphasis freq-high">職権調査事項</span>であり、勝訴した被告に訴訟判決を求める申立権は認められない。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">請求棄却で勝訴した被告の法定代理人は、能力欠缺を理由としても控訴できないとする記述オは正しい。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">上訴できるのは主文で不利益を受けた者に限る（形式的不服説）。請求棄却で勝訴した被告に上訴の利益はなく、訴訟要件は職権調査事項で申立権もない。</p>
 </div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>「違法な判決なら争えるはず」という思い込みが罠。</strong>上訴できるのは主文で不利益を受けた者だけ（上訴の利益）。請求棄却で勝った被告は、たとえ能力を看過した違法があっても、<em>勝っている以上上訴できない</em>。訴え却下という「よりキレイな勝ち方」を求める利益は認められず、訴訟要件は職権調査事項だから申立権もない。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>上訴の利益で裏返るのは「主文でどれだけ負けたか」の側。</strong>同じ能力の看過でも、請求が一部でも認容されて敗訴部分のある被告はその部分について控訴でき、訴えを却下された原告も敗訴者として控訴できる。請求棄却で全部勝訴した被告だけは、訴訟要件の具備が職権調査事項で訴え却下を求める申立権もないため、能力の欠缺を理由としても控訴できない。</span><div class="tx-dgm is-matrix" data-dgm="023-オ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">主文の結果で上訴の利益が決まる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">第一審の主文</p><p class="dgm-cell is-head">争おうとする当事者</p><p class="dgm-cell is-head">上訴の利益</p><p class="dgm-cell is-rowhead">請求棄却</p><p class="dgm-cell">被告（全部勝訴）</p><p class="dgm-cell is-ng">✕ 不利益がなく控訴できない</p><p class="dgm-cell is-rowhead">請求一部認容</p><p class="dgm-cell">被告（一部敗訴）</p><p class="dgm-cell is-ok">○ 敗訴部分について控訴できる</p><p class="dgm-cell is-rowhead">請求認容</p><p class="dgm-cell">被告（全部敗訴）</p><p class="dgm-cell is-ok">○ 控訴できる</p><p class="dgm-cell is-rowhead">訴え却下</p><p class="dgm-cell">原告</p><p class="dgm-cell is-ok">○ 控訴できる</p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 </div>
@@ -6215,11 +6420,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="ア:o,イ:o,ウ:x,エ:x,オ:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="ア" data-verdict="o" data-brief-story="全体を貫く物差しは「訴訟能力の欠缺は、治せる欠陥」という一点。能力を欠く者の行為も無効で終わらせず、追認で救う。追認すると効力は追認の時からではなく行為の時にさかのぼって生ずるので、それまでに積み上げた手続が無駄にならない。実体法の追認（無権代理・取消し）と同じ「後から過去を固める」発想である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、能力回復後や法定代理人の選任後に、それまでの訴訟行為をまとめて追認するかを確認し、追認があれば当初からの手続を前提に審理を続ける。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば未成年者が法定代理人によらず自分で訴えを起こし、数回の期日を重ねた後に親権者がその訴訟行為を追認した場面。追認により、最初の訴え提起の時点から有効な訴訟だったものとして扱われる。</span>" data-brief-mark="訴訟能力を欠く者の訴訟行為も、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>追認により行為の時にさかのぼって効力を生ずる</span>（34条2項）。<span class='tx-anscomp-line'>訴訟能力を欠く者の訴訟行為も、能力を取得・回復した本人又は法定代理人の<strong>追認</strong>により、行為の時にさかのぼって効力を生ずる（民訴法34条2項）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>34条2項は、能力等を欠く者の訴訟行為も追認により行為の時にさかのぼって効力を生ずると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>無効を一律に確定させず、追認で手続を活かす（手続経済）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>能力欠缺のほか、法定代理権・訴訟行為に必要な授権の欠缺にも及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>効力の発生時点は「追認の時」ではなく「行為の時」（遡及効）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「追認＝遡及」は民法の無権代理・取消しの追認と共通する発想。</p></div></td></tr>
-<tr data-stmt="イ" data-verdict="o" data-brief-story="同じ「治せる欠陥」の発想の裏返しが補正命令。能力を欠くと分かっても、追認で治る見込みがある以上、いきなり門前払い（却下）はしない。34条1項前段は裁判所に「期間を定めて補正を命じなければならない」と義務づけ、直す時間を先に与える。欠缺が原告側でも被告側でも同じである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、裁判所は補正期間を定めて代理権や能力の欠缺を直すよう促し、期間内に補正されなければ訴えを却下する。補正命令は却下の前段階の必須手順。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば訴状を送達したところ、被告が成年被後見人で訴訟能力を欠くと判明した場面。裁判所はすぐ手続を止めず、期間を定めて成年後見人による追認・補正を命じる。</span>" data-brief-mark="訴訟能力等を欠くとき、裁判所は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>期間を定めて補正を命じなければならない</span>（34条1項前段）。<span class='tx-anscomp-line'>訴訟能力等を欠くときは、裁判所は<strong>期間を定めてその補正を命じなければならない</strong>（民訴法34条1項前段）。追認で治癒しうる以上、直ちに却下しない。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>34条1項前段は、能力等を欠くとき裁判所は期間を定め補正を命じなければならないと定める（必要的）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>追認で治癒しうる以上、却下を急がず補正の機会を先に与える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原告側・被告側いずれの能力欠缺でも補正命令の対象になる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「命じることができる」ではなく「命じなければならない」＝裁判所の義務。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>34条は能力・代理権・授権の欠缺を一括して補正の対象にする。</p></div></td></tr>
-<tr data-stmt="ウ" data-verdict="x" data-brief-story="ここからは却下判決の後、控訴審がどう動くかの場面。まず、能力がないと言われて却下された人にも、その判断を争う道（控訴）は開かれている。だから「能力なき者の控訴だから却下」という理由づけ自体が誤り。そのうえで控訴審も能力なしと判断すれば、第一審の却下は正しかったことになるので、控訴は「却下」ではなく「棄却」（302条1項）。却下は入口の門前払い、棄却は中身を判断して退ける処理で、両者は別物である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、控訴審は能力の有無という本案の点をまず判断し、第一審の結論を維持するなら主文で「本件控訴を棄却する」とする。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば能力なしとして訴えを却下された原告が控訴し、控訴審も能力なしと判断した場面。控訴審は控訴を却下せず棄却して、第一審の却下判決を維持する。</span>" data-brief-mark="控訴審が能力欠缺と判断したとき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>控訴を不適法として却下</span><span class='tx-stmt-fix'>→ 控訴を棄却（第一審の却下が相当・302条1項）</span>。<span class='tx-anscomp-line'>訴え却下判決への控訴は能力の有無を争う限度で適法であり、控訴審が能力欠缺と判断したときは第一審が相当だから<strong>控訴を棄却</strong>する（民訴法302条1項）。控訴却下ではない。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>302条1項は、第一審判決を相当とするときは控訴を棄却しなければならないと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>却下判決を受けた本人にも能力の有無を争う機会を保障するため、控訴は適法。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>控訴審が能力なしと判断すれば第一審の却下が相当となり控訴棄却。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>本案（能力の有無）を判断できている以上「控訴却下」ではなく「控訴棄却」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「却下（門前払い）」と「棄却（中身で退ける）」の区別を常に意識する。</p></div></td></tr>
-<tr data-stmt="エ" data-verdict="x" data-brief-story="同じ却下判決への控訴でも、控訴審が「能力はある」と判断した場合。第一審の却下は誤りだから取り消すが、第一審は入口で終わっていて中身（本案）を一度も審理していない。ここで控訴審が自分で本案を判決すると、当事者は第一審で審理を受ける機会（審級の利益）を失う。だから307条本文は事件を第一審に差し戻すことを原則とする（必要的差戻し）。通常の取消しの任意的差戻し（308条）より差戻しの要請が強い。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、控訴審は「原判決を取り消す。本件を第一審裁判所に差し戻す」とし、第一審にあらためて本案審理をさせる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば能力なしとして訴えを却下された原告が控訴し、控訴審が能力ありと判断した場面。控訴審は自ら請求の当否を判決せず、第一審に差し戻して本案を審理させる。</span>" data-brief-mark="控訴審が能力ありと判断したとき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>取り消して自ら本案判決</span><span class='tx-stmt-fix'>→ 事件を第一審に差し戻す（必要的差戻し・307条本文）</span>。<span class='tx-anscomp-line'>訴えを不適法却下した第一審判決を取り消す場合、控訴審は<strong>事件を第一審裁判所に差し戻さなければならない</strong>（必要的差戻し・民訴法307条本文）。自判ではない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>307条本文は、訴え却下判決を取り消す場合は事件を第一審に差し戻さなければならないと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>第一審が本案未審理のため、審級の利益を保障して第一審に審理させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>訴え却下判決の取消しの場面に限り必要的差戻し（通常の取消しは308条の任意的差戻し）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取り消しても控訴審は原則自判できず、差戻しが原則。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「門前払いを覆したときだけ差戻しが原則」という例外の強さを押さえる。</p></div></td></tr>
-<tr data-stmt="オ" data-verdict="o" data-brief-story="最後は、勝った側が争えるかという場面。上訴できるのは判決の主文で不利益を受けた者だけ（上訴の利益）。請求が棄却されたなら被告は全部勝っており、たとえ判決が能力を見落とした違法を含んでも、勝っている以上上訴できない。訴え却下という「よりキレイな勝ち方」を求める利益は認められず、訴訟要件の具備は職権調査事項だから被告に訴え却下を求める申立権もない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、全部勝訴した当事者の上訴は上訴の利益を欠き不適法として却下される。判決理由中の不満は上訴では争えない。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば被告の訴訟能力を看過したまま請求棄却判決が出た場面。勝訴した被告側は、能力がなかったことを理由に控訴して訴え却下を得ようとしても、上訴の利益がなく控訴できない。</span>" data-brief-mark="請求棄却で勝訴した被告は、能力欠缺を理由としても<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>控訴することはできない</span>（上訴の利益なし）。<span class='tx-anscomp-line'>請求棄却で全部勝訴した被告は主文上の不利益がなく<strong>上訴の利益がない</strong>から、訴訟能力の欠缺を理由としても控訴することはできない。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>上訴できるのは原判決で不利益な裁判を受けた当事者に限る（形式的不服説）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>上訴は不服の救済制度だから、不利益のない勝訴者に上訴を認める必要がない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>請求棄却で全部勝訴した被告には、訴え却下を求める上訴の利益もない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>訴訟要件は職権調査事項で、勝訴被告に訴え却下を求める申立権はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「勝訴＝上訴の利益なし」を、訴え却下と請求棄却の優劣論と結びつけて理解する。</p></div></td></tr>
+<tr data-stmt="ア" data-verdict="o" data-brief-story="全体を貫く物差しは「訴訟能力の欠缺は、治せる欠陥」という一点。能力を欠く者の行為も無効で終わらせず、追認で救う。追認すると効力は追認の時からではなく行為の時にさかのぼって生ずるので、それまでに積み上げた手続が無駄にならない。実体法の追認（無権代理・取消し）と同じ「後から過去を固める」発想である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、能力回復後や法定代理人の選任後に、それまでの訴訟行為をまとめて追認するかを確認し、追認があれば当初からの手続を前提に審理を続ける。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば未成年者が法定代理人によらず自分で訴えを起こし、数回の期日を重ねた後に親権者がその訴訟行為を追認した場面。追認により、最初の訴え提起の時点から有効な訴訟だったものとして扱われる。</span>" data-brief-mark="訴訟能力を欠く者の訴訟行為も、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>追認により行為の時にさかのぼって効力を生ずる</span>（34条2項）。<span class='tx-anscomp-line'>訴訟能力を欠く者の訴訟行為も、能力を取得・回復した本人又は法定代理人の<strong>追認</strong>により、行為の時にさかのぼって効力を生ずる（民訴法34条2項）。</span>"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>34条2項は、能力等を欠く者の訴訟行為も追認により行為の時にさかのぼって効力を生ずると定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>無効を一律に確定させず、追認で手続を活かす（手続経済）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>能力欠缺のほか、法定代理権・訴訟行為に必要な授権の欠缺にも及ぶ。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>効力の発生時点は「追認の時」ではなく「行為の時」（遡及効）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>訴訟能力・法定代理権・授権の欠缺は、これらを有するに至った当事者か法定代理人の追認で、行為の時にさかのぼって治る（34条2項）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-ア"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">追認の条文を1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">追認により → 追認を待たず当然に</p><p class="dgm-cell is-ng">✕ 効力は生じない</p><p class="dgm-cell">治癒には追認が要る<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">行為の時にさかのぼって → 追認の時から先へ</p><p class="dgm-cell is-ng">✕ 誤り</p><p class="dgm-cell">効力は行為の時に遡る<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">訴訟能力を欠く者 → 法定代理権を欠く者</p><p class="dgm-cell is-ok">○ 同じく遡って有効</p><p class="dgm-cell">能力・代理権・授権を並べて規定<span class="dgm-src">34条2項</span></p><p class="dgm-cell is-rowhead">当事者又は法定代理人の追認 → 相手方の同意</p><p class="dgm-cell is-ng">✕ 治らない</p><p class="dgm-cell">追認できるのは能力を得た当事者か法定代理人<span class="dgm-src">34条2項</span></p></div></div></div></td></tr>
+<tr data-stmt="イ" data-verdict="o" data-brief-story="同じ「治せる欠陥」の発想の裏返しが補正命令。能力を欠くと分かっても、追認で治る見込みがある以上、いきなり門前払い（却下）はしない。34条1項前段は裁判所に「期間を定めて補正を命じなければならない」と義務づけ、直す時間を先に与える。欠缺が原告側でも被告側でも同じである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、裁判所は補正期間を定めて代理権や能力の欠缺を直すよう促し、期間内に補正されなければ訴えを却下する。補正命令は却下の前段階の必須手順。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば訴状を送達したところ、被告が成年被後見人で訴訟能力を欠くと判明した場面。裁判所はすぐ手続を止めず、期間を定めて成年後見人による追認・補正を命じる。</span>" data-brief-mark="訴訟能力等を欠くとき、裁判所は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>期間を定めて補正を命じなければならない</span>（34条1項前段）。<span class='tx-anscomp-line'>訴訟能力等を欠くときは、裁判所は<strong>期間を定めてその補正を命じなければならない</strong>（民訴法34条1項前段）。追認で治癒しうる以上、直ちに却下しない。</span>"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>34条1項前段は、能力等を欠くとき裁判所は期間を定め補正を命じなければならないと定める（必要的）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>追認で治癒しうる以上、却下を急がず補正の機会を先に与える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原告側・被告側いずれの能力欠缺でも補正命令の対象になる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「命じることができる」ではなく「命じなければならない」＝裁判所の義務。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>補正を命じる主体は不備の種類で分かれ、能力等の欠缺は裁判所、訴状の記載事項の不備は裁判長が命じる（34条1項・137条1項）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-イ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">補正を命じるのは誰か、直らないとどうなるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">不備の種類</p><p class="dgm-cell is-head">命じる者</p><p class="dgm-cell is-head">直らないとき</p><p class="dgm-cell is-rowhead">訴訟能力・法定代理権・授権の欠缺<span class="dgm-src">34条1項</span></p><p class="dgm-cell is-ok">裁判所が期間を定めて命じる（義務）</p><p class="dgm-cell">訴えを却下する判決</p><p class="dgm-cell is-rowhead">訴状の記載事項の不備<span class="dgm-src">134条2項</span></p><p class="dgm-cell is-ok">裁判長が相当の期間を定めて命じる（義務）</p><p class="dgm-cell">命令で訴状を却下<span class="dgm-src">137条2項</span></p><p class="dgm-cell is-rowhead">訴えが不適法で補正できないとき</p><p class="dgm-cell is-acc">補正を命じる余地がない</p><p class="dgm-cell">口頭弁論を経ないで却下できる<span class="dgm-src">140条</span></p></div></div></div></td></tr>
+<tr data-stmt="ウ" data-verdict="x" data-brief-story="ここからは却下判決の後、控訴審がどう動くかの場面。まず、能力がないと言われて却下された人にも、その判断を争う道（控訴）は開かれている。だから「能力なき者の控訴だから却下」という理由づけ自体が誤り。そのうえで控訴審も能力なしと判断すれば、第一審の却下は正しかったことになるので、控訴は「却下」ではなく「棄却」（302条1項）。却下は入口の門前払い、棄却は中身を判断して退ける処理で、両者は別物である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、控訴審は能力の有無という本案の点をまず判断し、第一審の結論を維持するなら主文で「本件控訴を棄却する」とする。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば能力なしとして訴えを却下された原告が控訴し、控訴審も能力なしと判断した場面。控訴審は控訴を却下せず棄却して、第一審の却下判決を維持する。</span>" data-brief-mark="控訴審が能力欠缺と判断したとき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>控訴を不適法として却下</span><span class='tx-stmt-fix'>→ 控訴を棄却（第一審の却下が相当・302条1項）</span>。<span class='tx-anscomp-line'>訴え却下判決への控訴は能力の有無を争う限度で適法であり、控訴審が能力欠缺と判断したときは第一審が相当だから<strong>控訴を棄却</strong>する（民訴法302条1項）。控訴却下ではない。</span>"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>302条1項は、第一審判決を相当とするときは控訴を棄却しなければならないと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>却下判決を受けた本人にも能力の有無を争う機会を保障するため、控訴は適法。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>控訴審が能力なしと判断すれば第一審の却下が相当となり控訴棄却。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>本案（能力の有無）を判断できている以上「控訴却下」ではなく「控訴棄却」。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>控訴の適否と第一審判決の当否は別の層で、中身を判断して第一審を支持するときは控訴棄却になる（302条）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-ウ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">控訴審は却下・棄却・取消しをどう使い分けるか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">控訴審がたどりつく判断</p><p class="dgm-cell is-head">処理</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">控訴期間経過後など不適法で補正できない控訴</p><p class="dgm-cell is-ng">控訴を却下</p><p class="dgm-cell">口頭弁論を経ないで判決で却下できる<span class="dgm-src">290条</span></p><p class="dgm-cell is-rowhead">能力を欠くと判断し第一審の却下を相当とする</p><p class="dgm-cell is-ok">控訴を棄却</p><p class="dgm-cell">第一審判決を相当とするとき<span class="dgm-src">302条1項</span></p><p class="dgm-cell is-rowhead">第一審の理由は不当だが結論は正当</p><p class="dgm-cell is-ok">控訴を棄却</p><p class="dgm-cell">他の理由により正当であるとき<span class="dgm-src">302条2項</span></p><p class="dgm-cell is-rowhead">第一審判決を不当とする</p><p class="dgm-cell is-acc">第一審判決を取り消す</p><p class="dgm-cell">不当とするときは取消し<span class="dgm-src">305条</span></p></div></div></div></td></tr>
+<tr data-stmt="エ" data-verdict="x" data-brief-story="同じ却下判決への控訴でも、控訴審が「能力はある」と判断した場合。第一審の却下は誤りだから取り消すが、第一審は入口で終わっていて中身（本案）を一度も審理していない。ここで控訴審が自分で本案を判決すると、当事者は第一審で審理を受ける機会（審級の利益）を失う。だから307条本文は事件を第一審に差し戻すことを原則とする（必要的差戻し）。通常の取消しの任意的差戻し（308条）より差戻しの要請が強い。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、控訴審は「原判決を取り消す。本件を第一審裁判所に差し戻す」とし、第一審にあらためて本案審理をさせる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば能力なしとして訴えを却下された原告が控訴し、控訴審が能力ありと判断した場面。控訴審は自ら請求の当否を判決せず、第一審に差し戻して本案を審理させる。</span>" data-brief-mark="控訴審が能力ありと判断したとき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>取り消して自ら本案判決</span><span class='tx-stmt-fix'>→ 事件を第一審に差し戻す（必要的差戻し・307条本文）</span>。<span class='tx-anscomp-line'>訴えを不適法却下した第一審判決を取り消す場合、控訴審は<strong>事件を第一審裁判所に差し戻さなければならない</strong>（必要的差戻し・民訴法307条本文）。自判ではない。</span>"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>307条本文は、訴え却下判決を取り消す場合は事件を第一審に差し戻さなければならないと定める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>第一審が本案未審理のため、審級の利益を保障して第一審に審理させる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>訴え却下判決の取消しの場面に限り必要的差戻し（通常の取消しは308条の任意的差戻し）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>取り消しても控訴審は原則自判できず、差戻しが原則。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>入口の判決（訴え却下）の取消しは必要的差戻し、中身まで判断した判決の取消しは任意的差戻しになる（307条・308条）。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-エ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">取り消したあと、自判か差戻しか</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">取り消す第一審判決</p><p class="dgm-cell is-head">控訴審の処理</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">訴えを不適法として却下した判決</p><p class="dgm-cell is-ok">第一審裁判所に差し戻す（義務）</p><p class="dgm-cell">必要的差戻し<span class="dgm-src">307条本文</span></p><p class="dgm-cell is-rowhead">却下判決だが更に弁論をする必要がない</p><p class="dgm-cell is-acc">控訴審が自ら判決できる</p><p class="dgm-cell">差戻しの例外<span class="dgm-src">307条ただし書</span></p><p class="dgm-cell is-rowhead">本案について判断した判決（請求棄却など）</p><p class="dgm-cell is-acc">差し戻すこともできる（裁量）</p><p class="dgm-cell">任意的差戻し<span class="dgm-src">308条1項</span></p><p class="dgm-cell is-rowhead">第一審の判決の手続が法律に違反した</p><p class="dgm-cell is-ok">取り消さなければならない</p><p class="dgm-cell">手続違反による取消し<span class="dgm-src">306条</span></p></div></div></div></td></tr>
+<tr data-stmt="オ" data-verdict="o" data-brief-story="最後は、勝った側が争えるかという場面。上訴できるのは判決の主文で不利益を受けた者だけ（上訴の利益）。請求が棄却されたなら被告は全部勝っており、たとえ判決が能力を見落とした違法を含んでも、勝っている以上上訴できない。訴え却下という「よりキレイな勝ち方」を求める利益は認められず、訴訟要件の具備は職権調査事項だから被告に訴え却下を求める申立権もない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>実務では、全部勝訴した当事者の上訴は上訴の利益を欠き不適法として却下される。判決理由中の不満は上訴では争えない。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>たとえば被告の訴訟能力を看過したまま請求棄却判決が出た場面。勝訴した被告側は、能力がなかったことを理由に控訴して訴え却下を得ようとしても、上訴の利益がなく控訴できない。</span>" data-brief-mark="請求棄却で勝訴した被告は、能力欠缺を理由としても<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>控訴することはできない</span>（上訴の利益なし）。<span class='tx-anscomp-line'>請求棄却で全部勝訴した被告は主文上の不利益がなく<strong>上訴の利益がない</strong>から、訴訟能力の欠缺を理由としても控訴することはできない。</span>"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>上訴できるのは原判決で不利益な裁判を受けた当事者に限る（形式的不服説）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>上訴は不服の救済制度だから、不利益のない勝訴者に上訴を認める必要がない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>請求棄却で全部勝訴した被告には、訴え却下を求める上訴の利益もない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>訴訟要件は職権調査事項で、勝訴被告に訴え却下を求める申立権はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>上訴できるのは主文で不利益を受けた当事者だけで、勝訴者がより有利な理由や主文を求める利益は認められない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-オ"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">主文の結果で上訴の利益が決まる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">第一審の主文</p><p class="dgm-cell is-head">争おうとする当事者</p><p class="dgm-cell is-head">上訴の利益</p><p class="dgm-cell is-rowhead">請求棄却</p><p class="dgm-cell">被告（全部勝訴）</p><p class="dgm-cell is-ng">✕ 不利益がなく控訴できない</p><p class="dgm-cell is-rowhead">請求一部認容</p><p class="dgm-cell">被告（一部敗訴）</p><p class="dgm-cell is-ok">○ 敗訴部分について控訴できる</p><p class="dgm-cell is-rowhead">請求認容</p><p class="dgm-cell">被告（全部敗訴）</p><p class="dgm-cell is-ok">○ 控訴できる</p><p class="dgm-cell is-rowhead">訴え却下</p><p class="dgm-cell">原告</p><p class="dgm-cell is-ok">○ 控訴できる</p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

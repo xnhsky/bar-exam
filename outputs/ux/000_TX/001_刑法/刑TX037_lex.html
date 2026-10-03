@@ -5670,6 +5670,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5969,7 +6204,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>A車の停車場所が片側3車線道路の道路端の路上駐車場であった場合は、基本事例よりも因果関係を肯定する判断に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>結び付きやすい</span><span class="tx-stmt-fix">→ 回避容易で追突の異常性が大きく、むしろ肯定しにくい</span>。<span class="tx-anscomp-line">危険の現実化説では介在事情の異常性が低いほど因果関係を肯定しやすい。片側3車線道路の道路端の路上駐車場は追突を<strong>容易に回避</strong>でき、そこへの追突は基本事例より<strong>異常性が大きい</strong>から、肯定する判断に結び付きやすいとはいえない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「3車線もある広い道の駐車場なら、なおさら事故が起きやすいのでは」と直感で逆に読みたくなる。でも問われているのは、後続車が<strong>その車を避けられたか</strong>。片側1車線のほぼ直線道路上に停車していた基本事例では、避けにくく追突を招いた面があった（<a class="ref-stat" id="ref-case-1-h18327" href="#bref-1-h18327">最決平18.3.27</a>）。3車線道路の道路端の駐車場なら容易に避けられ、そこへの追突は<strong>より稀＝異常性が大きい</strong>。異常性が上がると「行為の危険が現実化した」と評価しにくくなるから、基本事例より肯定に傾くとはいえない（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">回避しやすい場所への追突ほど<strong>異常性</strong>が大きく、因果は肯定しにくい。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">寄与度が下がる変化</span><span class="tx-gist-step is-now">異常性が上がる変化</span><span class="tx-gist-step">別の重大な介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">停める場所が広い道の駐車場に変わると、因果関係は認めやすくなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">車のトランクに被害者を押し込み、脱出できないようにしたまま、路上に車を停めた場面です。もとの事案では片側1車線のほぼ直線道路に停めていましたが、ここでは片側3車線道路の道路端にある路上駐車場に停めたと考えてみます。そこへ、よそ見をしていた後続車が真後ろから追突します。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">停めた場所が変わると、追突という<strong>介在事情</strong>の評価も動きます。避けやすい場所に停まっている車への追突は、狭い直線道路に停まっている車への追突より珍しい出来事といえるのかどうかが、ここでの分かれ目です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" id="ref-case-1-h18327" href="#bref-1-h18327">最決平18.3.27</a>）は、道路上に停めた車のトランク内に被害者を監禁した行為と、第三者の追突事故による死亡との因果関係を肯定しました。片側1車線のほぼ直線道路上に停めていたことが追突を招いた面もあり、追突の異常性は高くないと評価できたからです。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">危険の現実化説では、割り込んだ出来事が珍しいほど、もとの行為の危険がそのまま実現したとは言いにくくなると説明されます。片側3車線道路の道路端にある駐車場なら、後続車は停車中の車を容易に避けられます。避けやすい場所で起きた追突は、それだけ稀な出来事になり、監禁行為の危険から遠ざかります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>介在事情</span></dt><dd>行為の後に割り込んで結果に向かう流れに影響した出来事。第三者の行為、被害者自身の行動、自然現象などがある。</dd></div><div class="tx-gist-term"><dt><span>異常性</span></dt><dd>介在事情がどれだけ稀で予想しにくいか。大きいほど、もとの行為の危険が結果に現実化したとは評価しにくくなる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">広い道のほうが事故は多いはずだ、という生活感覚で読むと向きが逆になります。回避しやすい場所への追突は異常性を上げる変化なので、片側1車線の直線道路に停めた場面より因果関係を肯定しやすくはならず、むしろ肯定しにくくなります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>危険の現実化説の物差しを置く</strong><span class="syn-body">この見解は、介在事情の<span class="case-emphasis freq-high">異常性</span>と<span class="case-emphasis freq-high">結果への寄与度</span>で「行為の危険が結果に現実化したか」を評価する。異常性が<span class="ron-mark freq-high">低い</span>ほど因果関係を肯定しやすい。基本事例は、片側1車線のほぼ直線道路上での停車が追突を招いた面もあり、追突の異常性は高くないと評価された（<a class="ref-stat" href="#bref-1-h18327">最決平18.3.27</a>）。</span></p>
 <p><span class="syn-step">2</span><strong>変化がどちらに動かすかを見る</strong><span class="syn-body">片側3車線道路の道路端の路上駐車場は、後続車が<span class="ron-mark freq-high">容易に回避</span>できる場所で、そこへの追突はより稀な出来事＝介在事情の異常性が<span class="ron-mark freq-high">大きくなる</span>。異常性を上げる方向の変化だから、基本事例よりも因果関係を肯定しやすくなるとはいえない。むしろ肯定しにくくなる。</span></p> </div>
@@ -6013,7 +6248,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>Aの暴行でVが既に瀕死状態にあり、X車の追突はVの死期を幾分早めたにとどまる場合は、基本事例よりも因果関係を肯定する判断に<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>結び付きやすい</span>。<span class="tx-anscomp-line">Aの暴行によりVの<strong>死因が既に形成</strong>されている以上、その後の第三者のX車追突がVの死期を幾分早めたにとどまるなら、追突（介在事情）の<strong>結果への寄与度は小さく</strong>、監禁・暴行行為と死亡との因果関係を肯定できる（<a class="ref-stat" href="#bref-2-h21120">最決平2.11.20</a>）。基本事例より肯定に傾く。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。「あとから追突という別の事故が挟まったのだから、むしろ因果は切れるのでは」と思いたくなる。ところが逆。閉じ込める際にAがカバーを強く打ち付ける暴行を加えてVを<strong>瀕死状態</strong>にしていたなら、Vの死因はもうA自身の行為でできあがっている。X車の追突は死期を<strong>幾分早めただけ</strong>＝介在事情の結果への寄与度が小さい。寄与度の小さい介在は「行為の危険が現実化した」流れを妨げないから、A側の行為の危険が直接死亡に実現したと評価できる。基本事例（追突がVの傷害・死亡に大きく寄与）より肯定に傾く（○）。これが<a class="ref-stat" id="ref-case-2-h21120" href="#bref-2-h21120">大阪南港事件</a>の発想。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">死因を先に作っていれば、後の追突の<strong>寄与度</strong>は小さく因果を肯定できる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">寄与度が下がる変化</span><span class="tx-gist-step">異常性が上がる変化</span><span class="tx-gist-step">別の重大な介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">先に致命傷を負わせていた場合、後から割り込んだ追突は因果関係を切るのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">監禁した者が、トランクカバーを閉めるときにそれを被害者へ強く打ち付ける暴行を加え、重い傷害を負わせたとします。後続車が追突した時点で、被害者はすでに助からない状態でした。追突は、その傷害を悪化させて死ぬ時期を幾分早めただけでした。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">途中で別の事故が割り込んでいます。それでも監禁・暴行と死亡との因果関係を認めてよいのか。決め手になるのは、割り込んだ出来事の<strong>結果への寄与度</strong>です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（<a class="ref-stat" id="ref-case-2-h21120" href="#bref-2-h21120">大阪南港事件</a>・最決平2.11.20）は、犯人の暴行により被害者の死因となった傷害が形成された場合には、その後に第三者の暴行で死期が早められたとしても、犯人の暴行と死亡との間の因果関係を肯定できるとしました。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">死ぬ原因を先に作ったのは行為者自身です。後から割り込んだ出来事が死期を少し前倒ししただけなら、その出来事が結果に効いた度合いは小さいと評価されます。効きの弱い割り込みは、もとの行為の危険が結果へ現実化する流れを妨げないと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>結果への寄与度</span></dt><dd>介在事情が結果の発生にどれだけ効いたか。小さいほど、もとの行為の危険が結果に現実化したと評価しやすくなる。</dd></div><div class="tx-gist-term"><dt><span>死因</span></dt><dd>被害者の死亡を直接もたらした身体の損傷。これを誰の行為が作ったかが、因果関係の判断を大きく左右する。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">後から別の事故が挟まれば因果は切れそうに見えますが、決め手は割り込みの前後ではなく効き具合です。先に死因が作られていれば追突の寄与度は小さくなるので、追突が死亡に大きく効いた場面よりも、監禁・暴行と死亡との因果関係を肯定しやすくなります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>死因を誰が作ったかを見る</strong><span class="syn-body">Aがトランクカバーを強く打ち付ける暴行を加え、Vは<span class="case-emphasis freq-high">重度の傷害＝致命的な死因</span>を既に負っている。X車の追突時、Vは既に瀕死状態にあった。死因はA側で<span class="ron-mark freq-high">既発</span>である。</span></p>
 <p><span class="syn-step">2</span><strong>介在事情の寄与度を測る</strong><span class="syn-body">X車の追突はその傷害を悪化させ死期を幾分早めたに過ぎない＝介在事情の<span class="ron-mark freq-high">結果への寄与度が小さい</span>。犯人の暴行で死因が形成された後、第三者の暴行で死期が早まっても因果関係を肯定できる（<a class="ref-stat" href="#bref-2-h21120">最決平2.11.20・大阪南港事件</a>）。基本事例では追突がVの傷害・死亡に大きく寄与するのに対し、本記述では寄与度が下がるため、より肯定に傾く。</span></p> </div>
@@ -6056,7 +6291,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>X車の追突後、搬送先の医師の重大な医療過誤によりVが死亡した場合は、基本事例よりも因果関係を肯定する判断に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>結び付きやすい</span><span class="tx-stmt-fix">→ 重大な医療過誤の介在で異常性・寄与度が大きく、むしろ肯定しにくい</span>。<span class="tx-anscomp-line">X車追突に加え、搬送先の医師の<strong>重大な医療過誤</strong>という第2の介在事情が挟まり、Vは直接にはその過誤で死亡している。重大な過誤は<strong>異常性が大きく寄与度も大きい</strong>から、基本事例より因果関係を肯定しやすいとはいえない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「救急搬送も事故の続きなのだから、結局は監禁のせいで死んだ」と一続きに読みたくなる。でも基本事例の追突に加えて、ここでは<strong>医師の重大な医療過誤</strong>という別の介在事情が新たに挟まり、しかもVは直接にはその過誤で死んでいる。つまり介在事情の<strong>結果への寄与度が大きい</strong>うえ、"重大な"過誤は通常想定しにくく<strong>異常性も大きい</strong>。異常性・寄与度がともに上がると「行為の危険が現実化した」と評価しにくくなるから、基本事例より肯定に傾くとはいえない（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">重大な医療過誤は<strong>異常性</strong>も寄与度も大きく、因果関係は否定に傾く。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">寄与度が下がる変化</span><span class="tx-gist-step">異常性が上がる変化</span><span class="tx-gist-step is-now">別の重大な介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">追突の後に医師の重大なミスが重なった場合、因果関係は認めやすくなるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">トランク内の被害者が追突で傷害を負い、通行人の通報で駆けつけた救急車によって病院へ運ばれます。ところが搬送先の医師が重大な医療過誤を犯し、被害者は直接にはそのミスによって亡くなったとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">割り込んだ出来事が一つ増えました。追突に加えて重大な<strong>医療過誤</strong>が重なり、しかも被害者を直接死なせたのは後から重なったほうです。それでも監禁行為の危険が結果に現実化したといえるかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決平18.3.27）が監禁行為と死亡との因果関係を肯定したのは、割り込んだ出来事がよそ見運転による追突一つだった事案です。危険の現実化説では、割り込んだ出来事の異常性と結果への寄与度がともに大きいとき、行為の危険が結果に現実化したとは評価しにくくなります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">軽い治療ミスと違い、「重大な」医療過誤は通常は想定しにくい出来事です。しかも被害者を直接死なせているので、結果への効き方も強い。珍しさと効き具合がそろって大きい割り込みは、監禁行為の危険が結果へ届く流れを断つ方向に働くと説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>医療過誤</span></dt><dd>医師などが必要な注意を怠り、患者に被害を生じさせること。過誤が重大なほど、異常な介在事情として重く評価される。</dd></div><div class="tx-gist-term"><dt><span>結果への寄与度</span></dt><dd>介在事情が結果の発生にどれだけ効いたか。小さいほど、もとの行為の危険が結果に現実化したと評価しやすくなる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">救急搬送までは監禁の延長だ、と一続きに読みたくなります。しかし重大な医療過誤は異常性も寄与度も上げる変化なので、よそ見運転の追突だけが割り込んだ場面より因果関係を肯定しやすくはならず、むしろ肯定しにくくなります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>介在事情が一つ増える</strong><span class="syn-body">基本事例の介在は「X車の追突」一つ。本記述はそこに<span class="case-emphasis freq-high">医師の重大な医療過誤</span>が重なり、Vは<span class="ron-mark freq-high">直接にはその過誤で死亡</span>している。介在事情の結果への寄与度が大きい。</span></p>
 <p><span class="syn-step">2</span><strong>異常性を評価する</strong><span class="syn-body">単なる医療ミスと違い、“<span class="ron-mark freq-high">重大な</span>”医療過誤は通常想定しにくく異常性が大きい。異常性が大きく寄与度も大きい介在事情は、行為（監禁）の危険が結果へ現実化する流れを妨げる。よって基本事例と比べて因果関係を肯定しやすくはならず、むしろ肯定しにくくなる。</span></p> </div>
@@ -6097,7 +6332,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>事情を知るXがVを殺害する目的であえてX車をA車に追突させた場合は、基本事例よりも因果関係を肯定する判断に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>結び付きやすい</span><span class="tx-stmt-fix">→ 第三者の故意の犯罪行為は異常性が大きく、むしろ肯定しにくい</span>。<span class="tx-anscomp-line">追突が脇見の過失ではなく、事情を知るXがVを殺す目的であえて追突させた<strong>第三者の故意の犯罪行為</strong>である場合、介在事情の<strong>異常性が格段に大きく</strong>、監禁行為の危険が現実化したと評価しにくいから、基本事例より因果関係を肯定しやすいとはいえない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「同じ追突なのだから、脇見でも殺意でも結論は同じでは」と思いたくなる。でも基本事例の追突は<strong>脇見運転（過失）</strong>。ここではXがVの閉じ込めを知り、<strong>Vを殺す目的で狙って追突</strong>させている＝独立した第三者の故意の犯罪行為。第三者の故意の犯罪的介在は通常およそ予想できず、介在事情の<strong>異常性が格段に大きい</strong>。異常性が大きい介在は行為（監禁）の危険が現実化する流れを妨げるから、基本事例より肯定に傾くとはいえない（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">第三者の<strong>故意</strong>の犯罪行為が割り込むと、異常性は格段に大きくなる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">寄与度が下がる変化</span><span class="tx-gist-step">異常性が上がる変化</span><span class="tx-gist-step is-now">別の重大な介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">割り込んだ追突が、よそ見ではなく殺意に基づく故意の行為だった場合はどうか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">後続車の運転者が、前に停まっている車のトランクに人が閉じ込められていることを知っています。そのうえで被害者を殺す目的で、わざと自分の車をその車へ追突させたとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">起きたこと自体は同じ追突です。しかし割り込んだのが、よそ見という過失ではなく、<strong>第三者の故意の犯罪行為</strong>に変わりました。この違いが因果関係の判断にどう効くかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">最高裁（最決平18.3.27）が監禁行為と死亡との因果関係を肯定したのは、割り込んだのが第三者の甚だしい過失行為だった事案です。危険の現実化説では、割り込んだ出来事が予想しにくいほど、もとの行為の危険が結果に現実化したとは評価しにくくなります。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">よそ見運転による追突は、路上に車を停めていれば起こりうる出来事です。これに対し、事情を知った第三者が人を殺す目的で狙って突っ込む事態は、通常は予想できません。しかも、その第三者が自分の意思で結果を引き受けている面があるため、死亡という結果は割り込んだ側の行為に帰せられやすくなると説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>故意</span></dt><dd>結果の発生を認識し、それを認容して行為すること。うっかりの過失と区別される。</dd></div><div class="tx-gist-term"><dt><span>異常性</span></dt><dd>介在事情がどれだけ稀で予想しにくいか。大きいほど、もとの行為の危険が結果に現実化したとは評価しにくくなる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">同じ追突なのだから結論も同じだ、と均してしまうのが落とし穴です。殺意に基づく故意の追突は異常性を格段に上げる変化なので、よそ見運転の追突が割り込んだ場面より因果関係を肯定しやすくはならず、むしろ肯定しにくくなります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>介在事情の性質を比べる</strong><span class="syn-body">基本事例の追突は<span class="case-emphasis freq-high">脇見運転（過失）</span>。記述4はXが閉じ込めを知りつつVを殺害する目的であえて追突させた＝<span class="ron-mark freq-high">独立した第三者の故意の犯罪行為</span>である。</span></p>
 <p><span class="syn-step">2</span><strong>異常性を評価する</strong><span class="syn-body">第三者の故意の犯罪的介在は通常想定できず<span class="ron-mark freq-high">異常性が非常に大きい</span>。しかも殺意あるXの行為が結果を支配する側面もある。異常性の大きい介在は行為の危険の現実化を妨げるから、監禁行為と死亡の因果関係を肯定しにくくなる。基本事例より肯定側へは動かない。</span></p> </div>
@@ -6139,7 +6374,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>X車の追突ではなく、飛行中のヘリコプターが墜落してA車に衝突しVが死亡した場合は、基本事例よりも因果関係を肯定する判断に<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>結び付きやすい</span><span class="tx-stmt-fix">→ ヘリ墜落は極めて稀で異常性・寄与度が極大、むしろ肯定しにくい</span>。<span class="tx-anscomp-line">追突ですらなく、飛行中のヘリコプターが墜落してA車に衝突するという<strong>極めて稀な出来事</strong>が介在し、それが直接Vを死亡させた場合、介在事情の<strong>異常性・寄与度がともに極めて大きく</strong>、行為の危険が現実化したと評価できないから、基本事例より因果関係を肯定しやすいとはいえない。</span></p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。「結局Vは死んでいるのだから、監禁のせいで死んだといえるのでは」と結果だけを見て当てたくなる。でも危険の現実化説が問うのは"どんな経路で"結果に至ったか。基本事例のX車追突ですら一定の偶然だが、<strong>飛行中のヘリの墜落・衝突</strong>はおよそ日常起こらない極めて稀な事象＝異常性が極大。しかもそのヘリ衝突が<strong>直接Vを死亡</strong>させている＝寄与度も大きい。異常性・寄与度がともに極大の介在は行為の危険の現実化を完全に妨げるから、基本事例より肯定に傾くとはいえない（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body"><strong>条件関係</strong>があっても、およそ起こらない介在では因果関係は否定される。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">寄与度が下がる変化</span><span class="tx-gist-step">異常性が上がる変化</span><span class="tx-gist-step is-now">別の重大な介在</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">死亡という結果がある以上、どんな経路をたどっても因果関係は認められるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">トランクに被害者を閉じ込めた車が路上に停まっています。そこへ後続車が追突するのではなく、飛行中のヘリコプターが墜落してその車に衝突し、衝撃で被害者が傷害を負って亡くなったとします。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">ヘリコプターが落ちてこなければ被害者は死ななかったのですから、<strong>条件関係</strong>はあります。それでも監禁行為と死亡との因果関係を認めてよいかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">条件関係があるだけでは足りません。最高裁（最決平18.3.27）が因果関係を肯定したのは、停車中の車への追突という、現実に起こりうる範囲の出来事が割り込んだ事案です。危険の現実化説は、そのうえでどのような経路をたどって結果に至ったかを問います。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">飛行中のヘリコプターの墜落は、日常およそ起こらない出来事です。しかもその衝突が被害者を直接死なせています。珍しさが極端で、結果への効き方も強い割り込みでは、監禁行為の危険が結果として現れたという評価は成り立ちません。空から降ってきた偶然まで行為者に負わせることはできない、と説明されます。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>条件関係</span></dt><dd>その行為がなければ結果も生じなかったといえる関係。因果関係を認める最初の関門で、これだけでは足りない。</dd></div><div class="tx-gist-term"><dt><span>結果への寄与度</span></dt><dd>介在事情が結果の発生にどれだけ効いたか。小さいほど、もとの行為の危険が結果に現実化したと評価しやすくなる。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">亡くなっている以上は因果があるはずだ、と結果だけを見て飛びつくと誤ります。ヘリコプターの墜落は異常性も寄与度もきわめて大きい割り込みなので、条件関係はあっても、追突が割り込んだ場面より因果関係を肯定しやすくはならず、むしろ肯定しにくくなります。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>介在事情の稀少性を測る</strong><span class="syn-body">基本事例のX車追突も偶然だが、停車車両への追突は現実にあり得る。これに対し<span class="ron-mark freq-high">飛行中のヘリコプターの墜落・衝突</span>はおよそ日常的に起こらない極めて稀な事象で、介在事情の異常性が極めて大きい。</span></p>
 <p><span class="syn-step">2</span><strong>寄与度と結論</strong><span class="syn-body">Vはそのヘリ衝突によって直接傷害を負い死亡した＝介在事情の<span class="ron-mark freq-high">結果への寄与度も大きい</span>。異常性・寄与度がともに極大の介在は、行為（監禁）の危険が結果へ現実化する流れを完全に妨げる。よって基本事例と比べ因果関係を肯定しやすくはならず、むしろ肯定しにくい。</span></p> </div>

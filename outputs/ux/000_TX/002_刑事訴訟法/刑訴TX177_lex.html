@@ -5585,7 +5585,31 @@ a.ref-stat[href]{ cursor:pointer; }
 .tx-verdict-brief .tx-vb-ex strong, .tx-verdict-brief .tx-vb-ex b{
   font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
 }
-/* 具体例＝白地の小箱（同じくタブ＋1字下げ）。要約（抽象）と例（具体）を面で分け、二重符号化を効かせる。 */
+/* ⚙ IN PRACTICE＝実務層の小箱（§v13w・2026-08-31）。旧＝体系・趣旨・コツ・実務を 1 枚の段落に
+   詰めていたため、一番印象に残る「実務では」が地の文に埋もれていた（実機フィードバック）。説明の声
+   （規範）と現場の声（運用）で話者が変わるので、面を分けて視線を一度止める。CASE FILE とは枠線
+   （実線/破線）とタブ色（ブロンズ/青灰）で別系統にし、3 枚が横並びに見えないようにする。 */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+.tx-verdict-brief .tx-vb-prac{
+  display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
+  border:1px solid rgba(140,112,64,.34); border-radius:9px; background:rgba(255,255,255,.72);
+  font-family:var(--font-answer,serif); font-weight:500;
+  font-size:.96em; line-height:1.9; color:#443d2e; text-indent:1em;
+}
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac > .tx-vb-prac-tag,
+.tx-verdict-brief .tx-vb-prac > .tx-vb-prac-tag{
+  position:absolute; top:-11px; left:12px; margin:0; text-indent:0;
+  padding:3px 11px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#f6f1e4 0%,#ddcda8 100%); color:#6a5326; border:1px solid #c4ad7e;
+  font-family:var(--font-mono,sans-serif); font-size:.66rem; font-weight:700; letter-spacing:.1em;
+  box-shadow:0 2px 5px -2px rgba(95,80,45,.4), inset 0 1px 0 rgba(255,255,255,.85);
+  white-space:nowrap;
+}
+.tx-verdict-brief .tx-vb-prac strong, .tx-verdict-brief .tx-vb-prac b{
+  font-family:var(--font-note,sans-serif) !important; font-weight:700 !important; color:#2f3640;
+}
+/* 📁 CASE FILE＝白地・破線の小箱（同じくタブ＋1字下げ）。規範（抽象）と実名の事件（具体）を
+   面で分け、エピソード記憶を錨にして二重符号化を効かせる。 */
 .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
 .tx-verdict-brief .tx-vb-ex{
   display:block; position:relative; margin:20px 0 2px; padding:16px 13px 10px;
@@ -5606,9 +5630,144 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-story,
   .tx-verdict-brief .tx-vb-story{ padding:16px 12px 11px !important; }
   .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-ex,
-  .tx-verdict-brief .tx-vb-ex{ padding:15px 11px 9px; }
+  .tx-verdict-brief .tx-vb-ex,
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-vb-prac,
+  .tx-verdict-brief .tx-vb-prac{ padding:15px 11px 9px; }
 }
 /* TX-VERDICT-STORY:END */
+
+/* TX-VERDICT-DGM:BEGIN v13.1.0 正誤表の図解帯（📐 図解・2026-09-04 試作・刑訴TX082・§v13x）
+   §v13t で正誤表は「解く→表→取れた肢は 原文→✍答案圧縮 で次へ／外した肢だけ表の中で腑に落とす」面に
+   なり、§v13v/§v13w で ことば の層（📖 CONTEXT／⚙ IN PRACTICE／📁 CASE FILE）が入った。残る穴は
+   **対比・分岐・時系列が地の文のままだったこと**＝「1号と2号はどう違う」「着手の前後で何が変わる」を
+   読み下しでしか受け取れず、外した肢では結局カードまで降りていた。図解（TX-DGM）は §v13p で物語⇄カードに
+   置いたが、周回の主戦場である正誤表には無かった。ここはその第3の置き場。
+   ①実体＝行の最終セルに <div class="tx-vb-dgm-src" hidden> で置き（属性ではなく DOM ＝入れ子の図解を
+     素の HTML で書ける・エスケープ不要）、エンジン appendDiagramBand が 📖 CONTEXT の直後・切断点の
+     手前へ移す。図解本体は TX-DGM の固定パターン（対比レーン／ステップ＋帰結分岐）だけで組む＝G67 が効く。
+   ②**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示）。取れた行を details（📐 図解で確かめる）で
+     畳む旧仕様は、開かないと図解が在ることに気づけず死蔵したため廃止した＝トグルは持たない。
+   ③図解を持たない行では帯そのものが出ない＝土台だけ入れても表示は壊れない（§v13v と同じ設計）。
+   ゲート＝validate-tx-core G78／push 前 check-tx-lex-engine.py。伝播＝scripts/tx-lex-verdict-redesign.py。 */
+.tx-vb-dgm-src{ display:none !important; }
+/* 帯＝セル幅いっぱい（.tx-vb-line の 78px ぶら下げには乗せない＝図解は本文ではなく面） */
+.tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-dgm,
+.tx-verdict-brief .tx-vb-dgm{
+  display:block; margin:24px 0 4px; padding:0; text-indent:0 !important;
+}
+.tx-verdict-brief .tx-vb-dgm *{ text-indent:0; }
+/* セル内は本文より狭いので、図解を一段コンパクトにして 2〜3 レーンが横に収まるようにする */
+.tx-verdict-brief .tx-vb-dgm .tx-dgm{
+  margin:14px 0 0; padding:22px 12px 13px; font-size:.94em;
+}
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-title{ margin-bottom:11px; font-size:.95em; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ gap:10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-head{ padding:7px 10px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-lane-body{ gap:6px; padding:10px 10px 11px; }
+.tx-verdict-brief .tx-vb-dgm .dgm-step{ padding:8px 10px 9px 33px; }
+@media (max-width:900px){
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
+}
+/* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6181,11 +6340,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:o,3:x,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-mark="公判前整理手続では、証拠調べの請求をさせるだけでなく、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>証拠調べをする決定・却下決定もできる</span>（316条の5第4号・7号）。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の5は手続でできる事項を各号に列挙し、証拠調べの請求をさせること（4号）と証拠決定・却下決定（7号）を含む。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>争点・証拠を事前整理して公判の空転を防ぐため、証拠の採否まで手続内で先取りできるようにした。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公判前整理手続では、証拠調べの請求をさせるだけでなく、証拠調べをする決定又は却下する決定をすることができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「争点整理だけで証拠決定は公判」ではなく、証拠決定・却下決定も316条の5（7号）に列挙されている。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>手続でできることの範囲は、条文の権限の号列挙で測る（証拠決定まで可能）。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="o" data-brief-mark="検察官は証明予定事実記載書面を、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>裁判所に提出し、被告人又は弁護人に送付しなければならない</span>（316条の13第1項前段）。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の13第1項前段＝検察官は証明予定事実記載書面を裁判所に提出し、被告人又は弁護人に送付しなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>検察官が主張・立証の全体像を先に開示し、争点を明確化して被告人側の防御・証拠整理を可能にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官は…証明しようとする事実を記載した書面を、裁判所に提出し、被告人又は弁護人に送付しなければならない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>提出（裁判所）と送付（相手方）の双方が義務。主体・宛先・義務性のすり替えで誤りにされやすい。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文記述の正誤は「誰が・何を・誰に・義務か」を条文と一つずつ照合する。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="x" data-brief-mark="被告人は公判前整理手続期日に<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>出頭しなければならず、不出頭なら手続を行えない</span><span class='tx-stmt-fix'>→ 出頭は権利にとどまり、不出頭でも手続は行える</span>（316条の9）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>必要的出頭は検察官・弁護人（316条の7）。被告人の出頭は権利であり（316条の9第1項）、裁判所は出頭を求めうる（同2項）にとどまる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>当事者（検察官・弁護人）主導で争点整理する制度ゆえプロの関与が必須で、被告人の出頭は権利保障にとどめる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被告人は…公判前整理手続期日に出頭しなければならず、出頭しないときはその手続を行うことができない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>手続を行えなくするのは検察官・弁護人の不出頭であって、被告人本人の不出頭ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「必要的（欠けると手続不能）」か「権利」かは、その手続の担い手が誰かで決まる。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-mark="整理手続終了後に例外的に請求できる証拠を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>情状に関するものに限る</span><span class='tx-stmt-fix'>→ 情状に限らず、やむを得ない事由があれば請求できる</span>（316条の32第1項）。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の32第1項＝やむを得ない事由で請求できなかったものを除き、終了後は証拠調べを請求できない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>整理手続で争点・証拠を整理した実効性を担保し、終了後の無制限な証拠の後出しを封じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>…やむを得ない事由によって…請求できなかった証拠のうち、情状に関するものに限って請求できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>例外の基準は『やむを得ない事由』の有無であり、対象を情状に限る条文上の限定はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「原則制限＋例外は一定事由」型は、例外要件が『事由』か『対象の種類』かを取り違えない。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-mark="整理手続を経た事件では、被告人・弁護人の冒頭陳述は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>検察官の冒頭陳述に引き続き必要的</span>（316条の30前段）。"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の30前段＝被告人・弁護人は主張があるとき、検察官の冒頭陳述に引き続きこれを明らかにしなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>整理手続で設定した争点を公判冒頭で明示させ、計画的・迅速な審理につなげる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被告人又は弁護人は…検察官の冒頭陳述に引き続き、これを明らかにしなければならない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>通常事件の被告人側冒頭陳述（任意）と異なり、整理手続を経た事件では必要的になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「できる（任意）」か「しなければならない（必要的）」かは、局面・要件で切り替わる。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="公判前整理手続は、第一回公判期日の前に<b>争点と証拠を整理する</b>ための準備手続である。316条の5は、この場で裁判所がしてよいことを号で並べた権限の目録で、訴因を明確にさせることから、証拠調べの請求をさせること、<b>証拠調べをする決定・請求を却下する決定</b>、採用した証拠の取調べの順序と方法を定めることまで入っている。趣旨は本番の日程を守ることにある。裁判員に連日出てもらう以上、法廷でこの証拠を採るかどうかを一から論じていては審理が崩れる。考え方のコツは、<b>採否を決めることと取り調べること</b>を分けて見ること。どの証拠を使うかという採否の判断は準備の場へ前倒しできるが、その証拠の中身を実際に調べて事実を認定する作業は、公開の公判廷に残される。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>期日ごとに裁判所が証拠の採否を決め、採用したものの取調べ順序と方法まで定めてしまう。弁護人は同意か不同意かの意見を述べ、検察官は立証趣旨を説明して採用を求める。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>裁判員制度が動き出した2009年8月3日、東京地裁で最初の裁判員裁判が開かれた。審理は連日続き、同じ週のうちに判決が出ている。初めての制度でこの日程が組めたのは、どの証拠を取り調べるかを本番前の準備の場で決め終えていたからである。</span>" data-brief-mark="公判前整理手続では、証拠調べの請求をさせるだけでなく、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>証拠調べをする決定・却下決定もできる</span>（316条の5第4号・7号）。"><td style="text-align:center;font-weight:700;">ア</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の5は手続でできる事項を各号に列挙し、証拠調べの請求をさせること（4号）と証拠決定・却下決定（7号）を含む。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>争点・証拠を事前整理して公判の空転を防ぐため、証拠の採否まで手続内で先取りできるようにした。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>公判前整理手続では、証拠調べの請求をさせるだけでなく、証拠調べをする決定又は却下する決定をすることができる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「争点整理だけで証拠決定は公判」ではなく、証拠決定・却下決定も316条の5（7号）に列挙されている。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>手続でできることの範囲は、条文の権限の号列挙で測る（証拠決定まで可能）。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="o" data-brief-story="争点整理は、<b>検察官が立証の全体像を先に示す</b>ところから始まる設計になっている。その第一歩が証明予定事実記載書面で、316条の13第1項は、検察官がこれを<b>裁判所に提出し、かつ被告人又は弁護人に送付</b>しなければならないと定める。相手方の手元に届かなければ反論の準備ができず、争点整理がそもそも動き出さないからである。考え方のコツは、<b>検察官の証明予定事実と被告人側の予定主張が対になっている</b>と読むこと。被告人側も、証拠開示を受けて公判でする予定の主張があるときは、裁判所と検察官に明らかにしなければならない（316条の17）。先に全体像を出し、それに対する主張が返る——この往復で争点が絞られるので、書面は裁判所へ出すだけでは足りず、相手方へも届ける必要がある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>検察官は裁判所が定めた期限までに書面を提出し、同時に弁護人へ送る。弁護人はこれを読んで争う点を絞り、予定主張の記載書面と証拠開示の請求を組み立てていく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>公判前整理手続は、司法制度改革の一環である平成16年法律第62号で新設され、2005年11月1日に動き出した。検察官がまず立証の全体像を書面で示し、それが裁判所と相手方の双方へ届く——この順番は、制度が始まったときから入口に据えられている。</span>" data-brief-mark="検察官は証明予定事実記載書面を、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>裁判所に提出し、被告人又は弁護人に送付しなければならない</span>（316条の13第1項前段）。"><td style="text-align:center;font-weight:700;">イ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の13第1項前段＝検察官は証明予定事実記載書面を裁判所に提出し、被告人又は弁護人に送付しなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>検察官が主張・立証の全体像を先に開示し、争点を明確化して被告人側の防御・証拠整理を可能にする。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>検察官は…証明しようとする事実を記載した書面を、裁判所に提出し、被告人又は弁護人に送付しなければならない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>提出（裁判所）と送付（相手方）の双方が義務。主体・宛先・義務性のすり替えで誤りにされやすい。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>条文記述の正誤は「誰が・何を・誰に・義務か」を条文と一つずつ照合する。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="x" data-brief-story="期日に誰が出るかは、316条の9が三段で書き分けている。被告人は出頭<b>することができる</b>、裁判所は必要と認めれば出頭を求めることができる、検察官及び弁護人は出頭<b>しなければならない</b>。この場でやるのは争点と証拠の法的な絞り込みという作業なので、担い手である法律家二人の在席を欠かせない条件にし、本人には出る機会を保障するにとどめた。考え方のコツは、<b>公判期日と読み合わせる</b>こと。公判期日では被告人が出頭しないかぎり開廷できないのが原則で（286条）、本人の不在は審理そのものを止める。同じ出頭という言葉でも、本番と準備の場で重さが入れ替わる。審理ではなく審理の下ごしらえをする場だという性格が、その違いの背景にある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>期日は検察官と弁護人が出て争点と証拠を詰める。被告人が在席しない回もあり、弁護人が接見で内容を伝えて意向を確かめる。裁判所が必要と認めれば本人の出頭を求められる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>ゴーン氏の事件では、2019年を通じて非公開の公判前整理手続が続いていた。外へ伝わるのは弁護人の記者会見を通じてで、傍聴できる本番はまだ始まっていない。準備の場を動かしていたのは、検察官と弁護人という職業人の二人である。</span>" data-brief-mark="被告人は公判前整理手続期日に<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>出頭しなければならず、不出頭なら手続を行えない</span><span class='tx-stmt-fix'>→ 出頭は権利にとどまり、不出頭でも手続は行える</span>（316条の9）。"><td style="text-align:center;font-weight:700;">ウ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>必要的出頭は検察官・弁護人（316条の7）。被告人の出頭は権利であり（316条の9第1項）、裁判所は出頭を求めうる（同2項）にとどまる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>当事者（検察官・弁護人）主導で争点整理する制度ゆえプロの関与が必須で、被告人の出頭は権利保障にとどめる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被告人は…公判前整理手続期日に出頭しなければならず、出頭しないときはその手続を行うことができない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>手続を行えなくするのは検察官・弁護人の不出頭であって、被告人本人の不出頭ではない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「必要的（欠けると手続不能）」か「権利」かは、その手続の担い手が誰かで決まる。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="整理手続が終わると、証拠調べの請求に制限がかかる。316条の32第1項は、<b>やむを得ない事由によって整理手続で請求できなかったもの</b>を除き、終了後は証拠調べを請求できないとする。門を閉めたのは、せっかく絞った争点と証拠が本番で膨らめば連日的開廷が崩れるからであり、例外を残したのは、本当に準備の場では出せなかった証拠まで閉め出すと真相解明と防御の機会を損なうからである。考え方のコツは、この条文が<b>当事者の請求権だけを縛る</b>二層構造だと読むこと。縛られるのは検察官と被告人側の双方だが、裁判所が必要と認めて職権で証拠調べをすることは妨げられない（同条2項）。門は当事者の側に閉まるのであって、真相解明の道まで塞がるわけではない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>公判が始まってから新たな証拠を出す側は、なぜ整理の場で出せなかったかを先に説明する。相手方は準備不足だと争い、裁判所はその事情を見て採否を決める。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>オウム真理教事件で長く特別手配されていた高橋克也氏は、2012年6月に逮捕され、初公判を迎えたのは2015年だった。2年半を準備に費やしたぶん、本番は証拠を後から積み増すことが原則として閉じられた状態で進む。整理に時間をかける制度は、終了後の門を閉めることで初めて釣り合う。</span>" data-brief-mark="整理手続終了後に例外的に請求できる証拠を<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>情状に関するものに限る</span><span class='tx-stmt-fix'>→ 情状に限らず、やむを得ない事由があれば請求できる</span>（316条の32第1項）。"><td style="text-align:center;font-weight:700;">エ</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の32第1項＝やむを得ない事由で請求できなかったものを除き、終了後は証拠調べを請求できない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>整理手続で争点・証拠を整理した実効性を担保し、終了後の無制限な証拠の後出しを封じる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>…やむを得ない事由によって…請求できなかった証拠のうち、情状に関するものに限って請求できる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>例外の基準は『やむを得ない事由』の有無であり、対象を情状に限る条文上の限定はない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「原則制限＋例外は一定事由」型は、例外要件が『事由』か『対象の種類』かを取り違えない。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="整理手続を経た事件では、証拠調べに入る入口の形が変わる。検察官が証拠により証明すべき事実を述べた後、被告人又は弁護人も、主張があるならこれに<b>引き続き明らかにしなければならない</b>（316条の30前段）。通常の事件では被告人側のこの発言は任意だが、整理手続を経ると法律上の義務になる。準備の場で争点を出させておきながら、公判の入口で法廷と裁判員にそれを示さなければ、整理の成果が審理へ反映されないからである。考え方のコツは、条文の<b>主張があるとき</b>という条件と<b>引き続き</b>という順序の指定を押さえること。述べる中身がなければ義務は生じないが、あるなら検察官の次の一番手で出さねばならず、後出しの余地を残さない作りになっている。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>弁護人は整理手続で固めた主張を公判初日に述べ、裁判員へ争点の見取り図を渡す。何を争い何を争わないかをここで明示するので、続く証拠調べの受け止め方が変わる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>ゴーン氏の事件では、2019年12月29日の国外逃亡によって初公判が開かれず、被告人側が法廷の入口で主張を述べる場も訪れなかった。本人が自分の主張を語ったのは、2020年1月8日にベイルートで開いた記者会見である。</span>" data-brief-mark="整理手続を経た事件では、被告人・弁護人の冒頭陳述は<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>検察官の冒頭陳述に引き続き必要的</span>（316条の30前段）。"><td style="text-align:center;font-weight:700;">オ</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>316条の30前段＝被告人・弁護人は主張があるとき、検察官の冒頭陳述に引き続きこれを明らかにしなければならない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>整理手続で設定した争点を公判冒頭で明示させ、計画的・迅速な審理につなげる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>被告人又は弁護人は…検察官の冒頭陳述に引き続き、これを明らかにしなければならない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>通常事件の被告人側冒頭陳述（任意）と異なり、整理手続を経た事件では必要的になる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「できる（任意）」か「しなければならない（必要的）」かは、局面・要件で切り替わる。</p></div></td></tr>
 </tbody>
 </table>
 </div>
@@ -6444,16 +6603,31 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
     p.appendChild(document.createTextNode(text));
     return p;
   }
-  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 ものがたり」帯を挟む。
-  // 本文は行の data-brief-story（HTML 可・具体例は span.tx-vb-ex で内包）＝単一情報源。
-  // 物語解説の全体（本問を貫く一本の物差し）と当該記述の解説の要約で、外した肢を表の中で腑に落とす層。
+  // TX-VERDICT-STORY: 原文帯と法理帯（切断点・転用）の間に「📖 CONTEXT」帯を挟む。
+  // 本文は行の data-brief-story（HTML 可）＝単一情報源。帯の中は 3 枚の面に分かれる：地の文
+  // （体系的位置づけ→趣旨→考え方のコツ）→ span.tx-vb-prac（⚙ IN PRACTICE）→ span.tx-vb-ex
+  // （📁 CASE FILE＝実名の具体例）。外した肢を肢カードへ降りずに表の中で腑に落とす層。
   function appendStoryLine(wrap, row){
     var html = row && row.getAttribute('data-brief-story');
     if (!html) return;
     var p = document.createElement('p');
     p.className = 'tx-vb-line tx-vb-story';
-    p.innerHTML = '<span class="tx-vb-label">📖 ものがたり</span>' + html;
+    p.innerHTML = '<span class="tx-vb-label">📖 CONTEXT</span>' + html;
     wrap.appendChild(p);
+  }
+  // TX-VERDICT-DGM: 📖 CONTEXT の直後に「📐 図解」帯を挟む（§v13x）。図解の実体は行の最終セルの
+  // <div class="tx-vb-dgm-src" hidden> ＝ DOM に素の HTML で置く（属性に詰めると入れ子をエスケープで
+  // 潰すことになる）。**全行つねに開いた状態で出す**（2026-09-17・ユーザー指示。取れた行を
+  // 「📐 図解で確かめる」の details で畳む旧仕様は、開かないと在ることに気づけず死蔵した）。
+  // 図解を持たない行では帯そのものが出ない（土台だけ入れても表示は壊れない）。
+  function appendDiagramBand(wrap, src){
+    if (!src) return;
+    var fig = src.querySelector('.tx-dgm');
+    if (!fig) return;
+    var box = document.createElement('div');
+    box.className = 'tx-vb-dgm';
+    box.appendChild(fig);
+    wrap.appendChild(box);
   }
   // コア主行（切断点／転用）＋ 残り法理の details を brief ラッパへ流し込む。
   function appendCoreLines(wrap, core){
@@ -6488,7 +6662,12 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
       // 切断点を出すのは「外した行」＝ユーザー誤答（未回答なら記述が×の行）。取れた行は転用1行で流す。
       var userWrong = row.classList.contains('tx-user-incorrect');
       var userRight = row.classList.contains('tx-user-correct');
-      var core = extractReviewCoreLines(coreCell, userWrong || (!userRight && !isCorrect));
+      var wantCut = userWrong || (!userRight && !isCorrect);
+      // 図解ソース（§v13x）はコア抽出より先にセルから外す（5点フローが無い旧データのフォールバックで
+      // セル全文を拾うため、外さないと図解の文字がコア行に混ざる）。
+      var dgmSrc = coreCell.querySelector('.tx-vb-dgm-src');
+      if (dgmSrc && dgmSrc.parentNode) dgmSrc.parentNode.removeChild(dgmSrc);
+      var core = extractReviewCoreLines(coreCell, wantCut);
       var mark = row.getAttribute('data-brief-mark') || '';
       var orig = row.getAttribute('data-brief-orig') || '';
       var err = row.getAttribute('data-brief-error') || '';
@@ -6501,6 +6680,7 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         pM.innerHTML = '<span class="tx-vb-label">原文</span>' + mark;
         wrapM.appendChild(pM);
         appendStoryLine(wrapM, row);
+        appendDiagramBand(wrapM, dgmSrc);
         appendCoreLines(wrapM, core);
         coreCell.appendChild(wrapM);
       } else if (orig || err) {
@@ -6509,12 +6689,14 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
         if (orig) wrap.appendChild(makeBriefLine('tx-vb-orig', '原文', orig));
         if (err) wrap.appendChild(makeBriefLine('tx-vb-error ' + (isCorrect ? 'is-o' : 'is-x'), isCorrect ? '決め手' : 'どこが誤り', err));
         appendStoryLine(wrap, row);
+        appendDiagramBand(wrap, dgmSrc);
         appendCoreLines(wrap, core);
         coreCell.appendChild(wrap);
       } else {
         var wrapF = document.createElement('div');
         wrapF.className = 'tx-verdict-brief';
         appendStoryLine(wrapF, row);
+        appendDiagramBand(wrapF, dgmSrc);
         appendCoreLines(wrapF, core);
         coreCell.appendChild(wrapF);
       }

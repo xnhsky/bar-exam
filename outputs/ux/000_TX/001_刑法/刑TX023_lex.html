@@ -5403,6 +5403,21 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-dgm-steps{ flex-direction:column; }
   .dgm-next{ align-self:flex-start; margin-left:14px; transform:rotate(90deg); }
 }
+/* TX-DGM-MATRIX (2026-09-22 §v15 比較表・任意スロット)：主体×措置・こう変えると→答え→根拠 の格子（div グリッド＝正誤表の行走査に <tr> を混ぜない）。最大4行×4列・セルは短語＋dgm-src 条文チップ。 */
+.tx-dgm.is-matrix .tx-dgm-matrix{ display:grid; gap:2px; padding:2px; border:1.5px solid var(--ed-line2,#D6C9DC); border-radius:9px;
+  background:var(--ed-line2,#D6C9DC); font-size:.9em; color:#3D3444; overflow:hidden; }
+.tx-dgm-matrix.is-c3{ grid-template-columns:minmax(0,1.25fr) repeat(2,minmax(0,1fr)); }
+.tx-dgm-matrix.is-c4{ grid-template-columns:minmax(0,1.25fr) repeat(3,minmax(0,1fr)); }
+.tx-dgm-matrix .dgm-cell{ margin:0; padding:8px 10px; background:#fff; line-height:1.5; text-align:left; text-indent:0; min-width:0; overflow-wrap:anywhere; }
+.tx-dgm-matrix .dgm-cell.is-head{ background:linear-gradient(180deg,var(--light,#F7EBD6) 0%,var(--soft,#E8D4D4) 100%); font-weight:800; font-size:.92em;
+  color:var(--bg-dark,#463A50); letter-spacing:.03em; text-align:center; }
+.tx-dgm-matrix .dgm-cell.is-rowhead{ background:var(--ed-tint,#F5EFF6); font-weight:800; color:var(--bg-dark,#463A50); }
+.tx-dgm-matrix .dgm-cell.is-ok{ background:#E7F3E9; color:#2F6B3A; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-ng{ background:#FDECEB; color:#A5322E; font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-acc{ background:var(--ed-tint,#F5EFF6); color:var(--accent-darker,#6d5477); font-weight:800; }
+.tx-dgm-matrix .dgm-cell.is-flat{ background:#F4F1F0; color:#5C5262; }
+.tx-dgm-matrix .dgm-cell .dgm-src{ display:block; margin:2px 0 0; font-weight:600; }
+@media (max-width:640px){ .tx-dgm-matrix{ font-size:.84em; } .tx-dgm-matrix .dgm-cell{ padding:6px 6px; } }
 /* TX-DGM:END */
 
 /* TX-VERDICT-CORE2:BEGIN v13.1.0 正誤表コア列の実体名ラベル化＋残り法理の details＋誌面の作り込み
@@ -5670,6 +5685,241 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+/* TX-GIST-STORY:BEGIN v13.1.0 THE GIST のストーリー型（2026-09-17 刑訴TX100 試作→承認・§v14・版据置）
+   旧＝結論・位置づけ・用語・例え・当否を 1 段落（300〜400 字）に詰め、用語の言い換えを「——」で文中に
+   挟んでいたため、初学者には一文が長く、どこで話が切り替わるか目で追えなかった（ユーザー指摘）。
+   新＝同じ中身を役割ごとの面へ割る。①結論（○×マーク＋一文）②🧭現在地（体系マップと同じ三分の
+   どこにいるか＋この記述の問い）③ストーリー（場面→問題→判例・条文→理由を縦の流れで）④📘キーワード
+   （専門用語は本文で使い、定義はここへ逃がす＝文中の挿入句を無くす）⑤🖼イメージ ⑥判定（記述のどこが
+   判例と合う／ずれるか）。class は .syn-lead のまま（Lexia の gist 抽出・G32/G56 の走査対象を維持）。
+   書体は GIST の従来どおり本文 --font-answer／強調・ラベル --font-note（Shippori Antique は 400 のみ＝
+   ラベルに 700 を当てない）。HTML は手で書かず JSON 仕様から scripts/tx-gist-story.py apply で組む
+   （単一情報源＝scripts/tx_gist_story.py・ゲート＝validate-tx-core G81）。 */
+.tx-inline-explain .syn-lead.tx-gist{ padding:26px 18px 14px; text-indent:0; line-height:1.95; }
+.tx-gist p{ margin:0; text-indent:0; }
+.tx-gist .tx-gist-body{ display:block; min-width:0; text-indent:1em; }
+/* ① 結論 */
+.tx-gist .tx-gist-head{
+  display:flex; align-items:flex-start; gap:.7em;
+  margin:0 0 14px; padding:0 0 13px; border-bottom:1px dashed rgba(150,160,70,.45);
+}
+.tx-gist .tx-gist-mark{
+  flex:0 0 auto; display:inline-flex; align-items:center; justify-content:center;
+  width:1.9em; height:1.9em; margin-top:.05em; border-radius:50%;
+  font-family:var(--font-note); font-weight:700; font-size:1.05em; line-height:1; color:#fff;
+  box-shadow:0 3px 8px -3px rgba(60,40,40,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+.tx-gist .tx-gist-head.is-x .tx-gist-mark{ background:linear-gradient(180deg,#cf6a7c 0%,#a3435a 100%); }
+.tx-gist .tx-gist-head.is-o .tx-gist-mark{ background:linear-gradient(180deg,#6aa874 0%,#43814f 100%); }
+.tx-gist .tx-gist-head-body{
+  flex:1 1 auto; min-width:0;
+  font-family:var(--font-display); font-weight:700; font-size:1.08em; line-height:1.75; color:#34391a;
+  text-wrap:balance;   /* 1 字だけ次行へ落ちる泣き別れを防ぐ */
+}
+.tx-inline-explain .tx-gist .tx-gist-head-body strong{
+  font-family:var(--font-display) !important; font-weight:800 !important; color:#2c3212;
+  background:linear-gradient(transparent 62%, rgba(214,232,120,.85) 62%);
+}
+/* 共通ラベル（楕円ピル） */
+.tx-gist .tx-gist-lab{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:2px 11px 3px; border-radius:999px; border:1px solid;
+  font-family:var(--font-note); font-weight:700; font-size:.76em; letter-spacing:.03em;
+  line-height:1.6; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 5px -3px rgba(60,50,30,.4), inset 0 1px 0 rgba(255,255,255,.7);
+}
+/* ② 現在地 */
+.tx-gist .tx-gist-where{
+  margin:0 0 14px; padding:10px 12px 10px; border-radius:10px;
+  background:rgba(255,255,255,.72); border:1px solid rgba(190,200,120,.55);
+}
+.tx-gist .tx-gist-map{ display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; }
+.tx-gist .tx-gist-lab.is-where{ background:#f2f5dc; border-color:#b9c46a; color:#56601c; }
+.tx-gist .tx-gist-track{ display:inline-flex; flex-wrap:wrap; gap:3px; }
+.tx-gist .tx-gist-step{
+  padding:2px 16px 2px 18px; font-family:var(--font-note); font-weight:500; font-size:.8em; line-height:1.7;
+  color:#7a7d62; background:#eceedd;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%, 9px 50%);
+}
+.tx-gist .tx-gist-step:first-child{ padding-left:12px; clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 50%, calc(100% - 9px) 100%, 0 100%); }
+.tx-gist .tx-gist-step.is-now{ color:#fff; font-weight:700; background:linear-gradient(180deg,#95a43a 0%,#6d7b1f 100%); }
+.tx-gist .tx-gist-q{ display:flex; align-items:baseline; gap:.6em; margin-top:8px; }
+.tx-gist .tx-gist-q-lab{
+  flex:0 0 auto; font-family:var(--font-note); font-weight:700; font-size:.78em; color:#6d7b1f;
+  border-bottom:2px solid #c4d06f; line-height:1.5; white-space:nowrap;
+}
+.tx-gist .tx-gist-q .tx-gist-body{ text-indent:0; font-family:var(--font-note); font-weight:500; color:#3d4220; }
+/* ③ ストーリー（縦の流れ：場面→問題→判例・条文→理由） */
+.tx-gist .tx-gist-story{ position:relative; margin:0 0 14px; }
+/* ラベルどうしを結ぶ縦線（各段の上半分＝前の段から／下半分＝次の段へ。最初と最後ははみ出さない） */
+.tx-gist .tx-gist-story > .tx-gist-beat::before,
+.tx-gist .tx-gist-story > .tx-gist-beat::after{
+  content:''; position:absolute; left:calc(2.9em - 1px); width:2px; background:rgba(160,160,130,.45);
+}
+.tx-gist .tx-gist-story > .tx-gist-beat::before{ top:0; height:calc(9px + .28em); }
+.tx-gist .tx-gist-story > .tx-gist-beat::after{ top:calc(9px + .28em + 20px); bottom:0; }
+.tx-gist .tx-gist-story > .tx-gist-beat:first-child::before,
+.tx-gist .tx-gist-story > .tx-gist-beat:last-child::after{ display:none; }
+.tx-gist .tx-gist-beat{
+  position:relative; display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:9px 0;
+}
+.tx-gist .tx-gist-story > .tx-gist-beat + .tx-gist-beat{ border-top:1px dotted rgba(150,150,110,.35); }
+.tx-gist .tx-gist-beat > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; position:relative; z-index:1; }
+.tx-gist .tx-gist-lab.is-scene { background:#eaf0f8; border-color:#9fb3d1; color:#3f5577; }
+.tx-gist .tx-gist-lab.is-issue { background:#fbf1de; border-color:#e0b56c; color:#7a5314; }
+.tx-gist .tx-gist-lab.is-answer{ background:#fbeaef; border-color:#d99aab; color:#8e3f56; }
+.tx-gist .tx-gist-lab.is-why   { background:#e4f2ef; border-color:#8fc1b6; color:#2f6b60; }
+.tx-gist .tx-gist-lab.is-image { background:#eef0fb; border-color:#a9b2dc; color:#4a5391; }
+/* ④ キーワード（定義は本文から外してここへ） */
+.tx-gist .tx-gist-terms{
+  position:relative; margin:22px 0 14px; padding:18px 14px 8px; border-radius:10px;
+  background:linear-gradient(180deg,#fffffa 0%,#f7f9ea 100%); border:1px solid rgba(180,190,110,.6);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9), 0 4px 12px -10px rgba(90,100,30,.55);
+}
+.tx-gist .tx-gist-terms-lab{
+  position:absolute; top:-12px; left:12px; padding:3px 12px 4px; border-radius:7px;
+  background:linear-gradient(180deg,#a3b04a 0%,#76832a 100%); color:#fff; border:1px solid #6b7724;
+  font-family:var(--font-note); font-weight:700; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; text-indent:0;
+  box-shadow:0 2px 6px -2px rgba(70,80,20,.5), inset 0 1px 0 rgba(255,255,255,.45);
+}
+/* 用語列の幅を全行でそろえる＝dl を 1 枚のグリッドにし、行ラッパーは display:contents */
+.tx-gist .tx-gist-terms dl{ margin:0; display:grid; grid-template-columns:max-content minmax(0,1fr); column-gap:1.1em; }
+.tx-gist .tx-gist-term{ display:contents; }
+.tx-gist .tx-gist-term dt, .tx-gist .tx-gist-term dd{ padding:7px 0; }
+.tx-gist .tx-gist-term + .tx-gist-term dt,
+.tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:1px dotted rgba(150,160,90,.45); }
+.tx-gist .tx-gist-term dt{
+  font-family:var(--font-note); font-weight:700; font-size:.92em; line-height:1.9; color:#4b5320; white-space:nowrap;
+}
+.tx-gist .tx-gist-term dt > span{ background:linear-gradient(transparent 60%, rgba(226,240,150,.9) 60%); }
+.tx-gist .tx-gist-term dd{ margin:0; font-size:.95em; line-height:1.85; color:#3e4130; }
+/* ⑤ イメージ */
+.tx-gist > .tx-gist-beat.is-image{
+  margin:0 0 12px; padding:10px 12px; border-radius:10px;
+  background:linear-gradient(180deg,#f6f7fd 0%,#eef0fa 100%); border:1px dashed #b9c0e2;
+  grid-template-columns:5.8em minmax(0,1fr);
+}
+/* ⑥ 判定 */
+.tx-gist .tx-gist-judge{
+  display:grid; grid-template-columns:5.8em minmax(0,1fr); column-gap:.9em; align-items:start;
+  padding:10px 12px; border-radius:10px; border-left:4px solid;
+}
+.tx-gist .tx-gist-judge.is-x{ background:#fbf0f2; border-left-color:#b5566a; }
+.tx-gist .tx-gist-judge.is-o{ background:#eef6ef; border-left-color:#4f8a5b; }
+.tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:stretch; margin-top:.28em; color:#fff; }
+.tx-gist .tx-gist-lab.is-judge.is-x{ background:linear-gradient(180deg,#c9667a 0%,#a3435a 100%); border-color:#933a4f; }
+.tx-gist .tx-gist-lab.is-judge.is-o{ background:linear-gradient(180deg,#67a571 0%,#43814f 100%); border-color:#3b7246; }
+/* 狭い画面：ラベルを本文の上へ積む（読み幅を本文に回す） */
+@media (max-width:600px){
+  .tx-inline-explain .syn-lead.tx-gist{ padding:24px 12px 12px; }
+  .tx-gist .tx-gist-story > .tx-gist-beat::before, .tx-gist .tx-gist-story > .tx-gist-beat::after{ display:none; }
+  .tx-gist .tx-gist-beat, .tx-gist > .tx-gist-beat.is-image, .tx-gist .tx-gist-judge{ grid-template-columns:1fr; row-gap:5px; }
+  .tx-gist .tx-gist-beat > .tx-gist-lab, .tx-gist .tx-gist-judge > .tx-gist-lab{ justify-self:start; margin-top:0; }
+  .tx-gist .tx-gist-terms dl{ grid-template-columns:1fr; }
+  .tx-gist .tx-gist-term dd, .tx-gist .tx-gist-term + .tx-gist-term dd{ border-top:0; padding-top:0; }
+  .tx-gist .tx-gist-term dt{ padding-bottom:0; white-space:normal; }
+  .tx-gist .tx-gist-q{ flex-direction:column; gap:2px; }
+}
+/* TX-GIST-STORY:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -5988,35 +6238,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>具体的・現実的支配説からは、誤って乙を跳ねた後は引受け等の措置を採らず市街地に放置して逃走したにすぎない甲について、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>作為義務違反は認められない</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。何もしなかったこと（不作為）を、手を下したこと（作為）と同じに扱うには、その人が結果に至る流れを“自分の手で握っている”必要がある——これが<strong>具体的・現実的支配説</strong>（結果へ向かう因果経過を自分の管理下に収めていることを求める考え方）。甲は誤って人を跳ねた後、乙を車に乗せて運ぶ等の<strong>引受け</strong>（自分の管理下に取り込む行為）をせず、人通りの多い市街地に放置して逃げただけ。流れを現実に握ったとはいえないから、この説では義務違反は生じない。ゆえに「認められない」は正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">跳ねて逃げただけでは<strong>因果の現実的支配</strong>がなく、作為義務違反は認められない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step is-now">具体的・現実的支配説</span><span class="tx-gist-step">危険利用意思説</span><span class="tx-gist-step">因果設定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">結果へ向かう流れを自分の手で握っていない者にも、作為義務は生じるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">人通りの多い市街地で車を運転していた人が、誤って歩行者を跳ねて重傷を負わせました。運転者は怖くなり、倒れた歩行者をその場に残したまま走り去り、歩行者は死亡しました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">手を下していない「放置」を、殺す行為と同じに扱うには<strong>作為義務</strong>が要ります。走り去った運転者にその義務があったといえるかが問題です。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">具体的・現実的支配説は、結果へ向かう因果経過を自分の管理下に収めていること、つまり排他的支配や引受けを求めます。最高裁も、自己の責めに帰すべき事由で生命の危険を生じさせ、患者が<strong>自己の排他的支配下</strong>にあることを認識しながら医療措置を受けさせなかった者に不作為による殺人罪を認めており（最決平成17年7月4日・シャクティ治療事件）、この説はその線に近い厳しめの基準です。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">作為義務を広く認めれば、通りすがりの見殺しまで殺人として処罰することになってしまいます。そこで、結果への流れを現実に握っていた者だけを、手を下した者と同じに扱うと説明されます。走り去った運転者は、倒れた歩行者を車に乗せて運ぶなどの引受けをしておらず、人通りの多い場所で第三者が救助に入る余地も残っていました。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>作為義務（保障人的地位）</span></dt><dd>法益侵害を防ぐべき法的義務。これを負う者の不作為だけが、手を下した作為と同じに扱われる。</dd></div><div class="tx-gist-term"><dt><span>排他的支配</span></dt><dd>結果へ向かう因果経過を自分だけが左右できる状態。他人が助けに入れない状況や、被害者を自己の管理下に取り込む引受けによって生じる。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">引受けをせず人通りの多い市街地に放置して逃走しただけでは因果の現実的支配がなく、支配説の要求を満たさない。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>見解の基準を確認する</strong><span class="syn-body">支配説は、単に危険を作っただけでは足りず、<span class="case-emphasis freq-high">法益侵害への因果経過を具体的・現実的に支配している状況</span>（被害者を自己の管理下に置く排他的支配・引受け）を要求する。<a class="ref-case" href="#bref-1-case">判例（最決平17.7.4シャクティ事件）</a>が引受け＋排他的支配で不作為の殺人を認めたのと軌を一にする厳しめの基準。</span></p>
 <p><span class="syn-step">2</span><strong>甲の事実を当てはめる</strong><span class="syn-body">甲は誤って跳ねただけで、その後乙を車に乗せる・人目のない場所へ運ぶ等の引受け行為をしていない。<span class="ron-mark freq-high">人通りの多い市街地</span>に放置しており第三者による救助の余地も残る＝排他的・現実的支配はない。よって支配説では<a class="ref-stat" href="#bref-1-199">不作為の殺人（199条）</a>の前提となる作為義務違反は認められず、「認められない」は正しい。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>支配説の合言葉は「握ったか」。跳ねて逃げただけでは、結果への流れを“自分の手で握った”とはいえない。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>支配説の基準</strong>：作為義務違反には、法益侵害への因果経過を具体的・現実的に支配している状況（排他的支配・引受け）が必要。</li>
-<li><strong>甲への当てはめ</strong>：誤って跳ねた後に引受け等をせず市街地に放置＝現実的支配なし。作為義務違反は認められない。</li>
-<li><strong>ひっかけの型</strong>：「先行行為（跳ねた）があるから当然に義務」と飛びつくと支配説の絞りを落とす。支配説は先行行為だけでは足りず、因果の現実的支配まで求める。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>支配説は握ったかを問う。跳ねて逃げただけでは握らず、車に乗せて運べば握る。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="theory-1-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：不真正不作為犯の作為義務の発生根拠（本問の3見解）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">不作為を作為と同視して実行行為性を認めるには「作為義務（保障人的地位）」が要る。その発生根拠につき本問は3説を対置する。<span class="ron-mark freq-high">①具体的・現実的支配説</span>＝因果経過を排他的・現実的に支配していること（判例の排他的支配に近い客観説）／<span class="ron-mark freq-high">②危険利用意思説</span>＝既発生の危険を利用する意思があること（主観面を重視）／<span class="ron-mark freq-high">③因果設定説（先行行為）</span>＝法益侵害に向かう因果の流れを自ら設定したこと（先行行為を根拠とする客観説）。</p></div><details class="tx-basis-more"><summary>＋ 対立軸・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="theory-1-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：不真正不作為犯の作為義務の発生根拠（本問の3見解）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">不作為を作為と同視して実行行為性を認めるには「作為義務（保障人的地位）」が要る。その発生根拠につき本問は3説を対置する。<span class="ron-mark freq-high">①具体的・現実的支配説</span>＝因果経過を排他的・現実的に支配していること（判例の排他的支配に近い客観説）／<span class="ron-mark freq-high">②危険利用意思説</span>＝既発生の危険を利用する意思があること（主観面を重視）／<span class="ron-mark freq-high">③因果設定説（先行行為）</span>＝法益侵害に向かう因果の流れを自ら設定したこと（先行行為を根拠とする客観説）。</p></div><details class="tx-basis-more"><summary>＋ 対立軸を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">対立軸</span><span class="kd-text">①③は<strong>客観面</strong>（支配・先行行為）で、②は<strong>主観面</strong>（利用の意思）で作為義務を基礎づける。同じ事案でも採る説により結論が変わりうる（本問はまさにその分岐を問う）。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲＝①×・②×・③○／丙＝④（③説）×・⑤（②説）○。正しい組合せは①b②b③a④b⑤a（肢4）。</span></div>
 </div></div></details></div>
-<div id="bref-1-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成17年7月4日（シャクティ治療事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">自己の責めに帰すべき事由により患者の生命に具体的な危険を生じさせた上、患者が<span class="ron-mark freq-high">自己の排他的支配下</span>にあることを認識しながら生命維持に必要な医療措置を受けさせなかった者には、<span class="case-emphasis freq-high">不作為による殺人罪</span>が成立する。作為義務は、危険の引受け（引き受けたこと）と排他的支配によって基礎づけられる。</p></div><details class="tx-basis-more"><summary>＋ 射程・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note"><div class="kd-item"><span class="kd-label r-shatei">射程・本問適用</span><span class="kd-text">判例は「引受け＋排他的支配」を求める。甲は乙を引き受けて自己の支配下に置いておらず、判例（＝支配説）の基準でも作為義務違反は認めにくい（記述1が○となる根拠）。</span></div></div></div></details></div>
-<div id="bref-1-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（甲の事例の対象罪）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-1-case" class="tx-basis-item is-case"><div class="tx-basis-head">⚖ 最決平成17年7月4日（シャクティ治療事件）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">自己の責めに帰すべき事由により患者の生命に具体的な危険を生じさせた上、患者が<span class="ron-mark freq-high">自己の排他的支配下</span>にあることを認識しながら生命維持に必要な医療措置を受けさせなかった者には、<span class="case-emphasis freq-high">不作為による殺人罪</span>が成立する。作為義務は、危険の引受け（引き受けたこと）と排他的支配によって基礎づけられる。</p></div></div>
+<div id="bref-1-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（甲の事例の対象罪）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">甲の事例は「乙を放置して死亡させた」という<span class="case-emphasis freq-high">不作為による殺人</span>の成否が問題。不作為が実行行為（殺害）と同視できるには作為義務（保障人的地位）が必要で、その有無を各見解で判定する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">支配説（記述1）・危険利用意思説（記述2）では甲に作為義務違反は認められず、因果設定説（記述3）でのみ認められる。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">支配説＝因果経過の具体的・現実的支配（排他的支配・引受け）を要求。甲は跳ねた後に引受け等をせず市街地に放置して逃走＝支配なし。よって作為義務違反は認められず、本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>先行行為があれば当然に作為義務、ではない</strong>。甲が乙を跳ねたのは確かに先行行為だが、支配説は「先行行為＋因果の現実的支配」まで要求するので、跳ねて逃げただけでは足りない。ここが同じ甲でも<strong>③因果設定説では○</strong>になるのに<strong>①支配説では×</strong>になる分岐点。不作為犯は「どの学説の基準か」で当てはめが変わる典型で、作為義務の発生根拠（排他的支配説／先行行為説／危険利用意思説）を横に並べて cross-cut で押さえる。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは事実の側</strong>。同じ具体的・現実的支配説でも、跳ねた相手を自車に乗せて人目のない場所へ運べば引受けと排他的支配が生じ、作為義務違反が立つ（最決平17.7.4）。人通りの多い市街地に置いたまま去った場合は第三者の救助の余地が残るため、支配は認められない。</span><div class="tx-dgm is-matrix" data-dgm="023-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">具体的・現実的支配説の当てはめを1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">市街地に放置 → 自車に乗せて人目のない場所へ運ぶ</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">被害者を自己の管理下へ取り込む引受けと排他的支配が生じる<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">放置して逃走 → 救急車を呼び到着まで付き添う</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">防止措置を採っており不作為そのものがない</p><p class="dgm-cell is-rowhead">自ら跳ねた → 他人の事故現場に通りかかる</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">法律上の防止義務を負わず、因果経過の支配もない</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6034,35 +6273,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>危険利用意思説からは、怖くなって乙を放置して逃走した甲について、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>危険を利用する意思が認められ、作為義務違反が認められる</span><span class="tx-stmt-fix">→ 怖くて逃げただけで利用意思はなく、認められない</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。危険が既に生じているのだから、放置すれば“利用”したことになるのでは、と思いたくなる。でも<strong>危険利用意思説</strong>（発生した危険を自分の目的のために積極的に利用する意思を求める考え方）は、ただ放置しただけでは足りない。甲は<strong>怖くなって逃げた</strong>だけで、乙の死という結果を利用しようという心情はない。利用の意思がない以上、この説でも作為義務違反は認められない。だから「認められる」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">怖くなって逃げた運転者に<strong>危険を利用する意思</strong>はなく、作為義務違反は認められない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的・現実的支配説</span><span class="tx-gist-step is-now">危険利用意思説</span><span class="tx-gist-step">因果設定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">危険が既に生じている場面で放置すれば、それだけで危険を「利用した」ことになるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">誤って歩行者を跳ねて重傷を負わせた運転者は、大変なことをしたと怖くなり、助けを呼ぶこともせずその場から走り去りました。倒れた歩行者の生命の危険は、すでに生じています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">この説が作為義務の決め手にするのは、客観的な支配ではなく<strong>危険を利用する意思</strong>という主観面です。逃げた運転者の心の中に、その意思があったといえるかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">危険利用意思説の答えは、既に発生した法益侵害の危険を自分の目的のために積極的に利用する意思で防止措置を採らなかったことを求める、というものです。怖くなって逃げただけの運転者にこの意思はなく、この説でも作為義務違反は認められません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">主観面を決め手にするのは、不作為を作為と同じに扱う根拠を、行為者が危険を自分の手段として取り込んだ点に求めるからだと説明されます。単に怖くて逃げた場合は、危険を手段として使ったわけではありません。同じ「気付いて放置した」でも、利益のために放置した場合とは評価が正反対になります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>危険利用意思</span></dt><dd>既に発生している法益侵害の危険を、自分の目的のために積極的に利用しようとする意思。</dd></div><div class="tx-gist-term"><dt><span>法律上の防止義務</span></dt><dd>法令・法律行為・条理などに基づいて法益侵害を防ぐべき法的義務。危険利用意思説も、この義務を負う者であることを前提とする。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">怖くなって逃げた運転者に既発の危険を利用する意思はなく、認められるとした点が逆＝作為義務違反は立たない。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>見解の基準を確認する</strong><span class="syn-body">危険利用意思説は、<span class="case-emphasis freq-high">既に発生した法益侵害の危険を利用する意思</span>で防止措置を採らなかった場合に作為義務違反を認める。客観的な支配や先行行為ではなく、<span class="ron-mark freq-high">主観面（利用の意思）</span>を決め手にする説。</span></p>
 <p><span class="syn-step">2</span><strong>甲の心情を当てはめる</strong><span class="syn-body">甲は「怖くなったことから」乙を放置して逃走したにすぎず、乙の生命侵害という危険を自分の利益のために利用しようという意思はない。よって危険利用意思説でも作為義務違反は認められず、「認められる」は誤り。ここは同じ放置でも<a class="ref-stat" href="#bref-2-199">丙（後述の保険金目的の事例）</a>とは主観が正反対で、丙なら利用意思ありで○になる（対比が決め手）。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>危険利用意思説のキーは「利用する気があったか」。ただ怖くて逃げただけは“利用”ではない。保険金目的なら“利用”。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>危険利用意思説の基準</strong>：既に発生した危険を利用する意思での不作為に作為義務違反を認める（主観面を決め手にする）。</li>
-<li><strong>甲への当てはめ</strong>：怖くなって放置逃走＝危険を利用する意思なし。作為義務違反は認められない。</li>
-<li><strong>ひっかけの型</strong>：「放置＝利用」と短絡しない。単なる逃走・不作為と、危険を積極利用する意思は別物（甲＝利用意思なし／丙＝保険金目的で利用意思あり）。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>怖くて逃げるは利用でなく、得だから放置は利用（危険利用意思説）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="theory-2-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：危険利用意思説（主観説）と客観説の対比<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text"><span class="ron-mark freq-high">危険利用意思説</span>は、法律上の防止義務を負う者が、<span class="case-emphasis freq-high">既に発生した法益侵害の危険を利用する意思</span>で防止措置を採らなかったことに作為義務違反を認める。行為者の主観（利用の意思）を作為義務の中心に据える点で、因果の客観的支配・先行行為を根拠とする客観説（支配説・因果設定説）と対立する。</p></div><details class="tx-basis-more"><summary>＋ 対立説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="theory-2-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：危険利用意思説（主観説）と客観説の対比<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text"><span class="ron-mark freq-high">危険利用意思説</span>は、法律上の防止義務を負う者が、<span class="case-emphasis freq-high">既に発生した法益侵害の危険を利用する意思</span>で防止措置を採らなかったことに作為義務違反を認める。行為者の主観（利用の意思）を作為義務の中心に据える点で、因果の客観的支配・先行行為を根拠とする客観説（支配説・因果設定説）と対立する。</p></div><details class="tx-basis-more"><summary>＋ 対立説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">対立説</span><span class="kd-text">客観説（支配説・因果設定説）は「自らの行為で危険を作り・支配したか」を問うので、利用の意思がなくても客観的支配や先行行為があれば義務を認めうる。逆に主観説は、支配や先行行為があっても利用意思がなければ義務を否定する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は怖くて逃走＝利用意思なし→②b（認められない）。丙は保険金目的で放置＝利用意思あり→⑤a（認められる）。主観の有無が甲・丙で逆になる。</span></div>
 </div></div></details></div>
-<div id="bref-2-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（甲の事例の対象罪）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-2-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（甲の事例の対象罪）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">甲の放置による乙の死亡が<span class="case-emphasis freq-high">不作為の殺人</span>となるかは、作為義務（保障人的地位）の有無で決まる。危険利用意思説では、その義務の要件として「危険を利用する意思」を要求する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲に利用意思は認められないため、危険利用意思説では作為義務違反は否定され、不作為の殺人は成立しない方向（②b）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">危険利用意思説＝既発生の危険を利用する意思での不作為を要求（主観説）。甲は怖くて逃走しただけで利用意思なし。よって作為義務違反は認められず、「認められる」とする本記述は誤り。</p>
 </div>
 
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「放置した＝危険を利用した」ではない</strong>。危険利用意思説が求めるのは、発生した危険を<em>自分の目的のために積極的に利用する意思</em>。甲は怖くて逃げただけで利用意思がなく×だが、丙は保険金目当てで放置＝利用意思ありで○（記述5）。同じ「気付いて放置」でも、主観（怖くて逃走か／利益目的か）で結論が反転する cross-cut。客観説（支配・先行行為）が甲を○×どちらに振るかと合わせて、学説ごとの物差しを立て分ける。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは放置の動機</strong>。危険利用意思説が求めるのは既発の危険を自己の利益へ取り込む意思であり、発覚を恐れて逃げるのは利用に当たらないが、そのまま結果が出た方が得だと当て込んだり、保険金を得ようと燃えるのを待つのであれば、同じ放置でも作為義務違反になる。</span><div class="tx-dgm is-matrix" data-dgm="023-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">危険利用意思説は放置の動機で切れる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">放置の動機</p><p class="dgm-cell is-head">利用する意思</p><p class="dgm-cell is-head">作為義務違反</p><p class="dgm-cell is-rowhead">発覚を恐れ、怖くなって逃げる</p><p class="dgm-cell is-ng">✕ ない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell is-rowhead">そのまま結果が出た方が得だと当て込んで待つ</p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">保険金を得ようと、既に出た火を放置する</p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell is-ok">○ 認められる</p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 <article class="tx-inline-card" data-stmt="3" id="stmt-3">
@@ -6079,34 +6307,23 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>因果設定説（先行行為）からは、自動車で誤って乙を跳ねて重傷を負わせた甲は因果の流れを自ら設定した者に当たり、その後放置して逃走したことに<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>作為義務違反が認められる</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。自分の運転で人を跳ねて重傷を負わせた——これは“死に向かう流れを自分で作り出した”ということ。<strong>因果設定説</strong>（＝先行行為説。法益侵害に向かう因果の流れを自ら設定したことを作為義務の根拠にする考え方）では、この「流れを自ら作った」点が決め手になる。甲は自らの運転で乙を死へ向かう流れに乗せた張本人だから、その流れを止める措置（救助）を採らず放置した点に作為義務違反が認められる。だから正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">自ら跳ねて危険を作った運転者は<strong>因果を設定した者</strong>に当たり、作為義務違反が認められる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的・現実的支配説</span><span class="tx-gist-step">危険利用意思説</span><span class="tx-gist-step is-now">因果設定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">法益侵害へ向かう危険を作り出した張本人は、その流れを止める義務を負うのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">歩行者が重傷を負い死へ向かったのは、走り去った運転者自身の運転が原因でした。死に向かう流れは、この運転によって生まれています。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">因果設定説が問うのは、自分の<strong>先行行為</strong>によって法益侵害に向かう因果の流れを自ら設定したかどうかです。運転者がその設定者に当たるかが問題になります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">因果設定説の答えは、因果の流れを自ら設定した者が防止措置を採らなかったことに作為義務違反を認める、というものです。自らの運転で重傷を負わせた運転者は設定者に当たり、救護せず放置して逃走した点に作為義務違反が認められます（不作為による殺人・刑法199条）。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">自分が作った流れなら、それを止められる立場にあるのは作った本人です。だから客観的な支配まで求めず、先行行為があれば義務を認めてよいと説明されます。支配説より義務を広く認めやすいのは、現実的支配という一段の絞りを置かないからです。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>先行行為</span></dt><dd>作為義務の根拠とされる、行為者自身の先立つ行為。これによって法益侵害に向かう危険が作り出される。</dd></div><div class="tx-gist-term"><dt><span>不作為による殺人</span></dt><dd>殺害行為をしない形で人を死亡させた場合に成立する殺人罪（刑法199条・死刑又は無期若しくは5年以上の拘禁刑）。作為義務を負う者の不作為だけが殺害行為と同視される。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">自ら跳ねて危険を作った者は因果を自ら設定した者に当たり、先行行為だけで足りる因果設定説では義務違反が立つ。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>見解の基準を確認する</strong><span class="syn-body">因果設定説は、<span class="case-emphasis freq-high">法益侵害に向かう因果の流れを自ら設定した者</span>（自己の先行行為で危険を創り出した者）が防止措置を採らなかったことに作為義務違反を認める。客観的な<span class="ron-mark freq-high">先行行為</span>を根拠にする点で支配説より義務を認めやすい。</span></p>
 <p><span class="syn-step">2</span><strong>甲の先行行為を当てはめる</strong><span class="syn-body">甲は自動車運転中に誤って乙を跳ねて重傷を負わせている＝乙の生命侵害に向かう因果の流れを自ら設定した者に当たる。その後、救護せず放置して逃走した（防止措置の不作為）。よって<a class="ref-stat" href="#bref-3-199">不作為の殺人（199条）</a>の前提となる作為義務違反が認められ、「認められる」は正しい。支配説（記述1）が×なのに因果設定説で○になるのは、後者が先行行為で足り現実的支配まで求めないため。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>因果設定説は「流れを作ったのは誰か」。跳ねた甲が死への流れの張本人。作った者は止める義務を負う。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>因果設定説の基準</strong>：法益侵害に向かう因果の流れを自ら設定した者（先行行為で危険を創出）に作為義務違反を認める。</li>
-<li><strong>甲への当てはめ</strong>：自ら跳ねて重傷＝因果を設定→救護せず放置逃走。作為義務違反が認められる。</li>
-<li><strong>ひっかけの型</strong>：支配説では×だが因果設定説では○。同じ甲でも採る学説で結論が変わる点を取り違えない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>因果設定説は作った者を縛り、支配説は握った者を縛る。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="theory-3-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：因果設定説（先行行為説）の内容と射程<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text"><span class="ron-mark freq-high">因果設定説（先行行為説）</span>は、<span class="case-emphasis freq-high">法益侵害に向かう因果の流れを自ら設定した者</span>が防止措置を採らなかったことに作為義務違反を認める。自己の先行行為で危険を創り出したことを義務の根拠とする客観説で、支配説（排他的・現実的支配まで要求）よりも作為義務を広く認めやすい。</p></div><details class="tx-basis-more"><summary>＋ 対立説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="theory-3-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：因果設定説（先行行為説）の内容と射程<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text"><span class="ron-mark freq-high">因果設定説（先行行為説）</span>は、<span class="case-emphasis freq-high">法益侵害に向かう因果の流れを自ら設定した者</span>が防止措置を採らなかったことに作為義務違反を認める。自己の先行行為で危険を創り出したことを義務の根拠とする客観説で、支配説（排他的・現実的支配まで要求）よりも作為義務を広く認めやすい。</p></div><details class="tx-basis-more"><summary>＋ 対立説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">対立説</span><span class="kd-text">支配説は「先行行為＋因果の現実的支配」を要求するため、先行行為だけでは足りない。因果設定説は先行行為（自ら危険を設定したこと）で足りるとする点が違い、甲の結論を分ける。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は自ら跳ねて因果を設定＝③a（認められる）。他方、丙は火元が丁の過失で自ら設定していない＝④b（認められない）。同じ因果設定説でも「自ら設定したか」で甲・丙が分かれる。</span></div>
 </div></div></details></div>
-<div id="bref-3-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（甲の事例の対象罪）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-3-199" class="tx-basis-item "><div class="tx-basis-head">📜 刑法199条 殺人罪（甲の事例の対象罪）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">本文</span><span class="hang-body">人を殺した者は、死刑又は無期若しくは5年以上の拘禁刑に処する。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">甲の放置による乙の死亡を<span class="case-emphasis freq-high">不作為の殺人</span>と評価できるかは作為義務の有無次第。因果設定説では、自ら因果を設定した者に防止義務が生じる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は自らの運転で因果を設定しているため、因果設定説では作為義務違反が肯定され、不作為の殺人が成立しうる（③a）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">因果設定説＝法益侵害に向かう因果の流れを自ら設定した者（先行行為）に作為義務違反を認める。甲は自ら跳ねて重傷を負わせ因果を設定→放置逃走。よって作為義務違反が認められ、本記述は正しい。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>同じ甲でも、支配説では×・因果設定説では○</strong>。両説の違いは「先行行為だけで足りるか（因果設定説）／現実的支配まで要るか（支配説）」の一点。甲は跳ねた（先行行為）が引受け等の支配はしていないので、支配説では×・因果設定説では○に割れる。学説問題は「結論を暗記」ではなく<em>各説の判定基準</em>を持ち、事実を同じ物差しで当てる——先行行為の評価は結果的加重犯（傷害致死等）の議論にも通じる cross-cut。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは立つ説の側</strong>。同じ跳ね逃げでも、具体的・現実的支配説は引受けによる排他的支配まで要求するので義務違反は立たず、危険利用意思説は怖くて逃げた運転者に利用の意思を認めない。先行行為だけで足りるのは因果設定説である。</span><div class="tx-dgm is-matrix" data-dgm="023-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">同じ跳ね逃げでも、立つ説で答えが裏返る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">立つ説</p><p class="dgm-cell is-head">決め手</p><p class="dgm-cell is-head">作為義務違反</p><p class="dgm-cell is-rowhead">因果設定説（先行行為）</p><p class="dgm-cell">自己の先行行為で危険を創り出したか</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">具体的・現実的支配説</p><p class="dgm-cell">因果経過を排他的・現実的に支配しているか</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell is-rowhead">危険利用意思説</p><p class="dgm-cell">既発の危険を利用する意思があるか</p><p class="dgm-cell is-ng">✕ 認められない</p></div></div></div>
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
@@ -6124,35 +6341,24 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>因果設定説（先行行為）からは、丁のたばこの火の不始末で生じたカーテンの火を放置して外出した丙も、公共の危険発生に向かう因果の流れを自ら設定した者に当たり、<span class="tx-stmt-x"><span class="tx-stmt-mk">✕</span>作為義務違反が認められる</span><span class="tx-stmt-fix">→ 火元は丁の過失で丙は自ら設定していない。認められない</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>×。丙は火事に気付いて放置したのだから、放火の流れを作ったも同然では、と思いたくなる。でも因果設定説が問うのは“因果の流れを<strong>自ら</strong>設定したか”。火を出した（危険を作った）のは<strong>丁のたばこの不始末</strong>であって、丙ではない。丙は後から気付いて放置しただけで、公共の危険に向かう流れを自ら設定した者には当たらない。だから因果設定説では作為義務違反は認められず、「認められる」とする本記述は誤り（×）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-x"><span class="tx-gist-mark">×</span><span class="tx-gist-head-body">他人の火の不始末で生じた火では、住人は<strong>因果を自ら設定した者</strong>に当たらない。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的・現実的支配説</span><span class="tx-gist-step">危険利用意思説</span><span class="tx-gist-step is-now">因果設定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">危険に後から気付いて放置した者も、因果の流れを自ら設定した者に当たるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">一人暮らしの住人が、遊びに来た客が帰った後、客のたばこの火の不始末でカーテンが燃えているのに気付きました。住人はそのまま外出し、火はカーテンから燃え移って家が全焼しました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">因果設定説は、公共の危険に向かう因果の流れを<strong>自ら設定した</strong>者にだけ作為義務を認めます。火を出したのが誰かによって、住人がその設定者に当たるかが決まります。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body">火を出したのは客のたばこの火の不始末で、住人が自ら火を放ったわけではありません。危険を作り出した張本人ではないので、因果設定説では作為義務違反は認められず、不作為による放火（刑法109条）は成立しません。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">先行行為を義務の根拠に据える説なのですから、先行行為をしていない者に義務は生じません。気付いたのに放置したという事情は、客観的に危険を作り出したことと同じではないと説明されます。もっとも、この説で義務が否定されても、主観面を決め手にする説では別の理由で義務が認められることがあります。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>因果設定説（先行行為説）</span></dt><dd>法益侵害に向かう因果の流れを自ら設定したことを作為義務の根拠とする客観説。</dd></div><div class="tx-gist-term"><dt><span>公共の危険</span></dt><dd>不特定または多数の人の生命・身体・財産に対する危険。放火罪が守ろうとする利益。</dd></div></dl></div><p class="tx-gist-judge is-x"><span class="tx-gist-lab is-judge is-x">× 誤り</span><span class="tx-gist-body">火元は帰った来客のたばこの不始末で、住人は危険を自ら設定した者に当たらず、因果設定説では作為義務違反は立たない。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>見解の基準を確認する</strong><span class="syn-body">因果設定説は、法益侵害（ここでは公共の危険）に向かう因果の流れを<span class="case-emphasis freq-high">自ら設定した者</span>＝自己の先行行為で危険を創り出した張本人であることを要求する。危険を作った主体でなければ、この説の作為義務は生じない。</span></p>
 <p><span class="syn-step">2</span><strong>丙の立場を当てはめる</strong><span class="syn-body">火元は<span class="ron-mark freq-high">丁のたばこの火の不始末</span>で、丙が自ら火を放ったわけではない。丙は後から燃えているのに気付いて放置し外出しただけで、公共の危険発生に向かう因果を自ら設定した者に当たらない。よって因果設定説（C君の立場）では<a class="ref-stat" href="#bref-4-109">不作為の放火（109条）</a>の作為義務違反は認められず、④は「認められない（b）」。甲（自ら跳ねて設定＝記述3）と違い、丙は設定者でない点が分かれ目。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>因果設定説は「火を作ったのは誰か」。丙は火を作っていない（作ったのは丁）。設定していない者に、設定者の義務は生じない。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>因果設定説の基準</strong>：因果の流れを自ら設定した者（危険を創出した張本人）に作為義務違反を認める。</li>
-<li><strong>丙への当てはめ</strong>：火元は丁の過失。丙は自ら設定した者でない→因果設定説では作為義務違反は認められない。</li>
-<li><strong>ひっかけの型</strong>：「気付いて放置した＝因果を設定した」ではない。危険を作った（火を出した）のが誰かを見る。丙は先行行為者でない。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>火を作った者に義務、気付いただけの者に義務なし（因果設定説）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="theory-4-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：因果設定説の「自ら設定」要件（甲と丙の分岐）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">因果設定説は、法益侵害に向かう因果の流れを<span class="case-emphasis freq-high">自ら設定した者</span>にのみ作為義務を認める。ポイントは「危険を創り出した張本人か」であり、他人の行為・過失で生じた危険に後から気付いた者は、自ら設定した者に当たらない。</p></div><details class="tx-basis-more"><summary>＋ 対立説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="theory-4-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：因果設定説の「自ら設定」要件（甲と丙の分岐）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">因果設定説は、法益侵害に向かう因果の流れを<span class="case-emphasis freq-high">自ら設定した者</span>にのみ作為義務を認める。ポイントは「危険を創り出した張本人か」であり、他人の行為・過失で生じた危険に後から気付いた者は、自ら設定した者に当たらない。</p></div><details class="tx-basis-more"><summary>＋ 対立説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">甲と丙の違い</span><span class="kd-text">甲は自らの運転で乙を跳ね、生命侵害に向かう因果を<strong>自ら設定</strong>した（③○）。丙は丁の過失で生じた火に後から気付いただけで<strong>自ら設定していない</strong>（④×）。同じ因果設定説でも「自ら設定したか」で結論が割れる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">丙は火元でないため、因果設定説（C君の立場）では作為義務違反は認められず④b。もっとも危険利用意思説（記述5）では、保険金目的の利用意思から⑤aとなり結論が変わる。</span></div>
 </div></div></details></div>
 <div id="bref-4-109" class="tx-basis-item "><div class="tx-basis-head">📜 刑法109条 非現住建造物等放火罪（丙の事例の対象罪）<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">①</span><span class="hang-body">放火して、現に人が住居に使用せず、かつ、現に人がいない建造物、艦船又は鉱坑を焼損した者は、2年以上の有期拘禁刑に処する。</span></p>
-<p class="hanging"><span class="para-num">②</span><span class="hang-body">前項の物が<span class="case-emphasis freq-mid">自己の所有</span>に係るときは、6月以上7年以下の拘禁刑に処する。ただし、公共の危険を生じなかったときは、罰しない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<p class="hanging"><span class="para-num">②</span><span class="hang-body">前項の物が<span class="case-emphasis freq-mid">自己の所有</span>に係るときは、6月以上7年以下の拘禁刑に処する。ただし、公共の危険を生じなかったときは、罰しない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">丙の事例は、燃えている自宅（非現住建造物）を放置して全焼させた<span class="case-emphasis freq-high">不作為による放火</span>の成否が問題。作為が実行行為（放火）と同視できるには作為義務が必要で、これを各見解で判定する。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">因果設定説では丙は火元でなく自ら設定していないため作為義務違反は否定（④b）。危険利用意思説では利用意思があるため肯定（⑤a）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">因果設定説＝因果の流れを自ら設定した者（先行行為の張本人）に義務。火元は丁の過失で丙は自ら設定していない。よって因果設定説では作為義務違反は認められず、「認められる」とする本記述は誤り（④b）。</p>
 </div>
 
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>「気付いて放置した＝因果を設定した」ではない</strong>。因果設定説（先行行為説）は<em>危険を自ら創り出した張本人</em>にのみ義務を負わせる。丙の家が燃えた原因は丁のたばこの不始末で、丙は先行行為者ではない。だから同じ因果設定説でも、自ら跳ねた甲は○・火元でない丙は×に割れる。先行行為の“主体性”を見落とすと当てはめを誤る cross-cut。もっとも丙は次の記述5（危険利用意思説）では別の理由（保険金目的）で○になる点も要注意。</span></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは火元が誰か</strong>。因果設定説は危険を創り出した張本人だけを縛るので、住人自身の寝たばこやストーブの不始末で燃え出したのなら、同じ放置でも作為義務違反になる。気付いた者であることと、危険を作った者であることは別である。</span><div class="tx-dgm is-matrix" data-dgm="023-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">因果設定説は火元が誰かで裏返る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">火元をこう変えると</p><p class="dgm-cell is-head">自ら設定した者か</p><p class="dgm-cell is-head">作為義務違反</p><p class="dgm-cell is-rowhead">帰った来客のたばこの不始末</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell is-rowhead">住人自身の寝たばこの不始末</p><p class="dgm-cell is-ok">○ 当たる</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">住人がストーブをカーテンの際に置いたまま外出</p><p class="dgm-cell is-ok">○ 当たる</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">落雷や近隣からの延焼</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 認められない</p></div></div></div>
 
 <div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
@@ -6171,36 +6377,25 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <div class="sub-card synthesis">
 <h4>🎯 統合解説</h4>
 <p class="syn-orig"><span class="syn-tag syn-tag-orig">📜 記述原文</span>危険利用意思説からは、火災保険金を手に入れるためカーテンの火を放置して外出した丙について、既発生の火災の危険を利用する意思が認められ、<span class="tx-stmt-o"><span class="tx-stmt-mk is-ok">✓</span>作為義務違反が認められる</span>。</p>
-<p class="syn-lead"><span class="syn-tag">💡 THE GIST</span>○。丙は自分で火をつけたわけではないから責任はないのでは、と思える。でも<strong>危険利用意思説</strong>が問うのは“既に生じた危険を利用する意思”。丙は、燃えているのに気付きながら、<strong>火災保険金を手に入れよう</strong>と考えて消火も通報もせず放置して外出した。これは発生した火災の危険を自分の利益のために積極的に利用する意思そのもの。しかも<a class="ref-stat" href="#bref-5-shobo">消防法上、火災を発見した者には通報義務</a>があり、丙は法律上の防止義務を負う。だから危険利用意思説では作為義務違反が認められ、正しい（○）。</p>
+<div class="syn-lead tx-gist"><span class="syn-tag">💡 THE GIST</span><p class="tx-gist-head is-o"><span class="tx-gist-mark">○</span><span class="tx-gist-head-body">保険金目的で燃える自宅を放置した住人には<strong>危険を利用する意思</strong>があり、作為義務違反が認められる。</span></p><div class="tx-gist-where"><p class="tx-gist-map"><span class="tx-gist-lab is-where">🧭 現在地</span><span class="tx-gist-track"><span class="tx-gist-step">具体的・現実的支配説</span><span class="tx-gist-step is-now">危険利用意思説</span><span class="tx-gist-step">因果設定説</span></span></p><p class="tx-gist-q"><span class="tx-gist-q-lab">この記述の問い</span><span class="tx-gist-body">火をつけた張本人でない者にも、作為義務は生じるのか。</span></p></div><div class="tx-gist-story"><p class="tx-gist-beat is-scene"><span class="tx-gist-lab is-scene">🎬 場面</span><span class="tx-gist-body">住人は、客のたばこの火でカーテンが燃えているのに気付きながら、家に掛けてある火災保険の保険金を手に入れようと考え、消火も通報もせずに外出しました。家はそのまま全焼しました。</span></p><p class="tx-gist-beat is-issue"><span class="tx-gist-lab is-issue">❓ 問題</span><span class="tx-gist-body">危険利用意思説では、<strong>法律上の防止義務</strong>を負う者が、既にある危険を利用する意思で放置したかどうかが決め手になります。火元でない住人がその義務を負うのか、そして利用する意思があったのかが問われます。</span></p><p class="tx-gist-beat is-answer"><span class="tx-gist-lab is-answer">⚖ 判例・条文</span><span class="tx-gist-body"><a class="ref-stat" href="#bref-5-shobo">消防法上、火災を発見した者には通報義務</a>があり（消防法24条1項＝遅滞なく消防署又は市町村長の指定した場所に通報しなければならない）、自宅の火災を発見した住人は法令に基づく防止義務を負います。そのうえで保険金を手に入れようとして消火も通報もしなかったのですから、既に発生した火災の危険を利用する意思が認められ、作為義務違反が認められます。</span></p><p class="tx-gist-beat is-why"><span class="tx-gist-lab is-why">🔍 理由</span><span class="tx-gist-body">この説が主観面を決め手にするのは、危険を自分の儲けの手段として取り込んだ点に、手を下したのと変わらない悪質さを見るからだと説明されます。火をつけたのが誰かという客観面ではなく、既にある火をどう使う気だったかを見るので、火元でない者でも義務を負いえます。結果回避が容易であったことも前提になっています。</span></p></div><div class="tx-gist-terms"><span class="tx-gist-terms-lab">📘 キーワード</span><dl><div class="tx-gist-term"><dt><span>法律上の防止義務</span></dt><dd>法令・法律行為・条理などに基づいて法益侵害を防ぐべき法的義務。ここでは消防法24条1項の通報義務がこれに当たる。</dd></div><div class="tx-gist-term"><dt><span>危険利用意思</span></dt><dd>既に発生している危険を、自分の目的のために積極的に利用しようとする意思。</dd></div></dl></div><p class="tx-gist-judge is-o"><span class="tx-gist-lab is-judge is-o">○ 正しい</span><span class="tx-gist-body">保険金を得るために既発の火災を放置しており、消防法24条1項の通報義務と結びついて利用の意思が立つ。</span></p></div>
 <div class="syn-path">
 <p><span class="syn-step">1</span><strong>法律上の防止義務を確認する</strong><span class="syn-body"><a class="ref-stat" href="#bref-5-shobo">消防法24条1項</a>は火災を発見した者に通報義務を課し、状況によっては消火活動等への協力も求められる。丙は自宅の火災を発見した者として、<span class="case-emphasis freq-high">法令に基づく防止義務（法律上の防止義務）</span>を負う。前提として結果回避も容易とされている。</span></p>
 <p><span class="syn-step">2</span><strong>利用意思を当てはめる</strong><span class="syn-body">丙は<span class="ron-mark freq-high">火災保険金を手に入れるため</span>、既に発生した火災の危険を利用する意思で通報・消火をせず放置して外出した。危険利用意思説の要件（既発の危険を利用する意思）を満たすから、作為義務違反が認められる（⑤a）。因果設定説（記述4）では火元でないため×だが、危険利用意思説は主観（利用意思）を決め手にするので丙は○となり、学説で結論が逆になる。</span></p> </div>
-<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>危険利用意思説で丙が○になる理由は「保険金目的」。既にある火を“儲けの手段”に使う気＝危険を利用する意思。</p>
-</div>
-
-<div class="choice-points">
-<ol>
-<li><strong>法律上の防止義務</strong>：消防法24条1項（火災発見者の通報義務）等により、丙は法令に基づく防止義務（法律上の防止義務）を負う。</li>
-<li><strong>丙への当てはめ</strong>：保険金目的で既発火災の危険を利用する意思で放置＝利用意思あり。危険利用意思説では作為義務違反が認められる。</li>
-<li><strong>ひっかけの型</strong>：「自分で火をつけていない＝義務なし」ではない。危険利用意思説は、法律上の防止義務＋危険を利用する意思で足りる。</li>
-</ol>
+<p class="syn-image"><span class="syn-tag">🗝 記憶のフック</span>利用の意思で義務が立ち、焼いた建物で条文が動く（109条・115条）。</p>
 </div>
 <div class="sub-card basis-link">
 <span class="tx-v13-basis-label">📚 BASIS</span>
-<div class="tx-basis-items"><div id="theory-5-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：危険利用意思説の丙への当てはめ（④×との対比）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">危険利用意思説は、法律上の防止義務を負う者が<span class="case-emphasis freq-high">既に発生した危険を利用する意思</span>で防止措置を採らなかったことに作為義務違反を認める。丙は火元ではない（因果を設定していない）が、保険金目的という<span class="ron-mark freq-high">利用意思</span>がある点で、客観説（因果設定説）と結論が分かれる。</p></div><details class="tx-basis-more"><summary>＋ 対立説・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div class="tx-basis-items"><div id="theory-5-duty" class="tx-basis-item is-theory"><div class="tx-basis-head">📖 学説：危険利用意思説の丙への当てはめ（④×との対比）<span class="freq-badge freq-high">★★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="judgment-text">危険利用意思説は、法律上の防止義務を負う者が<span class="case-emphasis freq-high">既に発生した危険を利用する意思</span>で防止措置を採らなかったことに作為義務違反を認める。丙は火元ではない（因果を設定していない）が、保険金目的という<span class="ron-mark freq-high">利用意思</span>がある点で、客観説（因果設定説）と結論が分かれる。</p></div><details class="tx-basis-more"><summary>＋ 対立説を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">因果設定説との違い</span><span class="kd-text">因果設定説（記述4）は「自ら因果を設定したか」を問うので、火元でない丙は×（④b）。危険利用意思説（記述5）は「利用する意思があるか」を問うので、保険金目的の丙は○（⑤a）。同じ丙でも学説で逆の結論。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">甲は利用意思がなく②b（危険利用意思説でも×）、丙は利用意思があり⑤a。主観の有無が甲・丙で逆転している。正しい組合せは①b②b③a④b⑤a（肢4）。</span></div>
 </div></div></details></div>
-<div id="bref-5-shobo" class="tx-basis-item "><div class="tx-basis-head">📜 消防法24条1項（火災発見者の通報義務）＝丙の法律上の防止義務<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">24①</span><span class="hang-body">火災を発見した者は、遅滞なくこれを<span class="ron-mark freq-high">消防署又は市町村長の指定した場所に通報</span>しなければならない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件・本問への帰結を開く</summary><div class="tx-basis-note"><div class="note">
+<div id="bref-5-shobo" class="tx-basis-item "><div class="tx-basis-head">📜 消防法24条1項（火災発見者の通報義務）＝丙の法律上の防止義務<span class="freq-badge freq-mid">★★</span><a class="tx-basis-back" href="#" title="参照元へ戻る">↩ 戻る</a></div><div class="tx-basis-honbun"><p class="hanging"><span class="para-num">24①</span><span class="hang-body">火災を発見した者は、遅滞なくこれを<span class="ron-mark freq-high">消防署又は市町村長の指定した場所に通報</span>しなければならない。</span></p></div><details class="tx-basis-more"><summary>＋ 要件を開く</summary><div class="tx-basis-note"><div class="note">
 <div class="kd-item"><span class="kd-label r-youken">要件・性質</span><span class="kd-text">火災を発見した者一般に通報義務を課す行政取締法規。25条は消火の応援・従事も定める。これらは刑法上の作為義務の前提となる<span class="case-emphasis freq-high">「法令に基づく法律上の防止義務」</span>を基礎づけうる。</span></div>
-<div class="kd-item"><span class="kd-label r-ate">本問への帰結</span><span class="kd-text">丙は自宅火災を発見した者として通報義務を負う。危険利用意思説では、この法律上の防止義務＋保険金目的の利用意思により作為義務違反が認められる（⑤a）。</span></div>
 </div></div></details></div></div>
-<p style="font-size:.92em; margin-top:6px;">危険利用意思説＝既発の危険を利用する意思＋法律上の防止義務。丙は消防法24条1項の通報義務を負い、保険金目的で火災の危険を利用する意思で放置。よって作為義務違反が認められ、本記述は正しい（⑤a）。</p>
 </div>
 
 
 <div class="tx-v13-cross"><span class="tx-v13-cross-label">🔗 他科目横断</span><span class="tx-v13-cross-body">丙の「法律上の防止義務」を基礎づけるのは刑法ではなく<b>行政取締法規である消防法</b>（24条1項＝火災発見者の通報義務、25条＝消火の応援・従事）。刑法の不作為犯における作為義務は、しばしば他の法令上の義務を取り込んで判断される。行政法規（消防法・道路交通法72条の救護義務等）が刑法の作為義務の内容を決める、刑法と行政法規をまたぐ横断の一例。</span></div>
-<div class="tx-v13-trap"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body tx-cc-lead"><span class="tx-cc-tag">🔗 CROSS-CUT</span><strong>同じ丙が、因果設定説では×・危険利用意思説では○</strong>。丙は火をつけていない（因果を設定していない）ので客観説（記述4）では作為義務が否定されるが、保険金目的という利用意思があるため主観説（記述5）では肯定される。「火をつけた張本人でない＝およそ義務なし」と決めつけると、危険利用意思説の当てはめを落とす。学説ごとに“決め手（客観の支配・設定か／主観の利用意思か）”を立て分ける cross-cut が、甲・丙の○×を正しく振り分ける鍵。</span></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
+<div class="tx-v13-trap" data-v15="1"><span class="tx-v13-trap-label">⚠️ 間違いやすいポイント</span><span class="tx-v13-trap-body"><strong>隣で裏返るのは焼いた建物の側</strong>。利用の意思で作為義務が立っても適用条文は客体で動き、自分だけが住む自己所有の家は109条2項（公共の危険を生じなければ罰しない）だが、火災保険に付していれば115条により他人の物を焼損した者の例となって109条1項へ移る。</span><div class="tx-dgm is-matrix" data-dgm="023-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">作為義務が立った後、焼いた建物で条文が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">焼いた建物</p><p class="dgm-cell is-head">適用条文</p><p class="dgm-cell is-head">帰結</p><p class="dgm-cell is-rowhead">自分だけが住む自己所有の家（保険なし）</p><p class="dgm-cell is-acc">109条2項</p><p class="dgm-cell">公共の危険を生じなければ罰しない<span class="dgm-src">109条2項ただし書</span></p><p class="dgm-cell is-rowhead">同じ家に火災保険を付していた</p><p class="dgm-cell is-acc">109条1項の例</p><p class="dgm-cell">保険に付した自己の物は他人の物を焼損した者の例による<span class="dgm-src">115条</span></p><p class="dgm-cell is-rowhead">家族など自分以外の者も住む家</p><p class="dgm-cell is-acc">108条</p><p class="dgm-cell">現に人が住居に使用する建造物＝現住建造物</p><p class="dgm-cell is-rowhead">他人の所有する空き家</p><p class="dgm-cell is-acc">109条1項</p><p class="dgm-cell">他人所有の非現住建造物＝2年以上の有期拘禁刑</p></div></div></div><div class="tx-sysmap-back"><a href="#tx-sysmap">↑ 体系マップに戻る</a></div>
 </div>
 </article>
 </div>
@@ -6281,11 +6476,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:o,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-story="殺人罪も放火罪も、条文は手を下すことを想定して書かれている。それを何もしないことで実現するのが<b>不真正不作為犯</b>（作為の形で書かれた罪を、不作為で犯す類型）であり、放っておけば通りすがりの見殺しまで処罰が広がるから、どこかに関門が要る。具体的・現実的支配説は、その関門を<b>因果の現実的支配</b>（結果へ向かう流れを自分の手で握っていること）に置き、被害者を自分の管理下へ取り込む引受けや、他人が助けに入れない排他的な状況を求める。着目するのは行為者の心の中ではなく、外から見える<b>客観的な立ち位置</b>であって、危険を作ったかという過去の一点よりも、いま流れを握っているかという現在の状態を問う。だから危険を生じさせた者であっても、その場を離れて誰でも救助に入れる状態のままなら、この立場からは義務は立たない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、被害者をどこへ移したか、他に助けられる者がいたか、通報を妨げていないかが調書で細かく詰められる。弁護人は現場の開放性や第三者の存在を挙げて排他性を争うのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティ治療事件では、重い脳内出血で入院していた患者が、親族の依頼で病院から連れ出され、ホテルの一室へ運び込まれた。治療者は手当てと称する行為をするだけで医師の診療を受けさせず、患者はそのまま死亡し、不作為による殺人として有罪が確定した。危険を作ったのは病気だが、身柄を握っていたのは治療者側——この並びが引受けと排他的支配の像を作ってくれる。</span>" data-brief-mark="具体的・現実的支配説から、跳ねた後に引受け等をせず市街地に放置逃走した甲について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>作為義務違反は認められない</span>（因果を現実的に支配していない）。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>具体的・現実的支配説＝法益侵害への因果関係を具体的・現実的に支配している状況での不作為に作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不作為を作為と同視するには、結果への因果経過を排他的・現実的に握っていること（引受け・排他的支配）を要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>判例（最決平17.7.4シャクティ事件）の「引受け＋排他的支配」と軌を一にする客観説。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は跳ねた後に引受け等をせず市街地に放置＝現実的支配なし → 作為義務違反は認められない（正しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>先行行為があっても、因果の現実的支配まで至らなければ支配説では作為義務を認めない。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-story="危険利用意思説は、作為義務の根拠を行為者の<b>主観</b>に求める立場である。作為と同じに罰してよいのは、既に生じている危険を自分の目的のための道具として使い切ったときだ、と考える。決め手は<b>既発の危険を利用する意思</b>（そのまま進めば結果が出ると分かったうえで、その流れを自分の利益に取り込む気持ち）であり、これが法令などに基づく<b>防止義務</b>と結びついたときに義務違反となる。したがって同じ放置でも、発覚を恐れて逃げただけなら道具として使う気持ちがなく、義務は立たない。逆に、結果が出てくれた方が得だという計算が入ると、一気に作為と同視される。心の中を問う分だけ、外形のよく似た二つの出来事で答えが正反対になりうるのが、この立場の性格である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>利用する意思は本人が認めない限り、保険契約の時期と金額、逃走後の行動、通話や検索の履歴といった間接事実から積み上げるほかない。弁護人はそこを恐怖やパニックによる逃走という説明で崩しにいく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2006年8月25日夜、福岡市の海の中道大橋で飲酒運転の車が追突し、はずみで海へ転落した車の幼い3人が亡くなった。運転者は事故の直後に現場を離れており、危険運転致死傷罪と道路交通法違反で有罪が確定している。現場を離れた理由は発覚を避けることであって、被害者の死を利用することではない——救護義務違反にはなっても、利用する意思とは層が違うと分かる。</span>" data-brief-mark="危険利用意思説から、怖くなって逃走した甲について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>作為義務違反が認められる</span><span class='tx-stmt-fix'>→ 危険を利用する意思がなく認められない</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>危険利用意思説＝既に発生した法益侵害の危険を利用する意思での不作為に作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>客観的支配ではなく、危険を自己の利益に利用する主観を作為義務の中心に据える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>同じ放置でも、危険を利用する意思の有無で結論が分かれる（甲＝なし／丙＝あり）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は怖くなって逃走しただけで利用意思なし → 作為義務違反は認められず、『認められる』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>「放置＝利用」ではない。危険を積極的に利用する意思の有無で切る。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-story="因果設定説（<b>先行行為</b>説）は、その危険を作り出したのは誰かという過去の一点に作為義務の根拠を置く。自分の行為で結果へ向かう流れを開いた者は、その流れを閉じる責任も負う——危険源を作った者が管理せよという発想で、民事の工作物責任などにも通じる考え方である。着目点が客観であるところは具体的・現実的支配説と同じだが、必要なのは<b>危険の自己設定</b>だけで、その後に被害者を囲い込んだかどうかは問わない。そのぶん処罰の範囲は広くなり、うっかり作ってしまった危険にまで重い作為義務を負わせることになるという批判が向けられる。逆に言えば、危険を作った覚えのない者からは、この立場では何も出てこない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>交通事故では道路交通法72条1項が、事故を起こした運転者本人に救護と報告を義務づけており、先行行為の発想が実定法の形で現れている。逃げた場合はまず救護義務違反が固まり、そのうえで刑法上の罪責が検討される。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2006年の海の中道大橋の事故では、運転者自身が追突という危険を作り出していた。だからこそ現場を離れた点が救護義務違反として重く扱われ、この事故は飲酒運転とひき逃げの厳罰化を進める大きな契機になった。危険を作った者がその場を去ることを、法は最も嫌う。</span>" data-brief-mark="因果設定説（先行行為）から、自ら跳ねて重傷を負わせ因果を設定した甲について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>作為義務違反が認められる</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>因果設定説（先行行為）＝法益侵害に向かう因果の流れを自ら設定した者の不作為に作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>自己の先行行為で危険を創り出したことを根拠に、その流れを止める義務を課す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>先行行為で足り、支配説のような因果の現実的支配までは求めない（支配説より広く義務を認める）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は自らの運転で乙を跳ねて因果を設定 → 救護せず放置逃走に作為義務違反が認められる（正しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>先行行為の評価は、結果的加重犯（傷害致死等）の議論にも通じる。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-story="因果設定説の要は、<b>危険の自己設定</b>——危険を作ったのが行為者自身だという点にある。他人の不注意から生じた火や事故は、気付いたのが誰であっても、その人が設定した危険ではない。だから同じ現場に居合わせても、火を出した側と、たまたま気付いた側とでは、この立場から出てくる答えが違う。もっともそれは<b>この根拠からは</b>義務が立たないというだけで、法令・契約・事実上の引受け・管理者としての地位など、別の根拠から作為義務が生じる余地は残る。作為義務の発生根拠は一本ではなく、複数の筋が並び立っていて、事案ごとにどの筋が通るかが変わる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>火災や事故の捜査では、まず出火原因と、それが誰の行為に由来するかが実況見分と鑑定で確定され、そこから誰にどの義務があったかが枝分かれしていく。施設側や管理者の責任は、火元とは別の線で追及されるのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1982年2月8日未明、東京・永田町のホテルニュージャパンで火災が起き、33人が亡くなった。火元は宿泊客の寝たばことされ、経営者が火を出したわけではない。それでもスプリンクラーを設けず防火体制を放置していた点が問われ、経営者は業務上過失致死傷罪で有罪が確定した。火元と責任の所在は、必ずしも重ならない。</span>" data-brief-mark="因果設定説から、火元が丁の過失である丙について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>作為義務違反が認められる</span><span class='tx-stmt-fix'>→ 丙は自ら因果を設定しておらず認められない</span>。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>因果設定説は「因果の流れを自ら設定した者」＝危険を創出した張本人に限り作為義務を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>危険を作った主体でなければ、この説の作為義務は生じない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>他人の行為・過失で生じた危険に後から気付いた者は「自ら設定した者」に当たらない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>丙宅の火元は丁のたばこの不始末＝丙は自ら設定していない → 作為義務違反は認められず、『認められる』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>先行行為の主体性（誰が危険を作ったか）を見落とすと不作為犯の当てはめを誤る。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-story="危険利用意思説から義務を立てるには、利用する意思だけでは足りず<b>法律上の防止義務</b>が要る。火災については<b>消防法24条1項</b>が、火災を発見した者一般に遅滞なく通報することを義務づけており、行政取締法規でありながら、刑法上の作為義務を基礎づける土台になる。もっとも、他の法令に義務が書いてあれば直ちに刑法上の作為義務になるのではなく、その義務を<b>取り込んだうえで</b>、作為と同視できるかを刑法の側で改めて判断する。誰にでもできる通報を怠り、しかもその火が広がることを自分の利益として当て込んでいるのなら、火をつけたのと同じに評価してよい——という組み立てである。刑法と行政法規をまたいで読む一例でもある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>火災保険金が絡む事件では、契約の締結時期と保険金額、支払請求の経過が真っ先に洗われ、通報の有無と時刻は119番の受信記録によって分単位で裏付けられる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>同じホテルニュージャパンの火災では、火に気付いてから119番通報や宿泊客の避難誘導までの動きが遅れ、それが被害を広げたとされる。深夜の数分が、そのまま亡くなった人の数に跳ね返った出来事だった。発見した者に通報を求める規定が、火を出した者だけでなく誰にでも向けられている意味が実感できる。</span>" data-brief-mark="危険利用意思説から、保険金目的で放置した丙（消防法上の通報義務あり）について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>作為義務違反が認められる</span>。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>危険利用意思説＝法律上の防止義務を負う者が既発の危険を利用する意思で放置したとき作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>消防法24条1項の通報義務等が、刑法上の作為義務の前提となる「法律上の防止義務」を基礎づける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>火元でなくても、利用する意思＋法律上の防止義務があれば作為義務違反が認められる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>丙は保険金目的で既発火災の危険を利用する意思で放置 → 作為義務違反が認められる（正しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>刑法の作為義務は、他法令（消防法・道交法72条の救護義務等）上の義務を取り込んで判断される。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="殺人罪も放火罪も、条文は手を下すことを想定して書かれている。それを何もしないことで実現するのが<b>不真正不作為犯</b>（作為の形で書かれた罪を、不作為で犯す類型）であり、放っておけば通りすがりの見殺しまで処罰が広がるから、どこかに関門が要る。具体的・現実的支配説は、その関門を<b>因果の現実的支配</b>（結果へ向かう流れを自分の手で握っていること）に置き、被害者を自分の管理下へ取り込む引受けや、他人が助けに入れない排他的な状況を求める。着目するのは行為者の心の中ではなく、外から見える<b>客観的な立ち位置</b>であって、危険を作ったかという過去の一点よりも、いま流れを握っているかという現在の状態を問う。だから危険を生じさせた者であっても、その場を離れて誰でも救助に入れる状態のままなら、この立場からは義務は立たない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、被害者をどこへ移したか、他に助けられる者がいたか、通報を妨げていないかが調書で細かく詰められる。弁護人は現場の開放性や第三者の存在を挙げて排他性を争うのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>シャクティ治療事件では、重い脳内出血で入院していた患者が、親族の依頼で病院から連れ出され、ホテルの一室へ運び込まれた。治療者は手当てと称する行為をするだけで医師の診療を受けさせず、患者はそのまま死亡し、不作為による殺人として有罪が確定した。危険を作ったのは病気だが、身柄を握っていたのは治療者側——この並びが引受けと排他的支配の像を作ってくれる。</span>" data-brief-mark="具体的・現実的支配説から、跳ねた後に引受け等をせず市街地に放置逃走した甲について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>作為義務違反は認められない</span>（因果を現実的に支配していない）。"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>具体的・現実的支配説＝法益侵害への因果関係を具体的・現実的に支配している状況での不作為に作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>不作為を作為と同視するには、結果への因果経過を排他的・現実的に握っていること（引受け・排他的支配）を要する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>判例（最決平17.7.4シャクティ事件）の「引受け＋排他的支配」と軌を一にする客観説。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は跳ねた後に引受け等をせず市街地に放置＝現実的支配なし → 作為義務違反は認められない（正しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>具体的・現実的支配説は、先行行為に加えて被害者を自己の管理下へ取り込む引受けと排他的支配を要求する。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-01"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">具体的・現実的支配説の当てはめを1語ずつ変えると</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">こう変えると</p><p class="dgm-cell is-head">答え</p><p class="dgm-cell is-head">根拠</p><p class="dgm-cell is-rowhead">市街地に放置 → 自車に乗せて人目のない場所へ運ぶ</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell">被害者を自己の管理下へ取り込む引受けと排他的支配が生じる<span class="dgm-src">最決平17.7.4</span></p><p class="dgm-cell is-rowhead">放置して逃走 → 救急車を呼び到着まで付き添う</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">防止措置を採っており不作為そのものがない</p><p class="dgm-cell is-rowhead">自ら跳ねた → 他人の事故現場に通りかかる</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell">法律上の防止義務を負わず、因果経過の支配もない</p></div></div></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="危険利用意思説は、作為義務の根拠を行為者の<b>主観</b>に求める立場である。作為と同じに罰してよいのは、既に生じている危険を自分の目的のための道具として使い切ったときだ、と考える。決め手は<b>既発の危険を利用する意思</b>（そのまま進めば結果が出ると分かったうえで、その流れを自分の利益に取り込む気持ち）であり、これが法令などに基づく<b>防止義務</b>と結びついたときに義務違反となる。したがって同じ放置でも、発覚を恐れて逃げただけなら道具として使う気持ちがなく、義務は立たない。逆に、結果が出てくれた方が得だという計算が入ると、一気に作為と同視される。心の中を問う分だけ、外形のよく似た二つの出来事で答えが正反対になりうるのが、この立場の性格である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>利用する意思は本人が認めない限り、保険契約の時期と金額、逃走後の行動、通話や検索の履歴といった間接事実から積み上げるほかない。弁護人はそこを恐怖やパニックによる逃走という説明で崩しにいく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2006年8月25日夜、福岡市の海の中道大橋で飲酒運転の車が追突し、はずみで海へ転落した車の幼い3人が亡くなった。運転者は事故の直後に現場を離れており、危険運転致死傷罪と道路交通法違反で有罪が確定している。現場を離れた理由は発覚を避けることであって、被害者の死を利用することではない——救護義務違反にはなっても、利用する意思とは層が違うと分かる。</span>" data-brief-mark="危険利用意思説から、怖くなって逃走した甲について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>作為義務違反が認められる</span><span class='tx-stmt-fix'>→ 危険を利用する意思がなく認められない</span>。"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>危険利用意思説＝既に発生した法益侵害の危険を利用する意思での不作為に作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>客観的支配ではなく、危険を自己の利益に利用する主観を作為義務の中心に据える。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>同じ放置でも、危険を利用する意思の有無で結論が分かれる（甲＝なし／丙＝あり）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は怖くなって逃走しただけで利用意思なし → 作為義務違反は認められず、『認められる』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>危険利用意思説では、既発の危険を自己の利益へ取り込む意思の有無が作為義務違反を分ける。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-02"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">危険利用意思説は放置の動機で切れる</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">放置の動機</p><p class="dgm-cell is-head">利用する意思</p><p class="dgm-cell is-head">作為義務違反</p><p class="dgm-cell is-rowhead">発覚を恐れ、怖くなって逃げる</p><p class="dgm-cell is-ng">✕ ない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell is-rowhead">そのまま結果が出た方が得だと当て込んで待つ</p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">保険金を得ようと、既に出た火を放置する</p><p class="dgm-cell is-ok">○ ある</p><p class="dgm-cell is-ok">○ 認められる</p></div></div></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="因果設定説（<b>先行行為</b>説）は、その危険を作り出したのは誰かという過去の一点に作為義務の根拠を置く。自分の行為で結果へ向かう流れを開いた者は、その流れを閉じる責任も負う——危険源を作った者が管理せよという発想で、民事の工作物責任などにも通じる考え方である。着目点が客観であるところは具体的・現実的支配説と同じだが、必要なのは<b>危険の自己設定</b>だけで、その後に被害者を囲い込んだかどうかは問わない。そのぶん処罰の範囲は広くなり、うっかり作ってしまった危険にまで重い作為義務を負わせることになるという批判が向けられる。逆に言えば、危険を作った覚えのない者からは、この立場では何も出てこない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>交通事故では道路交通法72条1項が、事故を起こした運転者本人に救護と報告を義務づけており、先行行為の発想が実定法の形で現れている。逃げた場合はまず救護義務違反が固まり、そのうえで刑法上の罪責が検討される。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2006年の海の中道大橋の事故では、運転者自身が追突という危険を作り出していた。だからこそ現場を離れた点が救護義務違反として重く扱われ、この事故は飲酒運転とひき逃げの厳罰化を進める大きな契機になった。危険を作った者がその場を去ることを、法は最も嫌う。</span>" data-brief-mark="因果設定説（先行行為）から、自ら跳ねて重傷を負わせ因果を設定した甲について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>作為義務違反が認められる</span>。"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>因果設定説（先行行為）＝法益侵害に向かう因果の流れを自ら設定した者の不作為に作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>自己の先行行為で危険を創り出したことを根拠に、その流れを止める義務を課す。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>先行行為で足り、支配説のような因果の現実的支配までは求めない（支配説より広く義務を認める）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>甲は自らの運転で乙を跳ねて因果を設定 → 救護せず放置逃走に作為義務違反が認められる（正しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>因果設定説は自己の先行行為で危険を創り出したことだけを要求し、その後の排他的支配までは問わない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-03"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">同じ跳ね逃げでも、立つ説で答えが裏返る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">立つ説</p><p class="dgm-cell is-head">決め手</p><p class="dgm-cell is-head">作為義務違反</p><p class="dgm-cell is-rowhead">因果設定説（先行行為）</p><p class="dgm-cell">自己の先行行為で危険を創り出したか</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">具体的・現実的支配説</p><p class="dgm-cell">因果経過を排他的・現実的に支配しているか</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell is-rowhead">危険利用意思説</p><p class="dgm-cell">既発の危険を利用する意思があるか</p><p class="dgm-cell is-ng">✕ 認められない</p></div></div></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="因果設定説の要は、<b>危険の自己設定</b>——危険を作ったのが行為者自身だという点にある。他人の不注意から生じた火や事故は、気付いたのが誰であっても、その人が設定した危険ではない。だから同じ現場に居合わせても、火を出した側と、たまたま気付いた側とでは、この立場から出てくる答えが違う。もっともそれは<b>この根拠からは</b>義務が立たないというだけで、法令・契約・事実上の引受け・管理者としての地位など、別の根拠から作為義務が生じる余地は残る。作為義務の発生根拠は一本ではなく、複数の筋が並び立っていて、事案ごとにどの筋が通るかが変わる。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>火災や事故の捜査では、まず出火原因と、それが誰の行為に由来するかが実況見分と鑑定で確定され、そこから誰にどの義務があったかが枝分かれしていく。施設側や管理者の責任は、火元とは別の線で追及されるのが通常である。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1982年2月8日未明、東京・永田町のホテルニュージャパンで火災が起き、33人が亡くなった。火元は宿泊客の寝たばことされ、経営者が火を出したわけではない。それでもスプリンクラーを設けず防火体制を放置していた点が問われ、経営者は業務上過失致死傷罪で有罪が確定した。火元と責任の所在は、必ずしも重ならない。</span>" data-brief-mark="因果設定説から、火元が丁の過失である丙について、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>作為義務違反が認められる</span><span class='tx-stmt-fix'>→ 丙は自ら因果を設定しておらず認められない</span>。"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>因果設定説は「因果の流れを自ら設定した者」＝危険を創出した張本人に限り作為義務を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>危険を作った主体でなければ、この説の作為義務は生じない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>他人の行為・過失で生じた危険に後から気付いた者は「自ら設定した者」に当たらない。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>丙宅の火元は丁のたばこの不始末＝丙は自ら設定していない → 作為義務違反は認められず、『認められる』は誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>作為義務の根拠を先行行為に置く立場では、危険を作った主体でない者にその義務は生じない。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-04"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">因果設定説は火元が誰かで裏返る</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">火元をこう変えると</p><p class="dgm-cell is-head">自ら設定した者か</p><p class="dgm-cell is-head">作為義務違反</p><p class="dgm-cell is-rowhead">帰った来客のたばこの不始末</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 認められない</p><p class="dgm-cell is-rowhead">住人自身の寝たばこの不始末</p><p class="dgm-cell is-ok">○ 当たる</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">住人がストーブをカーテンの際に置いたまま外出</p><p class="dgm-cell is-ok">○ 当たる</p><p class="dgm-cell is-ok">○ 認められる</p><p class="dgm-cell is-rowhead">落雷や近隣からの延焼</p><p class="dgm-cell is-ng">✕ 当たらない</p><p class="dgm-cell is-ng">✕ 認められない</p></div></div></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="危険利用意思説から義務を立てるには、利用する意思だけでは足りず<b>法律上の防止義務</b>が要る。火災については<b>消防法24条1項</b>が、火災を発見した者一般に遅滞なく通報することを義務づけており、行政取締法規でありながら、刑法上の作為義務を基礎づける土台になる。もっとも、他の法令に義務が書いてあれば直ちに刑法上の作為義務になるのではなく、その義務を<b>取り込んだうえで</b>、作為と同視できるかを刑法の側で改めて判断する。誰にでもできる通報を怠り、しかもその火が広がることを自分の利益として当て込んでいるのなら、火をつけたのと同じに評価してよい——という組み立てである。刑法と行政法規をまたいで読む一例でもある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>火災保険金が絡む事件では、契約の締結時期と保険金額、支払請求の経過が真っ先に洗われ、通報の有無と時刻は119番の受信記録によって分単位で裏付けられる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>同じホテルニュージャパンの火災では、火に気付いてから119番通報や宿泊客の避難誘導までの動きが遅れ、それが被害を広げたとされる。深夜の数分が、そのまま亡くなった人の数に跳ね返った出来事だった。発見した者に通報を求める規定が、火を出した者だけでなく誰にでも向けられている意味が実感できる。</span>" data-brief-mark="危険利用意思説から、保険金目的で放置した丙（消防法上の通報義務あり）について、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>作為義務違反が認められる</span>。"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>危険利用意思説＝法律上の防止義務を負う者が既発の危険を利用する意思で放置したとき作為義務違反を認める。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>消防法24条1項の通報義務等が、刑法上の作為義務の前提となる「法律上の防止義務」を基礎づける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>火元でなくても、利用する意思＋法律上の防止義務があれば作為義務違反が認められる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>丙は保険金目的で既発火災の危険を利用する意思で放置 → 作為義務違反が認められる（正しい）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>刑法上の作為義務は、消防法24条1項や道路交通法72条1項など他法令上の義務を取り込んで判断される。</p></div><div class="tx-vb-dgm-src" hidden><div class="tx-dgm is-matrix" data-dgm="023-05"><span class="tx-dgm-tag">📐 比較表</span><p class="tx-dgm-title">作為義務が立った後、焼いた建物で条文が動く</p><div class="tx-dgm-matrix is-c3"><p class="dgm-cell is-head">焼いた建物</p><p class="dgm-cell is-head">適用条文</p><p class="dgm-cell is-head">帰結</p><p class="dgm-cell is-rowhead">自分だけが住む自己所有の家（保険なし）</p><p class="dgm-cell is-acc">109条2項</p><p class="dgm-cell">公共の危険を生じなければ罰しない<span class="dgm-src">109条2項ただし書</span></p><p class="dgm-cell is-rowhead">同じ家に火災保険を付していた</p><p class="dgm-cell is-acc">109条1項の例</p><p class="dgm-cell">保険に付した自己の物は他人の物を焼損した者の例による<span class="dgm-src">115条</span></p><p class="dgm-cell is-rowhead">家族など自分以外の者も住む家</p><p class="dgm-cell is-acc">108条</p><p class="dgm-cell">現に人が住居に使用する建造物＝現住建造物</p><p class="dgm-cell is-rowhead">他人の所有する空き家</p><p class="dgm-cell is-acc">109条1項</p><p class="dgm-cell">他人所有の非現住建造物＝2年以上の有期拘禁刑</p></div></div></div></td></tr>
 </tbody>
 </table>
 </div>

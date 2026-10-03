@@ -5668,6 +5668,104 @@ a.ref-stat[href]{ cursor:pointer; }
   .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes.is-3{ grid-template-columns:1fr; }
 }
 /* TX-VERDICT-DGM:END */
+
+/* TX-MOBILE-FIT:BEGIN v13.1.0 スマホ組版（正誤表・記述カード・体系マップ・表紙）（2026-09-29・iPhone 実機報告・刑訴TX116）
+   旧＝PC と同じ 4 列表のまま縮めていた。左 3 列（記述／正誤／あなた）が約 160px を取り、本文列は
+   残り 200px 前後に押し込まれたうえ、表全体がパネルの右端を越えて本文が途中で切れていた（実機報告）。
+   ここでは 640px 以下で行を「見出し帯＋本文面」の 2 段に組み替える。
+   ①見出し帯＝記述番号・正誤・あなた・解説↓ を 1 行に横並び（列見出し thead は伏せ、各値の前に小ラベル）。
+   ②本文面＝セル幅いっぱい。ラベルの 78px ぶら下げをやめ、ラベルは本文の上に置く（狭い幅で本文を細くしない）。
+   ③正解／不正解の色帯は td の影ではなく行の左罫で出す（grid 化で td が行の高さを持たなくなるため）。
+   ④記述カードの見出し（記述本文｜○×ボタン）は 480px 以下で 2 段にする。横並びのままだと ○×＋判定欄が
+     約 100px を取り、記述本文が 190px 前後の細い帯に押し込まれていた（v12.2.1 表示LOCK の「本文を左に
+     圧迫しない」に反する）。○×は従来どおり右端・判定欄はボタンの下＝ボタン群ごと本文の下へ移すだけ。
+   DOM・エンジン・answer-key は不変＝CSS の display だけで組み替える。
+   伝播＝scripts/tx-lex-verdict-redesign.py（SYNC_CSS_REGIONS・DGM の後ろ＝ぶら下げ規則を上書きするため順序が意味を持つ）。 */
+/* ⑨ 体系マップ THROUGH-LINE：`.tx-sysmap-cross .col-type strong` が**本文中の強調まで**食み出しタブ
+     （absolute・nowrap）にしていたため、強調語句がタブの位置へ飛んで重なり、狭幅では右端を越えていた
+     （刑TX130・刑訴TX188 ほか）。タブは先頭の strong だけ＝2 個目以降は本文の強調に戻す（全幅共通）。 */
+.tx-sysmap-cross .col-type strong:not(:first-child){
+  position:static; padding:0; border-radius:0; background:none; box-shadow:none;
+  color:#4a2f78; font-size:inherit; font-weight:800; white-space:normal;
+}
+@media (max-width:640px){
+  .tx-inline-answer-table-panel{ padding:16px 10px 16px !important; }
+  /* 表の外枠はやめ、1 記述＝1 枚の札にして札どうしの間を空ける（行の切れ目を見失わない） */
+  .tx-inline-answer-table-panel .statement-verdict-table{
+    display:block; width:100%; overflow:visible; border-radius:0; background:transparent;
+    box-shadow:none !important;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody{ display:flex; flex-direction:column; gap:14px; width:100%; }
+  .tx-inline-answer-table-panel .statement-verdict-table thead{ display:none; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr{
+    display:grid; grid-template-columns:auto auto 1fr; align-items:stretch;
+    border-left:5px solid #cdbf93; border-radius:12px; overflow:hidden;
+    box-shadow:0 8px 18px -12px rgba(70,52,20,.55), 0 0 0 1px rgba(120,95,45,.24);
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-correct{ border-left-color:#4f9a5e; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody tr.tx-user-incorrect{ border-left-color:#c65b66; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td{
+    display:block; width:auto !important; min-width:0; border:0 !important; box-shadow:none !important;
+  }
+  /* ① 見出し帯（最終セル以外）＝横 1 行 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:not(:last-child){
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+    padding:9px 10px 8px !important; border-bottom:1px dashed rgba(138,122,58,.34) !important;
+    text-align:left !important; line-height:1.3;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before,
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{
+    font-family:var(--font-mono,sans-serif); font-size:.62rem; font-weight:700; letter-spacing:.06em;
+    color:#8a7a52; text-shadow:none;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:nth-child(2)::before{ content:'正誤'; }
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td.tx-user-answer-cell::before{ content:'あなた'; }
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-mark,
+  .tx-inline-answer-table-panel .statement-verdict-table .tx-user-answer-cell .tx-user-note{ display:inline; }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump.tx-xnav{
+    display:inline-flex; align-items:center; gap:3px; margin:0 0 0 4px; padding:3px 8px;
+  }
+  .tx-inline-answer-table-panel .statement-verdict-table td .tx-verdict-jump .tx-vj-arrow{ display:inline; }
+  /* ② 本文面＝全幅 */
+  .tx-inline-answer-table-panel .statement-verdict-table tbody td:last-child{
+    grid-column:1 / -1; padding:14px 12px 14px !important;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story){ padding-left:0; text-indent:0 !important; }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line:not(.tx-vb-story) > .tx-vb-label{
+    display:table; min-width:0; margin:0 0 6px; padding-left:10px; padding-right:10px;
+  }
+  .tx-inline-answer-table-panel .tx-verdict-brief .tx-vb-line .tx-anscomp-line{ margin-left:0; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding:22px 8px 11px; }
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-lanes,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm-fork{ grid-template-columns:1fr; }
+}
+@media (max-width:480px){
+  .tx-inline-head{ grid-template-columns:minmax(0,1fr) !important; row-gap:8px; }
+  .tx-inline-actions{ justify-self:end; margin-top:0; }
+  /* ⑤ カード内の入れ子（カード＞解説＞⚠罠／📚BASIS＞図解・条文＞比較表・本文）で左右の余白が 5 重に積もり、
+       比較表の 1 セルが 70〜90px、条文本文が 180px 前後まで痩せていた。入れ子の内側だけ余白を詰める（外枠の意匠は変えない）。 */
+  .tx-inline-explain .tx-v13-trap,
+  .tx-inline-explain .sub-card{ padding-left:10px; padding-right:8px; }
+  .tx-inline-explain .tx-basis-honbun{ padding-left:10px; padding-right:10px; }
+  .tx-inline-explain .tx-dgm,
+  .tx-verdict-brief .tx-vb-dgm .tx-dgm{ padding-left:6px; padding-right:6px; }
+  .tx-dgm-matrix .dgm-cell{ padding:6px 5px; }
+}
+@media (max-width:640px){
+  /* ⑥ 体系マップ横断表：1 列目の inline 幅（width:20%）が狭幅で 2〜3 字の縦積みになる。最小幅を与える。 */
+  .tx-sysmap-cross table{ font-size:.86em; }
+  .tx-sysmap-cross th, .tx-sysmap-cross td{ padding:7px 7px; }
+  .tx-sysmap-cross tr > :first-child{ width:auto !important; min-width:5.4em; }
+  /* ⑦ 体系マップ SVG（viewBox 幅 1500）は 640px 固定だと文字が約 5px まで縮む。横スクロール前提で
+       拡大して読める大きさにする（スクロール枠 .tx-sysmap-figure は既存）。 */
+  .tx-sysmap-figure svg.tx-sysmap-svg{ min-width:960px; }
+  /* ⑧ 表紙：右上の問題 ID 札（絶対配置）が 1 段目の科目チップに重なっていた。札を小さくし、チップ列を下げる。
+       目次リンクは「記述 / 3」のように語の途中で折り返さない。 */
+  .header > .doc-header{ top:10px; right:12px; font-size:13px; padding:4px 10px; }
+  .header > .header-top{ margin-top:14px; }
+  .toc-row a{ display:inline-block; white-space:nowrap; }
+}
+/* TX-MOBILE-FIT:END */
 </style>
 <style id="tx-xnav-style">
 /* TX-XNAV-CSS:BEGIN v3 */
@@ -6276,11 +6374,11 @@ tr[id^="tx-verdict-row-"].tx-basis-flash > td{ animation:txRowFlash 1.6s ease; }
 <table class="statement-verdict-table" data-answer-key="1:o,2:x,3:o,4:x,5:o">
 <thead><tr><th style="width:3em;">記述</th><th style="width:3.5em;">正誤</th><th>登場した論点のコア（文言・趣旨・射程・切断点・転用）</th></tr></thead>
 <tbody>
-<tr data-stmt="1" data-verdict="o" data-brief-mark="原因において自由な行為の構成要件モデルは、原因行為を実行行為ととらえ責任能力を原因行為時に判断することで、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>同時存在の原則を維持する</span>見解である。<span class='tx-anscomp-line'>構成要件モデルは、原因行為（飲酒行為）を実行行為ととらえて責任能力を原因行為時に判断し、構成要件的行為と責任能力の<strong>同時存在の原則</strong>を維持する見解である。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>同時存在の原則＝責任能力は実行行為の時点に存在することを要する（責任主義の帰結）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任非難は責任能力ある状態での意思決定に向けられるため、実行行為時に責任能力がなければ完全な非難ができない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>構成要件モデルは原因行為（飲酒行為）を実行行為ととらえ、責任能力を原因行為時に判断する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>実行行為をどこに置くか。原因行為に置けば同時存在の原則を維持できる（構成要件モデル）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実行行為性・実行の着手・責任能力の判断時点は、原因において自由な行為の全論点を貫く共通の軸。</p></div></td></tr>
-<tr data-stmt="2" data-verdict="x" data-brief-mark="責任モデルにつき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>原因行為を実行行為とし同時存在の原則を維持する見解である</span><span class='tx-stmt-fix'>→ それは構成要件モデル。責任モデルは結果行為を実行行為とし同時存在則を修正し責任非難のみ遡及</span>。<span class='tx-anscomp-line'><strong>責任モデル</strong>は、結果行為を実行行為としつつ同時存在の原則を修正し、責任非難のみを原因行為時に遡らせる見解であって、原因行為を実行行為とみて同時存在を維持するのは構成要件モデルである。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>責任モデル＝結果行為を実行行為とし、同時存在の原則を修正して責任非難のみ原因行為時に遡らせる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力は責任の要件だが責任非難それ自体ではないから、非難の基礎を責任能力ある時点の意思態度に求めうる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為を実行行為とし同時存在を維持するのは構成要件モデル。本記述はこれを責任モデルとする点で誤り。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>二説の識別は「実行行為をどこに置くか」。原則を維持するか修正するかで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>見解問題では、各説の“結論”ではなく“どの原則をどう操作したか”をラベル化して覚える。</p></div></td></tr>
-<tr data-stmt="3" data-verdict="o" data-brief-mark="構成要件モデルに対しては、飲酒開始が実行の着手となり眠り込んでも<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>殺人未遂が成立し処罰範囲が広がりすぎるとの批判がある</span>。<span class='tx-anscomp-line'>構成要件モデルには、原因行為（飲酒）を実行行為とみる結果、<strong>実行の着手が飲酒開始時に早まり</strong>、酔いつぶれて眠り込んだだけでも殺人未遂が成立して処罰範囲が広がりすぎるとの批判がある。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>未遂は実行の着手（43条）から成立し、実行の着手は実行行為の開始をいう。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>実行行為を原因行為に前倒しする構成要件モデルでは、着手時期も前倒しされる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>飲酒開始で殺人の実行に着手→眠り込んでも殺人未遂が成立しうる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>実行行為をどこに置くかで実行の着手時期が動く。前に置くほど未遂が早く成立する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実行の着手の判断は、原自行為だけでなく離隔犯・間接正犯でも実行行為の位置と連動する。</p></div></td></tr>
-<tr data-stmt="4" data-verdict="x" data-brief-mark="構成要件モデルの論者は、定型性の弱い過失犯・不作為犯につき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>原因行為に構成要件該当性を認めることはできないと解している</span><span class='tx-stmt-fix'>→ むしろ認めてよいと解する（発言イ・最決昭43.2.27）</span>。<span class='tx-anscomp-line'>構成要件モデルの論者は、実行行為の<strong>定型性が弱い過失犯・不作為犯</strong>では、むしろ原因行為（飲酒行為）に構成要件該当性を認めてよいと解する。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>実行行為の定型性＝構成要件該当行為としての類型的な形。過失犯・不作為犯は定型性が弱い。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>定型性の弱い類型では、原因行為を構成要件該当行為ととらえる障害が小さい。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>過失犯・不作為犯では原因行為（飲酒行為）に構成要件該当性を認めてよい（発言イ・最決昭43.2.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「認めてよい」か「認められない」かの向き。本記述は向きを逆にして誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>説への批判は、批判が効く類型（故意作為犯）と効きにくい類型（過失・不作為犯）を対にして覚える。</p></div></td></tr>
-<tr data-stmt="5" data-verdict="o" data-brief-mark="構成要件モデルの立場から、身分なき故意ある道具の利用と規範的に同視して、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>心神耗弱の自己利用にも原因において自由な行為の理論を適用しうる</span>とする主張がある（発言ウ）。<span class='tx-anscomp-line'>構成要件モデルの立場からは、身分のない故意ある道具の利用と規範的に同視して、<strong>心神耗弱状態を自ら利用した場合</strong>にも原因において自由な行為の理論を適用しうるとされる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>身分なき故意ある道具＝是非弁別能力のある者を道具として利用する間接正犯の一類型。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>構成要件モデルは自己の責任無能力状態を道具に見立てて実行行為性を基礎づける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>責任能力の残る心神耗弱の自己利用にも、規範的同視により原因において自由な行為を適用しうる（発言ウ）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>心神喪失（完全な道具）か心神耗弱（責任の残る道具）か。道具理論では後者にも及びうる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>間接正犯の道具類型（是非弁別なき道具／故意ある道具／目的なき道具）は、正犯性判断の共通の引き出し。</p></div></td></tr>
+<tr data-stmt="1" data-verdict="o" data-brief-story="刑法は、非難できる人にだけ罪を負わせる（責任主義）。その中身が責任能力で、39条は心神喪失なら罰せず、心神耗弱なら刑を減軽するとしている。ここから、<b>構成要件に当たる行為をしたその時点で責任能力がなければならない</b>という同時存在の原則が出てくる。しかしこの原則をそのまま貫くと、自分で自分を正気でない状態に追い込んでから犯行に及んだ者ほど軽く済むという逆転が起きてしまう。そこで構成要件モデルは、<b>実行行為そのものを原因行為（飲酒）の時点まで引き戻す</b>。他人を道具のように利用する間接正犯と同じ形を、酔った自分の身体に向けて行ったと読むわけで、原則を一字も動かさずに処理できるのが利点である。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>捜査では、飲む前のやり取り・凶器の用意・買い物の記録といった、まだ正気だった時点の意思を示す資料を固めにいく。弁護人は、飲み始めた段階では具体的な犯行の意思がなかったと争うのが基本線になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1999年11月、東名高速道路で飲酒運転のトラックが乗用車に追突する事故が起き、これを一つの契機として2001年に危険運転致死傷罪が新設された。酔って正常な運転が困難な状態で走り出した、その運転開始の時点を捉えて重く罰する仕組みで、責任を問う瞬間を前に置くという発想が立法の形で現れている。</span>" data-brief-mark="原因において自由な行為の構成要件モデルは、原因行為を実行行為ととらえ責任能力を原因行為時に判断することで、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>同時存在の原則を維持する</span>見解である。<span class='tx-anscomp-line'>構成要件モデルは、原因行為（飲酒行為）を実行行為ととらえて責任能力を原因行為時に判断し、構成要件的行為と責任能力の<strong>同時存在の原則</strong>を維持する見解である。</span>"><td style="text-align:center;font-weight:700;">1</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>同時存在の原則＝責任能力は実行行為の時点に存在することを要する（責任主義の帰結）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任非難は責任能力ある状態での意思決定に向けられるため、実行行為時に責任能力がなければ完全な非難ができない。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>構成要件モデルは原因行為（飲酒行為）を実行行為ととらえ、責任能力を原因行為時に判断する。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>実行行為をどこに置くか。原因行為に置けば同時存在の原則を維持できる（構成要件モデル）。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実行行為性・実行の着手・責任能力の判断時点は、原因において自由な行為の全論点を貫く共通の軸。</p></div></td></tr>
+<tr data-stmt="2" data-verdict="x" data-brief-story="同じ結論（完全な罪に問う）へ向かう道が二本あり、どの部品を動かすかで分かれる。構成要件モデルは<b>実行行為の位置</b>を動かして原則をそのまま守り、責任モデルは<b>同時存在の原則そのもの</b>を修正して、実行行為は結果行為（殺害）のところに素直に置く。責任モデルの言い分は、責任非難の土台は行為に先立つ意思決定にあり、正気のうちに決めた計画が犯行までひと続きなら、全体を一個の意思の実現として非難できる、というものである。趣旨としては、実行行為を飲酒まで戻す不自然さを避けつつ、自ら招いた無能力を口実にはさせない点にある。動かした部品が違うということは、<b>争いの舞台が実行行為論か責任論か</b>という所属の違いでもある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>起訴状や判決が説の名前を掲げることは少なく、飲酒時の意思決定と犯行がひと続きかどうかを事実で示す形で処理される。弁護人は、間に別の意思決定が入ったと主張してこのつながりを切りにいく。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2013年に成立した自動車運転死傷行為処罰法（翌2014年施行）は、3条で、アルコールの影響により正常な運転に支障が生じるおそれがある状態で運転を始め、その影響で正常な運転が困難な状態に陥って人を死傷させた場合を処罰する。運転を始めた時点と運転困難に陥った時点のどちらを捉えるのかを、立法が正面から書き分けた条文である。</span>" data-brief-mark="責任モデルにつき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>原因行為を実行行為とし同時存在の原則を維持する見解である</span><span class='tx-stmt-fix'>→ それは構成要件モデル。責任モデルは結果行為を実行行為とし同時存在則を修正し責任非難のみ遡及</span>。<span class='tx-anscomp-line'><strong>責任モデル</strong>は、結果行為を実行行為としつつ同時存在の原則を修正し、責任非難のみを原因行為時に遡らせる見解であって、原因行為を実行行為とみて同時存在を維持するのは構成要件モデルである。</span>"><td style="text-align:center;font-weight:700;">2</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>責任モデル＝結果行為を実行行為とし、同時存在の原則を修正して責任非難のみ原因行為時に遡らせる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>責任能力は責任の要件だが責任非難それ自体ではないから、非難の基礎を責任能力ある時点の意思態度に求めうる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>原因行為を実行行為とし同時存在を維持するのは構成要件モデル。本記述はこれを責任モデルとする点で誤り。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>二説の識別は「実行行為をどこに置くか」。原則を維持するか修正するかで分かれる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>見解問題では、各説の“結論”ではなく“どの原則をどう操作したか”をラベル化して覚える。</p></div></td></tr>
+<tr data-stmt="3" data-verdict="o" data-brief-story="実行の着手（43条）は実行行為の開始を意味するから、<b>実行行為をどこに置くかが決まれば、未遂の成立時期も自動的に決まる</b>。未遂を罰するのは、結果が起きる現実的な危険がその段階で生じているからであって、危険がまだ遠い段階まで処罰を広げれば、人の自由を締めつけすぎることになる。構成要件モデルは実行行為を飲酒まで戻すため、その代償として、杯を口に運んだところで殺人の着手を認めることになりかねない。酔いつぶれて眠り込み、結局何もしなかった者まで殺人未遂に問えてしまうのでは、<b>危険の現実性という未遂処罰の土台</b>が抜けてしまう。ここが構成要件モデルの一番痛いところである。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>飲んだだけの段階で殺人未遂として立件されることはまずなく、結果が出てから遡って飲酒時の意思を立証するのが実際の流れになる。防犯カメラの映像や通話の記録が決め手になることも多い。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>飲酒運転の厳罰化が進んだ2007年の道路交通法改正では、罰則の引き上げに加えて、車を貸した者・酒を出した者・そうと知って同乗した者を処罰する罪が設けられた。結果が出る前の段階は、未遂を早めて捉えるのではなく独立の罪を立てて捉えるのが、立法の選んだ答えである。</span>" data-brief-mark="構成要件モデルに対しては、飲酒開始が実行の着手となり眠り込んでも<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>殺人未遂が成立し処罰範囲が広がりすぎるとの批判がある</span>。<span class='tx-anscomp-line'>構成要件モデルには、原因行為（飲酒）を実行行為とみる結果、<strong>実行の着手が飲酒開始時に早まり</strong>、酔いつぶれて眠り込んだだけでも殺人未遂が成立して処罰範囲が広がりすぎるとの批判がある。</span>"><td style="text-align:center;font-weight:700;">3</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>未遂は実行の着手（43条）から成立し、実行の着手は実行行為の開始をいう。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>実行行為を原因行為に前倒しする構成要件モデルでは、着手時期も前倒しされる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>飲酒開始で殺人の実行に着手→眠り込んでも殺人未遂が成立しうる。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>実行行為をどこに置くかで実行の着手時期が動く。前に置くほど未遂が早く成立する。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>実行の着手の判断は、原自行為だけでなく離隔犯・間接正犯でも実行行為の位置と連動する。</p></div></td></tr>
+<tr data-stmt="4" data-verdict="x" data-brief-story="実行行為の<b>定型性</b>（この形の動作でなければその罪にならない、という型の固さ）には、犯罪類型ごとに濃淡がある。殺人のような故意の作為犯は型が固く、刺す・撃つといった動作を離れて実行行為を語りにくい。これに対し過失犯の実行行為は注意義務に反する行為、不作為犯のそれは作為義務に反する不作為であって、<b>結果に至る一連の経過のどこを捉えても実行行為と評価しうる</b>ゆるさがある。だから、酒を飲むこと自体を「運転するのに必要な注意を怠った行為」と読むのは無理がない。構成要件モデルへの批判は故意の作為犯でこそ鋭く、定型性の薄い類型では刃が鈍る、という濃淡がここにある。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>飲酒運転や病人の放置のように行為の輪郭がゆるい類型では、酒を飲んだ・持ち場を離れたという前段の行為をそのまま捉えて立件できる。着手の時期が正面から争われることは少ない。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>1968年（昭和43年）2月27日の最高裁決定は、酒を飲んだうえで車を運転した事案で、原因において自由な行為が実際の裁判で問題になった代表例として引かれる。人を刺すような型の固い犯罪ではなく、道路交通法違反という領域で議論が動いた点が、この理論が実際に効く場所を物語っている。</span>" data-brief-mark="構成要件モデルの論者は、定型性の弱い過失犯・不作為犯につき、<span class='tx-stmt-x'><span class='tx-stmt-mk'>✕</span>原因行為に構成要件該当性を認めることはできないと解している</span><span class='tx-stmt-fix'>→ むしろ認めてよいと解する（発言イ・最決昭43.2.27）</span>。<span class='tx-anscomp-line'>構成要件モデルの論者は、実行行為の<strong>定型性が弱い過失犯・不作為犯</strong>では、むしろ原因行為（飲酒行為）に構成要件該当性を認めてよいと解する。</span>"><td style="text-align:center;font-weight:700;">4</td><td style="text-align:center;font-weight:800;color:var(--recall-incorrect);">×</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>実行行為の定型性＝構成要件該当行為としての類型的な形。過失犯・不作為犯は定型性が弱い。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>定型性の弱い類型では、原因行為を構成要件該当行為ととらえる障害が小さい。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>過失犯・不作為犯では原因行為（飲酒行為）に構成要件該当性を認めてよい（発言イ・最決昭43.2.27）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>「認めてよい」か「認められない」かの向き。本記述は向きを逆にして誤り。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>説への批判は、批判が効く類型（故意作為犯）と効きにくい類型（過失・不作為犯）を対にして覚える。</p></div></td></tr>
+<tr data-stmt="5" data-verdict="o" data-brief-story="間接正犯は他人を道具のように使って結果を実現する形だが、道具の側に是非を判断する力がまったく無いとは限らない。<b>身分のない故意ある道具</b>（公務員でない者が、事情を知りながら公務員の犯罪に使われる場合など）が認められるのは、正犯かどうかが物理的な操り人形かどうかではなく、<b>結果へ向かう経過を誰が握っていたかという規範的な評価</b>で決まるからである。ここから、完全に是非弁別を失った心神喪失だけでなく、判断力の残る心神耗弱を自ら作り出して利用した場合にも、同じ利用関係として扱う余地が出てくる。道具の側に責任能力が残っていることは、利用関係を否定する決め手にはならない。<span class='tx-vb-prac'><span class='tx-vb-prac-tag'>⚙ IN PRACTICE</span>争点になるのは、前後不覚の心神喪失より判断力の残る心神耗弱の程度であることが多い。精神鑑定、飲酒量や呼気・血中のアルコール濃度、犯行前後の記憶の有無が評価の材料になる。</span><span class='tx-vb-ex'><span class='tx-vb-ex-tag'>📁 CASE FILE</span>2006年8月、福岡市の海の中道大橋で飲酒運転の車が追突する事故が起きた。この件では、運転者がどの程度酔っていたのかという酔いの程度の評価が一審と控訴審で分かれ、最終的に危険運転致死傷罪の成立が認められて確定している。前後不覚か否かの二択ではなく、程度こそが勝負どころになることを示す一件である。</span>" data-brief-mark="構成要件モデルの立場から、身分なき故意ある道具の利用と規範的に同視して、<span class='tx-stmt-o'><span class='tx-stmt-mk is-ok'>✓</span>心神耗弱の自己利用にも原因において自由な行為の理論を適用しうる</span>とする主張がある（発言ウ）。<span class='tx-anscomp-line'>構成要件モデルの立場からは、身分のない故意ある道具の利用と規範的に同視して、<strong>心神耗弱状態を自ら利用した場合</strong>にも原因において自由な行為の理論を適用しうるとされる。</span>"><td style="text-align:center;font-weight:700;">5</td><td style="text-align:center;font-weight:800;color:var(--recall-correct-light);">○</td><td><div class="tx-reflex-core"><p class="tx-reflex-line"><span class="tx-reflex-tag">文言</span>身分なき故意ある道具＝是非弁別能力のある者を道具として利用する間接正犯の一類型。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">趣旨</span>構成要件モデルは自己の責任無能力状態を道具に見立てて実行行為性を基礎づける。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">射程</span>責任能力の残る心神耗弱の自己利用にも、規範的同視により原因において自由な行為を適用しうる（発言ウ）。</p><p class="tx-reflex-line tx-reflex-cut"><span class="tx-reflex-tag">切断点</span>心神喪失（完全な道具）か心神耗弱（責任の残る道具）か。道具理論では後者にも及びうる。</p><p class="tx-reflex-line"><span class="tx-reflex-tag">転用</span>間接正犯の道具類型（是非弁別なき道具／故意ある道具／目的なき道具）は、正犯性判断の共通の引き出し。</p></div></td></tr>
 </tbody>
 </table>
 </div>
