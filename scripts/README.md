@@ -375,3 +375,33 @@ python scripts/check-rx-coverage.py --strict    # UNREACHABLE を exit 1 ゲー�
 
 実測（2026-06-28）: 刑法 JX 66 / RX present 214 / referenced 138 / ARIADNE 不在 2 問 →
 **UNREACHABLE 0** / SAFETY-NET 76 / dangling 0。刑法以外 6 科目は RX 未生成のため graceful skip。
+
+---
+
+## オフライン用フォント同梱（`lexia-font-charset.py` / `build-offline-fonts.py` / `check-offline-fonts.py`）
+
+**目的**：iPad をオフラインで使うと Google Fonts が 1 書体も取れず、12 役割が端末の
+ヒラギノ 3 書体へ潰れる（LEX-442 の真因）。恒久対処として **11 書体をサブセット woff2 にして
+Lexia アプリへ同梱**する。HTML 2,700 本は無改修（書体名で参照しているだけなので、表示する文書に
+`@font-face` があれば当たる）。正典＝`docs/lexia-offline-fonts.md`。
+
+```
+pip install fonttools brotli
+python scripts/lexia-font-charset.py                              # 文字集合を抽出
+python scripts/build-offline-fonts.py --out dist/lexia-offline-fonts
+python scripts/check-offline-fonts.py dist/lexia-offline-fonts    # 被覆検査
+```
+
+- `lexia-font-charset.py` … corpus の HTML を**タグを剥がさず**走査（`<script>` の UI 文言・
+  CSS `content:` の ✍📚 も誌面に出る）。安全網に JIS X 0208 第1水準ほかを足して
+  `docs/data/lexia-offline-charset.txt` と `…corpus.txt`（安全網なし）を出す。
+- `build-offline-fonts.py` … corpus の Google Fonts リンクから必要 face を自動収集（＝リンクが正典・
+  手で face 表を書かない）。**旧 UA を送ってフル版 1 ファイルを取得**する
+  （新 UA だと unicode-range 120 分割で返り、法律日本語はほぼ全分割に跨るため 2.5MB/face と逆に太る）。
+- `check-offline-fonts.py` … 3 層に分けて報告する。①corpus 実使用文字の欠落＝実害
+  ②安全網ぶんの欠落＝将来リスク ③記号・絵文字／欧文書体の和文欠落＝正常。
+  1 face あたりの欠落が `--max-missing`（既定 50）を超えたときだけ exit 1（＝サブセット事故の検出）。
+
+実測（2026-08-26）: corpus 実使用 2,846 字／サブセット対象 3,767 字／**68 face・29MB**（和文 43・欧文 25）。
+確認ページ `dist/lexia-offline-fonts/_font-test.html` を iPad の機内モードで開くと 12 役割の見本と
+`document.fonts.check()` の判定が出る。
