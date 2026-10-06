@@ -251,6 +251,19 @@ function Get-JxPending { param([string]$subj, [int]$From = 0, [int]$To = 0)
     $folder = $SubjectFolder[$subj]
     $base = Join-Path $ProjectRoot "inputs\001_JX\$folder"
     $outDir = Join-Path $ProjectRoot "outputs\001_JX\$folder"
+    # 同番号の講義逐語（.txt/.md）が無い PDF は jx-batch-runner が SKIP_NO_TRANSCRIPT で除外するため、
+    # ここでも「仕事あり」に数えない（2026-10-07）。数えると逐語欠落の 1 件（例：民JX001）だけで J がその科目へ
+    # 張り付き、batch-runner 側で PENDING 0 件のまま他科目へフォールスルーせず毎バッチ空振りする。
+    # 番号抽出は batch-runner の Get-TranscriptNumber と同じ規則（'重問(?:逐語)?NN' → 先頭数字）。
+    $transNums = @{}
+    foreach ($d in @((Join-Path $base '講義逐語'), $base)) {
+        if (-not (Test-Path $d)) { continue }
+        foreach ($t in @(Get-ChildItem $d -File -ErrorAction SilentlyContinue | Where-Object { $_.Extension -in '.txt', '.md' })) {
+            $ts = [System.IO.Path]::GetFileNameWithoutExtension($t.Name)
+            if ($ts -match '重問(?:逐語)?\s*0*(\d+)') { $transNums[[int]$Matches[1]] = $true }
+            elseif ($ts -match '^0*(\d+)')            { $transNums[[int]$Matches[1]] = $true }
+        }
+    }
     foreach ($d in @((Join-Path $base '重問PDF'), $base)) {
         if (-not (Test-Path $d)) { continue }
         foreach ($p in @(Get-ChildItem $d -Filter '*.pdf' -File -ErrorAction SilentlyContinue)) {
@@ -258,6 +271,7 @@ function Get-JxPending { param([string]$subj, [int]$From = 0, [int]$To = 0)
             if ($stem -notmatch '^\d+') { continue }
             $n = [int]$Matches[0]
             if (-not (Test-NumInRange $n $From $To)) { continue }
+            if (-not $transNums.ContainsKey($n)) { continue }   # 逐語なし＝batch-runner でも対象外
             if (-not (Test-Path (Join-Path $outDir ("${subj}JX{0}.html" -f $n.ToString('000'))))) { return $true }
         }
     }
