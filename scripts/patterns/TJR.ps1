@@ -511,7 +511,7 @@ function Invoke-SStream {
     if ($NoPush) { $p.NoPush = $true }
     if ($DryRun) { $p.DryRun = $true }
     if ($Rewrite) { $p.Rewrite = $true }
-    $label = if ($Rewrite) { 'S（§v13w CONTEXT・旧型を新型へ改訂）' } else { 'S（§v13w CONTEXT 付随・科目へ均等配分）' }
+    $label = if ($Rewrite) { 'S（§v13w CONTEXT・旧型を新型へ改訂）' } else { 'S（§v13w CONTEXT 付随・優先枠→科目へ均等配分）' }
     if ($p.ContainsKey('Subject')) { $label += "・{0}優先" -f $p.Subject }
     Write-Host "`n———————— $label 開始 ————————" -ForegroundColor Green
     & $SRunner @p | Out-Host
@@ -627,7 +627,7 @@ for ($b = 1; $b -le $batchCount; $b++) {
     Write-Host ("  科目割当: T={0}  J={1}  R={2}  F={3}  Q={4}  S={5}  G={6}" -f `
         $(if($subT){$subT}else{'該当なし'}), $(if($subJ){$subJ}else{'該当なし'}), $(if($subR){$subR}else{'該当なし'}), `
         $(if($runF){'全科目監査'}else{'OFF'}), $(if($runQ){"刑訴 残$qPend"}else{'OFF'}), `
-        $(if($runS){"民法優先 残$sPend"}else{'OFF'}), $(if($runG){"均等配分 残$gPend"}else{'OFF'})) -ForegroundColor Cyan
+        $(if($runS){"優先枠→均等配分 残$sPend"}else{'OFF'}), $(if($runG){"均等配分 残$gPend"}else{'OFF'})) -ForegroundColor Cyan
 
     # F は毎バッチ先頭（放置品の回収を新規生成より優先＋破損公式が T のフロンティア判定を汚す前に直す）。
     # 修復対象ゼロなら監査（数十秒）だけで即抜けるので常設コストはほぼ無い。
@@ -700,7 +700,7 @@ for ($b = 1; $b -le $batchCount; $b++) {
     if ($runJ) { Write-Host ("  J（新規JX・{0}）  exit={1}" -f $(if($subJ){$subJ}else{'-'}), $rcJ) }
     if ($runR) { Write-Host ("  R（旧_lex・{0}）  exit={1}" -f $(if($subR){$subR}else{'-'}), $rcR) }
     if ($runQ) { Write-Host ("  Q（§v13q・刑訴） exit={0}  残={1} 件（バッチ開始時点）" -f $rcQ, $qPend) }
-    if ($runS) { Write-Host ("  S（§v13v・民法優先）exit={0}  残={1} 件（バッチ開始時点）" -f $rcS, $sPend) }
+    if ($runS) { Write-Host ("  S（§v13w CONTEXT）  exit={0}  残={1} 件（バッチ開始時点）" -f $rcS, $sPend) }
     if ($runG) { Write-Host ("  G（§v14 GIST）   exit={0}  残={1} 件（バッチ開始時点）" -f $rcG, $gPend) }
     if ($runD) { Write-Host ("  D（§v15 DEDUP）  exit={0}  残={1} 件（バッチ開始時点）" -f $rcD, $dPend) }
     if ($rcT -ne 0 -or $rcJ -ne 0 -or $rcR -ne 0 -or $rcQ -ne 0 -or $rcS -ne 0 -or $rcG -ne 0 -or $rcD -ne 0 -or $fRes.Rc -ne 0) { $rcAll = 1 }
