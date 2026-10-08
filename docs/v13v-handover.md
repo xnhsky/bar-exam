@@ -92,6 +92,12 @@ pwsh -NoProfile -File scripts\v13v-runner.ps1 -Rewrite -MaxProblems 10 # 旧型�
   学習の進度を設定に持たせない＝更新の手間も、実態とズレたまま回り続ける事故も起きない。
   いま学習中の科目へ寄せたいときは `-Subject`（TJR からは「TJR処理 刑訴」で伝わる）。
   一般則＝`docs/run-patterns.md`「既存展開の配り方（仕事のある科目へ均等に配る）」が正典。
+- **優先枠（2026-10-08 ユーザー指示）**：ランナー冒頭の `$PriorityRanges`（現在＝**刑訴TX189 以降**）に挙げた範囲の
+  未執筆を、ラウンドロビンより先にバッチへ詰める（範囲内は若番順）。号令は「TJR処理」だけでよい。範囲の未執筆が
+  尽きれば何も選ばなくなり既定のラウンドロビンへ自然に戻る（維持不要）。外すときは `-NoPriority`。
+- **厚みの合否（2026-10-08）**：執筆後、3 枚（⚙ IN PRACTICE＋📁 CASE FILE）が全行にそろい、地の文が全行 200 字以上で
+  なければ不合格＝ロールバック。判定は旧型判定 `Test-V13vLegacy` と同じ関数（ランナーが通したものが `-Rewrite` の
+  対象に落ちない）。従来は validate/engine だけで通しており、民訴を中心に 75 本が地の文 200 字未満のまま commit されていた。
 - 1バッチ **10本**（`-MaxS`）。ランナーが `validate-tx-core`＋`check-tx-lex-engine` を再検証し
   **PASS のみ 1問ずつ commit/push**（FAIL はロールバック・同一問題2回失敗で ESCALATE →
   `logs/tjr-repair-report.md`）。

@@ -19,6 +19,7 @@ param(
     [int]$ToNumber = 0,
     [string]$Model = 'claude-opus-5',  # Q と同じく Opus 5 固定
     [switch]$Rewrite,                  # 旧型（出題構造型・2026-08-27 以前）の data-brief-story を新型へ書き直す
+    [switch]$NoPriority,               # 優先枠（$PriorityRanges）を無視して既定のラウンドロビンだけで配る
     [switch]$NoPush,
     [switch]$NoCommit,
     [switch]$DryRun,
@@ -53,6 +54,16 @@ $SubjectOrder = @(
 # -Subject 明示時＝いま学習中の科目へ寄せる。その科目だけを全番号あたる。
 if ($Subject) { $SubjectOrder = @($SubjectOrder | Where-Object { $_.Key -eq $Subject }) }
 
+# === 優先枠（2026-10-08 ユーザー指示「189以降の帯なしの分から TJR で優先処理して」）===========
+#   ここに挙げた範囲の未執筆を、ラウンドロビンより先にバッチへ詰める（範囲内は若番順・枠が余れば
+#   ラウンドロビンで埋める）。号令に科目名を添えなくても効く（「TJR処理」だけでよい）。
+#   範囲の未執筆が尽きればこの行は何も選ばなくなり、既定のラウンドロビンへ自然に戻る＝**自然消滅**。
+#   学習の進度（$LearnedUpTo）と違い、放置しても実態とズレない（尽きた後は効果ゼロ）ので維持不要。
+#   To=0 は上限なし。-Rewrite（旧型の書き直し）には効かない。外したいときは -NoPriority。
+$PriorityRanges = @(
+    [pscustomobject]@{ Subject = '刑訴'; From = 189; To = 0 }   # 刑訴TX189-334：CONTEXT 帯が 1 行も無い帯（2026-10-08）
+)
+
 $PromptFile  = Join-Path $ProjectRoot 'prompts\v13v-headless.md'
 $ValidatePy  = Join-Path $ProjectRoot 'scripts\validate-tx-core.py'
 $EnginePy    = Join-Path $ProjectRoot 'scripts\check-tx-lex-engine.py'
@@ -76,13 +87,17 @@ function Save-SLedger { param($Ledger)
 # === 旧型判定（2026-08-31 §v13w 対応）===
 #   ①3枚化されていない（⚙ IN PRACTICE の .tx-vb-prac が無い）＝§v13w 以前 → 旧型。
 #   ②地の文（practice / CASE FILE を除いた本体）が 200 字未満＝2026-08-27 以前の出題構造型 → 旧型。
+#   ③📁 CASE FILE（.tx-vb-ex）が無い＝3 枚がそろっていない → 旧型（2026-10-08 追加）。
 #   1 行でも該当すればそのファイルを旧型とみなす。
+#   執筆直後の合否判定にも同じ関数を使う（2026-10-08）＝ランナーが通した直後に、自分の -Rewrite 対象へ
+#   落ちる薄い帯（実測：民訴など 75 本が地の文 200 字未満のまま commit されていた）を作らない。
 function Test-V13vLegacy {
     param([string]$Path)
     $raw = Get-Content -Raw -Encoding UTF8 -LiteralPath $Path
     foreach ($m in [regex]::Matches($raw, 'data-brief-story="([^"]*)"')) {
         $body = $m.Groups[1].Value
         if ($body -notmatch "tx-vb-prac") { return $true }
+        if ($body -notmatch "tx-vb-ex") { return $true }
         foreach ($cls in @("tx-vb-prac", "tx-vb-ex")) {
             $i = $body.IndexOf("<span class='$cls'")
             if ($i -ge 0) { $body = $body.Substring(0, $i) }
@@ -148,6 +163,21 @@ foreach ($t in $targets) {
 $rrOrder = @($SubjectOrder | Where-Object { $pool.ContainsKey($_.Key) } | ForEach-Object { $_.Key })
 $cursor = @{}; foreach ($k in $rrOrder) { $cursor[$k] = 0 }
 $queue = @()
+$picked = @{}
+# 優先枠を先に詰める（若番順・ESCALATE 済みは飛ばす）。残った枠だけをラウンドロビンへ回す。
+$prioPending = 0
+if (-not $Rewrite -and -not $NoPriority) {
+    foreach ($pr in $PriorityRanges) {
+        $inRange = @($targets | Where-Object {
+            $_.Subject -eq $pr.Subject -and $_.Num -ge $pr.From -and ($pr.To -le 0 -or $_.Num -le $pr.To) })
+        $prioPending += $inRange.Count
+        foreach ($cand in $inRange) {
+            if ($queue.Count -ge $MaxProblems) { break }
+            if ($picked.ContainsKey($cand.Id)) { continue }
+            if (& $notEscalated $cand) { $queue += $cand; $picked[$cand.Id] = $true }
+        }
+    }
+}
 while ($queue.Count -lt $MaxProblems) {
     $added = $false
     foreach ($k in $rrOrder) {
@@ -155,7 +185,8 @@ while ($queue.Count -lt $MaxProblems) {
         $list = $pool[$k]
         while ($cursor[$k] -lt $list.Count) {
             $cand = $list[$cursor[$k]]; $cursor[$k]++
-            if (& $notEscalated $cand) { $queue += $cand; $added = $true; break }
+            if ($picked.ContainsKey($cand.Id)) { continue }
+            if (& $notEscalated $cand) { $queue += $cand; $picked[$cand.Id] = $true; $added = $true; break }
         }
     }
     if (-not $added) { break }   # どの科目からも取れなくなった＝全部 ESCALATE 済み
@@ -165,6 +196,10 @@ $byS = ($targets | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Coun
 $byQ = ($queue | Group-Object Subject | ForEach-Object { "$($_.Name) $($_.Count)" }) -join ' / '
 Write-Host ("[S] 残 {0} 件（{1}）（ESCALATE 済 {2} 件）／今バッチ {3} 件（{4}）（model={5}）" -f `
     $targets.Count, $byS, $escalated.Count, $queue.Count, $byQ, $Model) -ForegroundColor Cyan
+if ($prioPending -gt 0) {
+    $prioLabel = ($PriorityRanges | ForEach-Object { '{0}{1}-{2}' -f $_.Subject, $_.From, $(if ($_.To -gt 0) { $_.To } else { '' }) }) -join ' / '
+    Write-Host ("[S] 優先枠 {0}：残 {1} 件を先に詰める（尽きればラウンドロビンへ自然に戻る）" -f $prioLabel, $prioPending) -ForegroundColor Cyan
+}
 if ($queue.Count -eq 0) {
     Write-Host "[S] 残件は全て ESCALATE 済（logs\tjr-repair-report.md 参照）。人手判断待ち。" -ForegroundColor Yellow
     exit 0
@@ -221,8 +256,11 @@ foreach ($t in $queue) {
     if ($rows -gt 0 -and $story -ge $rows) {
         & python $ValidatePy $t.Abs 2>&1 | Out-Null; $v1 = $LASTEXITCODE
         & python $EnginePy   $t.Abs 2>&1 | Out-Null; $v2 = $LASTEXITCODE
-        $ok = ($v1 -eq 0 -and $v2 -eq 0)
-        Write-Host ("[S] 検証 rows={0} story={1} validate={2} engine={3}" -f $rows, $story, $v1, $v2)
+        # 中身の厚み（2026-10-08）：3 枚（⚙ IN PRACTICE＋📁 CASE FILE）がそろい、地の文が 200 字以上か。
+        #   旧型判定と同じ関数＝ランナーが通したものが -Rewrite の対象に落ちることは起きない。
+        $thin = Test-V13vLegacy -Path $t.Abs
+        $ok = ($v1 -eq 0 -and $v2 -eq 0 -and -not $thin)
+        Write-Host ("[S] 検証 rows={0} story={1} validate={2} engine={3} 厚み={4}" -f $rows, $story, $v1, $v2, $(if ($thin) { 'NG（3枚欠け or 地の文200字未満）' } else { 'OK' }))
     } else {
         Write-Host "[S] $($t.Id) 執筆痕が足りない（rows=$rows story=$story・claude exit=$code）" -ForegroundColor Yellow
     }
