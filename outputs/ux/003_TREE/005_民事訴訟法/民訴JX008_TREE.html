@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一部請求と残部請求の可否 — 横向き樹形図 / ARBOR v5.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Crimson+Pro:ital,wght@0,400;0,500;0,600&family=Noto+Serif+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   ARBOR v5.0 (take 4) — Horizontal Mindmap Edition
+   Latin for "tree" · British scholarly palette × Garamond × horizontal tree layout
+   ============================================================ */
+
+:root {
+  /* Paper & ink */
+  --paper: #F4EDD8;
+  --paper-warm: #ECE0C2;
+  --ink: #1F1B16;
+  --ink-soft: #4A4338;
+  --ink-faint: #8C8275;
+  --rule: #C8B894;
+  --rule-faint: #DCC8A0;
+
+  /* British anchor palette */
+  --oxblood: #6B2436;
+  --oxblood-deep: #4E1A26;
+  --oxblood-light: #C8A0A8;
+  --sage: #5A6B4A;
+  --sage-deep: #3D4A30;
+  --sage-light: #B8C0A8;
+  --clay: #8B5A3C;
+  --clay-light: #D4B098;
+  --gold: #9C7C2D;
+  --gold-light: #D8C898;
+
+  /* 13 section roles — text / bg / leaf */
+  --root-text: #F4EDD8;       --root-bg: #6B2436;
+  --c1-text: #6B2436;          --c1-bg: #E8D4D8;          --c1-leaf: #F2E4E6;
+  --c2-text: #8B5A3C;          --c2-bg: #E0CBB8;          --c2-leaf: #ECDCC8;
+  --c3-text: #2F3D26;          --c3-bg: #A7B295;          --c3-leaf: #C5CFB4;
+  --c4-text: #6B2436;          --c4-bg: #D4B0B8;          --c4-leaf: #E4CCD2;
+  --c5-text: #8B5A3C;          --c5-bg: #CFB298;          --c5-leaf: #E0CDB4;
+  --c6-text: #7A5F2A;          --c6-bg: #D8C898;          --c6-leaf: #E8DCB4;
+  --c7-text: #7A5F2A;          --c7-bg: #D8C898;          --c7-leaf: #E8DCB4;
+  --c8-text: #F4EDD8;          --c8-bg: #6B2436;          --c8-leaf: #E8D4D8;
+  --c9-text: #5A6B4A;          --c9-bg: #BCC4B0;          --c9-leaf: #D4DCC4;
+  --c10-text: #8B5A3C;         --c10-bg: #D4B098;         --c10-leaf: #E4CCB4;
+  --c11-text: #5A6B4A;         --c11-bg: #C0C8B8;         --c11-leaf: #D4DCC8;
+  --c12-text: #6B5530;         --c12-bg: #D4C098;         --c12-leaf: #E4D4B0;
+  --c13-text: #4A5848;         --c13-bg: #C8D0BC;         --c13-leaf: #DCE2D0;
+
+  /* Typography (Latin in Garamond, CJK in Noto Serif JP) */
+  --f-disp: 'EB Garamond', 'Noto Serif JP', serif;
+  --f-it: 'Cormorant Garamond', 'EB Garamond', 'Noto Serif JP', serif;
+  --f-body: 'Crimson Pro', 'Noto Serif JP', serif;
+  --f-jp: 'Noto Serif JP', 'Hiragino Mincho ProN', serif;
+
+  /* Connector */
+  --connector: #C8B894;
+  --connector-strong: #8C8275;
+
+  /* Layout */
+  --r-sm: 3px;
+  --r-md: 5px;
+  --r-lg: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.85;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* === Vellum noise === */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* === Top bar (compact masthead) === */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(244, 237, 216, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 0.5px solid var(--rule);
+  padding: 14px 28px;
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.topbar-vol {
+  font-family: var(--f-disp);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--oxblood);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+.topbar-vol em {
+  color: var(--ink-faint);
+  font-style: italic;
+  margin: 0 0.5em;
+}
+
+.topbar-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+}
+
+.topbar-title em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--oxblood);
+  letter-spacing: 0.05em;
+  margin-left: 0.5em;
+}
+
+.topbar-stats {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.topbar-stats .num {
+  color: var(--oxblood);
+  font-weight: 600;
+}
+
+/* === Mindmap canvas === */
+.mm-canvas {
+  width: 100%;
+  overflow-x: auto;
+  padding: 60px 0 100px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mindmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0 32px;
+  width: max-content;
+  min-width: 100%;
+  position: relative;
+}
+
+/* === Root node === */
+.mm-root {
+  flex-shrink: 0;
+  width: 240px;
+  padding: 28px 24px 30px;
+  background: var(--root-bg);
+  color: var(--root-text);
+  border-radius: var(--r-lg);
+  position: sticky;
+  top: 110px;
+  align-self: flex-start;
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 12px 36px -16px rgba(78, 26, 38, 0.45);
+}
+
+.mm-root-eyebrow {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--root-text);
+  opacity: 0.65;
+  margin-bottom: 8px;
+  font-variant: small-caps;
+}
+
+.mm-root-title {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.18;
+  letter-spacing: 0.06em;
+  margin: 0;
+  color: var(--root-text);
+}
+
+.mm-root-en {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.05em;
+  margin-top: 10px;
+  color: var(--root-text);
+  opacity: 0.85;
+}
+
+.mm-root-divider {
+  width: 28px;
+  height: 1px;
+  background: var(--root-text);
+  opacity: 0.4;
+  margin: 16px 0 14px;
+}
+
+.mm-root-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--root-text);
+  opacity: 0.75;
+  line-height: 1.6;
+}
+
+.mm-root-meta em {
+  font-style: normal;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  opacity: 0.7;
+  margin-right: 0.5em;
+}
+
+/* === Trunk (vertical stack of branches) === */
+.mm-trunk {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  align-self: stretch;
+  padding-left: 50px;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.mm-trunk::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 26px;
+  bottom: 26px;
+  width: 1px;
+  background: var(--connector);
+}
+
+/* === Branch (one row in trunk: node + sub-trunk) === */
+.mm-branch {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  position: relative;
+}
+
+.mm-branch::before {
+  content: '';
+  position: absolute;
+  left: -50px;
+  top: 26px;
+  width: 50px;
+  height: 1px;
+  background: var(--connector);
+}
+
+/* === Branch node (level-1 label card) === */
+.mm-trunk-node {
+  flex-shrink: 0;
+  width: 210px;
+  padding: 12px 16px 13px;
+  background: var(--node-bg, var(--paper-warm));
+  color: var(--node-text, var(--ink));
+  border-radius: var(--r-md);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--f-jp);
+  position: relative;
+  cursor: default;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mm-trunk-node:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px rgba(31, 27, 22, 0.18);
+}
+
+.mm-trunk-node .mm-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.mm-trunk-node .mm-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: 0.08em;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.mm-trunk-node .mm-name-en {
+  display: block;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+  margin-top: 1px;
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+}
+
+/* Special markers (§ procedure / burn-in / recall) */
+.mm-trunk-node.is-special {
+  border: 0.5px solid currentColor;
+  font-weight: 800;
+}
+
+.mm-trunk-node.is-special::after {
+  content: '§';
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* === Twigs (vertical stack of leaves) === */
+.mm-twigs {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 32px;
+  gap: 8px;
+  flex-shrink: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-self: stretch;
+}
+
+.mm-twigs::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+/* === Leaf (clickable details with content) === */
+.mm-leaf {
+  position: relative;
+}
+
+.mm-leaf::before {
+  content: '';
+  position: absolute;
+  left: -32px;
+  top: 18px;
+  width: 32px;
+  height: 1px;
+  background: var(--connector);
+  opacity: 0.7;
+}
+
+.mm-leaf > summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 13px 8px;
+  background: var(--leaf-bg, rgba(255, 255, 255, 0.55));
+  color: var(--leaf-text, var(--ink));
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 13px;
+  white-space: nowrap;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-leaf > summary::-webkit-details-marker { display: none; }
+.mm-leaf > summary::marker { content: ''; }
+
+.mm-leaf > summary:hover {
+  border-color: rgba(31, 27, 22, 0.18);
+}
+
+.mm-leaf[open] > summary {
+  background: rgba(244, 237, 216, 0.85);
+  border-color: var(--node-text, var(--ink-soft));
+  box-shadow: 0 1px 4px rgba(31, 27, 22, 0.06);
+}
+
+.mm-leaf-name {
+  font-family: var(--f-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.mm-leaf-label {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.mm-leaf-label .mm-leaf-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 13.5px;
+  letter-spacing: 0.05em;
+}
+
+.mm-leaf-sub {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.72;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+}
+
+.mm-leaf-sub em {
+  font-style: italic;
+}
+
+.mm-leaf-chev {
+  font-family: var(--f-disp);
+  font-size: 13px;
+  font-weight: 600;
+  color: currentColor;
+  opacity: 0.55;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.mm-leaf-chev::before { content: '+'; }
+.mm-leaf[open] .mm-leaf-chev { transform: rotate(45deg); }
+
+/* Leaf expanded body */
+.mm-leaf-body {
+  margin-top: 8px;
+  margin-left: 24px;
+  padding: 14px 18px 16px;
+  background: rgba(255, 255, 255, 0.55);
+  border-left: 2px solid var(--node-text, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.9;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+  max-width: 440px;
+}
+
+.mm-leaf-body p { margin: 0 0 0.6em; }
+.mm-leaf-body p:last-child { margin-bottom: 0; }
+
+.mm-leaf-body strong {
+  color: var(--node-text, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-leaf-body em {
+  font-family: var(--f-it);
+  font-style: italic;
+}
+
+.mm-leaf-body .norm {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  line-height: 1.95;
+  background: rgba(122, 95, 42, 0.07);
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-left: 2px solid var(--gold);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  color: var(--ink);
+}
+
+.mm-leaf-body .norm-cite {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+  font-weight: 500;
+}
+
+.mm-leaf-body .case-name {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--node-text, var(--ink));
+}
+
+.mm-leaf-body .label-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 6px 0;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+}
+
+.mm-leaf-body .label-row em {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--node-text, var(--oxblood));
+  font-variant: small-caps;
+  margin-right: 0.3em;
+}
+
+/* === Section colour application === */
+.mm-c1 .mm-trunk-node { background: var(--c1-bg); color: var(--c1-text); }
+.mm-c1 .mm-leaf > summary { background: var(--c1-leaf); color: var(--c1-text); }
+.mm-c1 .mm-leaf-body { border-left-color: var(--c1-text); }
+.mm-c1 { --node-text: var(--c1-text); --node-bg: var(--c1-bg); }
+
+.mm-c2 .mm-trunk-node { background: var(--c2-bg); color: var(--c2-text); }
+.mm-c2 .mm-leaf > summary { background: var(--c2-leaf); color: var(--c2-text); }
+.mm-c2 .mm-leaf-body { border-left-color: var(--c2-text); }
+.mm-c2 { --node-text: var(--c2-text); --node-bg: var(--c2-bg); }
+
+.mm-c3 .mm-trunk-node { background: var(--c3-bg); color: var(--c3-text); }
+.mm-c3 .mm-leaf > summary { background: var(--c3-leaf); color: var(--c3-text); }
+.mm-c3 .mm-leaf-body { border-left-color: var(--c3-text); }
+.mm-c3 { --node-text: var(--c3-text); --node-bg: var(--c3-bg); }
+
+.mm-c4 .mm-trunk-node { background: var(--c4-bg); color: var(--c4-text); }
+.mm-c4 .mm-leaf > summary { background: var(--c4-leaf); color: var(--c4-text); }
+.mm-c4 .mm-leaf-body { border-left-color: var(--c4-text); }
+.mm-c4 { --node-text: var(--c4-text); --node-bg: var(--c4-bg); }
+
+.mm-c5 .mm-trunk-node { background: var(--c5-bg); color: var(--c5-text); }
+.mm-c5 .mm-leaf > summary { background: var(--c5-leaf); color: var(--c5-text); }
+.mm-c5 .mm-leaf-body { border-left-color: var(--c5-text); }
+.mm-c5 { --node-text: var(--c5-text); --node-bg: var(--c5-bg); }
+
+.mm-c6 .mm-trunk-node { background: var(--c6-bg); color: var(--c6-text); }
+.mm-c6 .mm-leaf > summary { background: var(--c6-leaf); color: var(--c6-text); }
+.mm-c6 .mm-leaf-body { border-left-color: var(--c6-text); }
+.mm-c6 { --node-text: var(--c6-text); --node-bg: var(--c6-bg); }
+
+.mm-c7 .mm-trunk-node { background: var(--c7-bg); color: var(--c7-text); }
+.mm-c7 .mm-leaf > summary { background: var(--c7-leaf); color: var(--c7-text); }
+.mm-c7 .mm-leaf-body { border-left-color: var(--c7-text); }
+.mm-c7 { --node-text: var(--c7-text); --node-bg: var(--c7-bg); }
+
+.mm-c8 .mm-trunk-node { background: var(--c8-bg); color: var(--c8-text); }
+.mm-c8 .mm-leaf > summary { background: var(--c8-leaf); color: var(--oxblood); }
+.mm-c8 .mm-leaf-body { border-left-color: var(--oxblood); }
+.mm-c8 { --node-text: var(--oxblood); --node-bg: var(--c8-bg); }
+
+.mm-c9 .mm-trunk-node { background: var(--c9-bg); color: var(--c9-text); }
+.mm-c9 .mm-leaf > summary { background: var(--c9-leaf); color: var(--c9-text); }
+.mm-c9 .mm-leaf-body { border-left-color: var(--c9-text); }
+.mm-c9 { --node-text: var(--c9-text); --node-bg: var(--c9-bg); }
+
+.mm-c10 .mm-trunk-node { background: var(--c10-bg); color: var(--c10-text); }
+.mm-c10 .mm-leaf > summary { background: var(--c10-leaf); color: var(--c10-text); }
+.mm-c10 .mm-leaf-body { border-left-color: var(--c10-text); }
+.mm-c10 { --node-text: var(--c10-text); --node-bg: var(--c10-bg); }
+
+.mm-c11 .mm-trunk-node { background: var(--c11-bg); color: var(--c11-text); }
+.mm-c11 .mm-leaf > summary { background: var(--c11-leaf); color: var(--c11-text); }
+.mm-c11 .mm-leaf-body { border-left-color: var(--c11-text); }
+.mm-c11 { --node-text: var(--c11-text); --node-bg: var(--c11-bg); }
+
+.mm-c12 .mm-trunk-node { background: var(--c12-bg); color: var(--c12-text); }
+.mm-c12 .mm-leaf > summary { background: var(--c12-leaf); color: var(--c12-text); }
+.mm-c12 .mm-leaf-body { border-left-color: var(--c12-text); }
+.mm-c12 { --node-text: var(--c12-text); --node-bg: var(--c12-bg); }
+
+.mm-c13 .mm-trunk-node { background: var(--c13-bg); color: var(--c13-text); }
+.mm-c13 .mm-leaf > summary { background: var(--c13-leaf); color: var(--c13-text); }
+.mm-c13 .mm-leaf-body { border-left-color: var(--c13-text); }
+.mm-c13 { --node-text: var(--c13-text); --node-bg: var(--c13-bg); }
+
+/* === Recall sub-structure (LV bundles + nested Qs) === */
+.mm-recall-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mm-q {
+  position: relative;
+}
+
+.mm-q > summary {
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 9px 12px 10px;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  font-family: var(--f-body);
+  font-size: 12.5px;
+  line-height: 1.55;
+  border: 0.5px solid transparent;
+  transition: border-color 0.2s;
+  white-space: normal;
+}
+
+.mm-q > summary::-webkit-details-marker { display: none; }
+.mm-q > summary:hover { border-color: rgba(31, 27, 22, 0.15); }
+.mm-q[open] > summary {
+  background: rgba(244, 237, 216, 0.8);
+  border-color: var(--lv-color, var(--ink-soft));
+}
+
+.mm-q-num {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 600;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  padding-top: 0.05em;
+}
+
+.mm-q-text {
+  font-family: var(--f-jp);
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+  color: var(--ink);
+}
+
+.mm-q-answer {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.6);
+  border-left: 2px solid var(--lv-color, var(--ink-soft));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-family: var(--f-jp);
+  font-size: 12.5px;
+  line-height: 1.95;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.mm-q-answer .kw {
+  color: var(--lv-color, var(--oxblood));
+  font-weight: 700;
+}
+
+.mm-q-answer .verb {
+  font-family: var(--f-jp);
+  background: rgba(122, 95, 42, 0.1);
+  padding: 0 0.3em;
+}
+
+/* LV-specific accent colours (British progression) */
+.lv1 { --lv-color: #6B7A5A; }
+.lv2 { --lv-color: #8B5A3C; }
+.lv3 { --lv-color: #6B2436; }
+.lv4 { --lv-color: #4E1A26; }
+.lv5 { --lv-color: #6B5530; }
+
+.lv1 .mm-lv-header,
+.lv2 .mm-lv-header,
+.lv3 .mm-lv-header,
+.lv4 .mm-lv-header,
+.lv5 .mm-lv-header { color: var(--lv-color); }
+
+.mm-lv-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 4px 0 4px;
+  padding-bottom: 4px;
+  border-bottom: 0.5px solid currentColor;
+}
+
+.mm-lv-roman {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+}
+
+.mm-lv-name {
+  font-family: var(--f-jp);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+}
+
+.mm-lv-count {
+  margin-left: auto;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  opacity: 0.75;
+}
+
+/* === Legend (compact key) === */
+.legend {
+  max-width: 880px;
+  margin: 0 auto 24px;
+  padding: 18px 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+  align-items: baseline;
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.legend-title {
+  font-variant: small-caps;
+  letter-spacing: 0.2em;
+  font-style: normal;
+  color: var(--oxblood);
+  font-weight: 500;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-swatch {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* === Footer === */
+.foot {
+  max-width: 760px;
+  margin: 60px auto 80px;
+  padding: 24px 0 0;
+  border-top: 0.5px solid var(--rule);
+  text-align: center;
+}
+
+.foot-fin {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  color: var(--ink-faint);
+  margin-bottom: 10px;
+}
+
+.foot-meta {
+  font-family: var(--f-it);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+
+/* === Responsive (mobile: stack root above tree) === */
+@media (max-width: 720px) {
+  .topbar { padding: 12px 18px; gap: 12px; font-size: 12px; }
+  .topbar-title { font-size: 15px; }
+  .topbar-title em { font-size: 12px; }
+  .topbar-stats { font-size: 11px; }
+  .mm-canvas { padding: 32px 0 60px; }
+  .mindmap { padding: 0 18px; flex-direction: column; align-items: stretch; gap: 22px; }
+  .mm-root { width: 100%; position: relative; top: auto; }
+  .mm-trunk { padding-left: 28px; }
+  .mm-trunk::before { left: 0; }
+  .mm-branch { flex-direction: column; gap: 10px; }
+  .mm-branch::before { left: -28px; width: 28px; }
+  .mm-trunk-node { width: 100%; }
+  .mm-twigs { padding-left: 20px; }
+  .mm-leaf::before { left: -20px; width: 20px; }
+  .mm-leaf > summary { white-space: normal; }
+  .legend { flex-direction: column; gap: 8px; padding: 14px 18px; }
+}
+
+@media print {
+  body::before { display: none; }
+  .mm-canvas { overflow: visible; }
+  .mm-leaf, .mm-q { open: open; }
+}
+
+/* === Accessibility focus === */
+summary:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--oxblood);
+  outline-offset: 3px;
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: var(--oxblood-light);
+  color: var(--ink);
+}
+</style>
+</head>
+<body>
+<!-- =========================================================
+     Top bar — compact masthead
+     ========================================================= -->
+<header class="topbar">
+  <span class="topbar-vol">Vol. VIII <em>·</em> An Exposition</span>
+  <h1 class="topbar-title">一部請求と残部請求の可否 <em>— On Partial Claims and the Residual Suit</em></h1>
+  <span class="topbar-stats">
+    <span class="num">13</span> Chapters
+    <em> · </em>
+    <span class="num">5</span> Cases
+    <em> · </em>
+    <span class="num">15</span> qq.
+  </span>
+</header>
+
+<!-- =========================================================
+     Legend
+     ========================================================= -->
+<div class="legend">
+  <span class="legend-title">Legend</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #6B2436"></span>Root <em>·</em> Core (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #A7B295"></span>Procedure (§)</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4B0B8"></span>Burgundy <em>·</em> Issues</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D8C898"></span>Gold <em>·</em> Norms</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #C0C8B8"></span>Sage <em>·</em> Auxiliary</span>
+  <span class="legend-item"><span class="legend-swatch" style="background: #D4C098"></span>Sepia <em>·</em> Cases</span>
+</div>
+
+<!-- =========================================================
+     Mindmap — horizontal tree
+     ========================================================= -->
+<div class="mm-canvas">
+  <div class="mindmap">
+
+    <!-- ROOT -->
+    <div class="mm-root">
+      <div class="mm-root-eyebrow">An Exposition of</div>
+      <h2 class="mm-root-title">一部請求と<br>残部請求</h2>
+      <div class="mm-root-en">Partial Claim v. Residual Suit</div>
+      <div class="mm-root-divider"></div>
+      <div class="mm-root-meta">
+        <em>Subject</em>民事訴訟法<br>
+        <em>Origin</em>慶應義塾大学法科大学院 平成23年度 小問(2)<br>
+        <em>Form</em>規範定立型（既判力→信義則の二段フィルター）
+      </div>
+    </div>
+
+    <!-- TRUNK -->
+    <div class="mm-trunk">
+
+      <!-- =====================================================
+           Branch 1 — 出題位置
+           ===================================================== -->
+      <div class="mm-branch mm-c1">
+        <div class="mm-trunk-node">
+          <span class="mm-num">1</span>
+          <span class="mm-name">出題位置<span class="mm-name-en">Position</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">体系</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>民事訴訟法・<strong>既判力論／訴訟物論</strong>の中核。<strong>一部請求の訴訟物の範囲（明示説）</strong>を確定し、既判力（114条1項）では遮断されないことを示したうえで、なお<strong>信義則（2条）</strong>による残部請求の制限が働かないかを重ねて問う。本案前の訴訟要件（却下）と本案判決（棄却）の区別も問われる、手続法の総合問題。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">頻度・重要度</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body">
+              <div class="label-row">
+                <span><em>頻度</em>民訴頻出</span>
+                <span><em>重要度</em>★★★★★</span>
+                <span><em>難易度</em>★★★★☆</span>
+              </div>
+              <p>司法試験 平成25年・令和2年／予備試験 平成24年／旧司 平成9年と繰り返し問われる最重要域。既判力論の基礎を前提に、<strong>平成10年判例（百選80）の信義則論</strong>を規範の流れごと使えるかで差がつく。</p>
+            </div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">配置マトリックス</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「中難 × 高重要」象限の TARGET 領域。基本構造（明示説で訴訟物が切れる）は易しいが、<strong>「既判力では切れない」で安心して信義則（論点2）を落とす</strong>のが典型的な罠。逆に信義則違反と即断して「特段の事情」で救う処理を落とすのも失点。二重フィルターの往復が勝負。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">隣接論点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>既判力の客観的範囲（114条1項）／処分権主義（246条）／外側説（相殺・過失相殺と一部請求）／重複起訴の禁止（142条）／訴訟上の信義則の諸類型。とりわけ<strong>「明示説で訴訟物を切る → 信義則で蒸し返しを封じる → 特段の事情で例外」</strong>という一部請求論の全体像が本論点の到達点。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 2 — 事案構造
+           ===================================================== -->
+      <div class="mm-branch mm-c2">
+        <div class="mm-trunk-node">
+          <span class="mm-num">2</span>
+          <span class="mm-name">事案構造<span class="mm-name-en">Case</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">事案の核</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Xは交差点横断中、Yのトラックにはねられ重傷（不法行為・民709条）。Xは損害総額を<strong>600万円</strong>と考える（入院治療費150・休業損害200・慰謝料50・介護費用200）が、<strong>介護費用200万円を除外した400万円</strong>で第1の訴えを提起。裁判所は入院150・休業100・慰謝料50＝<strong>300万円を認容し100万円を棄却</strong>（一部敗訴）。確定後、Xが<strong>介護費用200万円</strong>の第2の訴えを提起した。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">当事者</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>X（原告・交通事故の被害者・一部請求をした原告）／Y（被告・加害者・トラック運転手）。訴訟物は<strong>Xの不法行為に基づく損害賠償債権</strong>（一個の金銭債権）。この一個の債権を、第1の訴え（400万円部分）と第2の訴え（介護費用200万円）に分けて行使している点が核。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">争点</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① 第1の訴え（400万円）の<strong>訴訟物の範囲</strong>はどこまでか（明示的一部請求）。<br>② 前訴の既判力は残部（介護費用200万円）に及び第2の訴えを<strong>遮断</strong>するか。<br>③ 一部認容（一部敗訴）後の残部請求は<strong>信義則</strong>に反するか。<br>④ <strong>「特段の事情」</strong>はあるか／第2の訴えは却下か本案審理か。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 3 — 処理手順 § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c3">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">3</span>
+          <span class="mm-name">処理手順<span class="mm-name-en">Procedure §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 1 · 訴訟物の捉え方で帰趨が決まる</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>第2の訴え（介護費用200万円）の帰趨は、<strong>第1の訴えの訴訟物をどう捉えるか</strong>にかかる。訴訟物＝損害賠償債権全体（600万円）と捉えれば、前訴の既判力（114条1項）が債権全体を覆い、第2の訴えは<strong>棄却</strong>されうる。だからまず訴訟物の範囲を確定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 2 · 一部請求の可否と明示説</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>処分権主義（<strong>246条</strong>）＋訴訟外の分割行使との均衡から一部請求は許される。もっとも無限定に分断を認めると被告の応訴負担が過大。そこで<strong>明示を要求</strong>し、明示がある限り訴訟物は明示部分に限定（<span class="case-name">最判昭37.8.10</span>＝明示説）。本問は介護費用を除外＝費目限定型の明示あり → 訴訟物は<strong>400万円に限定</strong>、介護費用は訴訟物外。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 3 · 既判力の抵触判断（114条1項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>既判力は「<strong>主文に包含するもの</strong>」＝訴訟物たる権利関係の存否判断にのみ生じる（114条1項）。介護費用200万円は訴訟物外だから既判力は生じていない。よって第2の訴えは<strong>既判力に抵触しない（遮断されない）</strong>。── ここで止めず、なお信義則へ進むのが本問の肝。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 4 · 信義則の原則（平10判例）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一部請求で<strong>敗訴（全部又は一部棄却）</strong>した原告の残部請求は、特段の事情なき限り<strong>信義則（2条）に反して許されない</strong>（<span class="case-name">最判平10.6.12</span>）。本問は400万円中100万円棄却＝<strong>一部敗訴</strong>だから、まずこの原則の射程に乗る。効果は訴え<strong>却下</strong>（既判力抵触の棄却と区別）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Step 5 · 特段の事情のあてはめ → 結論</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「特段の事情」＝<strong>審理の範囲が必ずしも債権全部に及ばなかったような事情</strong>。介護費用は前訴で費目として<strong>主張されず審理の外</strong>にあり、平10判例が前提とした「債権全体が審理された」状況が当てはまらない。よって<strong>特段の事情あり → 信義則違反なし → 第2の訴えは適法</strong>。本案で介護費用の請求権の存否が審理されるべき。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 4 — 論点① 訴訟物・既判力
+           ===================================================== -->
+      <div class="mm-branch mm-c4">
+        <div class="mm-trunk-node">
+          <span class="mm-num">4</span>
+          <span class="mm-name">論点①<span class="mm-name-en">Res Judicata Scope</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-A · 一部請求の可否（処分権主義）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一個の債権の一部についてのみ判決を求めることも、<strong>処分権主義</strong>（246条）の下では許される。当事者は審判の対象と範囲を自由に設定でき、試験訴訟の必要性や訴訟外での債権の分割行使が許されることとの均衡からも肯定される。</p><div class="norm">一個の債権の一部についてのみ判決を求めることも、処分権主義（246条）の下では許される。もっとも、無限定に訴訟物の分断を認めれば被告の応訴の負担が過大となる。<span class="norm-cite">— 一部請求の可否・出発点</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-B · 明示説（判例・通説）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>無限定の分断は被告を害するから、<strong>明示</strong>を要求して被告の防御上の不利益を可及的に防ぐ。明示がある限り訴訟物は明示部分に限定され、残部に既判力は及ばない（<span class="case-name">最判昭37.8.10</span>）。明示がなければ訴訟物は債権全体に及ぶ。</p><div class="norm">一個の債権の数量的な一部についてのみ判決を求める旨を明示して訴えが提起された場合は、訴訟物となるのはその一部の存否のみであって、確定判決の既判力は残部の請求に及ばない。<span class="norm-cite">— 最判昭37.8.10（明示説）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-C · 既判力の客観的範囲（114条1項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>既判力は「<strong>主文に包含するもの</strong>」＝訴訟物たる権利関係の存否判断にのみ生じる（114条1項）。既判力の及ぶ範囲は<strong>訴訟物の範囲と一致</strong>する。本問では訴訟物が400万円部分に限定されるから、訴訟物外の介護費用200万円に既判力は生じず、第2の訴えは既判力に抵触しない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">01-D · 「明示」の柔軟な認定（費目限定型）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「明示」は厳格な定型文言を要せず、<strong>債権の一部を請求する趣旨が読み取れれば足りる</strong>。損害費目を限定した請求（費目限定型）も明示的一部請求に当たる（<span class="case-name">最判平20.7.10</span>、最判昭43.6.27・昭45.6.19）。本問の「介護費用を除外した400万円」は費目限定型ゆえ<strong>明示あり</strong>と認定できる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 5 — 論点② 信義則・特段の事情
+           ===================================================== -->
+      <div class="mm-branch mm-c5">
+        <div class="mm-trunk-node">
+          <span class="mm-num">5</span>
+          <span class="mm-name">論点②<span class="mm-name-en">Good-Faith Bar</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-A · 信義則制限説の原則規範（平10判例）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>既判力で遮断されない残部請求も、<strong>一部請求で敗訴した原告</strong>が提起する場合は、特段の事情なき限り<strong>信義則（2条）に反して許されない</strong>（<span class="case-name">最判平10.6.12</span>・百選80）。既判力とは別個の訴訟上の制限原理。効果は訴え<strong>却下</strong>。</p><div class="norm">金銭債権の数量的一部請求訴訟で敗訴した原告が残部請求の訴えを提起することは、特段の事情がない限り、信義則に反して許されない。<span class="norm-cite">— 最判平10.6.12（百選80）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-B · 原則の理由の骨格</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>規範末尾だけでなく<strong>論理の流れ全体</strong>が重要。① 数量的一部請求の当否判断には<strong>債権全部についての審理</strong>が必要（外側説の発想）→ ② 一部にすら棄却部分があれば<strong>残部も不存在と判断された</strong>に等しい → ③ 残部請求は前訴で認められなかった請求の<strong>蒸し返し</strong>で、紛争解決への<strong>被告の合理的期待</strong>に反し<strong>二重の応訴の負担</strong>を強いる → ④ ゆえに信義則違反。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-C · 「特段の事情」の枠組み（裏から定義）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>判例は「特段の事情」の内容を明示しない。原則が妥当する根拠が「<strong>債権全体が審理された</strong>」ことにある以上、裏を返して、<strong>審理の範囲が必ずしも債権全部に及ばなかったような事情</strong>がある場合＝特段の事情、と定義できる。この場合は「残部も審理済み」の前提が崩れ、信義則で封じる理由がなくなる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">02-D · 効果（却下／棄却）と本問の帰結</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>信義則違反＝<strong>訴訟要件を欠く不適法な訴え＝却下</strong>。既判力抵触＝本案判決としての<strong>棄却</strong>。両者は効果が異なる。本問では介護費用が前訴で費目として主張されず審理外だから<strong>特段の事情あり → 信義則違反なし → 第2の訴えは適法</strong>。本案で介護費用の請求権の存否が審理される。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 6 — 論証文言ゾーン
+           ===================================================== -->
+      <div class="mm-branch mm-c6">
+        <div class="mm-trunk-node">
+          <span class="mm-num">6</span>
+          <span class="mm-name">論証文言<span class="mm-name-en">Phrases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">標準形 · 明示的一部請求と訴訟物</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">一個の債権の一部についてのみ判決を求めることも、処分権主義（246条）の下では許される。もっとも、無限定に訴訟物の分断を認めれば被告の応訴の負担が過大となる。そこで、試験訴訟の必要性や訴訟外における債権の分割行使が許されることとの均衡から訴訟物の分断を認めつつ、明示を要求することで被告の防御上の不利益を可及的に防ぐべきである。したがって、一個の債権の数量的一部についてのみ判決を求める旨を明示して訴えが提起された場合には、訴訟物は当該明示された一部に限定される。<span class="norm-cite">— 試験本番想定・完成形（約230字）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">核心 · 既判力の不抵触（114条1項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">既判力は、確定判決の主文に包含するもの、すなわち訴訟物たる権利関係の存否判断に限り生じる（114条1項）。本件で第1の訴えの訴訟物は介護費用200万円を除外した400万円部分に限定されるから、同200万円については既判力が生じていない。したがって、第2の訴えで同額を請求しても、前訴判決の既判力に抵触することはない。<span class="norm-cite">— 既判力の客観的範囲型</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">原則 · 一部請求敗訴後の残部請求と信義則</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">一部認容判決が下された場合、残部は存在しないと考えるのが自然である。数量的一部請求の当否を判断するには債権の全部について審理することが必要であり、当事者双方も通常は債権全体について弁論を尽くすからである。そのため後訴は、実質的には前訴で認められなかった請求及び主張を蒸し返すものであり、被告の合理的期待に反し、二重の応訴の負担を強いる。したがって、一部請求訴訟で敗訴した原告が残部請求の訴えを提起することは、特段の事情のない限り、信義則（2条）に反し、訴えは却下される。<span class="norm-cite">— 平10判例・原則規範型（約220字）</span></div></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">締め · 特段の事情の枠組みとあてはめ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><div class="norm">特段の事情がない限り残部請求が許されないのは、当事者が債権全体について弁論を尽くし審理も債権全体について行われたはずだからである。そうだとすると、特段の事情の有無は、前訴において審理の範囲が必ずしも債権全部に及ばなかったような事情があるか否かという観点から判断すべきである。本件では、第1の訴えにおいて損害費目として介護費用が主張されておらず、審理の範囲が必ずしも債権全部に及ばなかったような事情があると考えられる。したがって、特段の事情が認められる。<span class="norm-cite">— あてはめ・完成形（約170字）</span></div></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 7 — あてはめ事実カタログ
+           ===================================================== -->
+      <div class="mm-branch mm-c7">
+        <div class="mm-trunk-node">
+          <span class="mm-num">7</span>
+          <span class="mm-name">あてはめ事実<span class="mm-name-en">Fact Inventory</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 明示あり（訴訟物限定の材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Xは総額600万円のうち<strong>介護費用200万円を除外した400万円</strong>を訴求／費目を特定して一部に限定した＝<strong>費目限定型</strong>／債権の一部を請求する趣旨が読み取れる。<br>──明示説のもとで「明示あり」を基礎づけ、訴訟物を400万円部分に限定する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 既判力の不抵触（材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>介護費用200万円は第1の訴えの請求から<strong>除外</strong>され審判対象外＝訴訟物外／前訴判決は確定し既判力は「主文に包含するもの」（訴訟物の存否判断）にのみ生じる。<br>──残部に既判力は生じていない＝第2の訴えは既判力に抵触しない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 一部敗訴（原則の射程の材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>400万円の請求に対し<strong>300万円認容・100万円棄却</strong>（休業損害は100万円のみ認定）＝<strong>一部敗訴</strong>／平10判例は「全部又は一部棄却」を射程に含む。<br>──一部請求敗訴後の残部請求＝平10判例の原則の射程内に入る。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">§ 特段の事情あり（例外の材料）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>介護費用は前訴で費目として<strong>主張されておらず審理の外</strong>にあった／これに対し入院治療費・休業損害・慰謝料は<strong>審理済み</strong>（対比）。<br>──審理の範囲が債権全部に及んでいない＝特段の事情あり。審理済みの費目なら残部請求に特段の事情なし、という対比が効く。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 8 — 直前期コア § (special)
+           ===================================================== -->
+      <div class="mm-branch mm-c8">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">8</span>
+          <span class="mm-name">直前期コア<span class="mm-name-en">Burn-in §</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">規範 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <strong>明示説</strong> — 明示がある限り訴訟物は明示部分に限定（処分権主義＋被告保護）<br>② <strong>既判力</strong> — 主文に包含するもの＝訴訟物の存否判断にのみ生じ残部に及ばず（114条1項）<br>③ <strong>信義則</strong> — 一部請求敗訴後の残部請求は特段の事情なき限り2条違反で却下／特段の事情＝審理が債権全部に及ばない事情</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">判例 3 点セット</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>① <span class="case-name">最判昭37.8.10</span> — 明示的一部請求の訴訟物は一部に限定・残部に既判力及ばず（明示説）<br>② <span class="case-name">最判平10.6.12</span> — 敗訴後の残部請求は特段の事情なき限り信義則違反（百選80・本問の中心）<br>③ <span class="case-name">最判平6.11.22／最判昭48.4.5</span> — 一部請求でも債権全体を審理（外側説・信義則論の前提）</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">数字暗記</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 既判力の客観的範囲 — 114条1項<br>· 信義則 — 2条<br>· 処分権主義 — 246条<br>· 重複起訴の禁止 — 142条<br>· 総額600万／請求400万／認容300万／棄却100万／残部（介護費用）200万</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">キーフレーズ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>· 「一部であることを明示する限り訴訟物は明示された一部に限定」<br>· 「主文に包含するもの」＝訴訟物の存否判断<br>· 「特段の事情がない限り信義則に反して許されない」<br>· 「審理の範囲が必ずしも債権全部に及ばなかった」<br>· 「却下（信義則）／棄却（既判力）」の書き分け</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 9 — 関連論点ネットワーク
+           ===================================================== -->
+      <div class="mm-branch mm-c9">
+        <div class="mm-trunk-node">
+          <span class="mm-num">9</span>
+          <span class="mm-name">関連論点<span class="mm-name-en">Related</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 既判力の客観的範囲と例外（114条2項）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>既判力は原則として主文の判断（訴訟物の存否）に生じ、理由中の判断には及ばない。例外が<strong>相殺の抗弁</strong>（114条2項）＝相殺をもって対抗した額の判断に既判力が生じる。既判力の客観的範囲の数少ない例外として本論点と併せて押さえる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 外側説（相殺・過失相殺と一部請求）</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一部請求の当否判断には<strong>債権全体を審理</strong>し現存額を確定、控除後の残存額が請求額以上なら全部認容（<strong>外側説</strong>・<span class="case-name">最判平6.11.22</span>／過失相殺につき<span class="case-name">最判昭48.4.5</span>）。「審理は債権全体に及ぶ」という理解が、平10判例の信義則論・特段の事情判断の前提をなす。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 全部勝訴後の残部請求との対比</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一部請求で<strong>全部勝訴</strong>した後の残部請求には「残部が存在しない」との判断が含まれないから、原則として許される（蒸し返しとはいえない）。平10判例が信義則で封じるのは<strong>敗訴</strong>（全部又は一部棄却）の場合に限る点を混同しない。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 重複起訴の禁止（142条）との区別</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>前訴<strong>係属中</strong>に残部を別訴提起すれば<strong>重複起訴</strong>（142条）の問題となりうる。本問は前訴<strong>確定後</strong>の残部請求だから、重複起訴ではなく<strong>既判力・信義則</strong>の問題となる。訴訟のどの段階かで適用条文が変わる点を整理する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">→ 訴訟上の信義則の諸類型</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>訴訟上の信義則（2条）の典型は、① <strong>訴訟上の権能の濫用の禁止</strong> ② 訴訟上の禁反言 ③ 訴訟状態の不当形成の排除 ④ 訴訟上の権能の失効。本問の残部請求制限は<strong>①（紛争の蒸し返しの防止）</strong>に近い類型として位置づけられる。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 10 — 失点パターン
+           ===================================================== -->
+      <div class="mm-branch mm-c10">
+        <div class="mm-trunk-node">
+          <span class="mm-num">10</span>
+          <span class="mm-name">失点パターン<span class="mm-name-en">Pitfalls</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">① 既判力で切れるからと信義則を落とす</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「明示説で訴訟物が切れる→既判力は及ばない→だから残部請求OK」で<strong>答案を終える</strong>のが最大の失点（−15〜20点）。本問の配点の重心は<strong>平10判例の信義則論</strong>。既判力の後に必ず信義則を重ねて検討する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">② 明示説の規範・理由を書かずに当てはめ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>明示説の規範を立てずにいきなり「訴訟物は400万円」と当てはめるミス。<strong>なぜ明示を要求するのか（被告の防御上の不利益の防止）</strong>という理由まで書いて初めて規範が立つ。処分権主義との関係も一言添える。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">③ 信義則の原則の理由の骨格を省く</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「特段の事情なき限り信義則違反」という<strong>規範の結論だけ</strong>書いて、理由の骨格（債権全部の審理→残部不存在の判断→蒸し返し・被告の合理的期待・二重応訴）を落とすミス。理由まで書けるかで差がつく（−8〜12点）。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">④ 「特段の事情」の枠組みを示さず当てはめ</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>定義（＝審理の範囲が必ずしも債権全部に及ばなかったような事情）を立てずに、いきなり「介護費用は未主張だから特段の事情あり」とするミス。まず<strong>枠組みを定義</strong>してから本問の事実をあてはめる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">⑤ 効果を却下でなく棄却と誤る</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>信義則違反の残部請求は<strong>訴訟要件を欠く不適法な訴え＝却下</strong>。既判力に抵触する場合の<strong>棄却</strong>（本案判決）と混同するミス。また平10判例が「全部棄却」限定で一部棄却に及ばないと即断するのも誤り（判例は「全部又は一部棄却」を射程に含む）。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 11 — フェーズ別活用
+           ===================================================== -->
+      <div class="mm-branch mm-c11">
+        <div class="mm-trunk-node">
+          <span class="mm-num">11</span>
+          <span class="mm-name">フェーズ別<span class="mm-name-en">Phase Guide</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 1 · 俯瞰</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 1・3・4・5 の見出しのみ通読。リーフは閉じたまま。<strong>訴訟物→既判力→信義則→特段の事情</strong>の二段フィルターの流れを掴む。<em>約 5 分</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 2 · 核心吸収</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 3（処理手順 §）のリーフを全展開、Branch 13 の LV 1（4 問）を全問正答するまで反復。<em>約 20 分／回</em>。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 3 · 応用展開</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 4・5 のサブ論点を開き、LV 2（3 問）を解く。<strong>明示の柔軟認定</strong>と<strong>却下／棄却の区別</strong>を意識する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 4 · 緻密構成</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 6（論証文言）・Branch 7（事実）・LV 4（2 問）で答案骨格を仕上げる。特段の事情の<strong>他費目との対比</strong>（審理済みか否か）を訓練する。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 5 · 初見対応</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>Branch 9（関連論点）・LV 3（3 問）で規範の口頭再生を完成。明示説・信義則の原則規範・特段の事情の枠組みを声に出す。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">Phase 6 · 焼き付け</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>Branch 8（直前期コア §）と LV 5（3 問）のみを開く</strong>。それ以外は閉じる。3 判例・条文番号・金額を高速回転。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 12 — 参照判例・条文・学説
+           ===================================================== -->
+      <div class="mm-branch mm-c12">
+        <div class="mm-trunk-node">
+          <span class="mm-num">12</span>
+          <span class="mm-name">参照判例<span class="mm-name-en">Cases</span></span>
+        </div>
+        <div class="mm-twigs">
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成10年6月12日</span><span class="mm-leaf-sub"><em>Residual Suit After Partial Loss · Good Faith</em> · 百選80</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>本問の中心判例</strong>（民集52巻4号1147頁）。「数量的一部請求を全部又は一部棄却する旨の判決は、残部として請求し得る部分が存在しないとの判断を示すものにほかならない……敗訴した原告が残部請求の訴えを提起することは、特段の事情がない限り、信義則に反して許されない」。<em>射程</em> — 既判力（明示説で残部に及ばない）とは別個に、蒸し返し・被告の合理的期待・二重応訴の防止を信義則で図った。本問は一部敗訴ゆえ原則の射程内。効果は却下。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和37年8月10日</span><span class="mm-leaf-sub"><em>Explicit Partial Claim · Thing-in-Suit</em> · 明示説の確立</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>明示説の確立判例</strong>（民集16巻8号1720頁）。「一個の債権の数量的な一部についてのみ判決を求める旨を明示して訴えが提起された場合は、訴訟物となるのはその一部の存否のみ……確定判決の既判力は残部の請求に及ばない」。<em>射程</em> — 「明示」がある場合に限定。明示がなければ訴訟物は債権全体に及び既判力は残部にも及ぶ。本問は介護費用を除外した明示ありで射程が及ぶ。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成6年11月22日</span><span class="mm-leaf-sub"><em>Set-off &amp; Partial Claim · Outer Theory</em> · 外側説</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>外側説</strong>（民集48巻7号1355頁）。一部請求訴訟で相殺の抗弁が出た場合、まず債権総額を確定し、そこから自働債権額を控除した残存額が請求額を超えないときは残存額を、超えるときは請求全部を認容すべき。<em>射程</em> — 「一部請求でも審理は債権全体に及ぶ」という理解を定着させ、平10判例の信義則論・特段の事情判断の前提概念となる。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判昭和48年4月5日</span><span class="mm-leaf-sub"><em>Comparative Negligence &amp; Partial Claim</em> · 外側説の先駆</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>過失相殺と外側説</strong>（民集27巻3号419頁）。不法行為の一部請求で過失相殺する場合、損害全額から過失割合による減額をした残額が請求額を超えないときはその残額を、超えるときは請求全額を認容すべき。<em>射程</em> — 外側説を最高裁レベルで示した先駆的判例。平6.11.22（相殺）と併せ「審理は債権全体に及ぶ」の根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">最判平成20年7月10日</span><span class="mm-leaf-sub"><em>Flexible Finding of "Explicit"</em> · 費目限定型</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>「明示」の柔軟な認定</strong>（判時2020号71頁）。一部請求の「明示」は厳格な定型文言を要せず、債権の一部を請求する趣旨が明らかであれば足りる。損害費目を限定した請求も明示的一部請求に当たる（最判昭43.6.27・昭45.6.19と同系列）。<em>射程</em> — 本問の「介護費用を除外した400万円」という費目限定型につき「明示あり」と認定する根拠。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民訴法114条1項</span><span class="mm-leaf-sub"><em>Code of Civ. Pro., art. 114(1) · Res Judicata Scope</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「確定判決は、<strong>主文に包含するもの</strong>に限り、既判力を有する」。既判力は訴訟物たる権利関係の存否判断にのみ生じ、その範囲は訴訟物の範囲と一致する。<em>射程</em> — 訴訟物が400万円部分に限定される本問では、訴訟物外の介護費用200万円に既判力は及ばず、第2の訴えは抵触しない。2項（相殺の抗弁）は例外。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民訴法2条</span><span class="mm-leaf-sub"><em>art. 2 · Good Faith in Litigation</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「当事者は、<strong>信義に従い誠実に</strong>民事訴訟を追行しなければならない」。既判力による遮断が働かない場合でも、訴訟追行が信義則に反するときは訴えが不適法として<strong>却下</strong>される。<em>射程</em> — 平10判例が一部請求敗訴後の残部請求を制限する際の条文上の根拠。既判力とは別個の訴訟上の制限原理。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民訴法246条</span><span class="mm-leaf-sub"><em>art. 246 · Principle of Disposition</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「裁判所は、当事者が申し立てていない事項について、判決をすることができない」（処分権主義）。当事者は審判の対象と範囲を自由に設定できる。<em>射程</em> — 一個の債権の一部だけを審判対象として切り出す（一部請求）ことを正当化する根拠。明示説が訴訟物の分断を認める出発点。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">民訴法142条</span><span class="mm-leaf-sub"><em>art. 142 · Prohibition of Duplicate Suits</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>「裁判所に係属する事件については、当事者は、更に訴えを提起することができない」。<em>射程</em> — 前訴<strong>係属中</strong>の残部請求は重複起訴の問題となりうるが、本問は前訴<strong>確定後</strong>なので適用場面が異なり、既判力・信義則の問題として処理する。訴訟の段階による条文の切り分けを示す対比条文。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">明示的一部請求肯定説（明示説）</span><span class="mm-leaf-sub"><em>Explicit-Partial-Claim Doctrine</em> · 兼子・新堂・伊藤・高橋</span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p>一部であることを明示して請求した場合は訴訟物が明示部分に限定され残部に既判力は及ばない（明示なければ訴訟物は債権全体）。<strong>論拠</strong>＝処分権主義（246条）で審判対象を分断でき、明示を要求して被告の防御上の不利益を防ぐ。判例・通説。対立説＝全面肯定説（明示不要）・否定説（債権全体説）。<em>本問</em> — 自説として採用。</p></div>
+          </details>
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-label"><span class="mm-leaf-name">信義則制限説／債権全体説（対比）</span><span class="mm-leaf-sub"><em>Good-Faith Limit v. Whole-Claim Theory</em></span></span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body"><p><strong>信義則制限説</strong>（判例・多数）＝既判力は明示説で残部に及ばないが、敗訴後の残部請求は蒸し返し防止のため信義則で制限（平10判例）。<strong>債権全体説（一部請求否定説）</strong>＝一部請求でも訴訟物は債権全体で残部請求は既判力で遮断・棄却。処分権主義と明示説の判例に反すると批判され、本問では採らない。<em>本問</em> — 信義則制限説＋審理範囲限定による特段の事情理解を採用。</p></div>
+          </details>
+        </div>
+      </div>
+
+      <!-- =====================================================
+           Branch 13 — Active Recall § (15 questions)
+           ===================================================== -->
+      <div class="mm-branch mm-c13">
+        <div class="mm-trunk-node is-special">
+          <span class="mm-num">13</span>
+          <span class="mm-name">アクティブリコール<span class="mm-name-en">Recall § · 15 qq.</span></span>
+        </div>
+        <div class="mm-twigs">
+
+          <!-- LV 1 -->
+          <details class="mm-leaf" open>
+            <summary><span class="mm-leaf-name">LV I — 基礎再生 (4 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv1">
+                <span class="mm-lv-roman">I</span>
+                <span class="mm-lv-name">基礎再生</span>
+                <span class="mm-lv-count">Phase 2 · 目標 7 割</span>
+              </div>
+              <div class="mm-recall-group lv1">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-1</span><span class="mm-q-text">一部請求の訴訟物を明示部分に限定する説の名称と、その根拠条文は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">明示的一部請求肯定説（明示説）</span>。根拠は<span class="kw">処分権主義（246条）</span>による審判対象の分断＋明示を要求して被告の防御上の不利益を防ぐ点。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-2</span><span class="mm-q-text">既判力の客観的範囲の条文と内容は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">114条1項</span>。既判力は「<span class="verb">主文に包含するもの</span>」＝訴訟物たる権利関係の存否判断にのみ生じ、その範囲は訴訟物の範囲と一致する。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-3</span><span class="mm-q-text">一部請求で敗訴した原告の残部請求の可否（原則）と、条文・判例は？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">特段の事情がない限り信義則（2条）に反して許されない</span>（訴え却下）。<span class="kw">最判平10.6.12</span>（百選80）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 1-4</span><span class="mm-q-text">「特段の事情」とは一般にどのような事情をいうか？</span></summary>
+                  <div class="mm-q-answer">前訴において<span class="kw">審理の範囲が必ずしも債権全部に及ばなかったような事情</span>。原則が妥当する根拠（債権全体が審理された）が当てはまらない場面を指す。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 2 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV II — 応用展開 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv2">
+                <span class="mm-lv-roman">II</span>
+                <span class="mm-lv-name">応用展開</span>
+                <span class="mm-lv-count">Phase 3-4 · 目標 6 割</span>
+              </div>
+              <div class="mm-recall-group lv2">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-1</span><span class="mm-q-text">もしXが費目を明示せず単に「400万円」とだけ請求していたら、第2の訴えはどうなるか？</span></summary>
+                  <div class="mm-q-answer">明示がないから訴訟物は<span class="kw">損害賠償債権全体</span>に及び、確定判決の既判力（114条1項）が債権全体を覆う。介護費用200万円の第2の訴えは<span class="kw">既判力に抵触して棄却</span>される（信義則を論じるまでもない）。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-2</span><span class="mm-q-text">信義則違反の残部請求の効果は却下か棄却か。既判力抵触の場合との違いは？</span></summary>
+                  <div class="mm-q-answer">信義則違反＝訴訟要件を欠く不適法な訴え＝<span class="kw">却下</span>。既判力抵触＝本案判決としての<span class="kw">棄却</span>。両者は効果が異なるので書き分ける。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 2-3</span><span class="mm-q-text">一部請求で「全部勝訴」した後の残部請求はどう扱われるか？</span></summary>
+                  <div class="mm-q-answer">全部勝訴判決には「<span class="kw">残部が存在しない</span>」との判断が含まれないから、残部請求は原則として許される。平10判例が信義則で封じるのは<span class="kw">敗訴</span>（全部又は一部棄却）の場合に限る。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 3 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV III — 規範完全再生 (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv3">
+                <span class="mm-lv-roman">III</span>
+                <span class="mm-lv-name">規範完全再生</span>
+                <span class="mm-lv-count">Phase 5-6 · 口頭再生</span>
+              </div>
+              <div class="mm-recall-group lv3">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-1</span><span class="mm-q-text">明示的一部請求の訴訟物の規範を一句一文で述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">処分権主義の下で一部請求は許されるが、被告の防御上の不利益を防ぐため明示を要し、一個の債権の数量的一部についてのみ判決を求める旨を明示して訴えが提起された場合には、訴訟物は当該明示された一部に限定される。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-2</span><span class="mm-q-text">一部請求敗訴後の残部請求と信義則の原則規範を、理由の骨格込みで述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">数量的一部請求の当否判断には債権全部の審理が必要で、一部にすら棄却部分があれば残部も不存在と判断されたに等しいから、残部請求は前訴で認められなかった請求の蒸し返しであり、被告の合理的期待に反し二重の応訴を強いる。ゆえに特段の事情がない限り信義則（2条）に反し、訴えは却下される。</span></div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 3-3</span><span class="mm-q-text">「特段の事情」の判断枠組みを述べよ。</span></summary>
+                  <div class="mm-q-answer"><span class="verb">特段の事情がない限り残部請求が許されないのは、当事者が債権全体について弁論を尽くし審理も債権全体について行われたはずだからである。そうだとすると、特段の事情の有無は、前訴において審理の範囲が必ずしも債権全部に及ばなかったような事情があるか否かという観点から判断すべきである。</span></div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 4 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV IV — 答案直結 (2 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv4">
+                <span class="mm-lv-roman">IV</span>
+                <span class="mm-lv-name">答案直結</span>
+                <span class="mm-lv-count">Phase 4 · 配点設計</span>
+              </div>
+              <div class="mm-recall-group lv4">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-1</span><span class="mm-q-text">本問を答案でどの順序・配点で構成するか？</span></summary>
+                  <div class="mm-q-answer"><span class="kw">第1 訴訟物・既判力（明示説＋114Ⅰで不抵触／500〜650字）→ 第2 信義則・特段の事情（配点の重心／700〜900字）→ 第3 結論（本案審理へ／50〜100字）</span>。既判力→信義則の<span class="kw">二段フィルター</span>を明示するのが上位答案。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 4-2</span><span class="mm-q-text">本問で特段の事情を肯定する決め手は？他費目との対比は？</span></summary>
+                  <div class="mm-q-answer">介護費用が前訴で費目として<span class="kw">主張されず審理の外</span>にあった点。入院治療費・休業損害・慰謝料は<span class="kw">審理済み</span>だから、それらの残部請求なら特段の事情なし、という<span class="kw">対比</span>を示せると上位。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+          <!-- LV 5 -->
+          <details class="mm-leaf">
+            <summary><span class="mm-leaf-name">LV V — 速記フラッシュ (3 qq.)</span><span class="mm-leaf-chev"></span></summary>
+            <div class="mm-leaf-body" style="max-width: 480px;">
+              <div class="mm-lv-header lv5">
+                <span class="mm-lv-roman">V</span>
+                <span class="mm-lv-name">速記フラッシュ</span>
+                <span class="mm-lv-count">Phase 6 · 30字以内</span>
+              </div>
+              <div class="mm-recall-group lv5">
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-1</span><span class="mm-q-text">介護費用を除外して400万円を請求 → ？</span></summary>
+                  <div class="mm-q-answer">費目限定型の明示あり・訴訟物は400万に限定。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-2</span><span class="mm-q-text">介護費用は訴訟物外 → ？</span></summary>
+                  <div class="mm-q-answer">既判力（114Ⅰ）及ばず・遮断されない。</div>
+                </details>
+                <details class="mm-q">
+                  <summary><span class="mm-q-num">Q 5-3</span><span class="mm-q-text">一部敗訴後の残部請求＋審理外の費目 → ？</span></summary>
+                  <div class="mm-q-answer">特段の事情あり・信義則違反なし・適法。</div>
+                </details>
+              </div>
+            </div>
+          </details>
+
+        </div>
+      </div>
+
+    </div><!-- /.mm-trunk -->
+
+  </div><!-- /.mindmap -->
+</div><!-- /.mm-canvas -->
+
+<!-- =========================================================
+     Footer
+     ========================================================= -->
+<footer class="foot">
+  <div class="foot-fin">— FIN —</div>
+  <div class="foot-meta">ARBOR v5.0 · Vol. VIII — 一部請求と残部請求の可否 · 13 chapters · 5 cases · 15 qq.</div>
+<p class="footer-date lexia-genmeta" data-generated="2026-10-09T10:17+09:00">Generated: 2026-10-09 10:17 / TREE ARBOR v5.0</p>
+</footer>
+
+</body>
+</html>
