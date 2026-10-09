@@ -18,8 +18,11 @@
 
 - 決定論的な抜き出しだけを行う（本文の書き換え・要約はしない）。ARIADNE が単一情報源。
 - 入れないもの：答案の書き方の一般論・論じる順番の一般論・配点や分量（「〜のコツ」等のボックス、
-  bc-wrap の作法ドリル、それを問う○×）／採点チェック／模範答案／深掘り層。ORDER ステップは
+  bc-wrap の作法ドリル、それを問う○×）／採点チェック／模範答案。ORDER ステップは
   「この問題の順番の理由」（p.do の一文）だけを組み立ての順序に使う（2026-09-19 ユーザー指示）。
+- 深掘り層は本文を入れず、**条文・判例・学説・用語カードの名前＋一行要旨だけ**を「関連・比較の材料」として
+  持たせる（2026-10-09 ユーザー指示＝関連知識・比較・横断を積極的に教えてほしい。進行役がうろ覚えの
+  条文番号・判例日付を言わないよう、正しい名前をシート側に置くのが目的）。
 
 JX の副産物（RX/TREE/ARIADNE に続く4つ目・2026-09-17 配線）。ARIADNE から決定論で作るので LLM 不要。
 jx-batch-runner（②-peripatos／②-verify）・rx-arb-backfill・rx-arb-autofill（毎スイープ同期）・jx-finalize・
@@ -36,6 +39,7 @@ jx-deploy（Drive の ux/005_PERIPATOS へ配置）・/new-jx Phase 9・/new-ari
 from __future__ import annotations
 
 import argparse
+import copy
 import re
 import sys
 from pathlib import Path
@@ -135,6 +139,17 @@ RULES: list[str] = [
     "- 各項目（第1、第2…）の終わりに、その項目の骨子を短く読み上げてから「第1を一息で言ってみて」と復唱してもらう。",
     "- 全項目が終わったら、見出しだけを順に言いながら全体を通しで口頭構成してもらい、最後に「流れのまとめ」を読んで答え合わせする。",
     "",
+    "### 関連知識・比較・横断（積極的に教える）",
+    "",
+    "- 判定のあと、関連する条文・判例・学説や、似て非なる論点との違いを**1〜2文**で足す。覚えるときに効く横断は惜しまず出す。",
+    "- ただし講義にしない。言うのは「**どこで分かれるか**」の一点に絞る（例：反抗を抑圧すれば強盗、畏怖までなら恐喝）。"
+    "足したら、すぐ次の問いへ進む（テンポが命）。",
+    "- 材料はシートの【関連・比較の材料】【まぎらわしい選択肢】【ヒント】【論点どうしの関係】から取る。"
+    "**条文番号・判例名・年月日は、シートに書かれているものだけを言う。**書かれていなければ名前は出さず中身だけ言う（うろ覚えの番号・日付を言わない）。",
+    "- それ以外の知識を足すときは「シート外の補足ですが」と前置きする。断定できないことは「説が分かれます」と言う。",
+    "- 同じ比較を毎問くり返さない。一度出した横断は「さっきの○○と同じ構図です」で済ませる。",
+    "- 私が「詳しく」と言ったら、その論点の関連材料を2〜3文に広げる。「次」と言ったらすぐ切り上げる。",
+    "",
     "### 雰囲気（楽しく、テンポよく）",
     "",
     "- クイズ番組の司会のように、明るくテンポよく楽しく進める。ただし盛り上げは一言で済ませ、すぐ次の問いへ行く（雑談で進行を止めない）。",
@@ -162,7 +177,7 @@ RULES: list[str] = [
     "- 「ヒント」＝次の段のヒント／「答え」＝答えを言う／「今どこ？」＝ここまでの骨子と次の問い",
     "- 「事実」＝事実の要点を読み直す／「問題文」＝問題文を全部読み直す／「順番」＝組み立ての順序を読み直す",
     "- 「もう一回」＝今の問いを同じ文言で読み直す／「飛ばして」＝答えを言わずに次へ",
-    "- 「ゆっくり」「速く」＝読む速さを変える／「終わり」＝その場で復習に移って締める",
+    "- 「詳しく」＝関連知識・比較をもう少し足す／「ゆっくり」「速く」＝読む速さを変える／「終わり」＝その場で復習に移って締める",
     "",
 ]
 
@@ -178,6 +193,9 @@ PROJECT_FLOW: list[str] = [
     "",
     "いずれのパートも**進行役が止まらずに進める**（合図待ちをしない）。止めるのはユーザーが「ちょっと待って」と言ったときだけで、"
     "そのあとは「進めて」と言われるまで、勉強と関係のない発話にも反応せず黙って待つ。",
+    "",
+    "判定のあとは、関連する条文・判例・学説や似た論点との違いを1〜2文で足す（横断は積極的に・ただし分かれ目を1点だけ）。"
+    "条文番号・判例名・年月日はシートに書かれたものだけを言い、それ以外は「シート外の補足ですが」と前置きする。",
 ]
 
 
@@ -462,6 +480,52 @@ def label_cards(lines: list[str], section: str, default_kind: str = "") -> list[
     return out
 
 
+DEEP_KIND = {"statute-card": "条文", "case-card": "判例", "doctrine-card": "学説", "term-card": "用語"}
+
+
+def first_sentence(t: str, limit: int = 100) -> str:
+    t = re.sub(r"\s+", " ", t).strip()
+    t = re.sub(r"^(?:内容|定義|要旨|判旨核心|判旨)[：:]?\s*", "", t)
+    m = re.match(r"[^。]{10,}?。", t)
+    out = m.group(0) if m else t
+    return out[: limit - 1] + "…" if len(out) > limit else out
+
+
+def deep_refs(soup: BeautifulSoup) -> list[str]:
+    """深掘り層のカードから、名前＋一行要旨だけを取る（横断・比較で正しい名前を言わせるための材料）。"""
+    deep = soup.select_one("#deep-dive")
+    if not deep:
+        return []
+    out = []
+    for card in deep.select(".basis-card"):
+        kinds = [DEEP_KIND[c] for c in (card.get("class") or []) if c in DEEP_KIND]
+        if not kinds:
+            continue
+        head = card.select_one(".basis-card-header, .bc-h")   # 旧世代の ARIADNE は .bc-h / .bc-b
+        if head is None:
+            continue
+        h2 = copy.copy(head)           # 頻出度チップ（★・短答・百選番号）は読み上げに不要
+        for chip in h2.select(".freq-badge"):
+            chip.decompose()
+        title = re.sub(r"[\s・]*[A-D]$", "", text(h2)).strip()   # 末尾のランク文字も落とす
+        if not title:
+            continue
+        body = ""
+        for sec in card.select(".cx-sec"):
+            lab = text(sec.select_one(".cx-lab"))
+            if any(k in lab for k in ("判旨", "規範", "射程", "内容")):
+                body = text(sec.select_one(".cx-body"))
+                break
+        if not body:
+            b = card.select_one(".basis-card-body, .bc-b")
+            body = text(b) if b else ""
+        line = f"- 【{kinds[0]}】{title}"
+        if body:
+            line += f" ― {first_sentence(body)}"
+        out.append(line)
+    return out
+
+
 def decoys(soup: BeautifulSoup) -> list[str]:
     bone = soup.select_one(".bone")
     raw = bone.get("data-kp-decoys", "") if bone else ""
@@ -596,8 +660,13 @@ def build(path: Path) -> tuple[str, str]:
     if n_ox:
         md += [f"## 4. ○×クイズ（全{n_ox}問・1問目から最後まで全部出す）", "", *label_cards(ox, "○×クイズ", "○×"), "",
                f"（○×クイズはここまで＝全{n_ox}問。最後の{n_ox}問目まで出したら「○×クイズ、全{n_ox}問クリア！」と言って復習へ）", ""]
+    refs_md = deep_refs(soup)
+    if refs_md:
+        md += ["## 5. 関連・比較の材料（読み上げない。横断を話すときの正しい名前と一行要旨）", "",
+               "条文番号・判例名・年月日は、ここに書かれているものだけを言う。ここに無い知識は「シート外の補足ですが」と前置きする。", "",
+               *refs_md, ""]
     md += [
-        "## 5. 間違えたところの復習",
+        "## 6. 間違えたところの復習",
         "",
         "ここまでで間違えた・わからなかった・ヒントで答えた問いを、進行表のとおりもう一度だけ出し、「今日の取りこぼし」を論点名で読み上げて締める。",
         "",
