@@ -28,10 +28,10 @@
 - 条文番号・判例名・年月日はシート内のものだけを進行役に言わせる（JX と同じ規律）。
 
 使い方:
-  python -X utf8 scripts/stoa-md.py --subject 刑訴 --range 1-200   # 5問セット（既定）＋1問ずつ を両方
+  python -X utf8 scripts/stoa-md.py --subject 刑訴 --range 1-200   # 2問セット（既定）＋1問ずつ を両方
   python -X utf8 scripts/stoa-md.py outputs/ux/000_TX/002_刑事訴訟法/刑訴TX142_lex.html   # 1問だけ
   python -X utf8 scripts/stoa-md.py --all --check                   # 点検（未生成・古ければ exit 1）
-  出力：outputs/ux/006_STOA/{00N_科目}/{接頭辞}TX{from}-{to}_STOA.md（5問セット）
+  出力：outputs/ux/006_STOA/{00N_科目}/{接頭辞}TX{from}-{to}_STOA.md（2問セット・2026-10-14 ユーザー指示で5→2）
         outputs/ux/006_STOA/{00N_科目}/1問/{ID}_STOA.md（1問ずつ）
         outputs/ux/006_STOA/STOA_プロジェクト指示.md（ChatGPT プロジェクト指示欄・8,000 字以内）
 """
@@ -864,7 +864,7 @@ def main() -> int:
     ap.add_argument("--subject", help="科目（刑/刑訴/民/商/民訴/行政/憲 または 00N_科目）")
     ap.add_argument("--range", help="番号の範囲（例 1-200）。--subject と併用。無ければその科目の全問")
     ap.add_argument("--all", action="store_true", help="全科目の全問")
-    ap.add_argument("--band-size", type=int, default=5, help="1枚に束ねる問題数（既定 5・0 で束ねない）")
+    ap.add_argument("--band-size", type=int, default=2, help="1枚に束ねる問題数（既定 2・0 で束ねない）")
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     ap.add_argument("--check", action="store_true", help="書き込まず、未生成・古いシートがあれば一覧を出して exit 1")
     ap.add_argument("--quiet", action="store_true")
