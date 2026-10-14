@@ -67,6 +67,7 @@ clean, law_refs = _jx.clean, _jx.law_refs
 MARKS = {"o": "○（正しい）", "x": "×（誤り）"}
 ORIG_SKIP_RE = re.compile(r"^【?(?:記述|語句群|組合せ|選択肢)】?")
 OP_RE = re.compile(r"[（(]?各記述(?:それぞれ)?の正誤（○×）を判定する。?[）)]?")
+FILL_RE = re.compile(r"語句群|（\s*）内|空欄")
 INTRO_POINTER_RE = re.compile(r"[^。]*(?:🔰|導入)[^。]*にまとめてあ[^。]*。")
 DASH_RE = re.compile(r"\s*(?:——|──|――)\s*")
 CJK_GAP_RE = re.compile(r"(?<=[^\x00-\x7F\s])[ \t]+(?=[^\x00-\x7F\s])")
@@ -148,7 +149,8 @@ RULES: list[str] = [
     "- 最初に【全体の物差し】を読む（この問題を貫く一本の考え方）。",
     "- 次に【カード】を1枚ずつ。外した記述に紐づくカードを先に、取れた記述だけのカードは後に回す（順番はあなたが決める）。",
     "- 1枚の読み方：見出し→本文の核→要件・趣旨→紐づく記述を1つずつ（外した記述は切断点＝どこで正誤が分かれたか、取れた記述は転用＝次の問題へ持ち出す一文）→横断（似て非なる論点との分かれ目）。",
-    "- カードに【差し替え】があれば、横断のあとに1問だけ聞く（「被害者を共犯者に変えたら、答えは？」のように）。答えは記号ではなく語で言わせ、判定したら次のカードへ。",
+    "- カードに【差し替え】か【比べて】があれば、横断のあとにどれか1問だけ聞く（「被害者を共犯者に変えたら、答えは？」「身体検査令状では、直接強制は？」のように）。"
+    "答えは記号ではなく語で言わせ、判定したら次のカードへ。",
     "- 学説は、シートにある範囲で1〜2文だけ触れて広げない。短答は判例・通説の結論で足りる。",
     "- 【実務と事件】はカードを読み終えたあとに1回だけ読む（記述ごとに繰り返さない）。【最新改正】があれば最後に1文。",
     "- 「詳しく」と言われたら、そのカードの要件・趣旨と横断を2〜3文に広げる。「次」と言われたらすぐ次のカードへ。「規範」と言われたら、いまの記述の規範をもう一度読む。",
@@ -211,7 +213,7 @@ PROJECT_GUIDE: list[str] = [
     "3. **○×クイズ**：記述を文のまま読んで「マルかバツか」。全記述を1問目から最後まで、「6問中2問目」と何問目かを言ってから出す。"
     "判定→一言（記憶のフック）→×なら正しい規範を1文。解説はまだしない。「ヒント」はこの問題で見る条文を1段だけ。「勘」と言われた正解は復習対象。",
     "4. **解説**：全体の物差し→条文・判例・学説のカードを1枚ずつ（外した記述のカードを先に）。見出し→本文の核→要件・趣旨→"
-    "紐づく記述（外した記述は切断点、取れた記述は転用）→横断→差し替え1問（あれば・語で答えさせる）。学説は1〜2文で広げない。"
+    "紐づく記述（外した記述は切断点、取れた記述は転用）→横断→差し替えか比べての1問（あれば・語で答えさせる）。学説は1〜2文で広げない。"
     "実務と事件は最後に1回だけ。最新改正があれば1文。",
     "5. **間違えたところの復習**：取りこぼし（間違い・わからない・ヒント・勘）の記述を論点名で呼び、「正しい規範は？」と規範を言わせる。"
     "正解数と「今日の取りこぼし」を論点名と肢キー（「刑訴TX142 記述イ」）で読み上げる。シートに次の問題があれば合図なしで続ける。",
@@ -330,6 +332,9 @@ def original_text(soup: BeautifulSoup, official: BeautifulSoup | None = None) ->
     blocks = soup.select(".tx-original-block") or (official.select(".tx-original-block") if official is not None else [])
     if lead:
         out.append(f"- 設問：{lead}")
+        if FILL_RE.search(lead):   # 穴埋め・語句群の問題は、耳では空欄も語句群も聞こえない
+            out.append("- （この問題は穴埋めを一文ずつの○×に直してある。設問を読んだら「空欄の文章は読まず、"
+                       "一文ずつの○×で確かめます」と一言添えて、事例・見解があればそれだけ読む）")
     pending = ""   # 「【事例】」だけの行は次の本文に前置する
 
     def push(tx: str) -> None:
@@ -485,8 +490,10 @@ def basis_cards(soup: BeautifulSoup, order: list[str]) -> tuple[list[dict], dict
                 junk.decompose()
             h = HEAD_ICON_RE.sub("", text(head))
             h = re.sub(r"\s*(?:──|——)\s*", "：", h)
-            # 紙面向けの編集注記（「本問の核心条文」）は落とす。「（比較）」のような種別注記は残す
-            h = re.sub(r"（\s*）", "", re.sub(r"本問の核心(?:条文)?[・、]?", "", h))
+            # 紙面向けの編集注記（「本問の核心条文」・空欄番号「⑧『義務』の対象」）は落とす。「（比較）」のような種別注記は残す
+            h = re.sub(r"本問の核心(?:条文)?[・、]?", "", h)
+            h = re.sub(r"（[^（）]*[①-⑳][^（）]*）", "", h)
+            h = re.sub(r"（\s*）", "", h)
             # 「刑訴法336条　無罪の判決」のように条文番号と題名の間を空ける（text() が全角間の空白を落とすため）。
             # 直後がひらがな（「292条の2」「1項で準用」）なら題名ではないので空けない
             h = re.sub(r"(\d+条(?:の\d+)?(?:\d+項)?(?:\d+号)?(?:本文|但書|ただし書)?)(?=[^\sぁ-ん（）／・\d項号本但条])", r"\1　", h)
@@ -520,24 +527,61 @@ def basis_cards(soup: BeautifulSoup, order: list[str]) -> tuple[list[dict], dict
     return [cards[h] for h in seq], primary
 
 
-def matrix_rows(card: Tag) -> tuple[str, list[list[str]]]:
+MARK_HEAD_RE = re.compile(r"^[○✕×✓]\s*")
+
+
+def matrix_rows(card: Tag) -> tuple[str, list[str], list[list[str]]]:
+    """§v15 📐比較表を（題・見出し行・本体行）で返す。セル先頭の ○/✕ は法的帰結の記号なので落とす（答えは語で言わせる）。"""
     m = card.select_one(".tx-dgm.is-matrix")
     if not m:
-        return "", []
+        return "", [], []
     title = text(m.select_one(".tx-dgm-title"))
     grid = m.select_one(".tx-dgm-matrix")
     if not grid:
-        return title, []
-    cells = [text(c) for c in grid.find_all(recursive=False)]
+        return title, [], []
+    cells = [MARK_HEAD_RE.sub("", text(c)) for c in grid.find_all(recursive=False)]
     cols = 0
     for c in grid.get("class") or []:
         mm = re.match(r"is-c(\d)", c)
         if mm:
             cols = int(mm.group(1))
     if not cols or len(cells) < cols * 2:
-        return title, []
+        return title, [], []
     rows = [cells[i:i + cols] for i in range(0, len(cells) - len(cells) % cols, cols)]
-    return title, rows[1:]
+    return title, rows[0], rows[1:]
+
+
+def matrix_questions(card: Tag, limit: int = 4) -> list[str]:
+    """比較表を口頭の1問に直す。2型ある（§v15）：
+    差し替え型（見出し「こう変えると／答え／根拠」・1列目に「→」）→「『A→B』と変えたら、答えは？」
+    格子型（「主体×措置」など）→ 決め手の列を聞く「『身体検査令状』では、直接強制は？」（決め手＝最終列、最終列が根拠なら2列目）"""
+    title, hdr, rows = matrix_rows(card)
+    if not rows:
+        return []
+    out: list[str] = []
+    replace = "変え" in (hdr[0] if hdr else "") or any("→" in r[0] for r in rows)
+    pre = f"{title}。" if title else ""
+    for r in rows[:limit]:
+        if not r or not r[0]:
+            continue
+        if replace:
+            ans = r[1] if len(r) > 1 else ""
+            if not ans:
+                continue
+            out.append(f"- **［差し替え］** {pre}「{r[0]}」と変えたら、答えは？")
+            out.append(f"  - 答え：{ans}" + (f"（根拠：{law_refs(r[2])}）" if len(r) > 2 and r[2] else ""))
+            continue
+        if len(r) < 2 or len(hdr) < 2:
+            continue
+        q = len(hdr) - 1 if hdr[-1] != "根拠" else 1
+        h, ans = hdr[q], r[q] if q < len(r) else ""
+        if not h or not ans:
+            continue
+        ask = f"「{r[0]}」は、{h}？" if h.endswith("か") else f"「{r[0]}」では、{h}は？"
+        rest = [f"{hdr[j]}：{law_refs(r[j])}" for j in range(1, min(len(hdr), len(r))) if j != q and hdr[j] and r[j]]
+        out.append(f"- **［比べて］** {pre}{ask}")
+        out.append(f"  - 答え：{law_refs(ans)}" + (f"（{'／'.join(rest)}）" if rest else ""))
+    return out
 
 
 def trap_text(card: Tag) -> str:
@@ -675,11 +719,18 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
 
     story = narrative(soup)
     exp_md: list[str] = ["#### 全体の物差し（解説の最初に読む）", "", story, ""] if story else []
+    seen_paras: dict[tuple[str, ...], int] = {}
     for k, bc in enumerate(bcards, 1):
         linked = "・".join(f"記述{s}" for s in bc["stmts"])
         exp_md += [f"#### カード{k}［{bc['kind']}］{law_refs(bc['head'], header=True)}（{linked}）", ""]
         lab = KIND_LABEL[bc["kind"]]
-        exp_md += [f"- {lab}：{law_refs(p)}" for p in bc["paras"][:4]]
+        key = tuple(bc["paras"][:4])
+        if key and key in seen_paras:   # 同じ条文が見出し違いで2枚あるときは本文を読み直さない
+            exp_md.append(f"- {lab}：カード{seen_paras[key]}と同じ（読み直さない）")
+        else:
+            exp_md += [f"- {lab}：{law_refs(p)}" for p in bc["paras"][:4]]
+            if key:
+                seen_paras[key] = k
         exp_md += [f"- 要件・趣旨：{law_refs(spoken(sentences(nt, 3)))}" for nt in bc["notes"][:3]]
         mine = [s for s in bc["stmts"] if primary.get(s) == bc["head"]]
         for st in mine:
@@ -698,12 +749,7 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
             tp = trap_text(c)
             if tp:
                 exp_md.append(f"- 横断（記述{st}）：{sentences(tp, 3)}")
-            title_m, rws = matrix_rows(c)
-            for r in rws[:4]:
-                ans = re.sub(r"^[○✕×✓]\s*", "", r[1]) if len(r) >= 2 else ""   # 答えは記号でなく語で（○/✕は法的帰結の層）
-                if r and r[0] and ans:
-                    exp_md.append(f"- **［差し替え］** {title_m + '。' if title_m else ''}「{r[0]}」と変えたら、答えは？")
-                    exp_md.append(f"  - 答え：{ans}" + (f"（根拠：{law_refs(r[2])}）" if len(r) > 2 and r[2] else ""))
+            exp_md += matrix_questions(c)
         exp_md.append("")
     pracs: list[str] = []
     exs: list[str] = []
