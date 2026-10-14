@@ -1126,7 +1126,8 @@ CSS＝`GENESIS-CARD.html` TX-DGM 区画末尾の `TX-DGM-MATRIX`。
 ### 3. 作り方＝決定論の土台＋JSON 仕様（HTML は手で書かない）
 
 ```
-python -X utf8 scripts/tx-v15-dedup.py base     <_lex>... [--check]   # 土台：POINT／イメージ面／BASIS帰結／結論文の削除・CSS 同期（冪等）
+python -X utf8 scripts/tx-lex-verdict-redesign.py <_lex>...            # 土台①：§v13x 図解帯の CSS（TX-VERDICT-DGM）＋エンジン appendDiagramBand（冪等）
+python -X utf8 scripts/tx-v15-dedup.py base     <_lex>... [--check]   # 土台②：POINT／イメージ面／BASIS帰結／結論文の削除・CSS 同期（冪等）
 python -X utf8 scripts/tx-v15-dedup.py materials <_lex>               # headless 用の素材
 python -X utf8 scripts/tx-v15-dedup.py apply    <_lex> --spec <json>  # 罠・比較表・フック・判定・転用＋正誤表への複製
 python -X utf8 scripts/tx-v15-dedup.py check    <_lex>...             # 構造検査（G82 と同じ式）
