@@ -1,32 +1,39 @@
 #!/usr/bin/env python3
-"""PERIPATOS-TX ― 短答 `_lex`（TX v13 一問一答カード）から、移動中・ながら作業中に音声（ChatGPT 音声モード等）で
+"""STOA（ストア）― 短答 `_lex`（TX v13 一問一答カード）から、移動中・ながら作業中に音声（ChatGPT 音声モード等）で
 短答過去問を回す台本 MD を書き出す。JX の PERIPATOS（scripts/peripatos-md.py）の短答版。
 
+名前は、アリストテレスの逍遥学派（ペリパトス）と並ぶ学派、ゼノンのストア派が講義した柱廊（ストア・ポイキレ）から。
+ストア派は「命題（アクシオーマ）は真か偽か」を扱う命題論理を最初に体系化した学派で、短答の ○×（＝提示文の真偽）に重なる。
+柱が一本ずつ並ぶ柱廊は、記述が一本ずつ並ぶ短答の問題そのもの。PERIPATOS（論文）と兄弟の名前にしてある。
+
 構成（2026-10-14 ユーザーの理想案＋推奨で確定）：
-  1. 現在地と問題文 … 科目・出典・正答率から難易度を一言、体系の段階、見る条文 → 設問リードの原文と事例を読み上げる
+  1. 現在地と問題文 … 科目・出典・正答率から難易度を一言、体系の段階、見る条文 → 設問と事例・見解を読み上げる
                        （記述の原文・選択肢の組合せ一覧は読まない。記述は ○× で1つずつ自己完結の命題として読む）
-  2. 導入講義の確認 … 「導入講義、聞きますか？」と一度だけ聞く。黙っていれば飛ばす。中身は 🔰導入（何の話／使う道具／
-                       読む順番）。🔰導入が無いファイルでは、現在地・見る条文・カード見出しだけで30秒
-  3. ○×クイズ     … `.ox-stmt` を読み上げてマルかバツか。判定→一言（記憶のフック）→×なら正しい規範（✍答案圧縮）を1文。
-                       ヒントは1段だけ（解法ナビの「見る条文」＝問題単位・正解に触れない）。「勘」と言えば正解でも復習対象
-  4. 解説           … 条文・判例・学説のカード（📚BASIS）を軸に（記述順ではない）。全体の物差し（物語解説）→カードごとに
-                       本文の核→要件・趣旨→紐づく記述の切断点／転用（各記述は主カード1枚だけに置く）→横断→差し替え1問。
-                       外した記述のカードを先に（順番は進行役が決める）
-  5. 間違えたところの復習 … 取りこぼし＋勘＋ヒント＋導入つき正解を区別して、論点名（GIST「この記述の問い」）から規範の完全文を
-                       言わせる。締めは論点名と肢キー（Lexia への手動反映用）。シートに次の問題があれば合図なしで続ける
+  2. 導入講義の確認 … 「導入講義、聞きますか？」と一度だけ聞く。黙っていれば飛ばす。中身は 🔰導入（details.tx-intro）。
+                       🔰導入が無い問題は、体系マップの見出しと条文／判例カードの見出し（最大6）で1分の導入にする
+  3. ○×クイズ     … `.ox-stmt` を読み上げてマルかバツか。判定→一言（🗝記憶のフック）→×なら正しい規範（✍答案圧縮）を1文。
+                       ヒントは問題単位で1段だけ（見る条文）。「勘」と言えば正解でも復習対象
+  4. 解説           … 📚BASIS の条文・判例・学説カードを軸に（記述順ではない）。全体の物差し（物語解説）→カードごとに
+                       本文の核→要件・趣旨→紐づく記述の切断点／転用（各記述は主カード1枚だけに置く）→横断→差し替え1問
+  5. 間違えたところの復習 … 論点名（GIST「この記述の問い」）から規範の完全文を言わせる。締めは論点名と肢キー。
+                       シートに次の問題があれば合図なしで続ける
 
 - 決定論的な抜き出しだけを行う（本文の書き換え・要約はしない）。`_lex` が単一情報源。
+- 欠けている面の代わり（どれも答えを先に言わない面だけを使う）：
+  設問の原文層（.tx-original-lead／.tx-original-block）が無い → 公式 000_TX の原文層 → #part-a 直下の設問段落
+  ✍答案圧縮が無い → ×は最小訂正（.tx-stmt-fix）、○は記述そのもの
+  GIST「この記述の問い」が無い → その記述の主カードの見出し（条文名・判例名＝論点の名前）
 - 読み上げない面：過去問原文の記述（ア〜オ・下線部①・人物記号 X/Y）、選択肢の組合せ一覧、語句群、体系マップ SVG、
   🔰導入の評価注記（紙面専用）、物語解説の「🔰導入にまとめてあります」ポインタ文。
 - 条文番号・判例名・年月日はシート内のものだけを進行役に言わせる（JX と同じ規律）。
 
 使い方:
-  python -X utf8 scripts/peripatos-tx-md.py outputs/ux/000_TX/002_刑事訴訟法/刑訴TX142_lex.html   # 1問
-  python -X utf8 scripts/peripatos-tx-md.py --subject 刑訴 --band 141-145                        # 5問帯を1枚に束ねる
-  python -X utf8 scripts/peripatos-tx-md.py --subject 刑訴                                        # 科目の全問（1問1枚）
-  python -X utf8 scripts/peripatos-tx-md.py --all --check                                         # 点検（未生成・古ければ exit 1）
-  出力先の既定は outputs/ux/005_PERIPATOS/{00N_科目}/{ID}_PERIPATOS.md（帯は {接頭辞}TX{from}-{to}_PERIPATOS.md）
-  ＋ outputs/ux/005_PERIPATOS/PERIPATOS-TX_プロジェクト指示.md（ChatGPT プロジェクト指示欄・8,000 字以内）
+  python -X utf8 scripts/stoa-md.py --subject 刑訴 --range 1-200   # 5問セット（既定）＋1問ずつ を両方
+  python -X utf8 scripts/stoa-md.py outputs/ux/000_TX/002_刑事訴訟法/刑訴TX142_lex.html   # 1問だけ
+  python -X utf8 scripts/stoa-md.py --all --check                   # 点検（未生成・古ければ exit 1）
+  出力：outputs/ux/006_STOA/{00N_科目}/{接頭辞}TX{from}-{to}_STOA.md（5問セット）
+        outputs/ux/006_STOA/{00N_科目}/1問/{ID}_STOA.md（1問ずつ）
+        outputs/ux/006_STOA/STOA_プロジェクト指示.md（ChatGPT プロジェクト指示欄・8,000 字以内）
 """
 from __future__ import annotations
 
@@ -40,27 +47,32 @@ from bs4 import BeautifulSoup, Tag
 
 ROOT = Path(__file__).resolve().parent.parent
 LEX_DIR = ROOT / "outputs" / "ux" / "000_TX"
-DEFAULT_OUT = ROOT / "outputs" / "ux" / "005_PERIPATOS"
+DEFAULT_OUT = ROOT / "outputs" / "ux" / "006_STOA"
+SERIES = "STOA"
+SUFFIX = f"_{SERIES}.md"
+SINGLE_DIR = "1問"
+PROJECT_FILE = f"{SERIES}_プロジェクト指示.md"
 SUBJECT_DIRS = {"刑": "001_刑法", "刑訴": "002_刑事訴訟法", "民": "003_民法", "商": "004_商法",
                 "民訴": "005_民事訴訟法", "行政": "006_行政法", "憲": "007_憲法"}
 SUBJECT_NAMES = {"001_刑法": "刑法", "002_刑事訴訟法": "刑事訴訟法", "003_民法": "民法", "004_商法": "商法",
                  "005_民事訴訟法": "民事訴訟法", "006_行政法": "行政法", "007_憲法": "憲法"}
-PROJECT_FILE = "PERIPATOS-TX_プロジェクト指示.md"
 
-# JX 版と共有する部品（絵文字除去・条文略記の読み開き・中断と再開／雰囲気の規則）＝単一情報源
+# JX 版と共有する部品（絵文字除去・条文略記の読み開き・「中断と再開」の規則）＝単一情報源
 _spec = importlib.util.spec_from_file_location("peripatos_md", ROOT / "scripts" / "peripatos-md.py")
 _jx = importlib.util.module_from_spec(_spec)
 assert _spec.loader is not None
 _spec.loader.exec_module(_jx)
-clean, law_refs, EMOJI_RE = _jx.clean, _jx.law_refs, _jx.EMOJI_RE
+clean, law_refs = _jx.clean, _jx.law_refs
 
 MARKS = {"o": "○（正しい）", "x": "×（誤り）"}
 ORIG_SKIP_RE = re.compile(r"^【?(?:記述|語句群|組合せ|選択肢)】?")
+OP_RE = re.compile(r"[（(]?各記述(?:それぞれ)?の正誤（○×）を判定する。?[）)]?")
 INTRO_POINTER_RE = re.compile(r"[^。]*(?:🔰|導入)[^。]*にまとめてあ[^。]*。")
 DASH_RE = re.compile(r"\s*(?:——|──|――)\s*")
 CJK_GAP_RE = re.compile(r"(?<=[^\x00-\x7F\s])[ \t]+(?=[^\x00-\x7F\s])")
 HEAD_ICON_RE = re.compile(r"^[📜⚖🎓]\s*")
 EXAM_CODE_RE = re.compile(r"\s*[・、]?\s*[HRS]\d+[-−‐]\s*\d+")
+ARTICLE_RE = re.compile(r"([^\d／・\s　（）]*?)(\d+条(?:の\d+)?(?:\d+項)?(?:\d+号)?(?:本文|但書|ただし書)?)")
 LAW_NOTE_KEEP = ("現在処理", "試験対策上の扱い")
 KIND_LABEL = {"条文": "本文", "判例": "判旨", "学説": "学説"}
 NO_NUM = {"本文", "本条", "判旨", "判旨核心"}
@@ -77,11 +89,13 @@ def _section(rules: list[str], head: str) -> list[str]:
             on = ln.startswith(head)
         if on:
             out.append(ln)
+    if not out:
+        raise RuntimeError(f"peripatos-md.py の RULES に節「{head}」が無い")
     return out
 
 
 RULES: list[str] = [
-    "あなたは司法試験・予備試験の短答過去問を音声で回すセッション「PERIPATOS-TX」の進行役です。私は移動中・作業中で、画面も手元も見られず、メモも取れません。"
+    f"あなたは司法試験・予備試験の短答過去問を音声で回すセッション「{SERIES}（ストア）」の進行役です。私は移動中・作業中で、画面も手元も見られず、メモも取れません。"
     "セッションはすべてあなたが仕切り、私は声で答えるだけにします。正解の根拠はシートの内容だけです。",
     "",
     "### 始め方（待たずに始める）",
@@ -118,9 +132,8 @@ RULES: list[str] = [
     "### 2. 導入講義の確認（質問していいのはここだけ）",
     "",
     "- 問題文を読み終えたら「導入講義、聞きますか？」と一度だけ聞く。返事が無い・「いらない」「飛ばして」なら、何も言わずに○×へ進む。",
-    "- 「聞く」「お願い」「導入」なら【導入講義】を読む。何の話か→使う道具（条文とその一言）→読む順番、の順。各記述の正誤・結論・組合せ番号は言わない。",
+    "- 「聞く」「お願い」「導入」なら【導入講義】を読む。何の話か→論点や使う道具（条文とその一言）→読む順番、の順。各記述の正誤・結論・組合せ番号は言わない。",
     "- 読み終えたら「では○×、いきます」と言ってすぐ○×へ。導入を聞いた問題は、正解しても復習の締めで「導入つきで正解」と区別して伝える。",
-    "- シートに「このシートに導入は無い」とある問題では、現在地・見る条文・カード見出しを30秒で言うだけにする。",
     "",
     "### 3. ○×クイズ",
     "",
@@ -143,11 +156,18 @@ RULES: list[str] = [
     "",
     "### 5. 間違えたところの復習",
     "",
-    "- 取りこぼし（間違えた・わからなかった・ヒント・勘）の記述を、【論点名】（この記述の問い）だけ言って「この記述の正しい規範は？」と聞き、【規範】で判定する。○×を聞き直すのではなく、規範を自分の口で言わせる。",
+    "- 取りこぼし（間違えた・わからなかった・ヒント・勘）の記述を、【論点名】だけ言って「この記述の正しい規範は？」と聞き、【規範】で判定する。○×を聞き直すのではなく、規範を自分の口で言わせる。",
     "- 正解数と「今日の取りこぼし」を、論点名と肢キー（「刑訴TX142 記述イ」）の両方で読み上げる。導入を聞いた問題は「導入つき」と添える。",
     "- シートに次の問題があれば、そのまま次の問題の1へ。無ければ明るく締める。",
     "",
-    *_section(_jx.RULES, "### 雰囲気"),
+    "### 雰囲気（楽しく、テンポよく）",
+    "",
+    "- クイズ番組の司会のように、明るくテンポよく楽しく進める。ただし盛り上げは一言で済ませ、すぐ次の問いへ行く（雑談で進行を止めない）。",
+    "- 正解したら「正解！」「いいですね」「さすが」「完璧です」など、短いひとことで反応する。同じ言葉を続けて使わない。",
+    "- 連続で正解したら「3問連続！」のように数えて盛り上げる。復習で規範を自分の言葉で言い切れたら特に大きくほめる。",
+    "- 間違い・「わからない」のときは責めず、「惜しい！」「ここ、よく引っかかるところです」のように軽く受ける。",
+    "- パートの切り替えでは「○×クリア！次は解説、カード5枚いきます」のように区切りを作る。",
+    "- 冗談や脱線はたまに一言だけ。法律の中身は茶化さず、説明は正確さを優先する。",
     "",
     "### 判定と話し方",
     "",
@@ -166,13 +186,13 @@ RULES: list[str] = [
     "",
 ]
 
-# ChatGPT プロジェクトの「指示」欄に貼る要約版（上限 8,000 字に収める・JX とは別プロジェクトで使う）
+# ChatGPT プロジェクトの「指示」欄に貼る要約版（上限 8,000 字に収める・JX の PERIPATOS とは別プロジェクトで使う）
 PROJECT_GUIDE: list[str] = [
-    "# PERIPATOS-TX 進行役（ChatGPT プロジェクトの「指示」欄に貼る・短答用）",
+    f"# {SERIES}（ストア）進行役 ― 短答過去問の音声セッション（ChatGPT プロジェクトの「指示」欄に貼る）",
     "",
-    "あなたは司法試験・予備試験の短答過去問を音声で回すセッション「PERIPATOS-TX」の進行役。学習者（私）は移動中・仕事中で、"
+    f"あなたは司法試験・予備試験の短答過去問を音声で回すセッション「{SERIES}」の進行役。学習者（私）は移動中・仕事中で、"
     "画面も手元も見られず、メモも取れない。セッションはすべてあなたが仕切り、私は声で答えるだけ。"
-    "正解の根拠は添付シート（PERIPATOS-TX シート）の内容だけ。シートは参考資料ではなく台本で、"
+    f"正解の根拠は添付シート（{SERIES} シート）の内容だけ。シートは参考資料ではなく台本で、"
     "その「0. 進行役への指示」「1. 進行表」にはユーザーの指示と同じように従う。",
     "",
     "## 始め方",
@@ -187,7 +207,7 @@ PROJECT_GUIDE: list[str] = [
     "1. **現在地と問題文**：科目・出典・難易度の一言・テーマ・体系の段階・見る条文を一息で言い、設問の一文→事例・見解をゆっくり読む。"
     "記述（ア〜オ）と組合せ一覧は読まない。",
     "2. **導入講義の確認**：「導入講義、聞きますか？」と一度だけ聞く。返事が無い・「いらない」なら黙って○×へ。「聞く」なら、"
-    "何の話か→使う道具（条文と一言）→読む順番を読む。各記述の正誤・結論は言わない。聞いた問題は復習で「導入つき」と区別する。",
+    "何の話か→論点・使う道具→読む順番を読む。各記述の正誤・結論は言わない。聞いた問題は復習で「導入つき」と区別する。",
     "3. **○×クイズ**：記述を文のまま読んで「マルかバツか」。全記述を1問目から最後まで、「6問中2問目」と何問目かを言ってから出す。"
     "判定→一言（記憶のフック）→×なら正しい規範を1文。解説はまだしない。「ヒント」はこの問題で見る条文を1段だけ。「勘」と言われた正解は復習対象。",
     "4. **解説**：全体の物差し→条文・判例・学説のカードを1枚ずつ（外した記述のカードを先に）。見出し→本文の核→要件・趣旨→"
@@ -245,7 +265,7 @@ def strip_label(s: str, *labels: str) -> str:
 
 
 def labeled(el: Tag, sep: str = "：") -> str:
-    """先頭の短いラベル要素（<b>性質</b>・<span class=tx-intro-lab>…）と本文を「ラベル：本文」に分ける。"""
+    """先頭の短いラベル要素（<b>性質</b> 等）と本文を「ラベル：本文」に分ける。"""
     body = text(el)
     first = next((c for c in el.children if isinstance(c, Tag)), None)
     if first is not None and first.name in ("b", "strong", "span") and 0 < len(text(first)) <= 14:
@@ -279,23 +299,35 @@ def exam_source(title: str) -> str:
     if not m:
         return ""
     era = {"H": "平成", "R": "令和", "S": "昭和"}[m.group(1)]
-    kind = ""
-    if "予備" in title:
-        kind = "予備試験 "
-    elif "共通" in title:
-        kind = "司法・予備共通 "
+    kind = "予備試験 " if "予備" in title else ("司法・予備共通 " if "共通" in title else "")
     return f"{kind}{era}{m.group(2)}年 問{m.group(3)}"
 
 
 def theme(title: str) -> str:
-    t = EXAM_CODE_RE.sub("", title)
-    return re.sub(r"（\s*）", "", t).strip()
+    return re.sub(r"（\s*）", "", EXAM_CODE_RE.sub("", title)).strip()
 
 
-def original_text(soup: BeautifulSoup) -> list[str]:
-    """過去問原文のうち読み上げる部分＝設問リードと事例・見解・会話。記述・語句群・組合せは読まない。"""
+def plain_lead(soup: BeautifulSoup | None) -> str:
+    """#part-a 直下の設問段落（class なしの <p>）。○×の操作指示は落とす。"""
+    pa = soup.select_one("#part-a") if soup is not None else None
+    for p in (pa.find_all("p", recursive=False) if pa else []):
+        if p.get("class"):
+            continue
+        cand = OP_RE.sub("", text(p)).strip()
+        if cand:
+            return cand
+    return ""
+
+
+def original_text(soup: BeautifulSoup, official: BeautifulSoup | None = None) -> list[str]:
+    """読み上げる問題文＝設問と事例・見解・会話。記述・語句群・組合せは読まない。
+    _lex に原文層（.tx-original-lead／.tx-original-block）が無ければ公式 000_TX の原文層を使い（§v13s で同じ原文を持つ）、
+    それも無ければ #part-a 直下の設問段落を使う（G19 で答えの先出しが無いことを保証済み）。"""
     out: list[str] = []
-    lead = text(soup.select_one(".tx-original-lead"))
+    lead = (text(soup.select_one(".tx-original-lead"))
+            or (text(official.select_one(".tx-original-lead")) if official is not None else "")
+            or plain_lead(soup) or plain_lead(official))
+    blocks = soup.select(".tx-original-block") or (official.select(".tx-original-block") if official is not None else [])
     if lead:
         out.append(f"- 設問：{lead}")
     pending = ""   # 「【事例】」だけの行は次の本文に前置する
@@ -310,7 +342,7 @@ def original_text(soup: BeautifulSoup) -> list[str]:
         out.append(f"- {pending}{tx}")
         pending = ""
 
-    for blk in soup.select(".tx-original-block"):
+    for blk in blocks:
         scenes = blk.select(".case-description .case-scene, .case-description > p, .tx-original-premise")
         if scenes:
             for scene in scenes:
@@ -342,6 +374,23 @@ def intro_lines(soup: BeautifulSoup) -> list[str]:
     return out
 
 
+INTRO_TOOLS_MAX = 6
+
+
+def intro_fallback(soup: BeautifulSoup, bcards: list[dict]) -> list[str]:
+    """🔰導入が無い問題の短い導入：体系マップの見出し（何の話・物差し）＋条文・判例カードの見出し（最大6）。
+    どれも記述ごとの正誤を含まない面だけ。解法ナビの「〜がコアです」は G19 が帰結の先出し疑いとして警告する面なので使わない。"""
+    out: list[str] = []
+    ttl = text(soup.select_one(".tx-sysmap-title"))
+    if ttl:
+        out.append(f"- **何の話？**：{law_refs(spoken(ttl))}")
+    tools = [bc["head"] for bc in bcards if bc["kind"] != "学説"][:INTRO_TOOLS_MAX]
+    if tools:
+        out.append("- **使う道具**")
+        out += [f"  - {law_refs(t_, header=True)}" for t_ in tools]
+    return out
+
+
 def stmt_order(soup: BeautifulSoup) -> tuple[list[str], dict[str, str]]:
     tb = soup.select_one(".statement-verdict-table")
     key = (tb.get("data-answer-key") or "") if tb else ""
@@ -350,10 +399,7 @@ def stmt_order(soup: BeautifulSoup) -> tuple[list[str], dict[str, str]]:
 
 
 def verdict_rows(soup: BeautifulSoup) -> dict[str, Tag]:
-    rows: dict[str, Tag] = {}
-    for i, tr in enumerate(soup.select(".statement-verdict-table tbody tr"), 1):
-        rows[tr.get("data-stmt") or str(i)] = tr
-    return rows
+    return {tr.get("data-stmt") or str(i): tr for i, tr in enumerate(soup.select(".statement-verdict-table tbody tr"), 1)}
 
 
 def reflex(tr: Tag, tag: str) -> str:
@@ -391,19 +437,26 @@ def hook(card: Tag | None) -> str:
     return spoken(strip_label(text(card.select_one(".syn-image")), "🗝 記憶のフック", "記憶のフック", "💭 INTUITION", "INTUITION"))
 
 
-def anscomp(card: Tag | None) -> str:
-    return text(card.select_one(".tx-anscomp-line")) if card is not None else ""
-
-
-def issue_name(card: Tag | None) -> str:
-    """復習で呼ぶ論点名＝GIST「この記述の問い」。無ければ GIST 結論行、それも無ければ記憶のフックの1文目。"""
+def norm(card: Tag | None, stmt: str, mark: str) -> str:
+    """正しい規範の完全文＝✍答案圧縮。無い記述は、×なら最小訂正、○なら記述そのもの（正しい命題）で代える。"""
     if card is None:
         return ""
-    q = text(card.select_one(".tx-gist-q .tx-gist-body"))
-    if q:
-        return q
-    h = re.sub(r"^[○×✓✗]\s*", "", text(card.select_one(".tx-gist-head")))
-    return h or sentences(hook(card), 1)
+    ac = text(card.select_one(".tx-anscomp-line"))
+    if ac:
+        return ac
+    if mark == "x":
+        fix = re.sub(r"^[→⇒]\s*", "", text(card.select_one(".tx-stmt-fix")))
+        return f"正しくは、{fix}" if fix else ""
+    return stmt if mark == "o" else ""
+
+
+def issue_name(card: Tag | None, primary_head: str) -> str:
+    """復習で呼ぶ論点名＝GIST「この記述の問い」。無ければ主カードの見出し（論点の名前・答えを含まない）。"""
+    if card is not None:
+        q = text(card.select_one(".tx-gist-q .tx-gist-body"))
+        if q:
+            return q
+    return primary_head or (re.sub(r"^[○×✓✗]\s*", "", text(card.select_one(".tx-gist-head"))) if card is not None else "")
 
 
 def para_line(p: Tag) -> str:
@@ -432,8 +485,11 @@ def basis_cards(soup: BeautifulSoup, order: list[str]) -> tuple[list[dict], dict
                 junk.decompose()
             h = HEAD_ICON_RE.sub("", text(head))
             h = re.sub(r"\s*(?:──|——)\s*", "：", h)
-            # 見出しは「刑訴法336条　無罪の判決」のように条文番号と題名の間を空ける（text() が全角間の空白を落とすため）
-            h = re.sub(r"(\d+条(?:の\d+)?(?:\d+項)?(?:\d+号)?(?:本文|但書|ただし書)?)(?=[^\s（）／・\d項号本但た条])", r"\1　", h)
+            # 紙面向けの編集注記（「本問の核心条文」）は落とす。「（比較）」のような種別注記は残す
+            h = re.sub(r"（\s*）", "", re.sub(r"本問の核心(?:条文)?[・、]?", "", h))
+            # 「刑訴法336条　無罪の判決」のように条文番号と題名の間を空ける（text() が全角間の空白を落とすため）。
+            # 直後がひらがな（「292条の2」「1項で準用」）なら題名ではないので空けない
+            h = re.sub(r"(\d+条(?:の\d+)?(?:\d+項)?(?:\d+号)?(?:本文|但書|ただし書)?)(?=[^\sぁ-ん（）／・\d項号本但条])", r"\1　", h)
             cls = it.get("class") or []
             kind = "判例" if "is-case" in cls else ("学説" if "is-theory" in cls else "条文")
             if h not in cards:
@@ -449,7 +505,8 @@ def basis_cards(soup: BeautifulSoup, order: list[str]) -> tuple[list[dict], dict
                         nt = text(more2)
                         if nt:
                             notes.append(nt)
-                cards[h] = {"head": h, "kind": kind, "paras": [p for p in paras if p], "notes": [n for n in notes if n], "stmts": []}
+                cards[h] = {"head": h, "kind": kind, "paras": [p for p in paras if p],
+                            "notes": [n for n in notes if n], "stmts": []}
                 seq.append(h)
             if st not in cards[h]["stmts"]:
                 cards[h]["stmts"].append(st)
@@ -485,9 +542,7 @@ def matrix_rows(card: Tag) -> tuple[str, list[list[str]]]:
 
 def trap_text(card: Tag) -> str:
     tr = card.select_one(".tx-v13-trap")
-    if not tr:
-        return ""
-    body = tr.select_one(".tx-v13-trap-body")
+    body = tr.select_one(".tx-v13-trap-body") if tr else None
     if body is None:
         return ""
     body = BeautifulSoup(str(body), "html.parser")
@@ -516,13 +571,8 @@ def narrative(soup: BeautifulSoup) -> str:
     fa = BeautifulSoup(str(fa), "html.parser")
     for e in fa.select(".tx-dgm, h3, h4, .fa-narrative-head, .fa-narrative-title"):
         e.decompose()
-    tx = text(fa)
-    tx = re.sub(r"^📖?\s*この問題を物語で読む\s*(?:──|―|-)?\s*", "", tx)
-    tx = INTRO_POINTER_RE.sub("", tx)
-    return spoken(tx).strip()
-
-
-ARTICLE_RE = re.compile(r"([^\d／・\s　（）]*?)(\d+条(?:の\d+)?(?:\d+項)?(?:\d+号)?(?:本文|但書|ただし書)?)")
+    tx = re.sub(r"^📖?\s*この問題を物語で読む\s*(?:──|―|-)?\s*", "", text(fa))
+    return spoken(INTRO_POINTER_RE.sub("", tx)).strip()
 
 
 def article_list(heads: list[str]) -> str:
@@ -543,16 +593,17 @@ def article_list(heads: list[str]) -> str:
     return "／".join(f"{law}{'・'.join(arts)}" for law, arts in groups)
 
 
+def official_path(lex_path: Path) -> Path:
+    return ROOT / "outputs" / "000_TX" / lex_path.parent.name / lex_path.name.replace("_lex", "")
+
+
 def official_answer(lex_path: Path) -> str:
-    """公式 000_TX の data-explanation 末尾にある「組合せ肢N」を拾う（無ければ空・任意の一言）。"""
-    off = ROOT / "outputs" / "000_TX" / lex_path.parent.name / lex_path.name.replace("_lex", "")
+    """公式 000_TX の data-explanation にある「組合せ肢N」を拾う（無ければ空・任意の一言）。"""
+    off = official_path(lex_path)
     if not off.exists():
         return ""
-    h = off.read_text(encoding="utf-8", errors="ignore")
-    m = re.search(r'data-explanation="([^"]*)"', h)
-    if not m:
-        return ""
-    mm = re.search(r"(?:組合せ|正解)[^。）]*?肢\s*(\d)", m.group(1))
+    m = re.search(r'data-explanation="([^"]*)"', off.read_text(encoding="utf-8", errors="ignore"))
+    mm = re.search(r"(?:組合せ|正解)[^。）]*?肢\s*(\d)", m.group(1)) if m else None
     return f"本試験の正解は肢{mm.group(1)}" if mm else ""
 
 
@@ -562,17 +613,15 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
     soup = BeautifulSoup(path.read_text(encoding="utf-8", errors="ignore"), "html.parser")
     for br in soup.find_all("br"):
         br.replace_with("\n")
-    for t in soup(["script", "style", "svg"]):
-        t.decompose()
+    for t_ in soup(["script", "style", "svg"]):
+        t_.decompose()
     if not soup.select_one(".tx-inline-card"):
         raise ValueError("v13 インライン周回の _lex ではない（記述カードが無い）")
 
     pid = path.stem.replace("_lex", "")
-    full_title = text(soup.title)
-    title = re.sub(rf"^{re.escape(pid)}\s*[-－―]\s*", "", full_title)
+    title = re.sub(rf"^{re.escape(pid)}\s*[-－―]\s*", "", text(soup.title))
     subject = SUBJECT_NAMES.get(path.parent.name, path.parent.name)
-    meta = text(soup.select_one(".exam-meta"))
-    rate_m = re.search(r"正答率[：:]?\s*(\d+)", meta)
+    rate_m = re.search(r"正答率[：:]?\s*(\d+)", text(soup.select_one(".exam-meta")))
     rate = rate_m.group(1) if rate_m else ""
     order, marks = stmt_order(soup)
     rows = verdict_rows(soup)
@@ -581,20 +630,26 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
     if not order:
         order = list(cards.keys())
     first = cards.get(order[0]) if order else None
-    track = [text(x) for x in first.select(".tx-gist-track .tx-gist-step")] if first else []
-    nav = text(soup.select_one(".solve-nav"))
-    nav_m = re.search(r"見る条文は\s*([^。]+)", nav)
+    track = [text(x) for x in first.select(".tx-gist-track .tx-gist-step")] if first is not None else []
+    nav_m = re.search(r"見る条文は\s*([^。]+)", text(soup.select_one(".solve-nav")))
     nav_laws = law_refs(nav_m.group(1)) if nav_m else ""
 
-    orig = original_text(soup)
-    intro = intro_lines(soup)
+    official = None
+    if not soup.select_one(".tx-original-lead") or not soup.select_one(".tx-original-block"):
+        off = official_path(path)
+        if off.exists():
+            official = BeautifulSoup(off.read_text(encoding="utf-8", errors="ignore"), "html.parser")
+            for t_ in official(["script", "style", "svg"]):
+                t_.decompose()
+    orig = original_text(soup, official)
     bcards, primary = basis_cards(soup, order)
+    intro = intro_lines(soup)
     if not nav_laws:   # 解法ナビに「見る条文は」が無い問題は、条文カードの見出しの条番号で代える（題名は付けない＝正解に触れない）
         nav_laws = article_list([bc["head"] for bc in bcards if bc["kind"] == "条文"])
 
     src = exam_source(title)
-    cur = [f"- 科目・出典：{subject}" + (f"　{src}" if src else "") + (f"　正答率 {rate}%（{difficulty(rate)}）" if rate else "")]
-    cur.append(f"- テーマ：{theme(title)}")
+    cur = [f"- 科目・出典：{subject}" + (f"　{src}" if src else "") + (f"　正答率 {rate}%（{difficulty(rate)}）" if rate else ""),
+           f"- テーマ：{theme(title)}"]
     if track:
         cur.append(f"- 体系の段階：{' → '.join(track)}")
     if nav_laws:
@@ -604,41 +659,33 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
     ox_md: list[str] = []
     for i, st in enumerate(order, 1):
         c = cards.get(st)
-        stmt = oxs.get(st) or (text(c.select_one(".tx-inline-stmt-text")) if c else "")
-        mark = MARKS.get(marks.get(st, ""), "")
-        ox_md.append(f"- **［○× {i}/{n}］** {stmt}")
-        ox_md.append(f"  - 答え：{mark}")
+        stmt = oxs.get(st) or (text(c.select_one(".tx-inline-stmt-text")) if c is not None else "")
+        mk = marks.get(st, "")
+        ox_md += [f"- **［○× {i}/{n}］** {stmt}", f"  - 答え：{MARKS.get(mk, '')}"]
         hk = hook(c)
         if hk:
             ox_md.append(f"  - 一言（判定のあとに1文）：{hk}")
-        ac = anscomp(c)
-        if ac:
-            ox_md.append(f"  - 規範（×のときは続けて1文で。復習でも使う）：{ac}")
+        nm = norm(c, stmt, mk)
+        if nm:
+            ox_md.append(f"  - 規範（×のときは続けて1文で。復習でも使う）：{nm}")
         ox_md.append("")
     if nav_laws:
         ox_md.append(f"（ヒントは全記述共通で1段だけ：「見る条文は {nav_laws}」。それ以上は出さない）")
     oa = official_answer(path)
 
     story = narrative(soup)
-    exp_md: list[str] = []
-    if story:
-        exp_md += ["#### 全体の物差し（解説の最初に読む）", "", story, ""]
-    pracs: list[str] = []
-    exs: list[str] = []
+    exp_md: list[str] = ["#### 全体の物差し（解説の最初に読む）", "", story, ""] if story else []
     for k, bc in enumerate(bcards, 1):
         linked = "・".join(f"記述{s}" for s in bc["stmts"])
         exp_md += [f"#### カード{k}［{bc['kind']}］{law_refs(bc['head'], header=True)}（{linked}）", ""]
         lab = KIND_LABEL[bc["kind"]]
-        for p in bc["paras"][:4]:
-            exp_md.append(f"- {lab}：{law_refs(p)}")
-        for nt in bc["notes"][:3]:
-            exp_md.append(f"- 要件・趣旨：{law_refs(spoken(sentences(nt, 3)))}")
+        exp_md += [f"- {lab}：{law_refs(p)}" for p in bc["paras"][:4]]
+        exp_md += [f"- 要件・趣旨：{law_refs(spoken(sentences(nt, 3)))}" for nt in bc["notes"][:3]]
         mine = [s for s in bc["stmts"] if primary.get(s) == bc["head"]]
         for st in mine:
             tr = rows.get(st)
-            mark = MARKS.get(marks.get(st, ""), "")
-            cut, use = (reflex(tr, "切断点"), reflex(tr, "転用")) if tr else ("", "")
-            line = f"- 記述{st}（{mark}）"
+            cut, use = (reflex(tr, "切断点"), reflex(tr, "転用")) if tr is not None else ("", "")
+            line = f"- 記述{st}（{MARKS.get(marks.get(st, ''), '')}）"
             if cut:
                 line += f"　切断点：{spoken(cut)}"
             if use:
@@ -653,11 +700,13 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
                 exp_md.append(f"- 横断（記述{st}）：{sentences(tp, 3)}")
             title_m, rws = matrix_rows(c)
             for r in rws[:4]:
-                ans = re.sub(r"^[○✕×✓]\s*", "", r[1]) if len(r) >= 2 else ""   # 答えは記号ではなく語で言わせる（○/✕ は法的帰結の層）
-                if len(r) >= 2 and r[0] and ans:
+                ans = re.sub(r"^[○✕×✓]\s*", "", r[1]) if len(r) >= 2 else ""   # 答えは記号でなく語で（○/✕は法的帰結の層）
+                if r and r[0] and ans:
                     exp_md.append(f"- **［差し替え］** {title_m + '。' if title_m else ''}「{r[0]}」と変えたら、答えは？")
                     exp_md.append(f"  - 答え：{ans}" + (f"（根拠：{law_refs(r[2])}）" if len(r) > 2 and r[2] else ""))
         exp_md.append("")
+    pracs: list[str] = []
+    exs: list[str] = []
     for st in order:
         tr = rows.get(st)
         if tr is None:
@@ -676,11 +725,11 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
     if ln:
         exp_md += ["#### 最新改正（最後に1文）", "", *ln, ""]
 
-    rev_md = [f"- {pid} 記述{st}（{MARKS.get(marks.get(st, ''), '')}）論点名：{issue_name(cards.get(st))}" for st in order]
+    rev_md = [f"- {pid} 記述{st}（{MARKS.get(marks.get(st, ''), '')}）論点名：{issue_name(cards.get(st), primary.get(st, ''))}"
+              for st in order]
 
-    head_label = f"{num_label} " if num_label else ""
     md: list[str] = [
-        f"## {head_label}{pid}　{theme(title)}",
+        f"## {num_label + ' ' if num_label else ''}{pid}　{theme(title)}",
         "",
         f"出典：{path.parent.name}/{path.name}（TX 一問一答カードから機械抽出・本文は無改変）",
         "",
@@ -690,7 +739,7 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
         "",
         "### 問題文（設問→事例・見解の順にゆっくり読む。記述と組合せ一覧は読まない）",
         "",
-        *(orig or ["（このシートに過去問原文の設問・事例は無い。テーマと見る条文を言って、そのまま○×へ）"]),
+        *(orig or ["（このシートに設問の原文は無い。テーマと見る条文を言って、そのまま○×へ）"]),
         "",
         "### 2. 導入講義（「導入講義、聞きますか？」と一度だけ聞く。黙っていれば飛ばす）",
         "",
@@ -698,30 +747,28 @@ def build_problem(path: Path, num_label: str = "") -> tuple[str, str, list[str],
     if intro:
         md += intro
     else:
-        md += ["（このシートに導入は無い。現在地と見る条文、下のカード見出しを30秒で言うだけにする）", ""]
-        md += [f"- カード見出し：{bc['head']}" for bc in bcards]
-    md += ["", f"### 3. ○×クイズ（全{n}問・1問目から最後まで全部出す）", "", *ox_md]
-    md.append(f"（○×はここまで＝全{n}問。最後の{n}問目まで出したら「○×、全{n}問クリア！」と言い、正解数を伝えて解説へ）")
+        md += ["（この問題には専用の導入が無い。下の三つを1分で言う。各記述の正誤には触れない）", "",
+               *intro_fallback(soup, bcards)]
+    md += ["", f"### 3. ○×クイズ（全{n}問・1問目から最後まで全部出す）", "", *ox_md,
+           f"（○×はここまで＝全{n}問。最後の{n}問目まで出したら「○×、全{n}問クリア！」と言い、正解数を伝えて解説へ）"]
     if oa:
         md.append(f"（{oa}。正解数のあとに一言だけ添える）")
-    md += ["", f"### 4. 解説（カード{len(bcards)}枚。外した記述のカードを先に）", "", *exp_md]
-    md += ["### 5. 間違えたところの復習", "",
+    md += ["", f"### 4. 解説（カード{len(bcards)}枚。外した記述のカードを先に）", "", *exp_md,
+           "### 5. 間違えたところの復習", "",
            "取りこぼし（間違えた・わからなかった・ヒント・勘）の記述を論点名で呼び、「正しい規範は？」と聞いて【規範】で判定する。"
            "締めは正解数と「今日の取りこぼし」を論点名と肢キーの両方で読み上げる（導入を聞いた問題は「導入つき」と添える）。", "",
            *rev_md, ""]
-    minutes = 4 + n + len(bcards) + (2 if intro else 0)
+    minutes = 4 + n + len(bcards) + (2 if intro else 1)
     return pid, theme(title), md, n, minutes
 
 
 def sheet(problems: list[tuple[str, str, list[str], int, int]], sheet_title: str, src_note: str) -> str:
     total_q = sum(p[3] for p in problems)
     minutes = sum(p[4] for p in problems)
-    flow = [
-        f"{i}. {pid}　{title}（記述{n}問・目安{m}分）：現在地と問題文 → 導入講義の確認 → ○× → 解説 → 復習"
-        for i, (pid, title, _, n, m) in enumerate(problems, 1)
-    ]
+    flow = [f"{i}. {pid}　{title}（記述{n}問・目安{m}分）：現在地と問題文 → 導入講義の確認 → ○× → 解説 → 復習"
+            for i, (pid, title, _, n, m) in enumerate(problems, 1)]
     md: list[str] = [
-        f"# PERIPATOS-TX　{sheet_title}",
+        f"# {SERIES}　{sheet_title}",
         "",
         src_note,
         "",
@@ -748,20 +795,30 @@ def is_current(path: Path, body: str) -> bool:
     return path.exists() and path.read_text(encoding="utf-8") == body
 
 
-def parse_band(s: str) -> tuple[int, int]:
-    m = re.match(r"^\s*(\d+)\s*[-〜～]\s*(\d+)\s*$", s)
+def parse_range(s: str) -> tuple[int, int]:
+    m = re.match(r"^\s*(\d+)\s*(?:[-〜～]|から)\s*(\d+)\s*(?:まで)?\s*$", s)
     if not m:
-        raise SystemExit(f"--band は 141-145 の形式で指定する: {s!r}")
+        raise SystemExit(f"--range は 1-200 の形式で指定する: {s!r}")
     a, b = int(m.group(1)), int(m.group(2))
     return (a, b) if a <= b else (b, a)
 
 
+def lex_files(subj_dir: str, lo: int, hi: int) -> list[tuple[int, Path]]:
+    out: list[tuple[int, Path]] = []
+    for f in sorted((LEX_DIR / subj_dir).glob("*TX*_lex.html")):
+        m = re.search(r"TX(\d+)_lex\.html$", f.name)
+        if m and lo <= int(m.group(1)) <= hi:
+            out.append((int(m.group(1)), f))
+    return out
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="TX _lex から PERIPATOS-TX（短答の音声学習台本 MD）を作る")
-    ap.add_argument("files", nargs="*", help="_lex HTML のパス")
-    ap.add_argument("--all", action="store_true", help="全 _lex を対象にする（1問1枚）")
-    ap.add_argument("--subject", help="科目を絞る（刑/刑訴/民/商/民訴/行政/憲 または 00N_科目）")
-    ap.add_argument("--band", help="番号帯を1枚に束ねる（例 141-145・--subject と併用）")
+    ap = argparse.ArgumentParser(description="TX _lex から STOA（短答の音声学習台本 MD）を作る")
+    ap.add_argument("files", nargs="*", help="_lex HTML のパス（1問ずつだけ作る）")
+    ap.add_argument("--subject", help="科目（刑/刑訴/民/商/民訴/行政/憲 または 00N_科目）")
+    ap.add_argument("--range", help="番号の範囲（例 1-200）。--subject と併用。無ければその科目の全問")
+    ap.add_argument("--all", action="store_true", help="全科目の全問")
+    ap.add_argument("--band-size", type=int, default=5, help="1枚に束ねる問題数（既定 5・0 で束ねない）")
     ap.add_argument("--out", default=str(DEFAULT_OUT))
     ap.add_argument("--check", action="store_true", help="書き込まず、未生成・古いシートがあれば一覧を出して exit 1")
     ap.add_argument("--quiet", action="store_true")
@@ -770,58 +827,65 @@ def main() -> int:
     out_root = Path(a.out)
     guide = "\n".join(PROJECT_GUIDE) + "\n"
     if len(guide) > 8000:
-        print(f"[PERIPATOS-TX][ERROR] プロジェクト指示が {len(guide):,} 字＝8,000 字を超えている", file=sys.stderr)
+        print(f"[{SERIES}][ERROR] プロジェクト指示が {len(guide):,} 字＝8,000 字を超えている", file=sys.stderr)
         return 1
     jobs: list[tuple[Path, str]] = [(out_root / PROJECT_FILE, guide)]
     failed = 0
+    built: dict[Path, tuple] = {}
 
     def build_one(f: Path, label: str = ""):
         nonlocal failed
+        if f in built and not label:
+            return built[f]
         try:
-            return build_problem(f, label)
+            r = build_problem(f, label)
         except Exception as e:  # 1問の不備で全体を止めない
             failed += 1
-            print(f"[PERIPATOS-TX][SKIP] {f.name}: {e}", file=sys.stderr)
+            print(f"[{SERIES}][SKIP] {f.name}: {e}", file=sys.stderr)
             return None
+        if not label:
+            built[f] = r
+        return r
 
-    if a.band:
-        if not a.subject:
-            ap.error("--band には --subject が要る")
-        subj = SUBJECT_DIRS.get(a.subject, a.subject)
-        lo, hi = parse_band(a.band)
-        files: list[Path] = []
-        for nnn in range(lo, hi + 1):
-            files += sorted((LEX_DIR / subj).glob(f"*TX{nnn:03d}_lex.html"))
-        if not files:
-            ap.error(f"{subj} に {lo}-{hi} の _lex が無い")
-        probs = []
-        for i, f in enumerate(files, 1):
-            r = build_one(f, f"{i}/{len(files)}")
-            if r:
-                probs.append(r)
-        if probs:
-            prefix = re.sub(r"TX\d+$", "", probs[0][0])
-            name = f"{prefix}TX{lo:03d}-{hi:03d}"
-            body = sheet(probs, f"{name}（{len(probs)}問セット）",
-                         f"出典：{subj}/{name} の `_lex`（TX 一問一答カードから機械抽出・本文は無改変）")
-            jobs.append((out_root / subj / f"{name}_PERIPATOS.md", body))
+    def single_job(f: Path) -> None:
+        r = build_one(f)
+        if r:
+            pid, title = r[0], r[1]
+            jobs.append((out_root / f.parent.name / SINGLE_DIR / f"{pid}{SUFFIX}",
+                         sheet([r], f"{pid}　{title}", f"出典：{f.parent.name}/{f.name}（TX 一問一答カードから機械抽出・本文は無改変）")))
+
+    if a.files:
+        for f in map(Path, a.files):
+            if f.exists():
+                single_job(f)
     else:
-        if a.files:
-            files = [Path(f) for f in a.files]
-        elif a.all or a.subject:
-            subj = SUBJECT_DIRS.get(a.subject or "", a.subject or "*")
-            files = sorted(LEX_DIR.glob(f"{subj}/*_lex.html"))
+        if a.all:
+            subjects = sorted({d.name for d in LEX_DIR.iterdir() if d.is_dir()})
+        elif a.subject:
+            subjects = [SUBJECT_DIRS.get(a.subject, a.subject)]
         else:
             ap.error("_lex のパスか、--subject / --all を指定してください")
-        for f in files:
-            if not f.exists():
+        for subj in subjects:
+            lo, hi = parse_range(a.range) if a.range else (1, 10 ** 6)
+            items = lex_files(subj, lo, hi)
+            if not items:
                 continue
-            r = build_one(f)
-            if not r:
-                continue
-            pid, title, _, _, _ = r
-            jobs.append((out_root / f.parent.name / f"{pid}_PERIPATOS.md",
-                         sheet([r], f"{pid}　{title}", f"出典：{f.parent.name}/{f.name}（TX 一問一答カードから機械抽出・本文は無改変）")))
+            for _, f in items:
+                single_job(f)
+            if a.band_size > 0:
+                first_no = lo if a.range else items[0][0]
+                last_no = hi if a.range else items[-1][0]
+                for start in range(first_no, last_no + 1, a.band_size):
+                    end = min(start + a.band_size - 1, last_no)
+                    band = [f for no, f in items if start <= no <= end]
+                    probs = [r for r in (build_one(f, f"{i}/{len(band)}") for i, f in enumerate(band, 1)) if r]
+                    if not probs:
+                        continue
+                    prefix = re.sub(r"TX\d+$", "", probs[0][0])
+                    name = f"{prefix}TX{start:03d}-{end:03d}"
+                    jobs.append((out_root / subj / f"{name}{SUFFIX}",
+                                 sheet(probs, f"{name}（{len(probs)}問セット）",
+                                       f"出典：{subj}/{name} の `_lex`（TX 一問一答カードから機械抽出・本文は無改変）")))
 
     stale: list[Path] = []
     written = same = 0
@@ -836,13 +900,13 @@ def main() -> int:
         dst.write_text(body, encoding="utf-8", newline="\n")
         written += 1
         if not a.quiet:
-            print(f"[PERIPATOS-TX] 更新 {dst}  {len(body):,}字")
+            print(f"[{SERIES}] 更新 {dst}  {len(body):,}字")
     if a.check:
         for x in stale:
-            print(f"[PERIPATOS-TX][要更新] {x}")
-        print(f"[PERIPATOS-TX] check: 対象 {len(jobs) - 1}枚（＋指示文） / 最新 {same} / 要更新 {len(stale)} / 生成失敗 {failed}")
+            print(f"[{SERIES}][要更新] {x}")
+        print(f"[{SERIES}] check: 対象 {len(jobs) - 1}枚（＋指示文） / 最新 {same} / 要更新 {len(stale)} / 生成失敗 {failed}")
         return 1 if (stale or failed) else 0
-    print(f"[PERIPATOS-TX] 対象 {len(jobs) - 1}枚（＋指示文） / 更新 {written} / 変更なし {same} / 生成失敗 {failed}")
+    print(f"[{SERIES}] 対象 {len(jobs) - 1}枚（＋指示文） / 更新 {written} / 変更なし {same} / 生成失敗 {failed}")
     return 1 if failed else 0
 
 

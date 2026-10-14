@@ -951,11 +951,12 @@ Drive へのバックアップ（ミラー）は引き続き任意で行って�
 > jx-finalize／jx-push.sh（stage 直前）／jx-deploy（Drive `ux\005_PERIPATOS`）／`/new-jx` Phase 9／`/new-ariadne` 5-bis。
 > Lexia は `.html` しか取り込まないので影響なし。点検＝`python -X utf8 scripts/peripatos-md.py --all --check`。
 > 詳細は `docs/rx-arb-byproducts.md` の PERIPATOS 節。
-> **【PERIPATOS-TX・2026-10-14 gold 試作】短答 `_lex` にも同型の音声台本を用意した**（`scripts/peripatos-tx-md.py`・決定論・LLM 不要・
-> 同じ `005_PERIPATOS` に `{ID}_PERIPATOS.md`／5問帯 `{接頭辞}TX{from}-{to}_PERIPATOS.md`＋別プロジェクト用 `PERIPATOS-TX_プロジェクト指示.md`）。
-> 構成＝現在地と問題文→導入講義の確認（🔰導入＝`details.tx-intro`・質問はこの一度だけ）→○×（`.ox-stmt`・判定→🗝フック→×なら✍答案圧縮）→
-> 解説（📚BASIS の条文・判例・学説カード軸・主カード1枚に切断点／転用／横断・📐比較表の差し替え1問）→復習（GIST「この記述の問い」で規範を
-> 言わせ、肢キーで締める）。進行役が合図待ちをせず全部仕切る（ながら聞き前提）。gold＝刑訴TX142／141-145。全展開と配線は gold 承認後。
+> **【STOA（ストア）・2026-10-14】短答 `_lex` にも同型の音声台本を用意した**（`scripts/stoa-md.py`・決定論・LLM 不要・
+> 出力 `outputs/ux/006_STOA/{00N_科目}/` に 5問セット `{接頭辞}TX{from}-{to}_STOA.md`＋`1問/{ID}_STOA.md`＋PERIPATOS とは別プロジェクト用
+> `STOA_プロジェクト指示.md`）。構成＝現在地と問題文→導入講義の確認（🔰導入＝`details.tx-intro`・質問はこの一度だけ）→○×（`.ox-stmt`・
+> 判定→🗝フック→×なら✍答案圧縮）→解説（📚BASIS の条文・判例・学説カード軸・主カード1枚に切断点／転用／横断・📐比較表の差し替え1問）→
+> 復習（GIST「この記述の問い」で規範を言わせ、肢キーで締める）。進行役が合図待ちをせず全部仕切る（ながら聞き前提）。生成済み＝刑訴TX001-200。
+> 詳細は `docs/rx-arb-byproducts.md` の STOA 節。
 
 > **【最上位原則・2026-06-22】JX 生成は「副産物 3 種（RX/TREE/ARIADNE）の生成まで含めて 1 セット」。**
 > どんな指示・どの経路（バッチ／`/new-jx`／対話で「JX 作って」「JX＋TTS だけ」「JX-PICK 56」等）であっても、
