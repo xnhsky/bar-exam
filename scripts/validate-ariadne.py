@@ -65,6 +65,17 @@ def main():
     else: E('A1', 'lang="ja" がない')
     if re.search(r'<title>.+?</title>', html): P('A2', 'title あり')
     else: E('A2', '<title> がない')
+    # ---- A46 title の問題 ID＝ファイル名（2026-10-15・ERROR）----
+    # 正典の <title>（刑JX001 …）を差し替え忘れた民訴JX017 が A1〜A45 を全 PASS し、
+    # corpus 横断の check-duplicates（D80/D81）でしか止まらなかった。単体の検証で止める。
+    fid = re.match(r'^(.+?JX\d+)_ARIADNE\.html$', os.path.basename(path))
+    if fid:
+        tm = re.search(r'<title>\s*(.*?)\s*</title>', html, re.S)
+        ttl = tm.group(1) if tm else ''
+        if ttl.startswith(fid.group(1)) and not ttl[len(fid.group(1)):len(fid.group(1)) + 1].isdigit():
+            P('A46', f'title の問題 ID がファイル名と一致（{fid.group(1)}）')
+        else:
+            E('A46', f'title がファイル名の問題 ID「{fid.group(1)}」で始まらない（正典 title の差し替え漏れ等）: {ttl[:60]}')
     if 'class="masthead"' in html: P('A3', 'マストヘッドあり')
     else: E('A3', 'マストヘッド(.masthead)がない')
     if 'class="foot"' in html: P('A4', 'フッターあり')

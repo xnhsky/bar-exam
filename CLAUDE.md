@@ -1124,6 +1124,11 @@ python scripts/validate-jx.py outputs/001_JX/003_民法/民JX015.html
 - 構文要素（J16〜J17）：旧第N項表記禁止／pattern 名禁止
 - 部構成（J18）：第 5 部 back-refs ≥ 3
 - 仕上げ（J19〜J20）：フッター励まし文言／スムーズスクロール JS
+- 正典本文の残存（J22・2026-10-15・ERROR）：ATHENA の可視テキストとの 20 字 n-gram 重なり 30% 以上（正常 JX は最大 13%）。
+  API 切断で途中終了した民訴JX020 が J1〜J21 を全 PASS し副産物まで進んだ実害への対策。あわせて
+  `jx-batch-runner.ps1` ①は「完了マーク無し×非0終了」の HTML を `logs/jx-incomplete/` へ退避して未生成扱いにする
+  （outputs に残すと F が検証 PASS の未コミット品として回収するため）。ARIADNE は `validate-ariadne.py` **A46**
+  （title の問題 ID＝ファイル名・正典 title の差し替え漏れ＝民訴JX017）。
 
 ### 5-4. JX 逐語↔PDF 照合補助（番号ズレ対策・新規科目の取り込み）
 

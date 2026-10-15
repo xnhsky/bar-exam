@@ -605,6 +605,19 @@ foreach ($t in $Pending) {
     $jxSentinel = Get-Sentinel -Text $jxRes.Output -ProblemId $t.ProblemId
     if (Test-Path $t.JxOutputPath) { $jxBytes = (Get-Item $t.JxOutputPath).Length }
 
+    # 生成途中の異常終了（API 切断等）＝完了マーク無し×非0終了 → HTML を退避して未生成扱いにする（2026-10-15）。
+    #   validate-jx は構造しか見ないため、後半に ATHENA 本文が残った途中品が PASS して副産物まで進んだ（民訴JX020）。
+    #   完了マーク無しでも exit 0 なら完了とみなす（民JX009/011 は echo 忘れで正常品）。
+    #   退避先は logs/（git 非管理）＝outputs に残すと F が「検証 PASS の未コミット品」として回収コミットする。
+    if ($jxBytes -gt 0 -and $jxExit -ne 0 -and $jxSentinel -notmatch '^(COMPLETED|WITH_ISSUES)') {
+        $incDir = Join-Path $LogsDir 'jx-incomplete'
+        New-Item -ItemType Directory -Force -Path $incDir | Out-Null
+        $incPath = Join-Path $incDir ("{0}.{1}.html" -f $t.ProblemId, (Get-Date -Format 'yyyyMMdd-HHmmss'))
+        Move-Item -LiteralPath $t.JxOutputPath -Destination $incPath -Force
+        Write-Host "[① INCOMPLETE] 生成が途中で終了（sentinel=$jxSentinel exit=$jxExit）→ HTML を退避: $incPath" -ForegroundColor Red
+        $jxBytes = 0
+    }
+
     # F モード：生成が空振りなら退避した旧 HTML を復元（現状維持・悪化させない）
     if ($repairBackup -and $jxBytes -eq 0) {
         try {

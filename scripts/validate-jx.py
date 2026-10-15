@@ -25,6 +25,7 @@ JX v3.2 軽量検証スクリプト
   J19  フッターに励まし文言
   J20  スムーズスクロール JS
   J21  深度フロア（bytes/h4/li/第4部見出し4-1〜4-6/重要度ランクrank-A〜D網羅）※当面WARNING
+  J22  正典 ATHENA の本文残存（20字 n-gram 重なり 30% 以上=ERROR／20% 以上=WARN・刑JX001 除外）
 
   --- v4 LOOP-FOLD 追加（<details id="deep-dive"> 検出時のみ・当面WARNING）---
   JC1  エグゼクティブサマリー(#exec-summary)の不在（答えを先出ししない）
@@ -375,6 +376,52 @@ def check_J20_smooth_scroll(script_text, style_text, results):
                         'スムーズスクロール JS/CSS が見つかりません'))
 
 
+J22_NGRAM = 20
+J22_ERROR_RATIO = 0.30   # 実測：正常 JX は最大 0.13（中央値 0.03）／途中切れ・差し替え漏れは 0.46〜0.64
+J22_WARN_RATIO = 0.20
+J22_EXEMPT = {'刑JX001'}  # ATHENA の出自（ATHENA は刑JX001 から作った正典）
+
+
+def _visible_text(html):
+    s = re.sub(r'(?is)<(script|style)\b.*?</\1>', '', html)
+    s = re.sub(r'<[^>]+>', '', s)
+    s = re.sub(r'&[a-zA-Z#0-9]+;', '', s)
+    return re.sub(r'\s+', '', s)
+
+
+def check_J22_canonical_residue(html_path, html, results):
+    """J22: 正典 ATHENA の本文が残っていないか（2026-10-15・ERROR）。
+
+    生成が API 切断で途中終了した民訴JX020 は、後半（深掘り層）に ATHENA の刑法本文
+    （不真正不作為犯・刑法38条 等）が残ったまま J1〜J21 を全 PASS し、副産物の生成まで進んだ。
+    構造検査では本文の差し替え漏れを捕まえられないため、ATHENA の可視テキストとの
+    20 文字 n-gram の重なり率で判定する。
+    """
+    stem = Path(html_path).stem
+    if stem in J22_EXEMPT:
+        return
+    athena = Path(__file__).resolve().parent.parent / 'canonical' / 'ATHENA.html'
+    if not athena.is_file():
+        results.append(('J22', 'WARN', f'正典が見つからず残存検査をスキップ: {athena}'))
+        return
+    if Path(html_path).resolve() == athena.resolve():
+        return
+    at = _visible_text(athena.read_text(encoding='utf-8', errors='ignore'))
+    n = J22_NGRAM
+    grams = {at[i:i + n] for i in range(len(at) - n + 1)}
+    if not grams:
+        return
+    t = _visible_text(html)
+    hit = {t[i:i + n] for i in range(len(t) - n + 1) if t[i:i + n] in grams}
+    ratio = len(hit) / len(grams)
+    if ratio >= J22_ERROR_RATIO:
+        results.append(('J22', 'ERROR',
+                        f'正典 ATHENA の本文が {ratio:.0%} 残存（{J22_ERROR_RATIO:.0%} 以上）＝生成の途中終了か本文の差し替え漏れ'))
+    elif ratio >= J22_WARN_RATIO:
+        results.append(('J22', 'WARN',
+                        f'正典 ATHENA の本文との重なりが {ratio:.0%}（正常は 13% 以下）＝差し替え漏れの疑い'))
+
+
 def check_J21_depth(html, soup, results):
     """深度フロア（水増し検出）。当面 WARNING（floor は未較正の仮値のため）。
     計測: bytes / <h4> / <li> / 第4部見出し 4-1〜4-6(h3) / 重要度ランク rank-A〜D 網羅。
@@ -566,6 +613,7 @@ def validate(html_path, verbose=False, mode='all'):
         check_J19_footer_encouragement(soup, results)
         check_J20_smooth_scroll(script_text, style_text, results)
         check_JSB_tag_balance(html, results)
+        check_J22_canonical_residue(html_path, html, results)
         # v4 LOOP-FOLD 追加（<details id="deep-dive"> 検出時のみ・当面 WARNING）
         if is_v4_loopfold(soup):
             check_JC1_no_exec_summary(soup, results)
