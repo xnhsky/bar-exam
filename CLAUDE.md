@@ -668,6 +668,23 @@
 > ＝DOM・エンジン不変。正典＝`GENESIS-CARD.html` の `TX-MOBILE-FIT` 区画・`docs/tx-v12.2.1-inline-lock.md` §v15-m。
 > 伝播＝`scripts/tx-lex-verdict-redesign.py`（SYNC_CSS_REGIONS）でインライン `_lex` 1,113 本へ展開済み。
 >
+> **【解く前の🔰導入・2026-10-14・§v16・ユーザー指示】初見で見当がつかないときだけ開く問題単位の案内を、
+> 原文の直下・記述カードの上に置く（`details.tx-intro`・既定で閉じる）。** 中身＝何の話？（土俵）／使う道具
+> （記述を読むための用語・制度の定義・0〜4 件）／読む順番（記述が分かれる軸と判定の手順）＋固定注記「開いた回は、
+> 全部当たっても評価は3まで」。線引き＝**記述を読めるようにする知識は書く／答えそのものになる命題（試される要件・
+> 数字・範囲・向き、答案圧縮と同じ文、解答技術）は書かない**。**物語解説には触れない**（Lexia が `.fa-narrative` を
+> 復習カードに使うため、前提段落を導入へ移すと復習カードで前提が抜ける＝gold で一度移して戻した）。HTML は手で
+> 書かない＝`scripts/tx-intro.py apply` が仕様 JSON から組む（判定式の単一情報源＝`scripts/tx_intro_rules.py`）。
+> CSS は独立 style 要素（`id="tx-intro-style"`）の `TX-INTRO` 区画（第1 style の区画と行を隣接させない＝二台運用の
+> merge 衝突回避）。ゲート三層＝①`GENESIS-CARD.placeholder.html` §v16 契約 ②`validate-tx-core.py` **G84**
+> （導入を持つファイルだけ・置き場所／open／組版／禁止語〔○×・正解・正しい・誤り・肢N・記述N・解答技術語〕／
+> CSS／解法ナビのヒントの結論＝ERROR）＋**G19** の検査範囲に採点パネルを追加（刑訴TX142「（正しいものの組合せは
+> 肢1）」が素通りしていた）と「＝」を使わない先出し（「正解は組合せ2」「正しいのはアのみ」）のパターンを追加
+> （刑訴TX154・173・180・刑TX071 の設問リード／副題から答えの語句を除去）③push 前 `check-tx-lex-engine.py`（G84 ERROR は push 停止）。gold＝**刑訴TX142_lex**
+> （推論型）／**刑訴TX143_lex**（知識型）。**刑訴TX142〜334 はセッションで適用済み、それ以外は TJR-I で付随消化**
+> （ユーザー指示 2026-10-14「刑訴LEX143から最後まで作成してマージ・他はTJR」＝`scripts/v16-intro-runner.ps1`・
+> 科目へ均等配分・10本/バッチ・新規生成の `_lex` もここで後付け）。正典＝`docs/tx-v12.2.1-inline-lock.md` §v16。
+>
 > **【解説品質レビュー・必須】** 解説は TX の命であり、機械整形・一括置換・テンプレ埋めだけで確定しない。
 > 新規生成・既存更新・伝播後は、作業時点で利用可能な最上位モデルを使い、推論/エフォート設定を最大にして
 > `ANSWER`、条文/判例ボックス、5点フロー、コツ、記憶フック、詳説、物語解説、SM2 `.ox-pool-explain` を
@@ -1179,7 +1196,7 @@ TJR の短縮キーを S のキーへ写像して接続）。新規生成（T/J/
 > **旧パターン（TX-MARCH / TX-PICK / JX）は廃止し、号令を `TJR処理` 1 本に統一した。** チャットで
 > 「**TJR処理 刑訴**」のように科目名を添えて指示する。一覧・コマンドは **`docs/run-patterns.md`** が正典。
 
-TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で束ねる（**同時起動＝1作業ツリーの git 衝突回避のため F→T→J→R→Q→S→G→D を直列自動実行**）：
+TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で束ねる（**同時起動＝1作業ツリーの git 衝突回避のため F→T→J→R→Q→S→G→D→I を直列自動実行**）：
 
 | 記号 | ストリーム | 動作 | エンジン |
 |---|---|---|---|
@@ -1189,6 +1206,7 @@ TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で�
 | **R** | さかのぼり（旧版TXLEX再生成＋欠番補完） | (a) `_lex` が旧版（v13でない）かつ**PDFが残る**番号を **PDFから最新v13で作り直す**＋(b) **公式最大番号以下の欠番**（PDFあり・公式なし）を補完生成（2026-07-18・過渡・全件最新化で消滅） | `scripts/tx-v13-runner.ps1 -Regen` |
 | **G** | §v14 THE GIST ストーリー型の付随・特別枠（2026-09-17 新設・過渡） | **旧型（1 段落）の 💡THE GIST が残る v13 `_lex`**（設置時点＝903 本）を、S と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxG`）headless（**Opus 5 固定**）が JSON 仕様を執筆→`tx-gist-story.py apply`。ランナーが check（構造・○×）＋scope（GIST 以外が不変）＋validate＋engine を決定論で判定し PASS のみ 1問ずつ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v14・プロンプト＝`prompts/v14-gist-headless.md` | `scripts/v14-gist-runner.ps1` |
 | **D** | §v15 DEDUP 付随・特別枠（2026-09-22 新設・過渡） | **§v15 未適用（罠枠に `data-v15` が無い）の v13 `_lex`**（設置時点＝1,002 本）を、G と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxD`）。ランナーが決定論の土台（`tx-v15-dedup.py base`・単独 commit）→ headless（**Opus 5 固定**）が JSON 仕様（罠＝隣接命題＋📐比較表・フック・判定・転用）を執筆→`apply`→ check＋scope＋css＋validate＋engine を決定論判定し PASS のみ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v15・プロンプト＝`prompts/v15-dedup-headless.md` | `scripts/v15-dedup-runner.ps1` |
+| **I** | §v16 解く前の🔰導入の付随・特別枠（2026-10-14 新設・過渡） | **🔰導入が未設置のインライン周回 `_lex`**（設置時点＝1,089 本・刑訴142〜334 はセッションで適用済み）を、D と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxI`）。headless（**Opus 5 固定**）が JSON 仕様（何の話／使う道具／読む順番）を執筆→`tx-intro.py apply`→ check＋scope＋css＋validate＋engine を決定論判定し PASS のみ commit/push（2回失敗で ESCALATE）。新規生成の `_lex` も未設置ならここで後付け。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v16・プロンプト＝`prompts/v16-intro-headless.md` | `scripts/v16-intro-runner.ps1` |
 | **Q** | §v13q 付随・特別枠（2026-07-28 新設・過渡） | **刑訴TX の既存 `_lex` で答案圧縮未展開の残件**（設置時点＝081-179）を若番から **10本/バッチ**（`-MaxQ`）headless（**Opus 5 固定**）で §v13q 改訂→ランナーが validate/engine を再検証し PASS のみ 1問ずつ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常（完遂で自然消滅）**。レシピ＝`docs/v13q-handover.md`・プロンプト＝`prompts/v13q-headless.md` | `scripts/v13q-runner.ps1` |
 
 - 号令：「**TJRを○バッチ処理**」＝`TJR.ps1 -Batches N`。**1バッチ＝T:12問/J:3問/R:3問/Q:10問 固定**（2026-07-18 ユーザー確定・

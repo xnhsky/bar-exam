@@ -47,6 +47,11 @@ spec: spec/tx-v11.0.0-core.md 第7項
       思い込みの罠・先入観・ひっかけの型）を置かない／正誤表の図解ソース＝カードの比較表の複製。
       §v15 適用済み（罠枠 data-v15）のファイルは ERROR、未適用は WARNING 助言。カード内の同一文の再出も WARNING。
       判定は tx_v15_rules（単一情報源＝scripts/tx-v15-dedup.py と同じ式）。
+  G84 §v16 INTRO（2026-10-14）：解く前の🔰導入（details.tx-intro・既定で閉じる）。導入を持つファイルだけを見る：
+      1 問 1 個・open 禁止・#part-a 直下で原文ブロックの直後〜記述カードの上・正典の組版（tx-intro.py apply が組む）・
+      本文に ○×記号／正解／正しい／誤り／肢N／記述N／選択肢番号／解答技術語を置かない・CSS 区画（独立 style 要素）・
+      解法ナビのヒントが結論を言わない（導入と同じく解く前に見える面）＝ERROR。本文の分量・答案圧縮と同じ文＝WARNING。
+      判定は tx_intro_rules（単一情報源＝scripts/tx-intro.py と同じ式）。
   G68 フォント変数の未定義参照（2026-07-14・LEX-388）：var(--font-*) 参照に定義が無い＝全フォントが
       ブラウザ既定へフォールバック（実害＝刑TX003 公式＋_lex：パレットを第1 :root＝フォント12変数
       ブロックへ誤上書き）。公式・_lex 両系統 ERROR。
@@ -105,6 +110,12 @@ try:
     import tx_v15_rules as _v15
 except Exception:
     _v15 = None
+
+# §v16 INTRO（G84）の判定式は tx_intro_rules（単一情報源＝scripts/tx-intro.py と同じ式）を共用。
+try:
+    import tx_intro_rules as _intro
+except Exception:
+    _intro = None
 
 # カード面の人物記号（G80）は tx_person_symbols（単一情報源＝監査ツールと同じ式）を共用。
 # 判定モジュールが無い/壊れた環境でも他ゲートを止めないよう防御的に読み込む。
@@ -247,6 +258,12 @@ ANSWER_SPOILER_STEM_PATTERNS = [
     (r"%s\s*個\s*[＝=]\s*正解" % _SP_NUM, "N個＝正解"),
     # 「（いずれも正しい＝○）」＝全記述の○×を先出し
     (r"いずれも(?:正しい|誤り)\s*[＝=]?\s*[○×]", "いずれも○×"),
+    # 「＝」を使わない書き方（2026-10-14・§v16 展開時に検出漏れが判明＝刑訴TX154/173/180・刑TX071）
+    # 「正解は組合せ2」「正解は「ウ・エ」の組合せ」
+    (r"正解[はが]\s*(?:組合せ|肢|番号)?\s*[「『]?\s*[ア-オカ-コ0-9０-９]", "正解は記号"),
+    # 「正しいのはアのみ」「正しい記述はアとエの2個」
+    (r"(?:正しい|誤って?いる)(?:の|もの|記述)[はが]\s*[ア-オカ-コ0-9０-９][・とア-オカ-コ0-9０-９]*"
+     r"(?:のみ|だけ|の\s*[0-9０-９]\s*個)", "正しいのは記号"),
 ]
 
 # G19-ter（WARNING・2026-08-04）＝設問・問題内容エリアへの編集文の混入（要約・言い換え・付け足し）。
@@ -817,6 +834,8 @@ class Validator:
           ① #part-a 直下のリード段落（素の <p>／.problem-text）
           ② 不可侵原文ブロック（.tx-original-block / .tx-original-lead）
           ③ 解法ナビ（.solve-nav ＝ v12.2.1 表示LOCK「正誤/正解番号を出さない」）
+          ④ 採点パネル（.tx-inline-reveal-panel の案内文＝ボタンの横に常時出る。2026-10-14 追加・
+             実害＝刑訴TX142「全記述を選ぶと採点できます（正しいものの組合せは肢1）」が素通りしていた）
         ①は .problem-text ではない素の <p> だと `#part-a:has(.tx-inline-card) > .problem-text`
         の display:none に当たらず、インライン周回でも先頭に出続ける（実害＝刑訴TX002）。
         """
@@ -830,6 +849,8 @@ class Validator:
         for nav in self.soup.select(".solve-nav"):
             if part_a not in nav.parents:
                 areas.append(("解法ナビ", nav))
+        for el in self.soup.select(".tx-inline-reveal-panel p"):
+            areas.append(("採点パネル", el))
         seen = set()
         for where, el in areas:
             text = el.get_text(" ", strip=True)
@@ -2914,6 +2935,20 @@ class Validator:
             self.warn("G82", "カード内の重複・分量: " + "; ".join(dedup[:5])
                              + "（1 事実 1 置き場＝§v15。同一文は GIST イメージ面・BASIS 帰結・POINT の残りが典型）。")
 
+    def g84_intro(self):
+        """G84（2026-10-14・§v16 INTRO）＝解く前の🔰導入の契約。導入を持つファイルだけを見る
+        （未設置は TJR-I が後付けするため助言も出さない）。判定式は tx_intro_rules.check_text
+        （scripts/tx-intro.py check と同一式）。ERROR は push 前ゲートで停止、WARNING は助言。"""
+        if not self.is_lex_target() or _intro is None:
+            return
+        if 'class="tx-intro"' not in self.html:
+            return
+        for r in _intro.check_text(self.html, self.html_path.name):
+            if r.startswith("ERROR "):
+                self.err("G84", r[6:] + "（python -X utf8 scripts/tx-intro.py check/apply・§v16）")
+            elif r.startswith("WARN "):
+                self.warn("G84", r[5:])
+
     # G73（2026-07-28）＝答案圧縮（TX-ANSCOMP・§v13q）の統合整合。規約＝各記述カードの
     # 記述原文（.syn-orig）末尾と正誤表 tr の data-brief-mark 末尾の 2 箇所に同一文で置く
     # （シングルソース）。既存 corpus は未展開のため「両方無し」は WARNING（TJR 付随で消化）。
@@ -3246,6 +3281,7 @@ class Validator:
         self.g80_person_symbol_self_contained()
         self.g81_gist_story()
         self.g82_v15_dedup()
+        self.g84_intro()
         self.g63_inline_pool_alignment()
         self.g64_verdict_badge_key_consistency()
         self.g65_ox_stmt_fact_completeness()
@@ -3285,7 +3321,7 @@ def main():
         print()
 
     if not v.errors:
-        print("✅ ALL (G1〜G81, G17/G18 廃止) PASS")
+        print("✅ ALL (G1〜G84, G17/G18 廃止) PASS")
         sys.exit(0)
     else:
         print("❌ FAIL — ERROR を修正してから再検証してください")
