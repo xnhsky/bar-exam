@@ -38,7 +38,7 @@ foreach ($num in $Numbers) {
         -replace '\{OUTPUT_DIR\}',       $out
     $full = $execHeader + $body
 
-    $args = @('-p','--model','claude-opus-4-8[1m]','--output-format','json',
+    $args = @('-p','--model','claude-opus-5[1m]','--output-format','json',
               '--permission-mode','acceptEdits','--allowedTools','Write,Edit,Read,Bash,Glob,Grep')
     $json = Join-Path $Logs "tts2tier-$id.json"
     try { $o = $full | & claude @args 2>&1; $code = $LASTEXITCODE } catch { $o = "$_"; $code = -1 }

@@ -262,7 +262,7 @@ sentinel を 1 つ出力して終了せよ。対象 PDF=$($target.PdfPath) / 出
     # 解決され 0秒/0byte/exit1 の即時失敗が連発した事故への対策。動作確認済みモデルに固定する。
     $claudeArgs = @(
         '-p',
-        '--model', 'claude-opus-4-8[1m]',
+        '--model', 'claude-opus-5[1m]',
         '--output-format', 'json',
         '--permission-mode', 'acceptEdits',
         '--allowedTools', 'Write,Edit,Read,Bash,Glob,Grep'

@@ -239,7 +239,7 @@ if (-not (Test-Path $CostCsv)) { "timestamp,problem_id,mode,elapsed,official_byt
 # === claude -p 起動ヘルパ（stdin パイプ・model 固定・実行指示前置）===
 function Invoke-ClaudeHeadless {
     param([string]$Prompt, [string]$JsonOutPath)
-    $claudeArgs = @('-p','--model','claude-opus-4-8[1m]','--output-format','json','--permission-mode','acceptEdits','--allowedTools','Write,Edit,Read,Bash,Glob,Grep')
+    $claudeArgs = @('-p','--model','claude-opus-5[1m]','--output-format','json','--permission-mode','acceptEdits','--allowedTools','Write,Edit,Read,Bash,Glob,Grep')
     try { $out = $Prompt | & claude @claudeArgs 2>&1; $code = $LASTEXITCODE } catch { $out = "$_"; $code = -1 }
     $out | Out-File -FilePath $JsonOutPath -Encoding utf8
     return [PSCustomObject]@{ Output = ($out -join "`n"); ExitCode = $code }

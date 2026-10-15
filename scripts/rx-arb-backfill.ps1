@@ -119,7 +119,7 @@ function Invoke-ClaudeHeadless {
     # 化けると 0秒/0byte/exit1 の即時失敗が連発する事故への対策。動作確認済みモデルに固定。
     $claudeArgs = @(
         '-p',
-        '--model', 'claude-opus-4-8[1m]',
+        '--model', 'claude-opus-5[1m]',
         '--output-format', 'json',
         '--permission-mode', 'acceptEdits',
         '--allowedTools', 'Write,Edit,Read,Bash,Glob,Grep'

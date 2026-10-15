@@ -104,7 +104,7 @@ $startedAt = Get-Date
 $startStr  = $startedAt.ToString("yyyy-MM-dd HH:mm:ss")
 
 # stdin から置換済みプロンプトを流し込み、全出力を JSON ログへ
-Get-Content $PromptOut -Raw | claude -p `
+Get-Content $PromptOut -Raw | claude -p --model 'claude-opus-5[1m]' `
     --output-format json `
     --allowedTools "Read,Write,Edit,Bash,Glob,Grep" `
     --permission-mode acceptEdits `
