@@ -53,7 +53,7 @@ def build_registry(html):
     """(id, type, [aliases]) を返す"""
     cards = []
     for m in re.finditer(
-        r'<div class="basis-card (statute|case|doctrine|term)-card" id="([^"]+)">\s*'
+        r'<div class="basis-card (statute|case|doctrine|term)-card" id="([^"]+)"[^>]*>\s*'
         r'<div class="basis-card-header">(.*?)</div>', html, re.S):
         ctype, cid, hdr = m.group(1), m.group(2), m.group(3)
         label = clean_header(hdr)
@@ -231,7 +231,7 @@ def process(html, report=False):
                 rhtml = '<div class="card-return"><a href="#sec-nav">↩ 解法ナビへ戻る</a></div>'
             return _insert_return(new, rhtml)
         region2 = re.sub(
-            r'<div class="basis-card [a-z]+-card" id="(?P<id>[^"]+)">.*?(?=\n<div class="basis-card |\n      <div class="graft-h|\Z)',
+            r'<div class="basis-card [a-z]+-card" id="(?P<id>[^"]+)"[^>]*>.*?(?=\n<div class="basis-card |\n      <div class="graft-h|\Z)',
             repl_card, region, flags=re.S)
         html = html[:b_start] + region2 + html[b_end:]
 
