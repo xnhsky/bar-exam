@@ -127,7 +127,11 @@ def anchor(s: str) -> tuple[int, str] | None:
     if not cands:
         return None
     i = min(cands)
-    return s.rfind("\n", 0, i) + 1, "before"
+    ls = s.rfind("\n", 0, i) + 1
+    # ヘッダー〜#part-a〜体系マップが改行なしの 1 物理行に詰まった旧世代（刑訴TX252）では、行頭が
+    # #part-a の外になる。そのときは要素の直前に差し込む（#part-a の中に必ず入る）。
+    pa_open = s.find(">", pa[0]) + 1
+    return (ls if ls >= pa_open else i), "before"
 
 
 def remove_intro(s: str) -> str:

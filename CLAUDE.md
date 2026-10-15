@@ -679,7 +679,8 @@
 > merge 衝突回避）。ゲート三層＝①`GENESIS-CARD.placeholder.html` §v16 契約 ②`validate-tx-core.py` **G84**
 > （導入を持つファイルだけ・置き場所／open／組版／禁止語〔○×・正解・正しい・誤り・肢N・記述N・解答技術語〕／
 > CSS／解法ナビのヒントの結論＝ERROR）＋**G19** の検査範囲に採点パネルを追加（刑訴TX142「（正しいものの組合せは
-> 肢1）」が素通りしていた）③push 前 `check-tx-lex-engine.py`（G84 ERROR は push 停止）。gold＝**刑訴TX142_lex**
+> 肢1）」が素通りしていた）と「＝」を使わない先出し（「正解は組合せ2」「正しいのはアのみ」）のパターンを追加
+> （刑訴TX154・173・180・刑TX071 の設問リード／副題から答えの語句を除去）③push 前 `check-tx-lex-engine.py`（G84 ERROR は push 停止）。gold＝**刑訴TX142_lex**
 > （推論型）／**刑訴TX143_lex**（知識型）。**刑訴TX142〜334 はセッションで適用済み、それ以外は TJR-I で付随消化**
 > （ユーザー指示 2026-10-14「刑訴LEX143から最後まで作成してマージ・他はTJR」＝`scripts/v16-intro-runner.ps1`・
 > 科目へ均等配分・10本/バッチ・新規生成の `_lex` もここで後付け）。正典＝`docs/tx-v12.2.1-inline-lock.md` §v16。
