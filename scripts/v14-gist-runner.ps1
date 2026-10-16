@@ -1,6 +1,6 @@
 # v14-gist-runner.ps1 — TJR-G（§v14 THE GIST ストーリー型の付随書き換え・特別枠）エンジン（2026-09-17 新設）
 #   旧型（1 段落）の 💡THE GIST が残る v13 `_lex` を、**仕事のある科目へ均等に配る**（ラウンドロビン・
-#   docs/run-patterns.md「既存展開の配り方」）。1 バッチ MaxProblems 件を科目へ 1 本ずつ順に配り、科目内は若番から
+#   docs/run-patterns.md「既存展開の配り方」）。1 バッチ MaxProblems 件を科目へ 1 本ずつ順に配り、科目内は学習範囲優先（済みの最大番号の続きから昇順・手前の抜けは後回し・2026-10-04）
 #   headless（claude -p）で JSON 仕様を執筆 → scripts/tx-gist-story.py apply で組む。
 #   ユーザー指示（2026-09-17）「残りの LEX は TJR の付随で処理して」＝刑訴TX100-120 の展開後の残件。
 #   いま学習中の科目へ寄せたいときだけ -Subject を添える（「TJR処理 刑訴」＝その科目だけを流す・S と同じ）。
@@ -98,7 +98,7 @@ function Get-GDirty {
     return @($lines | Where-Object { $_.Length -gt 3 } | ForEach-Object { ($_.Substring(3) -replace '^"|"$', '') })
 }
 
-# === 対象検出：tx-gist-story.py pending（単一情報源）→ 科目順・若番 ===
+# === 対象検出：tx-gist-story.py pending（単一情報源）→ 科目順・学習範囲優先 ===
 function Get-GTargets {
     $r = Invoke-GPy @($GistTool, 'pending', '--json', '--root', $ProjectRoot)
     if ($r.Code -ne 0) { Write-Host "[G] pending 取得に失敗: $($r.Text)" -ForegroundColor Red; return @() }
@@ -123,7 +123,8 @@ function Get-GTargets {
     }
     $rank = @{}
     for ($i = 0; $i -lt $SubjectOrder.Count; $i++) { $rank[$SubjectOrder[$i].Key] = $i }
-    return @($items | Sort-Object @{Expression = { $rank[$_.Subject] } }, Num)
+    # 科目内の並びは pending の出力順（学習範囲優先＝ストーリー型が済んだ最大番号の続きから昇順・手前の抜けは後ろ）を保つ
+    return @($items | Sort-Object @{Expression = { $rank[$_.Subject] } } -Stable)
 }
 
 # === ランナー側の決定論判定 ===

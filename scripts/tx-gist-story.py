@@ -9,7 +9,7 @@
   python -X utf8 scripts/tx-gist-story.py check   <file>...               # 構造検査（G81 と同じ式）
   python -X utf8 scripts/tx-gist-story.py materials <_lex.html>          # 執筆用の素材抜き出し（TJR-G の headless 用）
   python -X utf8 scripts/tx-gist-story.py scope   <_lex.html> [--ref HEAD] # 変更が GIST 行と CSS 区画だけか git と照合
-  python -X utf8 scripts/tx-gist-story.py pending [--json|--unreplaceable] # 旧型 GIST が残る v13 _lex（TJR-G の対象）
+  python -X utf8 scripts/tx-gist-story.py pending [--json|--unreplaceable] # 旧型 GIST が残る v13 _lex（TJR-G の対象・学習範囲優先の順）
 
 spec.json:
   {"track": ["令状の種類", "許される要件", "実施の仕方"],          # 問題の段階（2〜4 段・体系マップの枝と同じ区分）
@@ -191,12 +191,40 @@ def classify(root: Path) -> tuple[list[Path], list[Path]]:
     return todo, stuck
 
 
+NUM_RE = re.compile(r"TX(\d+)_lex\.html$")
+
+
+def story_frontier(root: Path) -> dict[str, int]:
+    """科目フォルダ → ストーリー型 GIST が入っている最大の問題番号（学習範囲の目安・設定を持たない）。"""
+    front: dict[str, int] = {}
+    for p in root.glob(LEX_GLOB):
+        m = NUM_RE.search(p.name)
+        if not m or LEAD_PREFIXES[1] not in p.read_bytes().decode("utf-8", errors="replace"):
+            continue
+        front[p.parent.name] = max(front.get(p.parent.name, 0), int(m.group(1)))
+    return front
+
+
+def learning_order(root: Path, files: list[Path]) -> list[Path]:
+    """学習範囲を優先する並び（2026-10-04 ユーザー指示）：科目ごとに、ストーリー型が済んでいる最大番号の
+    続きから昇順に並べ、その手前の抜け（済みの番号より若い残件）は後ろへ回す。学習は若番から進むので、
+    済みの最大番号の続き＝これから読む範囲になる。科目の並びは呼び出し側（ランナーのラウンドロビン）が決める。"""
+    front = story_frontier(root)
+
+    def key(p: Path):
+        m = NUM_RE.search(p.name)
+        n = int(m.group(1)) if m else 0
+        return (p.parent.name, n <= front.get(p.parent.name, 0), n)
+    return sorted(files, key=key)
+
+
 def pending_files(root: Path) -> list[Path]:
     return classify(root)[0]
 
 
 def cmd_pending(root: Path, as_json: bool, unreplaceable: bool) -> int:
     todo, stuck = classify(root)
+    todo = learning_order(root, todo)
     rel = lambda p: str(p.relative_to(root)).replace("\\", "/")
     if as_json:
         print(json.dumps([rel(p) for p in (stuck if unreplaceable else todo)], ensure_ascii=False))
