@@ -23,9 +23,13 @@
 | 役割 | canonical | 生成コマンド | validator |
 |---|---|---|---|
 | **_lex コア（v13）**（新規生成・v13 化の唯一起点） | **`canonical/GENESIS-CARD.html`**（v13.1.0・gold=刑TX359）＋ **`canonical/GENESIS-CARD.placeholder.html`**（スロット契約） | `/new-tx`（batch-tx・rb 継承・v13 経路） | `scripts/validate-tx-core.py`（G1〜G64＝G45表示LOCK＋**G50-G54 v13完全性**＋G56/G57深さ助言＋G58 cross-cut＋G60極性＋**G61/G62 v13n**＋**G63 三点整合**＋**G64 バッジ⇄key矛盾**・正典自身も対象）＋`check-tx-lex-engine.py`（G41/script2本＋G45=LOOP-CARDにも適用＋G61/G62/G63/G64＋CORE/CARD両契約＋CSS/oxgrid可視化）＋`check-duplicates.py` |
-| 公式版（本物5択・`000_TX`） | — | `/new-tx` 二系統出力 | `validate-tx-core.py`（single/multi） |
+| **公式版（本物5択・`000_TX`）＝TX の唯一の出力**（2026-10-18〜） | `canonical/GENESIS-CARD.html` を複製し de-grid（解法ナビ・物語は入れない） | `/new-tx`・TJR（T/R/F）＝**公式のみ** | `validate-tx-core.py`（single/multi） |
 
-- 構造正典 spec：**`spec/tx-v13.1.0-loopcard-core.md`**（active・byte 正典）。二系統は `spec/tx-v11.1.0-twotrack.md` を継承。
+- **【TX は公式のみ・二系統廃止・2026-10-18 ユーザー指示】** 新規生成（`/new-tx`・TJR の T/R/F）は公式 `000_TX` の
+  1 ファイルだけ。`_lex`（`ux/000_TX`）は作らない。上表の「_lex コア」行は、GENESIS-CARD が公式の複製起点であることと、
+  既存 `_lex`（残置・G/D/I 等の付随ストリームが保守）の正典であることを示すものとして読む。Lexia は `_lex` の無い問題を
+  公式から問題単位で取り込む。「`_lex` を正本にする 1 ファイル方式」は司法書士版（shoshi-exam の STX）で採る。
+- 構造正典 spec：**`spec/tx-v13.1.0-loopcard-core.md`**（active・byte 正典）。二系統（`spec/tx-v11.1.0-twotrack.md`）は 2026-10-18 に廃止（既存 `_lex` の保守用に残置）。
 - **v13.1.0 LOOP-CARD（2026-07-06・active＝最新）／基盤 v13.0.0（2026-07-03）**：v12.2.1 の「肢を解く UI（ANSWER箱＋5点フロー＋記憶フック）」を廃し、
   **旧 PART B の統合解説プロースを記述カード本文へ昇格**、条文・判例は各カードの **「📚 BASIS」ボックス**（条文＝本文表示/
   解説トグル・判例＝判旨表示/以下トグル・学説＝ラベンダー任意項目）へ集約。縦順＝正誤表(印付き原文＋法理コア＋成績)→**体系マップ(SVGハイブリッド・規範核バッジ・帰结箱なし)**→

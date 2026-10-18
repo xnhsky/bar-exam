@@ -1,19 +1,23 @@
-# tx-v13-runner.ps1 — TJR の TX エンジン（T＝新規TX ／ R＝旧_lex再生成の共通エンジン）
+# tx-v13-runner.ps1 — TJR の TX エンジン（T＝新規TX ／ R＝欠番補完 ／ F＝修復の共通エンジン）
 #
-# 【役割】v13.0.0 LOOP-CARD 二系統（公式 000_TX ＝本物5択 ／ Lexia _lex ＝ ox-grid＋解法ナビ）を
-#   headless（claude -p）で 1 問ずつ生成し、validate-tx-core（公式・_lex 両方）→ 作成日時スタンプ →
+# 【役割】v13.1.0 LOOP-CARD の **公式 1 ファイル**（outputs/000_TX ＝本物の5択＋v13 記述カード・BASIS・
+#   体系マップ）を headless（claude -p）で 1 問ずつ生成し、validate-tx-core → 作成日時スタンプ →
 #   git commit/push まで通す。旧 night-batch-runner（v10 GOLD-SKELETON・単一ファイル）の後継。
 #   TJR.ps1 から呼ばれる内部エンジン（直接叩いてもよいが、通常は「TJR処理」経由）。
 #
+# 【公式のみ・2026-10-18 ユーザー指示】二系統（公式＋Lexia 用 _lex）を廃止し、TJR は公式だけを作る。
+#   _lex（outputs/ux/000_TX）は作らない・触らない（既存 _lex はそのまま残す＝G/D/I 等の付随ストリームの領分）。
+#   Lexia は _lex の無い問題を公式から問題単位で取り込む（filterLexiaImportable の既存フォールバック）。
+#   「_lex を正本にする」1 ファイル方式は司法書士版（shoshi-exam の STX）の側で採る。
+#
 # 【T モード（既定）】フロンティア前進＝inputs/000_TX/{科目}/*.pdf のうち公式 HTML 未生成 かつ
 #   番号が「公式の最大既存番号」より先のものを最若番から生成（過去帯の欠番は R の領分＝二重処理防止）。
-# 【R モード（-Regen）】さかのぼり＝(a) 旧版_lex（v13でない・PDFあり）を PDF から最新v13で作り直す
-#   （公式も同時に最新化＝両者の本文整合を保つ）＋ (b) 公式最大番号以下の欠番（PDFあり・公式なし）の
-#   補完生成（2026-07-18 ユーザー確定「刑法58件未生成の分をR再生成と併せる」）。
-#   PDFが消えている旧_lex は再生成不能＝スキップし [R-SKIP-NOPDF] を出す（Drive 復元後に再対象化）。
-# 【F モード（-RepairIds '60,125'）】修復＝tjr-audit.py が検出したエラー品・未完成品（ペア欠け・
+# 【R モード（-Regen）】さかのぼり＝公式最大番号以下の欠番（PDFあり・公式なし）の補完生成
+#   （2026-07-18 ユーザー確定「刑法58件未生成の分をR再生成と併せる」）。旧版 _lex の作り直し（旧 R(a)）は
+#   _lex を作らない方針により 2026-10-18 に廃止した。
+# 【F モード（-RepairIds '60,125'）】修復＝tjr-audit.py が検出したエラー品・未完成品（公式欠落・
 #   途切れ・検証FAILの残骸等）を番号直指定で PDF から再生成する（2026-07-24 新設・TJR-F ストリーム用）。
-#   破損ファイルは「存在する」ため T/R の検出からは不可視＝この経路だけが回収できる。
+#   破損ファイルは「存在する」ため T/R の検出からは不可視＝この経路だけが回収できる。修復も公式だけを作る。
 #
 # 使い方:
 #   pwsh -NoProfile -File scripts/tx-v13-runner.ps1 -Subject 刑訴 -MaxProblems 12
@@ -27,7 +31,7 @@ param(
     [int]$FromNumber = 0,
     [int]$ToNumber = 0,
     [int]$MaxConsecutiveFailures = 3,
-    [switch]$Regen,                 # R モード（旧_lex を PDF から再生成）
+    [switch]$Regen,                 # R モード（公式最大番号以下の欠番を補完生成）
     [string]$RepairIds = '',        # F モード（TJR-F 修復）：カンマ/空白区切りの番号列（例 '60,125'）。
                                     #   tjr-audit.py が検出したエラー品・未完成品を、T/R の対象検出
                                     #   （フロンティア・版判定・欠番）をバイパスして番号直指定で再生成する。
@@ -50,14 +54,10 @@ $Prefix = $Subject   # 刑TX / 刑訴TX / 民TX ...
 
 $PdfDir        = Join-Path $ProjectRoot "inputs\000_TX\$SubjectFolder"
 $OfficialDir   = Join-Path $ProjectRoot "outputs\000_TX\$SubjectFolder"
-$LexDir        = Join-Path $ProjectRoot "outputs\ux\000_TX\$SubjectFolder"
 $LogsDir       = Join-Path $ProjectRoot "logs"
 $PromptSource  = Join-Path $ProjectRoot "prompts\new-tx-headless-v13.md"
 $Canonical     = Join-Path $ProjectRoot "canonical\GENESIS-CARD.html"
-$SolveNav      = Join-Path $ProjectRoot "canonical\SOLVE-NAV.html"
 $ValidateCore  = Join-Path $ProjectRoot "scripts\validate-tx-core.py"
-$CheckEngine   = Join-Path $ProjectRoot "scripts\check-tx-lex-engine.py"
-$CheckOxGrid   = Join-Path $ProjectRoot "scripts\check-lex-oxgrid-integrity.py"
 $StampScript   = Join-Path $ProjectRoot "scripts\stamp-created-date.py"
 $CostCsv       = Join-Path $LogsDir "tx-v13-summary.csv"
 $RunLog        = Join-Path $LogsDir "tx-v13-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
@@ -88,12 +88,11 @@ if (-not $DryRun) {
     } catch { Write-Host "[KEEP-AWAKE] 抑止設定に失敗（続行）: $($_.Exception.Message)" -ForegroundColor Yellow }
 }
 
-$modeText = if ($RepairIds) { 'F（修復再生成）' } elseif ($Regen) { 'R（旧_lex再生成）' } else { 'T（新規TX）' }
+$modeText = if ($RepairIds) { 'F（修復再生成）' } elseif ($Regen) { 'R（欠番補完）' } else { 'T（新規TX）' }
 Write-Host "=== tx-v13-runner 開始 $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') ===" -ForegroundColor Cyan
 Write-Host "Subject=$Subject ($SubjectFolder) / モード=$modeText / MaxProblems=$MaxProblems / 範囲 From=$FromNumber To=$ToNumber / DryRun=$DryRun"
 Write-Host "PDF=$PdfDir"
-Write-Host "公式=$OfficialDir"
-Write-Host "_lex=$LexDir"
+Write-Host "公式=$OfficialDir（公式のみ生成・_lex は作らない）"
 
 # === 前提ファイル確認 ===
 $missing = @()
@@ -107,7 +106,7 @@ if ($missing.Count -gt 0) {
     Stop-Transcript | Out-Null
     exit 1
 }
-foreach ($d in @($OfficialDir, $LexDir)) { if (-not (Test-Path $d)) { New-Item -Path $d -ItemType Directory -Force | Out-Null } }
+if (-not (Test-Path $OfficialDir)) { New-Item -Path $OfficialDir -ItemType Directory -Force | Out-Null }
 
 # === 対象検出の前にリモート先行分へ追随（2026-07-27）===
 #   pull を怠った側が相手 PC の生成済み番号を「未生成」と誤認して作り直す事故経路を塞ぐ。
@@ -134,8 +133,9 @@ function Test-InRange { param([int]$n)
 # === 対象検出 ===
 # 役割分担（2026-07-18 ユーザー確定「刑法58件未生成の分をR再生成と併せる」・TJR のストリーム別科目自動充当と対）：
 #   T: フロンティア前進＝PDF あり かつ 公式 HTML 未生成 かつ 番号 > 公式の最大既存番号。
-#   R: さかのぼり＝(a) 旧版_lex（v13 でない）の再生成 ＋ (b) 公式最大番号以下の欠番補完
+#   R: さかのぼり＝公式最大番号以下の欠番補完
 #      （PDF あり・公式なし＝過去帯の未生成穴。例：刑法 15-54/304-309/312-323 の 58 件）。
+#      旧 R(a)（旧版 _lex の作り直し）は 2026-10-18 の公式のみ方針で廃止。
 #   T と R は「公式最大番号」を境に番号集合が重ならないため、同一科目で同じ番号を
 #   同一バッチ内に二重処理することは構造上ない。欠番帯を明示処理したい時は R をピン（-RFrom/-RTo）。
 $MaxOfficial = 0
@@ -145,8 +145,8 @@ foreach ($f in @(Get-ChildItem -Path $OfficialDir -Filter "${Prefix}TX*.html" -F
 $Pending = @()
 if ($RepairIds) {
     # --- F モード（TJR-F 修復）：tjr-audit.py が検出したエラー品・未完成品の番号直指定再生成 ---
-    # 破損した公式/_lex は「存在する」ため T（Test-Path で SKIP）・R(a)（v13マーカーで SKIP）・
-    # R(b)（公式ありで SKIP）のいずれからも不可視になる。F はその検出バイパス経路。
+    # 破損した公式は「存在する」ため T（Test-Path で SKIP）・R（公式ありで SKIP）の
+    # いずれからも不可視になる。F はその検出バイパス経路。
     foreach ($tok in @($RepairIds -split '[,\s]+')) {
         if ($tok -notmatch '^\d+$') { continue }
         $n = [int]$tok
@@ -158,46 +158,13 @@ if ($RepairIds) {
         $Pending += [PSCustomObject]@{
             Number=$num; ProblemId="${Prefix}TX${num}"; PdfPath=$PdfMap[$n]
             OfficialPath=(Join-Path $OfficialDir "${Prefix}TX${num}.html")
-            LexPath=(Join-Path $LexDir "${Prefix}TX${num}_lex.html")
             Reason='修復再生成'
         }
     }
     $Pending = @($Pending | Sort-Object { [int]$_.Number })
 } elseif ($Regen) {
-    $seen = @{}
-    # --- (a) 旧版 _lex の再生成 ---
-    foreach ($lex in @(Get-ChildItem -Path $LexDir -Filter "*_lex.html" -File -ErrorAction SilentlyContinue | Sort-Object Name)) {
-        $stem = [System.IO.Path]::GetFileNameWithoutExtension($lex.Name)   # 例 刑TX125_lex
-        if ($stem -notmatch '(\d+)_lex$') { continue }
-        $n = [int]$Matches[1]
-        if (-not (Test-InRange $n)) { continue }
-        # 版判定：footer feature-tag 'TX v13.<minor>.<patch> LOOP-CARD' を全文走査（先頭だけ見ると
-        # footer を読めず旧版誤判定するため Select-String で全文一致）。
-        # R（PDF→再生成）が作り直すのは「まだ v13 世代でない」旧版（v11.x / タグ無し）だけ。
-        # 既に v13 世代なら SKIP：
-        #   - v13.1.0（最新）    ＝ 何もしない（再生成すると査読済み内容を捨てて金を溶かす）。
-        #   - v13.0.0（1つ前）   ＝ v13.0.0→v13.1.0 は内容保存の verdict-redesign 経路（別作業・
-        #                          docs/tx-v13-migration-targets.md）で上げる。PDF から作り直さない。
-        # 旧マーカー 'v13\.0\.0' だけを見る実装は v13.1.0（'v13.0.0' 文字列を含まない）を旧版扱いして
-        # 再生成する重大バグだったため、v13 世代全体を一致させる形へ修正（版が上がっても耐える）。
-        $alreadyV13 = [bool](Select-String -LiteralPath $lex.FullName -Pattern 'TX v13\.\d+\.\d+ LOOP-CARD' -Quiet -ErrorAction SilentlyContinue)
-        if ($alreadyV13) { continue }
-        if (-not $PdfMap.ContainsKey($n)) {
-            Write-Host "[R-SKIP-NOPDF] ${Prefix}TX$($n.ToString('000'))：旧版だが入力PDFが無く再生成不能（Drive復元後に再対象化）" -ForegroundColor Magenta
-            continue
-        }
-        $seen[$n] = $true
-        $num = $n.ToString('000')
-        $Pending += [PSCustomObject]@{
-            Number=$num; ProblemId="${Prefix}TX${num}"; PdfPath=$PdfMap[$n]
-            OfficialPath=(Join-Path $OfficialDir "${Prefix}TX${num}.html")
-            LexPath=(Join-Path $LexDir "${Prefix}TX${num}_lex.html")
-            Reason='旧_lex最新化'
-        }
-    }
-    # --- (b) 公式最大番号以下の欠番補完（過去帯の未生成穴＝_lex も公式も無い番号）---
+    # --- 公式最大番号以下の欠番補完（過去帯の未生成穴＝公式の無い番号）---
     foreach ($n in ($PdfMap.Keys | Sort-Object)) {
-        if ($seen.ContainsKey($n)) { continue }
         if (-not (Test-InRange $n)) { continue }
         if ($n -gt $MaxOfficial) { continue }   # フロンティアの先は T の領分
         $num = $n.ToString('000')
@@ -206,22 +173,19 @@ if ($RepairIds) {
         $Pending += [PSCustomObject]@{
             Number=$num; ProblemId="${Prefix}TX${num}"; PdfPath=$PdfMap[$n]
             OfficialPath=$official
-            LexPath=(Join-Path $LexDir "${Prefix}TX${num}_lex.html")
             Reason='欠番補完'
         }
     }
-    $Pending = @($Pending | Sort-Object { [int]$_.Number })
 } else {
     foreach ($n in ($PdfMap.Keys | Sort-Object)) {
         if (-not (Test-InRange $n)) { continue }
         if ($n -le $MaxOfficial) { continue }   # 過去帯の欠番は R（さかのぼり）の領分＝二重処理防止
         $num = $n.ToString('000')
         $official = Join-Path $OfficialDir "${Prefix}TX${num}.html"
-        if (Test-Path $official) { continue }   # 既存＝新規対象外（上書きは -Regen で）
+        if (Test-Path $official) { continue }   # 既存＝新規対象外（上書きは -RepairIds で）
         $Pending += [PSCustomObject]@{
             Number=$num; ProblemId="${Prefix}TX${num}"; PdfPath=$PdfMap[$n]
             OfficialPath=$official
-            LexPath=(Join-Path $LexDir "${Prefix}TX${num}_lex.html")
             Reason='新規'
         }
     }
@@ -258,15 +222,7 @@ foreach ($t in $Pending) {
     # ----- claim 予約（二台同時 TJR の同番号二重生成を防止・2026-07-27）-----
     $claimStatus = 'CLAIMED_OFFLINE'
     if (-not $NoCommit -and -not $NoPush) {
-        if ($t.Reason -eq '旧_lex最新化') {
-            # 相手 PC が先に v13 再生成済みならスキップ（リモート _lex の版マーカーを直接確認）
-            $lexRel = ConvertTo-TjrRelPath $ProjectRoot $t.LexPath
-            if (Test-TjrRemoteContent -ProjectRoot $ProjectRoot -RelPath $lexRel -Pattern 'TX v13\.\d+\.\d+ LOOP-CARD') {
-                Write-Host "[SKIP-REMOTE] $($t.ProblemId)：リモート _lex は既に v13（相手 PC が再生成済み）" -ForegroundColor DarkYellow
-                continue
-            }
-            $existsRel = @()   # 出力は存在が前提（旧版の上書き）＝存在チェックは使わない
-        } elseif ($t.Reason -eq '修復再生成') {
+        if ($t.Reason -eq '修復再生成') {
             $existsRel = @()   # 破損品の上書き修復＝存在が前提。claim だけで直列化
         } else {
             # 新規／欠番補完＝リモートに公式が出現していれば相手 PC が完成済み
@@ -285,18 +241,17 @@ foreach ($t in $Pending) {
         -replace '\{PROBLEM_NUMBER\}',   $t.Number `
         -replace '\{PROBLEM_ID\}',       $t.ProblemId `
         -replace '\{OFFICIAL_PATH\}',    $t.OfficialPath `
-        -replace '\{LEX_PATH\}',         $t.LexPath `
         -replace '\{SUBJECT_PREFIX\}',   $Prefix `
         -replace '\{SUBJECT_FOLDER\}',   $SubjectFolder `
         -replace '\{CANONICAL_PATH\}',   $Canonical `
-        -replace '\{SOLVENAV_PATH\}',    $SolveNav `
-        -replace '\{REGEN_FLAG\}',       ($(if ($t.Reason -eq '修復再生成') { 'REGEN（エラー品・未完成品の修復再生成＝既存の公式・_lexを最新v13で上書き）' } elseif ($Regen -and $t.Reason -eq '欠番補完') { 'NEW（過去帯欠番の補完生成・既存ファイルなし）' } elseif ($Regen) { 'REGEN（既存の旧_lexと公式を最新v13で上書き）' } else { 'NEW（新規生成）' }))
+        -replace '\{REGEN_FLAG\}',       ($(if ($t.Reason -eq '修復再生成') { 'REGEN（エラー品・未完成品の修復再生成＝既存の公式を最新v13で上書き）' } elseif ($Regen) { 'NEW（過去帯欠番の補完生成・既存ファイルなし）' } else { 'NEW（新規生成）' }))
     $execHeader = @"
 【最優先・実行指示 / headless】これは参照資料ではなく実行命令である。あなたは今すぐ TX 問題
-$($t.ProblemId) を v13.0.0 二系統（公式＝本物5択／_lex＝ox-grid＋解法ナビ＋物語解説）で生成せよ。
+$($t.ProblemId) を v13.1.0 LOOP-CARD の公式 1 ファイル（本物の5択＋v13 記述カード）で生成せよ。
+Lexia 用 _lex（outputs/ux/000_TX）は作らない。
 挨拶・確認・要約・「依頼内容が不明」等の応答は禁止。下記手順書に厳密に従い、対象PDFを読解して
-直ちに着手し、公式＝$($t.OfficialPath)／_lex＝$($t.LexPath) の2ファイルを出力し、最後に必ず
-sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せよ。区分=$(if($t.Reason -eq '修復再生成'){'REGEN・既存上書き可（破損品の修復）'}elseif($Regen){'REGEN・既存上書き可'}else{'NEW'})。
+直ちに着手し、公式＝$($t.OfficialPath) の1ファイルを出力し、最後に必ず
+sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せよ。区分=$(if($t.Reason -eq '修復再生成'){'REGEN・既存上書き可（破損品の修復）'}else{'NEW'})。
 ━━━━━━━━━━━━━━━━ 以下、手順書本体 ━━━━━━━━━━━━━━━━
 
 "@
@@ -316,30 +271,22 @@ sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せ�
     elseif ($res.Output -match "BATCH_ITEM_FAILED:$esc") { $sentinel = "FAILED" }
 
     $offBytes = if (Test-Path $t.OfficialPath) { (Get-Item $t.OfficialPath).Length } else { 0 }
-    $lexBytes = if (Test-Path $t.LexPath)      { (Get-Item $t.LexPath).Length }      else { 0 }
-    Write-Host "[DONE] elapsed=$([math]::Round($elapsed/60,1))min official=$offBytes lex=$lexBytes sentinel=$sentinel exit=$exitCode"
+    Write-Host "[DONE] elapsed=$([math]::Round($elapsed/60,1))min official=$offBytes sentinel=$sentinel exit=$exitCode"
 
-    # === 検証（公式・_lex 両方）===
+    # === 検証（公式）===
+    #   解法ナビ engine（check-tx-lex-engine）と ox-grid 健全性（check-lex-oxgrid-integrity）は _lex 専用＝公式には掛けない。
     $validate = "skipped"
     $committed = $false
-    if ($offBytes -gt 0 -and $lexBytes -gt 0 -and $sentinel -ne "FAILED") {
-        Write-Host "--- validate-tx-core（_lex＝ox-grid必須／公式＝single・multi可）---"
-        $vLex = & python $ValidateCore $t.LexPath 2>&1;      $vLexCode = $LASTEXITCODE
-        $vOff = & python $ValidateCore $t.OfficialPath 2>&1; $vOffCode = $LASTEXITCODE
-        ($vLex -join "`n") | Out-File -FilePath (Join-Path $LogsDir "tx-v13-validate-lex-$($t.ProblemId).txt") -Encoding utf8
+    if ($offBytes -gt 0 -and $sentinel -ne "FAILED") {
+        Write-Host "--- validate-tx-core（公式＝single・multi）---"
+        $vOff = & python -X utf8 $ValidateCore $t.OfficialPath 2>&1; $vOffCode = $LASTEXITCODE
         ($vOff -join "`n") | Out-File -FilePath (Join-Path $LogsDir "tx-v13-validate-off-$($t.ProblemId).txt") -Encoding utf8
-        # エンジン整合（script2本・G41）
-        if (Test-Path $CheckEngine) { $vEng = & python $CheckEngine $t.LexPath 2>&1; $vEngCode = $LASTEXITCODE } else { $vEngCode = 0 }
-        # ox-grid 健全性（strict）：特殊型の全○退化(L4)・○×矛盾(L1)・組合せ当否(L2/L3)を弾く。
-        # 再生成が判別性ある○×になっていなければ ERROR で commit させない（新規は必ず改善して通す）。
-        if (Test-Path $CheckOxGrid) { $vOx = & python $CheckOxGrid $t.LexPath 2>&1; $vOxCode = $LASTEXITCODE } else { $vOxCode = 0 }
-        ($vOx -join "`n") | Out-File -FilePath (Join-Path $LogsDir "tx-v13-oxgrid-$($t.ProblemId).txt") -Encoding utf8
-        if ($vLexCode -eq 0 -and $vOffCode -eq 0 -and $vEngCode -eq 0 -and $vOxCode -eq 0) {
+        if ($vOffCode -eq 0) {
             $validate = "PASS"
-            Write-Host "[validate] PASS（_lex/公式/エンジン/ox-grid）" -ForegroundColor Green
+            Write-Host "[validate] PASS（公式）" -ForegroundColor Green
         } else {
-            $validate = "ERROR(lex=$vLexCode,off=$vOffCode,eng=$vEngCode,ox=$vOxCode)"
-            Write-Host "[validate] ERROR lex=$vLexCode off=$vOffCode eng=$vEngCode ox=$vOxCode — commit しない" -ForegroundColor Yellow
+            $validate = "ERROR(off=$vOffCode)"
+            Write-Host "[validate] ERROR off=$vOffCode — commit しない" -ForegroundColor Yellow
         }
     } else {
         $validate = "skipped_incomplete"
@@ -350,13 +297,12 @@ sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せ�
     if ($validate -eq "PASS" -and -not $NoCommit) {
         try { if (Test-Path $StampScript) { & python $StampScript 2>&1 | Out-Null } } catch {}
         try {
-            & git -C $ProjectRoot add -- $t.OfficialPath $t.LexPath 2>&1 | Out-Null
+            & git -C $ProjectRoot add -- $t.OfficialPath 2>&1 | Out-Null
             # claim 解放を同じ commit に同梱（予約→成果物→解放が 1 push で完結・2026-07-27）
             [void](Remove-TjrClaimLocal -ProjectRoot $ProjectRoot -ProblemId $t.ProblemId)
             $msg = if ($t.Reason -eq '修復再生成') { "fix($($Prefix)TX): $($t.ProblemId) を修復再生成（TJR-F・エラー品/未完成品の回収）" }
-                   elseif ($Regen -and $t.Reason -eq '欠番補完') { "feat($($Prefix)TX): $($t.ProblemId) を v13 で補完生成（過去帯欠番・二系統）" }
-                   elseif ($Regen) { "feat($($Prefix)TX): $($t.ProblemId) を v13 で再生成（旧_lex最新化・二系統）" }
-                   else            { "feat($($Prefix)TX): $($t.ProblemId) を二系統生成（公式5択／Lexia用 ox-grid＋解法ナビ）" }
+                   elseif ($Regen) { "feat($($Prefix)TX): $($t.ProblemId) を v13 で補完生成（過去帯欠番・公式5択）" }
+                   else            { "feat($($Prefix)TX): $($t.ProblemId) を生成（公式5択）" }
             & git -C $ProjectRoot commit -m $msg 2>&1 | Out-Null
             $committed = $true
             $pushed = $false
@@ -380,10 +326,11 @@ sentinel（BATCH_ITEM_COMPLETED:$($t.ProblemId) 等）を出力して終了せ�
         Release-TjrClaim -ProjectRoot $ProjectRoot -ProblemId $t.ProblemId -Reason '生成/検証失敗' -NoPush:$NoPush
     }
 
-    Add-Content -Path $CostCsv -Encoding utf8 -Value ("$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$($t.ProblemId),$modeText,$elapsed,$offBytes,$lexBytes,$sentinel,$exitCode,$validate,$committed")
+    # lex_bytes 列は二系統期の CSV と列をそろえるため残す（公式のみになった 2026-10-18 以降は常に 0）
+    Add-Content -Path $CostCsv -Encoding utf8 -Value ("$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'),$($t.ProblemId),$modeText,$elapsed,$offBytes,0,$sentinel,$exitCode,$validate,$committed")
 
     # 連続失敗判定
-    if ($sentinel -eq "FAILED" -or $exitCode -ne 0 -or $offBytes -eq 0 -or $lexBytes -eq 0 -or $validate -notlike "PASS*") {
+    if ($sentinel -eq "FAILED" -or $exitCode -ne 0 -or $offBytes -eq 0 -or $validate -notlike "PASS*") {
         $ConsecutiveFailures++
         Write-Host "[WARN] 連続失敗 $ConsecutiveFailures / $MaxConsecutiveFailures" -ForegroundColor Yellow
         if ($ConsecutiveFailures -ge $MaxConsecutiveFailures) { Write-Host "[ABORT] 連続失敗上限。中断。" -ForegroundColor Red; break }

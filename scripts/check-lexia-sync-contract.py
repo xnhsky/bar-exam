@@ -446,8 +446,8 @@ def main() -> int:
 
     official_tx = by_category["TX_OFFICIAL"]
     lexia_tx = by_category["TX_LEXIA"]
-    if missing := official_tx - lexia_tx:
-        global_warnings.append(f"TX _lex 欠落 {len(missing)} 件: {summarize_codes(missing)}")
+    # 公式のみ（_lex なし）は警告しない：2026-10-18 に TX は公式のみ（二系統廃止）になり、
+    # Lexia は _lex の無い問題を公式から問題単位で取り込む（filterLexiaImportable の既存フォールバック）。
     if orphan := lexia_tx - official_tx:
         global_warnings.append(f"TX 公式 HTML 欠落 {len(orphan)} 件: {summarize_codes(orphan)}")
 

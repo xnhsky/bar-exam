@@ -1,18 +1,21 @@
-# TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ 旧版TXLEX再生成＝R ／ 修復＝F を1本で束ねる指揮者）
+# TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ TX欠番補完＝R ／ 修復＝F を1本で束ねる指揮者）
 #
 # 【位置づけ】2026-07-04 確定・ユーザー指示で旧パターン（TX-MARCH / TX-PICK / JX）を廃止し、
 #   本 TJR を現行版の唯一の入口にする。TJR は「指揮者」であり、重い生成ロジックは持たない。
 #   実生成は各エンジンへ委譲：
-#     T（新規TX）    : scripts\tx-v13-runner.ps1              … フロンティア前進（公式最大番号より先）・v13 二系統
-#     R（さかのぼり）  : scripts\tx-v13-runner.ps1 -Regen      … 旧版_lex再生成＋公式最大番号以下の欠番補完
+#     T（新規TX）    : scripts\tx-v13-runner.ps1              … フロンティア前進（公式最大番号より先）・公式のみ
+#     R（さかのぼり）  : scripts\tx-v13-runner.ps1 -Regen      … 公式最大番号以下の欠番補完・公式のみ
 #                        （2026-07-18「刑法58件未生成の分をR再生成と併せる」・T と番号集合が重ならない）
+#   【TX は公式のみ・2026-10-18 ユーザー指示】二系統（公式＋Lexia 用 _lex）を廃止し、T・R・F は公式
+#     （outputs/000_TX）だけを作る。_lex は作らない（既存 _lex はそのまま残し、G/D/I 等の付随ストリームが従来どおり扱う）。
+#     Lexia は _lex の無い問題を公式から問題単位で取り込む。旧 R(a)（旧版 _lex の作り直し）は廃止。
 #     J（新規JX）    : scripts\jx-batch-runner.ps1（内部エンジン）… JX＋副産物RX/TREE/ARIADNE＋台本
 #     F（修復）      : scripts\tjr-audit.py（検出）＋各エンジンの修復モード（2026-07-24 新設・ユーザー指示
 #                      「エラー品・未完成品を検出して新規生成と同時並行で修正」）。生成が途中で死んだ／
 #                      validate ERROR で commit されず残った HTML は「存在する」ため T/J/R の対象検出から
 #                      不可視＝永久放置になる構造穴があり、F が毎バッチ先頭で検出→回収する：
 #                        ・検証PASSの未コミット残骸 → 回収 commit/push（再生成せず＝安価）
-#                        ・ペア欠け/途切れ/プレースホルダー残骸/検証FAIL → tx-v13-runner -RepairIds ／
+#                        ・公式欠落/途切れ/プレースホルダー残骸/検証FAIL → tx-v13-runner -RepairIds ／
 #                          jx-batch-runner -RepairNumbers で PDF から修復再生成
 #                        ・G66/G69 のみの失敗 → tx-sysmap-fit.py（決定論）で無料修復（--fix-safe）
 #                        ・同一問題の修復 2 回失敗 → 自動再試行を停止し logs\tjr-repair-report.md へ
@@ -27,7 +30,7 @@
 #   ④民事訴訟法 ⑤商法 ⑥憲法 ⑦行政法）で、T・J・R **それぞれが独立に**「そのストリームに
 #   仕事のある科目」を選ぶ（例：T=刑法が尽きていれば刑訴へ、R=刑法、J=刑法が尽きていれば刑訴へ）。
 #   -Subject 明示時はその科目を最優先し、そのストリームに仕事が無ければ優先順の残りへフォールスルー。
-#   R は過渡ストリーム＝全科目を遡って旧版_lexが無ければ「該当なし」スキップで良い（ユーザー確認 2026-07-18）。
+#   R は過渡ストリーム＝全科目を遡って欠番が無ければ「該当なし」スキップで良い（ユーザー確認 2026-07-18）。
 #
 # 【号令なら指定外も当然に処理・2026-07-04 ユーザー指示】番号ピンは「そのストリームだけ範囲固定」で、
 #   他ストリームは止めない。1ストリームだけ回したい時は -Only を付ける。
@@ -237,22 +240,9 @@ function Get-SPending {
 }
 function Get-RPending { param([string]$subj, [int]$From = 0, [int]$To = 0)
     $folder = $SubjectFolder[$subj]
-    $lexDir = Join-Path $ProjectRoot "outputs\ux\000_TX\$folder"
     $pdfDir = Join-Path $ProjectRoot "inputs\000_TX\$folder"
-    # (a) 旧版 _lex の再生成対象
-    if (Test-Path $lexDir) {
-        foreach ($lex in @(Get-ChildItem $lexDir -Filter '*_lex.html' -File -ErrorAction SilentlyContinue)) {
-            $stem = [System.IO.Path]::GetFileNameWithoutExtension($lex.Name)
-            if ($stem -notmatch '(\d+)_lex$') { continue }
-            $n = [int]$Matches[1]
-            if (-not (Test-NumInRange $n $From $To)) { continue }
-            # 版判定はエンジン（tx-v13-runner.ps1 の $alreadyV13）と同一パターン＝v13 世代全体を SKIP。
-            # 旧実装の 'v13\.0\.0' 固定は v13.1.0 を旧版誤判定する既知バグ（runner 側コメント参照）。
-            if (Select-String -LiteralPath $lex.FullName -Pattern 'TX v13\.\d+\.\d+ LOOP-CARD' -Quiet -ErrorAction SilentlyContinue) { continue }
-            if (Test-Path (Join-Path $pdfDir "$n.pdf")) { return $true }
-        }
-    }
-    # (b) 公式最大番号以下の欠番補完（PDF あり・公式なし＝過去帯の未生成穴・エンジンと同一規則）
+    # 公式最大番号以下の欠番補完（PDF あり・公式なし＝過去帯の未生成穴・エンジンと同一規則）。
+    # 旧 (a)＝旧版 _lex の作り直しは、TX を公式のみにした 2026-10-18 に廃止（エンジンと同時）。
     if (Test-Path $pdfDir) {
         $outDir = Join-Path $ProjectRoot "outputs\000_TX\$folder"
         $maxOff = Get-MaxOfficial $subj
@@ -485,7 +475,7 @@ function Invoke-TxStream {
     if ($Regen)  { $p.Regen = $true }
     if ($NoPush) { $p.NoPush = $true }
     if ($DryRun) { $p.DryRun = $true }
-    $label = if ($Regen) { "R（旧_lex再生成・$StreamSubject）" } else { "T（新規TX・$StreamSubject）" }
+    $label = if ($Regen) { "R（欠番補完・$StreamSubject）" } else { "T（新規TX・$StreamSubject）" }
     Write-Host "`n———————— $label 開始 ————————" -ForegroundColor Green
     # 子ランナーが success ストリームに何か漏らしても（例: 監査 check-duplicates の stdout）、
     # それを関数戻り値に混ぜて $rcT を配列化させないため Out-Host で host へ流し、終了コードだけ返す。
@@ -691,7 +681,7 @@ for ($b = 1; $b -le $batchCount; $b++) {
     }
     if ($runR) {
         if ($subR) { $rcR = Invoke-TxStream -Regen -Max $MaxR -From $RFrom -To $RTo -StreamSubject $subR }
-        else { Write-Host "`n[SKIP] R：全科目を遡って旧版_lexなし＝該当なしでOK（過渡ストリーム）" -ForegroundColor Yellow }
+        else { Write-Host "`n[SKIP] R：全科目を遡って欠番なし＝該当なしでOK（過渡ストリーム）" -ForegroundColor Yellow }
     }
     $rcQ = 0
     if ($runQ) {
@@ -746,7 +736,7 @@ for ($b = 1; $b -le $batchCount; $b++) {
     if ($runF) { Write-Host ("  F（修復）        exit={0}  実行 {1} 件 / 検出 {2} 件" -f $fRes.Rc, $fRes.Dispatched, $fRes.Actionable) }
     if ($runT) { Write-Host ("  T（新規TX・{0}）  exit={1}" -f $(if($subT){$subT}else{'-'}), $rcT) }
     if ($runJ) { Write-Host ("  J（新規JX・{0}）  exit={1}" -f $(if($subJ){$subJ}else{'-'}), $rcJ) }
-    if ($runR) { Write-Host ("  R（旧_lex・{0}）  exit={1}" -f $(if($subR){$subR}else{'-'}), $rcR) }
+    if ($runR) { Write-Host ("  R（欠番補完・{0}）  exit={1}" -f $(if($subR){$subR}else{'-'}), $rcR) }
     if ($runQ) { Write-Host ("  Q（§v13q・刑訴） exit={0}  残={1} 件（バッチ開始時点）" -f $rcQ, $qPend) }
     if ($runS) { Write-Host ("  S（§v13w CONTEXT）  exit={0}  残={1} 件（バッチ開始時点）" -f $rcS, $sPend) }
     if ($runG) { Write-Host ("  G（§v14 GIST）   exit={0}  残={1} 件（バッチ開始時点）" -f $rcG, $gPend) }
