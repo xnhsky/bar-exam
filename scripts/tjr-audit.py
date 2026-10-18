@@ -5,14 +5,16 @@
 【目的】TJR の T/J/R は「出力ファイルが存在するか」で対象を決めるため、生成が途中で
 死んだり validate ERROR で commit されずに残った HTML は、存在するだけで
   - T: `Test-Path 公式` → SKIP（既存扱い）
-  - R(a): _lex が v13 マーカーを持てば SKIP ／ R(b): 公式が存在すれば SKIP
+  - R: 公式が存在すれば SKIP
   - J: `SKIP_EXISTS`
 となり、**どのストリームからも不可視＝未完成のまま放置**される構造穴がある。
 本ツールはその「事故の残骸（インシデント）」を毎バッチ検出し、TJR.ps1 の F ストリームが
 自動修復（再生成 or 回収コミット）へ振り分けるための JSON を出力する。
 
 【検査対象（インシデント・スコープ）】※コーパス全体の品質再監査ではない
-  A. TX 二系統ペア欠け     … 公式のみ／_lex のみ（入力PDFが残っていれば再生成対象）
+  A. TX 公式欠落           … _lex だけがあり公式が無い（入力PDFが残っていれば公式を再生成）
+                             ※ 2026-10-18 に TX は公式のみ（二系統廃止）になったため、「公式のみ・_lex なし」は
+                               正常＝欠け扱いしない（旧「_lex 欠落」理由は廃止）。
   B. 途切れ                … 末尾に </html> が無い（クラッシュ時の書きかけ）
   C. プレースホルダー残骸  … {{SLOT_NAME}} が本番出力に残存（スロット未充填）
   D. サイズ異常            … 30KB 未満（正常品は 150KB〜450KB 級）
@@ -333,7 +335,7 @@ def audit(root: Path, min_age_min: int, recent_days: int, fix_safe: bool,
     def spend_budget():
         validate_budget[0] -= 1
 
-    # ---- TX（二系統ペア単位） ----
+    # ---- TX（問題番号単位。公式のみが正常・既存 _lex があれば併せて検査） ----
     for folder, subj in SUBJECT_FOLDERS.items():
         entry = tx_idx[folder]
         numbers = sorted(set(entry["official"]) | set(entry["lex"]))
@@ -342,16 +344,22 @@ def audit(root: Path, min_age_min: int, recent_days: int, fix_safe: bool,
             lex = entry["lex"].get(n)
             prefix = (off or lex).name.split("TX")[0] + "TX"
             problem_id = f"{prefix}{n:03d}"
-            reasons: list[str] = []
-            if off and not lex:
-                reasons.append("_lex 欠落（公式のみ＝T/R から不可視の片肺）")
+            # 公式のみ（_lex なし）は 2026-10-18 以降の正常形＝理由にしない。
+            # TJR は公式しか作らないので、再生成で直せるのは公式側の不具合だけ。既存 _lex 側だけの
+            # 不具合は再生成に回さず report-only に落とす（回しても直らず ESCALATE まで空転するだけ）。
+            off_reasons: list[str] = []
+            lex_reasons: list[str] = []
             if lex and not off:
-                reasons.append("公式欠落（_lex のみ）")
+                off_reasons.append("公式欠落（_lex のみ）")
+            if off:
+                for r in file_incidents(off, recent_cutoff, force_full=bool(is_dirty(off))):
+                    off_reasons.append(f"{off.name}: {r}")
+            if lex:
+                for r in file_incidents(lex, recent_cutoff, force_full=bool(is_dirty(lex))):
+                    lex_reasons.append(f"{lex.name}: {r}")
+            reasons: list[str] = off_reasons + lex_reasons
             existing = [p for p in (off, lex) if p]
             pair_dirty = [p for p in existing if is_dirty(p)]
-            for p in existing:
-                for r in file_incidents(p, recent_cutoff, force_full=bool(is_dirty(p))):
-                    reasons.append(f"{p.name}: {r}")
 
             if not reasons and not pair_dirty:
                 continue  # 健全・コミット済み
@@ -382,26 +390,34 @@ def audit(root: Path, min_age_min: int, recent_days: int, fix_safe: bool,
                     item["reasons"] = ["未コミット（検証枠超過＝次回監査で判定）"]
                     report_only.append({"path": rel(root, pair_dirty[0]), "reasons": item["reasons"]})
                     continue
-                verdicts: list[str] = []
+                verdicts: dict[Path, str] = {}
                 notes: list[str] = []
                 for p in existing:
                     spend_budget()
                     v, why = vr.check_tx(p, is_lex=(p is lex), fix_safe=fix_safe)
-                    verdicts.append(v)
+                    verdicts[p] = v
                     notes.extend(f"{p.name}: {w}" for w in why)
-                if "unavailable" in verdicts:
+                if "unavailable" in verdicts.values():
                     report_only.append({"path": rel(root, pair_dirty[0]),
                                         "reasons": ["未コミット・検証環境なしで自動判定不可"] + notes})
-                elif all(v == "pass" for v in verdicts):
+                elif all(v == "pass" for v in verdicts.values()):
                     tx_commits.append({**item,
                                        "paths": [rel(root, p) for p in pair_dirty],
                                        "note": "検証PASS・未コミット残骸の回収" + ("／" + "；".join(notes) if notes else "")})
-                else:
+                elif off is not None and verdicts.get(off) != "pass":
                     item["reasons"] = ["未コミット・検証FAIL"] + notes
                     _queue_tx_repair(item, entry, root, tx_repairs, report_only)
-            else:
-                # 構造破損 → 再生成（入力 PDF がなければ report）
+                else:
+                    # 公式は PASS で、既存 _lex だけが FAIL＝TJR の再生成では直らない
+                    report_only.append({"path": rel(root, lex),
+                                        "reasons": ["未コミットの既存 _lex が検証FAIL（TJR は _lex を作り直さない・手で対処）"] + notes})
+            elif off_reasons:
+                # 公式側の構造破損・公式欠落 → 公式を再生成（入力 PDF がなければ report）
                 _queue_tx_repair(item, entry, root, tx_repairs, report_only)
+            else:
+                # 既存 _lex 側だけの構造破損 → 再生成では直らないので報告のみ
+                report_only.append({"path": rel(root, lex),
+                                    "reasons": lex_reasons + ["既存 _lex の不具合（TJR は _lex を作り直さない・手で対処）"]})
 
     # ---- JX ----
     for folder, subj in SUBJECT_FOLDERS.items():

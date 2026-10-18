@@ -11,7 +11,7 @@
 
 | シリーズ | 内容 | 現行仕様（正典スケルトン／骨子） | ファイル数の目安 |
 |---|---|---|---|
-| **TX** | 短答式（5択・○×・組合せ）の単問解説 HTML | **_lex＝v13.1.0 LOOP-CARD**：`canonical/GENESIS-CARD.html`（＋`GENESIS-CARD.placeholder.html` スロット契約）／`spec/tx-v13.1.0-loopcard-core.md`＋`docs/tx-v12.2.1-inline-lock.md`（§v13m/§v13n 含む）。公式5択の複製起点は `GENESIS-CORE.html`（v12.2.1）＋`GENESIS-DEEP.html` | 1 問 = 公式＋Lexia `_lex`（別冊は必要時） |
+| **TX** | 短答式（5択・○×・組合せ）の単問解説 HTML | **_lex＝v13.1.0 LOOP-CARD**：`canonical/GENESIS-CARD.html`（＋`GENESIS-CARD.placeholder.html` スロット契約）／`spec/tx-v13.1.0-loopcard-core.md`＋`docs/tx-v12.2.1-inline-lock.md`（§v13m/§v13n 含む）。公式5択の複製起点は `GENESIS-CORE.html`（v12.2.1）＋`GENESIS-DEEP.html` | 1 問 = 公式 1 ファイル（2026-10-18 二系統廃止・既存 `_lex` は残置／別冊は必要時） |
 | **JX** | 事例問題型（論文・予備）の総合教材 HTML | **v4.0.0 LOOP-FOLD**：`canonical/ATHENA.html`／`spec/jx-v4.0.0-core.md`（＋基盤規律 `jx-v3.2-master.md`） | 1 問 = 1 HTML（前半コア／後半deep折りたたみ） |
 
 > **現行版・旧版・コードネームの一覧は `docs/canonical-lineage.md`（系譜・早見表）が正典**
@@ -147,7 +147,16 @@
 >   残さない＝**見解は実体の学説名で主語化、記号は語句の実体に置換**して記号フリーにする。選択肢原文は
 >   PART A `.problem-text` に温存（正規化するのは ox-stmt と論点コアだけ）。G30 が WARNING で検出（既存 90 問該当）。
 >
-> **【二系統出力・2026-06-24 確定】TX 1 問＝2 ファイル。** 正典 `spec/tx-v11.1.0-twotrack.md`。
+> **【TX は公式のみ・二系統廃止・2026-10-18 ユーザー指示】** TJR（T・R・F）と `/new-tx` は
+> **公式 `outputs/000_TX/{科目}/{接頭辞}{NNN}.html` の 1 ファイルだけ**を作る（本物の5択＋v13 記述カード・BASIS・
+> 体系マップ。解法ナビ・物語は入れない）。**`_lex`（`outputs/ux/000_TX`）は作らない。** 既存の `_lex` はそのまま残し、
+> G/D/I などの付随ストリームは従来どおり既存 `_lex` を扱う。Lexia は `_lex` の無い問題を公式から**問題単位**で取り込む
+> （`filterLexiaImportable` の既存フォールバック＝肢単位の SM-2・復習プールの対象外）。旧 R(a)（旧版 `_lex` の作り直し）と
+> TJR-F の「`_lex` 欠落」修復は廃止。「`_lex` を正本にする 1 ファイル方式」は司法書士版（shoshi-exam の STX）の側で採る。
+> 実装＝`scripts/tx-v13-runner.ps1`・`prompts/new-tx-headless-v13.md`・`scripts/tjr-audit.py`・`scripts/check-lexia-sync-contract.py`。
+> 以下の二系統・`_lex` の記述は、既存 `_lex` の保守と経緯のために残す。
+>
+> **【二系統出力・2026-06-24 確定 → 2026-10-18 廃止（上記）】TX 1 問＝2 ファイル。** 正典 `spec/tx-v11.1.0-twotrack.md`。
 > - **公式**：`outputs/000_TX/{科目}/{接頭辞}{NNN}.html` ＝ 本物の5択（single/組合せ番号）。Lexia は取り込まない。
 > - **Lexia 用 `_lex`**：`outputs/ux/000_TX/{科目}/{接頭辞}{NNN}_lex.html` ＝ ox-grid（記述単位○×）＋**解法ナビ**。Lexia はこれだけ取り込む。
 > - 本文・PART B/B+・参考条文判例・SVG は両者共有。違いは answer-area と `_lex` の解法ナビのみ。
@@ -1161,7 +1170,7 @@ TF-IDF コサイン**で各逐語を最近傍 PDF へ競合 greedy 割当。結�
 
 | コマンド | 用途 |
 |---|---|
-| `/new-tx <PDFパス>` | 新規 TX を問題 PDF から生成（**_lex＝v13.1.0 LOOP-CARD ＋二系統出力**：公式 `000_TX`＝本物5択／Lexia 用 `ux/000_TX/..._lex`＝v13 記述カード＋ox-grid＋解法ナビ。GENESIS-CARD＋`canonical/SOLVE-NAV.html`・G1〜G64 の validate-tx-core・共有事例型は §v13n 不可侵原文ブロック） |
+| `/new-tx <PDFパス>` | 新規 TX を問題 PDF から生成（**v13.1.0 LOOP-CARD・公式のみ**＝`000_TX` に本物5択＋v13 記述カードの 1 ファイル。`_lex` は作らない＝2026-10-18 二系統廃止。GENESIS-CARD 起点・validate-tx-core・共有事例型は §v13n 不可侵原文ブロック） |
 | `/deepen-tx <NNN>` | 深掘り別冊 `-deep.html` を後追い生成（誤答データ解禁時・GENESIS-DEEP・validate-tx-deep） |
 | `/batch-tx <番号 or PDFパス>` | 連続生成（new-tx の active v12.2.1 経路を継承） |
 | `/rb <N-M>` | **リモートバッチ**：N番〜M番を active v12.2.1 で連続生成＋各問 git commit/push で永続化（「346-350 を RB して」で起動） |
@@ -1205,10 +1214,10 @@ TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で�
 
 | 記号 | ストリーム | 動作 | エンジン |
 |---|---|---|---|
-| **F** | 修復（エラー品・未完成品の回収・2026-07-24 新設） | 毎バッチ**先頭**で `tjr-audit.py` が全科目監査：ペア欠け/途切れ/プレースホルダー残骸/サイズ異常/未コミット残骸を検出→**検証PASSは回収コミットのみ・破損は入力から修復再生成**（G66/G69 のみは `tx-sysmap-fit.py` で決定論修復）。**同一問題 2 回失敗で ESCALATE**（`logs/tjr-repair-report.md`）＝無限再生成防止。対象ゼロなら監査だけで素通り | `scripts/tjr-audit.py`＋`tx-v13-runner.ps1 -RepairIds`／`jx-batch-runner.ps1 -RepairNumbers` |
-| **T** | 新規TX（フロンティア前進） | `inputs/000_TX/{科目}` 未生成のうち**公式最大番号より先**を最若番から **v13 二系統（公式＋Lexia `_lex`）** 生成→両検証→各問 commit/push（過去帯の欠番は R の領分） | `scripts/tx-v13-runner.ps1` |
+| **F** | 修復（エラー品・未完成品の回収・2026-07-24 新設） | 毎バッチ**先頭**で `tjr-audit.py` が全科目監査：公式欠落/途切れ/プレースホルダー残骸/サイズ異常/未コミット残骸を検出→**検証PASSは回収コミットのみ・公式の破損は入力から修復再生成**（公式のみ・`_lex` なしは正常。既存 `_lex` 側だけの不具合は再生成せず報告のみ＝2026-10-18）（G66/G69 のみは `tx-sysmap-fit.py` で決定論修復）。**同一問題 2 回失敗で ESCALATE**（`logs/tjr-repair-report.md`）＝無限再生成防止。対象ゼロなら監査だけで素通り | `scripts/tjr-audit.py`＋`tx-v13-runner.ps1 -RepairIds`／`jx-batch-runner.ps1 -RepairNumbers` |
+| **T** | 新規TX（フロンティア前進） | `inputs/000_TX/{科目}` 未生成のうち**公式最大番号より先**を最若番から **v13 公式のみ**（本物5択＋v13 記述カード・`_lex` は作らない＝2026-10-18）生成→検証→各問 commit/push（過去帯の欠番は R の領分） | `scripts/tx-v13-runner.ps1` |
 | **J** | 新規JX | `inputs/001_JX/{科目}` 未生成を最若番から JX＋**副産物 RX/TREE/ARIADNE**＋台本→配置→finalize | `scripts/jx-batch-runner.ps1`（内部エンジン） |
-| **R** | さかのぼり（旧版TXLEX再生成＋欠番補完） | (a) `_lex` が旧版（v13でない）かつ**PDFが残る**番号を **PDFから最新v13で作り直す**＋(b) **公式最大番号以下の欠番**（PDFあり・公式なし）を補完生成（2026-07-18・過渡・全件最新化で消滅） | `scripts/tx-v13-runner.ps1 -Regen` |
+| **R** | さかのぼり（欠番補完） | **公式最大番号以下の欠番**（PDFあり・公式なし）を公式のみで補完生成（2026-07-18・過渡）。旧 (a)＝旧版 `_lex` の作り直しは 2026-10-18 の公式のみ方針で廃止 | `scripts/tx-v13-runner.ps1 -Regen` |
 | **G** | §v14 THE GIST ストーリー型の付随・特別枠（2026-09-17 新設・過渡） | **旧型（1 段落）の 💡THE GIST が残る v13 `_lex`**（設置時点＝903 本）を、S と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxG`）headless（**Opus 5 固定**）が JSON 仕様を執筆→`tx-gist-story.py apply`。ランナーが check（構造・○×）＋scope（GIST 以外が不変）＋validate＋engine を決定論で判定し PASS のみ 1問ずつ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v14・プロンプト＝`prompts/v14-gist-headless.md` | `scripts/v14-gist-runner.ps1` |
 | **D** | §v15 DEDUP 付随・特別枠（2026-09-22 新設・過渡） | **§v15 未適用（罠枠に `data-v15` が無い）の v13 `_lex`**（設置時点＝1,002 本）を、G と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxD`）。ランナーが決定論の土台（`tx-v15-dedup.py base`・単独 commit）→ headless（**Opus 5 固定**）が JSON 仕様（罠＝隣接命題＋📐比較表・フック・判定・転用）を執筆→`apply`→ check＋scope＋css＋validate＋engine を決定論判定し PASS のみ commit/push（2回失敗で ESCALATE）。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v15・プロンプト＝`prompts/v15-dedup-headless.md` | `scripts/v15-dedup-runner.ps1` |
 | **I** | §v16 解く前の🔰導入の付随・特別枠（2026-10-14 新設・過渡） | **🔰導入が未設置のインライン周回 `_lex`**（設置時点＝1,089 本・刑訴142〜334 はセッションで適用済み）を、D と同じく仕事のある科目へ均等配分で **10本/バッチ**（`-MaxI`）。headless（**Opus 5 固定**）が JSON 仕様（何の話／使う道具／読む順番）を執筆→`tx-intro.py apply`→ check＋scope＋css＋validate＋engine を決定論判定し PASS のみ commit/push（2回失敗で ESCALATE）。新規生成の `_lex` も未設置ならここで後付け。**残件ゼロ＝「該当なし」SKIP が正常**。レシピ＝§v16・プロンプト＝`prompts/v16-intro-headless.md` | `scripts/v16-intro-runner.ps1` |
@@ -1217,7 +1226,7 @@ TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で�
 - 号令：「**TJRを○バッチ処理**」＝`TJR.ps1 -Batches N`。**1バッチ＝T:12問/J:3問/R:3問/Q:10問 固定**（2026-07-18 ユーザー確定・
   勝手なチャンク拡大／自動完遂ループ禁止）。科目は **T・J・R ストリーム別に**優先順で自動充当（毎バッチ再解決＝尽きた科目から
   次へ自動で移る）。「**TJR処理 刑訴**」＝刑訴を最優先し、仕事の無いストリームだけ優先順へフォールスルー。
-  **R は過渡ストリーム＝全科目を遡って旧版_lexが無ければ「該当なし」スキップが正常**（無理に仕事を探さない）。
+  **R は過渡ストリーム＝全科目を遡って欠番が無ければ「該当なし」スキップが正常**（無理に仕事を探さない）。
 - **F（修復）は毎バッチ自動で同走**（2026-07-24 ユーザー指示「エラー品・未完成品を検出して新規生成と同時並行で修正」）：
   生成が途中で死んだ／validate ERROR で commit されず残った HTML は「存在する」ため T/J/R から不可視＝放置される
   構造穴を、F が毎バッチ先頭で回収する。上限＝**TX修復:3問（`-MaxF`）/JX修復:1問（`-MaxFJx`）/バッチ**・回収コミットは無制限。
@@ -1226,7 +1235,7 @@ TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で�
 - **号令なら指定外も当然に処理（番号ピン）**：「**TX355 を TJR処理**」＝`-TxFrom 355 -TxTo 355`（T=355固定・**J/R は通常**）／
   「**JX5 を TJR処理**」＝`-JxFrom 5 -JxTo 5`（J固定・T/R通常）。1ストリームだけは `-Only T|J|R|F|Q`（短縮形「TX 355-360 処理」＝`-Only T -TxFrom 355 -TxTo 360`）。
 - **科目検知順（ユーザー指示・フォルダ番号順とは別）**：①刑法 ②刑事訴訟法 ③民法 ④民事訴訟法 ⑤商法 ⑥憲法 ⑦行政法。
-- 対象が無いストリームは自動スキップ（例：民法は TX 入力ゼロ→T スキップ・J のみ）。刑法は R が主役、刑訴は TX 334 件で T が主役。
+- 対象が無いストリームは自動スキップ（例：民法は TX 入力ゼロ→T スキップ・J のみ）。刑法は R（欠番補完）が主役、刑訴は TX 334 件で T が主役。
 - **旧パターン script は TJR への転送スタブに置換**（`scripts/patterns/{TX-MARCH,TX-PICK,JX}.ps1`＝旧名で叩いても TJR へ流れる）。
   `scripts/night-batch-runner.ps1` は v10 GOLD-SKELETON 専用に引退（TX 生成は tx-v13-runner が後継。Windows スケジュールタスクは順次 TJR へ貼り替える）。
 - **二台同時 TJR は claim 予約で自動衝突回避（2026-07-27）**：各問の生成前に `locks/claims/{問題ID}.json` を
@@ -1261,9 +1270,10 @@ TJR は「大元の号令＝指揮者」で、各ストリームを 1 号令で�
   > **`docs/canonical-revision-migration-playbook.md`** が正典。既存一括移行は LLM 手編集ではなく
   > recanon スクリプト（`scripts/tx-lex-recanon.py` 等）で土台だけ載せ替える（本文不変・冪等）。
 - ファイル名・出力先サブフォルダの **§2 規則違反**（レガシー K/MIN/KEN 等の混在禁止）
-- **【TX 二系統・2026-06-24】TX を公式だけ／`_lex` だけで完結扱いにし、一方を省くこと**
-  （new-tx Phase 4h・spec `tx-v11.1.0-twotrack.md`。1 問＝公式 `000_TX`（本物5択）＋ `_lex` `ux/000_TX`（ox-grid＋解法ナビ）。
-  `_lex` の ox-stmt を `①b②c…` の**記号のみ肢**にすること＝G30 違反。解法ナビは `canonical/SOLVE-NAV.html` のエンジンを逐語コピーし問題固有データのみ記述）
+- **【TX 公式のみ・2026-10-18】TJR・`/new-tx` で `_lex`（`outputs/ux/000_TX`）を新しく作ること**
+  （二系統は廃止＝1 問＝公式 `000_TX` の 1 ファイル。既存 `_lex` は残し、その保守は付随ストリームの領分。
+  旧規律「公式だけ／`_lex` だけで完結扱いにしない」（2026-06-24）はこれで置き換わった。既存 `_lex` を直すときは従来どおり
+  ox-stmt を `①b②c…` の**記号のみ肢**にしない＝G30・解法ナビは `canonical/SOLVE-NAV.html` のエンジンを逐語のまま）
 - **【○×反転・2026-07-09】`_lex` で答えを「命題の真偽」以外の意味で付けること**
   （事例の帰結記号（成立＝○/不成立＝×）を answer-key に流用する／同一 data-stmt で `.ox-stmt` と `.tx-inline-card` の
   結論を逆向きに書く＝片面で正答が誤答表示になる。§3【○×答えの規約と反転防止】・`validate-tx-core.py` G60・

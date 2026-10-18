@@ -2,7 +2,19 @@
 description: 新規 TX を問題 PDF から生成。_lex は active v13.1.0 LOOP-CARD（GENESIS-CARD baseline：統合解説昇格＋📚BASISトグル＋体系マップSVGハイブリッド＋正誤マーキング＋相互リンク往復）。公式版は本物5択。
 ---
 
-新規 TX HTML（短答式・二系統＝公式 `000_TX`＋Lexia `_lex`）を問題 PDF から生成する。
+新規 TX HTML（短答式）を問題 PDF から生成する。
+
+> **【公式のみ・二系統廃止・2026-10-18 ユーザー指示】出力は公式 `outputs/000_TX/{科目}/{接頭辞}{NNN}.html` の 1 ファイルだけ。**
+> 本書の「二系統」「`_lex`」の工程は次のとおり読み替える。
+> 1. Phase 3〜4g は GENESIS-CARD を `{公式パス}` へ複製してそのまま行う（記述カード・正誤表・体系マップ・BASIS は公式に残る）。
+> 2. Phase 4h は **手順3（de-grid）だけ**を行う：answer-area を single/multi の本物5択へ、ox-grid を answer-row へ置換し、
+>    GENESIS-CARD から引き継いだ解法ナビ（`#solve-nav` の枠と末尾の解法ナビ `<script>`）を削除する。
+>    **`_lex` への切り出し（手順1）・解法ナビの注入（手順2）はしない。**
+> 3. Phase 4i（物語解説）は行わない（物語は `_lex` 専用の要素）。
+> 4. Phase 6 の検証は公式に `validate-tx-core.py` と `check-duplicates.py` だけ（`check-tx-lex-engine.py`・
+>    `check-lex-oxgrid-integrity.py` は `_lex` 専用）。Phase 7 は公式だけを add/commit する。
+> 既存の `_lex`（`outputs/ux/000_TX`）は残置し、その保守（G/D/I 等の付随ストリーム）では本書の `_lex` 記述をそのまま使う。
+> Lexia は `_lex` の無い問題を公式から問題単位で取り込む。headless 版は `prompts/new-tx-headless-v13.md`。
 
 > **【active＝v13.1.0 LOOP-CARD・2026-07-03】_lex の新規生成・v13 化はこの経路が唯一起点。** 最初に
 > `docs/canonical-lineage.md` の active 行を読む。v13 の byte 正典は **`canonical/GENESIS-CARD.html`（gold=刑TX359）**＋
