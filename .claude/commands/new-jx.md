@@ -124,6 +124,9 @@ description: 新規 JX ファイルを問題 PDF から生成（active v4.0.0 LO
 
 ### Phase 9: 副産物生成（RX / TREE / ARIADNE）— リモートでも必須（docs/rx-arb-byproducts.md）
 
+> **【休止・2026-10-19 ユーザー指示】`scripts/tjr-paused.json` の `pauseByproducts` が true の間は、Phase 9 と 35-bis を丸ごと飛ばす**
+> （JX の HTML＋TTS 台本で完結。副産物 RX・TREE・ARIADNE・PERIPATOS は作らない・欠落を検査しない）。false に戻ったら下の手順に従う。
+
 > **背景**：副産物（Lexia 取込用の RX 論証カード・TREE 樹形図・ARIADNE 解法ナビ）は従来
 > `jx-batch-runner.ps1`（PowerShell・ローカル専用）の ②-rx/②-arb/②-ariadne 段でしか作られず、
 > **リモート（Claude Code on the web）で `/new-jx` 単発生成すると副産物が欠落**していた。

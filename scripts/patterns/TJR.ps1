@@ -1,9 +1,9 @@
 # TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ TX欠番補完＝R ／ 修復＝F を1本で束ねる指揮者）
 #
-# 【休止・2026-10-19 ユーザー指示】bar-exam の TJR は TX 公式だけを作る（F・T・R）。J（JX と副産物 RX/TREE/ARIADNE）と
-#   _lex の付随（Q・S・G・D・I）は休止し、その分を shoshi-exam（司法書士の STX＋記述式）へ回す。休止の単一情報源＝
-#   scripts\tjr-paused.json（pausedStreams）。休止中のストリームは -Only で指定しても動かない（一時的に動かすときだけ
-#   -IgnorePause）。F は TX の修復だけを行い、JX の修復再生成はしない（J 休止中）。再開は同ファイルから外す。
+# 【休止・2026-10-19 ユーザー指示】bar-exam の TJR は TX 公式と JX 本体だけを作る（F・T・J・R）。JX の副産物
+#   （RX/TREE/ARIADNE/PERIPATOS）と _lex の付随（Q・S・G・D・I）は休止し、その分を shoshi-exam（司法書士の STX＋記述式）へ回す。
+#   休止の単一情報源＝scripts\tjr-paused.json（pausedStreams＝ストリーム／pauseByproducts＝JX の副産物・jx-batch-runner が読む）。
+#   休止中のストリームは -Only で指定しても動かない（一時的に動かすときだけ -IgnorePause）。再開は同ファイルから外す。
 #
 # 【位置づけ】2026-07-04 確定・ユーザー指示で旧パターン（TX-MARCH / TX-PICK / JX）を廃止し、
 #   本 TJR を現行版の唯一の入口にする。TJR は「指揮者」であり、重い生成ロジックは持たない。
@@ -131,6 +131,8 @@ $RepairReport = Join-Path $LogsDir 'tjr-repair-report.md'     # ESCALATE / repor
 #   その分を shoshi-exam へ回す。読めなければ休止なしで続行（号令そのものは止めない）。
 $PauseFile = Join-Path $ProjectRoot 'scripts\tjr-paused.json'
 $Paused = @()
+$PauseByproducts = $false   # JX の副産物の休止（生成側は jx-batch-runner が同じファイルを読む。ここでは F の GAP 報告を抑えるだけ）
+if (Test-Path $PauseFile) { try { $PauseByproducts = [bool](Get-Content $PauseFile -Raw -Encoding utf8 | ConvertFrom-Json).pauseByproducts } catch {} }
 if (-not $IgnorePause -and (Test-Path $PauseFile)) {
     try { $Paused = @((Get-Content $PauseFile -Raw -Encoding utf8 | ConvertFrom-Json).pausedStreams | Where-Object { $_ }) }
     catch { Write-Host "[休止] tjr-paused.json を読めない → 休止なしで続行: $($_.Exception.Message)" -ForegroundColor Yellow }
@@ -475,7 +477,10 @@ function Invoke-FStream {
 
     # --- 4) report-only・副産物欠落はレポートへ（副産物の修復は ②-verify／rx-arb-autofill の領分） ---
     foreach ($ro in @($audit.reportOnly | Where-Object { $_ })) { $reportLines += "- REPORT $($ro.path): $($ro.reasons -join '；')" }
-    foreach ($g in @($audit.byproductGaps | Where-Object { $_ })) { $reportLines += "- GAP $($g.problemId): 副産物欠落 $($g.missing -join '/')（autofill/②-verify が回収）" }
+    # 副産物の休止中（tjr-paused.json の pauseByproducts）は欠落が正常なのでレポートしない（毎バッチの雑音になる）
+    if (-not $PauseByproducts) {
+        foreach ($g in @($audit.byproductGaps | Where-Object { $_ })) { $reportLines += "- GAP $($g.problemId): 副産物欠落 $($g.missing -join '/')（autofill/②-verify が回収）" }
+    }
     Add-RepairReport -Lines $reportLines
 
     return $res
@@ -515,7 +520,8 @@ function Invoke-JxStream {
     } else { $p.MaxProblems = $Max }
     if ($NoPush) { $p.NoPush = $true }
     if ($DryRun) { $p.DryRun = $true }
-    Write-Host "`n———————— J（新規JX＋副産物・$StreamSubject） 開始 ————————" -ForegroundColor Green
+    $jLabel = if ($PauseByproducts) { '新規JX・副産物は休止中' } else { '新規JX＋副産物' }
+    Write-Host "`n———————— J（$jLabel・$StreamSubject） 開始 ————————" -ForegroundColor Green
     # 同上：JX ランナーの success ストリーム漏れで $rcJ を配列化させない。
     & $JxRunner @p | Out-Host
     return $LASTEXITCODE
@@ -643,7 +649,7 @@ if ($Only -and $Only -in $Paused) {
     exit 0
 }
 if ($Paused.Count -gt 0) {
-    Write-Host ("`n[休止] {0} は休止中（scripts\tjr-paused.json）。この TJR は TX 公式だけ（F・T・R）を回す。" -f ($Paused -join '・')) -ForegroundColor DarkYellow
+    Write-Host ("`n[休止] {0} は休止中（scripts\tjr-paused.json）。この TJR は TX 公式と JX 本体だけ（F・T・J・R）を回す。" -f ($Paused -join '・')) -ForegroundColor DarkYellow
     if ('J' -in $Paused) { $runJ = $false }
     if ('Q' -in $Paused) { $runQ = $false }
     if ('S' -in $Paused) { $runS = $false }
