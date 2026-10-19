@@ -5,9 +5,10 @@
 > ／修復（F・2026-07-24 新設）を 1 号令で束ねる。実生成は各エンジン（`tx-v13-runner.ps1`／`jx-batch-runner.ps1`）へ委譲する。
 > チャットで「**TJR処理 刑訴**」のように科目名を添えて指示すれば起動する。両 PC・全セッション共通の語彙。
 
-> **【休止・2026-10-19 ユーザー指示】この TJR は TX 公式だけ（F・T・R）を回す。** J（JX＋副産物）と Q・S・G・D・I は
-> `scripts/tjr-paused.json` で休止中（`-Only` で指定しても動かない・一時的に動かすときは `-IgnorePause`）。副産物の常駐スイープ
-> （`rx-arb-autofill.ps1`）も同ファイルの `pauseAutofill` で止めてある。空いた分は shoshi-exam の TJR（STX＋記述式 HX/KX）へ回す。
+> **【休止・2026-10-19 ユーザー指示】この TJR は TX 公式と JX 本体だけ（F・T・J・R）を回す。** Q・S・G・D・I は
+> `scripts/tjr-paused.json` の `pausedStreams` で休止中（`-Only` で指定しても動かない・一時的に動かすときは `-IgnorePause`）。
+> JX の副産物（RX・TREE・ARIADNE・PERIPATOS）は `pauseByproducts` で休止中（J は JX の HTML＋TTS 台本まで）。副産物の常駐スイープ
+> （`rx-arb-autofill.ps1`）も `pauseAutofill` で止めてある。空いた分は shoshi-exam の TJR（STX＋記述式 HX/KX）へ回す。
 > 再開は同ファイルから外す。
 
 ## TJR の7ストリーム

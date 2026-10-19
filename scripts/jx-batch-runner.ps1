@@ -256,6 +256,18 @@ if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadne)) { Write-Host "[NOTE
 if ($AriadneEnabled -and -not (Test-Path $CanonicalAriadneSlots)) { Write-Host "[NOTE] ARIADNE slot contract 不在 → ②-ariadne 自動スキップ: $CanonicalAriadneSlots" -ForegroundColor Yellow; $AriadneEnabled = $false }
 $PeripatosEnabled = (-not $SkipPeripatos)
 if ($PeripatosEnabled -and -not (Test-Path $PeripatosScript)) { Write-Host "[NOTE] peripatos-md.py 不在 → ②-peripatos 自動スキップ: $PeripatosScript" -ForegroundColor Yellow; $PeripatosEnabled = $false }
+# 【休止・2026-10-19 ユーザー指示】JX 本体は作るが、副産物（RX・TREE・ARIADNE・PERIPATOS）は作らない。
+#   単一情報源＝scripts\tjr-paused.json の pauseByproducts（false にすれば元どおり）。②-verify も同じ判定で要求から外れる。
+#   TJR の J・F（JX 修復）・単独起動のどれも、ここを通るので副産物は作られない。
+$TjrPauseFile = Join-Path $ProjectRoot 'scripts\tjr-paused.json'
+if (Test-Path $TjrPauseFile) {
+    try {
+        if ([bool](Get-Content $TjrPauseFile -Raw -Encoding utf8 | ConvertFrom-Json).pauseByproducts) {
+            $RxEnabled = $false; $ArbEnabled = $false; $AriadneEnabled = $false; $PeripatosEnabled = $false
+            Write-Host "[休止] 副産物（RX・TREE・ARIADNE・PERIPATOS）は休止中（scripts\tjr-paused.json の pauseByproducts）→ JX 本体だけ作る" -ForegroundColor DarkYellow
+        }
+    } catch { Write-Host "[休止] tjr-paused.json を読めない → 副産物は通常どおり: $($_.Exception.Message)" -ForegroundColor Yellow }
+}
 Write-Host "副産物    : RX(論証カード)=$(if($RxEnabled){'ON'}else{'OFF'}) / TREE(樹形図)=$(if($ArbEnabled){'ON'}else{'OFF'}) / ARIADNE(解法ナビ)=$(if($AriadneEnabled){'ON'}else{'OFF'}) / PERIPATOS(音声台本)=$(if($PeripatosEnabled){'ON'}else{'OFF'})  → 出力 $RxOutputDir / $ArbOutputDir / $AriadneOutputDir / $PeripatosOutputDir"
 
 # PERIPATOS は ARIADNE から決定論で作る（LLM 不要・冪等＝中身が変わったときだけ書く・非致命）
