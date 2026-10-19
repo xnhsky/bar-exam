@@ -1,5 +1,10 @@
 # TJR.ps1 — 大元の号令（TX新規＝T ／ JX新規＝J ／ TX欠番補完＝R ／ 修復＝F を1本で束ねる指揮者）
 #
+# 【休止・2026-10-19 ユーザー指示】bar-exam の TJR は TX 公式だけを作る（F・T・R）。J（JX と副産物 RX/TREE/ARIADNE）と
+#   _lex の付随（Q・S・G・D・I）は休止し、その分を shoshi-exam（司法書士の STX＋記述式）へ回す。休止の単一情報源＝
+#   scripts\tjr-paused.json（pausedStreams）。休止中のストリームは -Only で指定しても動かない（一時的に動かすときだけ
+#   -IgnorePause）。F は TX の修復だけを行い、JX の修復再生成はしない（J 休止中）。再開は同ファイルから外す。
+#
 # 【位置づけ】2026-07-04 確定・ユーザー指示で旧パターン（TX-MARCH / TX-PICK / JX）を廃止し、
 #   本 TJR を現行版の唯一の入口にする。TJR は「指揮者」であり、重い生成ロジックは持たない。
 #   実生成は各エンジンへ委譲：
@@ -98,6 +103,7 @@ param(
     [int]$MaxI  = 10,             # I の基本単位（§v16 解く前の🔰導入・科目へ均等配分・2026-10-14）
     [switch]$NoPush,
     [switch]$DryRun,
+    [switch]$IgnorePause,         # scripts\tjr-paused.json の休止を今回だけ無視する（2026-10-19〜 J・Q・S・G・D・I 休止中）
     [string]$ProjectRoot = ''
 )
 
@@ -119,6 +125,16 @@ $AuditTool = Join-Path $ProjectRoot 'scripts\tjr-audit.py'
 $LogsDir = Join-Path $ProjectRoot 'logs'
 $RepairLedger = Join-Path $LogsDir 'tjr-repair-ledger.json'   # F の再試行台帳（PCローカル・git外）
 $RepairReport = Join-Path $LogsDir 'tjr-repair-report.md'     # ESCALATE / report-only の追記先
+
+# === 休止中のストリーム（2026-10-19 ユーザー指示・単一情報源＝scripts\tjr-paused.json）===
+#   bar-exam の TJR は TX 公式だけ（F・T・R）。J（JX＋副産物）と _lex の付随（Q・S・G・D・I）は休止し、
+#   その分を shoshi-exam へ回す。読めなければ休止なしで続行（号令そのものは止めない）。
+$PauseFile = Join-Path $ProjectRoot 'scripts\tjr-paused.json'
+$Paused = @()
+if (-not $IgnorePause -and (Test-Path $PauseFile)) {
+    try { $Paused = @((Get-Content $PauseFile -Raw -Encoding utf8 | ConvertFrom-Json).pausedStreams | Where-Object { $_ }) }
+    catch { Write-Host "[休止] tjr-paused.json を読めない → 休止なしで続行: $($_.Exception.Message)" -ForegroundColor Yellow }
+}
 
 # === TJR claim ライブラリ（二台同時実行の衝突対策・2026-07-27）===
 #   claim 予約＋安全 push（first-push-wins・rebase 途中放置の禁止）。正典 docs/run-patterns.md。
@@ -425,8 +441,15 @@ function Invoke-FStream {
     }
 
     # --- 3) JX 修復再生成（jx-batch-runner -RepairNumbers・上限 MaxFJx/バッチ・台帳で再試行制御） ---
+    #   J 休止中（scripts\tjr-paused.json）は JX を作り直さない＝検出だけレポートへ残す。
     $jxQueue = @()
-    foreach ($r in @($audit.jxRepairs | Where-Object { $_ })) {
+    $jxRepairItems = @($audit.jxRepairs | Where-Object { $_ })
+    if ('J' -in $Paused -and $jxRepairItems.Count -gt 0) {
+        Write-Host "[F] JX 修復 $($jxRepairItems.Count) 件は J 休止中のため見送り（レポートに記録）" -ForegroundColor DarkYellow
+        foreach ($r in $jxRepairItems) { $reportLines += "- PAUSED $($r.problemId)（J 休止中のため JX 修復を見送り）: $($r.reasons -join '；')" }
+        $jxRepairItems = @()
+    }
+    foreach ($r in $jxRepairItems) {
         $att = 0; if ($ledger.ContainsKey($r.id)) { $att = [int]$ledger[$r.id].attempts }
         if ($att -ge 2) {
             Write-Host "[F-ESCALATE] $($r.problemId)：修復 $att 回失敗済み → 自動再試行を停止（手動対応要・logs\tjr-repair-report.md）" -ForegroundColor Red
@@ -615,6 +638,19 @@ $runS = ($Only -eq '' -or $Only -eq 'S') -and (-not $SkipS)
 $runG = ($Only -eq '' -or $Only -eq 'G') -and (-not $SkipG)
 $runD = ($Only -eq '' -or $Only -eq 'D') -and (-not $SkipD)
 $runI = ($Only -eq '' -or $Only -eq 'I') -and (-not $SkipI)
+if ($Only -and $Only -in $Paused) {
+    Write-Host "`n[休止] $Only は休止中（scripts\tjr-paused.json・2026-10-19〜）。今回だけ動かすときは -IgnorePause を付ける。" -ForegroundColor Yellow
+    exit 0
+}
+if ($Paused.Count -gt 0) {
+    Write-Host ("`n[休止] {0} は休止中（scripts\tjr-paused.json）。この TJR は TX 公式だけ（F・T・R）を回す。" -f ($Paused -join '・')) -ForegroundColor DarkYellow
+    if ('J' -in $Paused) { $runJ = $false }
+    if ('Q' -in $Paused) { $runQ = $false }
+    if ('S' -in $Paused) { $runS = $false }
+    if ('G' -in $Paused) { $runG = $false }
+    if ('D' -in $Paused) { $runD = $false }
+    if ('I' -in $Paused) { $runI = $false }
+}
 $rcAll = 0
 $batchCount = $Batches
 if ($DryRun -and $Batches -gt 1) {

@@ -62,6 +62,16 @@ $Report = Join-Path $LogsDir 'autofill-report.md'   # ← xnrg2（副産物を�
 function Log($m,$c='Gray'){ $line="[autofill $stamp] $m"; Write-Host $line -ForegroundColor $c; Add-Content -Path $RunLog -Value $line -Encoding utf8 }
 function Report($m){ Add-Content -Path $Report -Value "- $stamp $m" -Encoding utf8 }
 
+# --- 0. 休止（2026-10-19 ユーザー指示・scripts/tjr-paused.json の pauseAutofill）---
+#   bar-exam は TX 公式だけを作る方針になり、ARIADNE などの副産物は作らない。休止中は何もしないで終わる。
+#   pull で休止が届く場合に備え、pull の後にもう一度確かめる（下の 3-bis）。
+function Test-AutofillPaused {
+  $pf = Join-Path $ProjectRoot 'scripts\tjr-paused.json'
+  if (-not (Test-Path $pf)) { return $false }
+  try { return [bool](Get-Content $pf -Raw -Encoding utf8 | ConvertFrom-Json).pauseAutofill } catch { return $false }
+}
+if (Test-AutofillPaused) { Log '休止中（scripts/tjr-paused.json の pauseAutofill）→ 何もしないで終了' 'DarkYellow'; exit 0 }
+
 # --- 1. 自己ロック（多重起動防止・2h で stale 解除） ---
 $lock = Join-Path $LogsDir 'rx-arb-autofill.lock'
 if (Test-Path $lock) {
@@ -102,6 +112,8 @@ try {
     & git merge --ff-only origin/master 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { Log "ff-only pull 不可（ローカル先行/分岐）→ ローカルのまま続行" 'DarkYellow' }
   }
+  # --- 3-bis. pull で休止が届いていたらここで止める ---
+  if (Test-AutofillPaused) { Log '休止中（pull 後に確認・scripts/tjr-paused.json）→ 何もしないで終了' 'DarkYellow'; exit 0 }
 
   # --- 4. 欠落検知（全科目）---
   function Get-Missing([string]$subj){

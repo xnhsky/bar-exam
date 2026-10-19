@@ -959,6 +959,9 @@ Drive へのバックアップ（ミラー）は引き続き任意で行って�
 
 ### §4-6. RX/TREE/ARIADNE 副産物（2026-06-11 導入・2026-06-20 リモート対応）
 
+> **【休止・2026-10-19】JX と副産物（RX・TREE・ARIADNE・PERIPATOS）の生成は休止中**（`scripts/tjr-paused.json`・§6-2 の休止注記）。
+> 下の「JX は副産物まで 1 セット」は再開時の規律として残す。常駐スイープ `rx-arb-autofill.ps1` も休止中は何もしない。
+
 検証 PASS 済み JX から Lexia 用の **RX 論証カード**（`outputs/ux/002_RX/`・1論点1HTML）・
 **TREE 樹形図**（`outputs/ux/003_TREE/`・ARBOR 仕様）・**ARIADNE 解法ナビ**
 （`outputs/ux/001_ARIADNE/`）を自動生成する（既定 ON・非致命）。
@@ -1206,6 +1209,12 @@ TJR の短縮キーを S のキーへ写像して接続）。新規生成（T/J/
 正典改定そのものの進め方は `docs/canonical-revision-migration-playbook.md`。
 
 ### 6-2. 実行パターン（号令＝TJR に一元化・2026-07-04 確定）
+
+> **【休止・2026-10-19 ユーザー指示】bar-exam の TJR は TX 公式だけを作る（F・T・R）。** J（JX と副産物 RX・TREE・ARIADNE・
+> PERIPATOS）と `_lex` の付随（Q・S・G・D・I）は休止し、その分を **shoshi-exam（司法書士の STX＋記述式 HX/KX）** へ回す
+> （主戦場は shoshi-exam の TJR）。休止の単一情報源＝`scripts/tjr-paused.json`（`pausedStreams`・副産物の常駐スイープは
+> `pauseAutofill`）。休止中のストリームは `-Only` で指定しても動かない（一時的に動かすときだけ `TJR.ps1 -IgnorePause`）。
+> F は TX の修復だけ（JX の修復再生成は見送ってレポートに残す）。再開は同ファイルから外す。以下の J・Q・S・G・D・I の記述は再開時のために残す。
 
 > **旧パターン（TX-MARCH / TX-PICK / JX）は廃止し、号令を `TJR処理` 1 本に統一した。** チャットで
 > 「**TJR処理 刑訴**」のように科目名を添えて指示する。一覧・コマンドは **`docs/run-patterns.md`** が正典。
