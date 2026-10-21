@@ -129,7 +129,12 @@ function Test-TjrClaimExpired { param($Claim)
     # TTL 超過＝失効（他 PC が引き継ぎ可能）。解釈不能な claim も失効扱い＝番号の永久ブロックを防ぐ。
     if ($null -eq $Claim) { return $true }
     try {
-        $created = [DateTimeOffset]::Parse([string]$Claim.createdAt).UtcDateTime
+        # pwsh 7 の ConvertFrom-Json は createdAt（…Z）を DateTime（Kind=Utc）に変える。[string] にすると Z が落ち、
+        # Parse が現地時刻（JST）と読んで 9 時間古く見える＝作った直後の claim が全部失効扱いになっていた（2026-10-21）
+        $v = $Claim.createdAt
+        $created = if ($v -is [DateTime]) { $v.ToUniversalTime() }
+                   elseif ($v -is [DateTimeOffset]) { $v.UtcDateTime }
+                   else { [DateTimeOffset]::Parse([string]$v, [System.Globalization.CultureInfo]::InvariantCulture).UtcDateTime }
         $ttl = [double]$Claim.ttlMinutes
         if ($ttl -le 0) { $ttl = 240 }
         return (([DateTime]::UtcNow - $created).TotalMinutes -gt $ttl)
