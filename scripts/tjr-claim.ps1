@@ -129,7 +129,12 @@ function Test-TjrClaimExpired { param($Claim)
     # TTL 超過＝失効（他 PC が引き継ぎ可能）。解釈不能な claim も失効扱い＝番号の永久ブロックを防ぐ。
     if ($null -eq $Claim) { return $true }
     try {
-        $created = [DateTimeOffset]::Parse([string]$Claim.createdAt).UtcDateTime
+        # PowerShell 7 の ConvertFrom-Json は ISO 時刻を DateTime（Kind 付き）に変換する。[string] に戻すと
+        # 'Z' が落ちてローカル時刻と読まれ JST で 9 時間ずれる（全 claim が失効扱い＝相手 PC の予約を消す）。
+        $raw = $Claim.createdAt
+        $created = if ($raw -is [DateTime]) { $raw.ToUniversalTime() }
+                   elseif ($raw -is [DateTimeOffset]) { $raw.UtcDateTime }
+                   else { [DateTimeOffset]::Parse([string]$raw, [Globalization.CultureInfo]::InvariantCulture).UtcDateTime }
         $ttl = [double]$Claim.ttlMinutes
         if ($ttl -le 0) { $ttl = 240 }
         return (([DateTime]::UtcNow - $created).TotalMinutes -gt $ttl)
