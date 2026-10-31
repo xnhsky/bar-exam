@@ -1,0 +1,61 @@
+# Supabase 無料枠の自動停止（7 日間無アクセスで pause）を防ぐキープアライブ。
+# 3 日ごとに lexia-prod へ軽い API リクエストを 1 回送る。
+#
+# 必要な設定（GitHub リポジトリ Settings → Secrets and variables → Actions）:
+#   Secrets:
+#     SUPABASE_URL       例 https://imgfcamovpmmojbqdoya.supabase.co
+#     SUPABASE_ANON_KEY  Supabase ダッシュボード Project Settings → API → anon public
+#   Variables（任意）:
+#     SUPABASE_KEEPALIVE_TABLE  存在するテーブル名。指定すると SELECT 1 行で ping する
+#                               （未指定なら PostgREST ルートと Auth health を叩く）
+#
+# 注意: すでに pause 済みのプロジェクトはこのワークフローでは起こせない。
+#       一度ダッシュボードから Unpause してから有効になる。
+name: supabase-keepalive
+
+on:
+  schedule:
+    - cron: "17 3 */3 * *"   # 3 日ごと 03:17 UTC（= 12:17 JST）
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          KEEPALIVE_TABLE: ${{ vars.SUPABASE_KEEPALIVE_TABLE }}
+        run: |
+          set -eu
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_ANON_KEY}" ]; then
+            echo "::error::SUPABASE_URL / SUPABASE_ANON_KEY が未設定です（Secrets に追加してください）"
+            exit 1
+          fi
+          BASE="${SUPABASE_URL%/}"
+          AUTH=(-H "apikey: ${SUPABASE_ANON_KEY}" -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          if [ -n "${KEEPALIVE_TABLE}" ]; then
+            URL="${BASE}/rest/v1/${KEEPALIVE_TABLE}?select=*&limit=1"
+          else
+            URL="${BASE}/rest/v1/"
+          fi
+          echo "GET ${URL}"
+          code=$(curl -sS -o /tmp/rest.out -w '%{http_code}' --max-time 30 "${AUTH[@]}" "${URL}")
+          echo "REST -> HTTP ${code}"
+          head -c 300 /tmp/rest.out; echo
+
+          code2=$(curl -sS -o /tmp/auth.out -w '%{http_code}' --max-time 30 "${AUTH[@]}" "${BASE}/auth/v1/health")
+          echo "Auth health -> HTTP ${code2}"
+          head -c 300 /tmp/auth.out; echo
+
+          # 2xx/3xx/4xx（RLS で 401/403 でも API 到達＝活動として記録される）は成功扱い。
+          # 5xx や接続失敗（000）は pause 中か障害なので失敗にして気づけるようにする。
+          case "${code}" in
+            2*|3*|4*) echo "keepalive OK" ;;
+            *) echo "::error::Supabase に到達できません（HTTP ${code}）。pause 中ならダッシュボードから Unpause してください"; exit 1 ;;
+          esac
