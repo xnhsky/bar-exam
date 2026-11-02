@@ -9,7 +9,8 @@
 > `scripts/tjr-paused.json` の `pausedStreams` で休止中（`-Only` で指定しても動かない・一時的に動かすときは `-IgnorePause`）。
 > JX の副産物（RX・TREE・ARIADNE・PERIPATOS）は `pauseByproducts` で休止中（J は JX の HTML＋TTS 台本まで）。副産物の常駐スイープ
 > （`rx-arb-autofill.ps1`）も `pauseAutofill` で止めてある。空いた分は shoshi-exam の TJR（STX＋記述式 HX/KX）へ回す。
-> 再開は同ファイルから外す。
+> 再開は同ファイルから外す。bar-exam のセッションから shoshi-exam の TJR を回すときは「**TJR処理 司法書士**」と言う
+> （下の「司法書士（shoshi-exam）の TJR を回す合言葉」）。
 
 ## TJR の7ストリーム
 
@@ -125,6 +126,45 @@ pwsh -NoProfile -File scripts/patterns/TJR.ps1 -Subject 刑訴 -DryRun     # 各
 - 「**TX 355-360 処理**」（TXだけ）→ `-Only T -TxFrom 355 -TxTo 360`。
 - 「**JX 1-10 処理**」（JXだけ）→ `-Only J -JxFrom 1 -JxTo 10`。
 - 「**修復だけ**」「**エラー品を直して**」→ `-Only F`（F は通常の「TJR処理」にも毎バッチ自動で入っている）。
+- 「**TJR処理 司法書士**」→ bar-exam ではなく **shoshi-exam の TJR** を回す（次の節）。
+
+## 司法書士（shoshi-exam）の TJR を回す合言葉（2026-10-21 ユーザー指示）
+
+司法書士の教材は別リポジトリ shoshi-exam で作り、TJR もそちらに別の `scripts/TJR.ps1`（F＝修復／T＝択一 STX／R＝さかのぼり／
+H＝ひな形 HX／K＝記述式 KX）がある。号令の語がどちらも「TJR処理」なので、**bar-exam のセッションでは「TJR処理 司法書士」と
+言われたときだけ shoshi-exam の TJR を回す**。「司法書士」の付かない「TJR処理」は従来どおり bar-exam の TJR。
+shoshi-exam のフォルダで開いたセッションの「TJR処理」は最初から shoshi-exam の TJR なので、合言葉は要らない。
+
+| 号令（bar-exam のセッション） | 実コマンド（`<shoshi-exam>\scripts\TJR.ps1` に付ける引数） |
+|---|---|
+| 「TJR処理 司法書士」 | （引数なし）＝1 バッチ |
+| 「TJRを3バッチ処理 司法書士」「司法書士のTJRを3バッチ」 | `-Batches 3` |
+| 「TJR処理 司法書士 不登」 | `-Subject 不登`（不登を最優先・仕事が無ければ作成順の次の科目へ） |
+| 「TJR処理 司法書士 STXだけ」 | `-Only T` |
+| 「TJR処理 司法書士 HXだけ」／「KXだけ」 | `-Only H` ／ `-Only K` |
+| 「商登KX2 を TJR処理」 | `-Only K -Subject 商登 -KxFrom 2 -KxTo 2` |
+| 「TJR処理 司法書士 修復だけ」 | `-Only F` |
+| 「TJR処理 司法書士 検出だけ」 | `-DryRun` |
+
+- **「司法書士」が無くても shoshi-exam 側とみなす号令**：司法書士にしかない科目名・系列名（不登・商登・民執・民保・供託・書士／
+  STX・HX・KX）が入っているとき。民法・刑法など両方にある科目名だけのときは bar-exam 側。
+- **科目キーの読み替え**：shoshi-exam の `-Subject` は同リポジトリ `scripts/subjects.json` の prefix（民・商・刑・憲・民訴・民執・
+  民保・書士・供託・不登・商登）。「民法」→`民`、「会社法」「商法」→`商`、「刑法」→`刑`、「憲法」→`憲` に読み替える。
+  bar-exam の `刑訴`・`行政` は司法書士に無い。
+- **場所**：`<shoshi-exam>` は bar-exam の本体チェックアウトと同じ親フォルダにある `shoshi-exam`
+  （xnrg2 PC＝`C:\Users\xnrg2.DESKTOP-5664QR6\shoshi-exam`）。shoshi-exam の TJR.ps1 は自分の置き場所からリポジトリを決めるので、
+  絶対パスで叩けば bar-exam の worktree からでも動く。見つからなければ場所をユーザーに聞く（推測で clone しない）。
+- **起動前の確認**：shoshi-exam のランナーは `HEAD:master` へ push する。shoshi-exam のチェックアウトが `master` で、
+  未コミットの変更が無いことを確かめてから起動する（違えば起動せずに報告する）。時間がかかるのでバックグラウンドで走らせる。
+- 1 バッチの単位・ストリーム・休止の有無は shoshi-exam の `docs/run-patterns.md` が正典（2026-10-21 時点で 1 バッチ＝
+  T:12問／R:3問／H:3類型／K:1問／F:修復3問）。bar-exam の `scripts/tjr-paused.json` は shoshi-exam には効かない。
+
+```powershell
+# TJR処理 司法書士（xnrg2 PC の例）
+pwsh -NoProfile -File C:\Users\xnrg2.DESKTOP-5664QR6\shoshi-exam\scripts\TJR.ps1
+# TJR処理 司法書士 不登
+pwsh -NoProfile -File C:\Users\xnrg2.DESKTOP-5664QR6\shoshi-exam\scripts\TJR.ps1 -Subject 不登
+```
 
 ## エンジン（内部・直接は叩かない）
 
